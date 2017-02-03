@@ -24,7 +24,7 @@ INSERT INTO GD_MD
 	0,
 	0,
 	0,
-	'',
+	'4.1.17',
 	'ciera::render');
 INSERT INTO DIM_DIA
 	VALUES ("7a024142-c074-40ae-b571-57f390330fbd",
@@ -38,7 +38,8 @@ INSERT INTO S_SYNC
 	"00000000-0000-0000-0000-000000000000",
 	'renderClass',
 	'',
-	'j_class = param.j_class;
+	'// render class
+j_class = param.j_class;
 if ( not_empty j_class and "" != j_class.name )
   if ( "" != j_class.visibility )
     T::b( s:j_class.visibility + " " );
@@ -46,6 +47,20 @@ if ( not_empty j_class and "" != j_class.name )
   T::b( s:"class " );
   class_name = T::c( s:T::r( s:j_class.name ) ) + "_c";
   T::b( s:class_name + " {\n" );
+  
+  // render contained elements
+  select many j_flds related by j_class->J_FLD[R1];
+  if ( not_empty j_flds )
+    T::b( s:"\n" );
+  end if;
+  for each j_fld in j_flds
+	T::b( s:"  " );
+	::renderField( j_fld:j_fld );
+  end for;
+  if ( not_empty j_flds )
+    T::b( s:"\n" );
+  end if;
+  
   T::b( s:"}" );
   T::emit( file:class_name + ".java" );
 end if;',
@@ -71,6 +86,47 @@ INSERT INTO S_DT_PROXY
 	'../../../../javaooa/models/javaooa/java/java.xtuml');
 INSERT INTO PE_PE
 	VALUES ("b31137a5-39ed-4f88-a93d-11019e1f7590",
+	1,
+	"be6306b7-7047-41a0-83e6-2978ca0126cb",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("243234b8-15ba-42b1-b9de-94873689afd6",
+	"00000000-0000-0000-0000-000000000000",
+	'renderField',
+	'',
+	'// render attribute
+j_fld = param.j_fld;
+if ( not_empty j_fld and "" != j_fld.name )
+  if ( "" != j_fld.visibility )
+    T::b( s:j_fld.visibility + " " );
+  end if; 
+  T::b( s:"integer " );
+  field_name = "m_" + j_fld.name;
+  T::b( s:field_name + ";\n" );
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("38ec3b50-ded6-4b18-b49e-b444fa37b537",
+	"243234b8-15ba-42b1-b9de-94873689afd6",
+	'j_fld',
+	"ec4d940e-6997-40ca-a8ea-7123829a8394",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("ec4d940e-6997-40ca-a8ea-7123829a8394",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Field>',
+	'',
+	'',
+	'../../../../javaooa/models/javaooa/java/java.xtuml');
+INSERT INTO PE_PE
+	VALUES ("243234b8-15ba-42b1-b9de-94873689afd6",
 	1,
 	"be6306b7-7047-41a0-83e6-2978ca0126cb",
 	"00000000-0000-0000-0000-000000000000",
