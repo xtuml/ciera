@@ -1,0 +1,2614 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+   
+      <title>Chapter&nbsp;16.&nbsp;Definite Assignment</title>
+      <link rel="stylesheet" type="text/css" href="https://docs.oracle.com/javase/specs/javaspec.css">
+      <meta name="generator" content="DocBook XSL-NS Stylesheets V1.76.1">
+      <link rel="home" href="index.html" title="The Java&reg; Language Specification">
+      <link rel="up" href="index.html" title="The Java&reg; Language Specification">
+      <link rel="prev" href="jls-15.html" title="Chapter&nbsp;15.&nbsp;Expressions">
+      <link rel="next" href="jls-17.html" title="Chapter&nbsp;17.&nbsp;Threads and Locks">
+      <link rel="copyright" href="jls-0-front.html" title="Legal Notice">
+   </head>
+   <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+      <div xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:rx="http://www.renderx.com/XSL/Extensions" id="logo"><img src="https://docs.oracle.com/javase/webdesign/other/im/oralogo_small.gif" alt="Oracle Logo"><br><p><a href="https://docs.oracle.com/javase/8/docs/">Java SE</a> &gt; <a href="https://docs.oracle.com/javase/specs/index.html">Java SE Specifications</a> &gt; <a href="index.html">Java Language Specification</a></p>
+      </div>
+      <div class="navheader">
+         <table width="100%" summary="Navigation header">
+            <tr>
+               <th colspan="3" align="center">Chapter&nbsp;16.&nbsp;Definite Assignment</th>
+            </tr>
+            <tr>
+               <td width="20%" align="left"><a accesskey="p" href="jls-15.html">Prev</a>&nbsp;
+               </td>
+               <th width="60%" align="center">&nbsp;</th>
+               <td width="20%" align="right">&nbsp;<a accesskey="n" href="jls-17.html">Next</a></td>
+            </tr>
+         </table>
+         <hr>
+      </div>
+      <div lang="en" class="chapter" title="Chapter&nbsp;16.&nbsp;Definite Assignment">
+         <div class="titlepage">
+            <div>
+               <div>
+                  <h2 class="title"><a name="jls-16"></a>Chapter&nbsp;16.&nbsp;Definite Assignment
+                  </h2>
+               </div>
+            </div>
+         </div>
+         <div class="toc">
+            <p><b>Table of Contents</b></p>
+            <dl>
+               <dt><span class="section"><a href="jls-16.html#jls-16.1">16.1. Definite Assignment and Expressions</a></span></dt>
+               <dd>
+                  <dl>
+                     <dt><span class="section"><a href="jls-16.html#jls-16.1.1">16.1.1. Boolean Constant Expressions</a></span></dt>
+                     <dt><span class="section"><a href="jls-16.html#jls-16.1.2">16.1.2. Conditional-And Operator <code class="literal">&amp;&amp;</code></a></span></dt>
+                     <dt><span class="section"><a href="jls-16.html#jls-16.1.3">16.1.3. Conditional-Or Operator <code class="literal">||</code></a></span></dt>
+                     <dt><span class="section"><a href="jls-16.html#jls-16.1.4">16.1.4. Logical Complement Operator <code class="literal">!</code></a></span></dt>
+                     <dt><span class="section"><a href="jls-16.html#jls-16.1.5">16.1.5. Conditional Operator <code class="literal">? :</code></a></span></dt>
+                     <dt><span class="section"><a href="jls-16.html#jls-16.1.6">16.1.6. Conditional Operator <code class="literal">? :</code></a></span></dt>
+                     <dt><span class="section"><a href="jls-16.html#jls-16.1.7">16.1.7. Other Expressions of Type <code class="literal">boolean</code></a></span></dt>
+                     <dt><span class="section"><a href="jls-16.html#jls-16.1.8">16.1.8. Assignment Expressions</a></span></dt>
+                     <dt><span class="section"><a href="jls-16.html#jls-16.1.9">16.1.9. Operators <code class="literal">++</code> and <code class="literal">--</code></a></span></dt>
+                     <dt><span class="section"><a href="jls-16.html#jls-16.1.10">16.1.10. Other Expressions</a></span></dt>
+                  </dl>
+               </dd>
+               <dt><span class="section"><a href="jls-16.html#jls-16.2">16.2. Definite Assignment and Statements</a></span></dt>
+               <dd>
+                  <dl>
+                     <dt><span class="section"><a href="jls-16.html#jls-16.2.1">16.2.1. Empty Statements</a></span></dt>
+                     <dt><span class="section"><a href="jls-16.html#jls-16.2.2">16.2.2. Blocks</a></span></dt>
+                     <dt><span class="section"><a href="jls-16.html#jls-16.2.3">16.2.3. Local Class Declaration Statements</a></span></dt>
+                     <dt><span class="section"><a href="jls-16.html#jls-16.2.4">16.2.4. Local Variable Declaration Statements</a></span></dt>
+                     <dt><span class="section"><a href="jls-16.html#jls-16.2.5">16.2.5. Labeled Statements</a></span></dt>
+                     <dt><span class="section"><a href="jls-16.html#jls-16.2.6">16.2.6. Expression Statements</a></span></dt>
+                     <dt><span class="section"><a href="jls-16.html#jls-16.2.7">16.2.7. <code class="literal">if</code> Statements</a></span></dt>
+                     <dt><span class="section"><a href="jls-16.html#jls-16.2.8">16.2.8. <code class="literal">assert</code> Statements</a></span></dt>
+                     <dt><span class="section"><a href="jls-16.html#jls-16.2.9">16.2.9. <code class="literal">switch</code> Statements</a></span></dt>
+                     <dt><span class="section"><a href="jls-16.html#jls-16.2.10">16.2.10. <code class="literal">while</code> Statements</a></span></dt>
+                     <dt><span class="section"><a href="jls-16.html#jls-16.2.11">16.2.11. <code class="literal">do</code> Statements</a></span></dt>
+                     <dt><span class="section"><a href="jls-16.html#jls-16.2.12">16.2.12. <code class="literal">for</code> Statements</a></span></dt>
+                     <dd>
+                        <dl>
+                           <dt><span class="section"><a href="jls-16.html#jls-16.2.12.1">16.2.12.1. Initialization Part of <code class="literal">for</code> Statement</a></span></dt>
+                           <dt><span class="section"><a href="jls-16.html#jls-16.2.12.2">16.2.12.2. Incrementation Part of <code class="literal">for</code> Statement</a></span></dt>
+                        </dl>
+                     </dd>
+                     <dt><span class="section"><a href="jls-16.html#jls-16.2.13">16.2.13. <code class="literal">break</code>, <code class="literal">continue</code>, <code class="literal">return</code>, and <code class="literal">throw</code> Statements</a></span></dt>
+                     <dt><span class="section"><a href="jls-16.html#jls-16.2.14">16.2.14. <code class="literal">synchronized</code> Statements</a></span></dt>
+                     <dt><span class="section"><a href="jls-16.html#jls-16.2.15">16.2.15. <code class="literal">try</code> Statements</a></span></dt>
+                  </dl>
+               </dd>
+               <dt><span class="section"><a href="jls-16.html#jls-16.3">16.3. Definite Assignment and Parameters</a></span></dt>
+               <dt><span class="section"><a href="jls-16.html#jls-16.4">16.4. Definite Assignment and Array Initializers</a></span></dt>
+               <dt><span class="section"><a href="jls-16.html#jls-16.5">16.5. Definite Assignment and Enum Constants</a></span></dt>
+               <dt><span class="section"><a href="jls-16.html#jls-16.6">16.6. Definite Assignment and Anonymous Classes</a></span></dt>
+               <dt><span class="section"><a href="jls-16.html#jls-16.7">16.7. Definite Assignment and Member Types</a></span></dt>
+               <dt><span class="section"><a href="jls-16.html#jls-16.8">16.8. Definite Assignment and Static Initializers</a></span></dt>
+               <dt><span class="section"><a href="jls-16.html#jls-16.9">16.9. Definite Assignment, Constructors, and Instance Initializers</a></span></dt>
+            </dl>
+         </div>
+         <p class="norm"><a name="jls-16-100"></a>Each local variable
+            (<a class="xref" href="jls-14.html#jls-14.4" title="14.4.&nbsp;Local Variable Declaration Statements">&sect;14.4</a>) and every blank <code class="literal">final</code> field
+            (<a class="xref" href="jls-4.html#jls-4.12.4" title="4.12.4.&nbsp;final Variables">&sect;4.12.4</a>, <a class="xref" href="jls-8.html#jls-8.3.1.2" title="8.3.1.2.&nbsp;final Fields">&sect;8.3.1.2</a>) must
+            have a <span class="emphasis"><em>definitely assigned</em></span> value when any access
+            of its value occurs.
+         </p>
+         <p class="norm-static"><a name="jls-16-110"></a>An access to
+            its value consists of the simple name of the variable 
+            (or, for a field, the simple name of the field qualified by
+            <code class="literal">this</code>)  occurring anywhere in an expression except as the
+            left-hand operand of the simple assignment operator <code class="literal">=</code>
+            (<a class="xref" href="jls-15.html#jls-15.26.1" title="15.26.1.&nbsp;Simple Assignment Operator =">&sect;15.26.1</a>).
+         </p>
+         <p class="norm-error"><a name="jls-16-120"></a>For every
+            access of a local variable or blank <code class="literal">final</code> field <code class="varname">x</code>, <code class="varname">x</code> must be
+            definitely assigned before the access, or a compile-time error
+            occurs.
+         </p>
+         <p class="norm"><a name="jls-16-200"></a>Similarly, every blank <code class="literal">final</code>
+            variable must be assigned at most once; it must be 
+            <span class="emphasis"><em>definitely unassigned</em></span> when an assignment to it
+            occurs.
+         </p>
+         <p class="norm-static"><a name="jls-16-210"></a>Such an
+            assignment is defined to occur if and only if either the simple name
+            of the variable (or, for a field, its simple name qualified by <code class="literal">this</code>)
+            occurs on the left hand side of an assignment operator.
+         </p>
+         <p class="norm-error"><a name="jls-16-220"></a>For every
+            assignment to a blank <code class="literal">final</code> variable, the variable must be
+            definitely unassigned before the assignment, or a compile-time error
+            occurs.
+         </p>
+         <p class="norm"><a name="jls-16-300"></a>The remainder of this chapter is
+            devoted to a precise explanation of the words "definitely assigned
+            before" and "definitely unassigned before".
+         </p>
+         <p class="norm"><a name="jls-16-310"></a>The idea behind definite
+            assignment is that an assignment to the local variable or blank
+            <code class="literal">final</code> field must occur on every possible execution path to the
+            access. Similarly, the idea behind definite unassignment is that no
+            other assignment to the blank <code class="literal">final</code> variable is permitted to occur
+            on any possible execution path to an assignment.
+         </p>
+         <p class="norm"><a name="jls-16-320"></a>The analysis takes into account
+            the structure of statements and expressions; it also provides a
+            special treatment of the expression operators <code class="literal">!</code>,
+            <code class="literal">&amp;&amp;</code>, <code class="literal">||</code>, and <code class="literal">? :</code>, and of boolean-valued constant
+            expressions.
+         </p>
+         <p class="norm"><a name="jls-16-330"></a>Except for the special treatment
+            of the conditional boolean operators <code class="literal">&amp;&amp;</code>, <code class="literal">||</code>, and <code class="literal">? :</code>
+            and of boolean-valued constant expressions, the values of expressions
+            are not taken into account in the flow analysis.
+         </p>
+         <div class="example"><a name="d5e30931"></a><p class="title"><b>Example&nbsp;16-1.&nbsp;Definite Assignment Considers Structure of Statements and Expressions</b></p>
+            <div class="example-contents">
+               <p class="note">A Java compiler recognizes that <code class="literal">k</code>
+                  is definitely assigned before its access (as an argument of a method
+                  invocation) in the code:
+               </p><pre class="programlisting">
+
+{
+    int k;
+    if (v &gt; 0 &amp;&amp; (k = System.in.read()) &gt;= 0)
+        System.out.println(k);
+}
+
+</pre><p class="note">because the access occurs only if the value of the
+                  expression:
+               </p><pre class="programlisting">
+
+v &gt; 0 &amp;&amp; (k = System.in.read()) &gt;= 0
+
+</pre><p class="note">is <code class="literal">true</code>, and the value can be <code class="literal">true</code> only if the
+                  assignment to <code class="literal">k</code> is executed (more properly,
+                  evaluated).
+               </p>
+               <p class="note">Similarly, a Java compiler will recognize that in
+                  the code:
+               </p><pre class="programlisting">
+
+{
+    int k;
+    while (true) {
+        k = n;
+        if (k &gt;= 5) break;
+        n = 6;
+    }
+    System.out.println(k);
+}
+
+</pre><p class="note">the variable <code class="literal">k</code> is definitely
+                  assigned by the <code class="literal">while</code> statement because the condition expression
+                  <code class="literal">true</code> never has the value <code class="literal">false</code>, so only the <code class="literal">break</code> statement can
+                  cause the <code class="literal">while</code> statement to complete normally,
+                  and <code class="literal">k</code> is definitely assigned before the <code class="literal">break</code>
+                  statement.
+               </p>
+               <p class="note">On the other hand, the code:</p><pre class="programlisting">
+
+{
+    int k;
+    while (n &lt; 4) {
+        k = n;
+        if (k &gt;= 5) break;
+        n = 6;
+    }
+    System.out.println(k);  /* k is not "definitely assigned"
+                               before this statement */
+}
+
+</pre><p class="note">must be rejected by a Java compiler, because in this
+                  case the <code class="literal">while</code> statement is not guaranteed to execute its body as
+                  far as the rules of definite assignment are concerned.
+               </p>
+            </div>
+         </div><br class="example-break"><div class="example"><a name="d5e30957"></a><p class="title"><b>Example&nbsp;16-2.&nbsp;Definite Assignment Does Not Consider Values of Expressions</b></p>
+            <div class="example-contents">
+               <p class="note">A Java compiler must produce a compile-time error
+                  for the code:
+               </p><pre class="programlisting">
+
+{
+    int k;
+    int n = 5;
+    if (n &gt; 2)
+        k = 3;
+    System.out.println(k);  /* k is not "definitely assigned"
+                               before this statement */
+}
+
+</pre><p class="note">even though the value of <code class="literal">n</code> is
+                  known at compile time, and in principle it can be known at compile
+                  time that the assignment to <code class="literal">k</code> will always be
+                  executed (more properly, evaluated). A Java compiler must operate
+                  according to the rules laid out in this section. The rules recognize
+                  only constant expressions; in this example, the expression <code class="literal">n
+                     &gt; 2</code> is not a constant expression as defined in
+                  <a class="xref" href="jls-15.html#jls-15.28" title="15.28.&nbsp;Constant Expressions">&sect;15.28</a>.
+               </p>
+               <p class="note">As another example, a Java compiler will accept the
+                  code:
+               </p><pre class="programlisting">
+
+void flow(boolean flag) {
+    int k;
+    if (flag)
+        k = 3;
+    else
+        k = 4;
+    System.out.println(k);
+}
+
+</pre><p class="note">as far as definite assignment
+                  of <code class="literal">k</code> is concerned, because the rules outlined in
+                  this section allow it to tell that <code class="literal">k</code> is assigned no
+                  matter whether the <code class="literal">flag</code> is <code class="literal">true</code> or <code class="literal">false</code>. But
+                  the rules do not accept the variation:
+               </p><pre class="programlisting">
+
+void flow(boolean flag) {
+    int k;
+    if (flag)
+        k = 3;
+    if (!flag)
+        k = 4;
+    System.out.println(k);  /* k is not "definitely assigned"
+                               before this statement */
+}
+
+</pre><p class="note">and so compiling this program must cause a
+                  compile-time error to occur.
+               </p>
+            </div>
+         </div><br class="example-break"><div class="example"><a name="d5e30976"></a><p class="title"><b>Example&nbsp;16-3.&nbsp;Definite Unassignment</b></p>
+            <div class="example-contents">
+               <p class="note">A Java compiler will accept the code:</p><pre class="programlisting">
+
+void unflow(boolean flag) {
+    final int k;
+    if (flag) {
+        k = 3;
+        System.out.println(k);
+    }
+    else {
+        k = 4;
+        System.out.println(k);
+    }
+}
+
+</pre><p class="note">as far as definite unassignment
+                  of <code class="literal">k</code> is concerned, because the rules outlined in
+                  this section allow it to tell that <code class="literal">k</code> is assigned at
+                  most once (indeed, exactly once) no matter whether
+                  the <code class="literal">flag</code> is <code class="literal">true</code> or <code class="literal">false</code>. But the rules do not
+                  accept the variation:
+               </p><pre class="programlisting">
+
+void unflow(boolean flag) {
+    final int k;
+    if (flag) {
+        k = 3;
+        System.out.println(k);
+    }
+    if (!flag) {
+        k = 4;
+        System.out.println(k);  /* k is not "definitely unassigned"
+                                   before this statement */
+    }
+}
+
+</pre><p class="note">and so compiling this program must cause a
+                  compile-time error to occur.
+               </p>
+            </div>
+         </div><br class="example-break"><p class="norm"><a name="jls-16-400"></a>In order to precisely specify all
+            the cases of definite assignment, the rules in this section define
+            several technical terms:
+         </p>
+         <div class="norm">
+            <ul class="norm" type="disc">
+               <li class="listitem">
+                  <p class="norm"><a name="jls-16-400-A"></a>whether a variable
+                         is <span class="emphasis"><em>definitely assigned before</em></span> a statement or
+                         expression;
+                  </p>
+               </li>
+               <li class="listitem">
+                  <p class="norm"><a name="jls-16-400-B"></a>whether a variable
+                         is <span class="emphasis"><em>definitely unassigned before</em></span> a statement
+                         or expression;
+                  </p>
+               </li>
+               <li class="listitem">
+                  <p class="norm"><a name="jls-16-400-C"></a>whether a variable
+                         is <span class="emphasis"><em>definitely assigned after</em></span> a statement or
+                         expression; and
+                  </p>
+               </li>
+               <li class="listitem">
+                  <p class="norm"><a name="jls-16-400-D"></a>whether a variable
+                         is <span class="emphasis"><em>definitely unassigned after</em></span> a statement or
+                         expression.
+                  </p>
+               </li>
+            </ul>
+         </div>
+         <p class="norm"><a name="jls-16-410"></a>For boolean-valued expressions,
+            the last two are refined into four cases:
+         </p>
+         <div class="norm">
+            <ul class="norm" type="disc">
+               <li class="listitem">
+                  <p class="norm"><a name="jls-16-410-A"></a>whether a variable
+                         is <span class="emphasis"><em>definitely assigned after</em></span> the
+                         expression <span class="emphasis"><em>when true</em></span>;
+                  </p>
+               </li>
+               <li class="listitem">
+                  <p class="norm"><a name="jls-16-410-B"></a>whether a variable
+                         is <span class="emphasis"><em>definitely unassigned after</em></span> the
+                         expression <span class="emphasis"><em>when true</em></span>;
+                  </p>
+               </li>
+               <li class="listitem">
+                  <p class="norm"><a name="jls-16-410-C"></a>whether a variable
+                         is <span class="emphasis"><em>definitely assigned after</em></span> the
+                         expression <span class="emphasis"><em>when false</em></span>; and
+                  </p>
+               </li>
+               <li class="listitem">
+                  <p class="norm"><a name="jls-16-410-D"></a>whether a variable
+                         is <span class="emphasis"><em>definitely unassigned</em></span> after the
+                         expression <span class="emphasis"><em>when false</em></span>.
+                  </p>
+               </li>
+            </ul>
+         </div>
+         <p class="norm"><a name="jls-16-420"></a>Here, <span class="emphasis"><em>when
+                  true</em></span> and <span class="emphasis"><em>when false</em></span> refer to the value
+            of the expression.
+         </p>
+         <div class="informalexample">
+            <p class="note">For example, the local variable <code class="literal">k</code>
+               is definitely assigned a value after evaluation of the
+               expression:
+            </p><pre class="programlisting">
+
+a &amp;&amp; ((k=m) &gt; 5)
+
+</pre><p class="note">when the expression is <code class="literal">true</code> but not when the
+               expression is <code class="literal">false</code> (because if <code class="literal">a</code> is false, then
+               the assignment to <code class="literal">k</code> is not necessarily executed
+               (more properly, evaluated)).
+            </p>
+         </div>
+         <p class="norm"><a name="jls-16-430"></a>The phrase "<span class="type">V</span> is definitely
+            assigned after <span class="type">X</span>" (where <span class="type">V</span> is a local variable and <span class="type">X</span> is a
+            statement or expression) means "<span class="type">V</span> is definitely assigned after <span class="type">X</span>
+            if <span class="type">X</span> completes normally". If <span class="type">X</span> completes abruptly, the assignment
+            need not have occurred, and the rules stated here take this into
+            account.
+         </p>
+         <p class="note"> A peculiar consequence of this definition is that
+            "<span class="type">V</span> is definitely assigned after <code class="literal">break;</code>" is always
+            true!  Because a <code class="literal">break</code> statement never completes normally, it is
+            vacuously true that <span class="type">V</span> has been assigned a value if the <code class="literal">break</code>
+            statement completes normally.
+         </p>
+         <p class="norm"><a name="jls-16-440"></a>The statement "<span class="type">V</span> is definitely
+            unassigned after <span class="type">X</span>" (where <span class="type">V</span> is a variable and <span class="type">X</span> is a statement
+            or expression) means "<span class="type">V</span> is definitely unassigned after <span class="type">X</span> if <span class="type">X</span>
+            completes normally".
+         </p>
+         <p class="note">An even more peculiar consequence of this definition
+            is that "<span class="type">V</span> is definitely unassigned after <code class="literal">break;</code>"
+            is always true! Because a <code class="literal">break</code> statement never completes normally,
+            it is vacuously true that <span class="type">V</span> has not been assigned a value if the
+            <code class="literal">break</code> statement completes normally. (For that matter, it is also
+            vacuously true that the moon is made of green cheese if the <code class="literal">break</code>
+            statement completes normally.)
+         </p>
+         <p class="norm"><a name="jls-16-450"></a>In all, there are four
+            possibilities for a variable <span class="type">V</span> after a statement or expression has
+            been executed:
+         </p>
+         <div class="norm">
+            <ul class="norm" type="disc">
+               <li class="listitem">
+                  <p class="norm"><a name="jls-16-450-A"></a><span class="type">V</span> is definitely assigned
+                         and is not definitely unassigned.
+                  </p>
+                  <p class="norm"><a name="jls-16-450-A.1"></a>(The flow analysis rules
+                         prove that an assignment to <span class="type">V</span> has occurred.)
+                  </p>
+               </li>
+               <li class="listitem">
+                  <p class="norm"><a name="jls-16-450-B"></a><span class="type">V</span> is definitely
+                         unassigned and is not definitely assigned.
+                  </p>
+                  <p class="norm"><a name="jls-16-450-B.1"></a>(The flow analysis rules
+                         prove that an assignment to <span class="type">V</span> has not occurred.)
+                  </p>
+               </li>
+               <li class="listitem">
+                  <p class="norm"><a name="jls-16-450-C"></a><span class="type">V</span> is not definitely
+                         assigned and is not definitely unassigned.
+                  </p>
+                  <p class="norm"><a name="jls-16-450-C.1"></a>(The rules cannot prove
+                         whether or not an assignment to <span class="type">V</span> has occurred.)
+                  </p>
+               </li>
+               <li class="listitem">
+                  <p class="norm"><a name="jls-16-450-D"></a><span class="type">V</span> is definitely assigned
+                         and is definitely unassigned.
+                  </p>
+                  <p class="norm"><a name="jls-16-450-D.1"></a>(It is impossible for
+                         the statement or expression to complete normally.)
+                  </p>
+               </li>
+            </ul>
+         </div>
+         <p class="norm"><a name="jls-16-500"></a>To shorten the rules, the
+            customary abbreviation "iff" is used to mean "if and only if". We also
+            use an abbreviation convention: if a rule contains one or more
+            occurrences of "[un]assigned" then it stands for two rules, one with
+            every occurrence of "[un]assigned" replaced by "definitely assigned"
+            and one with every occurrence of "[un]assigned" replaced by
+            "definitely unassigned".
+         </p>
+         <div class="informalexample">
+            <p class="note">For example:</p>
+            <div class="note">
+               <ul class="note" type="disc">
+                  <li class="listitem">
+                     <p class="note"><span class="type">V</span> is [un]assigned after an empty statement iff
+                              it is [un]assigned before the empty statement.
+                     </p>
+                  </li>
+               </ul>
+            </div>
+            <p class="note">should be understood to stand for two rules:</p>
+            <div class="note">
+               <ul class="note" type="disc">
+                  <li class="listitem">
+                     <p class="note"><span class="type">V</span> is definitely assigned after an empty
+                            statement iff it is definitely assigned before the empty
+                            statement.
+                     </p>
+                  </li>
+                  <li class="listitem">
+                     <p class="note"><span class="type">V</span> is definitely unassigned after an empty
+                            statement iff it is definitely unassigned before the empty
+                            statement.
+                     </p>
+                  </li>
+               </ul>
+            </div>
+         </div>
+         <p class="norm"><a name="jls-16-510"></a>Throughout the rest of this chapter, we
+            will, unless explicitly stated otherwise, write <span class="type">V</span> to represent a
+            local variable or blank <code class="literal">final</code> field which is in scope
+            (<a class="xref" href="jls-6.html#jls-6.3" title="6.3.&nbsp;Scope of a Declaration">&sect;6.3</a>). 
+            Likewise, we will use <code class="varname">a</code>, <code class="varname">b</code>, <code class="varname">c</code>, and <code class="varname">e</code> to represent expressions,
+            and <span class="type">S</span> and <span class="type">T</span> to represent statements. We will use the phrase "<code class="varname">a</code>
+            is <span class="type">V</span>" to mean that <code class="varname">a</code> is either the simple name of the variable
+            <span class="type">V</span>, or <span class="type">V</span>'s simple name qualified by <code class="literal">this</code> (ignoring
+            parentheses). We will use the phrase "<code class="varname">a</code> is not <span class="type">V</span>" to mean the
+            negation of "<code class="varname">a</code> is <span class="type">V</span>".
+         </p>
+         <p class="note">The definite unassignment analysis of loop
+            statements raises a special problem. Consider the
+            statement <code class="literal">while (<code class="varname">e</code>) <span class="type">S</span></code>. In order to determine
+            whether <span class="type">V</span> is definitely unassigned within some subexpression of <code class="varname">e</code>,
+            we need to determine whether <span class="type">V</span> is definitely unassigned before
+            <code class="varname">e</code>. One might argue, by analogy with the rule for definite assignment
+            (<a class="xref" href="jls-16.html#jls-16.2.10" title="16.2.10.&nbsp;while Statements">&sect;16.2.10</a>), that <span class="type">V</span> is definitely unassigned
+            before <code class="varname">e</code> iff it is definitely unassigned before the <code class="literal">while</code>
+            statement. However, such a rule is inadequate for our purposes. If <code class="varname">e</code>
+            evaluates to <code class="literal">true</code>, the statement <span class="type">S</span> will be executed. Later, if <span class="type">V</span>
+            is assigned by <span class="type">S</span>, then in the following iteration(s) <span class="type">V</span> will have
+            already been assigned when <code class="varname">e</code> is evaluated. Under the rule suggested
+            above, it would be possible to assign <span class="type">V</span> multiple times, which is
+            exactly what we have sought to avoid by introducing these
+            rules.
+         </p>
+         <p class="note">A revised rule would be: "<span class="type">V</span> is definitely
+            unassigned before <code class="varname">e</code> iff it is definitely unassigned before the
+            <code class="literal">while</code> statement and definitely unassigned after <span class="type">S</span>". However, when
+            we formulate the rule for <span class="type">S</span>, we find: "<span class="type">V</span> is definitely unassigned
+            before <span class="type">S</span> iff it is definitely unassigned after <code class="varname">e</code> when true". This
+            leads to a circularity. In effect, <span class="type">V</span> is definitely
+            unassigned <span class="emphasis"><em>before</em></span> the loop condition <code class="varname">e</code> only if
+            it is unassigned <span class="emphasis"><em>after</em></span> the loop as a
+            whole!
+         </p>
+         <p class="note">We break this vicious circle using a hypothetical
+            analysis of the loop condition and body. For example, if we assume
+            that <span class="type">V</span> is definitely unassigned before <code class="varname">e</code> (regardless of whether
+            <span class="type">V</span> really is definitely unassigned before <code class="varname">e</code>), and can then prove
+            that <span class="type">V</span> was definitely unassigned after <code class="varname">e</code> then we know that <code class="varname">e</code>
+            does not assign <span class="type">V</span>. This is stated more formally as:
+         </p>
+         <p class="note">Assuming <span class="type">V</span> is definitely unassigned before <code class="varname">e</code>,
+            <span class="type">V</span> is definitely unassigned after <code class="varname">e</code>.
+         </p>
+         <p class="note">Variations on the above analysis are used to define
+            well founded definite unassignment rules for all loop statements in
+            the Java programming language.
+         </p>
+         <div class="section" title="16.1.&nbsp;Definite Assignment and Expressions">
+            <div class="titlepage">
+               <div>
+                  <div>
+                     <h2 class="title" style="clear: both"><a name="jls-16.1"></a>16.1.&nbsp;Definite Assignment and Expressions
+                     </h2>
+                  </div>
+               </div>
+            </div>
+            <div class="section" title="16.1.1.&nbsp;Boolean Constant Expressions">
+               <div class="titlepage">
+                  <div>
+                     <div>
+                        <h3 class="title"><a name="jls-16.1.1"></a>16.1.1.&nbsp;Boolean Constant Expressions
+                        </h3>
+                     </div>
+                  </div>
+               </div>
+               <div class="norm">
+                  <ul class="norm" type="disc">
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.1.1-100-A"></a><span class="type">V</span>
+                               is [un]assigned after any constant expression
+                               (<a class="xref" href="jls-15.html#jls-15.28" title="15.28.&nbsp;Constant Expressions">&sect;15.28</a>) whose value is <code class="literal">true</code> when
+                               false.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.1.1-100-B"></a><span class="type">V</span>
+                               is [un]assigned after any constant expression whose value is
+                               <code class="literal">false</code> when true.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.1.1-100-C"></a><span class="type">V</span>
+                               is [un]assigned after any constant expression whose value is
+                               <code class="literal">true</code> when true iff <span class="type">V</span> is [un]assigned before the constant
+                               expression.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.1.1-100-D"></a><span class="type">V</span>
+                               is [un]assigned after any constant expression whose value is
+                               <code class="literal">false</code> when false iff <span class="type">V</span> is [un]assigned before the constant
+                               expression.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.1.1-100-E"></a><span class="type">V</span>
+                               is [un]assigned after a boolean-valued constant expression <code class="varname">e</code> iff
+                               <span class="type">V</span> is [un]assigned after <code class="varname">e</code> when true and <span class="type">V</span> is [un]assigned
+                               after <code class="varname">e</code> when false.
+                        </p>
+                        <p class="note">This is equivalent to saying that <span class="type">V</span> is
+                               [un]assigned after <code class="varname">e</code> iff <span class="type">V</span> is [un]assigned before <code class="varname">e</code>.
+                        </p>
+                     </li>
+                  </ul>
+               </div>
+               <p class="note">Because a constant expression whose value is <code class="literal">true</code>
+                  never has the value <code class="literal">false</code>, and a constant expression whose value is
+                  <code class="literal">false</code> never has the value <code class="literal">true</code>, the first two rules are vacuously
+                  satisfied. They are helpful in analyzing expressions involving the
+                  operators <code class="literal">&amp;&amp;</code> (<a class="xref" href="jls-16.html#jls-16.1.2" title="16.1.2.&nbsp;Conditional-And Operator &amp;&amp;">&sect;16.1.2</a>), <code class="literal">||</code>
+                  (<a class="xref" href="jls-16.html#jls-16.1.3" title="16.1.3.&nbsp;Conditional-Or Operator ||">&sect;16.1.3</a>), <code class="literal">!</code>
+                  (<a class="xref" href="jls-16.html#jls-16.1.4" title="16.1.4.&nbsp;Logical Complement Operator !">&sect;16.1.4</a>), and <code class="literal">? :</code>
+                  (<a class="xref" href="jls-16.html#jls-16.1.5" title="16.1.5.&nbsp;Conditional Operator ? :">&sect;16.1.5</a>).
+               </p>
+            </div>
+            <div class="section" title="16.1.2.&nbsp;Conditional-And Operator &amp;&amp;">
+               <div class="titlepage">
+                  <div>
+                     <div>
+                        <h3 class="title"><a name="jls-16.1.2"></a>16.1.2.&nbsp;Conditional-And Operator <code class="literal">&amp;&amp;</code></h3>
+                     </div>
+                  </div>
+               </div>
+               <div class="norm">
+                  <ul class="norm" type="disc">
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.1.2-100-A"></a><span class="type">V</span>
+                               is [un]assigned after <code class="varname">a</code> <code class="literal">&amp;&amp;</code> <code class="varname">b</code>
+                               (<a class="xref" href="jls-15.html#jls-15.23" title="15.23.&nbsp;Conditional-And Operator &amp;&amp;">&sect;15.23</a>) when true iff <span class="type">V</span> is [un]assigned
+                               after <code class="varname">b</code> when true.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.1.2-100-B"></a><span class="type">V</span>
+                               is [un]assigned after <code class="varname">a</code> <code class="literal">&amp;&amp;</code> <code class="varname">b</code> when false iff <span class="type">V</span> is
+                               [un]assigned after <code class="varname">a</code> when false and <span class="type">V</span> is [un]assigned after
+                               <code class="varname">b</code> when false.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.1.2-100-C"></a><span class="type">V</span>
+                               is [un]assigned before <code class="varname">a</code> iff <span class="type">V</span> is [un]assigned before <code class="varname">a</code>
+                               <code class="literal">&amp;&amp;</code> <code class="varname">b</code>.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.1.2-100-D"></a><span class="type">V</span>
+                               is [un]assigned before <code class="varname">b</code> iff <span class="type">V</span> is [un]assigned after <code class="varname">a</code> when
+                               true.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.1.2-100-E"></a><span class="type">V</span>
+                               is [un]assigned after <code class="varname">a</code> <code class="literal">&amp;&amp;</code> <code class="varname">b</code> iff <span class="type">V</span> is [un]assigned
+                               after <code class="varname">a</code> <code class="literal">&amp;&amp;</code> <code class="varname">b</code> when true and <span class="type">V</span> is [un]assigned after
+                               <code class="varname">a</code> <code class="literal">&amp;&amp;</code> <code class="varname">b</code> when false.
+                        </p>
+                     </li>
+                  </ul>
+               </div>
+            </div>
+            <div class="section" title="16.1.3.&nbsp;Conditional-Or Operator ||">
+               <div class="titlepage">
+                  <div>
+                     <div>
+                        <h3 class="title"><a name="jls-16.1.3"></a>16.1.3.&nbsp;Conditional-Or Operator <code class="literal">||</code></h3>
+                     </div>
+                  </div>
+               </div>
+               <div class="norm">
+                  <ul class="norm" type="disc">
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.1.3-100-A"></a><span class="type">V</span>
+                               is [un]assigned after <code class="varname">a</code> <code class="literal">||</code> <code class="varname">b</code>
+                               (<a class="xref" href="jls-15.html#jls-15.24" title="15.24.&nbsp;Conditional-Or Operator ||">&sect;15.24</a>) when true iff <span class="type">V</span> is [un]assigned
+                               after <code class="varname">a</code> when true and <span class="type">V</span> is [un]assigned after <code class="varname">b</code> when
+                               true.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.1.3-100-B"></a><span class="type">V</span>
+                               is [un]assigned after <code class="varname">a</code> <code class="literal">||</code> <code class="varname">b</code> when false iff <span class="type">V</span> is
+                               [un]assigned after <code class="varname">b</code> when false.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.1.3-100-C"></a><span class="type">V</span>
+                               is [un]assigned before <code class="varname">a</code> iff <span class="type">V</span> is [un]assigned before <code class="varname">a</code>
+                               <code class="literal">||</code> <code class="varname">b</code>.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.1.3-100-D"></a><span class="type">V</span>
+                               is [un]assigned before <code class="varname">b</code> iff <span class="type">V</span> is [un]assigned after <code class="varname">a</code> when
+                               false.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.1.3-100-E"></a><span class="type">V</span>
+                               is [un]assigned after <code class="varname">a</code> <code class="literal">||</code> <code class="varname">b</code> iff <span class="type">V</span> is [un]assigned
+                               after <code class="varname">a</code> <code class="literal">||</code> <code class="varname">b</code> when true and <span class="type">V</span> is [un]assigned after <code class="varname">a</code>
+                               <code class="literal">||</code> <code class="varname">b</code> when false.
+                        </p>
+                     </li>
+                  </ul>
+               </div>
+            </div>
+            <div class="section" title="16.1.4.&nbsp;Logical Complement Operator !">
+               <div class="titlepage">
+                  <div>
+                     <div>
+                        <h3 class="title"><a name="jls-16.1.4"></a>16.1.4.&nbsp;Logical Complement Operator <code class="literal">!</code></h3>
+                     </div>
+                  </div>
+               </div>
+               <div class="norm">
+                  <ul class="norm" type="disc">
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.1.4-100-A"></a><span class="type">V</span>
+                               is [un]assigned after <code class="literal">!</code><code class="varname">a</code> (<a class="xref" href="jls-15.html#jls-15.15.6" title="15.15.6.&nbsp;Logical Complement Operator !">&sect;15.15.6</a>)
+                               when true iff <span class="type">V</span> is [un]assigned after <code class="varname">a</code> when false.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.1.4-100-B"></a><span class="type">V</span>
+                               is [un]assigned after <code class="literal">!</code><code class="varname">a</code> when false iff <span class="type">V</span> is
+                               [un]assigned after <code class="varname">a</code> when true.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.1.4-100-C"></a><span class="type">V</span>
+                               is [un]assigned before <code class="varname">a</code> iff <span class="type">V</span> is [un]assigned before
+                               <code class="literal">!</code><code class="varname">a</code>.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.1.4-100-D"></a><span class="type">V</span>
+                               is [un]assigned after <code class="literal">!</code><code class="varname">a</code> iff <span class="type">V</span> is [un]assigned after
+                               <code class="literal">!</code><code class="varname">a</code> when true and <span class="type">V</span> is [un]assigned after <code class="literal">!</code><code class="varname">a</code> when
+                               false.
+                        </p>
+                        <p class="note">This is equivalent to saying that <span class="type">V</span> is
+                               [un]assigned after <code class="literal">!</code><code class="varname">a</code> iff <span class="type">V</span> is [un]assigned
+                               after <code class="varname">a</code>.
+                        </p>
+                     </li>
+                  </ul>
+               </div>
+            </div>
+            <div class="section" title="16.1.5.&nbsp;Conditional Operator ? :">
+               <div class="titlepage">
+                  <div>
+                     <div>
+                        <h3 class="title"><a name="jls-16.1.5"></a>16.1.5.&nbsp;Conditional Operator <code class="literal">? :</code></h3>
+                     </div>
+                  </div>
+               </div>
+               <p class="norm-static"><a name="jls-16.1.5-100"></a>Suppose
+                  that <code class="varname">b</code> and <code class="varname">c</code> are boolean-valued expressions.
+               </p>
+               <div class="norm">
+                  <ul class="norm" type="disc">
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.1.5-100-A"></a><span class="type">V</span>
+                               is [un]assigned after <code class="varname">a</code> <code class="literal">?</code> <code class="varname">b</code> <code class="literal">:</code> <code class="varname">c</code>
+                               (<a class="xref" href="jls-15.html#jls-15.25" title="15.25.&nbsp;Conditional Operator ? :">&sect;15.25</a>) when true iff <span class="type">V</span> is [un]assigned
+                               after <code class="varname">b</code> when true and <span class="type">V</span> is [un]assigned after <code class="varname">c</code> when
+                               true.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.1.5-100-B"></a><span class="type">V</span>
+                               is [un]assigned after <code class="varname">a</code> <code class="literal">?</code> <code class="varname">b</code> <code class="literal">:</code> <code class="varname">c</code> when false iff
+                               <span class="type">V</span> is [un]assigned after <code class="varname">b</code> when false and <span class="type">V</span> is [un]assigned
+                               after <code class="varname">c</code> when false.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.1.5-100-C"></a><span class="type">V</span>
+                               is [un]assigned before <code class="varname">a</code> iff <span class="type">V</span> is [un]assigned before <code class="varname">a</code>
+                               <code class="literal">?</code> <code class="varname">b</code> <code class="literal">:</code> <code class="varname">c</code>.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.1.5-100-D"></a><span class="type">V</span>
+                               is [un]assigned before <code class="varname">b</code> iff <span class="type">V</span> is [un]assigned after <code class="varname">a</code> when
+                               true.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.1.5-100-E"></a><span class="type">V</span>
+                               is [un]assigned before <code class="varname">c</code> iff <span class="type">V</span> is [un]assigned after <code class="varname">a</code> when
+                               false.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.1.5-100-F"></a><span class="type">V</span>
+                               is [un]assigned after <code class="varname">a</code> <code class="literal">?</code> <code class="varname">b</code> <code class="literal">:</code> <code class="varname">c</code> iff <span class="type">V</span> is
+                               [un]assigned after <code class="varname">a</code> <code class="literal">?</code> <code class="varname">b</code> <code class="literal">:</code> <code class="varname">c</code> when true and <span class="type">V</span> is
+                               [un]assigned after <code class="varname">a</code> <code class="literal">?</code> <code class="varname">b</code> <code class="literal">:</code> <code class="varname">c</code> when false.
+                        </p>
+                     </li>
+                  </ul>
+               </div>
+            </div>
+            <div class="section" title="16.1.6.&nbsp;Conditional Operator ? :">
+               <div class="titlepage">
+                  <div>
+                     <div>
+                        <h3 class="title"><a name="jls-16.1.6"></a>16.1.6.&nbsp;Conditional Operator <code class="literal">? :</code></h3>
+                     </div>
+                  </div>
+               </div>
+               <p class="norm-static"><a name="jls-16.1.6-100"></a>Suppose
+                  that <code class="varname">b</code> and <code class="varname">c</code> are expressions that are not boolean-valued.
+               </p>
+               <div class="norm">
+                  <ul class="norm" type="disc">
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.1.6-100-A"></a><span class="type">V</span>
+                               is [un]assigned after <code class="varname">a</code> <code class="literal">?</code> <code class="varname">b</code> <code class="literal">:</code> <code class="varname">c</code>
+                               (<a class="xref" href="jls-15.html#jls-15.25" title="15.25.&nbsp;Conditional Operator ? :">&sect;15.25</a>) iff <span class="type">V</span> is [un]assigned after <code class="varname">b</code>
+                               and <span class="type">V</span> is [un]assigned after <code class="varname">c</code>.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.1.6-100-B"></a><span class="type">V</span>
+                               is [un]assigned before <code class="varname">a</code> iff <span class="type">V</span> is [un]assigned before <code class="varname">a</code>
+                               <code class="literal">?</code> <code class="varname">b</code> <code class="literal">:</code> <code class="varname">c</code>.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.1.6-100-C"></a><span class="type">V</span>
+                               is [un]assigned before <code class="varname">b</code> iff <span class="type">V</span> is [un]assigned after <code class="varname">a</code> when
+                               true.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.1.6-100-D"></a><span class="type">V</span>
+                               is [un]assigned before <code class="varname">c</code> iff <span class="type">V</span> is [un]assigned after <code class="varname">a</code> when
+                               false.
+                        </p>
+                     </li>
+                  </ul>
+               </div>
+            </div>
+            <div class="section" title="16.1.7.&nbsp;Other Expressions of Type boolean">
+               <div class="titlepage">
+                  <div>
+                     <div>
+                        <h3 class="title"><a name="jls-16.1.7"></a>16.1.7.&nbsp;Other Expressions of Type <code class="literal">boolean</code></h3>
+                     </div>
+                  </div>
+               </div>
+               <p class="norm-static"><a name="jls-16.1.7-100"></a>Suppose
+                  that <code class="varname">e</code> is an expression of type <code class="literal">boolean</code> and is not a boolean
+                  constant expression, logical complement expression <code class="literal">!</code><code class="varname">a</code>,
+                  conditional-and expression <code class="varname">a</code> <code class="literal">&amp;&amp;</code> <code class="varname">b</code>, conditional-or
+                  expression <code class="varname">a</code> <code class="literal">||</code> <code class="varname">b</code>, or conditional expression <code class="varname">a</code> <code class="literal">?</code> <code class="varname">b</code>
+                  <code class="literal">:</code> <code class="varname">c</code>.
+               </p>
+               <div class="norm">
+                  <ul class="norm" type="disc">
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.1.7-100-A"></a><span class="type">V</span>
+                               is [un]assigned after <code class="varname">e</code> when true iff <span class="type">V</span> is [un]assigned after
+                               <code class="varname">e</code>.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.1.7-100-B"></a><span class="type">V</span>
+                               is [un]assigned after <code class="varname">e</code> when false iff <span class="type">V</span> is [un]assigned after
+                               <code class="varname">e</code>.
+                        </p>
+                     </li>
+                  </ul>
+               </div>
+            </div>
+            <div class="section" title="16.1.8.&nbsp;Assignment Expressions">
+               <div class="titlepage">
+                  <div>
+                     <div>
+                        <h3 class="title"><a name="jls-16.1.8"></a>16.1.8.&nbsp;Assignment Expressions
+                        </h3>
+                     </div>
+                  </div>
+               </div>
+               <p class="norm-static"><a name="jls-16.1.8-100"></a>Consider
+                  an assignment expression <code class="varname">a</code> <code class="literal">=</code> <code class="varname">b</code>, <code class="varname">a</code> <code class="literal">+=</code> <code class="varname">b</code>, <code class="varname">a</code>
+                  <code class="literal">-=</code> <code class="varname">b</code>, <code class="varname">a</code> <code class="literal">*=</code> <code class="varname">b</code>, <code class="varname">a</code> <code class="literal">/=</code> <code class="varname">b</code>,
+                  <code class="varname">a</code> <code class="literal">%=</code> <code class="varname">b</code>, <code class="varname">a</code> <code class="literal">&lt;&lt;=</code> <code class="varname">b</code>, <code class="varname">a</code> <code class="literal">&gt;&gt;=</code>
+                  <code class="varname">b</code>, <code class="varname">a</code> <code class="literal">&gt;&gt;&gt;=</code> <code class="varname">b</code>, <code class="varname">a</code> <code class="literal">&amp;=</code> <code class="varname">b</code>, <code class="varname">a</code> <code class="literal">|=</code>
+                  <code class="varname">b</code>, or <code class="varname">a</code> <code class="literal">^=</code> <code class="varname">b</code> (<a class="xref" href="jls-15.html#jls-15.26" title="15.26.&nbsp;Assignment Operators">&sect;15.26</a>).
+               </p>
+               <div class="norm">
+                  <ul class="norm" type="disc">
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.1.8-100-A"></a><span class="type">V</span>
+                               is definitely assigned after the assignment expression iff
+                               either:
+                        </p>
+                        <div class="norm">
+                           <ul class="norm" type="circle">
+                              <li class="listitem">
+                                 <p class="norm-static"><a name="jls-16.1.8-100-A-1"></a><code class="varname">a</code> is <span class="type">V</span>, or
+                                 </p>
+                              </li>
+                              <li class="listitem">
+                                 <p class="norm-static"><a name="jls-16.1.8-100-A-2"></a><span class="type">V</span> is definitely assigned after
+                                    	<code class="varname">b</code>.
+                                 </p>
+                              </li>
+                           </ul>
+                        </div>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.1.8-100-B"></a><span class="type">V</span>
+                               is definitely unassigned after the assignment expression iff <code class="varname">a</code>
+                               is not <span class="type">V</span> and <span class="type">V</span> is definitely unassigned after <code class="varname">b</code>.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.1.8-100-C"></a><span class="type">V</span>
+                               is [un]assigned before <code class="varname">a</code> iff <span class="type">V</span> is [un]assigned before the
+                               assignment expression.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.1.8-100-D"></a><span class="type">V</span>
+                               is [un]assigned before <code class="varname">b</code> iff <span class="type">V</span> is [un]assigned after
+                               <code class="varname">a</code>.
+                        </p>
+                     </li>
+                  </ul>
+               </div>
+               <p class="note">Note that if <code class="varname">a</code> is <span class="type">V</span> and <span class="type">V</span> is not definitely
+                  assigned before a compound assignment such as
+                  <code class="varname">a</code> <code class="literal">&amp;=</code> <code class="varname">b</code>, then a compile-time error will
+                  necessarily occur. The first rule for definite assignment stated above
+                  includes the disjunct "<code class="varname">a</code> is <span class="type">V</span>" even for compound assignment
+                  expressions, not just simple assignments, so that <span class="type">V</span> will be
+                  considered to have been definitely assigned at later points in the
+                  code. Including the disjunct "<code class="varname">a</code> is <span class="type">V</span>" does not affect the binary
+                  decision as to whether a program is acceptable or will result in a
+                  compile-time error, but it affects how many different points in the
+                  code may be regarded as erroneous, and so in practice it can improve
+                  the quality of error reporting. A similar remark applies to the
+                  inclusion of the conjunct "<code class="varname">a</code> is not <span class="type">V</span>" in the first rule for
+                  definite unassignment stated above.
+               </p>
+            </div>
+            <div class="section" title="16.1.9.&nbsp;Operators ++ and --">
+               <div class="titlepage">
+                  <div>
+                     <div>
+                        <h3 class="title"><a name="jls-16.1.9"></a>16.1.9.&nbsp;Operators <code class="literal">++</code> and <code class="literal">--</code></h3>
+                     </div>
+                  </div>
+               </div>
+               <div class="norm">
+                  <ul class="norm" type="disc">
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.1.9-100-A"></a><span class="type">V</span>
+                               is definitely assigned after <code class="literal">++</code><code class="varname">a</code>
+                               (<a class="xref" href="jls-15.html#jls-15.15.1" title="15.15.1.&nbsp;Prefix Increment Operator ++">&sect;15.15.1</a>), <code class="literal">--</code><code class="varname">a</code>
+                               (<a class="xref" href="jls-15.html#jls-15.15.2" title="15.15.2.&nbsp;Prefix Decrement Operator --">&sect;15.15.2</a>), <code class="varname">a</code><code class="literal">++</code>
+                               (<a class="xref" href="jls-15.html#jls-15.14.2" title="15.14.2.&nbsp;Postfix Increment Operator ++">&sect;15.14.2</a>), or <code class="varname">a</code><code class="literal">--</code>
+                               (<a class="xref" href="jls-15.html#jls-15.14.3" title="15.14.3.&nbsp;Postfix Decrement Operator --">&sect;15.14.3</a>) iff either <code class="varname">a</code> is <span class="type">V</span> or <span class="type">V</span> is
+                               definitely assigned after the operand expression.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.1.9-100-B"></a><span class="type">V</span>
+                               is definitely unassigned after <code class="literal">++</code><code class="varname">a</code>, <code class="literal">--</code><code class="varname">a</code>,
+                               <code class="varname">a</code><code class="literal">++</code>, or <code class="varname">a</code><code class="literal">--</code> iff <code class="varname">a</code> is not <span class="type">V</span> and <span class="type">V</span> is
+                               definitely unassigned after the operand expression.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.1.9-100-C"></a><span class="type">V</span>
+                               is [un]assigned before <code class="varname">a</code> iff <span class="type">V</span> is [un]assigned before
+                               <code class="literal">++</code><code class="varname">a</code>, <code class="literal">--</code><code class="varname">a</code>, <code class="varname">a</code><code class="literal">++</code>, or
+                               <code class="varname">a</code><code class="literal">--</code>.
+                        </p>
+                     </li>
+                  </ul>
+               </div>
+            </div>
+            <div class="section" title="16.1.10.&nbsp;Other Expressions">
+               <div class="titlepage">
+                  <div>
+                     <div>
+                        <h3 class="title"><a name="jls-16.1.10"></a>16.1.10.&nbsp;Other Expressions
+                        </h3>
+                     </div>
+                  </div>
+               </div>
+               <p class="norm-static"><a name="jls-16.1.10-100"></a>If an
+                  expression is not a boolean constant expression, and is not a
+                  preincrement expression <code class="literal">++</code><code class="varname">a</code>, predecrement expression
+                  <code class="literal">--</code><code class="varname">a</code>, postincrement expression <code class="varname">a</code><code class="literal">++</code>, postdecrement
+                  expression <code class="varname">a</code><code class="literal">--</code>, logical complement expression <code class="literal">!</code><code class="varname">a</code>,
+                  conditional-and expression <code class="varname">a</code> <code class="literal">&amp;&amp;</code> <code class="varname">b</code>, conditional-or
+                  expression <code class="varname">a</code> <code class="literal">||</code> <code class="varname">b</code>, conditional expression <code class="varname">a</code> <code class="literal">?</code> <code class="varname">b</code>
+                  <code class="literal">:</code> <code class="varname">c</code>, or assignment expression, then the following rules
+                  apply:
+               </p>
+               <div class="norm">
+                  <ul class="norm" type="disc">
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.1.10-100-A"></a>If
+                               the expression has no subexpressions, <span class="type">V</span> is [un]assigned after
+                               the expression iff <span class="type">V</span> is [un]assigned before the
+                               expression.
+                        </p>
+                        <p class="note">This case applies to literals, names, <code class="literal">this</code>
+                               (both qualified and unqualified), unqualified class instance
+                               creation expressions with no arguments, initialized array creation
+                               expressions whose initializers contain no expressions, unqualified
+                               superclass field access expressions, named method invocations with
+                               no arguments, and unqualified superclass method invocations with
+                               no arguments.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.1.10-100-B"></a>If
+                               the expression has subexpressions, <span class="type">V</span> is [un]assigned after the
+                               expression iff <span class="type">V</span> is [un]assigned after its rightmost immediate
+                               subexpression.
+                        </p>
+                     </li>
+                  </ul>
+               </div>
+               <p class="note">There is a piece of subtle reasoning behind the
+                  assertion that a variable <span class="type">V</span> can be known to be definitely unassigned
+                  after a method invocation. Taken by itself, at face value and without
+                  qualification, such an assertion is not always true, because an
+                  invoked method can perform assignments. But it must be remembered
+                  that, for the purposes of the Java programming language, the concept of definite
+                  unassignment is applied only to blank <code class="literal">final</code> variables. If <span class="type">V</span> is a
+                  blank <code class="literal">final</code> local variable, then only the method to which its
+                  declaration belongs can perform assignments to <span class="type">V</span>. If <span class="type">V</span> is a blank
+                  <code class="literal">final</code> field, then only a constructor or an initializer for the class
+                  containing the declaration for <span class="type">V</span> can perform assignments to <span class="type">V</span>; no
+                  method can perform assignments to <span class="type">V</span>. Finally, explicit constructor
+                  invocations (<a class="xref" href="jls-8.html#jls-8.8.7.1" title="8.8.7.1.&nbsp;Explicit Constructor Invocations">&sect;8.8.7.1</a>) are handled specially
+                  (<a class="xref" href="jls-16.html#jls-16.9" title="16.9.&nbsp;Definite Assignment, Constructors, and Instance Initializers">&sect;16.9</a>); although they are syntactically similar
+                  to expression statements containing method invocations, they are not
+                  expression statements and therefore the rules of this section do not
+                  apply to explicit constructor invocations.
+               </p>
+               <p class="norm-static"><a name="jls-16.1.10-110"></a>For any
+                  immediate subexpression <code class="varname">y</code> of an expression <code class="varname">x</code>, <span class="type">V</span> is [un]assigned
+                  before <code class="varname">y</code> iff one of the following is true:
+               </p>
+               <div class="norm">
+                  <ul class="norm" type="disc">
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.1.10-110-A"></a><code class="varname">y</code> is the leftmost immediate
+                               subexpression of <code class="varname">x</code> and <span class="type">V</span> is [un]assigned before <code class="varname">x</code>.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.1.10-110-B"></a><code class="varname">y</code> is the right-hand operand of a
+                               binary operator and <span class="type">V</span> is [un]assigned after the left-hand
+                               operand.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.1.10-110-C"></a><code class="varname">x</code> is an array access, <code class="varname">y</code> is the
+                               subexpression within the brackets, and <span class="type">V</span> is [un]assigned after
+                               the subexpression before the brackets.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.1.10-110-D"></a><code class="varname">x</code> is a primary method invocation
+                               expression, <code class="varname">y</code> is the first argument expression in the method
+                               invocation expression, and <span class="type">V</span> is [un]assigned after the primary
+                               expression that computes the target object.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.1.10-110-E"></a><code class="varname">x</code> is a method invocation expression
+                               or a class instance creation expression; <code class="varname">y</code> is an argument
+                               expression, but not the first; and <span class="type">V</span> is [un]assigned after the
+                               argument expression to the left of <code class="varname">y</code>.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.1.10-110-F"></a><code class="varname">x</code> is a qualified class instance
+                               creation expression, <code class="varname">y</code> is the first argument expression in the
+                               class instance creation expression, and <span class="type">V</span> is [un]assigned after
+                               the primary expression that computes the qualifying object.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.1.10-110-G"></a><code class="varname">x</code> is an array instance creation
+                               expression; <code class="varname">y</code> is a dimension expression, but not the first; and
+                               <span class="type">V</span> is [un]assigned after the dimension expression to the left of
+                               <code class="varname">y</code>.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.1.10-110-H"></a><code class="varname">x</code> is an array instance creation
+                               expression initialized via an array initializer; <code class="varname">y</code> is the array
+                               initializer in <code class="varname">x</code>; and <span class="type">V</span> is [un]assigned after the dimension
+                               expression to the left of <code class="varname">y</code>.
+                        </p>
+                     </li>
+                  </ul>
+               </div>
+            </div>
+         </div>
+         <div class="section" title="16.2.&nbsp;Definite Assignment and Statements">
+            <div class="titlepage">
+               <div>
+                  <div>
+                     <h2 class="title" style="clear: both"><a name="jls-16.2"></a>16.2.&nbsp;Definite Assignment and Statements
+                     </h2>
+                  </div>
+               </div>
+            </div>
+            <div class="section" title="16.2.1.&nbsp;Empty Statements">
+               <div class="titlepage">
+                  <div>
+                     <div>
+                        <h3 class="title"><a name="jls-16.2.1"></a>16.2.1.&nbsp;Empty Statements
+                        </h3>
+                     </div>
+                  </div>
+               </div>
+               <div class="norm">
+                  <ul class="norm" type="disc">
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.2.1-100-A"></a><span class="type">V</span>
+                               is [un]assigned after an empty statement
+                               (<a class="xref" href="jls-14.html#jls-14.6" title="14.6.&nbsp;The Empty Statement">&sect;14.6</a>) iff it is [un]assigned before the
+                               empty statement.
+                        </p>
+                     </li>
+                  </ul>
+               </div>
+            </div>
+            <div class="section" title="16.2.2.&nbsp;Blocks">
+               <div class="titlepage">
+                  <div>
+                     <div>
+                        <h3 class="title"><a name="jls-16.2.2"></a>16.2.2.&nbsp;Blocks
+                        </h3>
+                     </div>
+                  </div>
+               </div>
+               <div class="norm">
+                  <ul class="norm" type="disc">
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.2.2-100-A"></a>A blank
+                               <code class="literal">final</code> member field <span class="type">V</span> is definitely assigned (and moreover is
+                               not definitely unassigned) before the block
+                               (<a class="xref" href="jls-14.html#jls-14.2" title="14.2.&nbsp;Blocks">&sect;14.2</a>) that is the body of any method in the
+                               scope of <span class="type">V</span> and before the declaration of any class
+                               declared within the scope of <span class="type">V</span>.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.2.2-100-B"></a>A
+                               local variable <span class="type">V</span> is definitely unassigned (and moreover is not
+                               definitely assigned) before the block that is the body of the
+                               constructor, method, instance initializer or static initializer
+                               that declares <span class="type">V</span>.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.2.2-100-C"></a>Let
+                               <span class="type">C</span> be a class declared within the scope of <span class="type">V</span>. Then <span class="type">V</span> is
+                               definitely assigned before the block that is the body of any
+                               constructor, method, instance initializer, or static initializer
+                               declared in <span class="type">C</span> iff <span class="type">V</span> is definitely assigned before the
+                               declaration of <span class="type">C</span>.
+                        </p>
+                        <p class="note">Note that there are no rules that would allow us
+                               to conclude that <span class="type">V</span> is definitely unassigned before the block
+                               that is the body of any constructor, method, instance initializer,
+                               or static initializer declared in <span class="type">C</span>. We can informally conclude
+                               that <span class="type">V</span> is not definitely unassigned before the block that is the
+                               body of any constructor, method, instance initializer, or static
+                               initializer declared in <span class="type">C</span>, but there is no need for such a rule
+                               to be stated explicitly.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.2.2-100-D"></a><span class="type">V</span>
+                               is [un]assigned after an empty block iff <span class="type">V</span> is [un]assigned
+                               before the empty block.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.2.2-100-E"></a><span class="type">V</span>
+                               is [un]assigned after a non-empty block iff <span class="type">V</span> is [un]assigned
+                               after the last statement in the block.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.2.2-100-F"></a><span class="type">V</span>
+                               is [un]assigned before the first statement of the block iff <span class="type">V</span> is
+                               [un]assigned before the block.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.2.2-100-G"></a><span class="type">V</span>
+                               is [un]assigned before any other statement <span class="type">S</span> of the block iff
+                               <span class="type">V</span> is [un]assigned after the statement immediately preceding <span class="type">S</span>
+                               in the block.
+                        </p>
+                     </li>
+                  </ul>
+               </div>
+               <p class="norm-static"><a name="jls-16.2.2-110"></a>We say
+                  that <span class="type">V</span> is definitely unassigned everywhere in a block <span class="type">B</span>
+                  iff:
+               </p>
+               <div class="norm">
+                  <ul class="norm" type="disc">
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.2.2-110-A"></a><span class="type">V</span>
+                               is definitely unassigned before <span class="type">B</span>.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.2.2-110-B"></a><span class="type">V</span>
+                               is definitely assigned after <code class="varname">e</code> in every assignment expression
+                               <span class="type">V</span> <code class="literal">=</code> <code class="varname">e</code>, <span class="type">V</span> <code class="literal">+=</code> <code class="varname">e</code>, <span class="type">V</span> <code class="literal">-=</code> <code class="varname">e</code>,
+                               <span class="type">V</span> <code class="literal">*=</code> <code class="varname">e</code>, <span class="type">V</span> <code class="literal">/=</code> <code class="varname">e</code>,
+                               <span class="type">V</span> <code class="literal">%=</code> <code class="varname">e</code>, <span class="type">V</span> <code class="literal">&lt;&lt;=</code> <code class="varname">e</code>,
+                               <span class="type">V</span> <code class="literal">&gt;&gt;=</code> <code class="varname">e</code>, <span class="type">V</span> <code class="literal">&gt;&gt;&gt;=</code> <code class="varname">e</code>,
+                               <span class="type">V</span> <code class="literal">&amp;=</code> <code class="varname">e</code>, <span class="type">V</span> <code class="literal">|=</code> <code class="varname">e</code>, or <span class="type">V</span> <code class="literal">^=</code> <code class="varname">e</code>
+                               that occurs in <span class="type">B</span>.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.2.2-110-C"></a><span class="type">V</span>
+                               is definitely assigned before every expression <code class="literal">++</code><span class="type">V</span>,
+                               <code class="literal">--</code><span class="type">V</span>, <span class="type">V</span><code class="literal">++</code>, or <span class="type">V</span><code class="literal">--</code> that occurs in
+                               <span class="type">B</span>.
+                        </p>
+                     </li>
+                  </ul>
+               </div>
+               <p class="note">These conditions are counterintuitive and require
+                  some explanation. Consider a simple assignment <span class="type">V</span> <code class="literal">=</code> <code class="varname">e</code>. If
+                  <span class="type">V</span> is definitely assigned after <code class="varname">e</code>, then either:
+               </p>
+               <div class="note">
+                  <ul class="note" type="disc">
+                     <li class="listitem">
+                        <p class="note">The assignment occurs in dead code, and <span class="type">V</span> is
+                               vacuously definitely assigned. In this case, the assignment will
+                               not actually take place, and we can assume that <span class="type">V</span> is not being
+                               assigned by the assignment expression. Or:
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="note"><span class="type">V</span> was already assigned by an earlier
+                               expression prior to <code class="varname">e</code>. In this case the current assignment will
+                               cause a compile-time error.
+                        </p>
+                     </li>
+                  </ul>
+               </div>
+               <p class="note">So, we can conclude that if the conditions are met
+                  by a program that causes no compile time error, then any assignments
+                  to <span class="type">V</span> in <span class="type">B</span> will not actually take place at run time.
+               </p>
+            </div>
+            <div class="section" title="16.2.3.&nbsp;Local Class Declaration Statements">
+               <div class="titlepage">
+                  <div>
+                     <div>
+                        <h3 class="title"><a name="jls-16.2.3"></a>16.2.3.&nbsp;Local Class Declaration Statements
+                        </h3>
+                     </div>
+                  </div>
+               </div>
+               <div class="norm">
+                  <ul class="norm" type="disc">
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.2.3-100-A"></a><span class="type">V</span>
+                               is [un]assigned after a local class declaration statement
+                               (<a class="xref" href="jls-14.html#jls-14.3" title="14.3.&nbsp;Local Class Declarations">&sect;14.3</a>) iff <span class="type">V</span> is [un]assigned before the
+                               local class declaration statement.
+                        </p>
+                     </li>
+                  </ul>
+               </div>
+            </div>
+            <div class="section" title="16.2.4.&nbsp;Local Variable Declaration Statements">
+               <div class="titlepage">
+                  <div>
+                     <div>
+                        <h3 class="title"><a name="jls-16.2.4"></a>16.2.4.&nbsp;Local Variable Declaration Statements
+                        </h3>
+                     </div>
+                  </div>
+               </div>
+               <div class="norm">
+                  <ul class="norm" type="disc">
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.2.4-100-A"></a><span class="type">V</span>
+                               is [un]assigned after a local variable declaration statement
+                               (<a class="xref" href="jls-14.html#jls-14.4" title="14.4.&nbsp;Local Variable Declaration Statements">&sect;14.4</a>) that contains no variable
+                               initializers iff <span class="type">V</span> is [un]assigned before the local variable
+                               declaration statement.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.2.4-100-B"></a><span class="type">V</span>
+                               is definitely assigned after a local variable declaration
+                               statement that contains at least one variable initializer iff
+                               either <span class="type">V</span> is definitely assigned after the last variable
+                               initializer in the local variable declaration statement or the
+                               last variable initializer in the declaration is in the declarator
+                               that declares <span class="type">V</span>.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.2.4-100-C"></a><span class="type">V</span>
+                               is definitely unassigned after a local variable declaration
+                               statement that contains at least one variable initializer iff <span class="type">V</span>
+                               is definitely unassigned after the last variable initializer in
+                               the local variable declaration statement and the last variable
+                               initializer in the declaration is not in the declarator that
+                               declares <span class="type">V</span>.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.2.4-100-D"></a><span class="type">V</span>
+                               is [un]assigned before the first variable initializer in a local
+                               variable declaration statement iff <span class="type">V</span> is [un]assigned before the
+                               local variable declaration statement.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.2.4-100-E"></a><span class="type">V</span>
+                               is definitely assigned before any variable initializer <code class="varname">e</code> other
+                               than the first one in the local variable declaration statement iff
+                               either <span class="type">V</span> is definitely assigned after the variable initializer
+                               to the left of <code class="varname">e</code> or the initializer expression to the left of
+                               <code class="varname">e</code> is in the declarator that declares <span class="type">V</span>.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.2.4-100-F"></a><span class="type">V</span>
+                               is definitely unassigned before any variable initializer <code class="varname">e</code> other
+                               than the first one in the local variable declaration statement iff
+                               <span class="type">V</span> is definitely unassigned after the variable initializer to the
+                               left of <code class="varname">e</code> and the initializer expression to the left of <code class="varname">e</code> is
+                               not in the declarator that declares <span class="type">V</span>.
+                        </p>
+                     </li>
+                  </ul>
+               </div>
+            </div>
+            <div class="section" title="16.2.5.&nbsp;Labeled Statements">
+               <div class="titlepage">
+                  <div>
+                     <div>
+                        <h3 class="title"><a name="jls-16.2.5"></a>16.2.5.&nbsp;Labeled Statements
+                        </h3>
+                     </div>
+                  </div>
+               </div>
+               <div class="norm">
+                  <ul class="norm" type="disc">
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.2.5-100-A"></a><span class="type">V</span>
+                               is [un]assigned after a labeled statement <code class="varname">L</code> <code class="literal">:</code> <span class="type">S</span> (where
+                               <code class="varname">L</code> is a label) (<a class="xref" href="jls-14.html#jls-14.7" title="14.7.&nbsp;Labeled Statements">&sect;14.7</a>) iff <span class="type">V</span> is
+                               [un]assigned after <span class="type">S</span> and <span class="type">V</span> is [un]assigned before every
+                               <code class="literal">break</code> statement that may exit the labeled statement <code class="varname">L</code> <code class="literal">:</code>
+                               <span class="type">S</span>.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.2.5-100-B"></a><span class="type">V</span>
+                               is [un]assigned before <span class="type">S</span> iff <span class="type">V</span> is [un]assigned before <code class="varname">L</code>
+                               <code class="literal">:</code> <span class="type">S</span>.
+                        </p>
+                     </li>
+                  </ul>
+               </div>
+            </div>
+            <div class="section" title="16.2.6.&nbsp;Expression Statements">
+               <div class="titlepage">
+                  <div>
+                     <div>
+                        <h3 class="title"><a name="jls-16.2.6"></a>16.2.6.&nbsp;Expression Statements
+                        </h3>
+                     </div>
+                  </div>
+               </div>
+               <div class="norm">
+                  <ul class="norm" type="disc">
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.2.6-100-A"></a><span class="type">V</span>
+                               is [un]assigned after an expression statement <code class="varname">e</code><code class="literal">;</code>
+                               (<a class="xref" href="jls-14.html#jls-14.8" title="14.8.&nbsp;Expression Statements">&sect;14.8</a>) iff it is [un]assigned after
+                               <code class="varname">e</code>.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.2.6-100-B"></a><span class="type">V</span>
+                               is [un]assigned before <code class="varname">e</code> iff it is [un]assigned before
+                               <code class="varname">e</code><code class="literal">;</code>.
+                        </p>
+                     </li>
+                  </ul>
+               </div>
+            </div>
+            <div class="section" title="16.2.7.&nbsp;if Statements">
+               <div class="titlepage">
+                  <div>
+                     <div>
+                        <h3 class="title"><a name="jls-16.2.7"></a>16.2.7.&nbsp;<code class="literal">if</code> Statements
+                        </h3>
+                     </div>
+                  </div>
+               </div>
+               <p class="norm-static"><a name="jls-16.2.7-100"></a>The
+                  following rules apply to a statement <code class="literal">if (<code class="varname">e</code>) <span class="type">S</span></code>
+                  (<a class="xref" href="jls-14.html#jls-14.9.1" title="14.9.1.&nbsp;The if-then Statement">&sect;14.9.1</a>):
+               </p>
+               <div class="norm">
+                  <ul class="norm" type="disc">
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.2.7-100-A"></a><span class="type">V</span>
+                                 is [un]assigned after <code class="literal">if (<code class="varname">e</code>) <span class="type">S</span></code> iff <span class="type">V</span> is
+                                 [un]assigned after <span class="type">S</span> and <span class="type">V</span> is [un]assigned after <code class="varname">e</code> when
+                                 false.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.2.7-100-B"></a><span class="type">V</span>
+                                 is [un]assigned before <code class="varname">e</code> iff <span class="type">V</span> is [un]assigned
+                                 before <code class="literal">if (<code class="varname">e</code>) <span class="type">S</span></code>.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.2.7-100-C"></a><span class="type">V</span>
+                                 is [un]assigned before <span class="type">S</span> iff <span class="type">V</span> is [un]assigned after <code class="varname">e</code>
+                                 when true.
+                        </p>
+                     </li>
+                  </ul>
+               </div>
+               <p class="norm-static"><a name="jls-16.2.7-110"></a>The
+                  following rules apply to a statement <code class="literal">if (e) <span class="type">S</span> else
+                     <span class="type">T</span></code> (<a class="xref" href="jls-14.html#jls-14.9.2" title="14.9.2.&nbsp;The if-then-else Statement">&sect;14.9.2</a>):
+               </p>
+               <div class="norm">
+                  <ul class="norm" type="disc">
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.2.7-110-A"></a><span class="type">V</span>
+                               is [un]assigned after <code class="literal">if (<code class="varname">e</code>) <span class="type">S</span> else <span class="type">T</span></code> iff
+                               <span class="type">V</span> is [un]assigned after <span class="type">S</span> and <span class="type">V</span> is [un]assigned after
+                               <span class="type">T</span>.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.2.7-110-B"></a><span class="type">V</span>
+                               is [un]assigned before <code class="varname">e</code> iff <span class="type">V</span> is [un]assigned
+                               before <code class="literal">if (<code class="varname">e</code>) <span class="type">S</span> else <span class="type">T</span></code>.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.2.7-110-C"></a><span class="type">V</span>
+                               is [un]assigned before <span class="type">S</span> iff <span class="type">V</span> is [un]assigned after <code class="varname">e</code> when
+                               true.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.2.7-110-D"></a><span class="type">V</span>
+                               is [un]assigned before <span class="type">T</span> iff <span class="type">V</span> is [un]assigned after <code class="varname">e</code> when
+                               false.
+                        </p>
+                     </li>
+                  </ul>
+               </div>
+            </div>
+            <div class="section" title="16.2.8.&nbsp;assert Statements">
+               <div class="titlepage">
+                  <div>
+                     <div>
+                        <h3 class="title"><a name="jls-16.2.8"></a>16.2.8.&nbsp;<code class="literal">assert</code> Statements
+                        </h3>
+                     </div>
+                  </div>
+               </div>
+               <p class="norm-static"><a name="jls-16.2.8-100"></a>The
+                  following rules apply both to a statement <code class="literal">assert
+                     <code class="varname">e<sub>1</sub></code></code> and to a statement <code class="literal">assert <code class="varname">e<sub>1</sub></code> :
+                     <code class="varname">e<sub>2</sub></code></code> (<a class="xref" href="jls-14.html#jls-14.10" title="14.10.&nbsp;The assert Statement">&sect;14.10</a>):
+               </p>
+               <div class="norm">
+                  <ul class="norm" type="disc">
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.2.8-100-A"></a><span class="type">V</span>
+                               is  [un]assigned before <code class="varname">e<sub>1</sub></code> iff <span class="type">V</span> is
+                                [un]assigned before the <code class="literal">assert</code> statement. 
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.2.8-100-B"></a><span class="type">V</span>
+                               is definitely assigned after the <code class="literal">assert</code> statement iff <span class="type">V</span> is
+                               definitely assigned before the <code class="literal">assert</code> statement.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.2.8-100-C"></a><span class="type">V</span>
+                               is definitely unassigned after the <code class="literal">assert</code> statement iff <span class="type">V</span> is
+                               definitely unassigned before the <code class="literal">assert</code> statement and <span class="type">V</span> is
+                               definitely unassigned after <code class="varname">e<sub>1</sub></code> when true.
+                        </p>
+                     </li>
+                  </ul>
+               </div>
+               <p class="norm"><a name="jls-16.2.8-110"></a>The following rule applies
+                  to a statement <code class="literal">assert <code class="varname">e<sub>1</sub></code> : <code class="varname">e<sub>2</sub></code></code> :
+               </p>
+               <div class="norm">
+                  <ul class="norm" type="disc">
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.2.8-110-A"></a><span class="type">V</span>
+                                 is  [un]assigned before <code class="varname">e<sub>2</sub></code> iff <span class="type">V</span>
+                                 is  [un]assigned after <code class="varname">e<sub>1</sub></code> when false.
+                        </p>
+                     </li>
+                  </ul>
+               </div>
+            </div>
+            <div class="section" title="16.2.9.&nbsp;switch Statements">
+               <div class="titlepage">
+                  <div>
+                     <div>
+                        <h3 class="title"><a name="jls-16.2.9"></a>16.2.9.&nbsp;<code class="literal">switch</code> Statements
+                        </h3>
+                     </div>
+                  </div>
+               </div>
+               <div class="norm">
+                  <ul class="norm" type="disc">
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.2.9-100-A"></a><span class="type">V</span>
+                               is [un]assigned after a <code class="literal">switch</code> statement
+                               (<a class="xref" href="jls-14.html#jls-14.11" title="14.11.&nbsp;The switch Statement">&sect;14.11</a>) iff all of the following are
+                               true:
+                        </p>
+                        <div class="norm">
+                           <ul class="norm" type="circle">
+                              <li class="listitem">
+                                 <p class="norm-static"><a name="jls-16.2.9-100-A-1"></a>Either there is a <code class="literal">default</code> label
+                                    	in the switch block  or <span class="type">V</span> is [un]assigned after the switch
+                                    	expression.
+                                 </p>
+                              </li>
+                              <li class="listitem">
+                                 <p class="norm-static"><a name="jls-16.2.9-100-A-2"></a>Either there are no switch labels
+                                    	in the switch block that do not begin a block-statement-group
+                                    	(that is, there are no switch labels immediately before the
+                                    	"<code class="literal">}</code>" that ends the switch block) or <span class="type">V</span> is
+                                    	[un]assigned after the switch expression.
+                                 </p>
+                              </li>
+                              <li class="listitem">
+                                 <p class="norm-static"><a name="jls-16.2.9-100-A-3"></a>Either the switch block contains
+                                    	no block-statement-groups or <span class="type">V</span> is [un]assigned after the
+                                    	last block-statement of the last block-statement-group.
+                                 </p>
+                              </li>
+                              <li class="listitem">
+                                 <p class="norm-static"><a name="jls-16.2.9-100-A-4"></a><span class="type">V</span> is [un]assigned before every
+                                    	<code class="literal">break</code> statement that may exit the <code class="literal">switch</code> statement.
+                                 </p>
+                              </li>
+                           </ul>
+                        </div>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.2.9-100-B"></a><span class="type">V</span>
+                               is [un]assigned before the switch expression iff <span class="type">V</span> is
+                               [un]assigned before the <code class="literal">switch</code> statement.
+                        </p>
+                     </li>
+                  </ul>
+               </div>
+               <p class="norm-static"><a name="jls-16.2.9-110"></a>If a
+                  switch block contains at least one block-statement-group, then the
+                  following rules also apply:
+               </p>
+               <div class="norm">
+                  <ul class="norm" type="disc">
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.2.9-110-A"></a><span class="type">V</span>
+                               is [un]assigned before the first block-statement of the first
+                               block-statement-group in the switch block iff <span class="type">V</span> is [un]assigned
+                               after the switch expression.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.2.9-110-B"></a><span class="type">V</span>
+                               is [un]assigned before the first block-statement of any
+                               block-statement-group other than the first iff <span class="type">V</span> is [un]assigned
+                               after the switch expression and <span class="type">V</span> is [un]assigned after the
+                               preceding block-statement.
+                        </p>
+                     </li>
+                  </ul>
+               </div>
+            </div>
+            <div class="section" title="16.2.10.&nbsp;while Statements">
+               <div class="titlepage">
+                  <div>
+                     <div>
+                        <h3 class="title"><a name="jls-16.2.10"></a>16.2.10.&nbsp;<code class="literal">while</code> Statements
+                        </h3>
+                     </div>
+                  </div>
+               </div>
+               <div class="norm">
+                  <ul class="norm" type="disc">
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.2.10-100-A"></a><span class="type">V</span> is [un]assigned
+                               after <code class="literal">while (<code class="varname">e</code>) <span class="type">S</span></code>
+                               (<a class="xref" href="jls-14.html#jls-14.12" title="14.12.&nbsp;The while Statement">&sect;14.12</a>) iff <span class="type">V</span> is [un]assigned after <code class="varname">e</code>
+                               when false and <span class="type">V</span> is [un]assigned before every <code class="literal">break</code> statement
+                               for which the <code class="literal">while</code> statement is the break target.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.2.10-100-B"></a><span class="type">V</span> is definitely assigned before <code class="varname">e</code>
+                               iff <span class="type">V</span> is definitely assigned before the <code class="literal">while</code>
+                               statement.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.2.10-100-C"></a><span class="type">V</span> is definitely unassigned before <code class="varname">e</code>
+                               iff all of the following are true:
+                        </p>
+                        <div class="norm">
+                           <ul class="norm" type="circle">
+                              <li class="listitem">
+                                 <p class="norm-static"><a name="jls-16.2.10-100-C-1"></a><span class="type">V</span> is definitely unassigned
+                                    	before the <code class="literal">while</code> statement.
+                                 </p>
+                              </li>
+                              <li class="listitem">
+                                 <p class="norm-static"><a name="jls-16.2.10-100-C-2"></a>Assuming <span class="type">V</span> is definitely
+                                    	unassigned before <code class="varname">e</code>, <span class="type">V</span> is definitely unassigned after
+                                    	<span class="type">S</span>.
+                                 </p>
+                              </li>
+                              <li class="listitem">
+                                 <p class="norm-static"><a name="jls-16.2.10-100-C-3"></a>Assuming <span class="type">V</span> is definitely
+                                    	unassigned before <code class="varname">e</code>, <span class="type">V</span> is definitely unassigned before
+                                    	every <code class="literal">continue</code> statement for which the <code class="literal">while</code> statement is
+                                    	the continue target.
+                                 </p>
+                              </li>
+                           </ul>
+                        </div>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.2.10-100-D"></a><span class="type">V</span> is [un]assigned before <span class="type">S</span> iff <span class="type">V</span>
+                               is [un]assigned after <code class="varname">e</code> when true.
+                        </p>
+                     </li>
+                  </ul>
+               </div>
+            </div>
+            <div class="section" title="16.2.11.&nbsp;do Statements">
+               <div class="titlepage">
+                  <div>
+                     <div>
+                        <h3 class="title"><a name="jls-16.2.11"></a>16.2.11.&nbsp;<code class="literal">do</code> Statements
+                        </h3>
+                     </div>
+                  </div>
+               </div>
+               <div class="norm">
+                  <ul class="norm" type="disc">
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.2.11-100-A"></a><span class="type">V</span> is [un]assigned after <code class="literal">do
+                                  <span class="type">S</span> while (<code class="varname">e</code>);</code> (<a class="xref" href="jls-14.html#jls-14.13" title="14.13.&nbsp;The do Statement">&sect;14.13</a>) iff <span class="type">V</span>
+                               is [un]assigned after <code class="varname">e</code> when false and <span class="type">V</span> is [un]assigned
+                               before every <code class="literal">break</code> statement for which the <code class="literal">do</code> statement is the
+                               break target.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.2.11-100-B"></a><span class="type">V</span> is definitely assigned before <span class="type">S</span>
+                               iff <span class="type">V</span> is definitely assigned before the <code class="literal">do</code> statement.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.2.11-100-C"></a><span class="type">V</span> is definitely unassigned before <span class="type">S</span>
+                               iff all of the following are true:
+                        </p>
+                        <div class="norm">
+                           <ul class="norm" type="circle">
+                              <li class="listitem">
+                                 <p class="norm-static"><a name="jls-16.2.11-100-C-1"></a><span class="type">V</span> is definitely unassigned
+                                    	before the <code class="literal">do</code> statement.
+                                 </p>
+                              </li>
+                              <li class="listitem">
+                                 <p class="norm-static"><a name="jls-16.2.11-100-C-2"></a>Assuming <span class="type">V</span> is definitely
+                                    	unassigned before <span class="type">S</span>, <span class="type">V</span> is definitely unassigned after <code class="varname">e</code>
+                                    	when true.
+                                 </p>
+                              </li>
+                           </ul>
+                        </div>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.2.11-100-D"></a><span class="type">V</span> is [un]assigned before <code class="varname">e</code> iff <span class="type">V</span>
+                               is [un]assigned after <span class="type">S</span> and <span class="type">V</span> is [un]assigned before every
+                               <code class="literal">continue</code> statement for which the <code class="literal">do</code> statement is the continue
+                               target.
+                        </p>
+                     </li>
+                  </ul>
+               </div>
+            </div>
+            <div class="section" title="16.2.12.&nbsp;for Statements">
+               <div class="titlepage">
+                  <div>
+                     <div>
+                        <h3 class="title"><a name="jls-16.2.12"></a>16.2.12.&nbsp;<code class="literal">for</code> Statements
+                        </h3>
+                     </div>
+                  </div>
+               </div>
+               <p class="norm-static"><a name="jls-16.2.12-100"></a>The
+                  rules herein cover the basic <code class="literal">for</code> statement
+                  (<a class="xref" href="jls-14.html#jls-14.14.1" title="14.14.1.&nbsp;The basic for Statement">&sect;14.14.1</a>). Since the enhanced <code class="literal">for</code> statement
+                  (<a class="xref" href="jls-14.html#jls-14.14.2" title="14.14.2.&nbsp;The enhanced for statement">&sect;14.14.2</a>) is defined by translation to a basic
+                  <code class="literal">for</code> statement, no special rules need to be provided for it.
+               </p>
+               <div class="norm">
+                  <ul class="norm" type="disc">
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.2.12-100-A"></a><span class="type">V</span> is [un]assigned after a <code class="literal">for</code>
+                               statement iff both of the following are true:
+                        </p>
+                        <div class="norm">
+                           <ul class="norm" type="circle">
+                              <li class="listitem">
+                                 <p class="norm-static"><a name="jls-16.2.12-100-A-1"></a>Either a condition expression is
+                                    	not present or <span class="type">V</span> is [un]assigned after the condition
+                                    	expression when false.
+                                 </p>
+                              </li>
+                              <li class="listitem">
+                                 <p class="norm-static"><a name="jls-16.2.12-100-A-2"></a><span class="type">V</span> is [un]assigned before every
+                                    	<code class="literal">break</code> statement for which the <code class="literal">for</code> statement is the break
+                                    	target.
+                                 </p>
+                              </li>
+                           </ul>
+                        </div>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.2.12-100-B"></a><span class="type">V</span> is [un]assigned before the
+                               initialization part of the <code class="literal">for</code> statement iff <span class="type">V</span> is [un]assigned
+                               before the <code class="literal">for</code> statement.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.2.12-100-C"></a><span class="type">V</span> is definitely assigned before the
+                               condition part of the <code class="literal">for</code> statement iff <span class="type">V</span> is definitely
+                               assigned after the initialization part of the <code class="literal">for</code>
+                               statement.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.2.12-100-D"></a><span class="type">V</span> is definitely unassigned before the
+                               condition part of the <code class="literal">for</code> statement iff all of the following
+                               are true:
+                        </p>
+                        <div class="norm">
+                           <ul class="norm" type="circle">
+                              <li class="listitem">
+                                 <p class="norm-static"><a name="jls-16.2.12-100-D-1"></a><span class="type">V</span> is definitely unassigned
+                                    	after the initialization part of the <code class="literal">for</code> statement.
+                                 </p>
+                              </li>
+                              <li class="listitem">
+                                 <p class="norm-static"><a name="jls-16.2.12-100-D-2"></a>Assuming <span class="type">V</span> is definitely
+                                    	unassigned before the condition part of the <code class="literal">for</code> statement,
+                                    	<span class="type">V</span> is definitely unassigned after the contained
+                                    	statement.
+                                 </p>
+                              </li>
+                              <li class="listitem">
+                                 <p class="norm-static"><a name="jls-16.2.12-100-D-3"></a>Assuming <span class="type">V</span> is definitely
+                                    	unassigned before the contained statement, <span class="type">V</span> is definitely
+                                    	unassigned before every <code class="literal">continue</code> statement for which the
+                                    	<code class="literal">for</code> statement is the continue target.
+                                 </p>
+                              </li>
+                           </ul>
+                        </div>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.2.12-100-E"></a><span class="type">V</span> is [un]assigned before the
+                               contained statement iff either of the following is true:
+                        </p>
+                        <div class="norm">
+                           <ul class="norm" type="circle">
+                              <li class="listitem">
+                                 <p class="norm-static"><a name="jls-16.2.12-100-E-1"></a>A condition expression is present
+                                    	and <span class="type">V</span> is [un]assigned after the condition expression when
+                                    	true.
+                                 </p>
+                              </li>
+                              <li class="listitem">
+                                 <p class="norm-static"><a name="jls-16.2.12-100-E-2"></a>No condition expression is
+                                    	present and <span class="type">V</span> is [un]assigned after the initialization part
+                                    	of the <code class="literal">for</code> statement.
+                                 </p>
+                              </li>
+                           </ul>
+                        </div>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.2.12-100-F"></a><span class="type">V</span> is [un]assigned before the
+                               incrementation part of the <code class="literal">for</code> statement iff <span class="type">V</span> is [un]assigned
+                               after the contained statement and <span class="type">V</span> is [un]assigned before every
+                               <code class="literal">continue</code> statement for which the <code class="literal">for</code> statement is the continue
+                               target.
+                        </p>
+                     </li>
+                  </ul>
+               </div>
+               <div class="section" title="16.2.12.1.&nbsp;Initialization Part of for Statement">
+                  <div class="titlepage">
+                     <div>
+                        <div>
+                           <h4 class="title"><a name="jls-16.2.12.1"></a>16.2.12.1.&nbsp;Initialization Part of <code class="literal">for</code> Statement
+                           </h4>
+                        </div>
+                     </div>
+                  </div>
+                  <div class="norm">
+                     <ul class="norm" type="disc">
+                        <li class="listitem">
+                           <p class="norm-static"><a name="jls-16.2.12.1-100-A"></a>If the initialization part of the
+                                  <code class="literal">for</code> statement is a local variable declaration statement, the
+                                  rules of <a class="xref" href="jls-16.html#jls-16.2.4" title="16.2.4.&nbsp;Local Variable Declaration Statements">&sect;16.2.4</a> apply.
+                           </p>
+                        </li>
+                        <li class="listitem">
+                           <p class="norm-static"><a name="jls-16.2.12.1-100-B"></a>Otherwise, if the initialization part
+                                  is empty, then <span class="type">V</span> is [un]assigned after the initialization part
+                                  iff <span class="type">V</span> is [un]assigned before the initialization part.
+                           </p>
+                        </li>
+                        <li class="listitem">
+                           <p class="norm-static"><a name="jls-16.2.12.1-100-C"></a>Otherwise, three rules apply:
+                           </p>
+                           <div class="norm">
+                              <ul class="norm" type="circle">
+                                 <li class="listitem">
+                                    <p class="norm-static"><a name="jls-16.2.12.1-100-C-1"></a><span class="type">V</span> is [un]assigned after the
+                                       	initialization part iff <span class="type">V</span> is [un]assigned after the last
+                                       	expression statement in the initialization part.
+                                    </p>
+                                 </li>
+                                 <li class="listitem">
+                                    <p class="norm-static"><a name="jls-16.2.12.1-100-C-2"></a><span class="type">V</span> is [un]assigned before the
+                                       	first expression statement in the initialization part iff <span class="type">V</span>
+                                       	is [un]assigned before the initialization part.
+                                    </p>
+                                 </li>
+                                 <li class="listitem">
+                                    <p class="norm-static"><a name="jls-16.2.12.1-100-C-3"></a><span class="type">V</span> is [un]assigned before an
+                                       	expression statement <span class="type">S</span> other than the first in the
+                                       	initialization part iff <span class="type">V</span> is [un]assigned after the
+                                       	expression statement immediately preceding <span class="type">S</span>.
+                                    </p>
+                                 </li>
+                              </ul>
+                           </div>
+                        </li>
+                     </ul>
+                  </div>
+               </div>
+               <div class="section" title="16.2.12.2.&nbsp;Incrementation Part of for Statement">
+                  <div class="titlepage">
+                     <div>
+                        <div>
+                           <h4 class="title"><a name="jls-16.2.12.2"></a>16.2.12.2.&nbsp;Incrementation Part of <code class="literal">for</code> Statement
+                           </h4>
+                        </div>
+                     </div>
+                  </div>
+                  <div class="norm">
+                     <ul class="norm" type="disc">
+                        <li class="listitem">
+                           <p class="norm-static"><a name="jls-16.2.12.2-100-A"></a>If the incrementation part of the
+                                  <code class="literal">for</code> statement is empty, then <span class="type">V</span> is [un]assigned after the
+                                  incrementation part iff <span class="type">V</span> is [un]assigned before the
+                                  incrementation part.
+                           </p>
+                        </li>
+                        <li class="listitem">
+                           <p class="norm-static"><a name="jls-16.2.12.2-100-B"></a>Otherwise, three rules apply:
+                           </p>
+                           <div class="norm">
+                              <ul class="norm" type="circle">
+                                 <li class="listitem">
+                                    <p class="norm-static"><a name="jls-16.2.12.2-100-B-1"></a><span class="type">V</span> is [un]assigned after the
+                                       	incrementation part iff <span class="type">V</span> is [un]assigned after the last
+                                       	expression statement in the incrementation part.
+                                    </p>
+                                 </li>
+                                 <li class="listitem">
+                                    <p class="norm-static"><a name="jls-16.2.12.2-100-B-2"></a><span class="type">V</span> is [un]assigned before the
+                                       	first expression statement in the incrementation part iff <span class="type">V</span>
+                                       	is [un]assigned before the incrementation part.
+                                    </p>
+                                 </li>
+                                 <li class="listitem">
+                                    <p class="norm-static"><a name="jls-16.2.12.2-100-B-3"></a><span class="type">V</span> is [un]assigned before an
+                                       	expression statement <span class="type">S</span> other than the first in the
+                                       	incrementation part iff <span class="type">V</span> is [un]assigned after the
+                                       	expression statement immediately preceding <span class="type">S</span>.
+                                    </p>
+                                 </li>
+                              </ul>
+                           </div>
+                        </li>
+                     </ul>
+                  </div>
+               </div>
+            </div>
+            <div class="section" title="16.2.13.&nbsp;break, continue, return, and throw Statements">
+               <div class="titlepage">
+                  <div>
+                     <div>
+                        <h3 class="title"><a name="jls-16.2.13"></a>16.2.13.&nbsp;<code class="literal">break</code>, <code class="literal">continue</code>, <code class="literal">return</code>, and <code class="literal">throw</code> Statements
+                        </h3>
+                     </div>
+                  </div>
+               </div>
+               <div class="norm">
+                  <ul class="norm" type="disc">
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.2.13-100-A"></a>By
+                               convention, we say that <span class="type">V</span> is [un]assigned after any <code class="literal">break</code>,
+                               <code class="literal">continue</code>, <code class="literal">return</code>, or <code class="literal">throw</code> statement
+                               (<a class="xref" href="jls-14.html#jls-14.15" title="14.15.&nbsp;The break Statement">&sect;14.15</a>, <a class="xref" href="jls-14.html#jls-14.16" title="14.16.&nbsp;The continue Statement">&sect;14.16</a>,
+                               <a class="xref" href="jls-14.html#jls-14.17" title="14.17.&nbsp;The return Statement">&sect;14.17</a>, <a class="xref" href="jls-14.html#jls-14.18" title="14.18.&nbsp;The throw Statement">&sect;14.18</a>).
+                        </p>
+                        <p class="note">The notion that a variable is "[un]assigned
+                               after" a statement or expression really means "is [un]assigned
+                               after the statement or expression completes normally". Because a
+                               <code class="literal">break</code>, <code class="literal">continue</code>, <code class="literal">return</code>, or <code class="literal">throw</code> statement never
+                               completes normally, it vacuously satisfies this notion.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.2.13-100-B"></a>In
+                               a <code class="literal">return</code> statement with an expression <code class="varname">e</code> or a <code class="literal">throw</code> statement
+                               with an expression <code class="varname">e</code>, <span class="type">V</span> is [un]assigned before <code class="varname">e</code> iff <span class="type">V</span> is
+                               [un]assigned before the <code class="literal">return</code> or <code class="literal">throw</code> statement.
+                        </p>
+                     </li>
+                  </ul>
+               </div>
+            </div>
+            <div class="section" title="16.2.14.&nbsp;synchronized Statements">
+               <div class="titlepage">
+                  <div>
+                     <div>
+                        <h3 class="title"><a name="jls-16.2.14"></a>16.2.14.&nbsp;<code class="literal">synchronized</code> Statements
+                        </h3>
+                     </div>
+                  </div>
+               </div>
+               <div class="norm">
+                  <ul class="norm" type="disc">
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.2.14-100-A"></a><span class="type">V</span> is [un]assigned
+                               after <code class="literal">synchronized (<code class="varname">e</code>) <span class="type">S</span></code>
+                               (<a class="xref" href="jls-14.html#jls-14.19" title="14.19.&nbsp;The synchronized Statement">&sect;14.19</a>) iff <span class="type">V</span> is [un]assigned after
+                               <span class="type">S</span>.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.2.14-100-B"></a><span class="type">V</span> is [un]assigned before <code class="varname">e</code> iff <span class="type">V</span>
+                               is [un]assigned before the statement <code class="literal">synchronized (<code class="varname">e</code>)
+                                  <span class="type">S</span></code>.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.2.14-100-C"></a><span class="type">V</span> is [un]assigned before <span class="type">S</span> iff <span class="type">V</span>
+                               is [un]assigned after <code class="varname">e</code>.
+                        </p>
+                     </li>
+                  </ul>
+               </div>
+            </div>
+            <div class="section" title="16.2.15.&nbsp;try Statements">
+               <div class="titlepage">
+                  <div>
+                     <div>
+                        <h3 class="title"><a name="jls-16.2.15"></a>16.2.15.&nbsp;<code class="literal">try</code> Statements
+                        </h3>
+                     </div>
+                  </div>
+               </div>
+               <p class="norm-static"><a name="jls-16.2.15-100"></a>These
+                  rules apply to every <code class="literal">try</code> statement (<a class="xref" href="jls-14.html#jls-14.20" title="14.20.&nbsp;The try statement">&sect;14.20</a>),
+                  whether or not it has a <code class="literal">finally</code> block:
+               </p>
+               <div class="norm">
+                  <ul class="norm" type="disc">
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.2.15-100-A"></a><span class="type">V</span> is [un]assigned before the <code class="literal">try</code>
+                               block iff <span class="type">V</span> is [un]assigned before the <code class="literal">try</code> statement.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.2.15-100-B"></a><span class="type">V</span> is definitely assigned before a
+                               <code class="literal">catch</code> block iff <span class="type">V</span> is definitely assigned before the <code class="literal">try</code>
+                               block.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.2.15-100-C"></a><span class="type">V</span> is definitely unassigned before a
+                               <code class="literal">catch</code> block iff all of the following are true:
+                        </p>
+                        <div class="norm">
+                           <ul class="norm" type="circle">
+                              <li class="listitem">
+                                 <p class="norm-static"><a name="jls-16.2.15-100-C-1"></a><span class="type">V</span> is definitely unassigned
+                                    	after the <code class="literal">try</code> block.
+                                 </p>
+                              </li>
+                              <li class="listitem">
+                                 <p class="norm-static"><a name="jls-16.2.15-100-C-2"></a><span class="type">V</span> is definitely unassigned
+                                    	before every <code class="literal">return</code> statement that belongs to the <code class="literal">try</code>
+                                    	block.
+                                 </p>
+                              </li>
+                              <li class="listitem">
+                                 <p class="norm-static"><a name="jls-16.2.15-100-C-3"></a><span class="type">V</span> is definitely unassigned
+                                    	after <code class="varname">e</code> in every statement of the form <code class="literal">throw</code> <code class="varname">e</code> that
+                                    	belongs to the <code class="literal">try</code> block.
+                                 </p>
+                              </li>
+                              <li class="listitem">
+                                 <p class="norm-static"><a name="jls-16.2.15-100-C-4"></a><span class="type">V</span> is definitely
+                                    	unassigned after every <code class="literal">assert</code> statement that occurs in the
+                                    	<code class="literal">try</code> block.
+                                 </p>
+                              </li>
+                              <li class="listitem">
+                                 <p class="norm-static"><a name="jls-16.2.15-100-C-5"></a><span class="type">V</span> is definitely unassigned
+                                    	before every <code class="literal">break</code> statement that belongs to the <code class="literal">try</code> block
+                                    	and whose break target contains (or is) the <code class="literal">try</code>
+                                    	statement.
+                                 </p>
+                              </li>
+                              <li class="listitem">
+                                 <p class="norm-static"><a name="jls-16.2.15-100-C-6"></a><span class="type">V</span> is definitely unassigned
+                                    	before every <code class="literal">continue</code> statement that belongs to the <code class="literal">try</code>
+                                    	block and whose continue target contains the <code class="literal">try</code>
+                                    	statement.
+                                 </p>
+                              </li>
+                           </ul>
+                        </div>
+                     </li>
+                  </ul>
+               </div>
+               <p class="norm-static"><a name="jls-16.2.15-110"></a>If a
+                  <code class="literal">try</code> statement does not have a <code class="literal">finally</code> block, then this rule also
+                  applies:
+               </p>
+               <div class="norm">
+                  <ul class="norm" type="disc">
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.2.15-110-A"></a><span class="type">V</span> is [un]assigned after the <code class="literal">try</code>
+                               statement iff <span class="type">V</span> is [un]assigned after the <code class="literal">try</code> block and <span class="type">V</span> is
+                               [un]assigned after every <code class="literal">catch</code> block in the <code class="literal">try</code>
+                               statement.
+                        </p>
+                     </li>
+                  </ul>
+               </div>
+               <p class="norm-static"><a name="jls-16.2.15-120"></a>If a
+                  <code class="literal">try</code> statement does have a <code class="literal">finally</code> block, then these rules also
+                  apply:
+               </p>
+               <div class="norm">
+                  <ul class="norm" type="disc">
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.2.15-120-A"></a><span class="type">V</span> is definitely assigned after the
+                               <code class="literal">try</code> statement iff at least one of the following is true:
+                        </p>
+                        <div class="norm">
+                           <ul class="norm" type="circle">
+                              <li class="listitem">
+                                 <p class="norm-static"><a name="jls-16.2.15-120-A-1"></a><span class="type">V</span> is definitely assigned after
+                                    	the <code class="literal">try</code> block and <span class="type">V</span> is definitely assigned after every
+                                    	<code class="literal">catch</code> block in the <code class="literal">try</code> statement.
+                                 </p>
+                              </li>
+                              <li class="listitem">
+                                 <p class="norm-static"><a name="jls-16.2.15-120-A-2"></a><span class="type">V</span> is definitely assigned after
+                                    	the <code class="literal">finally</code> block.
+                                 </p>
+                              </li>
+                              <li class="listitem">
+                                 <p class="norm-static"><a name="jls-16.2.15-120-A-3"></a><span class="type">V</span> is definitely unassigned
+                                    	after a <code class="literal">try</code> statement iff <span class="type">V</span> is definitely unassigned after
+                                    	the <code class="literal">finally</code> block.
+                                 </p>
+                              </li>
+                           </ul>
+                        </div>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.2.15-120-B"></a><span class="type">V</span> is definitely assigned before the
+                               <code class="literal">finally</code> block iff <span class="type">V</span> is definitely assigned before the <code class="literal">try</code>
+                               statement.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-16.2.15-120-C"></a><span class="type">V</span> is definitely unassigned before the
+                               <code class="literal">finally</code> block iff all of the following are true:
+                        </p>
+                        <div class="norm">
+                           <ul class="norm" type="circle">
+                              <li class="listitem">
+                                 <p class="norm-static"><a name="jls-16.2.15-120-C-1"></a><span class="type">V</span> is definitely unassigned
+                                    	after the <code class="literal">try</code> block.
+                                 </p>
+                              </li>
+                              <li class="listitem">
+                                 <p class="norm-static"><a name="jls-16.2.15-120-C-2"></a><span class="type">V</span> is definitely unassigned
+                                    	before every <code class="literal">return</code> statement that belongs to the <code class="literal">try</code>
+                                    	block.
+                                 </p>
+                              </li>
+                              <li class="listitem">
+                                 <p class="norm-static"><a name="jls-16.2.15-120-C-3"></a><span class="type">V</span> is definitely unassigned
+                                    	after <code class="varname">e</code> in every statement of the form <code class="literal">throw</code> <code class="varname">e</code> that
+                                    	belongs to the <code class="literal">try</code> block.
+                                 </p>
+                              </li>
+                              <li class="listitem">
+                                 <p class="norm-static"><a name="jls-16.2.15-120-C-4"></a><span class="type">V</span> is definitely
+                                    	unassigned after every <code class="literal">assert</code> statement that occurs in the
+                                    	<code class="literal">try</code> block.
+                                 </p>
+                              </li>
+                              <li class="listitem">
+                                 <p class="norm-static"><a name="jls-16.2.15-120-C-5"></a><span class="type">V</span> is definitely unassigned
+                                    	before every <code class="literal">break</code> statement that belongs to the <code class="literal">try</code> block
+                                    	and whose break target contains (or is) the <code class="literal">try</code>
+                                    	statement.
+                                 </p>
+                              </li>
+                              <li class="listitem">
+                                 <p class="norm-static"><a name="jls-16.2.15-120-C-6"></a><span class="type">V</span> is definitely unassigned
+                                    	before every <code class="literal">continue</code> statement that belongs to the <code class="literal">try</code>
+                                    	block and whose continue target contains the <code class="literal">try</code>
+                                    	statement.
+                                 </p>
+                              </li>
+                              <li class="listitem">
+                                 <p class="norm-static"><a name="jls-16.2.15-120-C-7"></a><span class="type">V</span> is definitely unassigned
+                                    	after every <code class="literal">catch</code> block of the <code class="literal">try</code> statement.
+                                 </p>
+                              </li>
+                           </ul>
+                        </div>
+                     </li>
+                  </ul>
+               </div>
+            </div>
+         </div>
+         <div class="section" title="16.3.&nbsp;Definite Assignment and Parameters">
+            <div class="titlepage">
+               <div>
+                  <div>
+                     <h2 class="title" style="clear: both"><a name="jls-16.3"></a>16.3.&nbsp;Definite Assignment and Parameters
+                     </h2>
+                  </div>
+               </div>
+            </div>
+            <div class="norm">
+               <ul class="norm" type="disc">
+                  <li class="listitem">
+                     <p class="norm-static"><a name="jls-16.3-100-A"></a>A
+                            formal parameter <span class="type">V</span> of a method or constructor
+                            (<a class="xref" href="jls-8.html#jls-8.4.1" title="8.4.1.&nbsp;Formal Parameters">&sect;8.4.1</a>, <a class="xref" href="jls-8.html#jls-8.8.1" title="8.8.1.&nbsp;Formal Parameters">&sect;8.8.1</a>) is
+                            definitely assigned (and moreover is not definitely unassigned)
+                            before the body of the method or constructor.
+                     </p>
+                  </li>
+                  <li class="listitem">
+                     <p class="norm-static"><a name="jls-16.3-100-B"></a>An
+                            exception parameter <span class="type">V</span> of a <code class="literal">catch</code> clause
+                            (<a class="xref" href="jls-14.html#jls-14.20" title="14.20.&nbsp;The try statement">&sect;14.20</a>) is definitely assigned (and moreover
+                            is not definitely unassigned) before the body of the <code class="literal">catch</code>
+                            clause.
+                     </p>
+                  </li>
+               </ul>
+            </div>
+         </div>
+         <div class="section" title="16.4.&nbsp;Definite Assignment and Array Initializers">
+            <div class="titlepage">
+               <div>
+                  <div>
+                     <h2 class="title" style="clear: both"><a name="jls-16.4"></a>16.4.&nbsp;Definite Assignment and Array Initializers
+                     </h2>
+                  </div>
+               </div>
+            </div>
+            <div class="norm">
+               <ul class="norm" type="disc">
+                  <li class="listitem">
+                     <p class="norm-static"><a name="jls-16.4-100-A"></a><span class="type">V</span>
+                            is [un]assigned after an empty array initializer
+                            (<a class="xref" href="jls-10.html#jls-10.6" title="10.6.&nbsp;Array Initializers">&sect;10.6</a>) iff <span class="type">V</span> is [un]assigned before the
+                            empty array initializer.
+                     </p>
+                  </li>
+                  <li class="listitem">
+                     <p class="norm-static"><a name="jls-16.4-100-B"></a><span class="type">V</span>
+                            is [un]assigned after a non-empty array initializer iff <span class="type">V</span> is
+                            [un]assigned after the last variable initializer in the array
+                            initializer.
+                     </p>
+                  </li>
+                  <li class="listitem">
+                     <p class="norm-static"><a name="jls-16.4-100-C"></a><span class="type">V</span>
+                            is [un]assigned before the first variable initializer of the array
+                            initializer iff <span class="type">V</span> is [un]assigned before the array
+                            initializer.
+                     </p>
+                  </li>
+                  <li class="listitem">
+                     <p class="norm-static"><a name="jls-16.4-100-D"></a><span class="type">V</span>
+                            is [un]assigned before any other variable initializer <code class="varname">e</code> of the
+                            array initializer iff <span class="type">V</span> is [un]assigned after the variable
+                            initializer to the left of <code class="varname">e</code> in the array initializer.
+                     </p>
+                  </li>
+               </ul>
+            </div>
+         </div>
+         <div class="section" title="16.5.&nbsp;Definite Assignment and Enum Constants">
+            <div class="titlepage">
+               <div>
+                  <div>
+                     <h2 class="title" style="clear: both"><a name="jls-16.5"></a>16.5.&nbsp;Definite Assignment and Enum Constants
+                     </h2>
+                  </div>
+               </div>
+            </div>
+            <p class="norm-static"><a name="jls-16.5-100"></a>The rules
+               determining when a variable is definitely assigned or definitely
+               unassigned before an enum constant (<a class="xref" href="jls-8.html#jls-8.9.1" title="8.9.1.&nbsp;Enum Constants">&sect;8.9.1</a>) are
+               given in <a class="xref" href="jls-16.html#jls-16.8" title="16.8.&nbsp;Definite Assignment and Static Initializers">&sect;16.8</a>.
+            </p>
+            <p class="note">This is because an enum constant is essentially a
+               <code class="literal">static</code> <code class="literal">final</code> field (<a class="xref" href="jls-8.html#jls-8.3.1.1" title="8.3.1.1.&nbsp;static Fields">&sect;8.3.1.1</a>,
+               <a class="xref" href="jls-8.html#jls-8.3.1.2" title="8.3.1.2.&nbsp;final Fields">&sect;8.3.1.2</a>) that is initialized with a class
+               instance creation expression (<a class="xref" href="jls-15.html#jls-15.9" title="15.9.&nbsp;Class Instance Creation Expressions">&sect;15.9</a>).
+            </p>
+            <div class="norm">
+               <ul class="norm" type="disc">
+                  <li class="listitem">
+                     <p class="norm-static"><a name="jls-16.5-110-A"></a><span class="type">V</span>
+                              is definitely assigned before the declaration of a class body of
+                              an enum constant with no arguments that is declared within the
+                              scope of <span class="type">V</span> iff <span class="type">V</span> is definitely assigned before the enum
+                              constant.
+                     </p>
+                  </li>
+                  <li class="listitem">
+                     <p class="norm-static"><a name="jls-16.5-110-B"></a><span class="type">V</span>
+                              is definitely assigned before the declaration of a class body of
+                              an enum constant with arguments that is declared within the
+                              scope of <span class="type">V</span> iff <span class="type">V</span> is definitely assigned after the last
+                              argument expression of the enum constant
+                     </p>
+                  </li>
+               </ul>
+            </div>
+            <p class="norm-static"><a name="jls-16.5-120"></a>The
+               definite assignment/unassignment status of any construct within the
+               class body of an enum constant is governed by the usual rules for
+               classes.
+            </p>
+            <div class="norm">
+               <ul class="norm" type="disc">
+                  <li class="listitem">
+                     <p class="norm-static"><a name="jls-16.5-130-A"></a><span class="type">V</span>
+                            is [un]assigned before the first argument to an enum constant iff
+                            it is [un]assigned before the enum constant.
+                     </p>
+                  </li>
+                  <li class="listitem">
+                     <p class="norm-static"><a name="jls-16.5-130-B"></a><span class="type">V</span>
+                            is [un]assigned before <code class="varname">y</code> (an argument of an enum constant, but
+                            not the first) iff <span class="type">V</span> is [un]assigned after the argument to the
+                            left of <code class="varname">y</code>.
+                     </p>
+                  </li>
+               </ul>
+            </div>
+         </div>
+         <div class="section" title="16.6.&nbsp;Definite Assignment and Anonymous Classes">
+            <div class="titlepage">
+               <div>
+                  <div>
+                     <h2 class="title" style="clear: both"><a name="jls-16.6"></a>16.6.&nbsp;Definite Assignment and Anonymous Classes
+                     </h2>
+                  </div>
+               </div>
+            </div>
+            <div class="norm">
+               <ul class="norm" type="disc">
+                  <li class="listitem">
+                     <p class="norm-static"><a name="jls-16.6-100-A"></a><span class="type">V</span>
+                            is definitely assigned before an anonymous class declaration
+                            (<a class="xref" href="jls-15.html#jls-15.9.5" title="15.9.5.&nbsp;Anonymous Class Declarations">&sect;15.9.5</a>) that is declared within the scope
+                            of <span class="type">V</span> iff <span class="type">V</span> is definitely assigned after the class instance
+                            creation expression that declares the anonymous class.
+                     </p>
+                  </li>
+               </ul>
+            </div>
+            <p class="note">It should be clear that if an anonymous class is
+               implicitly defined by an enum constant, the rules of
+               <a class="xref" href="jls-16.html#jls-16.5" title="16.5.&nbsp;Definite Assignment and Enum Constants">&sect;16.5</a> apply.
+            </p>
+         </div>
+         <div class="section" title="16.7.&nbsp;Definite Assignment and Member Types">
+            <div class="titlepage">
+               <div>
+                  <div>
+                     <h2 class="title" style="clear: both"><a name="jls-16.7"></a>16.7.&nbsp;Definite Assignment and Member Types
+                     </h2>
+                  </div>
+               </div>
+            </div>
+            <p class="norm-static"><a name="jls-16.7-100"></a>
+               Let <span class="type">C</span> be a class, and let <span class="type">V</span> be a blank <code class="literal">final</code> member field of
+               <span class="type">C</span>. Then:
+            </p>
+            <div class="norm">
+               <ul class="norm" type="disc">
+                  <li class="listitem">
+                     <p class="norm-static"><a name="jls-16.7-100-A"></a>
+                              <span class="type">V</span> is definitely assigned (and moreover, not definitely
+                              unassigned) before the declaration of any member type
+                              (<a class="xref" href="jls-8.html#jls-8.5" title="8.5.&nbsp;Member Type Declarations">&sect;8.5</a>, <a class="xref" href="jls-9.html#jls-9.5" title="9.5.&nbsp;Member Type Declarations">&sect;9.5</a>) of
+                              <span class="type">C</span>.
+                     </p>
+                  </li>
+               </ul>
+            </div>
+            <p class="norm-static"><a name="jls-16.7-110"></a>
+               Let <span class="type">C</span> be a class declared within the scope of <span class="type">V</span>. Then:
+            </p>
+            <div class="norm">
+               <ul class="norm" type="disc">
+                  <li class="listitem">
+                     <p class="norm-static"><a name="jls-16.7-110-A"></a>
+                              <span class="type">V</span> is definitely assigned before a member type declaration of
+                              <span class="type">C</span> iff <span class="type">V</span> is definitely assigned before the declaration of
+                              <span class="type">C</span>.
+                     </p>
+                  </li>
+               </ul>
+            </div>
+         </div>
+         <div class="section" title="16.8.&nbsp;Definite Assignment and Static Initializers">
+            <div class="titlepage">
+               <div>
+                  <div>
+                     <h2 class="title" style="clear: both"><a name="jls-16.8"></a>16.8.&nbsp;Definite Assignment and Static Initializers
+                     </h2>
+                  </div>
+               </div>
+            </div>
+            <p class="norm-static"><a name="jls-16.8-100"></a>
+               Let <span class="type">C</span> be a class declared within the scope of <span class="type">V</span>. Then:
+            </p>
+            <div class="norm">
+               <ul class="norm" type="disc">
+                  <li class="listitem">
+                     <p class="norm-static"><a name="jls-16.8-100-A"></a><span class="type">V</span>
+                            is definitely assigned before an enum constant
+                            (<a class="xref" href="jls-8.html#jls-8.9.1" title="8.9.1.&nbsp;Enum Constants">&sect;8.9.1</a>) or static variable initializer
+                            (<a class="xref" href="jls-8.html#jls-8.3.2" title="8.3.2.&nbsp;Field Initialization">&sect;8.3.2</a>) of <span class="type">C</span> iff <span class="type">V</span> is definitely
+                            assigned before the declaration of <span class="type">C</span>.
+                     </p>
+                     <p class="note">Note that there are no rules that would allow us
+                            to conclude that <span class="type">V</span> is definitely unassigned before a static
+                            variable initializer or enum constant. We can informally conclude
+                            that <span class="type">V</span> is not definitely unassigned before any static variable
+                            initializer of <span class="type">C</span>, but there is no need for such a rule to be
+                            stated explicitly.
+                     </p>
+                  </li>
+               </ul>
+            </div>
+            <p class="norm-static"><a name="jls-16.8-110"></a>
+               Let <span class="type">C</span> be a class, and let <span class="type">V</span> be a blank <code class="literal">static</code> <code class="literal">final</code> member
+               field of <span class="type">C</span>, declared in <span class="type">C</span>. Then:
+            </p>
+            <div class="norm">
+               <ul class="norm" type="disc">
+                  <li class="listitem">
+                     <p class="norm-static"><a name="jls-16.8-110-A"></a><span class="type">V</span>
+                            is definitely unassigned (and moreover is not definitely assigned)
+                            before the leftmost enum constant, static initializer
+                            (<a class="xref" href="jls-8.html#jls-8.7" title="8.7.&nbsp;Static Initializers">&sect;8.7</a>), or static variable initializer of
+                            <span class="type">C</span>.
+                     </p>
+                  </li>
+                  <li class="listitem">
+                     <p class="norm-static"><a name="jls-16.8-110-B"></a><span class="type">V</span>
+                            is [un]assigned before an enum constant, static initializer, or
+                            static variable initializer of <span class="type">C</span> other than the leftmost iff <span class="type">V</span>
+                            is [un]assigned after the preceding enum constant, static
+                            initializer, or static variable initializer of <span class="type">C</span>.
+                     </p>
+                  </li>
+               </ul>
+            </div>
+            <p class="norm-static"><a name="jls-16.8-120"></a>Let <span class="type">C</span> be
+               a class, and let <span class="type">V</span> be a blank <code class="literal">static</code> <code class="literal">final</code> member field of <span class="type">C</span>,
+               declared in a superclass of <span class="type">C</span>. Then:
+            </p>
+            <div class="norm">
+               <ul class="norm" type="disc">
+                  <li class="listitem">
+                     <p class="norm-static"><a name="jls-16.8-120-A"></a><span class="type">V</span>
+                            is definitely assigned (and moreover is not definitely unassigned)
+                            before every enum constant of <span class="type">C</span>.
+                     </p>
+                  </li>
+                  <li class="listitem">
+                     <p class="norm-static"><a name="jls-16.8-120-B"></a><span class="type">V</span>
+                            is definitely assigned (and moreover is not definitely unassigned)
+                            before the block that is the body of a static initializer of
+                            <span class="type">C</span>.
+                     </p>
+                  </li>
+                  <li class="listitem">
+                     <p class="norm-static"><a name="jls-16.8-120-C"></a><span class="type">V</span>
+                            is definitely assigned (and moreover is not definitely unassigned)
+                            before every static variable initializer of <span class="type">C</span>.
+                     </p>
+                  </li>
+               </ul>
+            </div>
+         </div>
+         <div class="section" title="16.9.&nbsp;Definite Assignment, Constructors, and Instance Initializers">
+            <div class="titlepage">
+               <div>
+                  <div>
+                     <h2 class="title" style="clear: both"><a name="jls-16.9"></a>16.9.&nbsp;Definite Assignment, Constructors, and Instance Initializers
+                     </h2>
+                  </div>
+               </div>
+            </div>
+            <p class="norm-static"><a name="jls-16.9-100"></a>Let <span class="type">C</span> be
+               a class declared within the scope of <span class="type">V</span>. Then:
+            </p>
+            <div class="norm">
+               <ul class="norm" type="disc">
+                  <li class="listitem">
+                     <p class="norm-static"><a name="jls-16.9-100-A"></a><span class="type">V</span>
+                            is definitely assigned before an instance variable initializer
+                            (<a class="xref" href="jls-8.html#jls-8.3.2" title="8.3.2.&nbsp;Field Initialization">&sect;8.3.2</a>) of <span class="type">C</span> iff <span class="type">V</span> is definitely
+                            assigned before the declaration of <span class="type">C</span>.
+                     </p>
+                     <p class="note">Note that there are no rules that would allow us
+                            to conclude that <span class="type">V</span> is definitely unassigned before an instance
+                            variable initializer. We can informally conclude that <span class="type">V</span> is not
+                            definitely unassigned before any instance variable initializer of
+                            <span class="type">C</span>, but there is no need for such a rule to be stated
+                            explicitly.
+                     </p>
+                  </li>
+               </ul>
+            </div>
+            <p class="norm-static"><a name="jls-16.9-110"></a>Let <span class="type">C</span> be
+               a class, and let <span class="type">V</span> be a blank <code class="literal">final</code> non-<code class="literal">static</code> member field of
+               <span class="type">C</span>, declared in <span class="type">C</span>. Then:
+            </p>
+            <div class="norm">
+               <ul class="norm" type="disc">
+                  <li class="listitem">
+                     <p class="norm-static"><a name="jls-16.9-110-A"></a><span class="type">V</span>
+                            is definitely unassigned (and moreover is not definitely assigned)
+                            before the leftmost instance initializer
+                            (<a class="xref" href="jls-8.html#jls-8.6" title="8.6.&nbsp;Instance Initializers">&sect;8.6</a>) or instance variable initializer of
+                            <span class="type">C</span>.
+                     </p>
+                  </li>
+                  <li class="listitem">
+                     <p class="norm-static"><a name="jls-16.9-110-B"></a><span class="type">V</span>
+                            is [un]assigned before an instance initializer or instance
+                            variable initializer of <span class="type">C</span> other than the leftmost iff <span class="type">V</span> is
+                            [un]assigned after the preceding instance initializer or instance
+                            variable initializer of <span class="type">C</span>.
+                     </p>
+                  </li>
+               </ul>
+            </div>
+            <p class="norm-static"><a name="jls-16.9-120"></a>The
+               following rules hold within the constructors
+               (<a class="xref" href="jls-8.html#jls-8.8.7" title="8.8.7.&nbsp;Constructor Body">&sect;8.8.7</a>) of class <span class="type">C</span>:
+            </p>
+            <div class="norm">
+               <ul class="norm" type="disc">
+                  <li class="listitem">
+                     <p class="norm-static"><a name="jls-16.9-120-A"></a><span class="type">V</span>
+                            is definitely assigned (and moreover is not definitely unassigned)
+                            after an alternate constructor invocation
+                            (<a class="xref" href="jls-8.html#jls-8.8.7.1" title="8.8.7.1.&nbsp;Explicit Constructor Invocations">&sect;8.8.7.1</a>).
+                     </p>
+                  </li>
+                  <li class="listitem">
+                     <p class="norm-static"><a name="jls-16.9-120-B"></a><span class="type">V</span>
+                            is definitely unassigned (and moreover is not definitely assigned)
+                            before an explicit or implicit superclass constructor invocation
+                            (<a class="xref" href="jls-8.html#jls-8.8.7.1" title="8.8.7.1.&nbsp;Explicit Constructor Invocations">&sect;8.8.7.1</a>).
+                     </p>
+                  </li>
+                  <li class="listitem">
+                     <p class="norm-static"><a name="jls-16.9-120-C"></a>If
+                            <span class="type">C</span> has no instance initializers or instance variable
+                            initializers, then <span class="type">V</span> is not definitely assigned (and moreover is
+                            definitely unassigned) after an explicit or implicit superclass
+                            constructor invocation.
+                     </p>
+                  </li>
+                  <li class="listitem">
+                     <p class="norm-static"><a name="jls-16.9-120-D"></a>If
+                            <span class="type">C</span> has at least one instance initializer or instance variable
+                            initializer then <span class="type">V</span> is [un]assigned after an explicit or implicit
+                            superclass constructor invocation iff <span class="type">V</span> is [un]assigned after
+                            the rightmost instance initializer or instance variable
+                            initializer of <span class="type">C</span>.
+                     </p>
+                  </li>
+               </ul>
+            </div>
+            <p class="norm-static"><a name="jls-16.9-130"></a>Let <span class="type">C</span> be
+               a class, and let <span class="type">V</span> be a blank <code class="literal">final</code> member field of <span class="type">C</span>, declared
+               in a superclass of <span class="type">C</span>. Then:
+            </p>
+            <div class="norm">
+               <ul class="norm" type="disc">
+                  <li class="listitem">
+                     <p class="norm-static"><a name="jls-16.9-130-A"></a><span class="type">V</span>
+                            is definitely assigned (and moreover is not definitely unassigned)
+                            before the block that is the body of a constructor or instance
+                            initializer of <span class="type">C</span>.
+                     </p>
+                  </li>
+                  <li class="listitem">
+                     <p class="norm-static"><a name="jls-16.9-130-B"></a><span class="type">V</span>
+                            is definitely assigned (and moreover is not definitely unassigned)
+                            before every instance variable initializer of <span class="type">C</span>.
+                     </p>
+                  </li>
+               </ul>
+            </div>
+         </div>
+      </div>
+      <div class="navfooter">
+         <hr>
+         <table width="100%" summary="Navigation footer">
+            <tr>
+               <td width="40%" align="left"><a accesskey="p" href="jls-15.html">Prev</a>&nbsp;
+               </td>
+               <td width="20%" align="center">&nbsp;</td>
+               <td width="40%" align="right">&nbsp;<a accesskey="n" href="jls-17.html">Next</a></td>
+            </tr>
+            <tr>
+               <td width="40%" align="left" valign="top">Chapter&nbsp;15.&nbsp;Expressions&nbsp;</td>
+               <td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td>
+               <td width="40%" align="right" valign="top">&nbsp;Chapter&nbsp;17.&nbsp;Threads and Locks</td>
+            </tr>
+         </table>
+      </div>
+      <div xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:rx="http://www.renderx.com/XSL/Extensions" class="navfooter">
+         <hr><a href="jls-0-front.html">
+                Legal Notice
+              </a></div>
+   </body>
+</html>

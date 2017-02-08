@@ -1,0 +1,1034 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+   
+      <title>Chapter&nbsp;11.&nbsp;Exceptions</title>
+      <link rel="stylesheet" type="text/css" href="https://docs.oracle.com/javase/specs/javaspec.css">
+      <meta name="generator" content="DocBook XSL-NS Stylesheets V1.76.1">
+      <link rel="home" href="index.html" title="The Java&reg; Language Specification">
+      <link rel="up" href="index.html" title="The Java&reg; Language Specification">
+      <link rel="prev" href="jls-10.html" title="Chapter&nbsp;10.&nbsp;Arrays">
+      <link rel="next" href="jls-12.html" title="Chapter&nbsp;12.&nbsp;Execution">
+      <link rel="copyright" href="jls-0-front.html" title="Legal Notice">
+   </head>
+   <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+      <div xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:rx="http://www.renderx.com/XSL/Extensions" id="logo"><img src="https://docs.oracle.com/javase/webdesign/other/im/oralogo_small.gif" alt="Oracle Logo"><br><p><a href="https://docs.oracle.com/javase/8/docs/">Java SE</a> &gt; <a href="https://docs.oracle.com/javase/specs/index.html">Java SE Specifications</a> &gt; <a href="index.html">Java Language Specification</a></p>
+      </div>
+      <div class="navheader">
+         <table width="100%" summary="Navigation header">
+            <tr>
+               <th colspan="3" align="center">Chapter&nbsp;11.&nbsp;Exceptions</th>
+            </tr>
+            <tr>
+               <td width="20%" align="left"><a accesskey="p" href="jls-10.html">Prev</a>&nbsp;
+               </td>
+               <th width="60%" align="center">&nbsp;</th>
+               <td width="20%" align="right">&nbsp;<a accesskey="n" href="jls-12.html">Next</a></td>
+            </tr>
+         </table>
+         <hr>
+      </div>
+      <div lang="en" class="chapter" title="Chapter&nbsp;11.&nbsp;Exceptions">
+         <div class="titlepage">
+            <div>
+               <div>
+                  <h2 class="title"><a name="jls-11"></a>Chapter&nbsp;11.&nbsp;Exceptions
+                  </h2>
+               </div>
+            </div>
+         </div>
+         <div class="toc">
+            <p><b>Table of Contents</b></p>
+            <dl>
+               <dt><span class="section"><a href="jls-11.html#jls-11.1">11.1. The Kinds and Causes of Exceptions</a></span></dt>
+               <dd>
+                  <dl>
+                     <dt><span class="section"><a href="jls-11.html#jls-11.1.1">11.1.1. The Kinds of Exceptions</a></span></dt>
+                     <dt><span class="section"><a href="jls-11.html#jls-11.1.2">11.1.2. The Causes of Exceptions</a></span></dt>
+                     <dt><span class="section"><a href="jls-11.html#jls-11.1.3">11.1.3. Asynchronous Exceptions</a></span></dt>
+                  </dl>
+               </dd>
+               <dt><span class="section"><a href="jls-11.html#jls-11.2">11.2. Compile-Time Checking of Exceptions</a></span></dt>
+               <dd>
+                  <dl>
+                     <dt><span class="section"><a href="jls-11.html#jls-11.2.1">11.2.1. Exception Analysis of Expressions</a></span></dt>
+                     <dt><span class="section"><a href="jls-11.html#jls-11.2.2">11.2.2. Exception Analysis of Statements</a></span></dt>
+                     <dt><span class="section"><a href="jls-11.html#jls-11.2.3">11.2.3. Exception Checking</a></span></dt>
+                  </dl>
+               </dd>
+               <dt><span class="section"><a href="jls-11.html#jls-11.3">11.3. Run-Time Handling of an Exception</a></span></dt>
+            </dl>
+         </div>
+         <p class="norm"><a name="jls-11-100"></a>When a program violates the
+            semantic constraints of the Java programming language, the Java Virtual Machine signals this error
+            to the program as an <span class="emphasis"><em>exception</em></span>.
+         </p>
+         <p class="norm"><a name="jls-11-110"></a>An example of such a violation
+            is an attempt to index outside the bounds of an array. Some
+            programming languages and their implementations react to such errors
+            by peremptorily terminating the program; other programming languages
+            allow an implementation to react in an arbitrary or unpredictable
+            way. Neither of these approaches is compatible with the design goals
+            of the Java SE platform: to provide portability and robustness.
+         </p>
+         <p class="norm"><a name="jls-11-120"></a>Instead, the Java programming language
+            specifies that an exception will be thrown when semantic constraints
+            are violated and will cause a non-local transfer of control from the
+            point where the exception occurred to a point that can be specified by
+            the programmer.
+         </p>
+         <p class="norm"><a name="jls-11-130"></a>An exception is said to
+            be <span class="emphasis"><em>thrown</em></span> from the point where it occurred and is
+            said to be <span class="emphasis"><em>caught</em></span> at the point to which control
+            is transferred.
+         </p>
+         <p class="norm"><a name="jls-11-140"></a>Programs can also throw
+            exceptions explicitly, using <code class="literal">throw</code> statements
+            (<a class="xref" href="jls-14.html#jls-14.18" title="14.18.&nbsp;The throw Statement">&sect;14.18</a>).
+         </p>
+         <p class="norm"><a name="jls-11-150"></a>Explicit use of <code class="literal">throw</code>
+            statements provides an alternative to the old-fashioned style of
+            handling error conditions by returning funny values, such as the
+            integer value <code class="literal">-1</code> where a negative value would not
+            normally be expected. Experience shows that too often such funny
+            values are ignored or not checked for by callers, leading to programs
+            that are not robust, exhibit undesirable behavior, or both.
+         </p>
+         <p class="norm"><a name="jls-11-160"></a>Every exception is represented
+            by an instance of the class <code class="literal">Throwable</code> or one of its subclasses
+            (<a class="xref" href="jls-11.html#jls-11.1" title="11.1.&nbsp;The Kinds and Causes of Exceptions">&sect;11.1</a>). Such an object can be used to carry
+            information from the point at which an exception occurs to the handler
+            that catches it. Handlers are established by <code class="literal">catch</code> clauses of <code class="literal">try</code>
+            statements (<a class="xref" href="jls-14.html#jls-14.20" title="14.20.&nbsp;The try statement">&sect;14.20</a>).
+         </p>
+         <p class="norm"><a name="jls-11-170"></a>During the process of throwing an
+            exception, the Java Virtual Machine abruptly completes, one by one, any expressions,
+            statements, method and constructor invocations, initializers, and
+            field initialization expressions that have begun but not completed
+            execution in the current thread. This process continues until a
+            handler is found that indicates that it handles that particular
+            exception by naming the class of the exception or a superclass of the
+            class of the exception (<a class="xref" href="jls-11.html#jls-11.2" title="11.2.&nbsp;Compile-Time Checking of Exceptions">&sect;11.2</a>). If no such
+            handler is found, then
+             the exception may be handled by one of a hierarchy of
+            uncaught exception handlers (<a class="xref" href="jls-11.html#jls-11.3" title="11.3.&nbsp;Run-Time Handling of an Exception">&sect;11.3</a>) - thus every
+            effort is made to avoid letting an exception go unhandled.
+         </p>
+         <p class="norm-dynamic"><a name="jls-11-180"></a>The
+            exception mechanism of the Java SE platform is integrated with its
+            synchronization model (<a class="xref" href="jls-17.html#jls-17.1" title="17.1.&nbsp;Synchronization">&sect;17.1</a>), so
+            that monitors are
+            unlocked as <code class="literal">synchronized</code> statements
+            (<a class="xref" href="jls-14.html#jls-14.19" title="14.19.&nbsp;The synchronized Statement">&sect;14.19</a>) and invocations of <code class="literal">synchronized</code>
+            methods (<a class="xref" href="jls-8.html#jls-8.4.3.6" title="8.4.3.6.&nbsp;synchronized Methods">&sect;8.4.3.6</a>, <a class="xref" href="jls-15.html#jls-15.12" title="15.12.&nbsp;Method Invocation Expressions">&sect;15.12</a>)
+            complete abruptly.
+         </p>
+         <div class="section" title="11.1.&nbsp;The Kinds and Causes of Exceptions">
+            <div class="titlepage">
+               <div>
+                  <div>
+                     <h2 class="title" style="clear: both"><a name="jls-11.1"></a>11.1.&nbsp;The Kinds and Causes of Exceptions
+                     </h2>
+                  </div>
+               </div>
+            </div>
+            <div class="section" title="11.1.1.&nbsp;The Kinds of Exceptions">
+               <div class="titlepage">
+                  <div>
+                     <div>
+                        <h3 class="title"><a name="jls-11.1.1"></a>11.1.1.&nbsp;The Kinds of Exceptions
+                        </h3>
+                     </div>
+                  </div>
+               </div>
+               <p class="norm-dynamic"><a name="jls-11.1.1-100"></a>An
+                  exception is represented by an instance of the class <code class="literal">Throwable</code> (a
+                  direct subclass of <code class="literal">Object</code>) or one of its subclasses.
+               </p>
+               <p class="norm-static"><a name="jls-11.1.1-110"></a>
+                  <code class="literal">Throwable</code> and all its subclasses are, collectively,
+                  the <span class="emphasis"><em>exception classes</em></span>.
+               </p>
+               <p class="norm-static"><a name="jls-11.1.1-120"></a>The
+                  classes <code class="literal">Exception</code> and <code class="literal">Error</code> are direct subclasses of
+                  <code class="literal">Throwable</code>:
+               </p>
+               <div class="norm">
+                  <ul class="norm" type="disc">
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-11.1.1-120-A"></a>
+                                 <code class="literal">Exception</code> is the superclass of all the exceptions from which
+                                 ordinary programs may wish to recover.
+                        </p>
+                        <p class="norm-static"><a name="jls-11.1.1-120-A.1"></a>
+                                 The class <code class="literal">RuntimeException</code> is a direct subclass of
+                                 <code class="literal">Exception</code>. <code class="literal">RuntimeException</code> is the superclass of all the
+                                 exceptions which may be thrown for many reasons during
+                                 expression evaluation, but from which recovery may still be
+                                 possible.
+                        </p>
+                        <p class="norm-static"><a name="jls-11.1.1-120-A.2"></a>
+                                 <code class="literal">RuntimeException</code> and all its subclasses are, collectively,
+                                 the <span class="emphasis"><em>run-time exception classes</em></span>.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-11.1.1-120-B"></a>
+                                 <code class="literal">Error</code> is the superclass of all the exceptions from which
+                                 ordinary programs are not ordinarily expected to recover.
+                        </p>
+                        <p class="norm-static"><a name="jls-11.1.1-120-B.1"></a>
+                                 <code class="literal">Error</code> and all its subclasses are, collectively,
+                                 the <span class="emphasis"><em>error classes</em></span>.
+                        </p>
+                     </li>
+                  </ul>
+               </div>
+               <p class="norm-static"><a name="jls-11.1.1-300"></a>
+                  The <span class="emphasis"><em>unchecked exception classes</em></span> are the  run-time exception classes and the
+                  error classes.
+               </p>
+               <p class="norm-static"><a name="jls-11.1.1-310"></a>
+                  The <span class="emphasis"><em>checked exception classes</em></span> are all exception
+                  classes other than the unchecked exception classes. That is, the
+                  checked exception classes are <code class="literal">Throwable</code> and all its subclasses other
+                  than <code class="literal">RuntimeException</code> and its subclasses and <code class="literal">Error</code> and its
+                  subclasses.
+               </p>
+               <p class="note">Programs can use the pre-existing exception classes
+                  of the Java SE platform API in <code class="literal">throw</code> statements, or define additional
+                  exception classes as subclasses of <code class="literal">Throwable</code> or of any of its
+                  subclasses, as appropriate. To take advantage of compile-time checking
+                  for exception handlers (<a class="xref" href="jls-11.html#jls-11.2" title="11.2.&nbsp;Compile-Time Checking of Exceptions">&sect;11.2</a>), it is typical to
+                  define most new exception classes as checked exception classes, that
+                  is, as subclasses of <code class="literal">Exception</code> that are not subclasses of
+                  <code class="literal">RuntimeException</code>.
+               </p>
+               <p class="note">The class <code class="literal">Error</code> is a separate subclass of
+                  <code class="literal">Throwable</code>, distinct from <code class="literal">Exception</code> in the class hierarchy, to
+                  allow programs to use the idiom "<code class="literal">} catch (Exception e)
+                     {</code>" (<a class="xref" href="jls-11.html#jls-11.2.3" title="11.2.3.&nbsp;Exception Checking">&sect;11.2.3</a>) to catch all exceptions
+                  from which recovery may be possible without catching errors from which
+                  recovery is typically not possible.
+               </p>
+               <p class="note">Note that a subclass of <code class="literal">Throwable</code> cannot be
+                  generic (<a class="xref" href="jls-8.html#jls-8.1.2" title="8.1.2.&nbsp;Generic Classes and Type Parameters">&sect;8.1.2</a>).
+               </p>
+            </div>
+            <div class="section" title="11.1.2.&nbsp;The Causes of Exceptions">
+               <div class="titlepage">
+                  <div>
+                     <div>
+                        <h3 class="title"><a name="jls-11.1.2"></a>11.1.2.&nbsp;The Causes of Exceptions
+                        </h3>
+                     </div>
+                  </div>
+               </div>
+               <p class="norm-dynamic"><a name="jls-11.1.2-100"></a>An
+                  exception is thrown for one of three reasons:
+               </p>
+               <div class="norm">
+                  <ul class="norm" type="disc">
+                     <li class="listitem">
+                        <p class="norm-dynamic"><a name="jls-11.1.2-100-A"></a>
+                                 A <code class="literal">throw</code> statement (<a class="xref" href="jls-14.html#jls-14.18" title="14.18.&nbsp;The throw Statement">&sect;14.18</a>) was
+                                 executed.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-dynamic"><a name="jls-11.1.2-100-B"></a>
+                                 An abnormal execution condition was synchronously detected by
+                                 the Java Virtual Machine, namely:
+                        </p>
+                        <div class="norm">
+                           <ul class="norm" type="circle">
+                              <li class="listitem">
+                                 <p class="norm-dynamic"><a name="jls-11.1.2-100-B-A"></a>
+                                    	  evaluation of an expression violates the normal semantics of
+                                    	  the Java programming language (<a class="xref" href="jls-15.html#jls-15.6" title="15.6.&nbsp;Normal and Abrupt Completion of Evaluation">&sect;15.6</a>), such as an
+                                    	  integer divide by zero.
+                                 </p>
+                              </li>
+                              <li class="listitem">
+                                 <p class="norm-dynamic"><a name="jls-11.1.2-100-B-B"></a>
+                                    	  an error occurs while loading, linking, or initializing part
+                                    	  of the program (<a class="xref" href="jls-12.html#jls-12.2" title="12.2.&nbsp;Loading of Classes and Interfaces">&sect;12.2</a>,
+                                    	  <a class="xref" href="jls-12.html#jls-12.3" title="12.3.&nbsp;Linking of Classes and Interfaces">&sect;12.3</a>, <a class="xref" href="jls-12.html#jls-12.4" title="12.4.&nbsp;Initialization of Classes and Interfaces">&sect;12.4</a>); in
+                                    	  this case, an instance of a subclass of <code class="literal">LinkageError</code> is
+                                    	  thrown.
+                                 </p>
+                              </li>
+                              <li class="listitem">
+                                 <p class="norm-dynamic"><a name="jls-11.1.2-100-B-C"></a>
+                                    	  an internal error or resource limitation prevents the Java Virtual Machine
+                                    	  from implementing the semantics of the Java programming language; in this
+                                    	  case, an instance of a subclass of <code class="literal">VirtualMachineError</code> is thrown.
+                                 </p>
+                              </li>
+                           </ul>
+                        </div>
+                        <p class="norm-dynamic"><a name="jls-11.1.2-100-B.1"></a>
+                                 These exceptions are not thrown at an arbitrary point in the
+                                 program, but rather at a point where they are specified as a
+                                 possible result of an expression evaluation or statement
+                                 execution.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-dynamic"><a name="jls-11.1.2-100-C"></a>
+                                 An asynchronous exception occurred
+                                 (<a class="xref" href="jls-11.html#jls-11.1.3" title="11.1.3.&nbsp;Asynchronous Exceptions">&sect;11.1.3</a>).
+                        </p>
+                     </li>
+                  </ul>
+               </div>
+            </div>
+            <div class="section" title="11.1.3.&nbsp;Asynchronous Exceptions">
+               <div class="titlepage">
+                  <div>
+                     <div>
+                        <h3 class="title"><a name="jls-11.1.3"></a>11.1.3.&nbsp;Asynchronous Exceptions
+                        </h3>
+                     </div>
+                  </div>
+               </div>
+               <p class="norm-dynamic"><a name="jls-11.1.3-100"></a>Most
+                  exceptions occur synchronously as a result of an action by the thread
+                  in which they occur, and at a point in the program that is specified
+                  to possibly result in such an exception. An <span class="emphasis"><em>asynchronous
+                        exception</em></span> is, by contrast, an exception that can
+                  potentially occur at any point in the execution of a program.
+               </p>
+               <p class="norm-dynamic"><a name="jls-11.1.3-110"></a>Asynchronous exceptions occur only
+                  as a result of:
+               </p>
+               <div class="norm">
+                  <ul class="norm" type="disc">
+                     <li class="listitem">
+                        <p class="norm-dynamic"><a name="jls-11.1.3-110-A"></a>
+                                 An invocation of the (deprecated) <code class="literal">stop</code> method
+                                 of class <code class="literal">Thread</code> or <code class="literal">ThreadGroup</code>.
+                        </p>
+                        <p class="norm-dynamic"><a name="jls-11.1.3-110-A.1"></a>
+                                 The (deprecated) <code class="literal">stop</code> methods may be invoked
+                                 by one thread to affect another thread or all the threads in a
+                                 specified thread group. They are asynchronous because they may
+                                 occur at any point in the execution of the other thread or
+                                 threads.
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-dynamic"><a name="jls-11.1.3-110-B"></a>
+                                 An internal error or resource limitation in the Java Virtual Machine that
+                                 prevents it from implementing the semantics of the
+                                 Java programming language. In this case, the asynchronous exception that is
+                                 thrown is an instance of a subclass of <code class="literal">VirtualMachineError</code>.
+                        </p>
+                        <p class="note">Note that <code class="literal">StackOverflowError</code>, a subclass of <code class="literal">VirtualMachineError</code>, may be
+                                thrown synchronously by method invocation
+                                (<a class="xref" href="jls-15.html#jls-15.12.4.5" title="15.12.4.5.&nbsp;Create Frame, Synchronize, Transfer Control">&sect;15.12.4.5</a>) as well as asynchronously due
+                                to <code class="literal">native</code> method execution or Java Virtual Machine resource
+                                limitations. Similarly, <code class="literal">OutOfMemoryError</code>, another subclass of <code class="literal">VirtualMachineError</code>, may be
+                                thrown synchronously during class instance creation
+                                (<a class="xref" href="jls-15.html#jls-15.9.4" title="15.9.4.&nbsp;Run-Time Evaluation of Class Instance Creation Expressions">&sect;15.9.4</a>, <a class="xref" href="jls-12.html#jls-12.5" title="12.5.&nbsp;Creation of New Class Instances">&sect;12.5</a>), array
+                                creation (<a class="xref" href="jls-15.html#jls-15.10.2" title="15.10.2.&nbsp;Run-Time Evaluation of Array Creation Expressions">&sect;15.10.2</a>,
+                                <a class="xref" href="jls-10.html#jls-10.6" title="10.6.&nbsp;Array Initializers">&sect;10.6</a>), class initialization
+                                (<a class="xref" href="jls-12.html#jls-12.4.2" title="12.4.2.&nbsp;Detailed Initialization Procedure">&sect;12.4.2</a>), and boxing conversion
+                                (<a class="xref" href="jls-5.html#jls-5.1.7" title="5.1.7.&nbsp;Boxing Conversion">&sect;5.1.7</a>), as well as asynchronously.
+                        </p>
+                     </li>
+                  </ul>
+               </div>
+               <p class="norm-dynamic"><a name="jls-11.1.3-120"></a>The
+                  Java SE platform permits a small but bounded amount of execution to occur
+                  before an asynchronous exception is thrown.
+               </p>
+               <p class="note">Asynchronous exceptions are rare, but proper
+                  understanding of their semantics is necessary if high-quality machine
+                  code is to be generated.
+               </p>
+               <p class="note">The delay noted above is permitted to allow
+                  optimized code to detect and throw these exceptions at points where it
+                  is practical to handle them while obeying the semantics of the
+                  Java programming language. A simple implementation might poll for asynchronous
+                  exceptions at the point of each control transfer instruction. Since a
+                  program has a finite size, this provides a bound on the total delay in
+                  detecting an asynchronous exception. Since no asynchronous exception
+                  will occur between control transfers, the code generator has some
+                  flexibility to reorder computation between control transfers for
+                  greater performance. The paper <em class="citetitle">Polling Efficiently on Stock
+                     Hardware</em> by Marc Feeley, <em class="citetitle">Proc. 1993 Conference
+                     on Functional Programming and Computer Architecture</em>,
+                  Copenhagen, Denmark, pp. 179-187, is recommended as further
+                  reading.
+               </p>
+            </div>
+         </div>
+         <div class="section" title="11.2.&nbsp;Compile-Time Checking of Exceptions">
+            <div class="titlepage">
+               <div>
+                  <div>
+                     <h2 class="title" style="clear: both"><a name="jls-11.2"></a>11.2.&nbsp;Compile-Time Checking of Exceptions
+                     </h2>
+                  </div>
+               </div>
+            </div>
+            <p class="norm"><a name="jls-11.2-100"></a>The Java programming language requires that a
+               program contains handlers for <span class="emphasis"><em>checked exceptions</em></span>
+               which can result from execution of a method or constructor
+               (<a class="xref" href="jls-8.html#jls-8.4.6" title="8.4.6.&nbsp;Method Throws">&sect;8.4.6</a>, <a class="xref" href="jls-8.html#jls-8.8.5" title="8.8.5.&nbsp;Constructor Throws">&sect;8.8.5</a>). This
+               compile-time checking for the presence of exception handlers is
+               designed to reduce the number of exceptions which are not properly
+               handled. For each checked exception which is a possible result, the
+               <code class="literal">throws</code> clause for the method or constructor must mention the class
+               of that exception or one of the superclasses of the class of that
+               exception (<a class="xref" href="jls-11.html#jls-11.2.3" title="11.2.3.&nbsp;Exception Checking">&sect;11.2.3</a>).
+            </p>
+            <p class="norm"><a name="jls-11.2-110"></a>The checked exception classes
+               (<a class="xref" href="jls-11.html#jls-11.1.1" title="11.1.1.&nbsp;The Kinds of Exceptions">&sect;11.1.1</a>) named in the <code class="literal">throws</code> clause are part
+               of the contract between the implementor and user of the method or
+               constructor. The <code class="literal">throws</code> clause of an overriding method may not
+               specify that this method will result in throwing any checked exception
+               which the overridden method is not permitted, by its <code class="literal">throws</code> clause,
+               to throw (<a class="xref" href="jls-8.html#jls-8.4.8.3" title="8.4.8.3.&nbsp;Requirements in Overriding and Hiding">&sect;8.4.8.3</a>). When interfaces are
+               involved, more than one method declaration may be overridden by a
+               single overriding declaration. In this case, the overriding
+               declaration must have a <code class="literal">throws</code> clause that is compatible with all
+               the overridden declarations (<a class="xref" href="jls-9.html#jls-9.4.1" title="9.4.1.&nbsp;Inheritance and Overriding">&sect;9.4.1</a>).
+            </p>
+            <p class="norm"><a name="jls-11.2-120"></a>The unchecked exception
+               classes (<a class="xref" href="jls-11.html#jls-11.1.1" title="11.1.1.&nbsp;The Kinds of Exceptions">&sect;11.1.1</a>) are exempted from compile-time
+               checking.
+            </p>
+            <p class="note">Error classes are exempted because they can occur at
+               many points in the program and recovery from them is difficult or
+               impossible. A program declaring such exceptions would be cluttered,
+               pointlessly. Sophisticated programs may yet wish to catch and attempt
+               to recover from some of these conditions.
+            </p>
+            <p class="note">Run-time exception classes are exempted because, in
+               the judgment of the designers of the Java programming language, having to declare
+               such exceptions would not aid significantly in establishing the
+               correctness of programs. Many of the operations and constructs of the
+               Java programming language can result in exceptions at run time. The information
+               available to a Java compiler, and the level of analysis a compiler
+               performs, are usually not sufficient to establish that such run-time
+               exceptions cannot occur, even though this may be obvious to the
+               programmer. Requiring such exception classes to be declared would
+               simply be an irritation to programmers.
+            </p>
+            <p class="note">For example, certain code might implement a circular
+               data structure that, by construction, can never involve null
+               references; the programmer can then be certain that a <code class="literal">NullPointerException</code> cannot
+               occur, but it would be difficult for a Java compiler to prove it. The
+               theorem-proving technology that is needed to establish such global
+               properties of data structures is beyond the scope of this
+               specification.
+            </p>
+            <p class="norm-static"><a name="jls-11.2-200"></a>We say that
+               a statement or expression <span class="emphasis"><em>can throw</em></span> an exception
+               class <span class="type">E</span> if, according to the rules in <a class="xref" href="jls-11.html#jls-11.2.1" title="11.2.1.&nbsp;Exception Analysis of Expressions">&sect;11.2.1</a>
+               and <a class="xref" href="jls-11.html#jls-11.2.2" title="11.2.2.&nbsp;Exception Analysis of Statements">&sect;11.2.2</a>, the execution of the statement or
+               expression can result in an exception of class <span class="type">E</span> being
+               thrown.
+            </p>
+            <p class="norm-static"><a name="jls-11.2-210"></a>We say that
+               a <code class="literal">catch</code> clause <span class="emphasis"><em>can catch</em></span> its catchable
+               exception class(es):
+            </p>
+            <div class="norm">
+               <ul class="norm" type="disc">
+                  <li class="listitem">
+                     <p class="norm-static"><a name="jls-11.2-210-A"></a>
+                              The catchable exception class of a uni-<code class="literal">catch</code> clause is the
+                              declared type of its exception parameter
+                              (<a class="xref" href="jls-14.html#jls-14.20" title="14.20.&nbsp;The try statement">&sect;14.20</a>).
+                     </p>
+                  </li>
+                  <li class="listitem">
+                     <p class="norm-static"><a name="jls-11.2-210-B"></a>
+                              The catchable exception classes of a multi-<code class="literal">catch</code> clause are
+                              the alternatives in the union that denotes the type of its
+                              exception parameter.
+                     </p>
+                  </li>
+               </ul>
+            </div>
+            <div class="section" title="11.2.1.&nbsp;Exception Analysis of Expressions">
+               <div class="titlepage">
+                  <div>
+                     <div>
+                        <h3 class="title"><a name="jls-11.2.1"></a>11.2.1.&nbsp;Exception Analysis of Expressions
+                        </h3>
+                     </div>
+                  </div>
+               </div>
+               <p class="norm-static"><a name="jls-11.2.1-100"></a>A class
+                  instance creation expression (<a class="xref" href="jls-15.html#jls-15.9" title="15.9.&nbsp;Class Instance Creation Expressions">&sect;15.9</a>) can throw an
+                  exception class <span class="type">E</span> iff either:
+               </p>
+               <div class="norm">
+                  <ul class="norm" type="disc">
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-11.2.1-100-A"></a>
+                                 The expression is a qualified class instance creation expression
+                                 and the qualifying expression can throw <span class="type">E</span>; or
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-11.2.1-100-B"></a>
+                                 Some expression of the argument list can throw <span class="type">E</span>; or
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-11.2.1-100-C"></a>
+                                 <span class="type">E</span> is one of the exception types of the invocation type of the
+                                 chosen constructor (<a class="xref" href="jls-15.html#jls-15.12.2.6" title="15.12.2.6.&nbsp;Method Invocation Type">&sect;15.12.2.6</a>); or
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-11.2.1-100-D"></a>
+                                 The class instance creation expression includes
+                                 a <span class="emphasis"><em>ClassBody</em></span>, and some instance initializer
+                                 or instance variable initializer in
+                                 the <span class="emphasis"><em>ClassBody</em></span> can throw <span class="type">E</span>.
+                        </p>
+                     </li>
+                  </ul>
+               </div>
+               <p class="norm-static"><a name="jls-11.2.1-110"></a>A method
+                  invocation expression (<a class="xref" href="jls-15.html#jls-15.12" title="15.12.&nbsp;Method Invocation Expressions">&sect;15.12</a>) can throw an
+                  exception class <span class="type">E</span> iff either:
+               </p>
+               <div class="norm">
+                  <ul class="norm" type="disc">
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-11.2.1-110-A"></a>
+                                 The method invocation expression is of the form <span class="emphasis"><em>Primary</em></span>
+                                 <code class="literal">.</code> <span class="emphasis"><em>[TypeArguments]</em></span> <span class="emphasis"><em>Identifier</em></span> and the
+                                 <span class="emphasis"><em>Primary</em></span> expression can throw <span class="type">E</span>; or
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-11.2.1-110-B"></a>
+                                 Some expression of the argument list can throw <span class="type">E</span>; or
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-11.2.1-110-C"></a>
+                                 <span class="type">E</span> is one of the exception types of the invocation type of the
+                                 chosen method (<a class="xref" href="jls-15.html#jls-15.12.2.6" title="15.12.2.6.&nbsp;Method Invocation Type">&sect;15.12.2.6</a>).
+                        </p>
+                     </li>
+                  </ul>
+               </div>
+               <p class="norm-static"><a name="jls-11.2.1-120"></a>A lambda
+                  expression (<a class="xref" href="jls-15.html#jls-15.27" title="15.27.&nbsp;Lambda Expressions">&sect;15.27</a>) can throw no exception
+                  classes.
+               </p>
+               <p class="norm-static"><a name="jls-11.2.1-200"></a>For every
+                  other kind of expression, the expression can throw an exception class
+                  <span class="type">E</span> iff one of its immediate subexpressions can throw <span class="type">E</span>.
+               </p>
+               <p class="note">
+                  Note that a method reference expression (<a class="xref" href="jls-15.html#jls-15.13" title="15.13.&nbsp;Method Reference Expressions">&sect;15.13</a>)
+                  of the form <span class="emphasis"><em>Primary <code class="literal">::</code> [TypeArguments]
+                        Identifier</em></span> can throw an exception class if
+                  the <span class="emphasis"><em>Primary</em></span> subexpression can throw an exception
+                  class. In contrast, a lambda expression can throw nothing, and has no
+                  immediate subexpressions on which to perform exception analysis. It is
+                  the <span class="emphasis"><em>body</em></span> of a lambda expression, containing
+                  expressions and statements, that can throw exception classes.
+               </p>
+            </div>
+            <div class="section" title="11.2.2.&nbsp;Exception Analysis of Statements">
+               <div class="titlepage">
+                  <div>
+                     <div>
+                        <h3 class="title"><a name="jls-11.2.2"></a>11.2.2.&nbsp;Exception Analysis of Statements
+                        </h3>
+                     </div>
+                  </div>
+               </div>
+               <p class="norm-static"><a name="jls-11.2.2-100"></a>A <code class="literal">throw</code>
+                  statement (<a class="xref" href="jls-14.html#jls-14.18" title="14.18.&nbsp;The throw Statement">&sect;14.18</a>) whose thrown expression has
+                  static type <span class="type">E</span> and is not a final or effectively final exception
+                  parameter can throw <span class="type">E</span> or any exception class that the thrown
+                  expression can throw.
+               </p>
+               <p class="note">For example, the statement <code class="literal">throw new
+                     java.io.FileNotFoundException();</code> can
+                  throw <code class="literal">java.io.FileNotFoundException</code> only. Formally,
+                  it is not the case that it "can throw" a subclass or superclass
+                  of <code class="literal">java.io.FileNotFoundException</code>.
+               </p>
+               <p class="norm-static"><a name="jls-11.2.2-110"></a>A <code class="literal">throw</code>
+                  statement whose thrown expression is a final or effectively final
+                  exception parameter of a <code class="literal">catch</code> clause <span class="type">C</span> can throw an exception
+                  class <span class="type">E</span> iff:
+               </p>
+               <div class="norm">
+                  <ul class="norm" type="disc">
+                     <li class="listitem">
+                        <p><a name="jls-11.2.2-110-A"></a>
+                                 <span class="type">E</span> is an exception class that the <code class="literal">try</code> block of the <code class="literal">try</code>
+                                 statement which declares <span class="type">C</span> can throw; and
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p><a name="jls-11.2.2-110-B"></a>
+                                 <span class="type">E</span> is assignment compatible with any of <span class="type">C</span>'s catchable
+                                 exception classes; and
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p><a name="jls-11.2.2-110-C"></a>
+                                 <span class="type">E</span> is not assignment compatible with any of the catchable
+                                 exception classes of the <code class="literal">catch</code> clauses  declared to the left of <span class="type">C</span> in the same
+                                 <code class="literal">try</code> statement.
+                        </p>
+                     </li>
+                  </ul>
+               </div>
+               <p class="norm-static"><a name="jls-11.2.2-120"></a>A <code class="literal">try</code>
+                  statement (<a class="xref" href="jls-14.html#jls-14.20" title="14.20.&nbsp;The try statement">&sect;14.20</a>) can throw an exception class
+                  <span class="type">E</span> iff either:
+               </p>
+               <div class="norm">
+                  <ul class="norm" type="disc">
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-11.2.2-120-A"></a>
+                                 The <code class="literal">try</code> block can throw <span class="type">E</span>,  or an expression
+                                 used to initialize a resource (in a <code class="literal">try</code>-with-resources
+                                 statement) can throw <span class="type">E</span>, or the automatic invocation of
+                                 the <code class="literal">close()</code> method of a resource (in a
+                                 <code class="literal">try</code>-with-resources statement) can throw <span class="type">E</span>,  and
+                                 <span class="type">E</span> is not assignment compatible with any catchable exception
+                                 class of any <code class="literal">catch</code> clause of the <code class="literal">try</code> statement, and either
+                                 no <code class="literal">finally</code> block is present or the <code class="literal">finally</code> block can
+                                 complete normally; or
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-11.2.2-120-B"></a>
+                                 Some <code class="literal">catch</code> block of the <code class="literal">try</code> statement can throw <span class="type">E</span> and
+                                 either no <code class="literal">finally</code> block is present or the <code class="literal">finally</code> block can
+                                 complete normally; or
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-11.2.2-120-C"></a>
+                                 A <code class="literal">finally</code> block is present and can throw <span class="type">E</span>.
+                        </p>
+                     </li>
+                  </ul>
+               </div>
+               <p class="norm-static"><a name="jls-11.2.2-130"></a>An explicit
+                  constructor invocation statement (<a class="xref" href="jls-8.html#jls-8.8.7.1" title="8.8.7.1.&nbsp;Explicit Constructor Invocations">&sect;8.8.7.1</a>) can
+                  throw an exception class <span class="type">E</span> iff either:
+               </p>
+               <div class="norm">
+                  <ul class="norm" type="disc">
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-11.2.2-130-A"></a>
+                                 Some expression of the constructor invocation's parameter list
+                                 can throw <span class="type">E</span>; or
+                        </p>
+                     </li>
+                     <li class="listitem">
+                        <p class="norm-static"><a name="jls-11.2.2-130-B"></a>
+                                 <span class="type">E</span> is  determined to be an exception
+                                 class of the <code class="literal">throws</code> clause of the constructor that is invoked
+                                 (<a class="xref" href="jls-15.html#jls-15.12.2.6" title="15.12.2.6.&nbsp;Method Invocation Type">&sect;15.12.2.6</a>).
+                        </p>
+                     </li>
+                  </ul>
+               </div>
+               <p class="norm-static"><a name="jls-11.2.2-200"></a>Any other
+                  statement <span class="emphasis"><em>S</em></span> can throw an exception class <span class="type">E</span> iff
+                  an expression or statement immediately contained
+                  in <span class="emphasis"><em>S</em></span> can throw <span class="type">E</span>.
+               </p>
+            </div>
+            <div class="section" title="11.2.3.&nbsp;Exception Checking">
+               <div class="titlepage">
+                  <div>
+                     <div>
+                        <h3 class="title"><a name="jls-11.2.3"></a>11.2.3.&nbsp;Exception Checking
+                        </h3>
+                     </div>
+                  </div>
+               </div>
+               <p class="norm-error"><a name="jls-11.2.3-100"></a>It is a
+                  compile-time error if a method or constructor body <span class="emphasis"><em>can
+                        throw</em></span> some exception class <span class="type">E</span> when <span class="type">E</span> is a checked
+                  exception class and <span class="type">E</span> is not a subclass of some class declared in
+                  the <code class="literal">throws</code> clause of the method or constructor.
+               </p>
+               <p class="norm-error"><a name="jls-11.2.3-110"></a>It is a
+                  compile-time error if a lambda body <span class="emphasis"><em>can throw</em></span>
+                  some exception class <span class="type">E</span> when <span class="type">E</span> is a checked exception class and <span class="type">E</span>
+                  is not a subclass of some class declared in the <code class="literal">throws</code> clause of the
+                  function type targeted by the lambda expression.
+               </p>
+               <p class="norm-error"><a name="jls-11.2.3-120"></a>It is a
+                  compile-time error if a class variable initializer
+                  (<a class="xref" href="jls-8.html#jls-8.3.2" title="8.3.2.&nbsp;Field Initialization">&sect;8.3.2</a>) or static initializer
+                  (<a class="xref" href="jls-8.html#jls-8.7" title="8.7.&nbsp;Static Initializers">&sect;8.7</a>) of a named class or
+                  interface <span class="emphasis"><em>can throw</em></span> a checked exception
+                  class.
+               </p>
+               <p class="norm-error"><a name="jls-11.2.3-130"></a>It is a
+                  compile-time error if an instance variable initializer
+                  (<a class="xref" href="jls-8.html#jls-8.3.2" title="8.3.2.&nbsp;Field Initialization">&sect;8.3.2</a>) or instance initializer
+                  (<a class="xref" href="jls-8.html#jls-8.6" title="8.6.&nbsp;Instance Initializers">&sect;8.6</a>) of a named class <span class="emphasis"><em>can
+                        throw</em></span> a checked exception class, unless the named class has
+                  at least one explicitly declared constructor and the exception class
+                  or one of its superclasses is explicitly declared in the <code class="literal">throws</code>
+                  clause of each constructor.
+               </p>
+               <p class="note">Note that no
+                  compile-time error is due if an instance variable initializer or
+                  instance initializer of an anonymous class
+                  (<a class="xref" href="jls-15.html#jls-15.9.5" title="15.9.5.&nbsp;Anonymous Class Declarations">&sect;15.9.5</a>) can throw an exception class. In a
+                  named class, it is the responsibility of the programmer to propagate
+                  information about which exception classes can be thrown by
+                  initializers, by declaring a suitable <code class="literal">throws</code> clause on any explicit
+                  constructor declaration. This relationship between the checked
+                  exception classes thrown by a class's initializers and the checked
+                  exception classes declared by a class's constructors is assured for an
+                  anonymous class declaration, because no explicit constructor
+                  declarations are possible and a Java compiler always generates a
+                  constructor with a suitable <code class="literal">throws</code> clause for the anonymous class
+                  declaration based on the checked exception classes that its
+                  initializers can throw.
+               </p>
+               <p class="norm-error"><a name="jls-11.2.3-200"></a>It is a
+                  compile-time error if a <code class="literal">catch</code> clause <span class="emphasis"><em>can catch</em></span>
+                  checked exception class <span class="type">E<sub>1</sub></span> and it is not the case that the <code class="literal">try</code>
+                  block corresponding to the <code class="literal">catch</code> clause <span class="emphasis"><em>can
+                        throw</em></span> a checked exception class that is a subclass or
+                  superclass of <span class="type">E<sub>1</sub></span>, unless <span class="type">E<sub>1</sub></span> is <code class="literal">Exception</code> or a superclass of
+                  <code class="literal">Exception</code>.
+               </p>
+               <p class="norm-error"><a name="jls-11.2.3-210"></a>It
+                  is a compile-time error if a <code class="literal">catch</code> clause <span class="emphasis"><em>can
+                        catch</em></span> an exception class <span class="type">E<sub>1</sub></span> and a preceding <code class="literal">catch</code>
+                  clause of the immediately enclosing <code class="literal">try</code> statement <span class="emphasis"><em>can
+                        catch</em></span> <span class="type">E<sub>1</sub></span> or a superclass of <span class="type">E<sub>1</sub></span>.
+               </p>
+               <p class="note">A Java compiler is
+                  encouraged to issue a warning if a <code class="literal">catch</code> clause can catch checked
+                  exception class <span class="type">E<sub>1</sub></span> and the <code class="literal">try</code> block corresponding to the <code class="literal">catch</code>
+                  clause can throw checked exception class <span class="type">E<sub>2</sub></span>, where <span class="type">E<sub>2</sub></span> <code class="literal">&lt;:</code>
+                  <span class="type">E<sub>1</sub></span>, and a preceding <code class="literal">catch</code> clause of the immediately enclosing
+                  <code class="literal">try</code> statement can catch checked exception class <span class="type">E<sub>3</sub></span>, where <span class="type">E<sub>2</sub></span>
+                  <code class="literal">&lt;:</code> <span class="type">E<sub>3</sub></span> <code class="literal">&lt;:</code> <span class="type">E<sub>1</sub></span>.
+               </p>
+               <div class="example"><a name="d5e17851"></a><p class="title"><b>Example&nbsp;11.2.3-1.&nbsp;Catching Checked Exceptions</b></p>
+                  <div class="example-contents"><pre class="programlisting">
+import java.io.*;
+
+class StaticallyThrownExceptionsIncludeSubtypes {
+    public static void main(String[] args) {
+        try {
+            throw new FileNotFoundException();
+        } catch (IOException ioe) {
+            // "catch IOException" catches IOException 
+            // and any subtype.
+        }
+
+        try {
+            throw new FileNotFoundException();
+              // Statement "can throw" FileNotFoundException.
+              // It is not the case that statement "can throw"
+              // a subtype or supertype of FileNotFoundException.
+        } catch (FileNotFoundException fnfe) {
+            // ... Handle exception ...
+        } catch (IOException ioe) {
+            // Legal, but compilers are encouraged to give
+            // warnings as of Java SE 7, because all subtypes of
+            // IOException that the try block "can throw" have 
+            // already been caught by the prior catch clause.
+        }
+
+        try {
+            m();
+              // m's declaration says "throws IOException", so
+              // m "can throw" IOException. It is not the case
+              // that m "can throw" a subtype or supertype of
+              // IOException (e.g. Exception).
+        } catch (FileNotFoundException fnfe) {
+            // Legal, because the dynamic type of the exception 
+            // might be FileNotFoundException.
+        } catch (IOException ioe) {
+            // Legal, because the dynamic type of the exception
+            // might be a different subtype of IOException.
+        } catch (Throwable t) {
+            // Can always catch Throwable.
+        }
+    }
+
+    static void m() throws IOException {
+        throw new FileNotFoundException();
+    }
+}
+</pre></div>
+               </div><br class="example-break"><div class="informalexample">
+                  <p class="note">By the rules above, each alternative in a
+                     multi-<code class="literal">catch</code> clause (<a class="xref" href="jls-14.html#jls-14.20" title="14.20.&nbsp;The try statement">&sect;14.20</a>) must be able to
+                     catch some exception class thrown by the <code class="literal">try</code> block and uncaught by
+                     previous <code class="literal">catch</code> clauses. For example, the second <code class="literal">catch</code> clause below
+                     would cause a compile-time error because exception analysis determines
+                     that <code class="literal">SubclassOfFoo</code> is already caught by the first
+                     <code class="literal">catch</code> clause:
+                  </p><pre class="screen">
+try { ... }
+catch (Foo f) { ... }
+catch (Bar | SubclassOfFoo e) { ... }
+</pre></div>
+            </div>
+         </div>
+         <div class="section" title="11.3.&nbsp;Run-Time Handling of an Exception">
+            <div class="titlepage">
+               <div>
+                  <div>
+                     <h2 class="title" style="clear: both"><a name="jls-11.3"></a>11.3.&nbsp;Run-Time Handling of an Exception
+                     </h2>
+                  </div>
+               </div>
+            </div>
+            <p class="norm-dynamic"><a name="jls-11.3-100"></a>When an exception is thrown
+               (<a class="xref" href="jls-14.html#jls-14.18" title="14.18.&nbsp;The throw Statement">&sect;14.18</a>), control is transferred from the code
+               that caused the exception to the nearest dynamically enclosing <code class="literal">catch</code>
+               clause, if any, of a <code class="literal">try</code> statement
+               (<a class="xref" href="jls-14.html#jls-14.20" title="14.20.&nbsp;The try statement">&sect;14.20</a>) that can handle the exception.
+            </p>
+            <p class="norm-dynamic"><a name="jls-11.3-110"></a>A
+               statement or expression is <span class="emphasis"><em>dynamically enclosed</em></span>
+               by a <code class="literal">catch</code> clause if it appears within the <code class="literal">try</code> block of the <code class="literal">try</code>
+               statement of which the <code class="literal">catch</code> clause is a part, or if the caller of
+               the statement or expression is dynamically enclosed by the <code class="literal">catch</code>
+               clause.
+            </p>
+            <p class="norm-dynamic"><a name="jls-11.3-120"></a>The caller
+               of a statement or expression depends on where it occurs:
+            </p>
+            <div class="norm">
+               <ul class="norm" type="disc">
+                  <li class="listitem">
+                     <p class="norm-dynamic"><a name="jls-11.3-120-A"></a>
+                              If within a method, then the caller is the method invocation
+                              expression (<a class="xref" href="jls-15.html#jls-15.12" title="15.12.&nbsp;Method Invocation Expressions">&sect;15.12</a>) that was executed to
+                              cause the method to be invoked.
+                     </p>
+                  </li>
+                  <li class="listitem">
+                     <p class="norm-dynamic"><a name="jls-11.3-120-B"></a>
+                              If within a constructor or an instance initializer or the
+                              initializer for an instance variable, then the caller is the
+                              class instance creation expression (<a class="xref" href="jls-15.html#jls-15.9" title="15.9.&nbsp;Class Instance Creation Expressions">&sect;15.9</a>)
+                              or the method invocation of <code class="literal">newInstance</code> that
+                              was executed to cause an object to be created.
+                     </p>
+                  </li>
+                  <li class="listitem">
+                     <p class="norm-dynamic"><a name="jls-11.3-120-C"></a>
+                              If within a static initializer or an initializer for a <code class="literal">static</code>
+                              variable, then the caller is the expression that used the class
+                              or interface so as to cause it to be initialized
+                              (<a class="xref" href="jls-12.html#jls-12.4" title="12.4.&nbsp;Initialization of Classes and Interfaces">&sect;12.4</a>).
+                     </p>
+                  </li>
+               </ul>
+            </div>
+            <p class="norm-dynamic"><a name="jls-11.3-200"></a>Whether a
+               particular <code class="literal">catch</code> clause <span class="emphasis"><em>can handle</em></span> an exception
+               is determined by comparing the class of the object that was thrown to
+               the catchable exception classes of the <code class="literal">catch</code> clause. The <code class="literal">catch</code>
+               clause can handle the exception if  one of its catchable exception classes is the class of
+               the exception or a superclass of the class of the exception.
+            </p>
+            <p class="note">Equivalently, a <code class="literal">catch</code> clause will catch any
+               exception object that is an <code class="literal">instanceof</code> (<a class="xref" href="jls-15.html#jls-15.20.2" title="15.20.2.&nbsp;Type Comparison Operator instanceof">&sect;15.20.2</a>) 
+                one of its catchable exception
+               classes.
+            </p>
+            <p class="norm-dynamic"><a name="jls-11.3-210"></a>The
+               control transfer that occurs when an exception is thrown causes abrupt
+               completion of expressions (<a class="xref" href="jls-15.html#jls-15.6" title="15.6.&nbsp;Normal and Abrupt Completion of Evaluation">&sect;15.6</a>) and statements
+               (<a class="xref" href="jls-14.html#jls-14.1" title="14.1.&nbsp;Normal and Abrupt Completion of Statements">&sect;14.1</a>) until a <code class="literal">catch</code> clause is encountered
+               that can handle the exception; execution then continues by executing
+               the block of that <code class="literal">catch</code> clause. The code that caused the exception
+               is never resumed.
+            </p>
+            <p class="norm-dynamic"><a name="jls-11.3-220"></a>All exceptions (synchronous and
+               asynchronous) are <span class="emphasis"><em>precise</em></span>: when the transfer of
+               control takes place, all effects of the statements executed and
+               expressions evaluated before the point from which the exception is
+               thrown must appear to have taken place. No expressions, statements, or
+               parts thereof that occur after the point from which the exception is
+               thrown may appear to have been evaluated.
+            </p>
+            <p class="note">If optimized code has speculatively executed some of
+               the expressions or statements which follow the point at which the
+               exception occurs, such code must be prepared to hide this speculative
+               execution from the user-visible state of the program.
+            </p>
+            <p class="norm-dynamic"><a name="jls-11.3-300"></a>If no
+               <code class="literal">catch</code> clause that can handle an exception can be found, then the
+               current thread (the thread that encountered the exception) is
+               terminated. Before termination, all <code class="literal">finally</code> clauses are
+               executed and the uncaught exception is handled according to the
+               following rules:
+            </p>
+            <div class="norm">
+               <ul class="norm" type="disc">
+                  <li class="listitem">
+                     <p class="norm-dynamic"><a name="jls-11.3-300-A"></a>	  
+                              If the current thread has an uncaught exception handler set,
+                              then that handler is executed.
+                     </p>
+                  </li>
+                  <li class="listitem">
+                     <p class="norm-dynamic"><a name="jls-11.3-300-B"></a>
+                              Otherwise, the method <code class="literal">uncaughtException</code> is
+                              invoked for the <code class="literal">ThreadGroup</code> that is the
+                              parent of the current thread. If
+                              the <code class="literal">ThreadGroup</code> and its
+                              parent <code class="literal">ThreadGroup</code>s do not
+                              override <code class="literal">uncaughtException</code>, then the default
+                              handler's <code class="literal">uncaughtException</code> method is
+                              invoked.
+                     </p>
+                  </li>
+               </ul>
+            </div>
+            <p class="note">In situations where it is desirable to ensure that
+               one block of code is always executed after another, even if that other
+               block of code completes abruptly, a <code class="literal">try</code> statement with a <code class="literal">finally</code>
+               clause (<a class="xref" href="jls-14.html#jls-14.20.2" title="14.20.2.&nbsp;Execution of try-finally and try-catch-finally">&sect;14.20.2</a>) may be used.
+            </p>
+            <p class="note">If a <code class="literal">try</code> or <code class="literal">catch</code> block in a <code class="literal">try</code>-<code class="literal">finally</code> or
+               <code class="literal">try</code>-<code class="literal">catch</code>-<code class="literal">finally</code> statement completes abruptly, then the
+               <code class="literal">finally</code> clause is executed during propagation of the exception, even
+               if no matching <code class="literal">catch</code> clause is ultimately found.
+            </p>
+            <p class="note">If a <code class="literal">finally</code> clause is executed because of abrupt
+               completion of a <code class="literal">try</code> block and the <code class="literal">finally</code> clause itself completes
+               abruptly, then the reason for the abrupt completion of the <code class="literal">try</code> block
+               is discarded and the new reason for abrupt completion is propagated
+               from there.
+            </p>
+            <p class="note">The exact rules for abrupt completion and for the
+               catching of exceptions are specified in detail with the specification
+               of each statement in <a class="xref" href="jls-14.html" title="Chapter&nbsp;14.&nbsp;Blocks and Statements">&sect;14 (<i>Blocks and Statements</i>)</a> and for expressions in
+               <a class="xref" href="jls-15.html" title="Chapter&nbsp;15.&nbsp;Expressions">&sect;15 (<i>Expressions</i>)</a> (especially
+               <a class="xref" href="jls-15.html#jls-15.6" title="15.6.&nbsp;Normal and Abrupt Completion of Evaluation">&sect;15.6</a>).
+            </p>
+            <div class="example"><a name="d5e17945"></a><p class="title"><b>Example&nbsp;11.3-1.&nbsp;Throwing and Catching Exceptions</b></p>
+               <div class="example-contents">
+                  <p class="note">The following program declares an exception
+                     class <code class="literal">TestException</code>. The <code class="literal">main</code>
+                     method of class <code class="literal">Test</code> invokes
+                     the <code class="literal">thrower</code> method four times, causing exceptions
+                     to be thrown three of the four times. The <code class="literal">try</code> statement in
+                     method <code class="literal">main</code> catches each exception that the thrower
+                     throws. Whether the invocation of <code class="literal">thrower</code> completes
+                     normally or abruptly, a message is printed describing what
+                     happened.
+                  </p><pre class="programlisting">
+class TestException extends Exception {
+    TestException()         { super(); }
+    TestException(String s) { super(s); }
+}
+
+class Test {
+    public static void main(String[] args) {
+        for (String arg : args) {
+            try {
+                thrower(arg);
+                System.out.println("Test \"" + arg +
+                                   "\" didn't throw an exception");
+            } catch (Exception e) {
+                System.out.println("Test \"" + arg +
+                                   "\" threw a " + e.getClass() +
+                                   "\n    with message: " +
+                                   e.getMessage());
+            }
+        }
+    }
+    static int thrower(String s) throws TestException {
+        try {
+            if (s.equals("divide")) {
+                int i = 0;
+                return i/i;
+            }
+            if (s.equals("null")) {
+                s = null;
+                return s.length();
+            }
+            if (s.equals("test")) {
+                throw new TestException("Test message");
+            }
+            return 0;
+        } finally {
+            System.out.println("[thrower(\"" + s + "\") done]");
+        }
+    }
+}
+</pre><p class="note">If we execute the program, passing it the
+                     arguments:
+                  </p><pre class="screen">
+divide null not test
+</pre><p class="note">it produces the output:</p><pre class="screen">
+[thrower("divide") done]
+Test "divide" threw a class java.lang.ArithmeticException
+    with message: / by zero
+[thrower("null") done]
+Test "null" threw a class java.lang.NullPointerException
+    with message: null
+[thrower("not") done]
+Test "not" didn't throw an exception
+[thrower("test") done]
+Test "test" threw a class TestException
+    with message: Test message
+</pre><p class="note">The declaration of the
+                     method <code class="literal">thrower</code> must have a <code class="literal">throws</code> clause because
+                     it can throw instances of <code class="literal">TestException</code>, which is a
+                     checked exception class (<a class="xref" href="jls-11.html#jls-11.1.1" title="11.1.1.&nbsp;The Kinds of Exceptions">&sect;11.1.1</a>). A compile-time
+                     error would occur if the <code class="literal">throws</code> clause were omitted.
+                  </p>
+                  <p class="note">Notice that the <code class="literal">finally</code> clause is executed on
+                     every invocation of <code class="literal">thrower</code>, whether or not an
+                     exception occurs, as shown by the "<code class="literal">[thrower(...)
+                        done]</code>" output that occurs for each invocation.
+                  </p>
+               </div>
+            </div><br class="example-break"></div>
+      </div>
+      <div class="navfooter">
+         <hr>
+         <table width="100%" summary="Navigation footer">
+            <tr>
+               <td width="40%" align="left"><a accesskey="p" href="jls-10.html">Prev</a>&nbsp;
+               </td>
+               <td width="20%" align="center">&nbsp;</td>
+               <td width="40%" align="right">&nbsp;<a accesskey="n" href="jls-12.html">Next</a></td>
+            </tr>
+            <tr>
+               <td width="40%" align="left" valign="top">Chapter&nbsp;10.&nbsp;Arrays&nbsp;</td>
+               <td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td>
+               <td width="40%" align="right" valign="top">&nbsp;Chapter&nbsp;12.&nbsp;Execution</td>
+            </tr>
+         </table>
+      </div>
+      <div xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:rx="http://www.renderx.com/XSL/Extensions" class="navfooter">
+         <hr><a href="jls-0-front.html">
+                Legal Notice
+              </a></div>
+   </body>
+</html>
