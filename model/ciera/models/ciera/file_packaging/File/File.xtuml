@@ -7,6 +7,41 @@ INSERT INTO O_OBJ
 	'PKG_FL',
 	'',
 	"00000000-0000-0000-0000-000000000000");
+INSERT INTO O_TFR
+	VALUES ("574b2dc2-3f2c-4d66-898d-31b4a8fadae3",
+	"df5b9933-abf8-4063-956b-22ebb9d15b03",
+	'validate',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'// check attributes
+if ( "" == self.name )
+  TRACE::log( id:13, flavor:"validation failure", message: "File with empty name" );
+end if;
+if ( "" == self.dir_path )
+  TRACE::log( id:14, flavor:"validation failure", message: "File with empty dir_path" );
+end if;
+
+// check relationships
+select one pkg_dir related by self->PKG_DIR[R9500];
+if ( empty pkg_dir )
+  TRACE::log( id:15, flavor:"validation failure", message: "File with no related Directory" );
+end if;
+
+// check that each Package Member has a File
+// this check is here because the package where
+// the assocation is defined is here
+select many j_pkgmbrs from instances of J_PKGMBR;
+for each j_pkgmbr in j_pkgmbrs
+  select one pkg_fl related by j_pkgmbr->PKG_FL[R9501];
+  if ( empty pkg_fl )
+    TRACE::log( id:16, flavor:"validation failure", message: "Package Member with no related File" );
+  end if;
+end for;',
+	1,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	0);
 INSERT INTO O_NBATTR
 	VALUES ("4ba4daa1-f575-4412-98c0-9fdc6cfcf0cf",
 	"df5b9933-abf8-4063-956b-22ebb9d15b03");
