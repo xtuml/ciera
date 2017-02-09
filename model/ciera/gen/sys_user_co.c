@@ -74,6 +74,22 @@ UserPreOoaInitializationCalloutf( void )
 void
 UserPostOoaInitializationCalloutf( int argc, char ** argv )
 {
+  {
+    int c;
+    opterr = 0;
+    while ( ( c = getopt ( argc, argv, "i:" ) ) != -1 ) {
+      switch ( c ) {
+        case 'i':
+          if ( !optarg ) abort();
+          else ciera_CIERA_op_setprojectroot( optarg );
+          break;
+        default:
+          abort (); // die ignominiously
+      }
+    }
+  }
+
+  // translate the model
   ciera_translate();
 }
 
