@@ -43,26 +43,28 @@ j_class = param.j_class;
 select one j_pkgmbr related by j_class->J_PKGMBR[R2501];
 if ( not_empty j_class and not_empty j_pkgmbr and "" != j_class.name )
   if ( "" != j_pkgmbr.visibility )
-    T::b( s:j_pkgmbr.visibility + " " );
+    PRINT::add( s:j_pkgmbr.visibility + " " );
   end if; 
-  T::b( s:"class " );
+  PRINT::add( s:"class " );
   class_name = T::c( s:T::r( s:j_class.name ) ) + "_c";
-  T::b( s:class_name + " {\n" );
+  PRINT::add( s:class_name + " {" );
+  PRINT::line();
   
   // render contained elements
+  PRINT::tab();
   select many j_flds related by j_class->J_FLD[R2500];
   if ( not_empty j_flds )
-    T::b( s:"\n" );
+    PRINT::line();
   end if;
   for each j_fld in j_flds
-	T::b( s:"  " );
 	::renderField( j_fld:j_fld );
   end for;
   if ( not_empty j_flds )
-    T::b( s:"\n" );
+    PRINT::line();
   end if;
+  PRINT::untab();
   
-  T::b( s:"}" );
+  PRINT::add( s:"}" );
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -99,11 +101,12 @@ INSERT INTO S_SYNC
 j_fld = param.j_fld;
 if ( not_empty j_fld and "" != j_fld.name )
   if ( "" != j_fld.visibility )
-    T::b( s:j_fld.visibility + " " );
+    PRINT::add( s:j_fld.visibility + " " );
   end if; 
-  T::b( s:"int " );
+  PRINT::add( s:"int " );
   field_name = "m_" + j_fld.name;
-  T::b( s:field_name + ";\n" );
+  PRINT::add( s:field_name + ";" );
+  PRINT::line();
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -141,7 +144,9 @@ INSERT INTO S_SYNC
 // render package name
 select one pkg related by pkg_fl->PKG_DIR[R9500]->J_PKG[R9502];
 if ( "" != pkg.name )
-  T::b( s:"package " + pkg.name + ";\n\n" );
+  PRINT::add( s:"package " + pkg.name + ";" );
+  PRINT::line();
+  PRINT::line();
 end if;
 
 // render package members
