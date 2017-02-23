@@ -169,6 +169,9 @@ INSERT INTO S_SYNC
 	'// load project marks
 ::load_marks();
 
+// process global marks
+::process_marks();
+
 // create src directory
 create object instance dir of PKG_DIR;
 dir.path = "src";
@@ -294,20 +297,49 @@ INSERT INTO S_SYNC
 	'load_marks',
 	'',
 	'ciera = CIERA::getDefaultInstance();
-i = 0; values[7] = "";
-while ( i < 8 )
-  values[i] = "                                                                                                                                                                                          ";
-  i = i + 1;
-end while;
-TRACE::log( flavor:"info", id:100, message:"Loading marking data." );
-Feature::load( filename:ciera.projectroot + "/gen/features.mark", values:values );
-Mark::load( filename:ciera.projectroot + "/gen/application.mark", values:values );',
+if ( "" != ciera.projectroot )
+  i = 0; values[7] = "";
+  while ( i < 8 )
+	values[i] = "                                                                                                                                                                                          ";
+	i = i + 1;
+  end while;
+  TRACE::log( flavor:"info", id:100, message:"Loading marking data." );
+  Feature::load( filename:ciera.projectroot + "/gen/features.mark", values:values );
+  Mark::load( filename:ciera.projectroot + "/gen/application.mark", values:values );
+else
+  TRACE::log( flavor:"info", id:101, message:"No project root specified." );
+end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
 	0);
 INSERT INTO PE_PE
 	VALUES ("e68e191f-3524-49b6-9044-03afa685382b",
+	1,
+	"1a89636f-a4fa-46fc-94b7-c4e651654213",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("807cdd17-2185-4641-8f3c-5818cbdbeda7",
+	"00000000-0000-0000-0000-000000000000",
+	'process_marks',
+	'',
+	'// set enable tracing (default to no tracing)
+// Using the LogFailure and LogSuccess bridges to toggle
+// tracing on and off
+LOG::LogFailure(message:"");
+select any tracing_mark from instances of Mark where ( selected.markable_name == "*"
+                                                   and selected.path == "*"
+                                                   and selected.feature_name == "EnableTracing" );
+if ( not_empty tracing_mark )
+  LOG::LogSuccess(message:"");
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO PE_PE
+	VALUES ("807cdd17-2185-4641-8f3c-5818cbdbeda7",
 	1,
 	"1a89636f-a4fa-46fc-94b7-c4e651654213",
 	"00000000-0000-0000-0000-000000000000",

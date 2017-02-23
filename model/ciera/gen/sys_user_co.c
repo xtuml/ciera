@@ -71,17 +71,22 @@ UserPreOoaInitializationCalloutf( void )
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+extern int LOG_EnableTracing;
 void
 UserPostOoaInitializationCalloutf( int argc, char ** argv )
 {
   {
     int c;
     opterr = 0;
-    while ( ( c = getopt ( argc, argv, "i:" ) ) != -1 ) {
+    while ( ( c = getopt ( argc, argv, "i:t" ) ) != -1 ) {
       switch ( c ) {
         case 'i':
           if ( !optarg ) abort();
           else ciera_CIERA_op_setprojectroot( optarg );
+          break;
+        case 't':
+          // enable tracing from the very beginning (even before marks are loaded)
+          LOG_EnableTracing = 1;
           break;
         default:
           abort (); // die ignominiously
