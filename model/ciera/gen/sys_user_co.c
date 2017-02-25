@@ -82,7 +82,7 @@ UserPostOoaInitializationCalloutf( int argc, char ** argv )
       switch ( c ) {
         case 'i':
           if ( !optarg ) abort();
-          else ciera_CIERA_op_setprojectroot( optarg );
+          else ciera_gen_setprojectroot( optarg );
           break;
         case 't':
           // enable tracing from the very beginning (even before marks are loaded)
@@ -95,7 +95,7 @@ UserPostOoaInitializationCalloutf( int argc, char ** argv )
   }
 
   // translate the model
-  ciera_translate();
+  ciera_gen_translate();
 }
 
 /*
