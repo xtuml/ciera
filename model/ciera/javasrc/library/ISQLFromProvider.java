@@ -1,4 +1,4 @@
-package lib;
+package library;
 
 public interface ISQLFromProvider {
 }
