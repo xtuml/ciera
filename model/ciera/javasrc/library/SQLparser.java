@@ -7,17 +7,19 @@ import lib.LOG;
 public class SQLparser implements IparseToProvider, ISQLFromProvider {
 
     private ISQLToProvider SQL;
+    private IparseFromProvider parse;
 
     public SQLparser( ISQLToProvider p_SQL, IparseFromProvider p_parse ) {
-        LOG.LogInfo("SQLparser constructor");
         SQL = p_SQL;
+        parse = p_parse;
     }
 
     @Override
     public void parse(ComponentInstance_c senderReceiver) {
-        LOG.LogInfo("testing");
+        LOG.LogInfo("Received parse signal");
         ArrayList<String> values = new ArrayList<String>();
         SQL.insert( null, "levi", values );
+        parse.done(null);
     }
 
 }
