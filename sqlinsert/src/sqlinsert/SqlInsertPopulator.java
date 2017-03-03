@@ -15,6 +15,7 @@ public class SqlInsertPopulator extends SqlInsertBaseListener {
 	}
 	
 	private void insert() {
+		while ( values.size() < 32 ) values.add("");
 		if ( handler != null ) handler.insert( table, values );
 		table = null;
 		values = null;
