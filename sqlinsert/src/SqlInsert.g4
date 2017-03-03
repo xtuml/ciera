@@ -18,12 +18,10 @@ table_name:         ID;
 
 data_value:         STRING
                     | NUMBER
-                    | UUID
                     ;
 
 ID:         ( 'a'..'z' | '_' )+;
 NUMBER:     ('-')? ( '0'..'9' | '.' )+;
 STRING:     '\'' ( '\'\'' | '\r' | '\n' | ~('\r' | '\'' | '\n') )* '\'';
-UUID:       '"' ( '0'..'9' | 'a'..'f' | '-' )* '"';   
 SL_COMMENT: '--' (~'\n')* ('\n' ) -> skip; 
 WS:         ( ( ' ' | '\t' ) | ( ('\r\n') | '\n' | '\r' ) )+ -> skip;
