@@ -21,11 +21,11 @@ public class SQLInsertParser implements IparseToProvider, ISQLFromProvider, SqlI
     }
 
     @Override
-    public void parse(ComponentInstance_c senderReceiver) {
+    public void parse(ComponentInstance_c senderReceiver, String filepath) {
     	if ( parsing ) LOG.LogFailure("SQLInsertParser: Parse already in progress.");
     	else {
     		LOG.LogInfo("SQLInsertParser: Initiating SQL parse...");
-    		parse();
+    		parse(filepath);
     	}
     }
     
@@ -39,17 +39,18 @@ public class SQLInsertParser implements IparseToProvider, ISQLFromProvider, SqlI
 		}
 	}
     
-    private void parse() {
+    private void parse(String filepath) {
+    		if ( filepath == null || filepath.equals("") ) return;
         SqlInsertParse sqlinsert = new SqlInsertParse();
-        File infile = new File("/Users/levistarrett/git/xtuml/ciera/model/ciera/test_data/ooaofgraphics.sql");
+        File infile = new File(filepath);
         InputStream in = null;
         try {
         		in = new FileInputStream( infile );
+        		sqlinsert.parse( in, this );
         }
         catch ( FileNotFoundException e ) {
         		LOG.LogFailure(e.toString());
         }
-        sqlinsert.parse( in, this );
         done();
     }
     
