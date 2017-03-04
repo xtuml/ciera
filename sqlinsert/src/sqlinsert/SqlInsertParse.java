@@ -4,6 +4,7 @@ import java.io.*;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
+import lib.LOG;
 import sqlinsert.SqlInsertParser.Sql_fileContext;
 
 public class SqlInsertParse {
@@ -32,6 +33,7 @@ public class SqlInsertParse {
         SqlInsertParser         parser;
         
         try {
+    		LOG.LogInfo("SQLInsertParse: Lexing...");
             lex = new SqlInsertLexer( new ANTLRInputStream( new LowerCaseInputStream( in ) ) );
         } catch ( IOException e ) {
             System.err.println( e );
@@ -41,10 +43,13 @@ public class SqlInsertParse {
         tokens = new CommonTokenStream( lex );
         parser = new SqlInsertParser( tokens );
 
+        LOG.LogInfo("SQLInsertParse: Parsing...");
         Sql_fileContext ctx = parser.sql_file();
         
         ParseTreeWalker walker = new ParseTreeWalker();
         SqlInsertPopulator listener = new SqlInsertPopulator(handler);
+
+        LOG.LogInfo("SQLInsertParse: Walking...");
         walker.walk(listener, ctx);
 
     }
