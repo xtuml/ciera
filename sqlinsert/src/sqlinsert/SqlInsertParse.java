@@ -14,10 +14,10 @@ public class SqlInsertParse {
         File infile = new File("/Users/levistarrett/git/xtuml/ciera/model/ciera/test_data/ooaofgraphics.sql");
         InputStream in = null;
         try {
-        	in = new FileInputStream( infile );
+            in = new FileInputStream( infile );
         }
         catch ( FileNotFoundException e ) {
-        	System.err.println(e);
+            System.err.println(e);
         }
         parse( in, null );
     }
@@ -33,7 +33,7 @@ public class SqlInsertParse {
         SqlInsertParser         parser;
         
         try {
-    		LOG.LogInfo("SQLInsertParse: Lexing...");
+            LOG.LogInfo("SQLInsertParse: Lexing...");
             lex = new SqlInsertLexer( new ANTLRInputStream( new LowerCaseInputStream( in ) ) );
         } catch ( IOException e ) {
             System.err.println( e );
