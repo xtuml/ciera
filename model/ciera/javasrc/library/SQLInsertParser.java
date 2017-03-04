@@ -22,20 +22,20 @@ public class SQLInsertParser implements IparseToProvider, ISQLFromProvider, SqlI
 
     @Override
     public void parse(ComponentInstance_c senderReceiver) {
-    	if ( parsing ) LOG.LogFailure("SQLInserParser: Parse already in progress.");
+    	if ( parsing ) LOG.LogFailure("SQLInsertParser: Parse already in progress.");
     	else {
-    		LOG.LogInfo("SQLInserParser: Initiating SQL parse...");
+    		LOG.LogInfo("SQLInsertParser: Initiating SQL parse...");
     		parse();
     	}
     }
     
-	@Override
+    @Override
 	public void insert(String table, ArrayList<String> values) {
 		if ( table != null && !table.equals("") && values != null && values.size() == ISQLToProvider.LEN_VALUES ) {
 			SQL.insert( null, table, values );
 		}
 		else {
-    		LOG.LogFailure("SQLInserParser: Malformed insert statement.");
+    		LOG.LogFailure("SQLInsertParser: Malformed insert statement.");
 		}
 	}
     
@@ -44,10 +44,10 @@ public class SQLInsertParser implements IparseToProvider, ISQLFromProvider, SqlI
         File infile = new File("/Users/levistarrett/git/xtuml/ciera/model/ciera/test_data/ooaofgraphics.sql");
         InputStream in = null;
         try {
-        	in = new FileInputStream( infile );
+        		in = new FileInputStream( infile );
         }
         catch ( FileNotFoundException e ) {
-        	System.err.println(e);
+        		LOG.LogFailure(e.toString());
         }
         sqlinsert.parse( in, this );
         done();
@@ -55,7 +55,7 @@ public class SQLInsertParser implements IparseToProvider, ISQLFromProvider, SqlI
     
     private void done() {
     	if ( parse != null ) parse.done(null);
-    	else LOG.LogFailure("SQLInserParser: Null port 'parse'.");
+    	else LOG.LogFailure("SQLInsertParser: Null port 'parse'.");
     }
 
 }
