@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="ooapopulate" default="all" basedir=".">
+
+    <property name="eclipse.home" value="/Users/levistarrett/xtuml/m621.jar_loader/BridgePoint.app/Contents/Eclipse" />
+    <property name="xtumlmc_build" value="${eclipse.home}/tools/mc/bin/xtumlmc_build"/>
+
+	<target name="all" depends="preprocess,cleanse"></target>
+
+    <property name="prebuilder.output" value="code_generation/ooapopulate.sql" />
+    <property name="sql.input" value="code_generation/xtuml" />
+    <property name="sql.input.file" value="${sql.input}/a.xtuml" />
+    <property name="sql.output" value="code_generation/ooapopulate.xtuml" />
+	
+	<target name="preprocess">
+		<mkdir dir="${sql.input}"/>
+		<move file="${prebuilder.output}" tofile="${sql.input.file}"/>
+	</target>
+
+    <property name="commandline" value="xtumlmc_cleanse_for_BridgePoint -u 500000 ${sql.input} ${sql.output}" />
+    <target name="cleanse">
+        <echo >Eclipse home: ${eclipse.home}</echo> 
+        <echo >${xtumlmc_build} ${commandline}</echo> 
+        <exec vmlauncher="false" failonerror="true" executable="${xtumlmc_build}" >
+            <arg line="${commandline}" />
+        </exec>
+    </target> 
+
+</project>
