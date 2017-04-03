@@ -9,11 +9,11 @@ import java.util.UUID;
 import org.xtuml.bp.core.*;
 import org.xtuml.bp.core.common.*;
 
-public class POPULATE {
+public class Populator {
 
     private static ModelRoot modelRoot;
     private static List<NonRootModelElement> loadedInstances;
-
+    
     public static void initialize( String systemName ) {
         Ooaofooa[] ooas = Ooaofooa.getInstancesUnderSystem( systemName );
         if ( ooas == null || ooas.length != 1 || ooas[0] == null ) {
@@ -110,4 +110,4 @@ public class POPULATE {
     
 }
 .//
-.emit to file "../src/lib/POPULATE.java"
+.emit to file "../src/lib/Populator.java"
