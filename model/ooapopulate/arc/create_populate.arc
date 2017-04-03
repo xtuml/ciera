@@ -4,6 +4,7 @@
 package lib;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import org.xtuml.bp.core.*;
 import org.xtuml.bp.core.common.*;
@@ -11,6 +12,7 @@ import org.xtuml.bp.core.common.*;
 public class POPULATE {
 
     private static ModelRoot modelRoot;
+    private static List<NonRootModelElement> loadedInstances;
 
     public static void initialize( String systemName ) {
         Ooaofooa[] ooas = Ooaofooa.getInstancesUnderSystem( systemName );
@@ -18,10 +20,17 @@ public class POPULATE {
             LOG.LogFailure("Error getting model root under '" + systemName + "'");
         }
         else modelRoot = ooas[0];
+        loadedInstances = new ArrayList<NonRootModelElement>();
     }
 
     public static void insert( String table, ArrayList<String> values ) {
         create( table, values );
+    }
+
+    public static void relate() {
+        for ( NonRootModelElement element : loadedInstances ) {
+            element.batchRelate( modelRoot, false, true );
+        }
     }
 
 .select many o_objs from instances of O_OBJ;
@@ -32,13 +41,27 @@ public class POPULATE {
         // create instance of ${o_obj.Key_Lett}
         $Cr{o_obj.Name}_c inst = null;
         inst = new $Cr{o_obj.Name}_c( modelRoot\
-        .select many o_attrs related by o_obj->O_ATTR[R102]
-        .for each o_attr in o_attrs
-            .select one s_dt related by o_attr->S_DT[R114];
+        .assign index = 0
+        .invoke first_attr = get_first_attribute( o_obj )
+		.assign o_attr = first_attr.first_attribute
+        .while ( not_empty o_attr )
+            .assign orig_o_attr = o_attr
+            .select one s_dt related by o_attr->S_DT[R114]
             .if ( ("$l{o_attr.Descrip:Persistent}" != "false") and (s_dt.Name != "state<State_Model>") )
+                .select one o_rattr related by o_attr->O_RATTR[R106]
+                .if ( not_empty o_rattr )
+                    .// if it is a referential, navigate back to the base attribute
+                    .select one o_attr related by o_rattr->O_BATTR[R113]->O_ATTR[R106]
+                .end if
+                .select one s_dt related by o_attr->S_DT[R114]
+                .invoke attr_accessor = get_attribute( o_attr, s_dt, "values.get(${index})" )
+, ${attr_accessor.body} \
+                .assign index = index + 1
             .end if
-        .end for
+            .select one o_attr related by orig_o_attr->O_ATTR[R103.'succeeds']
+        .end while
 );
+        loadedInstances.add( inst );
     }
 
     .end if
@@ -61,7 +84,7 @@ public class POPULATE {
         }
     }
     
-    private UUID createUUIDFromString( String uuid ) {
+    private static UUID createUUIDFromString( String uuid ) {
         if ( null == uuid || uuid.isEmpty() ) return null;
         Long longval = 0L;
         try {       
@@ -70,6 +93,19 @@ public class POPULATE {
             LOG.LogFailure("Could not parse id '" + uuid + "'");
         }
         return new UUID(0, longval);
+    }
+
+    private static String removeTics( String str ) {
+		if ( null == str || str.isEmpty() ) return "";
+		String out = str;
+		if (out.startsWith("'")) {      
+			out = out.substring(1);         
+		}   
+        if (out.endsWith("'")) {        
+            out = out.substring(0, out.length() - 1);
+        }   
+        out = out.replaceAll("''", "'");
+        return out;
     }
     
 }
