@@ -1,0 +1,251 @@
+-- BP 7.1.6 content: Package syschar: 3 persistence-version: 7.1.6
+
+INSERT INTO EP_PKG
+	VALUES ("436acf24-9bb3-4b41-a273-180f5526f12d",
+	"00000000-0000-0000-0000-000000000000",
+	"aa743d3c-66dc-49df-a19a-ffbadf9c9d1b",
+	'functions',
+	'',
+	0);
+INSERT INTO GD_MD
+	VALUES ("a2858e70-66f6-4ba2-a134-9c1aaf41c77b",
+	112,
+	"436acf24-9bb3-4b41-a273-180f5526f12d",
+	108,
+	0,
+	0,
+	1,
+	1,
+	1,
+	12,
+	1,
+	0,
+	0,
+	0,
+	0,
+	0,
+	'4.1.17',
+	'ciera::ciera::functions');
+INSERT INTO DIM_DIA
+	VALUES ("a2858e70-66f6-4ba2-a134-9c1aaf41c77b",
+	'',
+	1.000000,
+	0.000000,
+	0.000000,
+	"00000000-0000-0000-0000-000000000000");
+INSERT INTO S_SYNC
+	VALUES ("461577af-7627-4314-8925-414cb81f1044",
+	"00000000-0000-0000-0000-000000000000",
+	'load_marks',
+	'',
+	'ciera = CIERA::getDefaultInstance();
+if ( "" != ciera.projectroot )
+  i = 0; values[7] = "";
+  while ( i < 8 )
+	values[i] = "                                                                                                                                                                                          ";
+	i = i + 1;
+  end while;
+  TRACE::log( flavor:"info", id:100, message:"Loading marking data." );
+  Feature::load( filename:ciera.projectroot + "/gen/features.mark", values:values );
+  Mark::load( filename:ciera.projectroot + "/gen/application.mark", values:values );
+else
+  TRACE::log( flavor:"info", id:101, message:"No project root specified." );
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO PE_PE
+	VALUES ("461577af-7627-4314-8925-414cb81f1044",
+	1,
+	"436acf24-9bb3-4b41-a273-180f5526f12d",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("edb5a4d1-d6f6-43cf-9adb-e771a304532d",
+	"00000000-0000-0000-0000-000000000000",
+	'package',
+	'',
+	'select many packages from instances of J_PKG;
+for each package in packages
+  // create a directory for each package
+  dir = PKG_DIR::create_dir( j_pkg:package );
+  relate dir to package across R9502; 
+  
+  // create a file for each member
+  select many members related by package->J_PKGMBR[R2505];
+  for each member in members
+    create object instance file of PKG_FL;
+    file.name = T::c( s:T::r( s:member.name ) ) + "_c.java";
+    relate file to dir across R9500;
+    relate file to member across R9501;
+  end for;
+end for;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO PE_PE
+	VALUES ("edb5a4d1-d6f6-43cf-9adb-e771a304532d",
+	1,
+	"436acf24-9bb3-4b41-a273-180f5526f12d",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("4687c48f-c299-48ff-be66-0ec3bae155d2",
+	"00000000-0000-0000-0000-000000000000",
+	'preprocess',
+	'',
+	'// load project marks
+::load_marks();
+
+// process global marks
+::process_marks();',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO PE_PE
+	VALUES ("4687c48f-c299-48ff-be66-0ec3bae155d2",
+	1,
+	"436acf24-9bb3-4b41-a273-180f5526f12d",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("5218f78d-8d2e-4731-919f-17b7c973d3ed",
+	"00000000-0000-0000-0000-000000000000",
+	'process_marks',
+	'',
+	'// set enable tracing (default to no tracing)
+// Using the LogFailure and LogSuccess bridges to toggle
+// tracing on and off
+LOG::LogFailure(message:"");
+select any tracing_mark from instances of Mark where ( selected.markable_name == "*"
+                                                   and selected.path == "*"
+                                                   and selected.feature_name == "EnableTracing" );
+if ( not_empty tracing_mark )
+  LOG::LogSuccess(message:"");
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO PE_PE
+	VALUES ("5218f78d-8d2e-4731-919f-17b7c973d3ed",
+	1,
+	"436acf24-9bb3-4b41-a273-180f5526f12d",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("b12155dc-a578-4a0f-a320-a559e66e4272",
+	"00000000-0000-0000-0000-000000000000",
+	'translate',
+	'',
+	'// create src directory
+create object instance dir of PKG_DIR;
+dir.path = "src";
+
+// transform all classes
+select many o_objs from instances of O_OBJ;
+for each o_obj in o_objs
+  ::transformO_OBJ( o_obj:o_obj );
+end for;
+
+// package elements
+::package();
+
+// validate elements
+::validate();
+
+// render all files
+select many files from instances of PKG_FL;
+for each file in files
+  ::renderFile( pkg_fl:file );
+end for;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO PE_PE
+	VALUES ("b12155dc-a578-4a0f-a320-a559e66e4272",
+	1,
+	"436acf24-9bb3-4b41-a273-180f5526f12d",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("9e62cd48-84d6-46d6-a5a1-01276b360ce9",
+	"00000000-0000-0000-0000-000000000000",
+	'validate',
+	'',
+	'// java checks
+select many j_classes from instances of J_CLASS;
+for each j_class in j_classes
+  j_class.validate();
+end for;
+
+select many j_flds from instances of J_FLD;
+for each j_fld in j_flds
+  j_fld.validate();
+end for;
+
+select many j_ints from instances of J_INT;
+for each j_int in j_ints
+  j_int.validate();
+end for;
+
+select many j_pkgs from instances of J_PKG;
+TRACE::log( id:17, flavor:"info", message:"Number of packages: " + STRING::itoa(i:cardinality j_pkgs) );
+for each j_pkg in j_pkgs
+  j_pkg.validate();
+end for;
+
+select many j_pkgmbrs from instances of J_PKGMBR;
+for each j_pkgmbr in j_pkgmbrs
+  j_pkgmbr.validate();
+end for;
+
+select many j_pkgsegs from instances of J_PKGSEG;
+for each j_pkgseg in j_pkgsegs
+  j_pkgseg.validate();
+end for;
+
+// file packaging checks
+select many pkg_dirs from instances of PKG_DIR;
+TRACE::log( id:18, flavor:"info", message:"Number of directories: " + STRING::itoa(i:cardinality pkg_dirs) );
+for each pkg_dir in pkg_dirs
+  pkg_dir.validate();
+end for;
+
+select many pkg_fls from instances of PKG_FL;
+for each pkg_fl in pkg_fls
+  pkg_fl.validate();
+end for;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO PE_PE
+	VALUES ("9e62cd48-84d6-46d6-a5a1-01276b360ce9",
+	1,
+	"436acf24-9bb3-4b41-a273-180f5526f12d",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO PE_PE
+	VALUES ("436acf24-9bb3-4b41-a273-180f5526f12d",
+	1,
+	"acef9848-aa6d-428b-9882-cc90deb0a54a",
+	"00000000-0000-0000-0000-000000000000",
+	7);
+INSERT INTO EP_PKG_PROXY
+	VALUES ("acef9848-aa6d-428b-9882-cc90deb0a54a",
+	"aa743d3c-66dc-49df-a19a-ffbadf9c9d1b",
+	"aa743d3c-66dc-49df-a19a-ffbadf9c9d1b",
+	'ciera',
+	'',
+	0,
+	'../ciera.xtuml');
+INSERT INTO S_SYS_PROXY
+	VALUES ("aa743d3c-66dc-49df-a19a-ffbadf9c9d1b",
+	'ciera',
+	1,
+	'../../ciera.xtuml');
