@@ -9,14 +9,15 @@ import java.util.ArrayList;
 import sqlinsert.SqlInsertHandler;
 import sqlinsert.SqlInsertParse;
 
-public class POPULATE implements SqlInsertHandler {
+public class POPULATION implements SqlInsertHandler {
     
     private static boolean populating = false;
     
     public static void populate( String file, String systemName ) {
+        LOG.LogInfo("Populating... file: " + file + ", system: " + systemName);
         if ( !populating ) {
             populating = true;
-            POPULATE pop = new POPULATE();
+            POPULATION pop = new POPULATION();
             pop.doPopulate(file, systemName);
         }
     }
