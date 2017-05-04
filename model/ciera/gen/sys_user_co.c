@@ -82,7 +82,7 @@ UserPostOoaInitializationCalloutf( int argc, char ** argv )
       switch ( c ) {
         case 'i':
           if ( !optarg ) abort();
-          else ciera_gen_setprojectroot( optarg );
+          else ciera_gen_preprocess( optarg );
           break;
         case 't':
           // enable tracing from the very beginning (even before marks are loaded)
