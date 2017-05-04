@@ -24,9 +24,13 @@ public class POPULATION implements SqlInsertHandler {
     
     private void doPopulate( String file, String systemName ) {
         if ( file == null || file.equals("")|| systemName == null || systemName.equals("") ) return;
+
+        LOG.LogInfo("Populating... file: " + file + ", system: " + systemName);
         
         // initialize
         Populator.initialize( systemName );
+        
+        LOG.LogInfo("initialized");
         
         // parse file
         SqlInsertParse sqlinsert = new SqlInsertParse();
@@ -39,6 +43,8 @@ public class POPULATION implements SqlInsertHandler {
         catch ( FileNotFoundException e ) {
             LOG.LogFailure(e.toString());
         }
+
+        LOG.LogInfo("done inserting");
         
         // relate instances
         Populator.relate();
@@ -46,6 +52,7 @@ public class POPULATION implements SqlInsertHandler {
 
     @Override
     public void insert(String table, ArrayList<String> values) {
+        LOG.LogInfo("insert");
         Populator.insert( table, values );
     }
     

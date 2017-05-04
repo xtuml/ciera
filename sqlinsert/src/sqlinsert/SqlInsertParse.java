@@ -11,7 +11,7 @@ public class SqlInsertParse {
 
     // parse a test file
     public void test_parse() {
-        File infile = new File("/Users/levistarrett/git/xtuml/ciera/model/ciera/test_data/ooaofgraphics.sql");
+        File infile = new File("/Users/levi/git/xtuml/ciera/model/ciera/test_data/ooaofgraphics.sql");
         InputStream in = null;
         try {
             in = new FileInputStream( infile );
