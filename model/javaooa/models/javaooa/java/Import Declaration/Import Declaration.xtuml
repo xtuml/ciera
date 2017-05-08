@@ -3,10 +3,42 @@
 INSERT INTO O_OBJ
 	VALUES ("221aeae6-5e94-4f47-8f3a-5cd5bfb51cf2",
 	'Import Declaration',
-	11,
+	5,
 	'J_IMPDECL',
 	'',
 	"00000000-0000-0000-0000-000000000000");
+INSERT INTO O_TFR
+	VALUES ("49138d98-7839-4eb6-9b8f-c2dedb573cb7",
+	"221aeae6-5e94-4f47-8f3a-5cd5bfb51cf2",
+	'validate',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'// check attributes
+if ( "" == self.package_name )
+  TRACE::log( id:1, flavor:"validation failure", message: "Import Declaration with empty package_name" );
+end if;
+if ( "" == self.type_name )
+  TRACE::log( id:1, flavor:"validation failure", message: "Import Declaration with empty type_name" );
+end if;
+
+// check relationships
+select one j_imptype related by self->J_IMPTYPE[R2518];
+if ( empty j_imptype )
+  TRACE::log( id:2, flavor:"validation failure", message: "Missing required relationship for Import Declaration: Imported Type" );
+end if;
+select one j_tlt related by self->J_TLT[R2518];
+if ( empty j_tlt )
+  TRACE::log( id:2, flavor:"validation failure", message: "Missing required relationship for Import Declaration: Top Level Type" );
+end if;
+select one j_cu related by self->J_CU[R2507];
+if ( empty j_cu )
+  TRACE::log( id:2, flavor:"validation failure", message: "Missing required relationship for Import Declaration: Compilation Unit" );
+end if;',
+	1,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	0);
 INSERT INTO O_REF
 	VALUES ("221aeae6-5e94-4f47-8f3a-5cd5bfb51cf2",
 	"3da164c7-b815-4052-8f3b-a55833e372c0",
@@ -22,7 +54,7 @@ INSERT INTO O_REF
 	'',
 	'Compilation Unit',
 	'package_name',
-	'R2512.''declared in''');
+	'R2507.''declared in''');
 INSERT INTO R_RGO_PROXY
 	VALUES ("221aeae6-5e94-4f47-8f3a-5cd5bfb51cf2",
 	"616f94c8-aeba-4f52-8d20-05066723f7ef",
@@ -55,7 +87,7 @@ INSERT INTO O_ATTR
 	'',
 	'package_name',
 	2,
-	"ba5eda7a-def5-0000-0000-000000000002",
+	"ba5eda7a-def5-0000-0000-000000000007",
 	'',
 	'');
 INSERT INTO O_NBATTR
@@ -79,8 +111,8 @@ INSERT INTO O_ATTR
 INSERT INTO O_DBATTR
 	VALUES ("c7da4cef-148f-4ce8-8d79-f87abadc6b1a",
 	"221aeae6-5e94-4f47-8f3a-5cd5bfb51cf2",
-	'',
-	3,
+	'self.fully_qualified_name = self.package_name + "." + self.type_name;',
+	1,
 	0);
 INSERT INTO O_BATTR
 	VALUES ("c7da4cef-148f-4ce8-8d79-f87abadc6b1a",

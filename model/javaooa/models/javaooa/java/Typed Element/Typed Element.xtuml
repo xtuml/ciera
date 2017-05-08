@@ -3,10 +3,43 @@
 INSERT INTO O_OBJ
 	VALUES ("394a2601-501c-44f3-a9fd-475682fe3d06",
 	'Typed Element',
-	14,
+	21,
 	'J_TE',
 	'',
 	"00000000-0000-0000-0000-000000000000");
+INSERT INTO O_TFR
+	VALUES ("5b1c78d0-7155-4203-a403-4ce2919c495f",
+	"394a2601-501c-44f3-a9fd-475682fe3d06",
+	'validate',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'// check attributes
+if ( "" == self.name )
+  TRACE::log( id:3, flavor:"validation failure", message: "Typed Element with empty name" );
+end if;
+
+// check relationships
+select one j_fld related by self->J_FLD[R2512];
+if ( empty j_fld )
+  select one j_mthd related by self->J_MTHD[R2512];
+  if ( empty j_mthd )
+    select one j_param related by self->J_PARAM[R2512];
+    if ( empty j_param )
+      select one j_typearg related by self->J_TYPEARG[R2512];
+      if ( empty j_typearg )
+        select one j_typeparam related by self->J_TYPEPARAM[R2512];
+        if ( empty j_typeparam )
+          TRACE::log( id:2, flavor:"validation failure", message: "Missing subtype for Typed Element: Field, Method, Parameter, Type Argument, Type Parameter" );
+        end if;
+      end if;
+    end if;
+  end if;
+end if;',
+	1,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	0);
 INSERT INTO O_NBATTR
 	VALUES ("56e5fc2e-cc8b-4414-8850-a064268645e1",
 	"394a2601-501c-44f3-a9fd-475682fe3d06");

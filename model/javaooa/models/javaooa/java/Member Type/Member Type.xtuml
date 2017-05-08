@@ -3,10 +3,41 @@
 INSERT INTO O_OBJ
 	VALUES ("116222f6-eaf5-4d9e-a99b-a0d42ecab8b1",
 	'Member Type',
-	12,
+	9,
 	'J_MEMTYPE',
 	'',
 	"00000000-0000-0000-0000-000000000000");
+INSERT INTO O_TFR
+	VALUES ("c652127a-ab26-418b-83b5-a1cdd7ee84e3",
+	"116222f6-eaf5-4d9e-a99b-a0d42ecab8b1",
+	'validate',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'// check attributes
+if ( "" == self.member_fully_qualified_name )
+  TRACE::log( id:1, flavor:"validation failure", message: "Member Type with empty member_fully_qualified_name" );
+end if;
+if ( "" == self.reference_fully_qualified_name )
+  TRACE::log( id:1, flavor:"validation failure", message: "Member Type with empty reference_fully_qualified_name" );
+end if;
+if ( self.member_fully_qualified_name != self.reference_fully_qualified_name )
+  TRACE::log( id:1, flavor:"validation failure", message: "Imported Type with inconsistent attributes member_fully_qualified_name and reference_fully_qualified_name" );
+end if;
+
+// check relationships
+select one j_mbr related by self->J_MBR[R2500];
+if ( empty j_mbr )
+  TRACE::log( id:2, flavor:"validation failure", message: "Missing supertype for Member Type: Member" );
+end if;
+select one j_reftype related by self->J_REFTYPE[R2509];
+if ( empty j_reftype )
+  TRACE::log( id:2, flavor:"validation failure", message: "Missing supertype for Member Type: Reference Type" );
+end if;',
+	1,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	0);
 INSERT INTO O_REF
 	VALUES ("116222f6-eaf5-4d9e-a99b-a0d42ecab8b1",
 	"e7126600-4e6a-4d6d-b551-d83d869c8751",
@@ -22,7 +53,7 @@ INSERT INTO O_REF
 	'',
 	'Member',
 	'fully_qualified_name',
-	'R2506');
+	'R2500');
 INSERT INTO R_RGO_PROXY
 	VALUES ("116222f6-eaf5-4d9e-a99b-a0d42ecab8b1",
 	"6a143a8f-a718-44eb-9958-1529bbfbf5e9",
@@ -50,11 +81,11 @@ INSERT INTO O_ATTR
 	VALUES ("bc58a26c-e262-4574-a625-32cd1647533d",
 	"116222f6-eaf5-4d9e-a99b-a0d42ecab8b1",
 	"00000000-0000-0000-0000-000000000000",
-	'fully_qualified_name',
+	'member_fully_qualified_name',
 	'',
-	'',
+	'member_',
 	'fully_qualified_name',
-	0,
+	1,
 	"ba5eda7a-def5-0000-0000-000000000007",
 	'',
 	'');
@@ -73,7 +104,7 @@ INSERT INTO O_REF
 	'',
 	'Reference Type',
 	'fully_qualified_name',
-	'R2515');
+	'R2509');
 INSERT INTO R_RGO_PROXY
 	VALUES ("116222f6-eaf5-4d9e-a99b-a0d42ecab8b1",
 	"7a79fb7b-1eb7-4504-8e80-22da264b759b",
@@ -101,30 +132,20 @@ INSERT INTO O_ATTR
 	VALUES ("09e0224b-1fbc-4292-8a71-58bed4b0c3d5",
 	"116222f6-eaf5-4d9e-a99b-a0d42ecab8b1",
 	"bc58a26c-e262-4574-a625-32cd1647533d",
-	'fully_qualified_name',
+	'reference_fully_qualified_name',
 	'',
-	'',
+	'reference_',
 	'fully_qualified_name',
-	0,
-	"ba5eda7a-def5-0000-0000-000000000004",
+	1,
+	"ba5eda7a-def5-0000-0000-000000000007",
 	'',
 	'');
 INSERT INTO O_ID
 	VALUES (0,
 	"116222f6-eaf5-4d9e-a99b-a0d42ecab8b1");
-INSERT INTO O_OIDA
-	VALUES ("bc58a26c-e262-4574-a625-32cd1647533d",
-	"116222f6-eaf5-4d9e-a99b-a0d42ecab8b1",
-	0,
-	'fully_qualified_name');
 INSERT INTO O_ID
 	VALUES (1,
 	"116222f6-eaf5-4d9e-a99b-a0d42ecab8b1");
-INSERT INTO O_OIDA
-	VALUES ("09e0224b-1fbc-4292-8a71-58bed4b0c3d5",
-	"116222f6-eaf5-4d9e-a99b-a0d42ecab8b1",
-	1,
-	'fully_qualified_name');
 INSERT INTO O_ID
 	VALUES (2,
 	"116222f6-eaf5-4d9e-a99b-a0d42ecab8b1");

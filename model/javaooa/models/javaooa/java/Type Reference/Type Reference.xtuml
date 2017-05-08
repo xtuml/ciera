@@ -3,10 +3,38 @@
 INSERT INTO O_OBJ
 	VALUES ("2333e6f2-dc78-49e5-b7b5-d3e35afed429",
 	'Type Reference',
-	15,
+	20,
 	'J_TYPEREF',
 	'',
 	"00000000-0000-0000-0000-000000000000");
+INSERT INTO O_TFR
+	VALUES ("e090929b-4f6f-40a3-962e-d84fec2e3ed2",
+	"2333e6f2-dc78-49e5-b7b5-d3e35afed429",
+	'validate',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'// check attributes
+if ( "" == self.element_name )
+  TRACE::log( id:3, flavor:"validation failure", message: "Type Reference with empty element_name" );
+end if;
+if ( "" == self.type_name )
+  TRACE::log( id:3, flavor:"validation failure", message: "Type Reference with empty type_name" );
+end if;
+
+// check relationships
+select one j_type related by self->J_TYPE[R2511];
+if ( empty j_type )
+  TRACE::log( id:2, flavor:"validation failure", message: "Missing required relationship for Type Reference: Type" );
+end if;
+select one j_te related by self->J_TE[R2511];
+if ( empty j_te )
+  TRACE::log( id:2, flavor:"validation failure", message: "Missing required relationship for Type Reference: Typed Element" );
+end if;',
+	1,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	0);
 INSERT INTO O_REF
 	VALUES ("2333e6f2-dc78-49e5-b7b5-d3e35afed429",
 	"da377761-0d8f-43d8-91b4-f5eef2c2daa4",
@@ -22,7 +50,7 @@ INSERT INTO O_REF
 	'',
 	'Type',
 	'name',
-	'R2518');
+	'R2511.''typed by''');
 INSERT INTO R_RGO_PROXY
 	VALUES ("2333e6f2-dc78-49e5-b7b5-d3e35afed429",
 	"bcc63011-e2b4-4d7d-91fe-ad85b1279b72",
@@ -55,7 +83,7 @@ INSERT INTO O_ATTR
 	'element_',
 	'name',
 	1,
-	"ba5eda7a-def5-0000-0000-000000000002",
+	"ba5eda7a-def5-0000-0000-000000000007",
 	'',
 	'');
 INSERT INTO O_REF
@@ -73,7 +101,7 @@ INSERT INTO O_REF
 	'',
 	'Typed Element',
 	'name',
-	'R2518');
+	'R2511.''types''');
 INSERT INTO O_RTIDA_PROXY
 	VALUES ("56e5fc2e-cc8b-4414-8850-a064268645e1",
 	"394a2601-501c-44f3-a9fd-475682fe3d06",
@@ -101,7 +129,7 @@ INSERT INTO O_ATTR
 	'type_',
 	'name',
 	1,
-	"ba5eda7a-def5-0000-0000-000000000002",
+	"ba5eda7a-def5-0000-0000-000000000007",
 	'',
 	'');
 INSERT INTO O_ID

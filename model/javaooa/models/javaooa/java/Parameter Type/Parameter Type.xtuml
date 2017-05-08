@@ -3,10 +3,31 @@
 INSERT INTO O_OBJ
 	VALUES ("166db352-e95d-4a77-b3ea-0aaf1c76bf72",
 	'Parameter Type',
-	17,
+	13,
 	'J_PARAMTYPE',
 	'',
 	"00000000-0000-0000-0000-000000000000");
+INSERT INTO O_TFR
+	VALUES ("2662e44c-10b1-44b0-893d-b6bc06b906eb",
+	"166db352-e95d-4a77-b3ea-0aaf1c76bf72",
+	'validate',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'// check attributes
+if ( "" == self.name )
+  TRACE::log( id:3, flavor:"validation failure", message: "Parameter Type with empty name" );
+end if;
+
+// check relationships
+select one j_type related by self->J_TYPE[R2510];
+if ( empty j_type )
+  TRACE::log( id:2, flavor:"validation failure", message: "Missing supertype for Parameter Type: Type" );
+end if;',
+	1,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	0);
 INSERT INTO O_REF
 	VALUES ("166db352-e95d-4a77-b3ea-0aaf1c76bf72",
 	"da377761-0d8f-43d8-91b4-f5eef2c2daa4",
@@ -22,7 +43,7 @@ INSERT INTO O_REF
 	'',
 	'Type',
 	'name',
-	'R2516');
+	'R2510');
 INSERT INTO R_RGO_PROXY
 	VALUES ("166db352-e95d-4a77-b3ea-0aaf1c76bf72",
 	"4bd37079-e0f6-4a3c-9378-07bce999a782",
@@ -61,8 +82,13 @@ INSERT INTO O_ATTR
 INSERT INTO O_DBATTR
 	VALUES ("95212b91-7e40-4f0d-9c65-a89585cbe6d4",
 	"166db352-e95d-4a77-b3ea-0aaf1c76bf72",
-	'',
-	3,
+	'select any j_reftype related by self->J_TYPE[R2510]->J_TE[R2511]->J_TYPEPARAM[R2512]->J_REFTYPE[R2516];
+if ( not_empty j_reftype )
+  self.fully_qualified_name = j_reftype.fully_qualified_name + "." + self.name;
+else
+  self.fully_qualified_name = self.name;
+end if;',
+	1,
 	0);
 INSERT INTO O_BATTR
 	VALUES ("95212b91-7e40-4f0d-9c65-a89585cbe6d4",
@@ -76,7 +102,7 @@ INSERT INTO O_ATTR
 	'',
 	'fully_qualified_name',
 	0,
-	"ba5eda7a-def5-0000-0000-000000000002",
+	"ba5eda7a-def5-0000-0000-000000000004",
 	'',
 	'');
 INSERT INTO O_ID

@@ -3,7 +3,7 @@
 INSERT INTO O_OBJ
 	VALUES ("262fcdbc-0c09-446b-aa86-107ae2865e8f",
 	'Top Level Type',
-	3,
+	16,
 	'J_TLT',
 	'',
 	"00000000-0000-0000-0000-000000000000");
@@ -15,17 +15,24 @@ INSERT INTO O_TFR
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'// check attributes
+if ( "" == self.package_name )
+  TRACE::log( id:8, flavor:"validation failure", message: "Top Level Type with empty package_name" );
+end if;
 if ( "" == self.name )
-  TRACE::log( id:8, flavor:"validation failure", message: "Package Member with empty name" );
+  TRACE::log( id:8, flavor:"validation failure", message: "Top Level Type with empty name" );
+end if;
+if ( "" == self.reference_fully_qualified_name )
+  TRACE::log( id:8, flavor:"validation failure", message: "Top Level Type with empty reference_fully_qualified_name" );
 end if;
 
 // check relationships
-select one j_class related by self->J_CLASS[R2501];
-if ( empty j_class )
-  select one j_int related by self->J_INT[R2501];
-  if ( empty j_int )
-    TRACE::log( id:9, flavor:"validation failure", message: "Package Member with no related Interface or Class" );
-  end if;
+select one j_cu related by self->J_CU[R2504];
+if ( empty j_cu )
+  TRACE::log( id:2, flavor:"validation failure", message: "Missing required relationship for Top Level Type: Compilation Unit" );
+end if;
+select one j_reftype related by self->J_REFTYPE[R2509];
+if ( empty j_reftype )
+  TRACE::log( id:2, flavor:"validation failure", message: "Missing supertype for Top Level Type: Reference Type" );
 end if;',
 	1,
 	'',
@@ -46,7 +53,7 @@ INSERT INTO O_REF
 	'',
 	'Compilation Unit',
 	'package_name',
-	'R2510.''declared in''');
+	'R2504.''declared in''');
 INSERT INTO R_RGO_PROXY
 	VALUES ("262fcdbc-0c09-446b-aa86-107ae2865e8f",
 	"569b0303-eaa7-48b1-ace1-63b06770442a",
@@ -91,7 +98,7 @@ INSERT INTO O_BATTR
 INSERT INTO O_ATTR
 	VALUES ("ccbf70e6-3981-4eeb-85c9-40d1885a3c6d",
 	"262fcdbc-0c09-446b-aa86-107ae2865e8f",
-	"a3a89a34-0631-4624-818b-96ef9af00f9e",
+	"036f9e1b-b8cf-4a57-a19d-e63043829cc2",
 	'visibility',
 	'',
 	'',
@@ -158,7 +165,7 @@ INSERT INTO O_REF
 	'',
 	'Reference Type',
 	'fully_qualified_name',
-	'R2515');
+	'R2509');
 INSERT INTO R_RGO_PROXY
 	VALUES ("262fcdbc-0c09-446b-aa86-107ae2865e8f",
 	"7a79fb7b-1eb7-4504-8e80-22da264b759b",
@@ -185,13 +192,13 @@ INSERT INTO O_BATTR_PROXY
 INSERT INTO O_ATTR
 	VALUES ("036f9e1b-b8cf-4a57-a19d-e63043829cc2",
 	"262fcdbc-0c09-446b-aa86-107ae2865e8f",
-	"f83e2451-f0a1-4885-aafa-04580eb10a62",
-	'fully_qualified_name',
+	"a3a89a34-0631-4624-818b-96ef9af00f9e",
+	'reference_fully_qualified_name',
 	'',
-	'',
+	'reference_',
 	'fully_qualified_name',
-	0,
-	"ba5eda7a-def5-0000-0000-000000000004",
+	1,
+	"ba5eda7a-def5-0000-0000-000000000007",
 	'',
 	'');
 INSERT INTO O_NBATTR

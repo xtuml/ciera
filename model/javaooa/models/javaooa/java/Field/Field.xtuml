@@ -3,7 +3,7 @@
 INSERT INTO O_OBJ
 	VALUES ("dff39d6d-d37d-478b-aea1-593926216913",
 	'Field',
-	6,
+	3,
 	'J_FLD',
 	'',
 	"00000000-0000-0000-0000-000000000000");
@@ -15,17 +15,18 @@ INSERT INTO O_TFR
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'// check attributes
-if ( "" == self.class_name )
-  TRACE::log( id:3, flavor:"validation failure", message: "Field with empty class name" );
-end if;
-if ( "" == self.name )
-  TRACE::log( id:4, flavor:"validation failure", message: "Field with empty name" );
+if ( "" == self.fully_qualified_name )
+  TRACE::log( id:3, flavor:"validation failure", message: "Field with empty fully_qualified_name" );
 end if;
 
 // check relationships
-select one j_class related by self->J_CLASS[R2500];
-if ( empty j_class )
-  TRACE::log( id:5, flavor:"validation failure", message: "Field with no related Class" );
+select one j_mbr related by self->J_MBR[R2500];
+if ( empty j_mbr )
+  TRACE::log( id:5, flavor:"validation failure", message: "Missing supertype for Method: Member" );
+end if;
+select one j_te related by self->J_TE[R2512];
+if ( empty j_te )
+  TRACE::log( id:6, flavor:"validation failure", message: "Missing supertype for Method: Typed Element" );
 end if;',
 	1,
 	'',
@@ -46,7 +47,7 @@ INSERT INTO O_REF
 	'',
 	'Member',
 	'fully_qualified_name',
-	'R2506');
+	'R2500');
 INSERT INTO R_RGO_PROXY
 	VALUES ("dff39d6d-d37d-478b-aea1-593926216913",
 	"6a143a8f-a718-44eb-9958-1529bbfbf5e9",
@@ -85,11 +86,6 @@ INSERT INTO O_ATTR
 INSERT INTO O_ID
 	VALUES (0,
 	"dff39d6d-d37d-478b-aea1-593926216913");
-INSERT INTO O_OIDA
-	VALUES ("f8aef78e-23b3-4c98-b7ff-e41b42ae5607",
-	"dff39d6d-d37d-478b-aea1-593926216913",
-	0,
-	'fully_qualified_name');
 INSERT INTO O_ID
 	VALUES (1,
 	"dff39d6d-d37d-478b-aea1-593926216913");
