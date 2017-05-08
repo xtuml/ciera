@@ -25,19 +25,12 @@ end if;
 // check relationships
 select one pkg_dir related by self->PKG_DIR[R9500];
 if ( empty pkg_dir )
-  TRACE::log( id:15, flavor:"validation failure", message: "File with no related Directory" );
+  TRACE::log( id:2, flavor:"validation failure", message: "Missing required relationship for File: Directory" );
 end if;
-
-// check that each Package Member has a File
-// this check is here because the package where
-// the assocation is defined is here
-select many j_pkgmbrs from instances of J_PKGMBR;
-for each j_pkgmbr in j_pkgmbrs
-  select one pkg_fl related by j_pkgmbr->PKG_FL[R9501];
-  if ( empty pkg_fl )
-    TRACE::log( id:16, flavor:"validation failure", message: "Package Member with no related File" );
-  end if;
-end for;',
+select one j_cu related by self->J_CU[R9501];
+if ( empty j_cu )
+  TRACE::log( id:2, flavor:"validation failure", message: "Missing required relationship for File: Compilation Unit" );
+end if;',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",
@@ -75,7 +68,7 @@ INSERT INTO O_REF
 	'',
 	'Directory',
 	'path',
-	'R9500.''lives_in''');
+	'R9500.''lives in''');
 INSERT INTO R_RGO_PROXY
 	VALUES ("1c22a263-fcde-42d5-9833-fc61043f2d22",
 	"7da587eb-5a44-4fd9-a47d-887bcc81f879",
@@ -108,7 +101,7 @@ INSERT INTO O_ATTR
 	'dir_',
 	'path',
 	1,
-	"ba5eda7a-def5-0000-0000-000000000002",
+	"ba5eda7a-def5-0000-0000-000000000007",
 	'',
 	'');
 INSERT INTO O_ID

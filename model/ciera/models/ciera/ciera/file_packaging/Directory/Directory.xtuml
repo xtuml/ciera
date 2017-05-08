@@ -16,12 +16,18 @@ INSERT INTO O_TFR
 	0,
 	'j_pkg = param.j_pkg;
 create object instance dir of PKG_DIR;
-dir.path = "src";
-select one segment related by j_pkg->J_PKGSEG[R2502];
-while ( not_empty segment )
-  dir.path = dir.path + "/" + segment.value;
-  select one segment related by segment->J_PKGSEG[R2504.''precedes''];
-end while;
+
+// get the unnamed package
+unnamed_package = "src";
+select any unnamed_package_mark from instances of Mark where ( selected.markable_name == "*"
+                                                               and selected.path == "*"
+                                                               and selected.feature_name == "UnnamedPackage" );
+if ( not_empty unnamed_package_mark )
+  unnamed_package = unnamed_package_mark.value;
+end if;
+
+dir.path = unnamed_package + "/" + ::replace_string( s:j_pkg.name, pattern:".", replace_with:"/" );
+
 return dir;',
 	1,
 	'',
@@ -31,13 +37,13 @@ INSERT INTO O_TPARM
 	VALUES ("07cb4b99-0052-4ec7-be7c-58a5a3521df2",
 	"14367834-21b6-4963-a89b-2882c3f64a94",
 	'j_pkg',
-	"07b513f0-7dbd-475f-bfe2-4b98360f2bcb",
+	"909450ed-3531-426e-82ae-5c5bc3f668a9",
 	0,
 	'',
 	"00000000-0000-0000-0000-000000000000",
 	'');
 INSERT INTO S_DT_PROXY
-	VALUES ("07b513f0-7dbd-475f-bfe2-4b98360f2bcb",
+	VALUES ("909450ed-3531-426e-82ae-5c5bc3f668a9",
 	"00000000-0000-0000-0000-000000000000",
 	'inst_ref<Package>',
 	'',
