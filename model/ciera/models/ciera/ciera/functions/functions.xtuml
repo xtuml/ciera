@@ -72,13 +72,16 @@ for each package in packages
   dir = PKG_DIR::create_dir( j_pkg:package );
   relate dir to package across R9502; 
   
-  // create a file for each member
-  select many members related by package->J_PKGMBR[R2505];
-  for each member in members
-    create object instance file of PKG_FL;
-    file.name = T::c( s:T::r( s:member.name ) ) + "_c.java";
-    relate file to dir across R9500;
-    relate file to member across R9501;
+  // create a file for each compilation unit
+  select many j_cus related by package->J_CU[R2503];
+  for each j_cu in j_cus
+    select any j_tlt related by j_cu->J_TLT[R2504];
+    if ( not_empty j_tlt )
+      create object instance file of PKG_FL;
+      file.name = T::c( s:T::r( s:j_tlt.name ) ) + "_c.java";
+      relate file to dir across R9500;
+      relate file to j_cu across R9501;
+    end if;
   end for;
 end for;',
 	"ba5eda7a-def5-0000-0000-000000000000",
@@ -141,21 +144,26 @@ INSERT INTO S_SYNC
 	"00000000-0000-0000-0000-000000000000",
 	'translate',
 	'',
-	'// create src directory
-create object instance dir of PKG_DIR;
-dir.path = "src";
+	'// TODO PEI for builtin Java elements
+create object instance j_type of J_TYPE;
+j_type.name = "int";
+create object instance j_primtype of J_PRIMTYPE;
+relate j_primtype to j_type across R2510;
 
-// transform all classes
-select many o_objs from instances of O_OBJ;
-for each o_obj in o_objs
-  ::transformO_OBJ( o_obj:o_obj );
-end for;
+// translate root package
+select any root_package_mark from instances of Mark where ( selected.markable_name == "*"
+                                                            and selected.path == "*"
+                                                            and selected.feature_name == "RootPackage" );
+if ( not_empty root_package_mark )
+  select any root_package from instances of EP_PKG where ( selected.Name == root_package_mark.value );
+  select any j_pkg from instances of J_PKG where false;
+  ::transformEP_PKG( ep_pkg: root_package, parent_package:j_pkg );
+else
+  TRACE::log( id:17, flavor:"failure", message:"No root package specified" );
+end if;
 
 // package elements
 ::package();
-
-// validate elements
-::validate();
 
 // render all files
 select many files from instances of PKG_FL;
@@ -168,64 +176,6 @@ end for;',
 	0);
 INSERT INTO PE_PE
 	VALUES ("b12155dc-a578-4a0f-a320-a559e66e4272",
-	1,
-	"436acf24-9bb3-4b41-a273-180f5526f12d",
-	"00000000-0000-0000-0000-000000000000",
-	1);
-INSERT INTO S_SYNC
-	VALUES ("9e62cd48-84d6-46d6-a5a1-01276b360ce9",
-	"00000000-0000-0000-0000-000000000000",
-	'validate',
-	'',
-	'// java checks
-select many j_classes from instances of J_CLASS;
-for each j_class in j_classes
-  j_class.validate();
-end for;
-
-select many j_flds from instances of J_FLD;
-for each j_fld in j_flds
-  j_fld.validate();
-end for;
-
-select many j_ints from instances of J_INT;
-for each j_int in j_ints
-  j_int.validate();
-end for;
-
-select many j_pkgs from instances of J_PKG;
-TRACE::log( id:17, flavor:"info", message:"Number of packages: " + STRING::itoa(i:cardinality j_pkgs) );
-for each j_pkg in j_pkgs
-  j_pkg.validate();
-end for;
-
-select many j_pkgmbrs from instances of J_PKGMBR;
-for each j_pkgmbr in j_pkgmbrs
-  j_pkgmbr.validate();
-end for;
-
-select many j_pkgsegs from instances of J_PKGSEG;
-for each j_pkgseg in j_pkgsegs
-  j_pkgseg.validate();
-end for;
-
-// file packaging checks
-select many pkg_dirs from instances of PKG_DIR;
-TRACE::log( id:18, flavor:"info", message:"Number of directories: " + STRING::itoa(i:cardinality pkg_dirs) );
-for each pkg_dir in pkg_dirs
-  pkg_dir.validate();
-end for;
-
-select many pkg_fls from instances of PKG_FL;
-for each pkg_fl in pkg_fls
-  pkg_fl.validate();
-end for;',
-	"ba5eda7a-def5-0000-0000-000000000000",
-	1,
-	'',
-	0);
-INSERT INTO PE_PE
-	VALUES ("9e62cd48-84d6-46d6-a5a1-01276b360ce9",
 	1,
 	"436acf24-9bb3-4b41-a273-180f5526f12d",
 	"00000000-0000-0000-0000-000000000000",
