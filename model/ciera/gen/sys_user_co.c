@@ -54,7 +54,7 @@ UserInitializationCalloutf( void )
 void
 UserPreOoaInitializationCalloutf( void )
 {
-  static char * a[2] = { "UserPreOoaInitializationCalloutf", "a.xtuml" };
+  static char * a[2] = { "UserPreOoaInitializationCalloutf", "gen/code_generation/ciera_test.xtuml" };
   Escher_xtUML_load( 2, a );
 }
 
