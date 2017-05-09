@@ -52,6 +52,10 @@ if ( not_empty o_attr and not_empty parent_type )
   // create relationships
   relate j_mbr to parent_type across R2501;
   relate j_mbr to j_fld across R2500;
+
+  // TODO MC3202 requires derived attributes to be accessed first otherwise
+  // no value will be present when copied over to a referential
+  name = j_mbr.fully_qualified_name;
   
   // link type
   select any j_type from instances of J_TYPE where ( selected.name == "int" );
@@ -132,6 +136,10 @@ if ( not_empty o_obj and not_empty parent_package )
   relate j_reftype to j_class across R2508;
   relate j_reftype to j_tlt across R2509;
 
+  // TODO MC3202 requires derived attributes to be accessed first otherwise
+  // no value will be present when copied over to a referential
+  name = j_tlt.fully_qualified_name;
+
   // transform attributes
   select many o_attrs related by o_obj->O_ATTR[R102];
   for each o_attr in o_attrs
@@ -198,6 +206,10 @@ if ( not_empty ep_pkg )
   if ( not_empty parent_package )
     relate j_pkg to parent_package across R2502.''declared in package'';
   end if;
+  
+  // TODO MC3202 requires derived attributes to be accessed first otherwise
+  // no value will be present when copied over to a referential
+  name = j_pkg.name;
 
   // transform classes
   select many o_objs related by ep_pkg->PE_PE[R8000]->O_OBJ[R8001];
