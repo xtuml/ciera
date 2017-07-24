@@ -3,6 +3,7 @@ package ciera.classes;
 import java.util.UUID;
 
 import ciera.classes.exceptions.EmptyInstanceException;
+import ciera.classes.exceptions.ModelIntegrityException;
 import ciera.statemachine.AssignerStateMachine;
 import ciera.statemachine.Event;
 import ciera.statemachine.EventDispatch;
@@ -39,7 +40,7 @@ public abstract class ModelInstance implements EventTarget {
         dispatch.generateTo( e );
     }
     
-    public void transition( Event e ) throws StateMachineException, EmptyInstanceException {
+    public void transition( Event e ) throws StateMachineException, EmptyInstanceException, ModelIntegrityException {
         checkLiving();
         ism.transition(e);
     }

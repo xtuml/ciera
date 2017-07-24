@@ -1,8 +1,10 @@
-package microwaveovenciera.components.microwaveoven.microwaveoven.door.instancestatemachine;
+package microwaveovenciera.components.microwaveoven.microwaveoven.beeper.instancestatemachine;
 
 import microwaveovenciera.components.microwaveoven.microwaveoven.Beeper;
 import microwaveovenciera.components.microwaveoven.microwaveoven.Oven;
+import microwaveovenciera.components.microwaveoven.microwaveoven.oven.instancestatemachine.BeepingOver;
 import ciera.classes.exceptions.EmptyInstanceException;
+import ciera.classes.exceptions.ModelIntegrityException;
 import ciera.statemachine.Event;
 import ciera.statemachine.InstanceStateMachine;
 import ciera.statemachine.StateEventMatrix;
@@ -25,7 +27,7 @@ public class BeeperInstanceStateMachine extends InstanceStateMachine {
     }
 
     @Override
-    protected void stateActivity(int stateNum, Event e) throws StateMachineException, EmptyInstanceException {
+    protected void stateActivity(int stateNum, Event e) throws StateMachineException, EmptyInstanceException, ModelIntegrityException {
         if ( stateNum == AwaitingBeeperRequest ) {
             stateAwaitingBeeperRequest( e );
         }
@@ -36,15 +38,15 @@ public class BeeperInstanceStateMachine extends InstanceStateMachine {
     }
     
     private void stateAwaitingBeeperRequest( Event e ) throws EmptyInstanceException {
-        Beeper self = (Beeper)e.getTarget();
+        Beeper self = (Beeper)instance;
         // assign self.beep_count = 0;
         self.setM_beep_count( 0 );
         // cancelled_timer = TIM::timer_cancel(timer_inst_ref:self.beeper_timer);
         Timer cancelled_timer = TIM.timer_cancel(self.getM_beeper_timer());
     }
 
-    private void stateBeeping( Event e ) {
-        Beeper self = (Beeper)e.getTarget();
+    private void stateBeeping( Event e ) throws EmptyInstanceException, ModelIntegrityException {
+        Beeper self = (Beeper)instance;
         // if (self.beep_count == 0) // beeper yet to begin
         if ( self.getM_beep_count() == 0 ) {
             // create event instance delay_over of MO_B2:'beep_delay_over' to self;

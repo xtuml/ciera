@@ -1,14 +1,14 @@
-package microwaveovenciera.components.microwaveoven.microwaveoven.door.instancestatemachine;
+package microwaveovenciera.components.microwaveoven.microwaveoven.beeper.instancestatemachine;
 
 import ciera.statemachine.Event;
 import ciera.statemachine.EventTarget;
 
-public class StopBeeping extends Event {
+public class StartBeeping extends Event {
     
-    private static final int eventNumber = 4;
+    private static final int eventNumber = 1;
     private static final int classNumber = 4;
 
-    public StopBeeping(EventTarget t, boolean ts) {
+    public StartBeeping(EventTarget t, boolean ts) {
         super(t, ts);
     }
 

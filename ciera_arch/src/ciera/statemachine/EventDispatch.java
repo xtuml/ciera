@@ -4,6 +4,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import ciera.classes.exceptions.EmptyInstanceException;
+import ciera.classes.exceptions.ModelIntegrityException;
 import ciera.statemachine.exceptions.StateMachineException;
 
 public abstract class EventDispatch implements Runnable {
@@ -30,10 +31,13 @@ public abstract class EventDispatch implements Runnable {
             catch ( EmptyInstanceException e ) {
                 // TODO exception handling
             }
+            catch (ModelIntegrityException e) {
+                // TODO exception handling
+            }
         }
     }
     
-    public void dispatch() throws StateMachineException, EmptyInstanceException {
+    public void dispatch() throws StateMachineException, EmptyInstanceException, ModelIntegrityException {
         Event e = null;
         // handle events to self first
         if ( !eventsToSelf.isEmpty() ) {

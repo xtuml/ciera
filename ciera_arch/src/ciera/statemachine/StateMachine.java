@@ -1,6 +1,7 @@
 package ciera.statemachine;
 
 import ciera.classes.exceptions.EmptyInstanceException;
+import ciera.classes.exceptions.ModelIntegrityException;
 import ciera.statemachine.exceptions.CantHappenException;
 import ciera.statemachine.exceptions.StateMachineException;
 
@@ -13,7 +14,7 @@ public abstract class StateMachine {
         currentState = 0;
     }
             
-    public void transition( Event e ) throws StateMachineException, EmptyInstanceException {
+    public void transition( Event e ) throws StateMachineException, EmptyInstanceException, ModelIntegrityException {
         // get new state
         int newState = sem.getCell( currentState, e.getEventNumber() );
         // check cannot happen and ignore
@@ -29,6 +30,6 @@ public abstract class StateMachine {
         }
     }
     
-    protected abstract void stateActivity( int stateNum, Event e ) throws StateMachineException, EmptyInstanceException;
+    protected abstract void stateActivity( int stateNum, Event e ) throws StateMachineException, EmptyInstanceException, ModelIntegrityException;
 
 }
