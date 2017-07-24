@@ -1,7 +1,7 @@
-package MicrowaveOvenCiera.components.MicrowaveOven.MicrowaveOven.InstanceStateMachine;
+package microwaveovenciera.components.microwaveoven.microwaveoven.door.instancestatemachine;
 
-import MicrowaveOvenCiera.components.MicrowaveOven.MicrowaveOven.Beeper;
-import MicrowaveOvenCiera.components.MicrowaveOven.MicrowaveOven.Oven;
+import microwaveovenciera.components.microwaveoven.microwaveoven.Beeper;
+import microwaveovenciera.components.microwaveoven.microwaveoven.Oven;
 import ciera.classes.exceptions.EmptyInstanceException;
 import ciera.statemachine.Event;
 import ciera.statemachine.InstanceStateMachine;

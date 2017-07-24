@@ -1,8 +1,8 @@
-package MicrowaveOvenCiera.components.MicrowaveOven.MicrowaveOven;
+package microwaveovenciera.components.microwaveoven.microwaveoven;
 
 import java.util.UUID;
 
-import MicrowaveOvenCiera.components.MicrowaveOven.Datatypes.TubeWattage;
+import microwaveovenciera.components.microwaveoven.datatypes.TubeWattage;
 import ciera.classes.EmptyInstance;
 import ciera.classes.EmptyInstanceSet;
 import ciera.classes.InstanceSet;

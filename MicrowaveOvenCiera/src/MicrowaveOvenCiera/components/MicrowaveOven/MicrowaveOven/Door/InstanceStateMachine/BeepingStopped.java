@@ -1,4 +1,4 @@
-package MicrowaveOvenCiera.components.MicrowaveOven.MicrowaveOven.InstanceStateMachine;
+package microwaveovenciera.components.microwaveoven.microwaveoven.door.instancestatemachine;
 
 import ciera.statemachine.Event;
 import ciera.statemachine.EventTarget;
