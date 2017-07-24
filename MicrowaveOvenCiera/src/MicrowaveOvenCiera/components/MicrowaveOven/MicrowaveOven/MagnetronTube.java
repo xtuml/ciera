@@ -59,7 +59,7 @@ public class MagnetronTube extends ModelInstance {
         return m_current_power_output;
     }
 
-    public void setM_is_secure(TubeWattage m_current_power_output) throws EmptyInstanceException {
+    public void setM_current_power_output(TubeWattage m_current_power_output) throws EmptyInstanceException {
         checkLiving();
         this.m_current_power_output = m_current_power_output;
     }

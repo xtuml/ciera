@@ -1,11 +1,28 @@
 package microwaveovenciera.components.microwaveoven.microwaveoven.oven.instancestatemachine;
 
+import microwaveovenciera.components.microwaveoven.microwaveoven.Beeper;
+import microwaveovenciera.components.microwaveoven.microwaveoven.Door;
+import microwaveovenciera.components.microwaveoven.microwaveoven.InternalLight;
+import microwaveovenciera.components.microwaveoven.microwaveoven.MagnetronTube;
+import microwaveovenciera.components.microwaveoven.microwaveoven.Oven;
 import microwaveovenciera.components.microwaveoven.microwaveoven.Turntable;
+import microwaveovenciera.components.microwaveoven.microwaveoven.beeper.instancestatemachine.StartBeeping;
+import microwaveovenciera.components.microwaveoven.microwaveoven.beeper.instancestatemachine.StopBeeping;
+import microwaveovenciera.components.microwaveoven.microwaveoven.internallight.instancestatemachine.SwitchOff;
+import microwaveovenciera.components.microwaveoven.microwaveoven.internallight.instancestatemachine.SwitchOn;
+import microwaveovenciera.components.microwaveoven.microwaveoven.magnetrontube.instancestatemachine.copy.PowerOff;
+import microwaveovenciera.components.microwaveoven.microwaveoven.magnetrontube.instancestatemachine.copy.PowerOn;
+import microwaveovenciera.components.microwaveoven.microwaveoven.turntable.instancestatemachine.Spin;
+import microwaveovenciera.components.microwaveoven.microwaveoven.turntable.instancestatemachine.Stop;
 import ciera.classes.exceptions.EmptyInstanceException;
+import ciera.classes.exceptions.ModelIntegrityException;
 import ciera.statemachine.Event;
 import ciera.statemachine.InstanceStateMachine;
 import ciera.statemachine.StateEventMatrix;
+import ciera.statemachine.exceptions.SameDataException;
 import ciera.statemachine.exceptions.StateMachineException;
+import ciera.util.Timer;
+import ciera.util.ees.TIM;
 
 public class OvenInstanceStateMachine extends InstanceStateMachine {
     
@@ -30,7 +47,7 @@ public class OvenInstanceStateMachine extends InstanceStateMachine {
     }
 
     @Override
-    protected void stateActivity(int stateNum, Event e) throws StateMachineException, EmptyInstanceException {
+    protected void stateActivity(int stateNum, Event e) throws StateMachineException, EmptyInstanceException, ModelIntegrityException {
         if ( stateNum == AwaitingCookingRequest ) {
             stateAwaitingCookingRequest( e );
         }
@@ -52,22 +69,97 @@ public class OvenInstanceStateMachine extends InstanceStateMachine {
         else throw new StateMachineException( "State does not exist. " );
     }
     
-    private void stateAwaitingCookingRequest( Event e ) {
+    private void stateAwaitingCookingRequest( Event e ) throws EmptyInstanceException, ModelIntegrityException {
+        Oven self = (Oven)instance;
+        // assign self.remaining_cooking_time = 0;
+        self.setM_remaining_cooking_time( 0 );
+        // select one beeper related by self->MO_B[R3];
+        Beeper beeper = self.selectOneMO_BOnR3();
+        // generate MO_B4:'stop_beeping' to beeper;
+        beeper.generateTo( new StopBeeping( beeper, false ) );
     }
 
-    private void stateEnsuringSafeToCook( Event e ) {
+    private void stateEnsuringSafeToCook( Event e ) throws EmptyInstanceException, ModelIntegrityException {
+        Oven self = (Oven)instance;
+        // if (self.remaining_cooking_time != 0)
+        if ( self.getM_remaining_cooking_time() != 0 ) {
+            // select one door related by self->MO_D[R4];
+            Door door = self.selectOneMO_DOnR4();
+            // if (door.is_secure == true)
+            if ( door.getM_is_secure() == true ) {
+                // generate MO_O7:'oven_safe'() to self;
+                door.generateTo( new OvenSafe( door, false ) );
+            // end if;
+            }
+        // end if;
+        }
     }
 
-    private void stateCooking( Event e ) {
+    private void stateCooking( Event e ) throws EmptyInstanceException, ModelIntegrityException {
+        Oven self = (Oven)instance;
+        // create event instance cooking_over of MO_O5:'cooking_period_over'() to self;
+        Event cooking_over = new CookingPeriodOver( self, true );
+        // self.oven_timer = TIM::timer_start(microseconds:self.remaining_cooking_time, event_inst:cooking_over);
+        self.setM_oven_timer( TIM.timer_start( cooking_over, self.getM_remaining_cooking_time() ) );
+        // select one light related by self->MO_IL[R2];
+        InternalLight light = self.selectOneMO_ILOnR2();
+        // generate MO_IL1:'switch_on' to light;
+        light.generateTo( new SwitchOn( light, false ) );
+        // select one turntable related by self->MO_TRN[R5];
+        Turntable turntable  = self.selectOneMO_TRNOnR5();
+        // generate MO_TRN1:'spin' to turntable;
+        turntable.generateTo( new Spin( turntable, false ) );
+        // select one tube related by self->MO_MT[R1];
+        MagnetronTube tube = self.selectOneMO_MTOnR1();
+        // generate MO_MT3:'power_on' to tube;
+        tube.generateTo( new PowerOn( tube, false ) );
     }
 
-    private void stateCookingSuspended( Event e ) {
+    private void stateCookingSuspended( Event e ) throws EmptyInstanceException, ModelIntegrityException {
+        Oven self = (Oven)instance;
+        // assign self.remaining_cooking_time = TIM::timer_remaining_time(timer_inst_ref:self.oven_timer);
+        self.setM_remaining_cooking_time( TIM.timer_remaining( self.getM_oven_timer() ) );
+        // cancelled = TIM::timer_cancel(timer_inst_ref:self.oven_timer);
+        Timer cancelled = TIM.timer_cancel( self.getM_oven_timer() );
+        // select one light related by self->MO_IL[R2];
+        InternalLight light = self.selectOneMO_ILOnR2();
+        // generate MO_IL2:'switch_off' to light;
+        light.generateTo( new SwitchOff( light, false ) );
+        // select one turntable related by self->MO_TRN[R5];
+        Turntable turntable = self.selectOneMO_TRNOnR5();
+        // generate MO_TRN2:'stop' to turntable;
+        turntable.generateTo( new Stop( turntable, false ) );
+        // select one tube related by self->MO_MT[R1];
+        MagnetronTube tube = self.selectOneMO_MTOnR1();
+        // generate MO_MT4:'power_off' to tube;
+        tube.generateTo( new PowerOff( tube, false ) );
     }
 
-    private void stateSignallingCookingPeriodOver( Event e ) {
+    private void stateSignallingCookingPeriodOver( Event e ) throws ModelIntegrityException, EmptyInstanceException {
+        Oven self = (Oven)instance;
+        // select one beeper related by self->MO_B[R3];
+        Beeper beeper = self.selectOneMO_BOnR3();
+        // generate MO_B1:'start_beeping' to beeper;
+        beeper.generateTo( new StartBeeping( beeper, false ) );
+        // select one light related by self->MO_IL[R2];
+        InternalLight light = self.selectOneMO_ILOnR2();
+        // generate MO_IL2:'switch_off' to light;
+        light.generateTo( new SwitchOff( light, false ) );
+        // select one turntable related by self->MO_TRN[R5];
+        Turntable turntable = self.selectOneMO_TRNOnR5();
+        // generate MO_TRN2:'stop' to turntable;
+        turntable.generateTo( new Stop( turntable, false ) );
+        // select one tube related by self->MO_MT[R1];
+        MagnetronTube tube = self.selectOneMO_MTOnR1();
+        // generate MO_MT4:'power_off' to tube;
+        tube.generateTo( new PowerOff( tube, false ) );
     }
 
-    private void stateAssigningCookingPeriod( Event e ) {
+    private void stateAssigningCookingPeriod( Event e ) throws SameDataException, EmptyInstanceException {
+        Oven self = (Oven)instance;
+        int period = (int)e.getData( "period" );
+        // assign self.remaining_cooking_time = rcvd_evt.period;
+        self.setM_remaining_cooking_time( period );
     }
 
 }

@@ -13,4 +13,8 @@ public class TIM {
         return null;
     }
 
+    public static int timer_remaining( Timer timer_inst_ref ) {
+        return 0;
+    }
+
 }

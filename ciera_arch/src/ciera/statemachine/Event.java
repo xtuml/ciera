@@ -1,5 +1,7 @@
 package ciera.statemachine;
 
+import ciera.statemachine.exceptions.SameDataException;
+
 public abstract class Event {
     
     private EventTarget target;
@@ -18,8 +20,11 @@ public abstract class Event {
         return toSelf;
     }
     
-    public abstract int getEventNumber();
+    public Object getData( String id ) throws SameDataException {
+        return null;
+    }
 
+    public abstract int getEventNumber();
     public abstract int getClassNumber();
 
 }

@@ -69,8 +69,8 @@ public class BeeperInstanceStateMachine extends InstanceStateMachine {
         else {
            // assign self.beeper_timer = TIM::timer_start(microseconds:100000,event_inst:self.beeper_delay_over);
            self.setM_beeper_timer( TIM.timer_start( self.getM_beeper_delay_over(), 100000 ) );
-        }
         // end if;
+        }
         // assign self.beep_count = self.beep_count + 1;
         self.setM_beep_count( self.getM_beep_count() + 1 );
     }

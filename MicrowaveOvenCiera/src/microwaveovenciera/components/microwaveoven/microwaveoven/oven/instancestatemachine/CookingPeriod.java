@@ -2,6 +2,7 @@ package microwaveovenciera.components.microwaveoven.microwaveoven.oven.instances
 
 import ciera.statemachine.Event;
 import ciera.statemachine.EventTarget;
+import ciera.statemachine.exceptions.SameDataException;
 
 public class CookingPeriod extends Event {
     
@@ -15,10 +16,6 @@ public class CookingPeriod extends Event {
         this.period = period;
     }
     
-    public int getPeriod() {
-        return period;
-    }
-
     @Override
     public int getEventNumber() {
         return eventNumber;
@@ -27,6 +24,12 @@ public class CookingPeriod extends Event {
     @Override
     public int getClassNumber() {
         return classNumber;
+    }
+
+    @Override
+    public Object getData(String id) throws SameDataException {
+        if ( id.equals( "period" ) ) return period;
+        else throw new SameDataException( "Event does not contain required data." );
     }
 
 }

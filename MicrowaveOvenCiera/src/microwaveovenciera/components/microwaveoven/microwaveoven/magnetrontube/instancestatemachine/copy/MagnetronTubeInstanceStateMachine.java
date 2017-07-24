@@ -1,5 +1,6 @@
 package microwaveovenciera.components.microwaveoven.microwaveoven.magnetrontube.instancestatemachine.copy;
 
+import microwaveovenciera.components.microwaveoven.datatypes.TubeWattage;
 import microwaveovenciera.components.microwaveoven.microwaveoven.MagnetronTube;
 import ciera.classes.exceptions.EmptyInstanceException;
 import ciera.statemachine.Event;
@@ -45,10 +46,54 @@ public class MagnetronTubeInstanceStateMachine extends InstanceStateMachine {
     private void stateOutputPowerStableAndOff( Event e ) {
     }
 
-    private void stateReducingOutputPower( Event e ) {
+    private void stateReducingOutputPower( Event e ) throws EmptyInstanceException {
+        MagnetronTube self = (MagnetronTube)instance;
+        // if (self.current_power_output == tube_wattage::med_low)
+        if ( self.getM_current_power_output() == TubeWattage.MED_LOW ) {
+            // self.current_power_output = tube_wattage::low;
+            self.setM_current_power_output( TubeWattage.LOW );
+        }
+        // elif (self.current_power_output == tube_wattage::medium)
+        else if ( self.getM_current_power_output() == TubeWattage.MEDIUM ) {
+            // self.current_power_output = tube_wattage::med_low;
+            self.setM_current_power_output( TubeWattage.MED_LOW );
+        }
+        // elif (self.current_power_output == tube_wattage::med_high)
+        else if ( self.getM_current_power_output() == TubeWattage.MED_HIGH ) {
+            // self.current_power_output = tube_wattage::medium;
+            self.setM_current_power_output( TubeWattage.MEDIUM );
+        }
+        // elif (self.current_power_output == tube_wattage::high)
+        else if ( self.getM_current_power_output() == TubeWattage.HIGH ) {
+            // self.current_power_output = tube_wattage::med_high;
+            self.setM_current_power_output( TubeWattage.MED_HIGH );
+        // end if;
+        }
     }
 
-    private void stateRaisingOutputPower( Event e ) {
+    private void stateRaisingOutputPower( Event e ) throws EmptyInstanceException {
+        MagnetronTube self = (MagnetronTube)instance;
+        // if (self.current_power_output == tube_wattage::low)
+        if ( self.getM_current_power_output() == TubeWattage.LOW ) {
+            // self.current_power_output = tube_wattage::med_low;
+            self.setM_current_power_output( TubeWattage.MED_LOW );
+        }
+        // elif (self.current_power_output == tube_wattage::med_low)
+        else if ( self.getM_current_power_output() == TubeWattage.MED_LOW ) {
+            // self.current_power_output = tube_wattage::medium;
+            self.setM_current_power_output( TubeWattage.MEDIUM );
+        }
+        // elif (self.current_power_output == tube_wattage::medium)
+        else if ( self.getM_current_power_output() == TubeWattage.MEDIUM ) {
+            // self.current_power_output = tube_wattage::med_high;
+            self.setM_current_power_output( TubeWattage.MED_HIGH );
+        }
+        // elif (self.current_power_output == tube_wattage::med_high)
+        else if ( self.getM_current_power_output() == TubeWattage.MED_HIGH ) {
+            // self.current_power_output = tube_wattage::high;
+            self.setM_current_power_output( TubeWattage.HIGH );
+        //end if;
+        }
     }
     
     private void stateOutputPowerStableAndOn( Event e ) {
