@@ -21,7 +21,6 @@ import ciera.statemachine.InstanceStateMachine;
 import ciera.statemachine.StateEventMatrix;
 import ciera.statemachine.exceptions.SameDataException;
 import ciera.statemachine.exceptions.StateMachineException;
-import ciera.util.Timer;
 import ciera.util.ees.TIM;
 
 public class OvenInstanceStateMachine extends InstanceStateMachine {
@@ -119,9 +118,9 @@ public class OvenInstanceStateMachine extends InstanceStateMachine {
     private void stateCookingSuspended( Event e ) throws EmptyInstanceException, ModelIntegrityException {
         Oven self = (Oven)instance;
         // assign self.remaining_cooking_time = TIM::timer_remaining_time(timer_inst_ref:self.oven_timer);
-        self.setM_remaining_cooking_time( TIM.timer_remaining( self.getM_oven_timer() ) );
+        self.setM_remaining_cooking_time( TIM.timer_remaining_time( self.getM_oven_timer() ) );
         // cancelled = TIM::timer_cancel(timer_inst_ref:self.oven_timer);
-        Timer cancelled = TIM.timer_cancel( self.getM_oven_timer() );
+        boolean cancelled = TIM.timer_cancel( self.getM_oven_timer() );
         // select one light related by self->MO_IL[R2];
         InternalLight light = self.selectOneMO_ILOnR2();
         // generate MO_IL2:'switch_off' to light;

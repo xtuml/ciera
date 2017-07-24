@@ -1,5 +1,6 @@
 package ciera.statemachine;
 
+import ciera.classes.exceptions.EmptyInstanceException;
 import ciera.statemachine.exceptions.SameDataException;
 
 public abstract class Event {
@@ -25,6 +26,11 @@ public abstract class Event {
     
     public Object getData( String id ) throws SameDataException {
         return null;
+    }
+    
+    public void generate() throws EmptyInstanceException {
+        if ( toSelf() ) target.generateToSelf( this );
+        else target.generateTo( this );
     }
 
     public abstract int getEventNumber();

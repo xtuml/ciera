@@ -9,7 +9,6 @@ import ciera.statemachine.Event;
 import ciera.statemachine.InstanceStateMachine;
 import ciera.statemachine.StateEventMatrix;
 import ciera.statemachine.exceptions.StateMachineException;
-import ciera.util.Timer;
 import ciera.util.ees.TIM;
 
 public class BeeperInstanceStateMachine extends InstanceStateMachine {
@@ -42,7 +41,7 @@ public class BeeperInstanceStateMachine extends InstanceStateMachine {
         // assign self.beep_count = 0;
         self.setM_beep_count( 0 );
         // cancelled_timer = TIM::timer_cancel(timer_inst_ref:self.beeper_timer);
-        Timer cancelled_timer = TIM.timer_cancel(self.getM_beeper_timer());
+        boolean cancelled_timer = TIM.timer_cancel( self.getM_beeper_timer() );
     }
 
     private void stateBeeping( Event e ) throws EmptyInstanceException, ModelIntegrityException {
