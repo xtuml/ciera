@@ -42,7 +42,7 @@ public class DoorInstanceStateMachine extends InstanceStateMachine {
         // select one oven related by self->MO_O[R4];
         Oven oven = self.selectOneMO_OOnR4();
         // generate MO_O4:'cancel_cooking' to oven;
-        oven.generateTo( new CancelCooking( oven, false ) );
+        oven.generateTo( new CancelCooking() );
     }
 
     private void stateClosed( Event e ) throws EmptyInstanceException {

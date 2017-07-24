@@ -50,7 +50,8 @@ public class BeeperInstanceStateMachine extends InstanceStateMachine {
         // if (self.beep_count == 0) // beeper yet to begin
         if ( self.getM_beep_count() == 0 ) {
             // create event instance delay_over of MO_B2:'beep_delay_over' to self;
-            Event delay_over = new BeepDelayOver( self, true );
+            Event delay_over = new BeepDelayOver();
+            delay_over.setToSelf( true );
             // assign self.beeper_delay_over = delay_over;
             self.setM_beeper_delay_over(delay_over);
             // assign self.beeper_timer = TIM::timer_start(microseconds:100000,event_inst:self.beeper_delay_over);
@@ -59,11 +60,11 @@ public class BeeperInstanceStateMachine extends InstanceStateMachine {
         // elif (self.beep_count == 4) // last beep 
         else if ( self.getM_beep_count() == 4 ) {
             // generate MO_B3:'beeping_stopped' to self;
-            self.generateTo( new BeepingStopped( self, true ) );
+            self.generateToSelf( new BeepingStopped() );
             // select one oven related by self->MO_O[R3];
             Oven oven = self.selectOneMO_OOnR3();
             // generate MO_O6:'beeping_over' to oven;
-            oven.generateTo( new BeepingOver( oven, false ) );
+            oven.generateTo( new BeepingOver() );
         }
         // else
         else {

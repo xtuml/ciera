@@ -37,7 +37,13 @@ public abstract class ModelInstance implements EventTarget {
     
     public void generateTo( Event e ) throws EmptyInstanceException {
         checkLiving();
+        e.setTarget( this );
         dispatch.generateTo( e );
+    }
+
+    public void generateToSelf( Event e ) throws EmptyInstanceException {
+        e.setToSelf( true );
+        generateTo( e );
     }
     
     public void transition( Event e ) throws StateMachineException, EmptyInstanceException, ModelIntegrityException {

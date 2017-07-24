@@ -8,5 +8,6 @@ public interface EventTarget {
     
     public void transition( Event e ) throws StateMachineException, EmptyInstanceException, ModelIntegrityException;
     public void generateTo( Event e ) throws EmptyInstanceException;
+    public void generateToSelf( Event e ) throws EmptyInstanceException;
 
 }

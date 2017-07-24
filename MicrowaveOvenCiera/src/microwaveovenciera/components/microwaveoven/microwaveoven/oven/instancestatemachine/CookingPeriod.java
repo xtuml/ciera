@@ -1,7 +1,6 @@
 package microwaveovenciera.components.microwaveoven.microwaveoven.oven.instancestatemachine;
 
 import ciera.statemachine.Event;
-import ciera.statemachine.EventTarget;
 import ciera.statemachine.exceptions.SameDataException;
 
 public class CookingPeriod extends Event {
@@ -11,8 +10,7 @@ public class CookingPeriod extends Event {
     
     private int period;
 
-    public CookingPeriod(EventTarget t, boolean ts, int period ) {
-        super(t, ts);
+    public CookingPeriod( int period ) {
         this.period = period;
     }
     

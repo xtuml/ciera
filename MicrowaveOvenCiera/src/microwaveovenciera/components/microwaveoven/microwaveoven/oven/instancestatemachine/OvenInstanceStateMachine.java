@@ -76,7 +76,7 @@ public class OvenInstanceStateMachine extends InstanceStateMachine {
         // select one beeper related by self->MO_B[R3];
         Beeper beeper = self.selectOneMO_BOnR3();
         // generate MO_B4:'stop_beeping' to beeper;
-        beeper.generateTo( new StopBeeping( beeper, false ) );
+        beeper.generateTo( new StopBeeping() );
     }
 
     private void stateEnsuringSafeToCook( Event e ) throws EmptyInstanceException, ModelIntegrityException {
@@ -88,7 +88,7 @@ public class OvenInstanceStateMachine extends InstanceStateMachine {
             // if (door.is_secure == true)
             if ( door.getM_is_secure() == true ) {
                 // generate MO_O7:'oven_safe'() to self;
-                door.generateTo( new OvenSafe( door, false ) );
+                door.generateTo( new OvenSafe() );
             // end if;
             }
         // end if;
@@ -98,21 +98,22 @@ public class OvenInstanceStateMachine extends InstanceStateMachine {
     private void stateCooking( Event e ) throws EmptyInstanceException, ModelIntegrityException {
         Oven self = (Oven)instance;
         // create event instance cooking_over of MO_O5:'cooking_period_over'() to self;
-        Event cooking_over = new CookingPeriodOver( self, true );
+        Event cooking_over = new CookingPeriodOver();
+        cooking_over.setToSelf( true );
         // self.oven_timer = TIM::timer_start(microseconds:self.remaining_cooking_time, event_inst:cooking_over);
         self.setM_oven_timer( TIM.timer_start( cooking_over, self.getM_remaining_cooking_time() ) );
         // select one light related by self->MO_IL[R2];
         InternalLight light = self.selectOneMO_ILOnR2();
         // generate MO_IL1:'switch_on' to light;
-        light.generateTo( new SwitchOn( light, false ) );
+        light.generateTo( new SwitchOn() );
         // select one turntable related by self->MO_TRN[R5];
         Turntable turntable  = self.selectOneMO_TRNOnR5();
         // generate MO_TRN1:'spin' to turntable;
-        turntable.generateTo( new Spin( turntable, false ) );
+        turntable.generateTo( new Spin() );
         // select one tube related by self->MO_MT[R1];
         MagnetronTube tube = self.selectOneMO_MTOnR1();
         // generate MO_MT3:'power_on' to tube;
-        tube.generateTo( new PowerOn( tube, false ) );
+        tube.generateTo( new PowerOn() );
     }
 
     private void stateCookingSuspended( Event e ) throws EmptyInstanceException, ModelIntegrityException {
@@ -124,15 +125,15 @@ public class OvenInstanceStateMachine extends InstanceStateMachine {
         // select one light related by self->MO_IL[R2];
         InternalLight light = self.selectOneMO_ILOnR2();
         // generate MO_IL2:'switch_off' to light;
-        light.generateTo( new SwitchOff( light, false ) );
+        light.generateTo( new SwitchOff() );
         // select one turntable related by self->MO_TRN[R5];
         Turntable turntable = self.selectOneMO_TRNOnR5();
         // generate MO_TRN2:'stop' to turntable;
-        turntable.generateTo( new Stop( turntable, false ) );
+        turntable.generateTo( new Stop() );
         // select one tube related by self->MO_MT[R1];
         MagnetronTube tube = self.selectOneMO_MTOnR1();
         // generate MO_MT4:'power_off' to tube;
-        tube.generateTo( new PowerOff( tube, false ) );
+        tube.generateTo( new PowerOff() );
     }
 
     private void stateSignallingCookingPeriodOver( Event e ) throws ModelIntegrityException, EmptyInstanceException {
@@ -140,19 +141,19 @@ public class OvenInstanceStateMachine extends InstanceStateMachine {
         // select one beeper related by self->MO_B[R3];
         Beeper beeper = self.selectOneMO_BOnR3();
         // generate MO_B1:'start_beeping' to beeper;
-        beeper.generateTo( new StartBeeping( beeper, false ) );
+        beeper.generateTo( new StartBeeping() );
         // select one light related by self->MO_IL[R2];
         InternalLight light = self.selectOneMO_ILOnR2();
         // generate MO_IL2:'switch_off' to light;
-        light.generateTo( new SwitchOff( light, false ) );
+        light.generateTo( new SwitchOff() );
         // select one turntable related by self->MO_TRN[R5];
         Turntable turntable = self.selectOneMO_TRNOnR5();
         // generate MO_TRN2:'stop' to turntable;
-        turntable.generateTo( new Stop( turntable, false ) );
+        turntable.generateTo( new Stop() );
         // select one tube related by self->MO_MT[R1];
         MagnetronTube tube = self.selectOneMO_MTOnR1();
         // generate MO_MT4:'power_off' to tube;
-        tube.generateTo( new PowerOff( tube, false ) );
+        tube.generateTo( new PowerOff() );
     }
 
     private void stateAssigningCookingPeriod( Event e ) throws SameDataException, EmptyInstanceException {
