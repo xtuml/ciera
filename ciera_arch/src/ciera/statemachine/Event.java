@@ -8,6 +8,14 @@ public abstract class Event {
     private EventTarget target;
     private boolean toSelf;
     
+    public Event() {
+    }
+    
+    public Event( EventTarget t, boolean ts ) {
+        target = t;
+        toSelf = ts;
+    }
+    
     public EventTarget getTarget() {
         return target;
     }
