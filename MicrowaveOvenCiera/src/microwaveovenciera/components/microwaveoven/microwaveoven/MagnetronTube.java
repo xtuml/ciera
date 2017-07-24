@@ -3,6 +3,8 @@ package microwaveovenciera.components.microwaveoven.microwaveoven;
 import java.util.UUID;
 
 import microwaveovenciera.components.microwaveoven.datatypes.TubeWattage;
+import ciera.application.XtumlApplication;
+import ciera.application.ApplicationThread;
 import ciera.classes.EmptyInstance;
 import ciera.classes.EmptyInstanceSet;
 import ciera.classes.InstanceSet;
@@ -93,6 +95,11 @@ public class MagnetronTube extends ModelInstance {
     @Override
     public int getClassId() {
         return classId;
+    }
+
+    @Override
+    public ApplicationThread getDefaultThread() {
+        return XtumlApplication.app.getDefaultThread( MagnetronTube.class );
     }
 
 }
