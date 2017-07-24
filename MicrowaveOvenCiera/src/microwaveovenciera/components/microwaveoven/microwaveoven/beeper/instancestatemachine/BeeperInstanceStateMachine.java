@@ -51,6 +51,7 @@ public class BeeperInstanceStateMachine extends InstanceStateMachine {
             // create event instance delay_over of MO_B2:'beep_delay_over' to self;
             Event delay_over = new BeepDelayOver();
             delay_over.setToSelf( true );
+            delay_over.setTarget( self );
             // assign self.beeper_delay_over = delay_over;
             self.setM_beeper_delay_over(delay_over);
             // assign self.beeper_timer = TIM::timer_start(microseconds:100000,event_inst:self.beeper_delay_over);

@@ -35,20 +35,28 @@ public abstract class ModelInstance implements EventTarget {
         if ( !alive ) throw new EmptyInstanceException( "Access of deleted instance " );
     }
     
+    @Override
+    public void transition( Event e ) throws StateMachineException, EmptyInstanceException, ModelIntegrityException {
+        checkLiving();
+        ism.transition(e);
+    }
+    
+    @Override
     public void generateTo( Event e ) throws EmptyInstanceException {
         checkLiving();
         e.setTarget( this );
         dispatch.generateTo( e );
     }
 
+    @Override
     public void generateToSelf( Event e ) throws EmptyInstanceException {
         e.setToSelf( true );
         generateTo( e );
     }
     
-    public void transition( Event e ) throws StateMachineException, EmptyInstanceException, ModelIntegrityException {
-        checkLiving();
-        ism.transition(e);
+    @Override
+    public void run() {
+        dispatch.run();
     }
     
     public void delete() throws EmptyInstanceException {

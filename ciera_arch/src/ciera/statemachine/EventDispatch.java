@@ -7,7 +7,7 @@ import ciera.classes.exceptions.EmptyInstanceException;
 import ciera.classes.exceptions.ModelIntegrityException;
 import ciera.statemachine.exceptions.StateMachineException;
 
-public abstract class EventDispatch implements Runnable {
+public abstract class EventDispatch {
     
     private ConcurrentLinkedQueue<Event> eventsToSelf;
     private ConcurrentLinkedQueue<Event> events;
@@ -18,7 +18,6 @@ public abstract class EventDispatch implements Runnable {
         running = new AtomicBoolean( false );
     }
 
-    @Override
     public void run() {
         running.set( true );
         while ( running.get() ) {

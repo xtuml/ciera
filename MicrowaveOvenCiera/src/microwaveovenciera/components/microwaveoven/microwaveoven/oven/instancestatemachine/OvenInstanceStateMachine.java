@@ -99,6 +99,7 @@ public class OvenInstanceStateMachine extends InstanceStateMachine {
         // create event instance cooking_over of MO_O5:'cooking_period_over'() to self;
         Event cooking_over = new CookingPeriodOver();
         cooking_over.setToSelf( true );
+        cooking_over.setTarget( self );
         // self.oven_timer = TIM::timer_start(microseconds:self.remaining_cooking_time, event_inst:cooking_over);
         self.setM_oven_timer( TIM.timer_start( cooking_over, self.getM_remaining_cooking_time() ) );
         // select one light related by self->MO_IL[R2];
