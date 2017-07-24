@@ -1,4 +1,4 @@
-package microwaveovenciera.components.microwaveoven.microwaveoven.magnetrontube.instancestatemachine.copy;
+package microwaveovenciera.components.microwaveoven.microwaveoven.magnetrontube.instancestatemachine;
 
 import microwaveovenciera.components.microwaveoven.datatypes.TubeWattage;
 import microwaveovenciera.components.microwaveoven.microwaveoven.MagnetronTube;

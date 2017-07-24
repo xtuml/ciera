@@ -10,8 +10,8 @@ import microwaveovenciera.components.microwaveoven.microwaveoven.beeper.instance
 import microwaveovenciera.components.microwaveoven.microwaveoven.beeper.instancestatemachine.StopBeeping;
 import microwaveovenciera.components.microwaveoven.microwaveoven.internallight.instancestatemachine.SwitchOff;
 import microwaveovenciera.components.microwaveoven.microwaveoven.internallight.instancestatemachine.SwitchOn;
-import microwaveovenciera.components.microwaveoven.microwaveoven.magnetrontube.instancestatemachine.copy.PowerOff;
-import microwaveovenciera.components.microwaveoven.microwaveoven.magnetrontube.instancestatemachine.copy.PowerOn;
+import microwaveovenciera.components.microwaveoven.microwaveoven.magnetrontube.instancestatemachine.PowerOff;
+import microwaveovenciera.components.microwaveoven.microwaveoven.magnetrontube.instancestatemachine.PowerOn;
 import microwaveovenciera.components.microwaveoven.microwaveoven.turntable.instancestatemachine.Spin;
 import microwaveovenciera.components.microwaveoven.microwaveoven.turntable.instancestatemachine.Stop;
 import ciera.classes.exceptions.EmptyInstanceException;

@@ -1,4 +1,4 @@
-package microwaveovenciera.components.microwaveoven.microwaveoven.magnetrontube.instancestatemachine.copy;
+package microwaveovenciera.components.microwaveoven.microwaveoven.magnetrontube.instancestatemachine;
 
 import ciera.statemachine.Event;
 import ciera.statemachine.EventTarget;
