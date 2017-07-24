@@ -1,6 +1,5 @@
 package microwaveovenciera.components.microwaveoven.microwaveoven;
 
-
 import java.util.UUID;
 
 import ciera.classes.EmptyInstance;
