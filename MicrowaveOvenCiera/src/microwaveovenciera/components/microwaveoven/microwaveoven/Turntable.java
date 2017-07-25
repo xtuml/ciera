@@ -5,8 +5,6 @@ import java.util.UUID;
 import ciera.application.XtumlApplication;
 import ciera.application.ApplicationThread;
 import ciera.classes.EmptyInstance;
-import ciera.classes.EmptyInstanceSet;
-import ciera.classes.InstanceSet;
 import ciera.classes.ModelInstance;
 import ciera.classes.Where;
 import ciera.classes.exceptions.EmptyInstanceException;
@@ -97,36 +95,4 @@ public class Turntable extends ModelInstance {
 }
 
 class EmptyTurntable extends Turntable implements EmptyInstance {
-}
-
-@SuppressWarnings("serial")
-class TurntableSet extends InstanceSet {
-
-    // empty set
-    public static final EmptyTurntableSet emptyTurntableSet = new EmptyTurntableSet();
-
-    // selections
-    OvenSet selectManyMO_OsOnR5() throws ModelIntegrityException, EmptyInstanceException {
-        return selectManyMO_OsOnR5( null );
-    }
-
-    OvenSet selectManyMO_OsOnR5( Where condition ) throws ModelIntegrityException, EmptyInstanceException {
-        OvenSet return_set = new OvenSet();
-        for ( ModelInstance turntable : this ) {
-            Oven selected = ((Turntable)turntable).selectOneMO_OOnR5( condition );
-            if ( !(selected instanceof EmptyInstance ) ) return_set.add( selected );
-        }
-        if ( return_set.isEmpty() ) return OvenSet.emptyOvenSet;
-        else return return_set;
-    }
-
-    @Override
-    public Turntable getEmptyInstance() {
-        return Turntable.emptyTurntable;
-    }
-
-}
-
-@SuppressWarnings("serial")
-class EmptyTurntableSet extends TurntableSet implements EmptyInstanceSet {
 }

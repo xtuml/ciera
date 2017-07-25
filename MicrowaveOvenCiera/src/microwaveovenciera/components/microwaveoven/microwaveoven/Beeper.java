@@ -5,8 +5,6 @@ import java.util.UUID;
 import ciera.application.XtumlApplication;
 import ciera.application.ApplicationThread;
 import ciera.classes.EmptyInstance;
-import ciera.classes.EmptyInstanceSet;
-import ciera.classes.InstanceSet;
 import ciera.classes.ModelInstance;
 import ciera.classes.Where;
 import ciera.classes.exceptions.EmptyInstanceException;
@@ -135,36 +133,4 @@ public class Beeper extends ModelInstance {
 }
 
 class EmptyBeeper extends Beeper implements EmptyInstance {
-}
-
-@SuppressWarnings("serial")
-class BeeperSet extends InstanceSet {
-
-    // empty set
-    public static final EmptyBeeperSet emptyBeeperSet = new EmptyBeeperSet();
-
-    // selections
-    public OvenSet selectManyMO_OsOnR3() throws ModelIntegrityException, EmptyInstanceException {
-        return selectManyMO_OsOnR3( null );
-    }
-
-    public OvenSet selectManyMO_OsOnR3( Where condition ) throws ModelIntegrityException, EmptyInstanceException {
-        OvenSet return_set = new OvenSet();
-        for ( ModelInstance beeper : this ) {
-            Oven selected = ((Beeper)beeper).selectOneMO_OOnR3( condition );
-            if ( !(selected instanceof EmptyInstance ) ) return_set.add( selected );
-        }
-        if ( return_set.isEmpty() ) return OvenSet.emptyOvenSet;
-        else return return_set;
-    }
-
-    @Override
-    public Beeper getEmptyInstance() {
-        return Beeper.emptyBeeper;
-    }
-
-}
-
-@SuppressWarnings("serial")
-class EmptyBeeperSet extends BeeperSet implements EmptyInstanceSet {
 }

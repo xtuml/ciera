@@ -5,10 +5,6 @@ import java.util.concurrent.ConcurrentSkipListSet;
 @SuppressWarnings("serial")
 public abstract class InstanceSet extends ConcurrentSkipListSet<ModelInstance> {
     
-    public ModelInstance selectAny() {
-        return selectAny( null );
-    }
-    
     public ModelInstance selectAny( Where condition ) {
         for ( ModelInstance selected : this ) {
             if ( null == condition || condition.evaluate(selected) ) {

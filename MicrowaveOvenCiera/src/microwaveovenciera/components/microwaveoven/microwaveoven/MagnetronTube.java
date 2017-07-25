@@ -6,8 +6,6 @@ import microwaveovenciera.components.microwaveoven.datatypes.TubeWattage;
 import ciera.application.XtumlApplication;
 import ciera.application.ApplicationThread;
 import ciera.classes.EmptyInstance;
-import ciera.classes.EmptyInstanceSet;
-import ciera.classes.InstanceSet;
 import ciera.classes.ModelInstance;
 import ciera.classes.Where;
 import ciera.classes.exceptions.EmptyInstanceException;
@@ -110,36 +108,4 @@ public class MagnetronTube extends ModelInstance {
 }
 
 class EmptyMagnetronTube extends MagnetronTube implements EmptyInstance {
-}
-
-@SuppressWarnings("serial")
-class MagnetronTubeSet extends InstanceSet {
-
-    // empty set
-    public static final EmptyMagnetronTubeSet emptyMagnetronTubeSet = new EmptyMagnetronTubeSet();
-
-    // selections
-    OvenSet selectManyMO_OsOnR1() throws ModelIntegrityException, EmptyInstanceException {
-        return selectManyMO_OsOnR1( null );
-    }
-
-    OvenSet selectManyMO_OsOnR1( Where condition ) throws ModelIntegrityException, EmptyInstanceException {
-        OvenSet return_set = new OvenSet();
-        for ( ModelInstance magnetronTube : this ) {
-            Oven selected = ((MagnetronTube)magnetronTube).selectOneMO_OOnR1( condition );
-            if ( !(selected instanceof EmptyInstance ) ) return_set.add( selected );
-        }
-        if ( return_set.isEmpty() ) return OvenSet.emptyOvenSet;
-        else return return_set;
-    }
-
-    @Override
-    public MagnetronTube getEmptyInstance() {
-        return MagnetronTube.emptyMagnetronTube;
-    }
-
-}
-
-@SuppressWarnings("serial")
-class EmptyMagnetronTubeSet extends MagnetronTubeSet implements EmptyInstanceSet {
 }
