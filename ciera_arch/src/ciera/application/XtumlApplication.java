@@ -1,12 +1,21 @@
 package ciera.application;
 
+import ciera.components.Component;
+
 public abstract class XtumlApplication {
     
     public static XtumlApplication app;
     
     private ApplicationThread[] threadPool;
+    private Component[] components;
     
     public abstract void setup();
+    
+    public void initialize() {
+        for ( Component component : components ) {
+            component.initialize();
+        }
+    }
     
     public void start() {
         for ( ApplicationThread thread : threadPool ) {
@@ -36,6 +45,10 @@ public abstract class XtumlApplication {
             if ( thread.defaultFor( object ) ) return thread;
         }
         return null;
+    }
+    
+    public void setComponents( Component[] components ) {
+        this.components = components;
     }
 
 }

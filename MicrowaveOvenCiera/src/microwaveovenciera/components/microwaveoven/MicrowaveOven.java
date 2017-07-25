@@ -1,10 +1,20 @@
 package microwaveovenciera.components.microwaveoven;
 
+import ciera.application.ApplicationThread;
 import ciera.classes.Where;
 import ciera.components.Component;
+import microwaveovenciera.components.microwaveoven.functions.Functions;
 import microwaveovenciera.components.microwaveoven.microwaveoven.*;
 
 public class MicrowaveOven extends Component {
+    
+    private static final Class<?>[] classes = new Class<?>[] {
+        Beeper.class, Door.class, InternalLight.class, MagnetronTube.class, Oven.class, Turntable.class
+    };
+    
+    public MicrowaveOven( ApplicationThread defaultThread ) {
+        super( defaultThread );
+    }
     
     // selections
     public Beeper selectAnyMO_BFromInstances() {
@@ -101,6 +111,17 @@ public class MicrowaveOven extends Component {
 
     public TurntableSet selectManyMO_TRNsFromInstances( Where condition ) {
         return ((TurntableSet)getInstanceSet(Turntable.class)).selectManyMO_TRNsFromInstances( condition );
+    }
+
+    // component initialization function
+    @Override
+    public void initialize() {
+        Functions.init( this );
+    }
+
+    @Override
+    public Class<?>[] getClasses() {
+        return classes;
     }
 
 }

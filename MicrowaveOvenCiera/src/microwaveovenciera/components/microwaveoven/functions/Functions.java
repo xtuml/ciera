@@ -16,6 +16,10 @@ import microwaveovenciera.components.microwaveoven.microwaveoven.magnetrontube.i
 
 public class Functions {
     
+    public static void init( MicrowaveOven context ) {
+        System.out.println( "hello world" );
+    }
+    
     public static void CancelCooking( MicrowaveOven context ) throws EmptyInstanceException {
         // select any oven from instances of MO_O;
         Oven oven = context.selectAnyMO_OFromInstances();
