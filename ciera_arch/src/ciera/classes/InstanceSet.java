@@ -1,6 +1,9 @@
 package ciera.classes;
 
+import java.lang.reflect.Constructor;
 import java.util.concurrent.ConcurrentSkipListSet;
+
+import ciera.application.XtumlApplication;
 
 @SuppressWarnings("serial")
 public abstract class InstanceSet extends ConcurrentSkipListSet<ModelInstance> {
@@ -22,6 +25,21 @@ public abstract class InstanceSet extends ConcurrentSkipListSet<ModelInstance> {
             }
         }
         return return_set;
+    }
+    
+    public static InstanceSet getNewInstanceSetForClass( Class<?> object ) {
+        String className = object.getCanonicalName() + "Set";
+        try {
+            Class<?> setClass = Class.forName( className );
+            Constructor<?> setConstructor = setClass.getConstructor();
+            Object newInstanceSet = setConstructor.newInstance();
+            return (InstanceSet)newInstanceSet;
+        }
+        catch ( Exception e ) {
+            e.printStackTrace();
+            XtumlApplication.app.stop();
+        }
+        return null;
     }
 
     public abstract ModelInstance getEmptyInstance();

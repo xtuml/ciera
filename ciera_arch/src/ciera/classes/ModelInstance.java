@@ -11,7 +11,7 @@ import ciera.statemachine.EventDispatch;
 import ciera.statemachine.EventTarget;
 import ciera.statemachine.InstanceStateMachine;
 
-public abstract class ModelInstance implements EventTarget {
+public abstract class ModelInstance implements EventTarget, Comparable<ModelInstance> {
     
     private UUID instanceId;
     private boolean alive;
@@ -106,6 +106,11 @@ public abstract class ModelInstance implements EventTarget {
     public boolean equals( Object obj ) {
         if ( !(obj instanceof ModelInstance ) ) return false;
         return ((ModelInstance)obj).getInstanceId().equals(instanceId);
+    }
+    
+    @Override
+    public int compareTo( ModelInstance instance ) {
+        return instanceId.compareTo( instance.getInstanceId() );
     }
 
 }
