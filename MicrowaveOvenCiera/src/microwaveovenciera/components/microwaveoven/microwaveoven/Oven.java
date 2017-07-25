@@ -41,6 +41,7 @@ public class Oven extends ModelInstance {
     // constructors
     public Oven() {
         super( new OvenInstanceStateMachine() );
+        m_OvenID = UUID.randomUUID();
     }
     
     // attribute accessors

@@ -41,6 +41,7 @@ public class MagnetronTube extends ModelInstance {
     // constructors
     public MagnetronTube() {
         super( new MagnetronTubeInstanceStateMachine() );
+        m_TubeID = UUID.randomUUID();
     }
     
     // attribute accessors

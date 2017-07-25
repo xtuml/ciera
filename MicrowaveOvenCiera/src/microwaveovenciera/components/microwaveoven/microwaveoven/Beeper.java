@@ -44,6 +44,7 @@ public class Beeper extends ModelInstance {
     // constructors
     public Beeper() {
         super( new BeeperInstanceStateMachine() );
+        m_BeeperID = UUID.randomUUID();
     }
     
     // attribute accessors

@@ -39,6 +39,7 @@ public class Turntable extends ModelInstance {
     // constructors
     public Turntable() {
         super( new TurntableInstanceStateMachine() );
+        m_TurntableID = UUID.randomUUID();
     }
     
     // attribute accessors

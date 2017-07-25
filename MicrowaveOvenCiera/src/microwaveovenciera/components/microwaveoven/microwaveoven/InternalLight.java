@@ -39,6 +39,7 @@ public class InternalLight extends ModelInstance {
     // constructors
     public InternalLight() {
         super( new InternalLightInstanceStateMachine() );
+        m_LightID = UUID.randomUUID();
     }
     
     // attribute accessors

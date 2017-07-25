@@ -40,6 +40,7 @@ public class Door extends ModelInstance {
     // constructors
     public Door() {
         super( new DoorInstanceStateMachine() );
+        m_DoorID = UUID.randomUUID();
     }
     
     // attribute accessors
