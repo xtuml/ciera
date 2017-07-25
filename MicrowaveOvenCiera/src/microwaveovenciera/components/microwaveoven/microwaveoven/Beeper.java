@@ -154,6 +154,7 @@ class BeeperSet extends InstanceSet {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public Beeper getEmptyInstance() {
         return Beeper.emptyBeeper;
     }

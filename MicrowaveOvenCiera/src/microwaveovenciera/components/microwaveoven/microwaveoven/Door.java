@@ -128,6 +128,7 @@ class DoorSet extends InstanceSet {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public Door getEmptyInstance() {
         return Door.emptyDoor;
     }

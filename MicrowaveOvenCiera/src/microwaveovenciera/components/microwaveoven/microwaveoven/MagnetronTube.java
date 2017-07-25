@@ -129,6 +129,7 @@ class MagnetronTubeSet extends InstanceSet {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public MagnetronTube getEmptyInstance() {
         return MagnetronTube.emptyMagnetronTube;
     }

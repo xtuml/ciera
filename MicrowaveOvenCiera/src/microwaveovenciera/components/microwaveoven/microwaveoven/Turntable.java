@@ -116,6 +116,7 @@ class TurntableSet extends InstanceSet {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public Turntable getEmptyInstance() {
         return Turntable.emptyTurntable;
     }

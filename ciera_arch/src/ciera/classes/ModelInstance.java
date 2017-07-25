@@ -4,7 +4,6 @@ import java.util.UUID;
 
 import ciera.application.ApplicationThread;
 import ciera.classes.exceptions.EmptyInstanceException;
-import ciera.classes.exceptions.InstancePopulationException;
 import ciera.classes.exceptions.ModelIntegrityException;
 import ciera.statemachine.AssignerStateMachine;
 import ciera.statemachine.Event;

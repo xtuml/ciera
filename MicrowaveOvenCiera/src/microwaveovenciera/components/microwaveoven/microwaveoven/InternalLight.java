@@ -116,6 +116,7 @@ class InternalLightSet extends InstanceSet {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public InternalLight getEmptyInstance() {
         return InternalLight.emptyInternalLight;
     }

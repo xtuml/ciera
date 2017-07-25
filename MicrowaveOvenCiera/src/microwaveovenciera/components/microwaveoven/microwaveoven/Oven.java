@@ -368,6 +368,7 @@ class OvenSet extends InstanceSet {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public Oven getEmptyInstance() {
         return Oven.emptyOven;
     }

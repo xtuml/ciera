@@ -9,10 +9,11 @@ public abstract class InstanceSet extends ConcurrentSkipListSet<ModelInstance> {
         return selectAny( null );
     }
     
-    public ModelInstance selectAny( Where condition ) {
+    @SuppressWarnings("unchecked")
+    public <T extends ModelInstance> T selectAny( Where condition ) {
         for ( ModelInstance selected : this ) {
             if ( null == condition || condition.evaluate(selected) ) {
-                return selected;
+                return (T)selected;
             }
         }
         return getEmptyInstance();
@@ -28,6 +29,6 @@ public abstract class InstanceSet extends ConcurrentSkipListSet<ModelInstance> {
         return return_set;
     }
 
-    public abstract ModelInstance getEmptyInstance();
+    public abstract <T extends ModelInstance> T getEmptyInstance();
 
 }
