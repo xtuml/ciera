@@ -1,10 +1,10 @@
 package microwaveovenciera.components.microwaveoven.microwaveoven.internallight.instancestatemachine;
 
-import ciera.classes.exceptions.EmptyInstanceException;
+import ciera.exceptions.StateMachineException;
+import ciera.exceptions.XtumlException;
 import ciera.statemachine.Event;
 import ciera.statemachine.InstanceStateMachine;
 import ciera.statemachine.StateEventMatrix;
-import ciera.statemachine.exceptions.StateMachineException;
 
 public class InternalLightInstanceStateMachine extends InstanceStateMachine {
     
@@ -20,7 +20,7 @@ public class InternalLightInstanceStateMachine extends InstanceStateMachine {
     }
 
     @Override
-    protected void stateActivity(int stateNum, Event e) throws StateMachineException, EmptyInstanceException {
+    protected void stateActivity(int stateNum, Event e) throws XtumlException {
         if ( stateNum == Off ) {
             stateOff( e );
         }

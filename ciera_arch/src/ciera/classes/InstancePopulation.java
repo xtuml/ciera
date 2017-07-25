@@ -2,8 +2,8 @@ package ciera.classes;
 
 import java.util.Map;
 
-import ciera.classes.exceptions.EmptyInstanceException;
-import ciera.classes.exceptions.InstancePopulationException;
+import ciera.exceptions.InstancePopulationException;
+import ciera.exceptions.XtumlException;
 
 public abstract class InstancePopulation {
 
@@ -17,7 +17,7 @@ public abstract class InstancePopulation {
         return instancePopulation.get( object );
     }
 
-    public <T extends ModelInstance> T createObjectInstance( T instance ) throws InstancePopulationException {
+    public <T extends ModelInstance> T createObjectInstance( T instance ) throws XtumlException {
         InstanceSet instanceSet = instancePopulation.get( instance.getClass() );
         if ( null != instanceSet ) {
             instance.setContext( this );
@@ -27,7 +27,7 @@ public abstract class InstancePopulation {
         else throw new InstancePopulationException( "Class does not exist within this population." );
     }
 
-    public <T extends ModelInstance> void deleteObjectInstance( T instance ) throws InstancePopulationException, EmptyInstanceException {
+    public <T extends ModelInstance> void deleteObjectInstance( T instance ) throws XtumlException {
         InstanceSet instanceSet = instancePopulation.get( instance.getClass() );
         if ( null != instanceSet ) {
             instance.setContext( null );

@@ -2,7 +2,7 @@ package ciera.util;
 
 import java.util.TimerTask;
 
-import ciera.classes.exceptions.EmptyInstanceException;
+import ciera.exceptions.XtumlException;
 import ciera.statemachine.Event;
 
 public class Timer {
@@ -50,7 +50,7 @@ public class Timer {
             // generate the event
             try {
                 eventToGenerate.generate();
-            } catch (EmptyInstanceException e) {
+            } catch ( XtumlException e ) {
                 // TODO exception handling
             }
             // if this is a recurring timer, reschedule

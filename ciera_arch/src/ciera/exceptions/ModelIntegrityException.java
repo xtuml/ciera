@@ -1,7 +1,7 @@
-package ciera.classes.exceptions;
+package ciera.exceptions;
 
 @SuppressWarnings("serial")
-public class ModelIntegrityException extends Exception {
+public class ModelIntegrityException extends XtumlException {
     public ModelIntegrityException( String message ) {
         super( message );
     }

@@ -3,12 +3,11 @@ package microwaveovenciera.components.microwaveoven.microwaveoven.door.instances
 import microwaveovenciera.components.microwaveoven.microwaveoven.Door;
 import microwaveovenciera.components.microwaveoven.microwaveoven.Oven;
 import microwaveovenciera.components.microwaveoven.microwaveoven.oven.instancestatemachine.CancelCooking;
-import ciera.classes.exceptions.EmptyInstanceException;
-import ciera.classes.exceptions.ModelIntegrityException;
+import ciera.exceptions.StateMachineException;
+import ciera.exceptions.XtumlException;
 import ciera.statemachine.Event;
 import ciera.statemachine.InstanceStateMachine;
 import ciera.statemachine.StateEventMatrix;
-import ciera.statemachine.exceptions.StateMachineException;
 
 public class DoorInstanceStateMachine extends InstanceStateMachine {
     
@@ -24,7 +23,7 @@ public class DoorInstanceStateMachine extends InstanceStateMachine {
     }
 
     @Override
-    protected void stateActivity(int stateNum, Event e) throws StateMachineException, EmptyInstanceException, ModelIntegrityException {
+    protected void stateActivity(int stateNum, Event e) throws XtumlException {
         if ( stateNum == Open ) {
             stateOpen( e );
         }
@@ -34,7 +33,7 @@ public class DoorInstanceStateMachine extends InstanceStateMachine {
         else throw new StateMachineException( "State does not exist. " );
     }
     
-    private void stateOpen( Event e ) throws EmptyInstanceException, ModelIntegrityException {
+    private void stateOpen( Event e ) throws XtumlException {
         Door self = (Door)getInstance();
         // assign self.is_secure = false;
         self.setM_is_secure( false );
@@ -44,7 +43,7 @@ public class DoorInstanceStateMachine extends InstanceStateMachine {
         oven.generateTo( new CancelCooking() );
     }
 
-    private void stateClosed( Event e ) throws EmptyInstanceException {
+    private void stateClosed( Event e ) throws XtumlException {
         Door self = (Door)getInstance();
         // assign self.is_secure = true;
         self.setM_is_secure( true );

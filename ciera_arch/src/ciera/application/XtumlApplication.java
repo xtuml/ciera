@@ -1,6 +1,7 @@
 package ciera.application;
 
 import ciera.components.Component;
+import ciera.exceptions.XtumlException;
 
 public abstract class XtumlApplication {
     
@@ -13,7 +14,11 @@ public abstract class XtumlApplication {
     
     public void initialize() {
         for ( Component component : components ) {
-            component.initialize();
+            try {
+                component.initialize();
+            } catch ( XtumlException e ) {
+                // TODO exception handling
+            }
         }
     }
     

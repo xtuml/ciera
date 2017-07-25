@@ -5,8 +5,7 @@ import ciera.classes.EmptyInstanceSet;
 import ciera.classes.InstanceSet;
 import ciera.classes.ModelInstance;
 import ciera.classes.Where;
-import ciera.classes.exceptions.EmptyInstanceException;
-import ciera.classes.exceptions.ModelIntegrityException;
+import ciera.exceptions.XtumlException;
 
 @SuppressWarnings("serial")
 public class OvenSet extends InstanceSet {
@@ -15,11 +14,11 @@ public class OvenSet extends InstanceSet {
     public static final EmptyOvenSet emptyOvenSet = new EmptyOvenSet();
 
     // selections
-    public MagnetronTubeSet selectManyMO_MTsOnR1() throws ModelIntegrityException, EmptyInstanceException {
+    public MagnetronTubeSet selectManyMO_MTsOnR1() throws XtumlException {
         return selectManyMO_MTsOnR1( null );
     }
 
-    public MagnetronTubeSet selectManyMO_MTsOnR1( Where condition ) throws ModelIntegrityException, EmptyInstanceException {
+    public MagnetronTubeSet selectManyMO_MTsOnR1( Where condition ) throws XtumlException {
         MagnetronTubeSet return_set = new MagnetronTubeSet();
         for ( ModelInstance oven : this ) {
             MagnetronTube selected = ((Oven)oven).selectOneMO_MTOnR1( condition );
@@ -29,11 +28,11 @@ public class OvenSet extends InstanceSet {
         else return return_set;
     }
 
-    public InternalLightSet selectManyMO_ILsOnR2() throws ModelIntegrityException, EmptyInstanceException {
+    public InternalLightSet selectManyMO_ILsOnR2() throws XtumlException {
         return selectManyMO_ILsOnR2( null );
     }
 
-    public InternalLightSet selectManyMO_ILsOnR2( Where condition ) throws ModelIntegrityException, EmptyInstanceException {
+    public InternalLightSet selectManyMO_ILsOnR2( Where condition ) throws XtumlException {
         InternalLightSet return_set = new InternalLightSet();
         for ( ModelInstance oven : this ) {
             InternalLight selected = ((Oven)oven).selectOneMO_ILOnR2( condition );
@@ -43,11 +42,11 @@ public class OvenSet extends InstanceSet {
         else return return_set;
     }
 
-    public BeeperSet selectManyMO_BsOnR3() throws ModelIntegrityException, EmptyInstanceException {
+    public BeeperSet selectManyMO_BsOnR3() throws XtumlException {
         return selectManyMO_BsOnR3( null );
     }
 
-    public BeeperSet selectManyMO_BsOnR3( Where condition ) throws ModelIntegrityException, EmptyInstanceException {
+    public BeeperSet selectManyMO_BsOnR3( Where condition ) throws XtumlException {
         BeeperSet return_set = new BeeperSet();
         for ( ModelInstance oven : this ) {
             Beeper selected = ((Oven)oven).selectOneMO_BOnR3( condition );
@@ -57,11 +56,11 @@ public class OvenSet extends InstanceSet {
         else return return_set;
     }
 
-    public DoorSet selectManyMO_DsOnR4() throws ModelIntegrityException, EmptyInstanceException {
+    public DoorSet selectManyMO_DsOnR4() throws XtumlException {
         return selectManyMO_DsOnR4( null );
     }
 
-    public DoorSet selectManyMO_DsOnR4( Where condition ) throws ModelIntegrityException, EmptyInstanceException {
+    public DoorSet selectManyMO_DsOnR4( Where condition ) throws XtumlException {
         DoorSet return_set = new DoorSet();
         for ( ModelInstance oven : this ) {
             Door selected = ((Oven)oven).selectOneMO_DOnR4( condition );
@@ -71,11 +70,11 @@ public class OvenSet extends InstanceSet {
         else return return_set;
     }
 
-    public TurntableSet selectManyMO_TRNsOnR5() throws ModelIntegrityException, EmptyInstanceException {
+    public TurntableSet selectManyMO_TRNsOnR5() throws XtumlException {
         return selectManyMO_TRNsOnR5( null );
     }
 
-    public TurntableSet selectManyMO_TRNsOnR5( Where condition ) throws ModelIntegrityException, EmptyInstanceException {
+    public TurntableSet selectManyMO_TRNsOnR5( Where condition ) throws XtumlException {
         TurntableSet return_set = new TurntableSet();
         for ( ModelInstance oven : this ) {
             Turntable selected = ((Oven)oven).selectOneMO_TRNOnR5( condition );

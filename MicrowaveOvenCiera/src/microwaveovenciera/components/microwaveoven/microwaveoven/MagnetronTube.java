@@ -9,9 +9,9 @@ import ciera.application.ApplicationThread;
 import ciera.classes.EmptyInstance;
 import ciera.classes.ModelInstance;
 import ciera.classes.Where;
-import ciera.classes.exceptions.EmptyInstanceException;
-import ciera.classes.exceptions.LinkException;
-import ciera.classes.exceptions.ModelIntegrityException;
+import ciera.exceptions.LinkException;
+import ciera.exceptions.ModelIntegrityException;
+import ciera.exceptions.XtumlException;
 
 public class MagnetronTube extends ModelInstance {
     
@@ -28,12 +28,12 @@ public class MagnetronTube extends ModelInstance {
     // associations
     private Oven MO_OOnR1;
     
-    public void setMO_OOnR1(Oven mO_OOnR1) throws LinkException {
+    public void setMO_OOnR1(Oven mO_OOnR1) throws XtumlException {
         if ( null == MO_OOnR1 ) MO_OOnR1 = mO_OOnR1;
         else throw new LinkException( "Cannot link to already linked relationship." );
     }
 
-    public void clearMO_OOnR1() throws LinkException {
+    public void clearMO_OOnR1() throws XtumlException {
         if ( null != MO_OOnR1 ) MO_OOnR1 = null;
         else throw new LinkException( "Cannot unlink non-linked relationship." );
     }
@@ -44,27 +44,27 @@ public class MagnetronTube extends ModelInstance {
     }
     
     // attribute accessors
-    public UUID getM_TubeID() throws EmptyInstanceException {
+    public UUID getM_TubeID() throws XtumlException {
         checkLiving();
         return m_TubeID;
     }
 
-    public TubeWattage getM_current_power_output() throws EmptyInstanceException {
+    public TubeWattage getM_current_power_output() throws XtumlException {
         checkLiving();
         return m_current_power_output;
     }
 
-    public void setM_current_power_output(TubeWattage m_current_power_output) throws EmptyInstanceException {
+    public void setM_current_power_output(TubeWattage m_current_power_output) throws XtumlException {
         checkLiving();
         this.m_current_power_output = m_current_power_output;
     }
 
     // selections
-    public Oven selectOneMO_OOnR1() throws ModelIntegrityException, EmptyInstanceException {
+    public Oven selectOneMO_OOnR1() throws XtumlException {
         return selectOneMO_OOnR1( null );
     }
     
-    public Oven selectOneMO_OOnR1( Where condition ) throws ModelIntegrityException, EmptyInstanceException {
+    public Oven selectOneMO_OOnR1( Where condition ) throws XtumlException {
         checkLiving();
         if ( !(this instanceof EmptyInstance ) ) {
             if ( null == MO_OOnR1 ) throw new ModelIntegrityException( "Uncoditional association with no related instance." );
@@ -76,12 +76,12 @@ public class MagnetronTube extends ModelInstance {
     }
 
     // relates
-    public void relateToMO_OAcrossR1( Oven oven ) throws EmptyInstanceException, LinkException {
+    public void relateToMO_OAcrossR1( Oven oven ) throws XtumlException {
         oven.relateToMO_MTAcrossR1( this );
     }
     
     // unrelates
-    public void unrelateFromMO_OAcrossR1( Oven oven ) throws EmptyInstanceException, LinkException {
+    public void unrelateFromMO_OAcrossR1( Oven oven ) throws XtumlException {
         oven.unrelateFromMO_MTAcrossR1( this );
     }
 

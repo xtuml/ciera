@@ -5,8 +5,7 @@ import ciera.classes.EmptyInstanceSet;
 import ciera.classes.InstanceSet;
 import ciera.classes.ModelInstance;
 import ciera.classes.Where;
-import ciera.classes.exceptions.EmptyInstanceException;
-import ciera.classes.exceptions.ModelIntegrityException;
+import ciera.exceptions.XtumlException;
 
 @SuppressWarnings("serial")
 public class TurntableSet extends InstanceSet {
@@ -15,11 +14,11 @@ public class TurntableSet extends InstanceSet {
     public static final EmptyTurntableSet emptyTurntableSet = new EmptyTurntableSet();
 
     // selections
-    OvenSet selectManyMO_OsOnR5() throws ModelIntegrityException, EmptyInstanceException {
+    OvenSet selectManyMO_OsOnR5() throws XtumlException {
         return selectManyMO_OsOnR5( null );
     }
 
-    OvenSet selectManyMO_OsOnR5( Where condition ) throws ModelIntegrityException, EmptyInstanceException {
+    OvenSet selectManyMO_OsOnR5( Where condition ) throws XtumlException {
         OvenSet return_set = new OvenSet();
         for ( ModelInstance turntable : this ) {
             Oven selected = ((Turntable)turntable).selectOneMO_OOnR5( condition );

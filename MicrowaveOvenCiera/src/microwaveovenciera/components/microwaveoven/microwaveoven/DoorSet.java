@@ -5,8 +5,7 @@ import ciera.classes.EmptyInstanceSet;
 import ciera.classes.InstanceSet;
 import ciera.classes.ModelInstance;
 import ciera.classes.Where;
-import ciera.classes.exceptions.EmptyInstanceException;
-import ciera.classes.exceptions.ModelIntegrityException;
+import ciera.exceptions.XtumlException;
 
 @SuppressWarnings("serial")
 public class DoorSet extends InstanceSet {
@@ -15,11 +14,11 @@ public class DoorSet extends InstanceSet {
     public static final EmptyDoorSet emptyDoorSet = new EmptyDoorSet();
 
     // selections
-    OvenSet selectManyMO_OsOnR4() throws ModelIntegrityException, EmptyInstanceException {
+    OvenSet selectManyMO_OsOnR4() throws XtumlException {
         return selectManyMO_OsOnR4( null );
     }
 
-    OvenSet selectManyMO_OsOnR4( Where condition ) throws ModelIntegrityException, EmptyInstanceException {
+    OvenSet selectManyMO_OsOnR4( Where condition ) throws XtumlException {
         OvenSet return_set = new OvenSet();
         for ( ModelInstance door : this ) {
             Oven selected = ((Door)door).selectOneMO_OOnR4( condition );

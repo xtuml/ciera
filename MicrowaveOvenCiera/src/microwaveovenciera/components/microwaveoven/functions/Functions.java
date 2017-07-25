@@ -1,8 +1,6 @@
 package microwaveovenciera.components.microwaveoven.functions;
 
-import ciera.classes.exceptions.EmptyInstanceException;
-import ciera.classes.exceptions.InstancePopulationException;
-import ciera.classes.exceptions.LinkException;
+import ciera.exceptions.XtumlException;
 import microwaveovenciera.components.microwaveoven.MicrowaveOven;
 import microwaveovenciera.components.microwaveoven.datatypes.TubeWattage;
 import microwaveovenciera.components.microwaveoven.microwaveoven.*;
@@ -20,28 +18,28 @@ public class Functions {
         System.out.println( "hello world" );
     }
     
-    public static void CancelCooking( MicrowaveOven context ) throws EmptyInstanceException {
+    public static void CancelCooking( MicrowaveOven context ) throws XtumlException {
         // select any oven from instances of MO_O;
         Oven oven = context.selectAnyMO_OFromInstances();
         // generate MO_O4:'cancel_cooking'  to oven;
         oven.generateTo( new CancelCooking() );
     }
 
-    public static void CloseDoor( MicrowaveOven context ) throws EmptyInstanceException {
+    public static void CloseDoor( MicrowaveOven context ) throws XtumlException {
         // select any door from instances of MO_D;
         Door door = context.selectAnyMO_DFromInstances();
         // generate MO_D2:'close'  to door;
         door.generateTo( new Close() );
     }
     
-    public static void DecreasePower( MicrowaveOven context ) throws EmptyInstanceException {
+    public static void DecreasePower( MicrowaveOven context ) throws XtumlException {
         // select any tube from instances of MO_MT;
         MagnetronTube tube = context.selectAnyMO_MTFromInstances();
         // generate MO_MT2:'decrease_power' to tube;
         tube.generateTo( new DecreasePower() );
     }
     
-    public static void DefineOven( MicrowaveOven context ) throws InstancePopulationException, EmptyInstanceException, LinkException {
+    public static void DefineOven( MicrowaveOven context ) throws XtumlException {
         // Create the instances in the system.
         // create object instance mo of MO_O;
         Oven mo = context.createObjectInstance( new Oven() );
@@ -73,21 +71,21 @@ public class Functions {
         mo.relateToMO_TRNAcrossR5( turntable );
     }
     
-    public static void IncreasePower( MicrowaveOven context ) throws EmptyInstanceException {
+    public static void IncreasePower( MicrowaveOven context ) throws XtumlException {
         // select any tube from instances of MO_MT;
         MagnetronTube tube = context.selectAnyMO_MTFromInstances();
         // generate MO_MT1:'increase_power'  to tube;
         tube.generateTo( new IncreasePower() );
     }
     
-    public static void OpenDoor( MicrowaveOven context ) throws EmptyInstanceException {
+    public static void OpenDoor( MicrowaveOven context ) throws XtumlException {
         // select any door from instances of MO_D;
         Door door = context.selectAnyMO_DFromInstances();
         // generate MO_D1:'release'  to door;
         door.generateTo( new Release() );
     }
     
-    public static void SpecifyCookingPeriod( MicrowaveOven context, int cookingPeriod ) throws EmptyInstanceException {
+    public static void SpecifyCookingPeriod( MicrowaveOven context, int cookingPeriod ) throws XtumlException {
         // cooking period is to be specified in seconds and must be converted to usec in order
         // to be compatible with BP's view of time
         // timePeriod = 1000000 * param.cookingPeriod;
@@ -98,7 +96,7 @@ public class Functions {
         oven.generateTo( new CookingPeriod( timePeriod ) );
     }
     
-    public static void StartCooking( MicrowaveOven context ) throws EmptyInstanceException {
+    public static void StartCooking( MicrowaveOven context ) throws XtumlException {
         // select any oven from instances of MO_O;
         Oven oven = context.selectAnyMO_OFromInstances();
         // generate MO_O3:'start_cooking'  to oven;

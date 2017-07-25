@@ -3,6 +3,7 @@ package microwaveovenciera.components.microwaveoven;
 import ciera.application.ApplicationThread;
 import ciera.classes.Where;
 import ciera.components.Component;
+import ciera.exceptions.XtumlException;
 import microwaveovenciera.components.microwaveoven.functions.Functions;
 import microwaveovenciera.components.microwaveoven.microwaveoven.*;
 
@@ -115,8 +116,10 @@ public class MicrowaveOven extends Component {
 
     // component initialization function
     @Override
-    public void initialize() {
+    public void initialize() throws XtumlException {
         Functions.init( this );
+        Functions.DefineOven( this );
+        Functions.TestSequence1( this );
     }
 
     @Override

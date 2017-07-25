@@ -2,11 +2,11 @@ package microwaveovenciera.components.microwaveoven.microwaveoven.magnetrontube.
 
 import microwaveovenciera.components.microwaveoven.datatypes.TubeWattage;
 import microwaveovenciera.components.microwaveoven.microwaveoven.MagnetronTube;
-import ciera.classes.exceptions.EmptyInstanceException;
+import ciera.exceptions.StateMachineException;
+import ciera.exceptions.XtumlException;
 import ciera.statemachine.Event;
 import ciera.statemachine.InstanceStateMachine;
 import ciera.statemachine.StateEventMatrix;
-import ciera.statemachine.exceptions.StateMachineException;
 
 public class MagnetronTubeInstanceStateMachine extends InstanceStateMachine {
     
@@ -26,7 +26,7 @@ public class MagnetronTubeInstanceStateMachine extends InstanceStateMachine {
     }
 
     @Override
-    protected void stateActivity(int stateNum, Event e) throws StateMachineException, EmptyInstanceException {
+    protected void stateActivity(int stateNum, Event e) throws XtumlException {
         if ( stateNum == OutputPowerStableAndOff ) {
             stateOutputPowerStableAndOff( e );
         }
@@ -45,7 +45,7 @@ public class MagnetronTubeInstanceStateMachine extends InstanceStateMachine {
     private void stateOutputPowerStableAndOff( Event e ) {
     }
 
-    private void stateReducingOutputPower( Event e ) throws EmptyInstanceException {
+    private void stateReducingOutputPower( Event e ) throws XtumlException {
         MagnetronTube self = (MagnetronTube)getInstance();
         // if (self.current_power_output == tube_wattage::med_low)
         if ( self.getM_current_power_output() == TubeWattage.MED_LOW ) {
@@ -70,7 +70,7 @@ public class MagnetronTubeInstanceStateMachine extends InstanceStateMachine {
         }
     }
 
-    private void stateRaisingOutputPower( Event e ) throws EmptyInstanceException {
+    private void stateRaisingOutputPower( Event e ) throws XtumlException {
         MagnetronTube self = (MagnetronTube)getInstance();
         // if (self.current_power_output == tube_wattage::low)
         if ( self.getM_current_power_output() == TubeWattage.LOW ) {

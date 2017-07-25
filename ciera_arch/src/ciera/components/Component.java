@@ -2,6 +2,7 @@ package ciera.components;
 
 import ciera.application.ApplicationThread;
 import ciera.classes.InstancePopulation;
+import ciera.exceptions.XtumlException;
 
 public abstract class Component extends InstancePopulation {
     
@@ -15,7 +16,7 @@ public abstract class Component extends InstancePopulation {
         }
     }
 
-    public abstract void initialize();
+    public abstract void initialize() throws XtumlException;
 
     public abstract Class<?>[] getClasses();
 }

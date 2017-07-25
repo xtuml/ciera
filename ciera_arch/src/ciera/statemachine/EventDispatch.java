@@ -1,9 +1,8 @@
 package ciera.statemachine;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
-import ciera.classes.exceptions.EmptyInstanceException;
-import ciera.classes.exceptions.ModelIntegrityException;
-import ciera.statemachine.exceptions.StateMachineException;
+
+import ciera.exceptions.XtumlException;
 
 public class EventDispatch {
     
@@ -14,18 +13,12 @@ public class EventDispatch {
         try {
             dispatch();
         }
-        catch ( StateMachineException e ) {
-            // TODO exception handling
-        }
-        catch ( EmptyInstanceException e ) {
-            // TODO exception handling
-        }
-        catch (ModelIntegrityException e) {
+        catch ( XtumlException e ) {
             // TODO exception handling
         }
     }
     
-    public void dispatch() throws StateMachineException, EmptyInstanceException, ModelIntegrityException {
+    public void dispatch() throws XtumlException {
         Event e = null;
         // handle events to self first
         if ( !eventsToSelf.isEmpty() ) {

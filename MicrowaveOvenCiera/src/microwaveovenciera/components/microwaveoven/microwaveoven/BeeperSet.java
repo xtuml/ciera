@@ -5,8 +5,7 @@ import ciera.classes.EmptyInstanceSet;
 import ciera.classes.InstanceSet;
 import ciera.classes.ModelInstance;
 import ciera.classes.Where;
-import ciera.classes.exceptions.EmptyInstanceException;
-import ciera.classes.exceptions.ModelIntegrityException;
+import ciera.exceptions.XtumlException;
 
 @SuppressWarnings("serial")
 public class BeeperSet extends InstanceSet {
@@ -15,11 +14,11 @@ public class BeeperSet extends InstanceSet {
     public static final EmptyBeeperSet emptyBeeperSet = new EmptyBeeperSet();
 
     // selections
-    public OvenSet selectManyMO_OsOnR3() throws ModelIntegrityException, EmptyInstanceException {
+    public OvenSet selectManyMO_OsOnR3() throws XtumlException {
         return selectManyMO_OsOnR3( null );
     }
 
-    public OvenSet selectManyMO_OsOnR3( Where condition ) throws ModelIntegrityException, EmptyInstanceException {
+    public OvenSet selectManyMO_OsOnR3( Where condition ) throws XtumlException {
         OvenSet return_set = new OvenSet();
         for ( ModelInstance beeper : this ) {
             Oven selected = ((Beeper)beeper).selectOneMO_OOnR3( condition );

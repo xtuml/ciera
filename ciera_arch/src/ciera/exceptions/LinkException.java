@@ -1,7 +1,7 @@
-package ciera.classes.exceptions;
+package ciera.exceptions;
 
 @SuppressWarnings("serial")
-public class LinkException extends Exception {
+public class LinkException extends XtumlException {
     public LinkException( String message ) {
         super( message );
     }

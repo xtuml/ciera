@@ -1,4 +1,4 @@
-package ciera.statemachine.exceptions;
+package ciera.exceptions;
 
 @SuppressWarnings("serial")
 public class SameDataException extends StateMachineException {

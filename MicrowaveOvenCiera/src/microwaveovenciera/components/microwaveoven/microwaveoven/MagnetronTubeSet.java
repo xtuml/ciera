@@ -5,8 +5,7 @@ import ciera.classes.EmptyInstanceSet;
 import ciera.classes.InstanceSet;
 import ciera.classes.ModelInstance;
 import ciera.classes.Where;
-import ciera.classes.exceptions.EmptyInstanceException;
-import ciera.classes.exceptions.ModelIntegrityException;
+import ciera.exceptions.XtumlException;
 
 @SuppressWarnings("serial")
 public class MagnetronTubeSet extends InstanceSet {
@@ -15,11 +14,11 @@ public class MagnetronTubeSet extends InstanceSet {
     public static final EmptyMagnetronTubeSet emptyMagnetronTubeSet = new EmptyMagnetronTubeSet();
 
     // selections
-    OvenSet selectManyMO_OsOnR1() throws ModelIntegrityException, EmptyInstanceException {
+    OvenSet selectManyMO_OsOnR1() throws XtumlException {
         return selectManyMO_OsOnR1( null );
     }
 
-    OvenSet selectManyMO_OsOnR1( Where condition ) throws ModelIntegrityException, EmptyInstanceException {
+    OvenSet selectManyMO_OsOnR1( Where condition ) throws XtumlException {
         OvenSet return_set = new OvenSet();
         for ( ModelInstance magnetronTube : this ) {
             Oven selected = ((MagnetronTube)magnetronTube).selectOneMO_OOnR1( condition );

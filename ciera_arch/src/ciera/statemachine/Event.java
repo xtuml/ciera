@@ -1,7 +1,6 @@
 package ciera.statemachine;
 
-import ciera.classes.exceptions.EmptyInstanceException;
-import ciera.statemachine.exceptions.SameDataException;
+import ciera.exceptions.XtumlException;
 
 public abstract class Event {
     
@@ -32,11 +31,11 @@ public abstract class Event {
         toSelf = ts;
     }
     
-    public Object getData( String id ) throws SameDataException {
+    public Object getData( String id ) throws XtumlException {
         return null;
     }
     
-    public void generate() throws EmptyInstanceException {
+    public void generate() throws XtumlException {
         if ( toSelf() ) target.generateToSelf( this );
         else target.generateTo( this );
     }

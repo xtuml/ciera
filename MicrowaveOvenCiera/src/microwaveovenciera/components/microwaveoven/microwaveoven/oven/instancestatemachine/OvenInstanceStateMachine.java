@@ -14,13 +14,11 @@ import microwaveovenciera.components.microwaveoven.microwaveoven.magnetrontube.i
 import microwaveovenciera.components.microwaveoven.microwaveoven.magnetrontube.instancestatemachine.PowerOn;
 import microwaveovenciera.components.microwaveoven.microwaveoven.turntable.instancestatemachine.Spin;
 import microwaveovenciera.components.microwaveoven.microwaveoven.turntable.instancestatemachine.Stop;
-import ciera.classes.exceptions.EmptyInstanceException;
-import ciera.classes.exceptions.ModelIntegrityException;
+import ciera.exceptions.StateMachineException;
+import ciera.exceptions.XtumlException;
 import ciera.statemachine.Event;
 import ciera.statemachine.InstanceStateMachine;
 import ciera.statemachine.StateEventMatrix;
-import ciera.statemachine.exceptions.SameDataException;
-import ciera.statemachine.exceptions.StateMachineException;
 import ciera.util.ees.TIM;
 
 public class OvenInstanceStateMachine extends InstanceStateMachine {
@@ -45,7 +43,7 @@ public class OvenInstanceStateMachine extends InstanceStateMachine {
     }
 
     @Override
-    protected void stateActivity(int stateNum, Event e) throws StateMachineException, EmptyInstanceException, ModelIntegrityException {
+    protected void stateActivity(int stateNum, Event e) throws XtumlException {
         if ( stateNum == AwaitingCookingRequest ) {
             stateAwaitingCookingRequest( e );
         }
@@ -67,7 +65,7 @@ public class OvenInstanceStateMachine extends InstanceStateMachine {
         else throw new StateMachineException( "State does not exist. " );
     }
     
-    private void stateAwaitingCookingRequest( Event e ) throws EmptyInstanceException, ModelIntegrityException {
+    private void stateAwaitingCookingRequest( Event e ) throws XtumlException {
         Oven self = (Oven)getInstance();
         // assign self.remaining_cooking_time = 0;
         self.setM_remaining_cooking_time( 0 );
@@ -77,7 +75,7 @@ public class OvenInstanceStateMachine extends InstanceStateMachine {
         beeper.generateTo( new StopBeeping() );
     }
 
-    private void stateEnsuringSafeToCook( Event e ) throws EmptyInstanceException, ModelIntegrityException {
+    private void stateEnsuringSafeToCook( Event e ) throws XtumlException {
         Oven self = (Oven)getInstance();
         // if (self.remaining_cooking_time != 0)
         if ( self.getM_remaining_cooking_time() != 0 ) {
@@ -93,7 +91,7 @@ public class OvenInstanceStateMachine extends InstanceStateMachine {
         }
     }
 
-    private void stateCooking( Event e ) throws EmptyInstanceException, ModelIntegrityException {
+    private void stateCooking( Event e ) throws XtumlException {
         Oven self = (Oven)getInstance();
         // create event instance cooking_over of MO_O5:'cooking_period_over'() to self;
         Event cooking_over = new CookingPeriodOver( self, true );
@@ -113,7 +111,7 @@ public class OvenInstanceStateMachine extends InstanceStateMachine {
         tube.generateTo( new PowerOn() );
     }
 
-    private void stateCookingSuspended( Event e ) throws EmptyInstanceException, ModelIntegrityException {
+    private void stateCookingSuspended( Event e ) throws XtumlException {
         Oven self = (Oven)getInstance();
         // assign self.remaining_cooking_time = TIM::timer_remaining_time(timer_inst_ref:self.oven_timer);
         self.setM_remaining_cooking_time( TIM.timer_remaining_time( self.getM_oven_timer() ) );
@@ -133,7 +131,7 @@ public class OvenInstanceStateMachine extends InstanceStateMachine {
         tube.generateTo( new PowerOff() );
     }
 
-    private void stateSignallingCookingPeriodOver( Event e ) throws ModelIntegrityException, EmptyInstanceException {
+    private void stateSignallingCookingPeriodOver( Event e ) throws XtumlException {
         Oven self = (Oven)getInstance();
         // select one beeper related by self->MO_B[R3];
         Beeper beeper = self.selectOneMO_BOnR3();
@@ -153,7 +151,7 @@ public class OvenInstanceStateMachine extends InstanceStateMachine {
         tube.generateTo( new PowerOff() );
     }
 
-    private void stateAssigningCookingPeriod( Event e ) throws SameDataException, EmptyInstanceException {
+    private void stateAssigningCookingPeriod( Event e ) throws XtumlException {
         Oven self = (Oven)getInstance();
         int period = (int)e.getData( "period" );
         // assign self.remaining_cooking_time = rcvd_evt.period;

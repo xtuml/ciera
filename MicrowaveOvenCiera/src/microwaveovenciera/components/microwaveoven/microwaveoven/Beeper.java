@@ -7,9 +7,9 @@ import ciera.application.ApplicationThread;
 import ciera.classes.EmptyInstance;
 import ciera.classes.ModelInstance;
 import ciera.classes.Where;
-import ciera.classes.exceptions.EmptyInstanceException;
-import ciera.classes.exceptions.LinkException;
-import ciera.classes.exceptions.ModelIntegrityException;
+import ciera.exceptions.LinkException;
+import ciera.exceptions.ModelIntegrityException;
+import ciera.exceptions.XtumlException;
 import ciera.statemachine.Event;
 import ciera.util.Timer;
 import microwaveovenciera.components.microwaveoven.microwaveoven.beeper.instancestatemachine.BeeperInstanceStateMachine;
@@ -31,12 +31,12 @@ public class Beeper extends ModelInstance {
     // associations
     private Oven MO_OOnR3;
     
-    public void setMO_OOnR3(Oven mO_OOnR3) throws LinkException {
+    public void setMO_OOnR3(Oven mO_OOnR3) throws XtumlException {
         if ( null == MO_OOnR3 ) MO_OOnR3 = mO_OOnR3;
         else throw new LinkException( "Cannot link to already linked relationship." );
     }
 
-    public void clearMO_OOnR3() throws LinkException {
+    public void clearMO_OOnR3() throws XtumlException {
         if ( null != MO_OOnR3 ) MO_OOnR3 = null;
         else throw new LinkException( "Cannot unlink non-linked relationship." );
     }
@@ -47,47 +47,47 @@ public class Beeper extends ModelInstance {
     }
     
     // attribute accessors
-    public UUID getM_BeeperID() throws EmptyInstanceException {
+    public UUID getM_BeeperID() throws XtumlException {
         checkLiving();
         return m_BeeperID;
     }
 
-    public Timer getM_beeper_timer() throws EmptyInstanceException {
+    public Timer getM_beeper_timer() throws XtumlException {
         checkLiving();
         return m_beeper_timer;
     }
 
-    public void setM_beeper_timer(Timer m_beeper_timer) throws EmptyInstanceException {
+    public void setM_beeper_timer(Timer m_beeper_timer) throws XtumlException {
         checkLiving();
         this.m_beeper_timer = m_beeper_timer;
     }
 
-    public int getM_beep_count() throws EmptyInstanceException {
+    public int getM_beep_count() throws XtumlException {
         checkLiving();
         return m_beep_count;
     }
 
-    public void setM_beep_count(int m_beep_count) throws EmptyInstanceException {
+    public void setM_beep_count(int m_beep_count) throws XtumlException {
         checkLiving();
         this.m_beep_count = m_beep_count;
     }
 
-    public Event getM_beeper_delay_over() throws EmptyInstanceException {
+    public Event getM_beeper_delay_over() throws XtumlException {
         checkLiving();
         return m_beeper_delay_over;
     }
 
-    public void setM_beeper_delay_over(Event m_beeper_delay_over) throws EmptyInstanceException {
+    public void setM_beeper_delay_over(Event m_beeper_delay_over) throws XtumlException {
         checkLiving();
         this.m_beeper_delay_over = m_beeper_delay_over;
     }
 
     // selections
-    public Oven selectOneMO_OOnR3() throws ModelIntegrityException, EmptyInstanceException {
+    public Oven selectOneMO_OOnR3() throws XtumlException {
         return selectOneMO_OOnR3( null );
     }
     
-    public Oven selectOneMO_OOnR3( Where condition ) throws ModelIntegrityException, EmptyInstanceException {
+    public Oven selectOneMO_OOnR3( Where condition ) throws XtumlException {
         checkLiving();
         if ( !(this instanceof EmptyInstance ) ) {
             if ( null == MO_OOnR3 ) throw new ModelIntegrityException( "Uncoditional association with no related instance." );
@@ -99,12 +99,12 @@ public class Beeper extends ModelInstance {
     }
     
     // relates
-    public void relateToMO_OAcrossR3( Oven oven ) throws EmptyInstanceException, LinkException {
+    public void relateToMO_OAcrossR3( Oven oven ) throws XtumlException {
         oven.relateToMO_BAcrossR3( this );
     }
     
     // unrelates
-    public void unrelateFromMO_OAcrossR3( Oven oven ) throws EmptyInstanceException, LinkException {
+    public void unrelateFromMO_OAcrossR3( Oven oven ) throws XtumlException {
         oven.unrelateFromMO_BAcrossR3( this );
     }
 

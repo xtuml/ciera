@@ -1,7 +1,7 @@
-package ciera.statemachine.exceptions;
+package ciera.exceptions;
 
 @SuppressWarnings("serial")
-public class StateMachineException extends Exception {
+public class StateMachineException extends XtumlException {
     public StateMachineException( String message ) {
         super( message );
     }

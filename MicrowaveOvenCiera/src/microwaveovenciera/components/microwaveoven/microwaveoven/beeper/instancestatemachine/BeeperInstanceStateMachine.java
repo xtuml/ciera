@@ -3,16 +3,16 @@ package microwaveovenciera.components.microwaveoven.microwaveoven.beeper.instanc
 import microwaveovenciera.components.microwaveoven.microwaveoven.Beeper;
 import microwaveovenciera.components.microwaveoven.microwaveoven.Oven;
 import microwaveovenciera.components.microwaveoven.microwaveoven.oven.instancestatemachine.BeepingOver;
-import ciera.classes.exceptions.EmptyInstanceException;
-import ciera.classes.exceptions.ModelIntegrityException;
+import ciera.exceptions.StateMachineException;
+import ciera.exceptions.XtumlException;
 import ciera.statemachine.Event;
 import ciera.statemachine.InstanceStateMachine;
 import ciera.statemachine.StateEventMatrix;
-import ciera.statemachine.exceptions.StateMachineException;
 import ciera.util.ees.TIM;
 
 public class BeeperInstanceStateMachine extends InstanceStateMachine {
     
+    // states
     private static final int AwaitingBeeperRequest = 1;
     private static final int Beeping = 2;
     
@@ -25,7 +25,7 @@ public class BeeperInstanceStateMachine extends InstanceStateMachine {
     }
 
     @Override
-    protected void stateActivity(int stateNum, Event e) throws StateMachineException, EmptyInstanceException, ModelIntegrityException {
+    protected void stateActivity(int stateNum, Event e) throws XtumlException {
         if ( stateNum == AwaitingBeeperRequest ) {
             stateAwaitingBeeperRequest( e );
         }
@@ -35,7 +35,7 @@ public class BeeperInstanceStateMachine extends InstanceStateMachine {
         else throw new StateMachineException( "State does not exist. " );
     }
     
-    private void stateAwaitingBeeperRequest( Event e ) throws EmptyInstanceException {
+    private void stateAwaitingBeeperRequest( Event e ) throws XtumlException {
         Beeper self = (Beeper)getInstance();
         // assign self.beep_count = 0;
         self.setM_beep_count( 0 );
@@ -43,7 +43,7 @@ public class BeeperInstanceStateMachine extends InstanceStateMachine {
         boolean cancelled_timer = TIM.timer_cancel( self.getM_beeper_timer() );
     }
 
-    private void stateBeeping( Event e ) throws EmptyInstanceException, ModelIntegrityException {
+    private void stateBeeping( Event e ) throws XtumlException {
         Beeper self = (Beeper)getInstance();
         // if (self.beep_count == 0) // beeper yet to begin
         if ( self.getM_beep_count() == 0 ) {

@@ -5,8 +5,7 @@ import ciera.classes.EmptyInstanceSet;
 import ciera.classes.InstanceSet;
 import ciera.classes.ModelInstance;
 import ciera.classes.Where;
-import ciera.classes.exceptions.EmptyInstanceException;
-import ciera.classes.exceptions.ModelIntegrityException;
+import ciera.exceptions.XtumlException;
 
 @SuppressWarnings("serial")
 public class InternalLightSet extends InstanceSet {
@@ -15,11 +14,11 @@ public class InternalLightSet extends InstanceSet {
     public static final EmptyInternalLightSet emptyInternalLightSet = new EmptyInternalLightSet();
 
     // selections
-    OvenSet selectManyMO_OsOnR2() throws ModelIntegrityException, EmptyInstanceException {
+    OvenSet selectManyMO_OsOnR2() throws XtumlException {
         return selectManyMO_OsOnR2( null );
     }
 
-    OvenSet selectManyMO_OsOnR2( Where condition ) throws ModelIntegrityException, EmptyInstanceException {
+    OvenSet selectManyMO_OsOnR2( Where condition ) throws XtumlException {
         OvenSet return_set = new OvenSet();
         for ( ModelInstance internalLight : this ) {
             Oven selected = ((InternalLight)internalLight).selectOneMO_OOnR2( condition );

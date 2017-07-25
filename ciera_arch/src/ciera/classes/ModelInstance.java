@@ -3,14 +3,13 @@ package ciera.classes;
 import java.util.UUID;
 
 import ciera.application.ApplicationThread;
-import ciera.classes.exceptions.EmptyInstanceException;
-import ciera.classes.exceptions.ModelIntegrityException;
+import ciera.exceptions.EmptyInstanceException;
+import ciera.exceptions.XtumlException;
 import ciera.statemachine.AssignerStateMachine;
 import ciera.statemachine.Event;
 import ciera.statemachine.EventDispatch;
 import ciera.statemachine.EventTarget;
 import ciera.statemachine.InstanceStateMachine;
-import ciera.statemachine.exceptions.StateMachineException;
 
 public abstract class ModelInstance implements EventTarget {
     
@@ -47,25 +46,25 @@ public abstract class ModelInstance implements EventTarget {
         return instanceId;
     }
     
-    public void checkLiving() throws EmptyInstanceException {
+    public void checkLiving() throws XtumlException {
         if ( !alive ) throw new EmptyInstanceException( "Access of deleted instance " );
     }
     
     @Override
-    public void transition( Event e ) throws StateMachineException, EmptyInstanceException, ModelIntegrityException {
+    public void transition( Event e ) throws XtumlException {
         checkLiving();
         ism.transition(e);
     }
     
     @Override
-    public void generateTo( Event e ) throws EmptyInstanceException {
+    public void generateTo( Event e ) throws XtumlException {
         checkLiving();
         e.setTarget( this );
         dispatch.generateTo( e );
     }
 
     @Override
-    public void generateToSelf( Event e ) throws EmptyInstanceException {
+    public void generateToSelf( Event e ) throws XtumlException {
         e.setToSelf( true );
         generateTo( e );
     }
@@ -93,7 +92,7 @@ public abstract class ModelInstance implements EventTarget {
         this.context = context;
     }
     
-    public void delete() throws EmptyInstanceException {
+    public void delete() throws XtumlException {
         checkLiving();
         getDefaultThread().removeTarget( this );
         alive = false;

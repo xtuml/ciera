@@ -1,8 +1,9 @@
 package microwaveovenciera.components.microwaveoven.microwaveoven.oven.instancestatemachine;
 
+import ciera.exceptions.SameDataException;
+import ciera.exceptions.XtumlException;
 import ciera.statemachine.Event;
 import ciera.statemachine.EventTarget;
-import ciera.statemachine.exceptions.SameDataException;
 
 public class CookingPeriod extends Event {
     
@@ -31,7 +32,7 @@ public class CookingPeriod extends Event {
     }
 
     @Override
-    public Object getData(String id) throws SameDataException {
+    public Object getData(String id) throws XtumlException {
         if ( id.equals( "period" ) ) return period;
         else throw new SameDataException( "Event does not contain required data." );
     }
