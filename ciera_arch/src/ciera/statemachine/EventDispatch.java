@@ -9,12 +9,19 @@ public class EventDispatch {
     private ConcurrentLinkedQueue<Event> eventsToSelf;
     private ConcurrentLinkedQueue<Event> events;
     
+    public EventDispatch() {
+        eventsToSelf = new ConcurrentLinkedQueue<Event>();
+        events = new ConcurrentLinkedQueue<Event>();
+    }
+    
     public void run() {
         try {
             dispatch();
         }
         catch ( XtumlException e ) {
             // TODO exception handling
+            System.err.println( "Bad 3" );
+            e.printStackTrace();
         }
     }
     
@@ -27,7 +34,9 @@ public class EventDispatch {
         else if ( !events.isEmpty() ) {
             e = events.remove();
         }
-        if ( e != null ) e.getTarget().transition(e);
+        if ( e != null ) {
+            e.getTarget().transition(e);
+        }
     }
     
     public void generateTo( Event e ) {

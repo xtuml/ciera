@@ -7,6 +7,7 @@ import ciera.statemachine.EventTarget;
 
 public class CookingPeriod extends Event {
     
+    private static final int eventId = 7;
     private static final int eventNumber = 8;
     private static final int classNumber = 1;
     
@@ -19,6 +20,11 @@ public class CookingPeriod extends Event {
     public CookingPeriod( EventTarget t, boolean ts, int period ) {
         super( t, ts );
         this.period = period;
+    }
+    
+    @Override
+    public int getEventId() {
+        return eventId;
     }
     
     @Override

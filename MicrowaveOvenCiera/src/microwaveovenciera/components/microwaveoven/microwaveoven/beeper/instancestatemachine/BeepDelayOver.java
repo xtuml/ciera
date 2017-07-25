@@ -5,6 +5,7 @@ import ciera.statemachine.EventTarget;
 
 public class BeepDelayOver extends Event {
     
+    private static final int eventId = 1;
     private static final int eventNumber = 2;
     private static final int classNumber = 4;
 
@@ -13,6 +14,11 @@ public class BeepDelayOver extends Event {
 
     public BeepDelayOver( EventTarget t, boolean ts ) {
         super( t, ts );
+    }
+    
+    @Override
+    public int getEventId() {
+        return eventId;
     }
 
     @Override

@@ -16,7 +16,7 @@ import microwaveovenciera.components.microwaveoven.microwaveoven.beeper.instance
 
 public class Beeper extends ModelInstance {
     
-    private static final int classId = 4;
+    private static final int classNumber = 4;
     private static final String keyLetters = "MO_B";
     
     // empty instance
@@ -110,8 +110,8 @@ public class Beeper extends ModelInstance {
     }
 
     @Override
-    public int getClassId() {
-        return classId;
+    public int getClassNumber() {
+        return classNumber;
     }
     
     @Override

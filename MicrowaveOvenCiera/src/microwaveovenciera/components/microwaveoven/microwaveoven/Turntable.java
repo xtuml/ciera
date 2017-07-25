@@ -14,7 +14,7 @@ import microwaveovenciera.components.microwaveoven.microwaveoven.turntable.insta
 
 public class Turntable extends ModelInstance {
     
-    private static final int classId = 6;
+    private static final int classNumber = 6;
     private static final String keyLetters = "MO_TRN";
     
     // empty instance
@@ -75,8 +75,8 @@ public class Turntable extends ModelInstance {
     }
 
     @Override
-    public int getClassId() {
-        return classId;
+    public int getClassNumber() {
+        return classNumber;
     }
     
     @Override

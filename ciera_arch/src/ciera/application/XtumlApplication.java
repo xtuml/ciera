@@ -18,6 +18,8 @@ public abstract class XtumlApplication {
                 component.initialize();
             } catch ( XtumlException e ) {
                 // TODO exception handling
+                System.err.println( "Bad 1" );
+                e.printStackTrace();
             }
         }
     }

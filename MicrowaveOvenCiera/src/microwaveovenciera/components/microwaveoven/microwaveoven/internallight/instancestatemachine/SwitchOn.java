@@ -5,6 +5,7 @@ import ciera.statemachine.EventTarget;
 
 public class SwitchOn extends Event {
     
+    private static final int eventId = 0;
     private static final int eventNumber = 1;
     private static final int classNumber = 3;
 
@@ -13,6 +14,11 @@ public class SwitchOn extends Event {
 
     public SwitchOn( EventTarget t, boolean ts ) {
         super( t, ts );
+    }
+
+    @Override
+    public int getEventId() {
+        return eventId;
     }
 
     @Override

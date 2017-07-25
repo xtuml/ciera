@@ -31,7 +31,7 @@ public class TestSequencesInstanceStateMachine extends InstanceStateMachine {
     public TestSequencesInstanceStateMachine() {
         sem = new StateEventMatrix( new int[][]{
             { StateEventMatrix.CANNOT_HAPPEN, StateEventMatrix.CANNOT_HAPPEN, StateEventMatrix.CANNOT_HAPPEN, StateEventMatrix.CANNOT_HAPPEN },
-            { PerformingTestSequence1, PerformingTestSequence1, AwaitingTestSequenceInitiation, StateEventMatrix.EVENT_IGNORED },
+            { AwaitingTestSequenceInitiation, PerformingTestSequence1, PerformingTestSequence2, StateEventMatrix.EVENT_IGNORED },
             { StateEventMatrix.EVENT_IGNORED, StateEventMatrix.EVENT_IGNORED, StateEventMatrix.EVENT_IGNORED, CookingComplete },
             { StateEventMatrix.EVENT_IGNORED, StateEventMatrix.EVENT_IGNORED, StateEventMatrix.EVENT_IGNORED, CookingComplete },
             { StateEventMatrix.EVENT_IGNORED, StateEventMatrix.EVENT_IGNORED, StateEventMatrix.EVENT_IGNORED, StateEventMatrix.EVENT_IGNORED }
@@ -39,7 +39,7 @@ public class TestSequencesInstanceStateMachine extends InstanceStateMachine {
     }
 
     @Override
-    protected void stateActivity(int stateNum, Event e) throws XtumlException {
+    public void stateActivity(int stateNum, Event e) throws XtumlException {
         if ( stateNum == AwaitingTestSequenceInitiation ) {
             stateAwaitingTestSequenceInitiation( e );
         }

@@ -11,7 +11,7 @@ import microwaveovenciera.components.microwaveoven.testsubsystem.testsequences.i
 
 public class TestSequences extends ModelInstance {
     
-    private static final int classId = 100;
+    private static final int classNumber = 100;
     private static final String keyLetters = "MO_TS";
     
     // empty instance
@@ -41,8 +41,8 @@ public class TestSequences extends ModelInstance {
     // unrelates
 
     @Override
-    public int getClassId() {
-        return classId;
+    public int getClassNumber() {
+        return classNumber;
     }
     
     @Override

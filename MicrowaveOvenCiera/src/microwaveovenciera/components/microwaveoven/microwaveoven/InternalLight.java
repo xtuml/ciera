@@ -14,7 +14,7 @@ import microwaveovenciera.components.microwaveoven.microwaveoven.internallight.i
 
 public class InternalLight extends ModelInstance {
     
-    private static final int classId = 3;
+    private static final int classNumber = 3;
     private static final String keyLetters = "MO_IL";
     
     // empty instance
@@ -75,8 +75,8 @@ public class InternalLight extends ModelInstance {
     }
 
     @Override
-    public int getClassId() {
-        return classId;
+    public int getClassNumber() {
+        return classNumber;
     }
     
     @Override

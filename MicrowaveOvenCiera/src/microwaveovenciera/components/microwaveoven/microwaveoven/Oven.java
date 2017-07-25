@@ -15,7 +15,7 @@ import microwaveovenciera.components.microwaveoven.microwaveoven.oven.instancest
 
 public class Oven extends ModelInstance {
     
-    private static final int classId = 1;
+    private static final int classNumber = 1;
     private static final String keyLetters = "MO_O";
 
     // empty instance
@@ -215,7 +215,7 @@ public class Oven extends ModelInstance {
     public void relateToMO_DAcrossR4( Door door ) throws XtumlException {
         checkLiving();
         door.checkLiving();
-        if ( null == MO_BOnR3 ) {
+        if ( null == MO_DOnR4 ) {
             MO_DOnR4 = door;
             door.setMO_OOnR4( this );
         }
@@ -284,8 +284,8 @@ public class Oven extends ModelInstance {
     }
 
     @Override
-    public int getClassId() {
-        return classId;
+    public int getClassNumber() {
+        return classNumber;
     }
     
     @Override

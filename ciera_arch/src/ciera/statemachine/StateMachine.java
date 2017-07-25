@@ -9,12 +9,12 @@ public abstract class StateMachine {
     protected StateEventMatrix sem;
     
     public StateMachine() {
-        currentState = 0;
+        currentState = 1;
     }
             
     public void transition( Event e ) throws XtumlException {
         // get new state
-        int newState = sem.getCell( currentState, e.getEventNumber() );
+        int newState = sem.getCell( currentState, e.getEventId() );
         // check cannot happen and ignore
         if ( StateEventMatrix.CANNOT_HAPPEN == newState )
             throw new CantHappenException( "Event cannot happen. Class number " + Integer.toString(e.getClassNumber()) + 
@@ -28,6 +28,6 @@ public abstract class StateMachine {
         }
     }
     
-    protected abstract void stateActivity( int stateNum, Event e ) throws XtumlException;
+    public abstract void stateActivity( int stateNum, Event e ) throws XtumlException;
 
 }

@@ -39,7 +39,7 @@ public abstract class ModelInstance implements EventTarget, Comparable<ModelInst
         ism.setInstance( this );
     }
 
-    public abstract int getClassId();
+    public abstract int getClassNumber();
     public abstract String getKeyLetters();
     
     public UUID getInstanceId() {
@@ -81,7 +81,14 @@ public abstract class ModelInstance implements EventTarget, Comparable<ModelInst
     
     @Override
     public void run() {
-        dispatch.run();
+        try {
+            checkLiving();
+            if ( !(this instanceof EmptyInstance) ) dispatch.run();
+        } catch (XtumlException e) {
+            // TODO exception handling
+            System.err.println( "Bad 2" );
+            e.printStackTrace();
+        }
     }
     
     public InstancePopulation getContext() {

@@ -15,7 +15,7 @@ import ciera.exceptions.XtumlException;
 
 public class MagnetronTube extends ModelInstance {
     
-    private static final int classId = 2;
+    private static final int classNumber = 2;
     private static final String keyLetters = "MO_MT";
     
     // empty instance
@@ -87,8 +87,8 @@ public class MagnetronTube extends ModelInstance {
     }
 
     @Override
-    public int getClassId() {
-        return classId;
+    public int getClassNumber() {
+        return classNumber;
     }
     
     @Override

@@ -6,11 +6,12 @@ import ciera.components.Component;
 import ciera.exceptions.XtumlException;
 import microwaveovenciera.components.microwaveoven.functions.Functions;
 import microwaveovenciera.components.microwaveoven.microwaveoven.*;
+import microwaveovenciera.components.microwaveoven.testsubsystem.TestSequences;
 
 public class MicrowaveOven extends Component {
     
     private static final Class<?>[] classes = new Class<?>[] {
-        Beeper.class, Door.class, InternalLight.class, MagnetronTube.class, Oven.class, Turntable.class
+        Beeper.class, Door.class, InternalLight.class, MagnetronTube.class, Oven.class, Turntable.class, TestSequences.class
     };
     
     public MicrowaveOven( ApplicationThread defaultThread ) {

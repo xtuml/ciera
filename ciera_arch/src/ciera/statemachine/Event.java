@@ -40,6 +40,7 @@ public abstract class Event {
         else target.generateTo( this );
     }
 
+    public abstract int getEventId();
     public abstract int getEventNumber();
     public abstract int getClassNumber();
 

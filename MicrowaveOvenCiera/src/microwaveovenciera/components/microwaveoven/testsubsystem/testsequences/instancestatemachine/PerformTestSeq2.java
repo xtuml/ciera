@@ -5,6 +5,7 @@ import ciera.statemachine.EventTarget;
 
 public class PerformTestSeq2 extends Event {
     
+    private static final int eventId = 2;
     private static final int eventNumber = 3;
     private static final int classNumber = 100;
 
@@ -13,6 +14,11 @@ public class PerformTestSeq2 extends Event {
 
     public PerformTestSeq2( EventTarget t, boolean ts ) {
         super( t, ts );
+    }
+
+    @Override
+    public int getEventId() {
+        return eventId;
     }
 
     @Override

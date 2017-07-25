@@ -5,6 +5,7 @@ import ciera.statemachine.EventTarget;
 
 public class StartBeeping extends Event {
     
+    private static final int eventId = 0;
     private static final int eventNumber = 1;
     private static final int classNumber = 4;
 
@@ -13,6 +14,11 @@ public class StartBeeping extends Event {
 
     public StartBeeping( EventTarget t, boolean ts ) {
         super( t, ts );
+    }
+
+    @Override
+    public int getEventId() {
+        return eventId;
     }
 
     @Override

@@ -11,6 +11,8 @@ import microwaveovenciera.components.microwaveoven.microwaveoven.oven.instancest
 import microwaveovenciera.components.microwaveoven.microwaveoven.oven.instancestatemachine.StartCooking;
 import microwaveovenciera.components.microwaveoven.microwaveoven.magnetrontube.instancestatemachine.DecreasePower;
 import microwaveovenciera.components.microwaveoven.microwaveoven.magnetrontube.instancestatemachine.IncreasePower;
+import microwaveovenciera.components.microwaveoven.testsubsystem.TestSequences;
+import microwaveovenciera.components.microwaveoven.testsubsystem.testsequences.instancestatemachine.PerformTestSeq1;
 
 public class Functions {
     
@@ -103,9 +105,11 @@ public class Functions {
         oven.generateTo( new StartCooking() );
     }
     
-    public static void TestSequence1( MicrowaveOven context ) {
+    public static void TestSequence1( MicrowaveOven context ) throws XtumlException {
         // create object instance testSequence of MO_TS;
+        TestSequences testSequence = context.createObjectInstance( new TestSequences() );
         // generate MO_TS2 to testSequence;
+        testSequence.generateTo( new PerformTestSeq1() );
     }
 
 }

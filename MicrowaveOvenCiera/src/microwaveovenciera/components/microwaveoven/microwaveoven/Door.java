@@ -14,7 +14,7 @@ import microwaveovenciera.components.microwaveoven.microwaveoven.door.instancest
 
 public class Door extends ModelInstance {
     
-    private static final int classId = 5;
+    private static final int classNumber = 5;
     private static final String keyLetters = "MO_D";
     
     // empty instance
@@ -86,8 +86,8 @@ public class Door extends ModelInstance {
     }
 
     @Override
-    public int getClassId() {
-        return classId;
+    public int getClassNumber() {
+        return classNumber;
     }
     
     @Override

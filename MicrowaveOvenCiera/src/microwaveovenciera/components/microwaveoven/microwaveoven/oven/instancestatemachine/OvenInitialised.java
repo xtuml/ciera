@@ -5,6 +5,7 @@ import ciera.statemachine.EventTarget;
 
 public class OvenInitialised extends Event {
     
+    private static final int eventId = 1;
     private static final int eventNumber = 2;
     private static final int classNumber = 1;
 
@@ -13,6 +14,11 @@ public class OvenInitialised extends Event {
 
     public OvenInitialised( EventTarget t, boolean ts ) {
         super( t, ts );
+    }
+
+    @Override
+    public int getEventId() {
+        return eventId;
     }
 
     @Override

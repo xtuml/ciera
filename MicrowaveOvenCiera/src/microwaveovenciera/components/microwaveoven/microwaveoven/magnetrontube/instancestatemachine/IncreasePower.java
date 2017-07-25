@@ -5,6 +5,7 @@ import ciera.statemachine.EventTarget;
 
 public class IncreasePower extends Event {
     
+    private static final int eventId = 0;
     private static final int eventNumber = 1;
     private static final int classNumber = 2;
 
@@ -13,6 +14,11 @@ public class IncreasePower extends Event {
 
     public IncreasePower( EventTarget t, boolean ts ) {
         super( t, ts );
+    }
+    
+    @Override
+    public int getEventId() {
+        return eventId;
     }
 
     @Override

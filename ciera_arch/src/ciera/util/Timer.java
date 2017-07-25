@@ -52,6 +52,8 @@ public class Timer {
                 eventToGenerate.generate();
             } catch ( XtumlException e ) {
                 // TODO exception handling
+                System.err.println( "Bad 4" );
+                e.printStackTrace();
             }
             // if this is a recurring timer, reschedule
             if ( recurring ) {

@@ -26,7 +26,7 @@ public class MagnetronTubeInstanceStateMachine extends InstanceStateMachine {
     }
 
     @Override
-    protected void stateActivity(int stateNum, Event e) throws XtumlException {
+    public void stateActivity(int stateNum, Event e) throws XtumlException {
         if ( stateNum == OutputPowerStableAndOff ) {
             stateOutputPowerStableAndOff( e );
         }

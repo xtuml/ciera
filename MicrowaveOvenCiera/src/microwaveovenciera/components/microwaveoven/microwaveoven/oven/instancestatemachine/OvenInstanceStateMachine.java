@@ -43,7 +43,7 @@ public class OvenInstanceStateMachine extends InstanceStateMachine {
     }
 
     @Override
-    protected void stateActivity(int stateNum, Event e) throws XtumlException {
+    public void stateActivity(int stateNum, Event e) throws XtumlException {
         if ( stateNum == AwaitingCookingRequest ) {
             stateAwaitingCookingRequest( e );
         }
