@@ -121,6 +121,11 @@ public class Beeper extends ModelInstance {
     public int getClassId() {
         return classId;
     }
+    
+    @Override
+    public String getKeyLetters() {
+        return keyLetters;
+    }
 
     @Override
     public ApplicationThread getDefaultThread() {
@@ -154,7 +159,6 @@ class BeeperSet extends InstanceSet {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public Beeper getEmptyInstance() {
         return Beeper.emptyBeeper;
     }

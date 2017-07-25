@@ -31,6 +31,7 @@ public abstract class ModelInstance implements EventTarget {
     }
 
     public abstract int getClassId();
+    public abstract String getKeyLetters();
     
     public UUID getInstanceId() {
         return instanceId;

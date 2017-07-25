@@ -96,6 +96,11 @@ public class MagnetronTube extends ModelInstance {
     public int getClassId() {
         return classId;
     }
+    
+    @Override
+    public String getKeyLetters() {
+        return keyLetters;
+    }
 
     @Override
     public ApplicationThread getDefaultThread() {
@@ -129,7 +134,6 @@ class MagnetronTubeSet extends InstanceSet {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public MagnetronTube getEmptyInstance() {
         return MagnetronTube.emptyMagnetronTube;
     }

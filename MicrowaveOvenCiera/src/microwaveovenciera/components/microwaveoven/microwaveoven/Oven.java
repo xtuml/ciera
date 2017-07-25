@@ -279,6 +279,11 @@ public class Oven extends ModelInstance {
     public int getClassId() {
         return classId;
     }
+    
+    @Override
+    public String getKeyLetters() {
+        return keyLetters;
+    }
 
     @Override
     public ApplicationThread getDefaultThread() {
@@ -368,7 +373,6 @@ class OvenSet extends InstanceSet {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public Oven getEmptyInstance() {
         return Oven.emptyOven;
     }

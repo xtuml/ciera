@@ -83,6 +83,11 @@ public class InternalLight extends ModelInstance {
     public int getClassId() {
         return classId;
     }
+    
+    @Override
+    public String getKeyLetters() {
+        return keyLetters;
+    }
 
     @Override
     public ApplicationThread getDefaultThread() {
@@ -116,7 +121,6 @@ class InternalLightSet extends InstanceSet {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public InternalLight getEmptyInstance() {
         return InternalLight.emptyInternalLight;
     }

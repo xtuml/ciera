@@ -95,6 +95,11 @@ public class Door extends ModelInstance {
     public int getClassId() {
         return classId;
     }
+    
+    @Override
+    public String getKeyLetters() {
+        return keyLetters;
+    }
 
     @Override
     public ApplicationThread getDefaultThread() {
@@ -128,7 +133,6 @@ class DoorSet extends InstanceSet {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public Door getEmptyInstance() {
         return Door.emptyDoor;
     }
