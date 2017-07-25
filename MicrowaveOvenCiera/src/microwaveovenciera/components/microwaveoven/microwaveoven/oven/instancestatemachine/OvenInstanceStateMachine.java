@@ -32,8 +32,7 @@ public class OvenInstanceStateMachine extends InstanceStateMachine {
     private static final int SignallingCookingPeriodOver = 5;
     private static final int AssigningCookingPeriod = 6;
     
-    public OvenInstanceStateMachine( Turntable turntable ) {
-        instance = turntable;
+    public OvenInstanceStateMachine() {
         sem = new StateEventMatrix( new int[][]{
             { StateEventMatrix.CANNOT_HAPPEN, StateEventMatrix.CANNOT_HAPPEN, StateEventMatrix.CANNOT_HAPPEN, StateEventMatrix.CANNOT_HAPPEN, StateEventMatrix.CANNOT_HAPPEN, StateEventMatrix.CANNOT_HAPPEN, StateEventMatrix.CANNOT_HAPPEN, StateEventMatrix.CANNOT_HAPPEN },
             { StateEventMatrix.EVENT_IGNORED, StateEventMatrix.EVENT_IGNORED, StateEventMatrix.EVENT_IGNORED, StateEventMatrix.EVENT_IGNORED, StateEventMatrix.EVENT_IGNORED, StateEventMatrix.EVENT_IGNORED, StateEventMatrix.EVENT_IGNORED, AssigningCookingPeriod },
@@ -69,7 +68,7 @@ public class OvenInstanceStateMachine extends InstanceStateMachine {
     }
     
     private void stateAwaitingCookingRequest( Event e ) throws EmptyInstanceException, ModelIntegrityException {
-        Oven self = (Oven)instance;
+        Oven self = (Oven)getInstance();
         // assign self.remaining_cooking_time = 0;
         self.setM_remaining_cooking_time( 0 );
         // select one beeper related by self->MO_B[R3];
@@ -79,7 +78,7 @@ public class OvenInstanceStateMachine extends InstanceStateMachine {
     }
 
     private void stateEnsuringSafeToCook( Event e ) throws EmptyInstanceException, ModelIntegrityException {
-        Oven self = (Oven)instance;
+        Oven self = (Oven)getInstance();
         // if (self.remaining_cooking_time != 0)
         if ( self.getM_remaining_cooking_time() != 0 ) {
             // select one door related by self->MO_D[R4];
@@ -95,7 +94,7 @@ public class OvenInstanceStateMachine extends InstanceStateMachine {
     }
 
     private void stateCooking( Event e ) throws EmptyInstanceException, ModelIntegrityException {
-        Oven self = (Oven)instance;
+        Oven self = (Oven)getInstance();
         // create event instance cooking_over of MO_O5:'cooking_period_over'() to self;
         Event cooking_over = new CookingPeriodOver( self, true );
         // self.oven_timer = TIM::timer_start(microseconds:self.remaining_cooking_time, event_inst:cooking_over);
@@ -115,7 +114,7 @@ public class OvenInstanceStateMachine extends InstanceStateMachine {
     }
 
     private void stateCookingSuspended( Event e ) throws EmptyInstanceException, ModelIntegrityException {
-        Oven self = (Oven)instance;
+        Oven self = (Oven)getInstance();
         // assign self.remaining_cooking_time = TIM::timer_remaining_time(timer_inst_ref:self.oven_timer);
         self.setM_remaining_cooking_time( TIM.timer_remaining_time( self.getM_oven_timer() ) );
         // cancelled = TIM::timer_cancel(timer_inst_ref:self.oven_timer);
@@ -135,7 +134,7 @@ public class OvenInstanceStateMachine extends InstanceStateMachine {
     }
 
     private void stateSignallingCookingPeriodOver( Event e ) throws ModelIntegrityException, EmptyInstanceException {
-        Oven self = (Oven)instance;
+        Oven self = (Oven)getInstance();
         // select one beeper related by self->MO_B[R3];
         Beeper beeper = self.selectOneMO_BOnR3();
         // generate MO_B1:'start_beeping' to beeper;
@@ -155,7 +154,7 @@ public class OvenInstanceStateMachine extends InstanceStateMachine {
     }
 
     private void stateAssigningCookingPeriod( Event e ) throws SameDataException, EmptyInstanceException {
-        Oven self = (Oven)instance;
+        Oven self = (Oven)getInstance();
         int period = (int)e.getData( "period" );
         // assign self.remaining_cooking_time = rcvd_evt.period;
         self.setM_remaining_cooking_time( period );

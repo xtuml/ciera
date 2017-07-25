@@ -10,6 +10,7 @@ import ciera.classes.Where;
 import ciera.classes.exceptions.EmptyInstanceException;
 import ciera.classes.exceptions.LinkException;
 import ciera.classes.exceptions.ModelIntegrityException;
+import microwaveovenciera.components.microwaveoven.microwaveoven.door.instancestatemachine.DoorInstanceStateMachine;
 
 public class Door extends ModelInstance {
     
@@ -38,13 +39,7 @@ public class Door extends ModelInstance {
     
     // constructors
     public Door() {
-        super();
-    }
-    
-    public Door( UUID DoorID, boolean is_secure ) {
-        super();
-        m_DoorID = DoorID;
-        m_is_secure = is_secure;
+        super( new DoorInstanceStateMachine() );
     }
     
     // attribute accessors

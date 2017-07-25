@@ -1,6 +1,5 @@
 package microwaveovenciera.components.microwaveoven.microwaveoven.turntable.instancestatemachine;
 
-import microwaveovenciera.components.microwaveoven.microwaveoven.Turntable;
 import ciera.classes.exceptions.EmptyInstanceException;
 import ciera.statemachine.Event;
 import ciera.statemachine.InstanceStateMachine;
@@ -12,8 +11,7 @@ public class TurntableInstanceStateMachine extends InstanceStateMachine {
     private static final int Stationary = 1;
     private static final int Rotating = 2;
     
-    public TurntableInstanceStateMachine( Turntable turntable ) {
-        instance = turntable;
+    public TurntableInstanceStateMachine() {
         sem = new StateEventMatrix( new int[][]{
             { StateEventMatrix.CANNOT_HAPPEN, StateEventMatrix.CANNOT_HAPPEN },
             { Rotating, StateEventMatrix.EVENT_IGNORED },

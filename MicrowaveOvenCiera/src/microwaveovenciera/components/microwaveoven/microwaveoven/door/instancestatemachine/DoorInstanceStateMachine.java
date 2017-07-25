@@ -15,8 +15,7 @@ public class DoorInstanceStateMachine extends InstanceStateMachine {
     private static final int Open = 1;
     private static final int Closed = 2;
     
-    public DoorInstanceStateMachine( Door door ) {
-        instance = door;
+    public DoorInstanceStateMachine() {
         sem = new StateEventMatrix( new int[][]{
             { StateEventMatrix.CANNOT_HAPPEN, StateEventMatrix.CANNOT_HAPPEN },
             { StateEventMatrix.EVENT_IGNORED, Closed },
@@ -36,7 +35,7 @@ public class DoorInstanceStateMachine extends InstanceStateMachine {
     }
     
     private void stateOpen( Event e ) throws EmptyInstanceException, ModelIntegrityException {
-        Door self = (Door)instance;
+        Door self = (Door)getInstance();
         // assign self.is_secure = false;
         self.setM_is_secure( false );
         // select one oven related by self->MO_O[R4];
@@ -46,7 +45,7 @@ public class DoorInstanceStateMachine extends InstanceStateMachine {
     }
 
     private void stateClosed( Event e ) throws EmptyInstanceException {
-        Door self = (Door)instance;
+        Door self = (Door)getInstance();
         // assign self.is_secure = true;
         self.setM_is_secure( true );
     }

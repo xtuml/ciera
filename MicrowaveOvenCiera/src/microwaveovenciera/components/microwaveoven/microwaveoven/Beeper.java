@@ -12,6 +12,7 @@ import ciera.classes.exceptions.LinkException;
 import ciera.classes.exceptions.ModelIntegrityException;
 import ciera.statemachine.Event;
 import ciera.util.Timer;
+import microwaveovenciera.components.microwaveoven.microwaveoven.beeper.instancestatemachine.BeeperInstanceStateMachine;
 
 public class Beeper extends ModelInstance {
     
@@ -42,15 +43,7 @@ public class Beeper extends ModelInstance {
 
     // constructors
     public Beeper() {
-        super();
-    }
-    
-    public Beeper( UUID BeeperID, Timer beeper_timer, int beep_count, Event beeper_delay_over ) {
-        super();
-        m_BeeperID = BeeperID;
-        m_beeper_timer = beeper_timer;
-        m_beep_count = beep_count;
-        m_beeper_delay_over = beeper_delay_over;
+        super( new BeeperInstanceStateMachine() );
     }
     
     // attribute accessors

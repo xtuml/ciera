@@ -10,6 +10,7 @@ import ciera.classes.Where;
 import ciera.classes.exceptions.EmptyInstanceException;
 import ciera.classes.exceptions.LinkException;
 import ciera.classes.exceptions.ModelIntegrityException;
+import microwaveovenciera.components.microwaveoven.microwaveoven.internallight.instancestatemachine.InternalLightInstanceStateMachine;
 
 public class InternalLight extends ModelInstance {
     
@@ -37,12 +38,7 @@ public class InternalLight extends ModelInstance {
     
     // constructors
     public InternalLight() {
-        super();
-    }
-    
-    public InternalLight( UUID InternalLightID ) {
-        super();
-        m_LightID = InternalLightID;
+        super( new InternalLightInstanceStateMachine() );
     }
     
     // attribute accessors

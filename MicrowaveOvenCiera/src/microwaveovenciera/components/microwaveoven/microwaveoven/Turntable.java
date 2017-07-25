@@ -10,6 +10,7 @@ import ciera.classes.Where;
 import ciera.classes.exceptions.EmptyInstanceException;
 import ciera.classes.exceptions.LinkException;
 import ciera.classes.exceptions.ModelIntegrityException;
+import microwaveovenciera.components.microwaveoven.microwaveoven.turntable.instancestatemachine.TurntableInstanceStateMachine;
 
 public class Turntable extends ModelInstance {
     
@@ -37,12 +38,7 @@ public class Turntable extends ModelInstance {
     
     // constructors
     public Turntable() {
-        super();
-    }
-    
-    public Turntable( UUID TurntableID ) {
-        super();
-        m_TurntableID = TurntableID;
+        super( new TurntableInstanceStateMachine() );
     }
     
     // attribute accessors

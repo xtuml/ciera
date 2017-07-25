@@ -9,6 +9,7 @@ public abstract class AssignerStateMachine extends StateMachine implements Event
     
     public AssignerStateMachine() {
         getDefaultThread().addTarget( this );
+        dispatch = new EventDispatch();
     }
     
     @Override

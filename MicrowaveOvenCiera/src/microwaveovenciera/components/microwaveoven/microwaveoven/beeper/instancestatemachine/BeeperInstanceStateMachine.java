@@ -16,8 +16,7 @@ public class BeeperInstanceStateMachine extends InstanceStateMachine {
     private static final int AwaitingBeeperRequest = 1;
     private static final int Beeping = 2;
     
-    public BeeperInstanceStateMachine( Beeper beeper ) {
-        instance = beeper;
+    public BeeperInstanceStateMachine() {
         sem = new StateEventMatrix( new int[][]{
             { StateEventMatrix.CANNOT_HAPPEN, StateEventMatrix.CANNOT_HAPPEN, StateEventMatrix.CANNOT_HAPPEN, StateEventMatrix.CANNOT_HAPPEN },
             { Beeping, StateEventMatrix.EVENT_IGNORED, StateEventMatrix.EVENT_IGNORED, StateEventMatrix.EVENT_IGNORED },
@@ -37,7 +36,7 @@ public class BeeperInstanceStateMachine extends InstanceStateMachine {
     }
     
     private void stateAwaitingBeeperRequest( Event e ) throws EmptyInstanceException {
-        Beeper self = (Beeper)instance;
+        Beeper self = (Beeper)getInstance();
         // assign self.beep_count = 0;
         self.setM_beep_count( 0 );
         // cancelled_timer = TIM::timer_cancel(timer_inst_ref:self.beeper_timer);
@@ -45,7 +44,7 @@ public class BeeperInstanceStateMachine extends InstanceStateMachine {
     }
 
     private void stateBeeping( Event e ) throws EmptyInstanceException, ModelIntegrityException {
-        Beeper self = (Beeper)instance;
+        Beeper self = (Beeper)getInstance();
         // if (self.beep_count == 0) // beeper yet to begin
         if ( self.getM_beep_count() == 0 ) {
             // create event instance delay_over of MO_B2:'beep_delay_over' to self;

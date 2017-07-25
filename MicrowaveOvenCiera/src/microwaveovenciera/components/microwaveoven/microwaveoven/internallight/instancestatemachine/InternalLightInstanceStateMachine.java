@@ -1,6 +1,5 @@
 package microwaveovenciera.components.microwaveoven.microwaveoven.internallight.instancestatemachine;
 
-import microwaveovenciera.components.microwaveoven.microwaveoven.InternalLight;
 import ciera.classes.exceptions.EmptyInstanceException;
 import ciera.statemachine.Event;
 import ciera.statemachine.InstanceStateMachine;
@@ -12,8 +11,7 @@ public class InternalLightInstanceStateMachine extends InstanceStateMachine {
     private static final int Off = 1;
     private static final int On = 2;
     
-    public InternalLightInstanceStateMachine( InternalLight internalLight ) {
-        instance = internalLight;
+    public InternalLightInstanceStateMachine() {
         sem = new StateEventMatrix( new int[][]{
             { StateEventMatrix.CANNOT_HAPPEN, StateEventMatrix.CANNOT_HAPPEN },
             { On, StateEventMatrix.EVENT_IGNORED },

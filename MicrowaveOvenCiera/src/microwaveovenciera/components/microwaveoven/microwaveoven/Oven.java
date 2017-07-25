@@ -11,6 +11,7 @@ import ciera.classes.exceptions.EmptyInstanceException;
 import ciera.classes.exceptions.LinkException;
 import ciera.classes.exceptions.ModelIntegrityException;
 import ciera.util.Timer;
+import microwaveovenciera.components.microwaveoven.microwaveoven.oven.instancestatemachine.OvenInstanceStateMachine;
 
 public class Oven extends ModelInstance {
     
@@ -22,6 +23,11 @@ public class Oven extends ModelInstance {
     
     // class attributes
     private UUID m_OvenID;
+    private UUID ref_TubeID;
+    private UUID ref_LightID;
+    private UUID ref_BeeperID;
+    private UUID ref_DoorID;
+    private UUID ref_TurntableID;
     private Timer m_oven_timer;
     private int m_remaining_cooking_time;
 
@@ -34,14 +40,7 @@ public class Oven extends ModelInstance {
 
     // constructors
     public Oven() {
-        super();
-    }
-    
-    public Oven( UUID OvenID, Timer oven_timer, int remaining_cooking_time ) {
-        super();
-        m_OvenID = OvenID;
-        m_oven_timer = oven_timer;
-        m_remaining_cooking_time = remaining_cooking_time;
+        super( new OvenInstanceStateMachine() );
     }
     
     // attribute accessors
@@ -56,23 +55,33 @@ public class Oven extends ModelInstance {
     }
     
     public UUID getM_TubeID() throws ModelIntegrityException, EmptyInstanceException {
-        return selectOneMO_MTOnR1().getM_TubeID();
+        checkLiving();
+        ref_TubeID = selectOneMO_MTOnR1().getM_TubeID();
+        return ref_TubeID;
     }
     
     public UUID getM_LightID() throws ModelIntegrityException, EmptyInstanceException {
-        return selectOneMO_ILOnR2().getM_LightID();
+        checkLiving();
+        ref_LightID = selectOneMO_ILOnR2().getM_LightID();
+        return ref_LightID;
     }
     
     public UUID getM_BeeperID() throws ModelIntegrityException, EmptyInstanceException {
-        return selectOneMO_BOnR3().getM_BeeperID();
+        checkLiving();
+        ref_BeeperID = selectOneMO_BOnR3().getM_BeeperID();
+        return ref_BeeperID;
     }
     
     public UUID getM_DoorID() throws ModelIntegrityException, EmptyInstanceException {
-        return selectOneMO_DOnR4().getM_DoorID();
+        checkLiving();
+        ref_DoorID = selectOneMO_DOnR4().getM_DoorID();
+        return ref_DoorID;
     }
     
     public UUID getM_TurntableID() throws ModelIntegrityException, EmptyInstanceException {
-        return selectOneMO_TRNOnR5().getM_TurntableID();
+        checkLiving();
+        ref_TurntableID = selectOneMO_TRNOnR5().getM_TurntableID();
+        return ref_TurntableID;
     }
 
     public Timer getM_oven_timer() throws EmptyInstanceException {

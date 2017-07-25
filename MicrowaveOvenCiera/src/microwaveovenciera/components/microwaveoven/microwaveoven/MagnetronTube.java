@@ -3,6 +3,7 @@ package microwaveovenciera.components.microwaveoven.microwaveoven;
 import java.util.UUID;
 
 import microwaveovenciera.components.microwaveoven.datatypes.TubeWattage;
+import microwaveovenciera.components.microwaveoven.microwaveoven.magnetrontube.instancestatemachine.MagnetronTubeInstanceStateMachine;
 import ciera.application.XtumlApplication;
 import ciera.application.ApplicationThread;
 import ciera.classes.EmptyInstance;
@@ -39,13 +40,7 @@ public class MagnetronTube extends ModelInstance {
     
     // constructors
     public MagnetronTube() {
-        super();
-    }
-    
-    public MagnetronTube( UUID MagnetronTubeID, TubeWattage current_power_output ) {
-        super();
-        m_TubeID = MagnetronTubeID;
-        m_current_power_output = current_power_output;
+        super( new MagnetronTubeInstanceStateMachine() );
     }
     
     // attribute accessors

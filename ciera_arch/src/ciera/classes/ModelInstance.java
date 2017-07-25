@@ -21,13 +21,23 @@ public abstract class ModelInstance implements EventTarget {
     private ApplicationThread thread;
     private InstancePopulation context;
 
-    protected InstanceStateMachine ism;
-    protected AssignerStateMachine asm;
+    private InstanceStateMachine ism;
+    private static AssignerStateMachine asm;
     
+    // constructors
     public ModelInstance() {
         instanceId = UUID.randomUUID();
         getDefaultThread().addTarget( this );
         alive = true;
+        dispatch = new EventDispatch();
+        context = null;
+        ism = null;
+    }
+    
+    public ModelInstance( InstanceStateMachine ism ) {
+        this();
+        this.ism = ism;
+        ism.setInstance( this );
     }
 
     public abstract int getClassId();
@@ -87,6 +97,10 @@ public abstract class ModelInstance implements EventTarget {
         checkLiving();
         getDefaultThread().removeTarget( this );
         alive = false;
+    }
+
+    public static AssignerStateMachine getAsm() {
+        return asm;
     }
     
     @Override

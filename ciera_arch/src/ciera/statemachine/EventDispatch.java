@@ -5,7 +5,7 @@ import ciera.classes.exceptions.EmptyInstanceException;
 import ciera.classes.exceptions.ModelIntegrityException;
 import ciera.statemachine.exceptions.StateMachineException;
 
-public abstract class EventDispatch {
+public class EventDispatch {
     
     private ConcurrentLinkedQueue<Event> eventsToSelf;
     private ConcurrentLinkedQueue<Event> events;
