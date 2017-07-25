@@ -35,6 +35,7 @@ public class BeeperInstanceStateMachine extends InstanceStateMachine {
         else throw new StateMachineException( "State does not exist. " );
     }
     
+    @SuppressWarnings("unused")
     private void stateAwaitingBeeperRequest( Event e ) throws XtumlException {
         Beeper self = (Beeper)getInstance();
         // assign self.beep_count = 0;

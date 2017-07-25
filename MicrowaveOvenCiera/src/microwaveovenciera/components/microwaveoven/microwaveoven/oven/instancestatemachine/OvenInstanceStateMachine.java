@@ -111,6 +111,7 @@ public class OvenInstanceStateMachine extends InstanceStateMachine {
         tube.generateTo( new PowerOn() );
     }
 
+    @SuppressWarnings("unused")
     private void stateCookingSuspended( Event e ) throws XtumlException {
         Oven self = (Oven)getInstance();
         // assign self.remaining_cooking_time = TIM::timer_remaining_time(timer_inst_ref:self.oven_timer);
