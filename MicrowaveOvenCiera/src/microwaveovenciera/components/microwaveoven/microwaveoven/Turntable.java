@@ -95,7 +95,7 @@ class EmptyTurntable extends Turntable implements EmptyInstance {
 }
 
 @SuppressWarnings("serial")
-class TurntableSet extends InstanceSet<Turntable> {
+class TurntableSet extends InstanceSet {
 
     // empty set
     public static final EmptyTurntableSet emptyTurntableSet = new EmptyTurntableSet();
@@ -107,8 +107,8 @@ class TurntableSet extends InstanceSet<Turntable> {
 
     OvenSet selectManyMO_OsOnR5( Where condition ) throws ModelIntegrityException, EmptyInstanceException {
         OvenSet return_set = new OvenSet();
-        for ( Turntable turntable : this ) {
-            Oven selected = turntable.selectOneMO_OOnR5( condition );
+        for ( ModelInstance turntable : this ) {
+            Oven selected = ((Turntable)turntable).selectOneMO_OOnR5( condition );
             if ( !(selected instanceof EmptyInstance ) ) return_set.add( selected );
         }
         if ( return_set.isEmpty() ) return OvenSet.emptyOvenSet;

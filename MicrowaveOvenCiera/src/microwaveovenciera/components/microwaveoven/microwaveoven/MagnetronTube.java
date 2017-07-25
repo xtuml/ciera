@@ -108,7 +108,7 @@ class EmptyMagnetronTube extends MagnetronTube implements EmptyInstance {
 }
 
 @SuppressWarnings("serial")
-class MagnetronTubeSet extends InstanceSet<MagnetronTube> {
+class MagnetronTubeSet extends InstanceSet {
 
     // empty set
     public static final EmptyMagnetronTubeSet emptyMagnetronTubeSet = new EmptyMagnetronTubeSet();
@@ -120,8 +120,8 @@ class MagnetronTubeSet extends InstanceSet<MagnetronTube> {
 
     OvenSet selectManyMO_OsOnR1( Where condition ) throws ModelIntegrityException, EmptyInstanceException {
         OvenSet return_set = new OvenSet();
-        for ( MagnetronTube magnetronTube : this ) {
-            Oven selected = magnetronTube.selectOneMO_OOnR1( condition );
+        for ( ModelInstance magnetronTube : this ) {
+            Oven selected = ((MagnetronTube)magnetronTube).selectOneMO_OOnR1( condition );
             if ( !(selected instanceof EmptyInstance ) ) return_set.add( selected );
         }
         if ( return_set.isEmpty() ) return OvenSet.emptyOvenSet;

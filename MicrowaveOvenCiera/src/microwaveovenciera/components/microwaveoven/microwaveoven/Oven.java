@@ -291,7 +291,7 @@ class EmptyOven extends Oven implements EmptyInstance {
 }
 
 @SuppressWarnings("serial")
-class OvenSet extends InstanceSet<Oven> {
+class OvenSet extends InstanceSet {
 
     // empty set
     public static final EmptyOvenSet emptyOvenSet = new EmptyOvenSet();
@@ -303,8 +303,8 @@ class OvenSet extends InstanceSet<Oven> {
 
     public MagnetronTubeSet selectManyMO_MTsOnR1( Where condition ) throws ModelIntegrityException, EmptyInstanceException {
         MagnetronTubeSet return_set = new MagnetronTubeSet();
-        for ( Oven oven : this ) {
-            MagnetronTube selected = oven.selectOneMO_MTOnR1( condition );
+        for ( ModelInstance oven : this ) {
+            MagnetronTube selected = ((Oven)oven).selectOneMO_MTOnR1( condition );
             if ( !(selected instanceof EmptyInstance ) ) return_set.add( selected );
         }
         if ( return_set.isEmpty() ) return MagnetronTubeSet.emptyMagnetronTubeSet;
@@ -317,8 +317,8 @@ class OvenSet extends InstanceSet<Oven> {
 
     public InternalLightSet selectManyMO_ILsOnR2( Where condition ) throws ModelIntegrityException, EmptyInstanceException {
         InternalLightSet return_set = new InternalLightSet();
-        for ( Oven oven : this ) {
-            InternalLight selected = oven.selectOneMO_ILOnR2( condition );
+        for ( ModelInstance oven : this ) {
+            InternalLight selected = ((Oven)oven).selectOneMO_ILOnR2( condition );
             if ( !(selected instanceof EmptyInstance ) ) return_set.add( selected );
         }
         if ( return_set.isEmpty() ) return InternalLightSet.emptyInternalLightSet;
@@ -331,8 +331,8 @@ class OvenSet extends InstanceSet<Oven> {
 
     public BeeperSet selectManyMO_BsOnR3( Where condition ) throws ModelIntegrityException, EmptyInstanceException {
         BeeperSet return_set = new BeeperSet();
-        for ( Oven oven : this ) {
-            Beeper selected = oven.selectOneMO_BOnR3( condition );
+        for ( ModelInstance oven : this ) {
+            Beeper selected = ((Oven)oven).selectOneMO_BOnR3( condition );
             if ( !(selected instanceof EmptyInstance ) ) return_set.add( selected );
         }
         if ( return_set.isEmpty() ) return BeeperSet.emptyBeeperSet;
@@ -345,8 +345,8 @@ class OvenSet extends InstanceSet<Oven> {
 
     public DoorSet selectManyMO_DsOnR4( Where condition ) throws ModelIntegrityException, EmptyInstanceException {
         DoorSet return_set = new DoorSet();
-        for ( Oven oven : this ) {
-            Door selected = oven.selectOneMO_DOnR4( condition );
+        for ( ModelInstance oven : this ) {
+            Door selected = ((Oven)oven).selectOneMO_DOnR4( condition );
             if ( !(selected instanceof EmptyInstance ) ) return_set.add( selected );
         }
         if ( return_set.isEmpty() ) return DoorSet.emptyDoorSet;
@@ -359,8 +359,8 @@ class OvenSet extends InstanceSet<Oven> {
 
     public TurntableSet selectManyMO_TRNsOnR5( Where condition ) throws ModelIntegrityException, EmptyInstanceException {
         TurntableSet return_set = new TurntableSet();
-        for ( Oven oven : this ) {
-            Turntable selected = oven.selectOneMO_TRNOnR5( condition );
+        for ( ModelInstance oven : this ) {
+            Turntable selected = ((Oven)oven).selectOneMO_TRNOnR5( condition );
             if ( !(selected instanceof EmptyInstance ) ) return_set.add( selected );
         }
         if ( return_set.isEmpty() ) return TurntableSet.emptyTurntableSet;

@@ -133,7 +133,7 @@ class EmptyBeeper extends Beeper implements EmptyInstance {
 }
 
 @SuppressWarnings("serial")
-class BeeperSet extends InstanceSet<Beeper> {
+class BeeperSet extends InstanceSet {
 
     // empty set
     public static final EmptyBeeperSet emptyBeeperSet = new EmptyBeeperSet();
@@ -145,8 +145,8 @@ class BeeperSet extends InstanceSet<Beeper> {
 
     public OvenSet selectManyMO_OsOnR3( Where condition ) throws ModelIntegrityException, EmptyInstanceException {
         OvenSet return_set = new OvenSet();
-        for ( Beeper beeper : this ) {
-            Oven selected = beeper.selectOneMO_OOnR3( condition );
+        for ( ModelInstance beeper : this ) {
+            Oven selected = ((Beeper)beeper).selectOneMO_OOnR3( condition );
             if ( !(selected instanceof EmptyInstance ) ) return_set.add( selected );
         }
         if ( return_set.isEmpty() ) return OvenSet.emptyOvenSet;

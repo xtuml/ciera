@@ -4,6 +4,7 @@ import java.util.UUID;
 
 import ciera.application.ApplicationThread;
 import ciera.classes.exceptions.EmptyInstanceException;
+import ciera.classes.exceptions.InstancePopulationException;
 import ciera.classes.exceptions.ModelIntegrityException;
 import ciera.statemachine.AssignerStateMachine;
 import ciera.statemachine.Event;
@@ -19,6 +20,8 @@ public abstract class ModelInstance implements EventTarget {
 
     private EventDispatch dispatch;
     private ApplicationThread thread;
+    private InstancePopulation context;
+
     protected InstanceStateMachine ism;
     protected AssignerStateMachine asm;
     
@@ -70,6 +73,14 @@ public abstract class ModelInstance implements EventTarget {
     @Override
     public void run() {
         dispatch.run();
+    }
+    
+    public InstancePopulation getContext() {
+        return context;
+    }
+    
+    public void setContext( InstancePopulation context ) {
+        this.context = context;
     }
     
     public void delete() throws EmptyInstanceException {

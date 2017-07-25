@@ -3,14 +3,14 @@ package ciera.classes;
 import java.util.concurrent.ConcurrentSkipListSet;
 
 @SuppressWarnings("serial")
-public abstract class InstanceSet<T extends ModelInstance> extends ConcurrentSkipListSet<T> {
+public abstract class InstanceSet extends ConcurrentSkipListSet<ModelInstance> {
     
-    public T selectAny() {
+    public ModelInstance selectAny() {
         return selectAny( null );
     }
     
-    public T selectAny( Where condition ) {
-        for ( T selected : this ) {
+    public ModelInstance selectAny( Where condition ) {
+        for ( ModelInstance selected : this ) {
             if ( null == condition || condition.evaluate(selected) ) {
                 return selected;
             }
@@ -18,9 +18,9 @@ public abstract class InstanceSet<T extends ModelInstance> extends ConcurrentSki
         return getEmptyInstance();
     }
     
-    public InstanceSet<T> selectMany( Where condition ) {
-        InstanceSet<T> return_set = (InstanceSet<T>)this.clone();
-        for ( T selected : this ) {
+    public InstanceSet selectMany( Where condition ) {
+        InstanceSet return_set = (InstanceSet)this.clone();
+        for ( ModelInstance selected : this ) {
             if ( null != condition && !condition.evaluate(selected) ) {
                 return_set.remove(selected);
             }
@@ -28,6 +28,6 @@ public abstract class InstanceSet<T extends ModelInstance> extends ConcurrentSki
         return return_set;
     }
 
-    public abstract T getEmptyInstance();
-    
+    public abstract ModelInstance getEmptyInstance();
+
 }

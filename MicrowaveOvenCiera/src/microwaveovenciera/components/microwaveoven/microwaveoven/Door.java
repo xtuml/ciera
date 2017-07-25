@@ -107,7 +107,7 @@ class EmptyDoor extends Door implements EmptyInstance {
 }
 
 @SuppressWarnings("serial")
-class DoorSet extends InstanceSet<Door> {
+class DoorSet extends InstanceSet {
 
     // empty set
     public static final EmptyDoorSet emptyDoorSet = new EmptyDoorSet();
@@ -119,8 +119,8 @@ class DoorSet extends InstanceSet<Door> {
 
     OvenSet selectManyMO_OsOnR4( Where condition ) throws ModelIntegrityException, EmptyInstanceException {
         OvenSet return_set = new OvenSet();
-        for ( Door door : this ) {
-            Oven selected = door.selectOneMO_OOnR4( condition );
+        for ( ModelInstance door : this ) {
+            Oven selected = ((Door)door).selectOneMO_OOnR4( condition );
             if ( !(selected instanceof EmptyInstance ) ) return_set.add( selected );
         }
         if ( return_set.isEmpty() ) return OvenSet.emptyOvenSet;
