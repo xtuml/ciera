@@ -70,6 +70,7 @@ public class TimeKeeper {
     private void reschedule() {
         if ( !runningTimers.isEmpty() ) {
             internalTimer.cancel();
+            internalTimer = new java.util.Timer();
             internalTimer.schedule( new GenerateTask(), new java.util.Date( microToMillis( runningTimers.first().getWakeUpTime() ) ) );
         }
     }
