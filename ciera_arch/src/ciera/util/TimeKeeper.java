@@ -68,8 +68,8 @@ public class TimeKeeper {
     }
     
     private void reschedule() {
+        internalTimer.cancel();
         if ( !runningTimers.isEmpty() ) {
-            internalTimer.cancel();
             internalTimer = new java.util.Timer();
             internalTimer.schedule( new GenerateTask(), new java.util.Date( microToMillis( runningTimers.first().getWakeUpTime() ) ) );
         }
