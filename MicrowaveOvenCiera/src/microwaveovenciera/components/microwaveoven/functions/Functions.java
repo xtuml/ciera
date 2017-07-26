@@ -16,10 +16,6 @@ import microwaveovenciera.components.microwaveoven.testsubsystem.testsequences.i
 
 public class Functions {
     
-    public static void init( MicrowaveOven context ) {
-        System.out.println( "hello world" );
-    }
-    
     public static void CancelCooking( MicrowaveOven context ) throws XtumlException {
         // select any oven from instances of MO_O;
         Oven oven = context.selectAnyMO_OFromInstances();

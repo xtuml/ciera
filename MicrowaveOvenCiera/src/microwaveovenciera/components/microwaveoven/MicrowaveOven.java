@@ -118,7 +118,6 @@ public class MicrowaveOven extends Component {
     // component initialization function
     @Override
     public void initialize() throws XtumlException {
-        Functions.init( this );
         Functions.DefineOven( this );
         Functions.TestSequence1( this );
     }
