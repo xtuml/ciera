@@ -14,6 +14,7 @@ public class MagnetronTubeInstanceStateMachine extends InstanceStateMachine {
     private static final int ReducingOutputPower = 2;
     private static final int RaisingOutputPower = 3;
     private static final int OutputPowerStableAndOn = 4;
+    private static final String[] stateNames = new String[] { "Non Existent", "Output Power Stable And Off", "Reducing Output Power", "Raising Output Power", "Output Power Stable And On" };
     
     public MagnetronTubeInstanceStateMachine() {
         sem = new StateEventMatrix( new int[][]{
@@ -22,7 +23,12 @@ public class MagnetronTubeInstanceStateMachine extends InstanceStateMachine {
             { RaisingOutputPower, ReducingOutputPower, OutputPowerStableAndOn, OutputPowerStableAndOff },
             { RaisingOutputPower, ReducingOutputPower, OutputPowerStableAndOn, OutputPowerStableAndOff },
             { RaisingOutputPower, ReducingOutputPower, StateEventMatrix.EVENT_IGNORED, OutputPowerStableAndOff },
-        });
+        }) {
+            @Override
+            public String getStateName( int state ) {
+                return stateNames[state];
+            }
+        };
     }
 
     @Override

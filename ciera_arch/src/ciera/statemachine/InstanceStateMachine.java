@@ -17,5 +17,10 @@ public abstract class InstanceStateMachine extends StateMachine {
     public ModelInstance getInstance() {
         return instance;
     }
+
+    @Override
+    public String getKeyLetters() {
+        return instance.getKeyLetters();
+    }
     
 }

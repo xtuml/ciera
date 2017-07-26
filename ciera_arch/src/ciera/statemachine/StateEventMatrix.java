@@ -27,4 +27,8 @@ public class StateEventMatrix {
         else return matrix[stateNum][eventNum];
     }
     
+    public String getStateName( int state ) {
+        return "";
+    }
+    
 }

@@ -10,13 +10,19 @@ public class TurntableInstanceStateMachine extends InstanceStateMachine {
     
     private static final int Stationary = 1;
     private static final int Rotating = 2;
+    private static final String[] stateNames = new String[] { "Non Existent", "Stationary", "Rotating" };
     
     public TurntableInstanceStateMachine() {
         sem = new StateEventMatrix( new int[][]{
             { StateEventMatrix.CANNOT_HAPPEN, StateEventMatrix.CANNOT_HAPPEN },
             { Rotating, StateEventMatrix.EVENT_IGNORED },
             { StateEventMatrix.EVENT_IGNORED, Stationary }
-        });
+        }) {
+            @Override
+            public String getStateName( int state ) {
+                return stateNames[state];
+            }
+        };
     }
 
     @Override

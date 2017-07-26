@@ -6,10 +6,12 @@ public abstract class AssignerStateMachine extends StateMachine implements Event
     
     protected EventDispatch dispatch;
     private ApplicationThread thread;
+    private String keyLetters;
     
-    public AssignerStateMachine() {
+    public AssignerStateMachine( String keyLetters ) {
         getDefaultThread().addTarget( this );
         dispatch = new EventDispatch();
+        this.keyLetters = keyLetters;
     }
     
     @Override
@@ -39,6 +41,11 @@ public abstract class AssignerStateMachine extends StateMachine implements Event
     @Override
     public void run() {
         dispatch.run();
+    }
+
+    @Override
+    public String getKeyLetters() {
+        return keyLetters;
     }
     
 }

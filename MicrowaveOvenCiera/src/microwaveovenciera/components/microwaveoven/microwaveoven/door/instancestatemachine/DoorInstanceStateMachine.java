@@ -13,13 +13,19 @@ public class DoorInstanceStateMachine extends InstanceStateMachine {
     
     private static final int Open = 1;
     private static final int Closed = 2;
+    private static final String[] stateNames = new String[] { "Non Existent", "Open", "Closed" };
     
     public DoorInstanceStateMachine() {
         sem = new StateEventMatrix( new int[][]{
             { StateEventMatrix.CANNOT_HAPPEN, StateEventMatrix.CANNOT_HAPPEN },
             { StateEventMatrix.EVENT_IGNORED, Closed },
             { Open, StateEventMatrix.EVENT_IGNORED }
-        });
+        }) {
+            @Override
+            public String getStateName( int state ) {
+                return stateNames[state];
+            }
+        };
     }
 
     @Override

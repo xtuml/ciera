@@ -15,13 +15,19 @@ public class BeeperInstanceStateMachine extends InstanceStateMachine {
     // states
     private static final int AwaitingBeeperRequest = 1;
     private static final int Beeping = 2;
+    private static final String[] stateNames = new String[] { "Non Existent", "Awaiting Beeper Request", "Beeping" };
     
     public BeeperInstanceStateMachine() {
         sem = new StateEventMatrix( new int[][]{
             { StateEventMatrix.CANNOT_HAPPEN, StateEventMatrix.CANNOT_HAPPEN, StateEventMatrix.CANNOT_HAPPEN, StateEventMatrix.CANNOT_HAPPEN },
             { Beeping, StateEventMatrix.EVENT_IGNORED, StateEventMatrix.EVENT_IGNORED, StateEventMatrix.EVENT_IGNORED },
             { StateEventMatrix.EVENT_IGNORED, Beeping, AwaitingBeeperRequest, AwaitingBeeperRequest }
-        });
+        }) {
+            @Override
+            public String getStateName( int state ) {
+                return stateNames[state];
+            }
+        };
     }
 
     @Override

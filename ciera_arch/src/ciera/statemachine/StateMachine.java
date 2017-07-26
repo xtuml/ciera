@@ -21,13 +21,16 @@ public abstract class StateMachine {
                                            ", Event number " + Integer.toString(e.getEventNumber()) + ", Current state" + Integer.toString(currentState) );
         else if ( StateEventMatrix.EVENT_IGNORED == newState ) {} // do nothing
         else {
+            System.out.printf( "Transition started: %s [%d] %s\n", getKeyLetters(), currentState, sem.getStateName( currentState ) );
             // execute state activity
             stateActivity( newState, e );
             // update current state
             currentState = newState;
+            System.out.printf( "Transition complete: %s [%d] %s\n", getKeyLetters(), currentState, sem.getStateName( currentState ) );
         }
     }
     
     public abstract void stateActivity( int stateNum, Event e ) throws XtumlException;
+    public abstract String getKeyLetters();
 
 }

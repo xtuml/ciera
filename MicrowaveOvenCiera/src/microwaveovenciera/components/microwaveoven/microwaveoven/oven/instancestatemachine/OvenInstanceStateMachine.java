@@ -29,6 +29,8 @@ public class OvenInstanceStateMachine extends InstanceStateMachine {
     private static final int CookingSuspended = 4;
     private static final int SignallingCookingPeriodOver = 5;
     private static final int AssigningCookingPeriod = 6;
+    private static final String[] stateNames = new String[] { "Non Existent", "Awaiting Cooking Request", "Ensuring Safe To Cook", "Cooking", "Cooking Suspended",
+            "Signalling Cooking Period Over", "Assigning Cooking Period" };
     
     public OvenInstanceStateMachine() {
         sem = new StateEventMatrix( new int[][]{
@@ -39,7 +41,12 @@ public class OvenInstanceStateMachine extends InstanceStateMachine {
             { StateEventMatrix.EVENT_IGNORED, EnsuringSafeToCook, AwaitingCookingRequest, StateEventMatrix.EVENT_IGNORED, StateEventMatrix.EVENT_IGNORED, StateEventMatrix.EVENT_IGNORED, StateEventMatrix.EVENT_IGNORED, StateEventMatrix.EVENT_IGNORED },
             { StateEventMatrix.EVENT_IGNORED, StateEventMatrix.EVENT_IGNORED, AwaitingCookingRequest, StateEventMatrix.EVENT_IGNORED, StateEventMatrix.EVENT_IGNORED, AwaitingCookingRequest, StateEventMatrix.EVENT_IGNORED, StateEventMatrix.EVENT_IGNORED },
             { StateEventMatrix.EVENT_IGNORED, EnsuringSafeToCook, StateEventMatrix.EVENT_IGNORED, StateEventMatrix.EVENT_IGNORED, StateEventMatrix.EVENT_IGNORED, StateEventMatrix.EVENT_IGNORED, StateEventMatrix.EVENT_IGNORED, StateEventMatrix.EVENT_IGNORED }
-        });
+        }) {
+            @Override
+            public String getStateName( int state ) {
+                return stateNames[state];
+            }
+        };
     }
 
     @Override

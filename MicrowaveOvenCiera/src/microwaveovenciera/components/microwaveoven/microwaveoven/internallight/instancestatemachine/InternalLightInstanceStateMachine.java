@@ -10,13 +10,19 @@ public class InternalLightInstanceStateMachine extends InstanceStateMachine {
     
     private static final int Off = 1;
     private static final int On = 2;
+    private static final String[] stateNames = new String[] { "Non Existent", "Off", "On" };
     
     public InternalLightInstanceStateMachine() {
         sem = new StateEventMatrix( new int[][]{
             { StateEventMatrix.CANNOT_HAPPEN, StateEventMatrix.CANNOT_HAPPEN },
             { On, StateEventMatrix.EVENT_IGNORED },
             { StateEventMatrix.EVENT_IGNORED, Off }
-        });
+        }) {
+            @Override
+            public String getStateName( int state ) {
+                return stateNames[state];
+            }
+        };
     }
 
     @Override

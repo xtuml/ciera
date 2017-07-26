@@ -78,7 +78,6 @@ public class TimeKeeper {
     private class GenerateTask extends TimerTask {
         @Override
         public void run() {
-            System.out.println( "Timer fired" );
             // get the timer
             Timer timer = runningTimers.first();
             if ( null != timer && runningTimers.remove( timer ) ) {

@@ -24,9 +24,11 @@ public class TestSequencesInstanceStateMachine extends InstanceStateMachine {
     
     // states
     private static final int AwaitingTestSequenceInitiation = 1;
-    private static final int CookingComplete = 2;
-    private static final int PerformingTestSequence1 = 3;
-    private static final int PerformingTestSequence2 = 4;
+    private static final int PerformingTestSequence1 = 2;
+    private static final int PerformingTestSequence2 = 3;
+    private static final int CookingComplete = 4;
+    private static final String[] stateNames = new String[] { "Non Existent", "Awaiting Test Sequence Initiation", "Performing Test Sequence 1",
+            "Performing Test Sequence 2", "Cooking Complete" };
     
     public TestSequencesInstanceStateMachine() {
         sem = new StateEventMatrix( new int[][]{
@@ -35,7 +37,12 @@ public class TestSequencesInstanceStateMachine extends InstanceStateMachine {
             { StateEventMatrix.EVENT_IGNORED, StateEventMatrix.EVENT_IGNORED, StateEventMatrix.EVENT_IGNORED, CookingComplete },
             { StateEventMatrix.EVENT_IGNORED, StateEventMatrix.EVENT_IGNORED, StateEventMatrix.EVENT_IGNORED, CookingComplete },
             { StateEventMatrix.EVENT_IGNORED, StateEventMatrix.EVENT_IGNORED, StateEventMatrix.EVENT_IGNORED, StateEventMatrix.EVENT_IGNORED }
-        });
+        }) {
+            @Override
+            public String getStateName( int state ) {
+                return stateNames[state];
+            }
+        };
     }
 
     @Override
