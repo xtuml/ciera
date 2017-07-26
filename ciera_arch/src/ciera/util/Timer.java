@@ -1,66 +1,50 @@
 package ciera.util;
 
-import java.util.TimerTask;
-
-import ciera.exceptions.XtumlException;
 import ciera.statemachine.Event;
 
-public class Timer {
+public class Timer implements Comparable<Timer> {
     
-    private java.util.Timer internalTimer;
-
     private Event eventToGenerate;
-    private int period;
-    private java.util.Date target;
+    private long wakeUpTime;            // time to wake up in microseconds since the epoch
     private boolean recurring;
+    private int period;
     
     public Timer( Event e, int microseconds, boolean recur ) {
         eventToGenerate = e;
         recurring = recur;
-        period = microseconds;
-        target = new java.util.Date( new TimeStamp().getTime() + ( period / 1000 ) );
-        internalTimer = new java.util.Timer();
-        internalTimer.schedule( new GenerateTask(), target );
-    }
-    
-    public void addTime( int microseconds ) {
-        internalTimer.cancel();
-        target = new java.util.Date( target.getTime() + ( microseconds / 1000 ) );
-        internalTimer.schedule( new GenerateTask(), target );
-    }
-    
-    public int getRemainingTime() {
-        return (int)( target.getTime() - new TimeStamp().getTime() );
-    }
-    
-    public void resetTime( int microseconds ) {
-        internalTimer.cancel();
-        period = microseconds;
-        target = new java.util.Date( new TimeStamp().getTime() + ( period / 1000 ) );
-        internalTimer.schedule( new GenerateTask(), target );
+        setPeriod( microseconds );
+        calculateWakeUpTime();
     }
 
-    public void cancel() {
-        internalTimer.cancel();
+    public Event getEventToGenerate() {
+        return eventToGenerate;
+    }
+
+    public long getWakeUpTime() {
+        return wakeUpTime;
     }
     
-    private class GenerateTask extends TimerTask {
-        @Override
-        public void run() {
-            // generate the event
-            try {
-                eventToGenerate.generate();
-            } catch ( XtumlException e ) {
-                // TODO exception handling
-                System.err.println( "Bad 4" );
-                e.printStackTrace();
-            }
-            // if this is a recurring timer, reschedule
-            if ( recurring ) {
-                target = new java.util.Date( new TimeStamp().getTime() + ( period / 1000 ) );
-                internalTimer.schedule( new GenerateTask(), target );
-            }
-        }
+    public void calculateWakeUpTime() {
+        wakeUpTime = TimeKeeper.currentTimeMicro() + period;
+    }
+    
+    public void addToWakeUpTime( int microseconds ) {
+        wakeUpTime += microseconds;
+    }
+    
+    public void setPeriod( int microseconds ) {
+        period = microseconds;
+    }
+
+    public boolean isRecurring() {
+        return recurring;
+    }
+    
+    @Override
+    public int compareTo( Timer o ) {
+        if ( getWakeUpTime() < o.getWakeUpTime() ) return -1;
+        else if ( getWakeUpTime() > o.getWakeUpTime() ) return 1;
+        else return 0;
     }
 
 }
