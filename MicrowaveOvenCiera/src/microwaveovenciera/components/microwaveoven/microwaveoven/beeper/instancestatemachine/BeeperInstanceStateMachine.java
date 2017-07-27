@@ -1,5 +1,6 @@
 package microwaveovenciera.components.microwaveoven.microwaveoven.beeper.instancestatemachine;
 
+import microwaveovenciera.components.microwaveoven.externalentities.TIM;
 import microwaveovenciera.components.microwaveoven.microwaveoven.Beeper;
 import microwaveovenciera.components.microwaveoven.microwaveoven.Oven;
 import microwaveovenciera.components.microwaveoven.microwaveoven.oven.instancestatemachine.BeepingOver;
@@ -8,7 +9,6 @@ import ciera.exceptions.XtumlException;
 import ciera.statemachine.Event;
 import ciera.statemachine.InstanceStateMachine;
 import ciera.statemachine.StateEventMatrix;
-import ciera.util.ees.TIM;
 
 public class BeeperInstanceStateMachine extends InstanceStateMachine {
     

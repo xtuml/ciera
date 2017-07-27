@@ -1,6 +1,8 @@
 package microwaveovenciera.components.microwaveoven.testsubsystem.testsequences.instancestatemachine;
 
 import microwaveovenciera.components.microwaveoven.MicrowaveOven;
+import microwaveovenciera.components.microwaveoven.externalentities.ARCH;
+import microwaveovenciera.components.microwaveoven.externalentities.TIM;
 import microwaveovenciera.components.microwaveoven.microwaveoven.Door;
 import microwaveovenciera.components.microwaveoven.microwaveoven.MagnetronTube;
 import microwaveovenciera.components.microwaveoven.microwaveoven.Oven;
@@ -17,8 +19,6 @@ import ciera.statemachine.Event;
 import ciera.statemachine.InstanceStateMachine;
 import ciera.statemachine.StateEventMatrix;
 import ciera.util.Timer;
-import ciera.util.ees.ARCH;
-import ciera.util.ees.TIM;
 
 public class TestSequencesInstanceStateMachine extends InstanceStateMachine {
     

@@ -6,7 +6,7 @@ import ciera.util.TimeKeeper;
 import ciera.util.TimeStamp;
 import ciera.util.Timer;
 
-public class TIM {
+public class DefaultTIM {
     
     public static Date create_date( int day, int hour, int minute, int month, int second, int year ) {
         return new Date( year, month, day, hour, minute, second );
