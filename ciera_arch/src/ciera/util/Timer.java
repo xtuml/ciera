@@ -25,7 +25,7 @@ public class Timer implements Comparable<Timer> {
     }
     
     public void calculateWakeUpTime() {
-        wakeUpTime = TimeKeeper.currentTimeMicro() + period;
+        wakeUpTime = DefaultTimeKeeper.currentTimeMicro() + period;
     }
     
     public void addToWakeUpTime( int microseconds ) {

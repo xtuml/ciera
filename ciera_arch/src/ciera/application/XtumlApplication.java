@@ -2,6 +2,8 @@ package ciera.application;
 
 import ciera.components.Component;
 import ciera.exceptions.XtumlException;
+import ciera.util.DefaultTimeKeeper;
+import ciera.util.TimeKeeper;
 
 public abstract class XtumlApplication {
     
@@ -56,6 +58,10 @@ public abstract class XtumlApplication {
     
     public void setComponents( Component[] components ) {
         this.components = components;
+    }
+    
+    public TimeKeeper getTimeKeeper() {
+        return DefaultTimeKeeper.getInstance();
     }
 
 }

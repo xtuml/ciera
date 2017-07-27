@@ -1,8 +1,8 @@
 package ciera.util.ees;
 
+import ciera.application.XtumlApplication;
 import ciera.statemachine.Event;
 import ciera.util.Date;
-import ciera.util.TimeKeeper;
 import ciera.util.TimeStamp;
 import ciera.util.Timer;
 
@@ -45,30 +45,30 @@ public class DefaultTIM {
     }
     
     public static boolean timer_add_time( int microseconds, Timer timer_inst_ref ) {
-        TimeKeeper.getInstance().addTime( timer_inst_ref, microseconds );
+        XtumlApplication.app.getTimeKeeper().addTime( timer_inst_ref, microseconds );
         return true;
     }
     
     public static boolean timer_cancel( Timer timer_inst_ref ) {
-        TimeKeeper.getInstance().cancel( timer_inst_ref );
+        XtumlApplication.app.getTimeKeeper().cancel( timer_inst_ref );
         return true;
     }
     
     public static int timer_remaining_time( Timer timer_inst_ref ) {
-        return TimeKeeper.getInstance().getRemainingTime( timer_inst_ref );
+        return XtumlApplication.app.getTimeKeeper().getRemainingTime( timer_inst_ref );
     }
 
     public static boolean timer_reset_time( int microseconds, Timer timer_inst_ref ) {
-        TimeKeeper.getInstance().resetTime( timer_inst_ref, microseconds );
+        XtumlApplication.app.getTimeKeeper().resetTime( timer_inst_ref, microseconds );
         return true;
     }
 
     public static Timer timer_start( Event event_inst, int microseconds) {
-        return TimeKeeper.getInstance().newTimer( event_inst, microseconds, false );
+        return XtumlApplication.app.getTimeKeeper().newTimer( event_inst, microseconds, false );
     }
 
     public static Timer timer_start_recurring( Event event_inst, int microseconds) {
-        return TimeKeeper.getInstance().newTimer( event_inst, microseconds, false );
+        return XtumlApplication.app.getTimeKeeper().newTimer( event_inst, microseconds, false );
     }
 
 }
