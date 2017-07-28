@@ -6,6 +6,7 @@ import ciera.exceptions.XtumlException;
 import microwaveovenciera.components.microwaveoven.functions.Functions;
 import microwaveovenciera.components.microwaveoven.microwaveoven.*;
 import microwaveovenciera.components.microwaveoven.testsubsystem.TestSequences;
+import microwaveovenciera.components.microwaveoven.testsubsystem.TestSequencesSet;
 
 public class MicrowaveOven extends Component {
     
@@ -108,6 +109,22 @@ public class MicrowaveOven extends Component {
 
     public TurntableSet selectManyMO_TRNsFromInstances( Where condition ) {
         return ((TurntableSet)getInstanceSet(Turntable.class)).selectManyMO_TRNsFromInstances( condition );
+    }
+
+    public TestSequences selectAnyMO_TSFromInstances() {
+        return ((TestSequencesSet)getInstanceSet(TestSequences.class)).selectAnyMO_TSFromInstances( null );
+    }
+    
+    public TestSequences selectAnyMO_TSFromInstances( Where condition ) {
+        return ((TestSequencesSet)getInstanceSet(TestSequences.class)).selectAnyMO_TSFromInstances( condition );
+    }
+
+    public TestSequencesSet selectManyMO_TSsFromInstances() {
+        return (TestSequencesSet)getInstanceSet(TestSequences.class);
+    }
+
+    public TestSequencesSet selectManyMO_TSsFromInstances( Where condition ) {
+        return ((TestSequencesSet)getInstanceSet(TestSequences.class)).selectManyMO_TSsFromInstances( condition );
     }
 
     // component initialization function

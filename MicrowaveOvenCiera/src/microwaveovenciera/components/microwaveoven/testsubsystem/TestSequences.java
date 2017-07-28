@@ -13,7 +13,7 @@ public class TestSequences extends ModelInstance {
     private static final String keyLetters = "MO_TS";
     
     // empty instance
-    public static final EmptyTestSequences emptyTestSequences = new EmptyTestSequences();
+    public static final TestSequences emptyTestSequences = new EmptyTestSequences();
     
     // class attributes
     private UUID m_TestSeqID;

@@ -11,14 +11,14 @@ import ciera.exceptions.XtumlException;
 public class TurntableSet extends InstanceSet {
 
     // empty set
-    public static final EmptyTurntableSet emptyTurntableSet = new EmptyTurntableSet();
+    public static final TurntableSet emptyTurntableSet = new EmptyTurntableSet();
 
     // selections
-    OvenSet selectManyMO_OsOnR5() throws XtumlException {
+    public OvenSet selectManyMO_OsOnR5() throws XtumlException {
         return selectManyMO_OsOnR5( null );
     }
 
-    OvenSet selectManyMO_OsOnR5( Where condition ) throws XtumlException {
+    public OvenSet selectManyMO_OsOnR5( Where condition ) throws XtumlException {
         OvenSet return_set = new OvenSet();
         for ( ModelInstance turntable : this ) {
             Oven selected = ((Turntable)turntable).selectOneMO_OOnR5( condition );
@@ -45,4 +45,21 @@ public class TurntableSet extends InstanceSet {
 
 @SuppressWarnings("serial")
 class EmptyTurntableSet extends TurntableSet implements EmptyInstanceSet {
+
+    // selections
+    @Override
+    public OvenSet selectManyMO_OsOnR5( Where condition ) throws XtumlException {
+        return OvenSet.emptyOvenSet;
+    }
+    
+    @Override
+    public Turntable selectAnyMO_TRNFromInstances( Where condition ) {
+        return Turntable.emptyTurntable;
+    }
+    
+    @Override
+    public TurntableSet selectManyMO_TRNsFromInstances( Where condition ) {
+        return TurntableSet.emptyTurntableSet;
+    }
+
 }

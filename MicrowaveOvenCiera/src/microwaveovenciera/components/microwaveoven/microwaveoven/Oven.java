@@ -5,6 +5,7 @@ import java.util.UUID;
 import ciera.classes.EmptyInstance;
 import ciera.classes.ModelInstance;
 import ciera.classes.Where;
+import ciera.exceptions.EmptyInstanceException;
 import ciera.exceptions.LinkException;
 import ciera.exceptions.ModelIntegrityException;
 import ciera.exceptions.XtumlException;
@@ -17,7 +18,7 @@ public class Oven extends ModelInstance {
     private static final String keyLetters = "MO_O";
 
     // empty instance
-    public static final EmptyOven emptyOven = new EmptyOven();
+    public static final Oven emptyOven = new EmptyOven();
     
     // class attributes
     private UUID m_OvenID;
@@ -110,13 +111,9 @@ public class Oven extends ModelInstance {
     
     public MagnetronTube selectOneMO_MTOnR1( Where condition ) throws XtumlException {
         checkLiving();
-        if ( !(this instanceof EmptyInstance ) ) {
-            if ( null == MO_MTOnR1 ) throw new ModelIntegrityException( "Uncoditional association with no related instance." );
-            else {
-                if ( null == condition || condition.evaluate(MO_MTOnR1) ) return MO_MTOnR1;
-            }
-        }
-        return MagnetronTube.emptyMagnetronTube;
+        if ( null == MO_MTOnR1 ) throw new ModelIntegrityException( "Uncoditional association with no related instance." );
+        else if ( null == condition || condition.evaluate(MO_MTOnR1) ) return MO_MTOnR1;
+        else return MagnetronTube.emptyMagnetronTube;
     }
 
     public InternalLight selectOneMO_ILOnR2() throws XtumlException {
@@ -125,13 +122,9 @@ public class Oven extends ModelInstance {
     
     public InternalLight selectOneMO_ILOnR2( Where condition ) throws XtumlException {
         checkLiving();
-        if ( !(this instanceof EmptyInstance ) ) {
-            if ( null == MO_ILOnR2 ) throw new ModelIntegrityException( "Uncoditional association with no related instance." );
-            else {
-                if ( null == condition || condition.evaluate(MO_ILOnR2) ) return MO_ILOnR2;
-            }
-        }
-        return InternalLight.emptyInternalLight;
+        if ( null == MO_ILOnR2 ) throw new ModelIntegrityException( "Uncoditional association with no related instance." );
+        else if ( null == condition || condition.evaluate(MO_ILOnR2) ) return MO_ILOnR2;
+        else return InternalLight.emptyInternalLight;
     }
 
     public Beeper selectOneMO_BOnR3() throws XtumlException {
@@ -140,13 +133,9 @@ public class Oven extends ModelInstance {
     
     public Beeper selectOneMO_BOnR3( Where condition ) throws XtumlException {
         checkLiving();
-        if ( !(this instanceof EmptyInstance ) ) {
-            if ( null == MO_BOnR3 ) throw new ModelIntegrityException( "Uncoditional association with no related instance." );
-            else {
-                if ( null == condition || condition.evaluate(MO_BOnR3) ) return MO_BOnR3;
-            }
-        }
-        return Beeper.emptyBeeper;
+        if ( null == MO_BOnR3 ) throw new ModelIntegrityException( "Uncoditional association with no related instance." );
+        else if ( null == condition || condition.evaluate(MO_BOnR3) ) return MO_BOnR3;
+        else return Beeper.emptyBeeper;
     }
 
     public Door selectOneMO_DOnR4() throws XtumlException {
@@ -155,13 +144,9 @@ public class Oven extends ModelInstance {
     
     public Door selectOneMO_DOnR4( Where condition ) throws XtumlException {
         checkLiving();
-        if ( !(this instanceof EmptyInstance ) ) {
-            if ( null == MO_DOnR4 ) throw new ModelIntegrityException( "Uncoditional association with no related instance." );
-            else {
-                if ( null == condition || condition.evaluate(MO_DOnR4) ) return MO_DOnR4;
-            }
-        }
-        return Door.emptyDoor;
+        if ( null == MO_DOnR4 ) throw new ModelIntegrityException( "Uncoditional association with no related instance." );
+        else if ( null == condition || condition.evaluate(MO_DOnR4) ) return MO_DOnR4;
+        else return Door.emptyDoor;
     }
 
     public Turntable selectOneMO_TRNOnR5() throws XtumlException {
@@ -170,13 +155,9 @@ public class Oven extends ModelInstance {
     
     public Turntable selectOneMO_TRNOnR5( Where condition ) throws XtumlException {
         checkLiving();
-        if ( !(this instanceof EmptyInstance ) ) {
-            if ( null == MO_TRNOnR5 ) throw new ModelIntegrityException( "Uncoditional association with no related instance." );
-            else {
-                if ( null == condition || condition.evaluate(MO_TRNOnR5) ) return MO_TRNOnR5;
-            }
-        }
-        return Turntable.emptyTurntable;
+        if ( null == MO_TRNOnR5 ) throw new ModelIntegrityException( "Uncoditional association with no related instance." );
+        else if ( null == condition || condition.evaluate(MO_TRNOnR5) ) return MO_TRNOnR5;
+        else return Turntable.emptyTurntable;
     }
     
     // relates
@@ -294,4 +275,83 @@ public class Oven extends ModelInstance {
 }
 
 class EmptyOven extends Oven implements EmptyInstance {
+
+    // selections
+    @Override
+    public MagnetronTube selectOneMO_MTOnR1( Where condition ) throws XtumlException {
+        return MagnetronTube.emptyMagnetronTube;
+    }
+    
+    @Override
+    public InternalLight selectOneMO_ILOnR2( Where condition ) throws XtumlException {
+        return InternalLight.emptyInternalLight;
+    }
+
+    @Override
+    public Beeper selectOneMO_BOnR3( Where condition ) throws XtumlException {
+        return Beeper.emptyBeeper;
+    }
+    
+    @Override
+    public Door selectOneMO_DOnR4( Where condition ) throws XtumlException {
+        return Door.emptyDoor;
+    }
+    
+    @Override
+    public Turntable selectOneMO_TRNOnR5( Where condition ) throws XtumlException {
+        return Turntable.emptyTurntable;
+    }
+
+    // relates
+    @Override
+    public void relateToMO_MTAcrossR1( MagnetronTube magnetronTube ) throws XtumlException {
+        throw new EmptyInstanceException( "Relate of empty instance" );
+    }
+
+    @Override
+    public void relateToMO_ILAcrossR2( InternalLight internalLight ) throws XtumlException {
+        throw new EmptyInstanceException( "Relate of empty instance" );
+    }
+
+    @Override
+    public void relateToMO_BAcrossR3( Beeper beeper ) throws XtumlException {
+        throw new EmptyInstanceException( "Relate of empty instance" );
+    }
+
+    @Override
+    public void relateToMO_DAcrossR4( Door door ) throws XtumlException {
+        throw new EmptyInstanceException( "Relate of empty instance" );
+    }
+
+    @Override
+    public void relateToMO_TRNAcrossR5( Turntable turntable ) throws XtumlException {
+        throw new EmptyInstanceException( "Relate of empty instance" );
+    }
+    
+    // unrelates
+    @Override
+    public void unrelateFromMO_MTAcrossR1( MagnetronTube magnetronTube ) throws XtumlException {
+        throw new EmptyInstanceException( "Unrelate of empty instance" );
+    }
+
+    @Override
+    public void unrelateFromMO_ILAcrossR2( InternalLight internalLight ) throws XtumlException {
+        throw new EmptyInstanceException( "Unrelate of empty instance" );
+    }
+
+    @Override
+    public void unrelateFromMO_BAcrossR3( Beeper beeper ) throws XtumlException {
+        throw new EmptyInstanceException( "Unrelate of empty instance" );
+    }
+
+    @Override
+    public void unrelateFromMO_DAcrossR4( Door door ) throws XtumlException {
+        throw new EmptyInstanceException( "Unrelate of empty instance" );
+    }
+
+    @Override
+    public void unrelateFromMO_TRNAcrossR5( Turntable turntable ) throws XtumlException {
+        throw new EmptyInstanceException( "Unrelate of empty instance" );
+    }
+
 }

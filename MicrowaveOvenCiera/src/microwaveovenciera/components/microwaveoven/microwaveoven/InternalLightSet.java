@@ -11,14 +11,14 @@ import ciera.exceptions.XtumlException;
 public class InternalLightSet extends InstanceSet {
 
     // empty set
-    public static final EmptyInternalLightSet emptyInternalLightSet = new EmptyInternalLightSet();
+    public static final InternalLightSet emptyInternalLightSet = new EmptyInternalLightSet();
 
     // selections
-    OvenSet selectManyMO_OsOnR2() throws XtumlException {
+    public OvenSet selectManyMO_OsOnR2() throws XtumlException {
         return selectManyMO_OsOnR2( null );
     }
 
-    OvenSet selectManyMO_OsOnR2( Where condition ) throws XtumlException {
+    public OvenSet selectManyMO_OsOnR2( Where condition ) throws XtumlException {
         OvenSet return_set = new OvenSet();
         for ( ModelInstance internalLight : this ) {
             Oven selected = ((InternalLight)internalLight).selectOneMO_OOnR2( condition );
@@ -45,4 +45,21 @@ public class InternalLightSet extends InstanceSet {
 
 @SuppressWarnings("serial")
 class EmptyInternalLightSet extends InternalLightSet implements EmptyInstanceSet {
+
+    // selections
+    @Override
+    public OvenSet selectManyMO_OsOnR2( Where condition ) throws XtumlException {
+        return OvenSet.emptyOvenSet;
+    }
+    
+    @Override
+    public InternalLight selectAnyMO_ILFromInstances( Where condition ) {
+        return InternalLight.emptyInternalLight;
+    }
+    
+    @Override
+    public InternalLightSet selectManyMO_ILsFromInstances( Where condition ) {
+        return InternalLightSet.emptyInternalLightSet;
+    }
+
 }

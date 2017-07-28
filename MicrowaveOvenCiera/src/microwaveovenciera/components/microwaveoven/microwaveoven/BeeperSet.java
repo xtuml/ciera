@@ -11,7 +11,7 @@ import ciera.exceptions.XtumlException;
 public class BeeperSet extends InstanceSet {
 
     // empty set
-    public static final EmptyBeeperSet emptyBeeperSet = new EmptyBeeperSet();
+    public static final BeeperSet emptyBeeperSet = new EmptyBeeperSet();
 
     // selections
     public OvenSet selectManyMO_OsOnR3() throws XtumlException {
@@ -45,4 +45,21 @@ public class BeeperSet extends InstanceSet {
 
 @SuppressWarnings("serial")
 class EmptyBeeperSet extends BeeperSet implements EmptyInstanceSet {
+
+    // selections
+    @Override
+    public OvenSet selectManyMO_OsOnR3( Where condition ) throws XtumlException {
+        return OvenSet.emptyOvenSet;
+    }
+    
+    @Override
+    public Beeper selectAnyMO_BFromInstances( Where condition ) {
+        return Beeper.emptyBeeper;
+    }
+    
+    @Override
+    public BeeperSet selectManyMO_BsFromInstances( Where condition ) {
+        return BeeperSet.emptyBeeperSet;
+    }
+
 }

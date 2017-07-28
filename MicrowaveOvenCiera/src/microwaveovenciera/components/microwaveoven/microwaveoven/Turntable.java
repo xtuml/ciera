@@ -5,6 +5,7 @@ import java.util.UUID;
 import ciera.classes.EmptyInstance;
 import ciera.classes.ModelInstance;
 import ciera.classes.Where;
+import ciera.exceptions.EmptyInstanceException;
 import ciera.exceptions.LinkException;
 import ciera.exceptions.ModelIntegrityException;
 import ciera.exceptions.XtumlException;
@@ -16,7 +17,7 @@ public class Turntable extends ModelInstance {
     private static final String keyLetters = "MO_TRN";
     
     // empty instance
-    public static final EmptyTurntable emptyTurntable = new EmptyTurntable();
+    public static final Turntable emptyTurntable = new EmptyTurntable();
     
     // class attributes
     private UUID m_TurntableID;
@@ -53,13 +54,9 @@ public class Turntable extends ModelInstance {
     
     public Oven selectOneMO_OOnR5( Where condition ) throws XtumlException {
         checkLiving();
-        if ( !(this instanceof EmptyInstance ) ) {
-            if ( null == MO_OOnR5 ) throw new ModelIntegrityException( "Uncoditional association with no related instance." );
-            else {
-                if ( null == condition || condition.evaluate(MO_OOnR5) ) return MO_OOnR5;
-            }
-        }
-        return (Oven)Oven.emptyOven;
+        if ( null == MO_OOnR5 ) throw new ModelIntegrityException( "Uncoditional association with no related instance." );
+        else if ( null == condition || condition.evaluate(MO_OOnR5) ) return MO_OOnR5;
+        else return Oven.emptyOven;
     }
 
     // relates
@@ -85,4 +82,33 @@ public class Turntable extends ModelInstance {
 }
 
 class EmptyTurntable extends Turntable implements EmptyInstance {
+
+    // selections
+    @Override
+    public Oven selectOneMO_OOnR5( Where condition ) throws XtumlException {
+        return Oven.emptyOven;
+    }
+
+    // relates
+    @Override
+    public void relateToMO_OAcrossR5( Oven oven ) throws XtumlException {
+        throw new EmptyInstanceException( "Relate of empty instance" );
+    }
+
+    @Override
+    public void setMO_OOnR5(Oven mO_OOnR5) throws XtumlException {
+        throw new EmptyInstanceException( "Relate of empty instance" );
+    }
+    
+    // unrelates
+    @Override
+    public void unrelateFromMO_OAcrossR5( Oven oven ) throws XtumlException {
+        throw new EmptyInstanceException( "Unrelate of empty instance" );
+    }
+
+    @Override
+    public void clearMO_OOnR5() throws XtumlException {
+        throw new EmptyInstanceException( "Unrelate of empty instance" );
+    }
+
 }

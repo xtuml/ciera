@@ -2,7 +2,7 @@ package ciera.classes;
 
 import java.util.UUID;
 
-import ciera.exceptions.EmptyInstanceException;
+import ciera.exceptions.DeletedInstanceException;
 import ciera.exceptions.XtumlException;
 import ciera.statemachine.AssignerStateMachine;
 import ciera.statemachine.Event;
@@ -41,7 +41,7 @@ public abstract class ModelInstance implements EventTarget, Comparable<ModelInst
     }
     
     public void checkLiving() throws XtumlException {
-        if ( !alive ) throw new EmptyInstanceException( "Access of deleted instance " );
+        if ( !alive ) throw new DeletedInstanceException( "Access of deleted instance " );
     }
     
     @Override

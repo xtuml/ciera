@@ -7,6 +7,7 @@ import microwaveovenciera.components.microwaveoven.microwaveoven.magnetrontube.i
 import ciera.classes.EmptyInstance;
 import ciera.classes.ModelInstance;
 import ciera.classes.Where;
+import ciera.exceptions.EmptyInstanceException;
 import ciera.exceptions.LinkException;
 import ciera.exceptions.ModelIntegrityException;
 import ciera.exceptions.XtumlException;
@@ -17,7 +18,7 @@ public class MagnetronTube extends ModelInstance {
     private static final String keyLetters = "MO_MT";
     
     // empty instance
-    public static final EmptyMagnetronTube emptyMagnetronTube = new EmptyMagnetronTube();
+    public static final MagnetronTube emptyMagnetronTube = new EmptyMagnetronTube();
     
     // class attributes
     private UUID m_TubeID;
@@ -65,13 +66,9 @@ public class MagnetronTube extends ModelInstance {
     
     public Oven selectOneMO_OOnR1( Where condition ) throws XtumlException {
         checkLiving();
-        if ( !(this instanceof EmptyInstance ) ) {
-            if ( null == MO_OOnR1 ) throw new ModelIntegrityException( "Uncoditional association with no related instance." );
-            else {
-                if ( null == condition || condition.evaluate(MO_OOnR1) ) return MO_OOnR1;
-            }
-        }
-        return (Oven)Oven.emptyOven;
+        if ( null == MO_OOnR1 ) throw new ModelIntegrityException( "Uncoditional association with no related instance." );
+        else if ( null == condition || condition.evaluate(MO_OOnR1) ) return MO_OOnR1;
+        else return Oven.emptyOven;
     }
 
     // relates
@@ -97,4 +94,33 @@ public class MagnetronTube extends ModelInstance {
 }
 
 class EmptyMagnetronTube extends MagnetronTube implements EmptyInstance {
+
+    // selections
+    @Override
+    public Oven selectOneMO_OOnR1( Where condition ) throws XtumlException {
+        return Oven.emptyOven;
+    }
+
+    // relates
+    @Override
+    public void relateToMO_OAcrossR1( Oven oven ) throws XtumlException {
+        throw new EmptyInstanceException( "Relate of empty instance" );
+    }
+    
+    @Override
+    public void setMO_OOnR1(Oven mO_OOnR1) throws XtumlException {
+        throw new EmptyInstanceException( "Relate of empty instance" );
+    }
+    
+    // unrelates
+    @Override
+    public void unrelateFromMO_OAcrossR1( Oven oven ) throws XtumlException {
+        throw new EmptyInstanceException( "Unrelate of empty instance" );
+    }
+
+    @Override
+    public void clearMO_OOnR1() throws XtumlException {
+        throw new EmptyInstanceException( "Unrelate of empty instance" );
+    }
+
 }

@@ -11,7 +11,7 @@ import ciera.exceptions.XtumlException;
 public class OvenSet extends InstanceSet {
 
     // empty set
-    public static final EmptyOvenSet emptyOvenSet = new EmptyOvenSet();
+    public static final OvenSet emptyOvenSet = new EmptyOvenSet();
 
     // selections
     public MagnetronTubeSet selectManyMO_MTsOnR1() throws XtumlException {
@@ -100,4 +100,41 @@ public class OvenSet extends InstanceSet {
 
 @SuppressWarnings("serial")
 class EmptyOvenSet extends OvenSet implements EmptyInstanceSet {
+
+    // selections
+    @Override
+    public MagnetronTubeSet selectManyMO_MTsOnR1( Where condition ) throws XtumlException {
+        return MagnetronTubeSet.emptyMagnetronTubeSet;
+    }
+
+    @Override
+    public InternalLightSet selectManyMO_ILsOnR2( Where condition ) throws XtumlException {
+        return InternalLightSet.emptyInternalLightSet;
+    }
+
+    @Override
+    public BeeperSet selectManyMO_BsOnR3( Where condition ) throws XtumlException {
+        return BeeperSet.emptyBeeperSet;
+    }
+
+    @Override
+    public DoorSet selectManyMO_DsOnR4( Where condition ) throws XtumlException {
+        return DoorSet.emptyDoorSet;
+    }
+
+    @Override
+    public TurntableSet selectManyMO_TRNsOnR5( Where condition ) throws XtumlException {
+        return TurntableSet.emptyTurntableSet;
+    }
+    
+    @Override
+    public Oven selectAnyMO_OFromInstances( Where condition ) {
+        return Oven.emptyOven;
+    }
+    
+    @Override
+    public OvenSet selectManyMO_OsFromInstances( Where condition ) {
+        return OvenSet.emptyOvenSet;
+    }
+
 }
