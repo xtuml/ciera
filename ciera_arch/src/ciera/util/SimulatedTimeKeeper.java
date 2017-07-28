@@ -1,32 +1,33 @@
 package ciera.util;
 
 import java.util.SortedSet;
-import java.util.TimerTask;
 import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 
 import ciera.application.XtumlApplication;
 import ciera.application.XtumlTask;
 import ciera.exceptions.XtumlException;
 import ciera.statemachine.Event;
 
-public class DefaultTimeKeeper implements TimeKeeper {
+public class SimulatedTimeKeeper implements TimeKeeper {
     
     // singleton instance
-    private static DefaultTimeKeeper timeKeeper = new DefaultTimeKeeper();
+    private static SimulatedTimeKeeper timeKeeper = new SimulatedTimeKeeper();
     
-    private long startTime;     // time the timekeeper was initialized in microseconds from the epoch
+    private AtomicLong currentTime;
+    private AtomicBoolean taskInQueue;
 
     private SortedSet<Timer> runningTimers;
-    private java.util.Timer internalTimer;
     
     // constructor
-    private DefaultTimeKeeper() {
-        startTime = System.currentTimeMillis() * 1000;
+    private SimulatedTimeKeeper() {
+        currentTime = new AtomicLong( 0 );
         runningTimers = new ConcurrentSkipListSet<Timer>();
-        internalTimer = new java.util.Timer( "Xtuml Timer" );
+        taskInQueue = new AtomicBoolean( false );
     }
     
-    public static DefaultTimeKeeper getInstance() {
+    public static SimulatedTimeKeeper getInstance() {
         return timeKeeper;
     }
 
@@ -35,7 +36,6 @@ public class DefaultTimeKeeper implements TimeKeeper {
         if ( null != t && runningTimers.remove( t ) ) {
             t.addToWakeUpTime( microseconds );
             addTimer( t );
-            reschedule();
         }
     }
 
@@ -48,14 +48,11 @@ public class DefaultTimeKeeper implements TimeKeeper {
             t.setPeriod( microseconds );
             t.calculateWakeUpTime();
             addTimer( t );
-            reschedule();
         }
     }
 
     public synchronized void cancel( Timer t ) {
-        if ( null != t && runningTimers.remove( t ) ) {
-            reschedule();
-        }
+        if ( null != t ) runningTimers.remove( t );
     }
     
     public synchronized Timer newTimer( Event e, int microseconds, boolean recurring ) {
@@ -63,48 +60,40 @@ public class DefaultTimeKeeper implements TimeKeeper {
         if ( null != e ) {
             timer = new Timer( e, microseconds, recurring );
             addTimer( timer );
-            reschedule();
         }
         return timer;
     }
     
     private void addTimer( Timer timer ) {
         if ( timer != null ) runningTimers.add( timer );
-    }
-    
-    private void reschedule() {
-        internalTimer.cancel();
-        if ( !runningTimers.isEmpty() ) {
-            internalTimer = new java.util.Timer( "Xtuml Timer" );
-            internalTimer.schedule( new GenerateTask(), new java.util.Date( microToMillis( convertToRealTime( runningTimers.first().getWakeUpTime() ) ) ) );
+        if ( !taskInQueue.get() ) {
+            XtumlApplication.app.getExecutor().execute( new PopTimerTask() );
+            taskInQueue.set( true );
         }
     }
     
-    private long convertToRealTime( long time ) {
-        return time + startTime;
-    }
-    
-    private class GenerateTask extends TimerTask {
+    private class PopTimerTask extends XtumlTask {
         @Override
-        public void run() {
-            synchronized ( DefaultTimeKeeper.this ) {
+        public void init() throws XtumlException {
+            synchronized ( SimulatedTimeKeeper.this ) {
                 // get the timer
                 Timer timer = runningTimers.first();
                 if ( null != timer && runningTimers.remove( timer ) ) {
+                    // set the clock
+                    currentTime.set( timer.getWakeUpTime() );
                     // generate the event
-                    XtumlApplication.app.getExecutor().execute(new XtumlTask() {
-                        @Override
-                        public void init() throws XtumlException {
-                            timer.getEventToGenerate().generate();
-                        }
-                    });
+                    timer.getEventToGenerate().generate();
                     // if this is a recurring timer, reschedule
                     if ( timer.isRecurring() ) {
                         timer.calculateWakeUpTime();
                         addTimer( timer );
                     }
-                    // reschedule for the next timer
-                    reschedule();
+                    // add a new timer task
+                    XtumlApplication.app.getExecutor().execute( new PopTimerTask() );
+                    taskInQueue.set( true );
+                }
+                else {
+                    taskInQueue.set( false );
                 }
             }
         }
@@ -112,7 +101,7 @@ public class DefaultTimeKeeper implements TimeKeeper {
     
     // utility methods
     public long currentTimeMicro() {
-        return ( System.currentTimeMillis() * 1000 ) - startTime;
+        return currentTime.get();
     }
     
     static long microToMillis( long microseconds ) {
