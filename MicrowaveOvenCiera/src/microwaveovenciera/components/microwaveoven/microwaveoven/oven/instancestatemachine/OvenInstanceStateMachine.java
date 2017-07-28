@@ -79,7 +79,7 @@ public class OvenInstanceStateMachine extends InstanceStateMachine {
         // select one beeper related by self->MO_B[R3];
         Beeper beeper = self.selectOneMO_BOnR3();
         // generate MO_B4:'stop_beeping' to beeper;
-        beeper.generateTo( new StopBeeping() );
+        new StopBeeping().generateTo( beeper );
     }
 
     private void stateEnsuringSafeToCook( Event e ) throws XtumlException {
@@ -91,7 +91,7 @@ public class OvenInstanceStateMachine extends InstanceStateMachine {
             // if (door.is_secure == true)
             if ( door.getM_is_secure() == true ) {
                 // generate MO_O7:'oven_safe'() to self;
-                door.generateTo( new OvenSafe() );
+                new OvenSafe().generateToSelf( self );
             // end if;
             }
         // end if;
@@ -107,36 +107,35 @@ public class OvenInstanceStateMachine extends InstanceStateMachine {
         // select one light related by self->MO_IL[R2];
         InternalLight light = self.selectOneMO_ILOnR2();
         // generate MO_IL1:'switch_on' to light;
-        light.generateTo( new SwitchOn() );
+        new SwitchOn().generateTo( light );
         // select one turntable related by self->MO_TRN[R5];
         Turntable turntable  = self.selectOneMO_TRNOnR5();
         // generate MO_TRN1:'spin' to turntable;
-        turntable.generateTo( new Spin() );
+        new Spin().generateTo( turntable );
         // select one tube related by self->MO_MT[R1];
         MagnetronTube tube = self.selectOneMO_MTOnR1();
         // generate MO_MT3:'power_on' to tube;
-        tube.generateTo( new PowerOn() );
+        new PowerOn().generateTo( tube );
     }
 
-    @SuppressWarnings("unused")
     private void stateCookingSuspended( Event e ) throws XtumlException {
         Oven self = (Oven)getInstance();
         // assign self.remaining_cooking_time = TIM::timer_remaining_time(timer_inst_ref:self.oven_timer);
         self.setM_remaining_cooking_time( TIM.timer_remaining_time( self.getM_oven_timer() ) );
         // cancelled = TIM::timer_cancel(timer_inst_ref:self.oven_timer);
-        boolean cancelled = TIM.timer_cancel( self.getM_oven_timer() );
+        TIM.timer_cancel( self.getM_oven_timer() );
         // select one light related by self->MO_IL[R2];
         InternalLight light = self.selectOneMO_ILOnR2();
         // generate MO_IL2:'switch_off' to light;
-        light.generateTo( new SwitchOff() );
+        new SwitchOff().generateTo( light );
         // select one turntable related by self->MO_TRN[R5];
         Turntable turntable = self.selectOneMO_TRNOnR5();
         // generate MO_TRN2:'stop' to turntable;
-        turntable.generateTo( new Stop() );
+        new Stop().generateTo( turntable );
         // select one tube related by self->MO_MT[R1];
         MagnetronTube tube = self.selectOneMO_MTOnR1();
         // generate MO_MT4:'power_off' to tube;
-        tube.generateTo( new PowerOff() );
+        new PowerOff().generateTo( tube );
     }
 
     private void stateSignallingCookingPeriodOver( Event e ) throws XtumlException {
@@ -144,19 +143,19 @@ public class OvenInstanceStateMachine extends InstanceStateMachine {
         // select one beeper related by self->MO_B[R3];
         Beeper beeper = self.selectOneMO_BOnR3();
         // generate MO_B1:'start_beeping' to beeper;
-        beeper.generateTo( new StartBeeping() );
+        new StartBeeping().generateTo( beeper );
         // select one light related by self->MO_IL[R2];
         InternalLight light = self.selectOneMO_ILOnR2();
         // generate MO_IL2:'switch_off' to light;
-        light.generateTo( new SwitchOff() );
+        new SwitchOff().generateTo( light );
         // select one turntable related by self->MO_TRN[R5];
         Turntable turntable = self.selectOneMO_TRNOnR5();
         // generate MO_TRN2:'stop' to turntable;
-        turntable.generateTo( new Stop() );
+        new Stop().generateTo( turntable );
         // select one tube related by self->MO_MT[R1];
         MagnetronTube tube = self.selectOneMO_MTOnR1();
         // generate MO_MT4:'power_off' to tube;
-        tube.generateTo( new PowerOff() );
+        new PowerOff().generateTo( tube );
     }
 
     private void stateAssigningCookingPeriod( Event e ) throws XtumlException {

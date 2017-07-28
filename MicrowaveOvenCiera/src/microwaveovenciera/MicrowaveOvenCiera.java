@@ -5,17 +5,13 @@ import ciera.components.Component;
 import microwaveovenciera.components.microwaveoven.MicrowaveOven;
 
 public class MicrowaveOvenCiera extends XtumlApplication {
-
+    
     @Override
     public void setup() {
-        // create threads
-        createThreadPool( 1 );
-        
+        // set the number of threads in the system
+        setNumberThreads( 1 );
         // create components
-        Component[] components = {
-                new MicrowaveOven( getThreadFromPool( 0 ) )
-        };
-        setComponents( components );
+        setComponents( new Component[]{ new MicrowaveOven() } );
     }
     
     public static void main( String[] args ) {

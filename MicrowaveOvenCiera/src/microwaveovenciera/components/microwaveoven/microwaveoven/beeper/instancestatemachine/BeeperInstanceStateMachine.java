@@ -41,13 +41,12 @@ public class BeeperInstanceStateMachine extends InstanceStateMachine {
         else throw new StateMachineException( "State does not exist. " );
     }
     
-    @SuppressWarnings("unused")
     private void stateAwaitingBeeperRequest( Event e ) throws XtumlException {
         Beeper self = (Beeper)getInstance();
         // assign self.beep_count = 0;
         self.setM_beep_count( 0 );
         // cancelled_timer = TIM::timer_cancel(timer_inst_ref:self.beeper_timer);
-        boolean cancelled_timer = TIM.timer_cancel( self.getM_beeper_timer() );
+        TIM.timer_cancel( self.getM_beeper_timer() );
     }
 
     private void stateBeeping( Event e ) throws XtumlException {
@@ -64,11 +63,11 @@ public class BeeperInstanceStateMachine extends InstanceStateMachine {
         // elif (self.beep_count == 4) // last beep 
         else if ( self.getM_beep_count() == 4 ) {
             // generate MO_B3:'beeping_stopped' to self;
-            self.generateToSelf( new BeepingStopped() );
+            new BeepingStopped().generateToSelf( self );
             // select one oven related by self->MO_O[R3];
             Oven oven = self.selectOneMO_OOnR3();
             // generate MO_O6:'beeping_over' to oven;
-            oven.generateTo( new BeepingOver() );
+            new BeepingOver().generateTo( oven );
         }
         // else
         else {

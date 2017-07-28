@@ -4,6 +4,8 @@ import java.util.SortedSet;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentSkipListSet;
 
+import ciera.application.XtumlApplication;
+import ciera.application.XtumlTask;
 import ciera.exceptions.XtumlException;
 import ciera.statemachine.Event;
 
@@ -83,13 +85,12 @@ public class DefaultTimeKeeper implements TimeKeeper {
               Timer timer = runningTimers.first();
               if ( null != timer && runningTimers.remove( timer ) ) {
                   // generate the event
-                  try {
-                      timer.getEventToGenerate().generate();
-                  } catch ( XtumlException e ) {
-                      // TODO exception handling
-                      System.err.println( "Bad 4" );
-                      e.printStackTrace();
-                  }
+                  XtumlApplication.app.getExecutor().execute(new XtumlTask() {
+                      @Override
+                      public void init() throws XtumlException {
+                          timer.getEventToGenerate().generate();
+                      }
+                  });
                   // if this is a recurring timer, reschedule
                   if ( timer.isRecurring() ) {
                       timer.calculateWakeUpTime();

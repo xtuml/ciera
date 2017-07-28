@@ -1,5 +1,6 @@
 package ciera.statemachine;
 
+import ciera.application.XtumlApplication;
 import ciera.exceptions.XtumlException;
 
 public abstract class Event {
@@ -19,16 +20,8 @@ public abstract class Event {
         return target;
     }
     
-    public void setTarget( EventTarget t ) {
-        target = t;
-    }
-
     public boolean toSelf() {
         return toSelf;
-    }
-    
-    public void setToSelf( boolean ts ) {
-        toSelf = ts;
     }
     
     public Object getData( String id ) throws XtumlException {
@@ -36,8 +29,17 @@ public abstract class Event {
     }
     
     public void generate() throws XtumlException {
-        if ( toSelf() ) target.generateToSelf( this );
-        else target.generateTo( this );
+        XtumlApplication.app.getExecutor().getCurrentTask().generateTo( this );
+    }
+
+    public void generateTo( EventTarget target ) throws XtumlException {
+        this.target = target;
+        generate();
+    }
+
+    public void generateToSelf( EventTarget target ) throws XtumlException {
+        toSelf = true;
+        generateTo( target );
     }
 
     public abstract int getEventId();

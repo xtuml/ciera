@@ -1,6 +1,5 @@
 package microwaveovenciera.components.microwaveoven;
 
-import ciera.application.ApplicationThread;
 import ciera.classes.Where;
 import ciera.components.Component;
 import ciera.exceptions.XtumlException;
@@ -13,10 +12,6 @@ public class MicrowaveOven extends Component {
     private static final Class<?>[] classes = new Class<?>[] {
         Beeper.class, Door.class, InternalLight.class, MagnetronTube.class, Oven.class, Turntable.class, TestSequences.class
     };
-    
-    public MicrowaveOven( ApplicationThread defaultThread ) {
-        super( defaultThread );
-    }
     
     // selections
     public Beeper selectAnyMO_BFromInstances() {

@@ -18,7 +18,6 @@ import ciera.exceptions.XtumlException;
 import ciera.statemachine.Event;
 import ciera.statemachine.InstanceStateMachine;
 import ciera.statemachine.StateEventMatrix;
-import ciera.util.Timer;
 
 public class TestSequencesInstanceStateMachine extends InstanceStateMachine {
     
@@ -66,7 +65,7 @@ public class TestSequencesInstanceStateMachine extends InstanceStateMachine {
         TestSequences self = (TestSequences)getInstance();
         // Automatically initiate test sequence 1.
         // generate MO_TS2:'perform_test_seq_1' to self;
-        self.generateToSelf( new PerformTestSeq1() );
+        new PerformTestSeq1().generateToSelf( self );
     }
 
     private void stateCookingComplete( Event e ) {
@@ -75,7 +74,6 @@ public class TestSequencesInstanceStateMachine extends InstanceStateMachine {
         ARCH.shutdown();
     }
 
-    @SuppressWarnings("unused")
     private void statePerformingTestSequence1( Event e ) {
         TestSequences self = (TestSequences)getInstance();
         MicrowaveOven context = (MicrowaveOven)self.getContext();
@@ -87,7 +85,7 @@ public class TestSequencesInstanceStateMachine extends InstanceStateMachine {
             // create event instance release_door of MO_D1:'release' to door;
             Event release_door = new Release( door, false );
             // step1_timer=TIM::timer_start(microseconds:2000000,event_inst:release_door);
-            Timer step1_timer = TIM.timer_start( release_door, 2000000 );
+            TIM.timer_start( release_door, 2000000 );
         // end if;
         }
         // Step 2. At T+3000000us, lower the output power setting to Med_High
@@ -98,7 +96,7 @@ public class TestSequencesInstanceStateMachine extends InstanceStateMachine {
             // create event instance lower_power of MO_MT2:'decrease_power' to tube;
             Event lower_power = new DecreasePower( tube, false );
             // step2_timer =TIM::timer_start(microseconds:3000000,event_inst:lower_power);
-            Timer step2_timer = TIM.timer_start( lower_power, 3000000 );
+            TIM.timer_start( lower_power, 3000000 );
         // end if;
         }
         // Step 3. At T+4000000us, close oven door
@@ -109,7 +107,7 @@ public class TestSequencesInstanceStateMachine extends InstanceStateMachine {
             // create event instance close_door of MO_D2:'close' to door;
             Event close_door = new Close( door, false );
             // step3_timer =TIM::timer_start(microseconds:4000000,event_inst:close_door);
-            Timer step3_timer = TIM.timer_start( close_door, 4000000 );
+            TIM.timer_start( close_door, 4000000 );
         // end if;
         }
         // Step 4. At T+5000000us, assign cooking period of 10 seconds and start cooking
@@ -120,11 +118,11 @@ public class TestSequencesInstanceStateMachine extends InstanceStateMachine {
             // create event instance cooking_time of MO_O8:'cooking_period'(period:10000000) to oven;
             Event cooking_time = new CookingPeriod( oven, false, 10000000 );
             // step4a_timer =TIM::timer_start(microseconds:5000000,event_inst:cooking_time);
-            Timer step4a_timer = TIM.timer_start( cooking_time, 5000000 );
+            TIM.timer_start( cooking_time, 5000000 );
             // create event instance start of MO_O3:'start_cooking' to oven;
             Event start = new StartCooking( oven, false );
             // step4b_timer =TIM::timer_start(microseconds:5000001,event_inst:start);
-            Timer step4b_timer = TIM.timer_start( start, 5000001 );
+            TIM.timer_start( start, 5000001 );
         // end if;
         }
         // Step 5. At T+15secs, open the oven door to remove cooked dish
@@ -135,7 +133,7 @@ public class TestSequencesInstanceStateMachine extends InstanceStateMachine {
             // create event instance release_door of MO_D1:'release' to door;
             Event release_door = new Release( door, false );
             // step5_timer =TIM::timer_start(microseconds:15000000,event_inst:release_door);
-            Timer step5_timer = TIM.timer_start( release_door, 15000000 );
+            TIM.timer_start( release_door, 15000000 );
         // end if;
         }
         // For codegen: Testing complete.  After 30 seconds, terminate the system
@@ -143,10 +141,9 @@ public class TestSequencesInstanceStateMachine extends InstanceStateMachine {
         // create event instance finished of MO_TS4:'test_seq_complete' to self;
         Event finished = new TestSeqComplete( self, true );
         // terminate_timer=TIM::timer_start(microseconds:30000000,event_inst:finished);
-        Timer terminate_timer = TIM.timer_start( finished, 30000000 );
+        TIM.timer_start( finished, 30000000 );
     }
 
-    @SuppressWarnings("unused")
     private void statePerformingTestSequence2( Event e ) {
         TestSequences self = (TestSequences)getInstance();
         MicrowaveOven context = (MicrowaveOven)self.getContext();
@@ -158,7 +155,7 @@ public class TestSequencesInstanceStateMachine extends InstanceStateMachine {
             // create event instance release_door of MO_D1:'release' to door;
             Event release_door = new Release( door, false );
             // step1_timer =TIM::timer_start(microseconds:2000000,event_inst:release_door);
-            Timer step1_timer = TIM.timer_start( release_door, 2000000 );
+            TIM.timer_start( release_door, 2000000 );
         // end if;
         }
         // Step 2. At T+4000000us, close oven door
@@ -169,7 +166,7 @@ public class TestSequencesInstanceStateMachine extends InstanceStateMachine {
             // create event instance close_door of MO_D2:'close' to door;
             Event close_door = new Close( door, false );
             // step2_timer =TIM::timer_start(microseconds:4000000,event_inst:close_door);
-            Timer step2_timer = TIM.timer_start( close_door, 4000000 );
+            TIM.timer_start( close_door, 4000000 );
         // end if;
         }
         // Step 3. At T+5000000us, assign cooking period of 15seconds and start cooking
@@ -180,11 +177,11 @@ public class TestSequencesInstanceStateMachine extends InstanceStateMachine {
             // create event instance cooking_time of MO_O8:'cooking_period'(period:15000000) to oven;
             Event cooking_time = new CookingPeriod( oven, false, 15000000 );
             // step3a_timer =TIM::timer_start(microseconds:5000000,event_inst:cooking_time);
-            Timer step3a_timer = TIM.timer_start( cooking_time, 5000000 );
+            TIM.timer_start( cooking_time, 5000000 );
             // create event instance start of MO_O3:'start_cooking' to oven;
             Event start = new StartCooking( oven, false );
             // step3b_timer =TIM::timer_start(microseconds:5000001,event_inst:start);
-            Timer step3b_timer = TIM.timer_start( start, 5000001 );
+            TIM.timer_start( start, 5000001 );
         // end if;
         }
         // Step 4. At T+6000000us, open the oven door to inspect dish
@@ -195,7 +192,7 @@ public class TestSequencesInstanceStateMachine extends InstanceStateMachine {
             // create event instance release_door of MO_D1:'release' to door;
             Event release_door = new Release( door, false );
             // step4_timer =TIM::timer_start(microseconds:6000000,event_inst:release_door);
-            Timer step4_timer = TIM.timer_start( release_door, 6000000 );
+            TIM.timer_start( release_door, 6000000 );
         // end if;
         }
         // Step 5. At T+7000000us, lower the output power setting to Medium
@@ -206,9 +203,9 @@ public class TestSequencesInstanceStateMachine extends InstanceStateMachine {
             // create event instance lower_power of MO_MT2:'decrease_power' to tube;
             Event lower_power = new DecreasePower( tube, false );
             // step5a_timer =TIM::timer_start(microseconds:3000000,event_inst:lower_power);
-            Timer step5a_timer = TIM.timer_start( lower_power, 3000000 );
+            TIM.timer_start( lower_power, 3000000 );
             // step5b_timer = TIM::timer_start(microseconds:3000001,event_inst:lower_power);
-            Timer step5b_timer = TIM.timer_start( lower_power, 3000001 );
+            TIM.timer_start( lower_power, 3000001 );
         // end if;
         }
         // Step 6. At T+9000000us, close oven door
@@ -219,7 +216,7 @@ public class TestSequencesInstanceStateMachine extends InstanceStateMachine {
             // create event instance close_door of MO_D2:'close' to door;
             Event close_door = new Close( door, false );
             // step6_timer =TIM::timer_start(microseconds:9000000,event_inst:close_door);
-            Timer step6_timer = TIM.timer_start( close_door, 9000000 );
+            TIM.timer_start( close_door, 9000000 );
         // end if;
         }
         // Step 7. At T+10000000us, resume cooking
@@ -230,7 +227,7 @@ public class TestSequencesInstanceStateMachine extends InstanceStateMachine {
             // create event instance restart of MO_O3:'start_cooking' to oven;
             Event start = new StartCooking( oven, false );
             // step7_timer =TIM::timer_start(microseconds:10000000,event_inst:restart);
-            Timer step7_timer = TIM.timer_start( start, 10000000 );
+            TIM.timer_start( start, 10000000 );
         // end if;
         }
         // For codegen: Testing complete.  After 30 seconds, terminate the system
@@ -238,7 +235,7 @@ public class TestSequencesInstanceStateMachine extends InstanceStateMachine {
         // create event instance finished of MO_TS4:'test_seq_complete' to self;
         Event finished = new TestSeqComplete( self, true );
         // terminate_timer=TIM::timer_start(microseconds:30000000,event_inst:finished);
-        Timer terminate_timer = TIM.timer_start( finished, 30000000 );
+        TIM.timer_start( finished, 30000000 );
     }
 
 }

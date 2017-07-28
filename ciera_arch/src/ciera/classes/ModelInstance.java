@@ -2,12 +2,10 @@ package ciera.classes;
 
 import java.util.UUID;
 
-import ciera.application.ApplicationThread;
 import ciera.exceptions.EmptyInstanceException;
 import ciera.exceptions.XtumlException;
 import ciera.statemachine.AssignerStateMachine;
 import ciera.statemachine.Event;
-import ciera.statemachine.EventDispatch;
 import ciera.statemachine.EventTarget;
 import ciera.statemachine.InstanceStateMachine;
 
@@ -16,8 +14,6 @@ public abstract class ModelInstance implements EventTarget, Comparable<ModelInst
     private UUID instanceId;
     private boolean alive;
 
-    private EventDispatch dispatch;
-    private ApplicationThread thread;
     private InstancePopulation context;
 
     private InstanceStateMachine ism;
@@ -26,9 +22,7 @@ public abstract class ModelInstance implements EventTarget, Comparable<ModelInst
     // constructors
     public ModelInstance() {
         instanceId = UUID.randomUUID();
-        getDefaultThread().addTarget( this );
         alive = true;
-        dispatch = new EventDispatch();
         context = null;
         ism = null;
     }
@@ -56,41 +50,6 @@ public abstract class ModelInstance implements EventTarget, Comparable<ModelInst
         ism.transition(e);
     }
     
-    @Override
-    public void generateTo( Event e ) throws XtumlException {
-        checkLiving();
-        e.setTarget( this );
-        dispatch.generateTo( e );
-    }
-
-    @Override
-    public void generateToSelf( Event e ) throws XtumlException {
-        e.setToSelf( true );
-        generateTo( e );
-    }
-    
-    @Override
-    public ApplicationThread getThread() {
-        return thread;
-    }
-    
-    @Override
-    public void setThread( ApplicationThread thread ) {
-        this.thread = thread;
-    }
-    
-    @Override
-    public void run() {
-        try {
-            checkLiving();
-            if ( !(this instanceof EmptyInstance) ) dispatch.run();
-        } catch (XtumlException e) {
-            // TODO exception handling
-            System.err.println( "Bad 2" );
-            e.printStackTrace();
-        }
-    }
-    
     public InstancePopulation getContext() {
         return context;
     }
@@ -101,7 +60,6 @@ public abstract class ModelInstance implements EventTarget, Comparable<ModelInst
     
     public void delete() throws XtumlException {
         checkLiving();
-        getDefaultThread().removeTarget( this );
         alive = false;
     }
 

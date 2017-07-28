@@ -2,8 +2,6 @@ package microwaveovenciera.components.microwaveoven.microwaveoven;
 
 import java.util.UUID;
 
-import ciera.application.XtumlApplication;
-import ciera.application.ApplicationThread;
 import ciera.classes.EmptyInstance;
 import ciera.classes.ModelInstance;
 import ciera.classes.Where;
@@ -93,11 +91,6 @@ public class Door extends ModelInstance {
     @Override
     public String getKeyLetters() {
         return keyLetters;
-    }
-
-    @Override
-    public ApplicationThread getDefaultThread() {
-        return XtumlApplication.app.getDefaultThread( Door.class );
     }
 
 }

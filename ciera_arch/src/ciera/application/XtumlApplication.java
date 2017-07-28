@@ -9,51 +9,37 @@ public abstract class XtumlApplication {
     
     public static XtumlApplication app;
     
-    private ApplicationThread[] threadPool;
+    private XtumlExecutor applicationExecutor;
     private Component[] components;
+    
+    public XtumlApplication() {
+        applicationExecutor = new XtumlExecutor();
+        components = null;
+    }
     
     public abstract void setup();
     
     public void initialize() {
         for ( Component component : components ) {
-            try {
-                component.initialize();
-            } catch ( XtumlException e ) {
-                // TODO exception handling
-                System.err.println( "Bad 1" );
-                e.printStackTrace();
-            }
+            applicationExecutor.addInitialTask(new XtumlTask() {
+                @Override
+                public void init() throws XtumlException {
+                    component.initialize();
+                }
+            });
         }
     }
     
     public void start() {
-        for ( ApplicationThread thread : threadPool ) {
-            thread.start();
-        }
+        applicationExecutor.start();
     }
 
     public void stop() {
-        for ( ApplicationThread thread : threadPool ) {
-            thread.terminate();
-        }
+        applicationExecutor.stop();
     }
     
-    public void createThreadPool( int size ) {
-        threadPool = new ApplicationThread[size];
-        for ( int i = 0; i < size; i++ ) {
-            threadPool[i] = new ApplicationThread();
-        }
-    }
-    
-    public ApplicationThread getThreadFromPool( int index ) {
-        return threadPool[index];
-    }
-    
-    public ApplicationThread getDefaultThread( Class<?> object ) {
-        for ( ApplicationThread thread : threadPool ) {
-            if ( thread.defaultFor( object ) ) return thread;
-        }
-        return null;
+    public void setNumberThreads( int size ) {
+        applicationExecutor.setNumberThreads( size );
     }
     
     public void setComponents( Component[] components ) {
@@ -62,6 +48,10 @@ public abstract class XtumlApplication {
     
     public TimeKeeper getTimeKeeper() {
         return DefaultTimeKeeper.getInstance();
+    }
+    
+    public XtumlExecutor getExecutor() {
+        return applicationExecutor;
     }
 
 }

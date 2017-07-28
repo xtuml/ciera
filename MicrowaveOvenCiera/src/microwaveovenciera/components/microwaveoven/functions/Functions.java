@@ -20,21 +20,21 @@ public class Functions {
         // select any oven from instances of MO_O;
         Oven oven = context.selectAnyMO_OFromInstances();
         // generate MO_O4:'cancel_cooking'  to oven;
-        oven.generateTo( new CancelCooking() );
+        new CancelCooking().generateTo( oven );
     }
 
     public static void CloseDoor( MicrowaveOven context ) throws XtumlException {
         // select any door from instances of MO_D;
         Door door = context.selectAnyMO_DFromInstances();
         // generate MO_D2:'close'  to door;
-        door.generateTo( new Close() );
+        new Close().generateTo( door );
     }
     
     public static void DecreasePower( MicrowaveOven context ) throws XtumlException {
         // select any tube from instances of MO_MT;
         MagnetronTube tube = context.selectAnyMO_MTFromInstances();
         // generate MO_MT2:'decrease_power' to tube;
-        tube.generateTo( new DecreasePower() );
+        new DecreasePower().generateTo( tube );
     }
     
     public static void DefineOven( MicrowaveOven context ) throws XtumlException {
@@ -73,14 +73,14 @@ public class Functions {
         // select any tube from instances of MO_MT;
         MagnetronTube tube = context.selectAnyMO_MTFromInstances();
         // generate MO_MT1:'increase_power'  to tube;
-        tube.generateTo( new IncreasePower() );
+        new IncreasePower().generateTo( tube );
     }
     
     public static void OpenDoor( MicrowaveOven context ) throws XtumlException {
         // select any door from instances of MO_D;
         Door door = context.selectAnyMO_DFromInstances();
         // generate MO_D1:'release'  to door;
-        door.generateTo( new Release() );
+        new Release().generateTo( door );
     }
     
     public static void SpecifyCookingPeriod( MicrowaveOven context, int cookingPeriod ) throws XtumlException {
@@ -91,21 +91,21 @@ public class Functions {
         // select any oven from instances of MO_O;
         Oven oven = context.selectAnyMO_OFromInstances();
         // generate MO_O8:'cooking_period' (period:timePeriod) to oven;
-        oven.generateTo( new CookingPeriod( timePeriod ) );
+        new CookingPeriod( timePeriod ).generateTo( oven );
     }
     
     public static void StartCooking( MicrowaveOven context ) throws XtumlException {
         // select any oven from instances of MO_O;
         Oven oven = context.selectAnyMO_OFromInstances();
         // generate MO_O3:'start_cooking'  to oven;
-        oven.generateTo( new StartCooking() );
+        new StartCooking().generateTo( oven );
     }
     
     public static void TestSequence1( MicrowaveOven context ) throws XtumlException {
         // create object instance testSequence of MO_TS;
         TestSequences testSequence = context.createObjectInstance( new TestSequences() );
         // generate MO_TS2 to testSequence;
-        testSequence.generateTo( new PerformTestSeq1() );
+        new PerformTestSeq1().generateTo( testSequence );
     }
 
 }
