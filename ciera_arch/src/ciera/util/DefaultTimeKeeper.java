@@ -20,7 +20,7 @@ public class DefaultTimeKeeper implements TimeKeeper {
     // constructor
     private DefaultTimeKeeper() {
         runningTimers = new ConcurrentSkipListSet<Timer>();
-        internalTimer = new java.util.Timer();
+        internalTimer = new java.util.Timer( "Xtuml Timer" );
     }
     
     public static DefaultTimeKeeper getInstance() {
@@ -72,7 +72,7 @@ public class DefaultTimeKeeper implements TimeKeeper {
     private void reschedule() {
         internalTimer.cancel();
         if ( !runningTimers.isEmpty() ) {
-            internalTimer = new java.util.Timer();
+            internalTimer = new java.util.Timer( "Xtuml Timer" );
             internalTimer.schedule( new GenerateTask(), new java.util.Date( microToMillis( runningTimers.first().getWakeUpTime() ) ) );
         }
     }

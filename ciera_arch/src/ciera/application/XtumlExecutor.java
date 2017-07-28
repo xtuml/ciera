@@ -9,8 +9,6 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import ciera.exceptions.XtumlException;
-
 public class XtumlExecutor implements Executor {
 
     private BlockingQueue<XtumlTask> tasks;
@@ -26,7 +24,7 @@ public class XtumlExecutor implements Executor {
         tasks = new LinkedBlockingQueue<XtumlTask>();
         taskMap = new ConcurrentHashMap<Thread, XtumlTask>();
         threads = new ArrayList<XtumlApplicationThread>( 1 );
-        threads.add( new XtumlApplicationThread() );
+        threads.add( new XtumlApplicationThread( "Application thread 1") );
     }
 
     @Override
@@ -53,7 +51,7 @@ public class XtumlExecutor implements Executor {
         if ( !setNumberOfThreads && !running ) {
             setNumberOfThreads = true;
             threads = new ArrayList<XtumlApplicationThread>( size );
-            for ( int i = 0; i < size; i++ ) threads.add( new XtumlApplicationThread() );
+            for ( int i = 0; i < size; i++ ) threads.add( new XtumlApplicationThread( String.format( "Application thread %d", i+1 ) ) );
         }
     }
     
@@ -77,7 +75,8 @@ public class XtumlExecutor implements Executor {
 
         private AtomicBoolean running;
         
-        public XtumlApplicationThread() {
+        public XtumlApplicationThread( String name ) {
+            super( name );
             running = new AtomicBoolean( false );
         }
 
