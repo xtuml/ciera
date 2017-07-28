@@ -1,5 +1,6 @@
 package ciera.util;
 
+import ciera.application.XtumlApplication;
 import ciera.statemachine.Event;
 
 public class Timer implements Comparable<Timer> {
@@ -25,7 +26,7 @@ public class Timer implements Comparable<Timer> {
     }
     
     public void calculateWakeUpTime() {
-        wakeUpTime = DefaultTimeKeeper.currentTimeMicro() + period;
+        wakeUpTime = XtumlApplication.app.getTimeKeeper().currentTimeMicro() + period;
     }
     
     public void addToWakeUpTime( int microseconds ) {

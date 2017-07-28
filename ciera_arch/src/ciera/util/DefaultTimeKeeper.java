@@ -13,12 +13,15 @@ public class DefaultTimeKeeper implements TimeKeeper {
     
     // singleton instance
     private static DefaultTimeKeeper timeKeeper = new DefaultTimeKeeper();
+    
+    private long startTime;     // time the timekeeper was initialized in microseconds from the epoch
 
     private SortedSet<Timer> runningTimers;
     private java.util.Timer internalTimer;
     
     // constructor
     private DefaultTimeKeeper() {
+        startTime = System.currentTimeMillis() * 1000;
         runningTimers = new ConcurrentSkipListSet<Timer>();
         internalTimer = new java.util.Timer( "Xtuml Timer" );
     }
@@ -73,8 +76,12 @@ public class DefaultTimeKeeper implements TimeKeeper {
         internalTimer.cancel();
         if ( !runningTimers.isEmpty() ) {
             internalTimer = new java.util.Timer( "Xtuml Timer" );
-            internalTimer.schedule( new GenerateTask(), new java.util.Date( microToMillis( runningTimers.first().getWakeUpTime() ) ) );
+            internalTimer.schedule( new GenerateTask(), new java.util.Date( microToMillis( convertToRealTime( runningTimers.first().getWakeUpTime() ) ) ) );
         }
+    }
+    
+    private long convertToRealTime( long time ) {
+        return time + startTime;
     }
     
     private class GenerateTask extends TimerTask {
@@ -104,11 +111,11 @@ public class DefaultTimeKeeper implements TimeKeeper {
     }
     
     // utility methods
-    public static long currentTimeMicro() {
-        return System.currentTimeMillis() * 1000;  // time in microseconds since the epoch
+    public long currentTimeMicro() {
+        return ( System.currentTimeMillis() * 1000 ) - startTime;
     }
     
-    public static long microToMillis( long microseconds ) {
+    static long microToMillis( long microseconds ) {
         long millis = microseconds / 1000;
         if ( microseconds % 1000 != 0 ) millis++;  // if there are any remaining microseconds, round up
         return millis;
