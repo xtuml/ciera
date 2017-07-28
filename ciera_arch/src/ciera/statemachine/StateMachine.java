@@ -14,15 +14,19 @@ public abstract class StateMachine {
     }
             
     public void transition( Event e ) throws XtumlException {
+        long startTime = XtumlApplication.app.getTimeKeeper().currentTimeMicro();
         // get new state
         int newState = sem.getCell( currentState, e.getEventId() );
         // check cannot happen and ignore
         if ( StateEventMatrix.CANNOT_HAPPEN == newState )
             throw new CantHappenException( "Event cannot happen. Class number " + Integer.toString(e.getClassNumber()) + 
                                            ", Event number " + Integer.toString(e.getEventNumber()) + ", Current state" + Integer.toString(currentState) );
-        else if ( StateEventMatrix.EVENT_IGNORED == newState ) {} // do nothing
+        else if ( StateEventMatrix.EVENT_IGNORED == newState ) {
+            System.out.printf( "EI:  %-5s %-49s -> %s\n", getKeyLetters(), String.format( "[%d] %s", currentState, sem.getStateName( currentState ) ),
+                    String.format( "[%d] %-33s (t=%d.%03d)", e.getEventNumber(), e.getEventName(), startTime / 1000000, ( startTime / 1000 ) % 1000 ) );
+            
+        } // do nothing
         else {
-            long startTime = XtumlApplication.app.getTimeKeeper().currentTimeMicro();
             // execute state activity
             stateActivity( newState, e );
             long endTime = XtumlApplication.app.getTimeKeeper().currentTimeMicro();

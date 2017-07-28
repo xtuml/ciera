@@ -45,5 +45,6 @@ public abstract class Event {
     public abstract int getEventId();
     public abstract int getEventNumber();
     public abstract int getClassNumber();
+    public abstract String getEventName();
 
 }
