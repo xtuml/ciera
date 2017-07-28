@@ -8,6 +8,7 @@ public class IncreasePower extends Event {
     private static final int eventId = 0;
     private static final int eventNumber = 1;
     private static final int classNumber = 2;
+    private static final String eventName = "Increase Power";
 
     public IncreasePower() {
     }
@@ -29,6 +30,11 @@ public class IncreasePower extends Event {
     @Override
     public int getClassNumber() {
         return classNumber;
+    }
+
+    @Override
+    public String getEventName() {
+        return eventName;
     }
 
 }

@@ -8,6 +8,7 @@ public class StartBeeping extends Event {
     private static final int eventId = 0;
     private static final int eventNumber = 1;
     private static final int classNumber = 4;
+    private static final String eventName = "Start Beeping";
 
     public StartBeeping() {
     }
@@ -29,6 +30,11 @@ public class StartBeeping extends Event {
     @Override
     public int getClassNumber() {
         return classNumber;
+    }
+
+    @Override
+    public String getEventName() {
+        return eventName;
     }
 
 }

@@ -8,6 +8,7 @@ public class TestSeqComplete extends Event {
     private static final int eventId = 3;
     private static final int eventNumber = 4;
     private static final int classNumber = 100;
+    private static final String eventName = "Test Seq Complete";
 
     public TestSeqComplete() {
     }
@@ -29,6 +30,11 @@ public class TestSeqComplete extends Event {
     @Override
     public int getClassNumber() {
         return classNumber;
+    }
+
+    @Override
+    public String getEventName() {
+        return eventName;
     }
 
 }

@@ -8,6 +8,7 @@ public class StartCooking extends Event {
     private static final int eventId = 2;
     private static final int eventNumber = 3;
     private static final int classNumber = 1;
+    private static final String eventName = "Start Cooking";
 
     public StartCooking() {
     }
@@ -29,6 +30,11 @@ public class StartCooking extends Event {
     @Override
     public int getClassNumber() {
         return classNumber;
+    }
+
+    @Override
+    public String getEventName() {
+        return eventName;
     }
 
 }

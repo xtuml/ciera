@@ -10,6 +10,7 @@ public class CookingPeriod extends Event {
     private static final int eventId = 7;
     private static final int eventNumber = 8;
     private static final int classNumber = 1;
+    private static final String eventName = "Cooking Period";
     
     private int period;
 
@@ -41,6 +42,11 @@ public class CookingPeriod extends Event {
     public Object getData(String id) throws XtumlException {
         if ( id.equals( "period" ) ) return period;
         else throw new SameDataException( "Event does not contain required data." );
+    }
+
+    @Override
+    public String getEventName() {
+        return eventName;
     }
 
 }

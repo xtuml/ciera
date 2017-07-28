@@ -8,6 +8,7 @@ public class StopBeeping extends Event {
     private static final int eventId = 3;
     private static final int eventNumber = 4;
     private static final int classNumber = 4;
+    private static final String eventName = "Stop Beeping";
 
     public StopBeeping() {
     }
@@ -29,6 +30,11 @@ public class StopBeeping extends Event {
     @Override
     public int getClassNumber() {
         return classNumber;
+    }
+
+    @Override
+    public String getEventName() {
+        return eventName;
     }
 
 }
