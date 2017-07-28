@@ -62,39 +62,6 @@ INSERT INTO PE_PE
 	"00000000-0000-0000-0000-000000000000",
 	1);
 INSERT INTO S_SYNC
-	VALUES ("edb5a4d1-d6f6-43cf-9adb-e771a304532d",
-	"00000000-0000-0000-0000-000000000000",
-	'package',
-	'',
-	'select many packages from instances of J_PKG;
-for each package in packages
-  // create a directory for each package
-  dir = PKG_DIR::create_dir( j_pkg:package );
-  relate dir to package across R9502; 
-  
-  // create a file for each compilation unit
-  select many j_cus related by package->J_CU[R2503];
-  for each j_cu in j_cus
-    select any j_tlt related by j_cu->J_TLT[R2504];
-    if ( not_empty j_tlt )
-      create object instance file of PKG_FL;
-      file.name = j_tlt.name + ".java";
-      relate file to dir across R9500;
-      relate file to j_cu across R9501;
-    end if;
-  end for;
-end for;',
-	"ba5eda7a-def5-0000-0000-000000000000",
-	1,
-	'',
-	0);
-INSERT INTO PE_PE
-	VALUES ("edb5a4d1-d6f6-43cf-9adb-e771a304532d",
-	1,
-	"436acf24-9bb3-4b41-a273-180f5526f12d",
-	"00000000-0000-0000-0000-000000000000",
-	1);
-INSERT INTO S_SYNC
 	VALUES ("4687c48f-c299-48ff-be66-0ec3bae155d2",
 	"00000000-0000-0000-0000-000000000000",
 	'preprocess',
@@ -148,32 +115,14 @@ INSERT INTO S_SYNC
 	'',
 	'TRACE::log( id:78, flavor:"info", message:"Translating..." );
 
-// TODO PEI for builtin Java elements
-create object instance j_type of J_TYPE;
-j_type.name = "int";
-create object instance j_primtype of J_PRIMTYPE;
-relate j_primtype to j_type across R2510;
-
 // translate root package
 select any root_package_mark from instances of Mark where ( selected.markable_name == "*"
                                                             and selected.path == "*"
                                                             and selected.feature_name == "RootPackage" );
 if ( not_empty root_package_mark )
-  select any root_package from instances of EP_PKG where ( selected.Name == root_package_mark.value );
-  select any j_pkg from instances of J_PKG where false;
-  ::transformEP_PKG( ep_pkg: root_package, parent_package:j_pkg );
 else
   TRACE::log( id:79, flavor:"failure", message:"No root package specified" );
 end if;
-
-// package elements
-::package();
-
-// render all files
-select many files from instances of PKG_FL;
-for each file in files
-  ::renderFile( pkg_fl:file );
-end for;
 
 TRACE::log( id:80, flavor:"info", message:"Done." );',
 	"ba5eda7a-def5-0000-0000-000000000000",
