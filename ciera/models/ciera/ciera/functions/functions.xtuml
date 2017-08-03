@@ -120,30 +120,21 @@ select any root_package_mark from instances of Mark where ( selected.markable_na
                                                             and selected.path == "*"
                                                             and selected.feature_name == "RootPackage" );
 if ( not_empty root_package_mark )
+  select any root_package from instances of EP_PKG where ( selected.Name == root_package_mark.value );
+  if ( not_empty root_package )
+    ::transformApplication( root_package:root_package );
+    select many files from instances of File;
+    for each file in files
+      file.render();
+    end for;
+  else
+    TRACE::log( id:79, flavor:"failure", message:"No root package found" );
+  end if;
 else
-  TRACE::log( id:79, flavor:"failure", message:"No root package specified" );
+  TRACE::log( id:80, flavor:"failure", message:"No root package specified" );
 end if;
 
-PRINT::add( s:"package helloworld;" );
-PRINT::line();
-PRINT::line();
-PRINT::add( s:"public class HelloWorld {" );
-PRINT::line();
-PRINT::tab();
-PRINT::add( s:"public static void main( String[] args ) {" );
-PRINT::line();
-PRINT::tab();
-PRINT::add( s:"System.out.println( " + STRING::quote() + "Hello World!" + STRING::quote() + " );" );
-PRINT::line();
-PRINT::untab();
-PRINT::add( s:"}" );
-PRINT::line();
-PRINT::untab();
-PRINT::add( s:"}" );
-PRINT::emit( file:"./src-gen/helloworld/HelloWorld.java" );
-
-
-TRACE::log( id:80, flavor:"info", message:"Done." );',
+TRACE::log( id:81, flavor:"info", message:"Done." );',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',

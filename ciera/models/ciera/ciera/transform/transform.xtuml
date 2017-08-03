@@ -33,6 +33,105 @@ INSERT INTO DIM_DIA
 	0.000000,
 	0.000000,
 	"00000000-0000-0000-0000-000000000000");
+INSERT INTO S_SYNC
+	VALUES ("86c4c157-03cd-481b-a5ed-c7c91b1ad36e",
+	"00000000-0000-0000-0000-000000000000",
+	'transformApplication',
+	'',
+	'root_package = param.root_package;
+select one s_sys related by root_package->S_SYS[R1405];
+
+create object instance file of File;
+file.path = T::l( s:T::r( s:s_sys.Name ) );
+file.name = ::camelCaseName( name:s_sys.Name, start_lower:false ) + ".java";
+
+create object instance app of Application;
+app.name = ::camelCaseName( name:s_sys.Name, start_lower:false );
+app.num_threads = 1;
+
+create object instance import1 of ImportStatement;
+import1.fully_qualified_name = "ciera.application.XtumlApplication";
+relate import1 to app across R402;
+create object instance import2 of ImportStatement;
+import2.fully_qualified_name = "ciera.components.Component";
+relate import2 to app across R402;
+
+relate app to file across R403;
+
+select many c_cs related by root_package->PE_PE[R8000]->C_C[R8001];
+for each c_c in c_cs
+  ::transformComponentInstance( c_c:c_c );
+end for;
+select many c_cs related by root_package->PE_PE[R8000]->CL_IC[R8001]->C_C[R4201];
+for each c_c in c_cs
+  ::transformComponentInstance( c_c:c_c );
+end for;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("6b6c262c-3690-4123-b000-38fb9cc04e80",
+	"86c4c157-03cd-481b-a5ed-c7c91b1ad36e",
+	'root_package',
+	"9939c670-a721-4742-a824-ed4b0df4acd6",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("9939c670-a721-4742-a824-ed4b0df4acd6",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Package>',
+	'',
+	'',
+	'../../../../../mcooa/models/mcooa/ooaofooa/Element Packaging/Element Packaging.xtuml');
+INSERT INTO PE_PE
+	VALUES ("86c4c157-03cd-481b-a5ed-c7c91b1ad36e",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("a77051bc-22a5-45fc-a0ba-6e4ceeaa7802",
+	"00000000-0000-0000-0000-000000000000",
+	'transformComponentInstance',
+	'',
+	'c_c = param.c_c;
+select any app from instances of Application;
+
+create object instance comp_inst of ComponentInstance;
+create object instance comp_def of ComponentDefinition;
+comp_def.name = ::camelCaseName( name:c_c.Name, start_lower:false );
+
+relate comp_inst to comp_def across R401;
+relate comp_inst to app across R400;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("9e250ca1-996f-471c-9f10-bb5ad2591f03",
+	"a77051bc-22a5-45fc-a0ba-6e4ceeaa7802",
+	'c_c',
+	"67f93d18-1045-4c6c-b0d5-a692023c471c",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("67f93d18-1045-4c6c-b0d5-a692023c471c",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Component>',
+	'',
+	'',
+	'../../../../../mcooa/models/mcooa/ooaofooa/Component/Component.xtuml');
+INSERT INTO PE_PE
+	VALUES ("a77051bc-22a5-45fc-a0ba-6e4ceeaa7802",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
 INSERT INTO PE_PE
 	VALUES ("06787f13-1c16-4275-879c-00bbeee7cb88",
 	1,
