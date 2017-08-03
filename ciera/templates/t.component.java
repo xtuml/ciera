@@ -1,10 +1,6 @@
 package ${package_name};
 
-import ciera.components.Component;
-.if ( init_block_throws_exception )
-import ciera.exceptions.XtumlException;
-.end if
-
+${import_block}
 
 public class ${component_name} extends Component {
     

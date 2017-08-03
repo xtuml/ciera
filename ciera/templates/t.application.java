@@ -1,7 +1,5 @@
 package ${package_name};
 
-import ciera.application.XtumlApplication;
-import ciera.components.Component;
 ${import_block}
 
 public class ${application_name} extends XtumlApplication {

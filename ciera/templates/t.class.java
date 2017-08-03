@@ -1,7 +1,5 @@
 package ${package_name};
 
-import ciera.classes.EmptyInstance;
-import ciera.classes.ModelInstance;
 ${import_block}
 
 public class ${class_name} extends ModelInstance {
