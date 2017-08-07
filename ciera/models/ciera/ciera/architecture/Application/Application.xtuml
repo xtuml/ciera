@@ -17,7 +17,7 @@ INSERT INTO O_TFR
 	'select one file related by self->File[R403];
 package_name = ::pathToPackage( path:file.path );
 import_block = "";
-select many imports related by self->ImportStatement[R402];
+select many imports related by file->ImportStatement[R402];
 for each import in imports
   import.render();
   import_block = import_block + T::body();
@@ -30,7 +30,11 @@ separator = "";
 select many comps related by self->ComponentInstance[R400];
 for each comp in comps
   select one comp_def related by comp->ComponentDefinition[R401];
-  component_block = component_block + separator + "new " + comp_def.name + "()";
+  comp_name = comp_def.name;
+  if ( comp_name == application_name )
+    comp_name = comp_def.fully_qualified_name;
+  end if;
+  component_block = component_block + separator + "new " + comp_name + "()";
   separator = ", ";
 end for;
 T::include( file:"java/t.application.java" );',

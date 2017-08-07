@@ -21,8 +21,8 @@ INSERT INTO GD_MD
 	1,
 	0,
 	0,
-	0,
-	0,
+	200,
+	150,
 	0,
 	'',
 	'ciera::ciera::transform');
@@ -41,31 +41,45 @@ INSERT INTO S_SYNC
 	'root_package = param.root_package;
 select one s_sys related by root_package->S_SYS[R1405];
 
+// create the file
 create object instance file of File;
 file.path = T::l( s:T::r( s:s_sys.Name ) );
 file.name = ::camelCaseName( name:s_sys.Name, start_lower:false ) + ".java";
 
+// create the application object
 create object instance app of Application;
 app.name = ::camelCaseName( name:s_sys.Name, start_lower:false );
 app.num_threads = 1;
-
-create object instance import1 of ImportStatement;
-import1.fully_qualified_name = "ciera.application.XtumlApplication";
-relate import1 to app across R402;
-create object instance import2 of ImportStatement;
-import2.fully_qualified_name = "ciera.components.Component";
-relate import2 to app across R402;
-
 relate app to file across R403;
 
+// create the import block
+import1 = ImportStatement::get_import( import:"ciera.application.XtumlApplication" );
+relate import1 to file across R402;
+import2 = ImportStatement::get_import( import:"ciera.components.Component" );
+relate import2 to file across R402;
+
+// translate components definitions
 select many c_cs related by root_package->PE_PE[R8000]->C_C[R8001];
 for each c_c in c_cs
-  ::transformComponentInstance( c_c:c_c );
+  ::transformComponentDefinition( c_c:c_c );
+  create object instance comp_inst of ComponentInstance;
+  select any comp_def from instances of ComponentDefinition where ( selected.name == ::camelCaseName( name:c_c.Name, start_lower:false ) );
+  relate comp_inst to comp_def across R401;
+  relate comp_inst to app across R400;
 end for;
-select many c_cs related by root_package->PE_PE[R8000]->CL_IC[R8001]->C_C[R4201];
-for each c_c in c_cs
-  ::transformComponentInstance( c_c:c_c );
-end for;',
+select many cl_ics related by root_package->PE_PE[R8000]->CL_IC[R8001];
+for each cl_ic in cl_ics
+  select one c_c related by cl_ic->C_C[R4201];
+  select any comp_def from instances of ComponentDefinition where ( selected.name == ::camelCaseName( name:c_c.Name, start_lower:false ) );
+  if ( empty comp_def )
+    ::transformComponentDefinition( c_c:c_c );
+  end if;
+  create object instance comp_inst of ComponentInstance;
+  select any comp_def from instances of ComponentDefinition where ( selected.name == ::camelCaseName( name:c_c.Name, start_lower:false ) );
+  relate comp_inst to comp_def across R401;
+  relate comp_inst to app across R400;
+end for;
+',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -95,17 +109,41 @@ INSERT INTO PE_PE
 INSERT INTO S_SYNC
 	VALUES ("a77051bc-22a5-45fc-a0ba-6e4ceeaa7802",
 	"00000000-0000-0000-0000-000000000000",
-	'transformComponentInstance',
+	'transformComponentDefinition',
 	'',
 	'c_c = param.c_c;
-select any app from instances of Application;
 
-create object instance comp_inst of ComponentInstance;
+// create the file
+create object instance file of File;
+select one ep_pkg related by c_c->PE_PE[R8001]->EP_PKG[R8000];
+if ( not_empty ep_pkg )
+  file.path = ::ep_pkgToPath( ep_pkg:ep_pkg );
+else
+  select one containing_c_c related by c_c->PE_PE[R8001]->C_C[R8003];
+  file.path = ::c_cToPath( c_c:containing_c_c );
+end if;
+file.name = ::camelCaseName( name:c_c.Name, start_lower:false ) + ".java";
+
+// create the component definition object
 create object instance comp_def of ComponentDefinition;
 comp_def.name = ::camelCaseName( name:c_c.Name, start_lower:false );
+comp_def.fully_qualified_name = ::pathToPackage( path:file.path ) + "." + comp_def.name;
+comp_def.init_block_throws_exception = false;
+relate comp_def to file across R403;
 
-relate comp_inst to comp_def across R401;
-relate comp_inst to app across R400;',
+// create import block
+
+// transform inner packages
+select many ep_pkgs related by c_c->PE_PE[R8003]->EP_PKG[R8001];
+for each ep_pkg in ep_pkgs
+  ::transformPackage( ep_pkg:ep_pkg );
+end for;
+
+// transform innter components
+select many inner_c_cs related by c_c->PE_PE[R8003]->C_C[R8001];
+for each inner_c_c in inner_c_cs
+  ::transformComponentDefinition( c_c:inner_c_c );
+end for;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -128,6 +166,31 @@ INSERT INTO S_DT_PROXY
 	'../../../../../mcooa/models/mcooa/ooaofooa/Component/Component.xtuml');
 INSERT INTO PE_PE
 	VALUES ("a77051bc-22a5-45fc-a0ba-6e4ceeaa7802",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("1c26da85-1e78-4183-88ca-60811dc084db",
+	"00000000-0000-0000-0000-000000000000",
+	'transformPackage',
+	'',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("e05335a1-ada2-43dd-bdb1-f29837aff1fc",
+	"1c26da85-1e78-4183-88ca-60811dc084db",
+	'ep_pkg',
+	"9939c670-a721-4742-a824-ed4b0df4acd6",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO PE_PE
+	VALUES ("1c26da85-1e78-4183-88ca-60811dc084db",
 	1,
 	"06787f13-1c16-4275-879c-00bbeee7cb88",
 	"00000000-0000-0000-0000-000000000000",
