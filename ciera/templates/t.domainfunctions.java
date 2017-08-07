@@ -4,6 +4,6 @@ ${import_block}
 
 public class ${simple_package_name} {
 
-    ${function_block}
+${function_block}
 
 }

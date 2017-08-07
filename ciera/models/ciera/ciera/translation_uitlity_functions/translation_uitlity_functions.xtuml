@@ -195,6 +195,80 @@ INSERT INTO PE_PE
 	"65dec46c-ec8b-4464-b227-a7853cadd3b4",
 	"00000000-0000-0000-0000-000000000000",
 	1);
+INSERT INTO S_SYNC
+	VALUES ("b42a54e5-b2f5-4078-aee6-693f4673b872",
+	"00000000-0000-0000-0000-000000000000",
+	'type_name',
+	'',
+	's_dt = param.s_dt;
+type_name = "";
+select one s_cdt related by s_dt->S_CDT[R17];
+if ( not_empty s_cdt )
+  // core types
+  if ( "boolean" == s_dt.Name )
+    type_name = "boolean";
+  elif ( "componet_ref" == s_dt.Name )
+    type_name = "Component";
+  elif ( "date" == s_dt.Name )
+    type_name = "Date";
+  elif ( "inst<Event>" == s_dt.Name )
+    type_name = "Event";
+  elif ( "inst_ref<Timer>" == s_dt.Name )
+    type_name = "Timer";
+  elif ( "integer" == s_dt.Name )
+    type_name = "int";
+  elif ( "real" == s_dt.Name )
+    type_name = "float";
+  elif ( "string" == s_dt.Name )
+    type_name = "String";
+  elif ( "timestamp" == s_dt.Name )
+    type_name = "TimeStamp";
+  elif ( "unique_id" == s_dt.Name )
+    type_name = "UUID";
+  elif ( "void" == s_dt.Name )
+    type_name = "void";
+  end if;
+else
+select one s_irdt related by s_dt->S_IRDT[R17];
+if ( not_empty s_irdt )
+  // inst ref types
+  select one o_obj related by s_irdt->O_OBJ[R123];
+  type_name = ::camelCaseName( name:o_obj.Name, start_lower:false );
+  if ( s_irdt.isSet )
+    type_name = type_name + "Set";
+  end if;
+else
+  // user types
+  type_name = ::camelCaseName( name:s_dt.Name, start_lower:false );
+end if;
+end if;
+return type_name;',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("3b7c2904-0c3a-4c8d-b826-9d891cc4dad4",
+	"b42a54e5-b2f5-4078-aee6-693f4673b872",
+	's_dt',
+	"4a90cd45-ece0-4e72-afe7-44996f9d7e1e",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("4a90cd45-ece0-4e72-afe7-44996f9d7e1e",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Data Type>',
+	'',
+	'',
+	'../../../../../mcooa/models/mcooa/ooaofooa/Domain/Domain.xtuml');
+INSERT INTO PE_PE
+	VALUES ("b42a54e5-b2f5-4078-aee6-693f4673b872",
+	1,
+	"65dec46c-ec8b-4464-b227-a7853cadd3b4",
+	"00000000-0000-0000-0000-000000000000",
+	1);
 INSERT INTO PE_PE
 	VALUES ("65dec46c-ec8b-4464-b227-a7853cadd3b4",
 	1,

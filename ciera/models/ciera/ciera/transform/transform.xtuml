@@ -115,13 +115,7 @@ INSERT INTO S_SYNC
 
 // create the file
 create object instance file of File;
-select one ep_pkg related by c_c->PE_PE[R8001]->EP_PKG[R8000];
-if ( not_empty ep_pkg )
-  file.path = ::ep_pkgToPath( ep_pkg:ep_pkg );
-else
-  select one containing_c_c related by c_c->PE_PE[R8001]->C_C[R8003];
-  file.path = ::c_cToPath( c_c:containing_c_c );
-end if;
+file.path = ::c_cToPath( c_c:c_c );
 file.name = ::camelCaseName( name:c_c.Name, start_lower:false ) + ".java";
 
 // create the component definition object
@@ -132,6 +126,8 @@ comp_def.init_block_throws_exception = false;
 relate comp_def to file across R403;
 
 // create import block
+import1 = ImportStatement::get_import( import:"ciera.components.Component" );
+relate import1 to file across R402;
 
 // transform inner packages
 select many ep_pkgs related by c_c->PE_PE[R8003]->EP_PKG[R8001];
@@ -175,7 +171,49 @@ INSERT INTO S_SYNC
 	"00000000-0000-0000-0000-000000000000",
 	'transformPackage',
 	'',
-	'',
+	'ep_pkg = param.ep_pkg;
+select many pe_pes related by ep_pkg->PE_PE[R8000];
+
+// transform functions
+select many s_syncs related by pe_pes->S_SYNC[R8001];
+if ( cardinality s_syncs > 0 )
+  // create the file
+  create object instance file of File;
+  file.path = ::ep_pkgToPath( ep_pkg:ep_pkg );
+  file.name = ::camelCaseName( name:ep_pkg.Name, start_lower:false ) + ".java";
+  
+  // create the function package object
+  create object instance fp of FunctionPackage;
+  fp.name = ::camelCaseName( name:ep_pkg.Name, start_lower:false );
+  relate fp to file across R403;
+
+  // transform functions
+  for each s_sync in s_syncs
+    ::transformFunction( s_sync:s_sync, fp:fp );
+  end for;
+end if;
+
+// transform packages
+select many inner_ep_pkgs related by pe_pes->EP_PKG[R8001];
+for each inner_ep_pkg in inner_ep_pkgs
+  ::transformPackage( ep_pkg:inner_ep_pkg );
+end for;
+
+// transform constants
+
+// transform interfaces
+
+// transform classes
+
+// transform datatypes
+
+// transform components
+select many c_cs related by pe_pes->C_C[R8001];
+for each c_c in c_cs
+  ::transformComponentDefinition( c_c:c_c );
+end for;
+
+// transform EEs',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -191,6 +229,100 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("1c26da85-1e78-4183-88ca-60811dc084db",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("4372e9ec-b226-4bdc-9219-9427ca71b423",
+	"00000000-0000-0000-0000-000000000000",
+	'transformFunction',
+	'',
+	's_sync = param.s_sync;
+fp = param.fp;
+
+// create function object
+create object instance func of Function;
+func.name = s_sync.Name;
+relate func to fp across R404;
+
+// create typed object
+create object instance typed_object of TypedObject;
+select one s_dt related by s_sync->S_DT[R25];
+typed_object.type_name = ::type_name( s_dt:s_dt );
+relate func to typed_object across R406;
+
+// create parameters
+create object instance po of ParameterizedObject;
+relate func to po across R405;
+select any s_sparm related by s_sync->S_SPARM[R24];
+prev_s_sparm = s_sparm;
+// select first parameter
+while ( not_empty prev_s_sparm )
+  s_sparm = prev_s_sparm;
+  select one prev_s_sparm related by s_sparm->S_SPARM[R54.''succeeds''];
+end while;
+while ( not_empty s_sparm )
+  // create parameter
+  create object instance parm of Parameter;
+  parm.name = s_sparm.Name;
+  create object instance parm_typed_object of TypedObject;
+  select one parm_dt related by s_sparm->S_DT[R26];
+  parm_typed_object.type_name = ::type_name( s_dt:parm_dt );
+  relate parm to parm_typed_object across R406;
+  // link parameter
+  select one first_parm related by po->Parameter[R407];
+  if ( empty first_parm )
+    relate parm to po across R407;
+  else
+    next_parm = first_parm;
+    last_parm = first_parm;
+    while ( not_empty next_parm ) 
+      next_parm = last_parm;
+      select one next_parm related by last_parm->Parameter[R408.''precedes''];
+    end while;
+    relate parm to last_parm across R408.''follows'';
+  end if;
+  select one s_sparm related by s_sparm->S_SPARM[R54.''precedes''];
+end while;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("20dcc580-c900-4c37-9db9-c96b57ce0c7a",
+	"4372e9ec-b226-4bdc-9219-9427ca71b423",
+	's_sync',
+	"60690409-5a69-45db-896b-5a63a9103c18",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("60690409-5a69-45db-896b-5a63a9103c18",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Function>',
+	'',
+	'',
+	'../../../../../mcooa/models/mcooa/ooaofooa/Domain/Domain.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("726fb276-09fd-4ea5-a7a4-9f4dc0815b4a",
+	"4372e9ec-b226-4bdc-9219-9427ca71b423",
+	'fp',
+	"b4ca8fd2-c6bc-40d6-af72-e591e49acc18",
+	0,
+	'',
+	"20dcc580-c900-4c37-9db9-c96b57ce0c7a",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("b4ca8fd2-c6bc-40d6-af72-e591e49acc18",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Function Package>',
+	'',
+	'',
+	'../architecture/architecture.xtuml');
+INSERT INTO PE_PE
+	VALUES ("4372e9ec-b226-4bdc-9219-9427ca71b423",
 	1,
 	"06787f13-1c16-4275-879c-00bbeee7cb88",
 	"00000000-0000-0000-0000-000000000000",
