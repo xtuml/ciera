@@ -1,0 +1,13 @@
+T_b("package ");
+T_b(package_name);
+T_b(";");
+T_b("\n");
+T_b("public enum ");
+T_b(type_name);
+T_b(" {");
+T_b("\n");
+T_b("    ");
+T_b(enumerator_list);
+T_b("\n");
+T_b("}");
+T_b("\n");

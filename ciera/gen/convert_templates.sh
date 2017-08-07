@@ -2,7 +2,8 @@
 # Still need to hand-edit the following:
 #  - embedded double-quotes (")
 #
-MCMC_DIR=~/git/xtuml/mc/mcmc/arlan
+#MCMC_DIR=~/git/xtuml/mc/mcmc/arlan
+MCMC_DIR=/media/sf_levi/git/xtuml/mc/mcmc/arlan
 filelist=`ls ../templates/t.*.java | xargs -n1 basename`
 for f in $filelist; do
   cat  ../templates/$f | sed "s/^.assign[^\"]*\"\(.*\)\"/\1/" | \
