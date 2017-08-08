@@ -53,10 +53,8 @@ app.num_threads = 1;
 relate app to file across R403;
 
 // create the import block
-import1 = ImportStatement::get_import( import:"ciera.application.XtumlApplication" );
-relate import1 to file across R402;
-import2 = ImportStatement::get_import( import:"ciera.components.Component" );
-relate import2 to file across R402;
+::addStringToImports( file:file, s:"ciera.application.XtumlApplication" );
+::addStringToImports( file:file, s:"ciera.components.Component" );
 
 // translate components definitions
 select many c_cs related by root_package->PE_PE[R8000]->C_C[R8001];
@@ -127,10 +125,6 @@ comp_def.fully_qualified_name = ::pathToPackage( path:file.path ) + "." + comp_d
 comp_def.init_block_throws_exception = false;
 relate comp_def to file across R403;
 
-// create import block
-import1 = ImportStatement::get_import( import:"ciera.components.Component" );
-relate import1 to file across R402;
-
 // transform inner packages
 select many ep_pkgs related by c_c->PE_PE[R8003]->EP_PKG[R8001];
 for each ep_pkg in ep_pkgs
@@ -141,6 +135,13 @@ end for;
 select many inner_c_cs related by c_c->PE_PE[R8003]->C_C[R8001];
 for each inner_c_c in inner_c_cs
   ::transformComponentDefinition( c_c:inner_c_c, containing_comp_def:comp_def );
+end for;
+
+// create import block
+::addStringToImports( file:file, s:"ciera.components.Component" );
+select many object_files related by comp_def->Class[R414]->File[R403];
+for each object_file in object_files
+  ::addFileToImports( file:file, file_to_import:object_file );
 end for;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -202,8 +203,7 @@ if ( cardinality s_syncs > 0 )
   file.name = ::camelCaseName( name:ep_pkg.Name, start_lower:false ) + ".java";
   
   // create the import block
-  import1 = ImportStatement::get_import( import:containing_comp_def.fully_qualified_name );
-  relate import1 to file across R402;
+  ::addStringToImports( file:file, s:containing_comp_def.fully_qualified_name );
   
   // create the function package object
   create object instance fp of FunctionPackage;
@@ -227,6 +227,10 @@ end for;
 // transform interfaces
 
 // transform classes
+select many o_objs related by pe_pes->O_OBJ[R8001];
+for each o_obj in o_objs
+  ::transformClass( o_obj:o_obj, containing_comp_def:containing_comp_def );
+end for;
 
 // transform datatypes
 
@@ -427,6 +431,132 @@ end for;',
 	0);
 INSERT INTO PE_PE
 	VALUES ("26bcd5a8-82fd-48ba-8dfc-40a65ebfd881",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("5d5d0e20-88ef-45c3-9564-38aff4db30b8",
+	"00000000-0000-0000-0000-000000000000",
+	'transformClass',
+	'',
+	'o_obj = param.o_obj;
+containing_comp_def = param.containing_comp_def;
+select one ep_pkg related by o_obj->PE_PE[R8001]->EP_PKG[R8000];
+
+// create the object file
+create object instance file of File;
+file.path = ::ep_pkgToPath( ep_pkg:ep_pkg );
+file.name = ::camelCaseName( name:o_obj.Name, start_lower:false ) + ".java";
+
+// create the object
+create object instance obj of Class;
+obj.name = ::camelCaseName( name:o_obj.Name, start_lower:false );
+obj.key_letters = o_obj.Key_Lett;
+relate obj to file across R403;
+relate obj to containing_comp_def across R414;
+
+// create the instance type
+create object instance type of Type;
+relate type to obj across R412;
+
+// relate to the OOA class
+relate obj to o_obj across R415;
+
+// create the import block
+
+// transform the set object
+::transformClassSet( obj:obj, ep_pkg:ep_pkg );',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("aa6be7c4-dd4e-4044-bbf1-81678db4c1f5",
+	"5d5d0e20-88ef-45c3-9564-38aff4db30b8",
+	'o_obj',
+	"63f4ff99-f127-443b-a678-30ace41da702",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("63f4ff99-f127-443b-a678-30ace41da702",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Model Class>',
+	'',
+	'',
+	'../../../../../mcooa/models/mcooa/ooaofooa/Subsystem/Subsystem.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("9e76c7fd-92f6-44e6-92b5-aa4874148abc",
+	"5d5d0e20-88ef-45c3-9564-38aff4db30b8",
+	'containing_comp_def',
+	"1fef1559-c5b6-4eb7-a9c4-8b126b9b51a0",
+	0,
+	'',
+	"aa6be7c4-dd4e-4044-bbf1-81678db4c1f5",
+	'');
+INSERT INTO PE_PE
+	VALUES ("5d5d0e20-88ef-45c3-9564-38aff4db30b8",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("a14540ae-c3dd-4248-890f-99953be47efa",
+	"00000000-0000-0000-0000-000000000000",
+	'transformClassSet',
+	'',
+	'obj = param.obj;
+ep_pkg = param.ep_pkg;
+
+// create the class set object
+create object instance objset of ClassSet;
+relate objset to obj across R411;
+
+// create the object file
+create object instance file of File;
+file.path = ::ep_pkgToPath( ep_pkg:ep_pkg );
+file.name = objset.name + ".java";
+
+relate objset to file across R403;
+
+// create the instance type
+create object instance type of Type;
+relate type to objset across R412;
+
+// create the import block',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("ceb8a015-73b2-4bc0-acbc-a5fa93f21e67",
+	"a14540ae-c3dd-4248-890f-99953be47efa",
+	'obj',
+	"ac93823e-2644-440b-977c-1f4e8480ec59",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("ac93823e-2644-440b-977c-1f4e8480ec59",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Class>',
+	'',
+	'',
+	'../architecture/architecture.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("72a8d944-1499-487e-9f40-06dbfc501f96",
+	"a14540ae-c3dd-4248-890f-99953be47efa",
+	'ep_pkg',
+	"9939c670-a721-4742-a824-ed4b0df4acd6",
+	0,
+	'',
+	"ceb8a015-73b2-4bc0-acbc-a5fa93f21e67",
+	'');
+INSERT INTO PE_PE
+	VALUES ("a14540ae-c3dd-4248-890f-99953be47efa",
 	1,
 	"06787f13-1c16-4275-879c-00bbeee7cb88",
 	"00000000-0000-0000-0000-000000000000",

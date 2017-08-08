@@ -24,8 +24,28 @@ for each import in imports
   T::clear();
 end for;
 component_name = self.name;
+
 class_list = "";
-select_from_instances_block = "";
+separator = "";
+select many objects related by self->Class[R414];
+for each obj in objects
+  class_list = class_list + separator + obj.name + ".class";
+  separator = ", ";
+end for;
+
+separator = "";
+for each obj in objects
+  class_name = obj.name;
+  class_key_letters = obj.key_letters;
+  select one objset related by obj->ClassSet[R411];
+  class_set_name = objset.name;
+  T::b( s:separator );
+  T::include( file:"java/t.selectfrominstances.java" );
+  separator = "\n";
+end for;
+select_from_instances_block = T::body();
+T::clear();
+
 init_block_throws_exception = self.init_block_throws_exception;
 init_block = "";
 T::include( file:"java/t.component.java" );',
