@@ -18,17 +18,15 @@ INSERT INTO O_TFR
 type_name = typed_object.type_name;
 function_name = self.name;
 
+select one comp_def related by self->ComponentDefinition[R409];
+component_name = comp_def.name;
+
 parameter_list = "";
-separator = " ";
 select one parm related by self->ParameterizedObject[R405]->Parameter[R407];
 while ( not_empty parm )
   select one parm_type related by parm->TypedObject[R406];
-  parameter_list = parameter_list + separator + parm_type.type_name + " "  + parm.name;
-  separator = ", ";
+  parameter_list = parameter_list + ", " + parm_type.type_name + " "  + parm.name;
   select one parm related by parm->Parameter[R408.''precedes''];
-  if ( empty parm )
-    parameter_list = parameter_list + " ";
-  end if;
 end while;
 
 body = "";

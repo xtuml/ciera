@@ -3,7 +3,7 @@ package ${package_name};
 ${import_block}
 
 public class ${application_name} extends XtumlApplication {
-    
+
     @Override
     public void setup() {
         // set the number of threads in the system
@@ -11,7 +11,7 @@ public class ${application_name} extends XtumlApplication {
         // create components
         setComponents( new Component[]{ ${component_block} } );
     }
-    
+
     public static void main( String[] args ) {
         XtumlApplication.app = new ${application_name}();
         XtumlApplication.app.setup();

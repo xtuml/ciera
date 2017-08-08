@@ -60,8 +60,9 @@ relate import2 to file across R402;
 
 // translate components definitions
 select many c_cs related by root_package->PE_PE[R8000]->C_C[R8001];
+select any empty_comp_def from instances of ComponentDefinition where false;
 for each c_c in c_cs
-  ::transformComponentDefinition( c_c:c_c );
+  ::transformComponentDefinition( c_c:c_c, containing_comp_def:empty_comp_def );
   create object instance comp_inst of ComponentInstance;
   select any comp_def from instances of ComponentDefinition where ( selected.name == ::camelCaseName( name:c_c.Name, start_lower:false ) );
   relate comp_inst to comp_def across R401;
@@ -72,7 +73,7 @@ for each cl_ic in cl_ics
   select one c_c related by cl_ic->C_C[R4201];
   select any comp_def from instances of ComponentDefinition where ( selected.name == ::camelCaseName( name:c_c.Name, start_lower:false ) );
   if ( empty comp_def )
-    ::transformComponentDefinition( c_c:c_c );
+    ::transformComponentDefinition( c_c:c_c, containing_comp_def:empty_comp_def );
   end if;
   create object instance comp_inst of ComponentInstance;
   select any comp_def from instances of ComponentDefinition where ( selected.name == ::camelCaseName( name:c_c.Name, start_lower:false ) );
@@ -112,6 +113,7 @@ INSERT INTO S_SYNC
 	'transformComponentDefinition',
 	'',
 	'c_c = param.c_c;
+containing_comp_def = param.containing_comp_def;
 
 // create the file
 create object instance file of File;
@@ -132,13 +134,13 @@ relate import1 to file across R402;
 // transform inner packages
 select many ep_pkgs related by c_c->PE_PE[R8003]->EP_PKG[R8001];
 for each ep_pkg in ep_pkgs
-  ::transformPackage( ep_pkg:ep_pkg );
+  ::transformPackage( ep_pkg:ep_pkg, containing_comp_def:comp_def );
 end for;
 
 // transform innter components
 select many inner_c_cs related by c_c->PE_PE[R8003]->C_C[R8001];
 for each inner_c_c in inner_c_cs
-  ::transformComponentDefinition( c_c:inner_c_c );
+  ::transformComponentDefinition( c_c:inner_c_c, containing_comp_def:comp_def );
 end for;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -160,6 +162,22 @@ INSERT INTO S_DT_PROXY
 	'',
 	'',
 	'../../../../../mcooa/models/mcooa/ooaofooa/Component/Component.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("35145c47-5490-4738-a0b2-7e513f9ed71c",
+	"a77051bc-22a5-45fc-a0ba-6e4ceeaa7802",
+	'containing_comp_def',
+	"1fef1559-c5b6-4eb7-a9c4-8b126b9b51a0",
+	0,
+	'',
+	"9e250ca1-996f-471c-9f10-bb5ad2591f03",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("1fef1559-c5b6-4eb7-a9c4-8b126b9b51a0",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Component Definition>',
+	'',
+	'',
+	'../architecture/architecture.xtuml');
 INSERT INTO PE_PE
 	VALUES ("a77051bc-22a5-45fc-a0ba-6e4ceeaa7802",
 	1,
@@ -172,6 +190,7 @@ INSERT INTO S_SYNC
 	'transformPackage',
 	'',
 	'ep_pkg = param.ep_pkg;
+containing_comp_def = param.containing_comp_def;
 select many pe_pes related by ep_pkg->PE_PE[R8000];
 
 // transform functions
@@ -182,6 +201,10 @@ if ( cardinality s_syncs > 0 )
   file.path = ::ep_pkgToPath( ep_pkg:ep_pkg );
   file.name = ::camelCaseName( name:ep_pkg.Name, start_lower:false ) + ".java";
   
+  // create the import block
+  import1 = ImportStatement::get_import( import:containing_comp_def.fully_qualified_name );
+  relate import1 to file across R402;
+  
   // create the function package object
   create object instance fp of FunctionPackage;
   fp.name = ::camelCaseName( name:ep_pkg.Name, start_lower:false );
@@ -189,14 +212,14 @@ if ( cardinality s_syncs > 0 )
 
   // transform functions
   for each s_sync in s_syncs
-    ::transformFunction( s_sync:s_sync, fp:fp );
+    ::transformFunction( s_sync:s_sync, fp:fp, comp_def:containing_comp_def );
   end for;
 end if;
 
 // transform packages
 select many inner_ep_pkgs related by pe_pes->EP_PKG[R8001];
 for each inner_ep_pkg in inner_ep_pkgs
-  ::transformPackage( ep_pkg:inner_ep_pkg );
+  ::transformPackage( ep_pkg:inner_ep_pkg, containing_comp_def:containing_comp_def );
 end for;
 
 // transform constants
@@ -210,7 +233,7 @@ end for;
 // transform components
 select many c_cs related by pe_pes->C_C[R8001];
 for each c_c in c_cs
-  ::transformComponentDefinition( c_c:c_c );
+  ::transformComponentDefinition( c_c:c_c, containing_comp_def:containing_comp_def );
 end for;
 
 // transform EEs',
@@ -227,6 +250,15 @@ INSERT INTO S_SPARM
 	'',
 	"00000000-0000-0000-0000-000000000000",
 	'');
+INSERT INTO S_SPARM
+	VALUES ("0ca0ea7b-7e27-4164-8c8f-51956eba948a",
+	"1c26da85-1e78-4183-88ca-60811dc084db",
+	'containing_comp_def',
+	"1fef1559-c5b6-4eb7-a9c4-8b126b9b51a0",
+	0,
+	'',
+	"e05335a1-ada2-43dd-bdb1-f29837aff1fc",
+	'');
 INSERT INTO PE_PE
 	VALUES ("1c26da85-1e78-4183-88ca-60811dc084db",
 	1,
@@ -240,11 +272,13 @@ INSERT INTO S_SYNC
 	'',
 	's_sync = param.s_sync;
 fp = param.fp;
+comp_def = param.comp_def;
 
 // create function object
 create object instance func of Function;
 func.name = s_sync.Name;
 relate func to fp across R404;
+relate func to comp_def across R409;
 
 // create typed object
 create object instance typed_object of TypedObject;
@@ -321,6 +355,15 @@ INSERT INTO S_DT_PROXY
 	'',
 	'',
 	'../architecture/architecture.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("30cff3bd-5277-4221-8d57-b94d725a461b",
+	"4372e9ec-b226-4bdc-9219-9427ca71b423",
+	'comp_def',
+	"1fef1559-c5b6-4eb7-a9c4-8b126b9b51a0",
+	0,
+	'',
+	"726fb276-09fd-4ea5-a7a4-9f4dc0815b4a",
+	'');
 INSERT INTO PE_PE
 	VALUES ("4372e9ec-b226-4bdc-9219-9427ca71b423",
 	1,
