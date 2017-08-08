@@ -283,7 +283,11 @@ relate func to comp_def across R409;
 // create typed object
 create object instance typed_object of TypedObject;
 select one s_dt related by s_sync->S_DT[R25];
-typed_object.type_name = ::type_name( s_dt:s_dt );
+select one s_cdt related by s_dt->S_CDT[R17];
+if ( not_empty s_cdt )
+  select one builtin related by s_cdt->BuiltInType[R413]->Type[R412];
+  relate builtin to typed_object across R410;
+end if;
 relate func to typed_object across R406;
 
 // create parameters
@@ -302,7 +306,11 @@ while ( not_empty s_sparm )
   parm.name = s_sparm.Name;
   create object instance parm_typed_object of TypedObject;
   select one parm_dt related by s_sparm->S_DT[R26];
-  parm_typed_object.type_name = ::type_name( s_dt:parm_dt );
+  select one parm_cdt related by parm_dt->S_CDT[R17];
+  if ( not_empty parm_cdt )
+    select one builtin related by parm_cdt->BuiltInType[R413]->Type[R412];
+    relate builtin to parm_typed_object across R410;
+  end if;
   relate parm to parm_typed_object across R406;
   // link parameter
   select one first_parm related by po->Parameter[R407];
@@ -366,6 +374,59 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("4372e9ec-b226-4bdc-9219-9427ca71b423",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("26bcd5a8-82fd-48ba-8dfc-40a65ebfd881",
+	"00000000-0000-0000-0000-000000000000",
+	'transformBuiltinTypes',
+	'',
+	'select many s_cdts from instances of S_CDT;
+for each s_cdt in s_cdts
+
+  select one s_dt related by s_cdt->S_DT[R17];
+
+  create object instance type of Type;
+  create object instance builtin of BuiltInType;
+
+  type_name = "";
+  if ( "boolean" == s_dt.Name )
+    type_name = "boolean";
+  elif ( "componet_ref" == s_dt.Name )
+    type_name = "Component";
+  elif ( "date" == s_dt.Name )
+    type_name = "Date";
+  elif ( "inst<Event>" == s_dt.Name )
+    type_name = "Event";
+  elif ( "inst_ref<Timer>" == s_dt.Name )
+    type_name = "Timer";
+  elif ( "integer" == s_dt.Name )
+    type_name = "int";
+  elif ( "real" == s_dt.Name )
+    type_name = "float";
+  elif ( "string" == s_dt.Name )
+    type_name = "String";
+  elif ( "timestamp" == s_dt.Name )
+    type_name = "TimeStamp";
+  elif ( "unique_id" == s_dt.Name )
+    type_name = "UUID";
+  elif ( "void" == s_dt.Name )
+    type_name = "void";
+  end if;
+  builtin.name = type_name;
+
+  relate builtin to type across R412;
+  relate builtin to s_cdt across R413;
+
+end for;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO PE_PE
+	VALUES ("26bcd5a8-82fd-48ba-8dfc-40a65ebfd881",
 	1,
 	"06787f13-1c16-4275-879c-00bbeee7cb88",
 	"00000000-0000-0000-0000-000000000000",
