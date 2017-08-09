@@ -126,16 +126,21 @@ if ( not_empty root_package_mark )
   select any root_package from instances of EP_PKG where ( selected.Name == root_package_mark.value );
   if ( not_empty root_package )
     ::transformApplication( root_package:root_package );
-    select many files from instances of File;
-    for each file in files
-      file.render();
-    end for;
   else
     TRACE::log( id:79, flavor:"failure", message:"No root package found" );
   end if;
 else
   TRACE::log( id:80, flavor:"failure", message:"No root package specified" );
 end if;
+
+// resolve types
+::resolveTypes();
+
+// render all files
+select many files from instances of File;
+for each file in files
+  file.render();
+end for;
 
 TRACE::log( id:81, flavor:"info", message:"Done." );',
 	"ba5eda7a-def5-0000-0000-000000000000",

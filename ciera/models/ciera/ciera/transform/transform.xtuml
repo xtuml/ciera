@@ -290,11 +290,8 @@ relate func to comp_def across R409;
 // create typed object
 create object instance typed_object of TypedObject;
 select one s_dt related by s_sync->S_DT[R25];
-select one s_cdt related by s_dt->S_CDT[R17];
-if ( not_empty s_cdt )
-  select one builtin related by s_cdt->BuiltInType[R413]->Type[R412];
-  relate builtin to typed_object across R410;
-end if;
+type = UnresolvedType::getInstance( s_dt:s_dt );
+relate type to typed_object across R410;
 relate func to typed_object across R406;
 
 // create parameters
@@ -313,11 +310,8 @@ while ( not_empty s_sparm )
   parm.name = s_sparm.Name;
   create object instance parm_typed_object of TypedObject;
   select one parm_dt related by s_sparm->S_DT[R26];
-  select one parm_cdt related by parm_dt->S_CDT[R17];
-  if ( not_empty parm_cdt )
-    select one builtin related by parm_cdt->BuiltInType[R413]->Type[R412];
-    relate builtin to parm_typed_object across R410;
-  end if;
+  parm_type = UnresolvedType::getInstance( s_dt:parm_dt );
+  relate parm_type to parm_typed_object across R410;
   relate parm to parm_typed_object across R406;
   // link parameter
   select one first_parm related by po->Parameter[R407];
@@ -566,6 +560,59 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("a14540ae-c3dd-4248-890f-99953be47efa",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("ba8e6cdd-5bb7-4a8b-9ff5-8f0d96755d95",
+	"00000000-0000-0000-0000-000000000000",
+	'resolveTypes',
+	'',
+	'select many unresolved_types from instances of UnresolvedType;
+for each unresolved_type in unresolved_types
+  select one type related by unresolved_type->Type[R412];
+  select one s_dt related by unresolved_type->S_DT[R421];
+
+  // resolve builtin types
+  select one s_cdt related by s_dt->S_CDT[R17];
+  if ( not_empty s_cdt )
+    select one builtin related by s_cdt->BuiltInType[R413];
+    if ( not_empty builtin )
+      unresolved_type.dispose();
+      relate builtin to type across R412;
+    end if;
+  else
+  
+  // resolve class reference types
+  select one s_irdt related by s_dt->S_IRDT[R17];
+  if ( not_empty s_irdt )
+    select one o_obj related by s_irdt->O_OBJ[R123];
+    if ( s_irdt.isSet )
+      // class sets
+      select one objset related by o_obj->Class[R415]->ClassSet[R411];
+      if ( not_empty objset )
+        unresolved_type.dispose();
+        relate objset to type across R412;
+      end if;
+    else
+      // classes
+      select one obj related by o_obj->Class[R415];
+      if ( not_empty obj )
+        unresolved_type.dispose();
+        relate obj to type across R412;
+      end if;
+    end if;
+  end if;
+  end if;
+
+end for;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO PE_PE
+	VALUES ("ba8e6cdd-5bb7-4a8b-9ff5-8f0d96755d95",
 	1,
 	"06787f13-1c16-4275-879c-00bbeee7cb88",
 	"00000000-0000-0000-0000-000000000000",
