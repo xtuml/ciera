@@ -384,42 +384,64 @@ INSERT INTO S_SYNC
 	"00000000-0000-0000-0000-000000000000",
 	'transformBuiltinTypes',
 	'',
-	'select many s_cdts from instances of S_CDT;
-for each s_cdt in s_cdts
+	'select many s_dts from instances of S_DT;
+for each s_dt in s_dts
 
-  select one s_dt related by s_cdt->S_DT[R17];
+  if ( ::s_dtIsBuiltin( s_dt:s_dt ) )
 
-  create object instance type of Type;
-  create object instance builtin of BuiltInType;
+    type_name = "";
+    type_import = "";
+    if ( "boolean" == s_dt.Name )
+      type_name = "boolean";
+      type_import = "";
+    elif ( "component_ref" == s_dt.Name )
+      type_name = "Component";
+      type_import = "ciera.components.Component";
+    elif ( "date" == s_dt.Name )
+      type_name = "Date";
+      type_import = "ciera.util.Date";
+    elif ( "inst<Event>" == s_dt.Name )
+      type_name = "Event";
+      type_import = "ciera.statemachine.Event";
+    elif ( "inst_ref<Timer>" == s_dt.Name )
+      type_name = "Timer";
+      type_import = "ciera.util.Timer";
+    elif ( "integer" == s_dt.Name )
+      type_name = "int";
+      type_import = "";
+    elif ( "real" == s_dt.Name )
+      type_name = "float";
+      type_import = "";
+    elif ( "string" == s_dt.Name )
+      type_name = "String";
+      type_import = "";
+    elif ( "timestamp" == s_dt.Name )
+      type_name = "TimeStamp";
+      type_import = "ciera.util.TimeStamp";
+    elif ( "unique_id" == s_dt.Name )
+      type_name = "UUID";
+      type_import = "java.util.UUID";
+    elif ( "void" == s_dt.Name )
+      type_name = "void";
+      type_import = "";
+    elif ( "inst_ref_set<Object>" == s_dt.Name )
+      type_name = "InstanceSet";
+      type_import = "ciera.classes.InstanceSet";
+    elif ( "inst_ref<Object>" == s_dt.Name )
+      type_name = "ModelInstance";
+      type_import = "ciera.classes.ModelInstance";
+    end if;
 
-  type_name = "";
-  if ( "boolean" == s_dt.Name )
-    type_name = "boolean";
-  elif ( "componet_ref" == s_dt.Name )
-    type_name = "Component";
-  elif ( "date" == s_dt.Name )
-    type_name = "Date";
-  elif ( "inst<Event>" == s_dt.Name )
-    type_name = "Event";
-  elif ( "inst_ref<Timer>" == s_dt.Name )
-    type_name = "Timer";
-  elif ( "integer" == s_dt.Name )
-    type_name = "int";
-  elif ( "real" == s_dt.Name )
-    type_name = "float";
-  elif ( "string" == s_dt.Name )
-    type_name = "String";
-  elif ( "timestamp" == s_dt.Name )
-    type_name = "TimeStamp";
-  elif ( "unique_id" == s_dt.Name )
-    type_name = "UUID";
-  elif ( "void" == s_dt.Name )
-    type_name = "void";
+    if ( "" != type_name )
+      create object instance builtin of BuiltInType;
+      builtin.name = type_name;
+      builtin.import = type_import;
+      create object instance type of Type;
+      relate builtin to type across R412;
+      relate builtin to s_dt across R413;
+    end if;
+  
   end if;
-  builtin.name = type_name;
-
-  relate builtin to type across R412;
-  relate builtin to s_cdt across R413;
 
 end for;',
 	"ba5eda7a-def5-0000-0000-000000000000",
@@ -464,6 +486,14 @@ relate obj to o_obj across R415;
 // create the import block
 ::addStringToImports( file:file, s:"ciera.classes.EmptyInstance" );
 ::addStringToImports( file:file, s:"ciera.classes.ModelInstance" );
+
+// transform attributes
+select many o_attrs related by o_obj->O_ATTR[R102];
+for each o_attr in o_attrs
+  if ( "current_state" != o_attr.Name )
+    ::transformAttribute( o_attr:o_attr, obj:obj );
+  end if;
+end for;
 
 // transform the set object
 ::transformClassSet( obj:obj, ep_pkg:ep_pkg );',
@@ -575,9 +605,8 @@ for each unresolved_type in unresolved_types
   select one s_dt related by unresolved_type->S_DT[R421];
 
   // resolve builtin types
-  select one s_cdt related by s_dt->S_CDT[R17];
-  if ( not_empty s_cdt )
-    select one builtin related by s_cdt->BuiltInType[R413];
+  if ( ::s_dtIsBuiltin( s_dt:s_dt ) )
+    select one builtin related by s_dt->BuiltInType[R413];
     if ( not_empty builtin )
       unresolved_type.dispose();
       relate builtin to type across R412;
@@ -613,6 +642,60 @@ end for;',
 	0);
 INSERT INTO PE_PE
 	VALUES ("ba8e6cdd-5bb7-4a8b-9ff5-8f0d96755d95",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("19215085-ca84-43cb-bb81-6ffd50262136",
+	"00000000-0000-0000-0000-000000000000",
+	'transformAttribute',
+	'',
+	'o_attr = param.o_attr;
+obj = param.obj;
+
+// create the attribute
+create object instance attr of Attribute;
+attr.base_name = o_attr.Name;
+relate attr to obj across R416;
+
+// set the type
+select one s_dt related by o_attr->S_DT[R114];
+type = UnresolvedType::getInstance( s_dt:s_dt );
+create object instance typed_object of TypedObject;
+relate type to typed_object across R410;
+relate typed_object to attr across R406;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("7b1297b8-b278-4ae8-a571-70b7bf262f38",
+	"19215085-ca84-43cb-bb81-6ffd50262136",
+	'o_attr',
+	"579b8247-e153-481d-8926-384cdc722464",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("579b8247-e153-481d-8926-384cdc722464",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Attribute>',
+	'',
+	'',
+	'../../../../../mcooa/models/mcooa/ooaofooa/Subsystem/Subsystem.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("7a7146b3-82c0-458a-bf9d-b99938b7d7c7",
+	"19215085-ca84-43cb-bb81-6ffd50262136",
+	'obj',
+	"ac93823e-2644-440b-977c-1f4e8480ec59",
+	0,
+	'',
+	"7b1297b8-b278-4ae8-a571-70b7bf262f38",
+	'');
+INSERT INTO PE_PE
+	VALUES ("19215085-ca84-43cb-bb81-6ffd50262136",
 	1,
 	"06787f13-1c16-4275-879c-00bbeee7cb88",
 	"00000000-0000-0000-0000-000000000000",

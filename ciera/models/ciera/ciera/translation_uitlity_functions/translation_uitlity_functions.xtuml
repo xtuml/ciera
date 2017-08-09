@@ -244,10 +244,12 @@ INSERT INTO S_SYNC
 	'addStringToImports',
 	'',
 	'file = param.file;
-select any import related by file->ImportStatement[R402] where ( selected.fully_qualified_name == param.s );
-if ( empty import )
-  import = ImportStatement::get_import( import:param.s );
-  relate import to file across R402;
+if ( "" != param.s )
+  select any import related by file->ImportStatement[R402] where ( selected.fully_qualified_name == param.s );
+  if ( empty import )
+    import = ImportStatement::get_import( import:param.s );
+    relate import to file across R402;
+  end if;
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -273,6 +275,42 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("a77c0fdf-2f56-4567-a215-618936c9a71f",
+	1,
+	"65dec46c-ec8b-4464-b227-a7853cadd3b4",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("4e285295-4ea7-482a-8d47-1fea832b5b27",
+	"00000000-0000-0000-0000-000000000000",
+	's_dtIsBuiltin',
+	'',
+	's_dt = param.s_dt;
+// builtin types have not containing package or component
+select one c_c related by s_dt->PE_PE[R8001]->C_C[R8003];
+select one ep_pkg related by s_dt->PE_PE[R8001]->EP_PKG[R8000];
+return ( empty c_c and empty ep_pkg );',
+	"ba5eda7a-def5-0000-0000-000000000001",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("6ab42c37-5f74-4f41-ba5d-9e3c832a95e5",
+	"4e285295-4ea7-482a-8d47-1fea832b5b27",
+	's_dt',
+	"4a90cd45-ece0-4e72-afe7-44996f9d7e1e",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("4a90cd45-ece0-4e72-afe7-44996f9d7e1e",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Data Type>',
+	'',
+	'',
+	'../../../../../mcooa/models/mcooa/ooaofooa/Domain/Domain.xtuml');
+INSERT INTO PE_PE
+	VALUES ("4e285295-4ea7-482a-8d47-1fea832b5b27",
 	1,
 	"65dec46c-ec8b-4464-b227-a7853cadd3b4",
 	"00000000-0000-0000-0000-000000000000",

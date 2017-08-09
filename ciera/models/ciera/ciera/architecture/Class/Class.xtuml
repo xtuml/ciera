@@ -16,19 +16,20 @@ INSERT INTO O_TFR
 	1,
 	'select one file related by self->File[R403];
 package_name = ::pathToPackage( path:file.path );
-import_block = "";
-select many imports related by file->ImportStatement[R402];
-for each import in imports
-  import.render();
-  import_block = import_block + T::body();
-  T::clear();
-end for;
 
 class_name = self.name;
 class_number = STRING::itoa( i:self.number );
 class_kl = self.key_letters;
 
-attribute_block = "";
+select many attrs related by self->Attribute[R416];
+for each attr in attrs
+  attr.render();
+  select one type related by attr->TypedObject[R406]->Type[R410];
+  type.addToImports( file:file );
+end for;
+attribute_block = T::body();
+T::clear();
+
 assoc_attr_block = "";
 rto_functions = "";
 has_ism = false;
@@ -41,6 +42,14 @@ unrelates_block = "";
 empty_selections_block = "";
 empty_relates_block = "";
 empty_unrelates_block = "";
+
+import_block = "";
+select many imports related by file->ImportStatement[R402];
+for each import in imports
+  import.render();
+  import_block = import_block + T::body();
+  T::clear();
+end for;
 
 T::include( file:"java/t.class.java" );',
 	1,
