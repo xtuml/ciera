@@ -9,7 +9,7 @@ public class ${class_set_name} extends InstanceSet {
     public static final ${class_set_name} empty${class_set_name} = new Empty${class_set_name}();
 
     // selections
-    ${selections_block}
+${selections_block}
 
     @Override
     public ${class_name} getEmptyInstance() {
@@ -22,6 +22,6 @@ public class ${class_set_name} extends InstanceSet {
 class Empty${class_set_name} extends ${class_set_name} implements EmptyInstanceSet {
 
     // selections
-    ${empty_selections_block}
+${empty_selections_block}
 
 }

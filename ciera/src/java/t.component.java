@@ -26,7 +26,6 @@ T_b("\n");
 T_b("    ");
 T_b("// selections");
 T_b("\n");
-T_b("    ");
 T_b(select_from_instances_block);
 T_b("\n");
 T_b("    ");
@@ -44,7 +43,6 @@ T_b("    ");
 T_b("public void initialize() {");
 T_b("\n");
 }
-T_b("        ");
 T_b(init_block);
 T_b("\n");
 T_b("    ");

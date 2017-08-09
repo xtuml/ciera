@@ -9,7 +9,6 @@ T_b(" context");
 T_b(parameter_list);
 T_b(" ) {");
 T_b("\n");
-T_b("        ");
 T_b(body);
 T_b("\n");
 T_b("    ");

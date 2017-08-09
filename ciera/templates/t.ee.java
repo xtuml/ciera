@@ -8,6 +8,6 @@ public class ${ee_kl} extends Default${ee_kl} {
 public class ${ee_kl} {
 .end if
 
-    ${bridges_block}
+${bridges_block}
 
 }

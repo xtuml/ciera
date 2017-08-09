@@ -11,12 +11,12 @@ public class ${class_name} extends ModelInstance {
     public static final ${class_name} empty${class_name} = new Empty${class_name}();
     
     // class attributes
-    ${attribute_block}
+${attribute_block}
     
     // associations
-    ${assoc_attr_block}
+${assoc_attr_block}
     
-    ${rto_functions}
+${rto_functions_block}
 
     // constructor
     public ${class_name}() {
@@ -25,20 +25,20 @@ public class ${class_name} extends ModelInstance {
 .else
         super();
 .end if
-        ${unique_id_init_block}
+${unique_id_init_block}
     }
     
     // attribute accessors
-    ${accessors_block}
+${accessors_block}
 
     // selections
-    ${selections_block}
+${selections_block}
     
     // relates
-    ${relates_block}
+${relates_block}
     
     // unrelates
-    ${unrelates_block}
+${unrelates_block}
 
     @Override
     public int getClassNumber() {

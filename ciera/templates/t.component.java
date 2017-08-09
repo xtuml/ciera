@@ -9,7 +9,7 @@ public class ${component_name} extends Component {
     };
     
     // selections
-    ${select_from_instances_block}
+${select_from_instances_block}
 
     // component initialization functions
     @Override
@@ -18,7 +18,7 @@ public class ${component_name} extends Component {
 .else
     public void initialize() {
 .end if
-        ${init_block}
+${init_block}
     }
 
     @Override

@@ -17,7 +17,6 @@ T_b(ee_kl);
 T_b(" {");
 T_b("\n");
 }
-T_b("    ");
 T_b(bridges_block);
 T_b("\n");
 T_b("}");
