@@ -3,10 +3,10 @@ package ${package_name};
 ${import_block}
 
 @SuppressWarnings("serial")
-public class ${class_name}Set extends InstanceSet {
+public class ${class_set_name} extends InstanceSet {
 
     // empty set
-    public static final ${class_name}Set empty${class_name}Set = new Empty${class_name}Set();
+    public static final ${class_set_name} empty${class_set_name} = new Empty${class_set_name}();
 
     // selections
     ${selections_block}
@@ -19,7 +19,7 @@ public class ${class_name}Set extends InstanceSet {
 }
 
 @SuppressWarnings("serial")
-class Empty${class_name}Set extends ${class_name}Set implements EmptyInstanceSet {
+class Empty${class_set_name} extends ${class_set_name} implements EmptyInstanceSet {
 
     // selections
     ${empty_selections_block}

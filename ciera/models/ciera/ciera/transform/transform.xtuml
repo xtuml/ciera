@@ -139,9 +139,12 @@ end for;
 
 // create import block
 ::addStringToImports( file:file, s:"ciera.components.Component" );
+::addStringToImports( file:file, s:"ciera.classes.Where" );
 select many object_files related by comp_def->Class[R414]->File[R403];
 for each object_file in object_files
   ::addFileToImports( file:file, file_to_import:object_file );
+  select one objectset_file related by object_file->Class[R403]->ClassSet[R411]->File[R403];
+  ::addFileToImports( file:file, file_to_import:objectset_file );
 end for;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -453,6 +456,7 @@ file.name = ::camelCaseName( name:o_obj.Name, start_lower:false ) + ".java";
 create object instance obj of Class;
 obj.name = ::camelCaseName( name:o_obj.Name, start_lower:false );
 obj.key_letters = o_obj.Key_Lett;
+obj.number = o_obj.Numb;
 relate obj to file across R403;
 relate obj to containing_comp_def across R414;
 
@@ -464,6 +468,8 @@ relate type to obj across R412;
 relate obj to o_obj across R415;
 
 // create the import block
+::addStringToImports( file:file, s:"ciera.classes.EmptyInstance" );
+::addStringToImports( file:file, s:"ciera.classes.ModelInstance" );
 
 // transform the set object
 ::transformClassSet( obj:obj, ep_pkg:ep_pkg );',
@@ -525,7 +531,10 @@ relate objset to file across R403;
 create object instance type of Type;
 relate type to objset across R412;
 
-// create the import block',
+// create the import block
+::addStringToImports( file:file, s:"ciera.classes.EmptyInstanceSet" );
+::addStringToImports( file:file, s:"ciera.classes.InstanceSet" );
+::addStringToImports( file:file, s:"ciera.classes.Where" );',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
