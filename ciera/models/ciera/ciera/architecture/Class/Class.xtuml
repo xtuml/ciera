@@ -22,6 +22,9 @@ class_number = STRING::itoa( i:self.number );
 class_kl = self.key_letters;
 
 select many attrs related by self->Attribute[R416];
+if ( not_empty attrs )
+  ::addStringToImports( file:file, s:"ciera.exceptions.XtumlException" );
+end if;
 for each attr in attrs
   attr.render();
   select one type related by attr->TypedObject[R406]->Type[R410];
@@ -34,7 +37,24 @@ assoc_attr_block = "";
 rto_functions_block = "";
 has_ism = false;
 unique_id_init_block = "";
-accessors_block = "";
+
+separator = "";
+for each attr in attrs
+  select one attr_type related by attr->TypedObject[R406]->Type[R410];
+  attr_type_name = attr_type.name;
+  attr_camel_case_name = ::camelCaseName( name:attr.base_name, start_lower:false );
+  select any ref related by attr->AssociatedClassReference[R418];
+  is_referential_attr = not_empty ref;
+  attr_name = attr.name;
+  select one s_dt related by attr_type->BuiltInType[R412]->S_DT[R413];
+  attr_is_unique = ( not_empty s_dt and s_dt.Name == "unique_id" );
+  T::b( s:separator );
+  T::include( file:"java/t.attributeaccessors.java" );
+  separator = "\n";
+end for;
+accessors_block = T::body();
+T::clear();
+
 selections_block = "";
 relates_block = "";
 unrelates_block = "";
