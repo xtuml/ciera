@@ -11,15 +11,20 @@ INSERT INTO O_DBATTR
 	VALUES ("0717078b-a51a-4d41-bbac-d75df43b0e57",
 	"eb73ded0-7f93-4746-9f7e-0a5079c6d6ed",
 	'self.name = "";
-select one objset related by self->TypedObject[R406]->Type[R410]->ClassSet[R412];
-if ( empty objset )
-  select one obj related by self->TypedObject[R406]->Type[R410]->Class[R412];
-  self.name = self.name + obj.key_letters;
+select one subtype related by self->SubtypeReference[R420];
+if ( not_empty subtype )
+  self.name = subtype.name;
 else
-  select one obj related by objset->Class[R411];
-  self.name = self.name + obj.key_letters + "s";
+select one supertype related by self->SubtypeReference[R420];
+if ( not_empty supertype )
+  self.name = supertype.name;
+else
+select one basic related by self->SubtypeReference[R420];
+if ( not_empty basic )
+  self.name = basic.name;
 end if;
-self.name = "OnR" + STRING::itoa( i:self.rel_numb ) + self.phrase;',
+end if;
+end if;',
 	1,
 	0);
 INSERT INTO O_BATTR
@@ -53,42 +58,6 @@ INSERT INTO O_ATTR
 	'rel_numb',
 	0,
 	"ba5eda7a-def5-0000-0000-000000000002",
-	'',
-	'');
-INSERT INTO O_NBATTR
-	VALUES ("1191afd1-6ed7-4509-9912-3d74075241c2",
-	"eb73ded0-7f93-4746-9f7e-0a5079c6d6ed");
-INSERT INTO O_BATTR
-	VALUES ("1191afd1-6ed7-4509-9912-3d74075241c2",
-	"eb73ded0-7f93-4746-9f7e-0a5079c6d6ed");
-INSERT INTO O_ATTR
-	VALUES ("1191afd1-6ed7-4509-9912-3d74075241c2",
-	"eb73ded0-7f93-4746-9f7e-0a5079c6d6ed",
-	"6537e5dc-0c2c-4398-940f-42428ff394cb",
-	'formalizer',
-	'',
-	'',
-	'formalizer',
-	0,
-	"ba5eda7a-def5-0000-0000-000000000001",
-	'',
-	'');
-INSERT INTO O_NBATTR
-	VALUES ("6537e5dc-0c2c-4398-940f-42428ff394cb",
-	"eb73ded0-7f93-4746-9f7e-0a5079c6d6ed");
-INSERT INTO O_BATTR
-	VALUES ("6537e5dc-0c2c-4398-940f-42428ff394cb",
-	"eb73ded0-7f93-4746-9f7e-0a5079c6d6ed");
-INSERT INTO O_ATTR
-	VALUES ("6537e5dc-0c2c-4398-940f-42428ff394cb",
-	"eb73ded0-7f93-4746-9f7e-0a5079c6d6ed",
-	"9322a75a-690e-4f7a-9fb8-b730af24ee48",
-	'phrase',
-	'',
-	'',
-	'phrase',
-	0,
-	"ba5eda7a-def5-0000-0000-000000000004",
 	'',
 	'');
 INSERT INTO O_ID
