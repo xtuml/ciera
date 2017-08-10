@@ -497,6 +497,20 @@ for each r_rel in r_rels
   ::transformAssociatedClassReference( r_rel:r_rel, obj:obj );
 end for;
 
+// resolve types for referential attributes
+select many attrs related by obj->Attribute[R416];
+for each attr in attrs
+  select any ref related by attr->AssociatedClassReference[R418];
+  if ( not_empty ref )
+    select one s_dt related by attr->O_ATTR[R421]->O_RATTR[R106]->O_BATTR[R113]->O_ATTR[R106]->S_DT[R114];
+    select one typed_object related by attr->TypedObject[R406];
+    select one old_type related by typed_object->Type[R410];
+    unrelate old_type from typed_object across R410;
+    new_type = UnresolvedType::getInstance( s_dt:s_dt );
+    relate new_type to typed_object across R410;
+  end if;
+end for;
+
 // transform the set object
 ::transformClassSet( obj:obj, ep_pkg:ep_pkg );
 
