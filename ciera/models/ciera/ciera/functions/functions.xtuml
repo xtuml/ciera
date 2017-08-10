@@ -118,6 +118,9 @@ INSERT INTO S_SYNC
 // translate builtin types
 ::transformBuiltinTypes();
 
+// assure all classes have IRDTs
+::transformInstanceReferenceTypes();
+
 // translate root package
 select any root_package_mark from instances of Mark where ( selected.markable_name == "*"
                                                             and selected.path == "*"
@@ -132,6 +135,9 @@ if ( not_empty root_package_mark )
 else
   TRACE::log( id:80, flavor:"failure", message:"No root package specified" );
 end if;
+
+// pseudo-formalize simple associations
+::pseudoFormalize();
 
 // resolve types
 ::resolveTypes();

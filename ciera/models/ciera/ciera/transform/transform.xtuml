@@ -483,10 +483,6 @@ relate type to obj across R412;
 // relate to the OOA class
 relate obj to o_obj across R415;
 
-// create the import block
-::addStringToImports( file:file, s:"ciera.classes.EmptyInstance" );
-::addStringToImports( file:file, s:"ciera.classes.ModelInstance" );
-
 // transform attributes
 select many o_attrs related by o_obj->O_ATTR[R102];
 for each o_attr in o_attrs
@@ -495,8 +491,18 @@ for each o_attr in o_attrs
   end if;
 end for;
 
+// transform relationships
+select many r_rels related by o_obj->R_REL[R201];
+for each r_rel in r_rels
+  ::transformAssociatedClassReference( r_rel:r_rel, obj:obj );
+end for;
+
 // transform the set object
-::transformClassSet( obj:obj, ep_pkg:ep_pkg );',
+::transformClassSet( obj:obj, ep_pkg:ep_pkg );
+
+// create the import block
+::addStringToImports( file:file, s:"ciera.classes.EmptyInstance" );
+::addStringToImports( file:file, s:"ciera.classes.ModelInstance" );',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -664,7 +670,10 @@ select one s_dt related by o_attr->S_DT[R114];
 type = UnresolvedType::getInstance( s_dt:s_dt );
 create object instance typed_object of TypedObject;
 relate type to typed_object across R410;
-relate typed_object to attr across R406;',
+relate typed_object to attr across R406;
+
+// linke OOA attribute
+relate o_attr to attr across R421;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -696,6 +705,273 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("19215085-ca84-43cb-bb81-6ffd50262136",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("63607f84-9ce1-4bf7-a444-ed2916332276",
+	"00000000-0000-0000-0000-000000000000",
+	'transformAssociatedClassReference',
+	'',
+	'r_rel = param.r_rel;
+obj = param.obj;
+select one o_obj related by obj->O_OBJ[R415];
+select many r_oirs related by r_rel->R_OIR[R201] where ( selected.Obj_ID == o_obj.Obj_ID );
+for each r_oir in r_oirs
+
+  // create the ACR instance
+  create object instance acr of AssociatedClassReference;
+  acr.rel_numb = r_rel.Numb;
+  relate acr to obj across R417;
+  
+  select any other_irdt from instances of S_IRDT where false;
+  
+  // create subtype
+  select one r_sub related by r_oir->R_RGO[R203]->R_SUB[R205];
+  select one r_super related by r_oir->R_RTO[R203]->R_SUPER[R204];
+  select one r_aone related by r_oir->R_RTO[R203]->R_AONE[R204];
+  select one r_aoth related by r_oir->R_RTO[R203]->R_AOTH[R204];
+  select one r_assr related by r_oir->R_RGO[R203]->R_ASSR[R205];
+  select one r_part related by r_oir->R_RTO[R203]->R_PART[R204];
+  select one r_form related by r_oir->R_RGO[R203]->R_FORM[R205];
+  if ( not_empty r_sub )
+    create object instance super of SupertypeReference;
+    relate super to acr across R420;
+    select any other_irdt related by r_sub->R_SUBSUP[R213]->R_SUPER[R212]->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->S_IRDT[R123] where ( not selected.isSet );
+  elif ( not_empty r_super )
+    create object instance sub of SubtypeReference;
+    relate sub to acr across R420;
+    select any other_irdt related by r_super->R_SUBSUP[R212]->R_SUB[R213]->R_RGO[R205]->R_OIR[R203]->O_OBJ[R201]->S_IRDT[R123] where ( selected.isSet );
+  else
+    create object instance basic of BasicReference;
+    if ( not_empty r_aone or not_empty r_aoth )
+      basic.assoc = true;
+      basic.formalizer = false;
+      select one assr related by r_aone->R_ASSOC[R209]->R_ASSR[R211];
+      if ( empty assr )
+        select one assr related by r_aoth->R_ASSOC[R210]->R_ASSR[R211];
+      end if;
+      if ( 0 == assr.Mult )
+        select any other_irdt related by assr->R_RGO[R205]->R_OIR[R203]->O_OBJ[R201]->S_IRDT[R123] where ( not selected.isSet );
+      else
+        select any other_irdt related by assr->R_RGO[R205]->R_OIR[R203]->O_OBJ[R201]->S_IRDT[R123] where ( selected.isSet );
+      end if;
+    elif ( not_empty r_assr )
+      // associative links need another ACR instance for the one
+      // this bit of code does everything (creates/populates ACR, links attributes, links data type)
+      // for the one
+      create object instance one_acr of AssociatedClassReference;
+      one_acr.rel_numb = r_rel.Numb;
+      relate one_acr to obj across R417;
+      create object instance one_basic of BasicReference;
+      one_basic.assoc = true;
+      one_basic.formalizer = true;
+      select any one_irdt from instances of S_IRDT where false;
+      select one aone related by r_assr->R_ASSOC[R211]->R_AONE[R209];
+      if ( 0 == aone.Mult )
+        select any other_irdt related by aone->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->S_IRDT[R123] where ( not selected.isSet );
+      else
+        select any other_irdt related by aone->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->S_IRDT[R123] where ( selected.isSet );
+      end if;
+      select many ref_attrs related by r_oir->R_RGO[R203]->O_REF[R111]->O_RATTR[R108]->O_ATTR[R106]->Attribute[R421];
+      for each ref_attr in ref_attrs
+        relate one_acr to ref_attr across R418;
+      end for;
+      create object instance typed_object of TypedObject;
+      select one s_dt related by one_irdt->S_DT[R17];
+      type = UnresolvedType::getInstance( s_dt:s_dt );
+      relate type to typed_object across R410;
+      relate one_acr to typed_object across R406;
+      // the main ACR instance is for the other
+      basic.assoc = true;
+      basic.formalizer = true;
+      select one aoth related by r_assr->R_ASSOC[R211]->R_AOTH[R210];
+      if ( 0 == aoth.Mult )
+        select any other_irdt related by aoth->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->S_IRDT[R123] where ( not selected.isSet );
+      else
+        select any other_irdt related by aoth->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->S_IRDT[R123] where ( selected.isSet );
+      end if;
+    elif ( not_empty r_part )
+      basic.assoc = false;
+      basic.formalizer = false;
+      select any part related by r_part->R_SIMP[R207]->R_PART[R207] where ( selected.OIR_ID != r_part.OIR_ID );
+      if ( not_empty part )
+        if ( 0 == part.Mult )
+          select any other_irdt related by part->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->S_IRDT[R123] where ( not selected.isSet );
+        else
+          select any other_irdt related by part->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->S_IRDT[R123] where ( selected.isSet );
+        end if;
+      else
+        select one form related by r_part->R_SIMP[R207]->R_FORM[R208];
+        if ( 0 == form.Mult )
+          select any other_irdt related by form->R_RGO[R205]->R_OIR[R203]->O_OBJ[R201]->S_IRDT[R123] where ( not selected.isSet );
+        else
+          select any other_irdt related by form->R_RGO[R205]->R_OIR[R203]->O_OBJ[R201]->S_IRDT[R123] where ( selected.isSet );
+        end if;
+      end if;
+    elif ( not_empty r_form )
+      basic.assoc = false;
+      basic.formalizer = true;
+      select any part related by r_form->R_SIMP[R208]->R_PART[R207];
+      if ( 0 == part.Mult )
+        select any other_irdt related by part->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->S_IRDT[R123] where ( not selected.isSet );
+      else
+        select any other_irdt related by part->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->S_IRDT[R123] where ( selected.isSet );
+      end if;
+    end if;
+    relate basic to acr across R420;
+  end if;
+  
+  // relate to referential attributes
+  select many ref_attrs related by r_oir->R_RGO[R203]->O_REF[R111]->O_RATTR[R108]->O_ATTR[R106]->Attribute[R421];
+  for each ref_attr in ref_attrs
+    relate acr to ref_attr across R418;
+  end for;
+  
+  // create and link datatype
+  create object instance typed_object of TypedObject;
+  select one s_dt related by other_irdt->S_DT[R17];
+  type = UnresolvedType::getInstance( s_dt:s_dt );
+  relate type to typed_object across R410;
+  relate acr to typed_object across R406;
+
+end for;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("cd5b29d6-0d5a-46c2-861a-3930bec96a31",
+	"63607f84-9ce1-4bf7-a444-ed2916332276",
+	'r_rel',
+	"4480b008-8c74-4f57-9256-08b7365520bc",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("4480b008-8c74-4f57-9256-08b7365520bc",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Association>',
+	'',
+	'',
+	'../../../../../mcooa/models/mcooa/ooaofooa/Association/Association.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("a8dfe77c-2fde-48ad-bb6a-38bfa1d2eadd",
+	"63607f84-9ce1-4bf7-a444-ed2916332276",
+	'obj',
+	"ac93823e-2644-440b-977c-1f4e8480ec59",
+	0,
+	'',
+	"cd5b29d6-0d5a-46c2-861a-3930bec96a31",
+	'');
+INSERT INTO PE_PE
+	VALUES ("63607f84-9ce1-4bf7-a444-ed2916332276",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("a566ca37-5a57-4f7f-9212-c9cf475d697d",
+	"00000000-0000-0000-0000-000000000000",
+	'transformInstanceReferenceTypes',
+	'',
+	'// make sure an instance reference type is created for every class
+select many o_objs from instances of O_OBJ;
+for each o_obj in o_objs
+  select one packageableElem related by o_obj->PE_PE[R8001];
+  select one package related by packageableElem->EP_PKG[R8000];
+  select one component related by packageableElem->C_C[R8003];
+
+  // Make sure the IRDTs don''t already exist before creating new ones.  Check
+  // the single and set version and create whatever does not exist.
+  select any existing_irdt related by o_obj->S_IRDT[R123] where selected.isSet == false;
+  if (empty existing_irdt) 
+    create object instance pe of PE_PE;
+    relate pe to package across R8000;
+    pe.Visibility = Visibility::Public;
+    pe.type = ElementTypeConstants::DATATYPE;
+    create object instance dt of S_DT;
+    relate pe to dt across R8001;
+    create object instance irdt of S_IRDT;
+    irdt.isSet = false;
+    relate dt to irdt across R17;
+    dt.Name = "inst_ref<" + o_obj.Name + ">" ;
+    relate o_obj to irdt across R123;
+  end if;
+
+  select any existing_irdt_set related by o_obj->S_IRDT[R123] where selected.isSet == true;
+  if (empty existing_irdt_set) 
+    create object instance pe of PE_PE;
+    relate pe to package across R8000;
+    pe.Visibility = Visibility::Public;
+    pe.type = ElementTypeConstants::DATATYPE;
+    create object instance dt2 of S_DT;
+    relate pe to dt2 across R8001;
+    create object instance irsdt of S_IRDT;
+    irsdt.isSet = true;
+    relate irsdt to dt2 across R17;
+    dt2.Name = "inst_ref_set<" + o_obj.Name + ">" ;
+    relate o_obj to irsdt across R123;
+  end if;
+end for;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO PE_PE
+	VALUES ("a566ca37-5a57-4f7f-9212-c9cf475d697d",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("026a2c03-fa7a-4eac-ada9-60382ab3b543",
+	"00000000-0000-0000-0000-000000000000",
+	'pseudoFormalize',
+	'',
+	'// for simple relationships with two participants, one must
+// be considered the formalizer
+select many r_simps from instances of R_SIMP;
+select many r_rels related by r_simps->R_REL[R206];
+for each r_rel in r_rels
+
+  select many refs from instances of AssociatedClassReference where ( selected.rel_numb == r_rel.Numb );
+  select many basic_refs related by refs->BasicReference[R420] where ( not selected.assoc );
+  // these must come in pairs
+  if ( 2 == cardinality basic_refs )
+    select any obj1 from instances of Class where false;
+    select any obj2 from instances of Class where false;
+    select any basic1 from instances of BasicReference where false;
+    select any basic2 from instances of BasicReference where false;
+    for each basic_ref in basic_refs
+      if ( empty obj1 )
+        select one obj1 related by basic_ref->AssociatedClassReference[R420]->Class[R417];
+        basic1 = basic_ref;
+      else
+        select one obj2 related by basic_ref->AssociatedClassReference[R420]->Class[R417];
+        basic2 = basic_ref;
+      end if;
+    end for;
+    // the participant with the lower class name alphanumerically will be the formalizer
+    if ( 0 > STRING::compare( s1:obj1.name, s2:obj2.name ) )
+      basic1.formalizer = true;
+    else
+      basic2.formalizer = true;
+    end if;
+  else
+    // TODO bad
+    TRACE::log( flavor:"failure", id:88, message:"Simple relationship does not have two references" );
+  end if;
+
+end for;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO PE_PE
+	VALUES ("026a2c03-fa7a-4eac-ada9-60382ab3b543",
 	1,
 	"06787f13-1c16-4275-879c-00bbeee7cb88",
 	"00000000-0000-0000-0000-000000000000",

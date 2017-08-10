@@ -352,3 +352,22 @@ STRING_unescapetics( c_t * p_s )
   return result;
 }
 
+
+/*
+ * Bridge:  compare
+ */
+i_t
+STRING_compare( c_t * p_s1, c_t * p_s2 )
+{
+  c_t * s1 = p_s1;
+  c_t * s2 = p_s1;
+  if ( *s1 < *s2 ) return -1;
+  if ( *s1 > *s2 ) return 1;
+  while ( *s1 != '\0' && *s2 != '\0' ) {
+    s1++; s2++;
+    if ( *s1 < *s2 ) return -1;
+    if ( *s1 > *s2 ) return 1;
+  }
+  return 0;
+}
+
