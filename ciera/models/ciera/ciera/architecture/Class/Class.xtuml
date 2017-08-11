@@ -33,7 +33,18 @@ end for;
 attribute_block = T::body();
 T::clear();
 
-assoc_attr_block = "";
+select many refs related by self->AssociatedClassReference[R417];
+if ( not_empty refs )
+  ::addStringToImports( file:file, s:"ciera.classes.Where" );
+end if;
+for each ref in refs
+  ref.render();
+  select one type related by ref->TypedObject[R406]->Type[R410];
+  type.addToImports( file:file );
+end for;
+assoc_attr_block = T::body();
+T::clear();
+
 rto_functions_block = "";
 has_ism = false;
 unique_id_init_block = "";
@@ -55,7 +66,30 @@ end for;
 accessors_block = T::body();
 T::clear();
 
-selections_block = "";
+separator = "";
+for each ref in refs
+  is_unconditional = ref.unconditional;
+  if ( is_unconditional )
+    ::addStringToImports( file:file, s:"ciera.exceptions.ModelIntegrityException" );
+  end if;
+  select one type related by ref->TypedObject[R406]->Type[R410];
+  target_type_name = type.name;
+  select one obj related by type->Class[R412];
+  is_many = false;
+  if ( empty obj )
+    select one obj related by type->ClassSet[R412]->Class[R411];
+    is_many = true;
+  end if;
+  target_key_letters = obj.key_letters;
+  rel_numb = STRING::itoa( i:ref.rel_numb );
+  ref_name = ref.name;
+  T::b( s:separator );
+  T::include( file:"java/t.selectrelated.java" );
+  separator = "\n";
+end for;
+selections_block = T::body();
+T::clear();
+
 relates_block = "";
 unrelates_block = "";
 

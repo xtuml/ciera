@@ -739,7 +739,7 @@ for each r_oir in r_oirs
   acr.rel_numb = r_rel.Numb;
   relate acr to obj across R417;
   
-  select any other_irdt from instances of S_IRDT where false;
+  select any other_dt from instances of S_DT where false;
   
   // create subtype
   select one r_sub related by r_oir->R_RGO[R203]->R_SUB[R205];
@@ -750,26 +750,51 @@ for each r_oir in r_oirs
   select one r_part related by r_oir->R_RTO[R203]->R_PART[R204];
   select one r_form related by r_oir->R_RGO[R203]->R_FORM[R205];
   if ( not_empty r_sub )
+    acr.unconditional = true;
     create object instance super of SupertypeReference;
     relate super to acr across R420;
     select any other_irdt related by r_sub->R_SUBSUP[R213]->R_SUPER[R212]->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->S_IRDT[R123] where ( not selected.isSet );
+    select one other_dt related by other_irdt->S_DT[R17];
   elif ( not_empty r_super )
+    acr.unconditional = true;
     create object instance sub of SubtypeReference;
     relate sub to acr across R420;
-    select any other_irdt related by r_super->R_SUBSUP[R212]->R_SUB[R213]->R_RGO[R205]->R_OIR[R203]->O_OBJ[R201]->S_IRDT[R123] where ( selected.isSet );
+    select any other_dt from instances of S_DT where ( selected.Name == "inst_ref<Object>" );
   else
     create object instance basic of BasicReference;
-    if ( not_empty r_aone or not_empty r_aoth )
+    if ( not_empty r_aone )
       basic.assoc = true;
       basic.formalizer = false;
       select one assr related by r_aone->R_ASSOC[R209]->R_ASSR[R211];
-      if ( empty assr )
-        select one assr related by r_aoth->R_ASSOC[R210]->R_ASSR[R211];
-      end if;
       if ( 0 == assr.Mult )
         select any other_irdt related by assr->R_RGO[R205]->R_OIR[R203]->O_OBJ[R201]->S_IRDT[R123] where ( not selected.isSet );
+        select one other_dt related by other_irdt->S_DT[R17];
       else
         select any other_irdt related by assr->R_RGO[R205]->R_OIR[R203]->O_OBJ[R201]->S_IRDT[R123] where ( selected.isSet );
+        select one other_dt related by other_irdt->S_DT[R17];
+      end if;
+      select one aoth related by r_aone->R_ASSOC[R209]->R_AOTH[R210];
+      if ( 0 == aoth.Cond )
+        acr.unconditional = true;
+      else
+        acr.unconditional = false;
+      end if;
+    elif ( not_empty r_aoth )
+      basic.assoc = true;
+      basic.formalizer = false;
+      select one assr related by r_aoth->R_ASSOC[R210]->R_ASSR[R211];
+      if ( 0 == assr.Mult )
+        select any other_irdt related by assr->R_RGO[R205]->R_OIR[R203]->O_OBJ[R201]->S_IRDT[R123] where ( not selected.isSet );
+        select one other_dt related by other_irdt->S_DT[R17];
+      else
+        select any other_irdt related by assr->R_RGO[R205]->R_OIR[R203]->O_OBJ[R201]->S_IRDT[R123] where ( selected.isSet );
+        select one other_dt related by other_irdt->S_DT[R17];
+      end if;
+      select one aone related by r_aoth->R_ASSOC[R210]->R_AONE[R209];
+      if ( 0 == aone.Cond )
+        acr.unconditional = true;
+      else
+        acr.unconditional = false;
       end if;
     elif ( not_empty r_assr )
       // associative links need another ACR instance for the one
@@ -777,6 +802,7 @@ for each r_oir in r_oirs
       // for the one
       create object instance one_acr of AssociatedClassReference;
       one_acr.rel_numb = r_rel.Numb;
+      one_acr.unconditional = true;
       relate one_acr to obj across R417;
       create object instance one_basic of BasicReference;
       one_basic.assoc = true;
@@ -784,9 +810,9 @@ for each r_oir in r_oirs
       select any one_irdt from instances of S_IRDT where false;
       select one aone related by r_assr->R_ASSOC[R211]->R_AONE[R209];
       if ( 0 == aone.Mult )
-        select any other_irdt related by aone->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->S_IRDT[R123] where ( not selected.isSet );
+        select any one_irdt related by aone->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->S_IRDT[R123] where ( not selected.isSet );
       else
-        select any other_irdt related by aone->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->S_IRDT[R123] where ( selected.isSet );
+        select any one_irdt related by aone->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->S_IRDT[R123] where ( selected.isSet );
       end if;
       select many ref_attrs related by r_oir->R_RGO[R203]->O_REF[R111]->O_RATTR[R108]->O_ATTR[R106]->Attribute[R421];
       for each ref_attr in ref_attrs
@@ -798,13 +824,16 @@ for each r_oir in r_oirs
       relate type to typed_object across R410;
       relate one_acr to typed_object across R406;
       // the main ACR instance is for the other
+      acr.unconditional = true;
       basic.assoc = true;
       basic.formalizer = true;
       select one aoth related by r_assr->R_ASSOC[R211]->R_AOTH[R210];
       if ( 0 == aoth.Mult )
         select any other_irdt related by aoth->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->S_IRDT[R123] where ( not selected.isSet );
+        select one other_dt related by other_irdt->S_DT[R17];
       else
         select any other_irdt related by aoth->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->S_IRDT[R123] where ( selected.isSet );
+        select one other_dt related by other_irdt->S_DT[R17];
       end if;
     elif ( not_empty r_part )
       basic.assoc = false;
@@ -813,15 +842,29 @@ for each r_oir in r_oirs
       if ( not_empty part )
         if ( 0 == part.Mult )
           select any other_irdt related by part->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->S_IRDT[R123] where ( not selected.isSet );
+          select one other_dt related by other_irdt->S_DT[R17];
         else
           select any other_irdt related by part->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->S_IRDT[R123] where ( selected.isSet );
+          select one other_dt related by other_irdt->S_DT[R17];
+        end if;
+        if ( 0 == part.Cond )
+          acr.unconditional = true;
+        else
+          acr.unconditional = false;
         end if;
       else
         select one form related by r_part->R_SIMP[R207]->R_FORM[R208];
         if ( 0 == form.Mult )
           select any other_irdt related by form->R_RGO[R205]->R_OIR[R203]->O_OBJ[R201]->S_IRDT[R123] where ( not selected.isSet );
+          select one other_dt related by other_irdt->S_DT[R17];
         else
           select any other_irdt related by form->R_RGO[R205]->R_OIR[R203]->O_OBJ[R201]->S_IRDT[R123] where ( selected.isSet );
+          select one other_dt related by other_irdt->S_DT[R17];
+        end if;
+        if ( 0 == form.Cond )
+          acr.unconditional = true;
+        else
+          acr.unconditional = false;
         end if;
       end if;
     elif ( not_empty r_form )
@@ -830,8 +873,15 @@ for each r_oir in r_oirs
       select any part related by r_form->R_SIMP[R208]->R_PART[R207];
       if ( 0 == part.Mult )
         select any other_irdt related by part->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->S_IRDT[R123] where ( not selected.isSet );
+        select one other_dt related by other_irdt->S_DT[R17];
       else
         select any other_irdt related by part->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->S_IRDT[R123] where ( selected.isSet );
+        select one other_dt related by other_irdt->S_DT[R17];
+      end if;
+      if ( 0 == part.Cond )
+        acr.unconditional = true;
+      else
+        acr.unconditional = false;
       end if;
     end if;
     relate basic to acr across R420;
@@ -845,8 +895,7 @@ for each r_oir in r_oirs
   
   // create and link datatype
   create object instance typed_object of TypedObject;
-  select one s_dt related by other_irdt->S_DT[R17];
-  type = UnresolvedType::getInstance( s_dt:s_dt );
+  type = UnresolvedType::getInstance( s_dt:other_dt );
   relate type to typed_object across R410;
   relate acr to typed_object across R406;
 
@@ -950,35 +999,37 @@ INSERT INTO S_SYNC
 select many r_simps from instances of R_SIMP;
 select many r_rels related by r_simps->R_REL[R206];
 for each r_rel in r_rels
+  if ( not ::r_rel_is_formal( r_rel:r_rel ) )
 
-  select many refs from instances of AssociatedClassReference where ( selected.rel_numb == r_rel.Numb );
-  select many basic_refs related by refs->BasicReference[R420] where ( not selected.assoc );
-  // these must come in pairs
-  if ( 2 == cardinality basic_refs )
-    select any obj1 from instances of Class where false;
-    select any obj2 from instances of Class where false;
-    select any basic1 from instances of BasicReference where false;
-    select any basic2 from instances of BasicReference where false;
-    for each basic_ref in basic_refs
-      if ( empty obj1 )
-        select one obj1 related by basic_ref->AssociatedClassReference[R420]->Class[R417];
-        basic1 = basic_ref;
+    select many refs from instances of AssociatedClassReference where ( selected.rel_numb == r_rel.Numb );
+    select many basic_refs related by refs->BasicReference[R420] where ( not selected.assoc );
+    // these must come in pairs
+    if ( 2 == cardinality basic_refs )
+      select any obj1 from instances of Class where false;
+      select any obj2 from instances of Class where false;
+      select any basic1 from instances of BasicReference where false;
+      select any basic2 from instances of BasicReference where false;
+      for each basic_ref in basic_refs
+        if ( empty obj1 )
+          select one obj1 related by basic_ref->AssociatedClassReference[R420]->Class[R417];
+          basic1 = basic_ref;
+        else
+          select one obj2 related by basic_ref->AssociatedClassReference[R420]->Class[R417];
+          basic2 = basic_ref;
+        end if;
+      end for;
+      // the participant with the lower class name alphanumerically will be the formalizer
+      if ( 0 > STRING::compare( s1:obj1.name, s2:obj2.name ) )
+        basic1.formalizer = true;
       else
-        select one obj2 related by basic_ref->AssociatedClassReference[R420]->Class[R417];
-        basic2 = basic_ref;
+        basic2.formalizer = true;
       end if;
-    end for;
-    // the participant with the lower class name alphanumerically will be the formalizer
-    if ( 0 > STRING::compare( s1:obj1.name, s2:obj2.name ) )
-      basic1.formalizer = true;
     else
-      basic2.formalizer = true;
+      // TODO bad
+      TRACE::log( flavor:"failure", id:88, message:"Simple relationship does not have two references" );
     end if;
-  else
-    // TODO bad
-    TRACE::log( flavor:"failure", id:88, message:"Simple relationship does not have two references" );
-  end if;
 
+  end if;
 end for;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
