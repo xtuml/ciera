@@ -1,3 +1,54 @@
+if ( isset ) {
+} else {
+if ( isempty ) {
+if ( is_many ) {
+T_b("    ");
+T_b("@Override");
+T_b("\n");
+T_b("    ");
+T_b("public ");
+T_b(target_type_name);
+T_b(" selectAny");
+T_b(target_key_letters);
+T_b("OnR");
+T_b(rel_numb);
+T_b("( Where condition ) throws XtumlException {");
+T_b("\n");
+T_b("        ");
+T_b("return ");
+T_b(target_type_name);
+T_b(".empty");
+T_b(target_type_name);
+T_b(";");
+T_b("\n");
+T_b("    ");
+T_b("}");
+T_b("\n");
+} else {
+T_b("    ");
+T_b("@Override");
+T_b("\n");
+T_b("    ");
+T_b("public ");
+T_b(target_type_name);
+T_b(" selectOne");
+T_b(target_key_letters);
+T_b("OnR");
+T_b(rel_numb);
+T_b("( Where condition ) throws XtumlException {");
+T_b("\n");
+T_b("        ");
+T_b("return ");
+T_b(target_type_name);
+T_b(".empty");
+T_b(target_type_name);
+T_b(";");
+T_b("\n");
+T_b("    ");
+T_b("}");
+T_b("\n");
+}
+} else {
 if ( is_many ) {
 T_b("    ");
 T_b("public ");
@@ -170,4 +221,6 @@ T_b("\n");
 T_b("    ");
 T_b("}");
 T_b("\n");
+}
+}
 }

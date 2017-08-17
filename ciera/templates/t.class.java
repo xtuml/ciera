@@ -55,12 +55,12 @@ ${unrelates_block}
 class Empty${class_name} extends ${class_name} implements EmptyInstance {
 
     // selections
-    ${empty_selections_block}
+${empty_selections_block}
 
     // relates
-    ${empty_relates_block}
+${empty_relates_block}
 
     // unrelates
-    ${empty_unrelates_block}
+${empty_unrelates_block}
 
 }

@@ -110,6 +110,8 @@ for each ref in refs
   target_key_letters = obj.key_letters;
   rel_numb = STR::itoa( i:ref.rel_numb );
   ref_name = ref.name;
+  isset = false;
+  isempty = false;
   T::b( s:separator );
   T::include( file:"java/t.selectrelated.java" );
   separator = "\n";
@@ -120,7 +122,32 @@ T::clear();
 relates_block = "";
 unrelates_block = "";
 
-empty_selections_block = "";
+separator = "";
+for each ref in refs
+  is_unconditional = ref.unconditional;
+  if ( is_unconditional )
+    ::addStringToImports( file:file, s:"ciera.exceptions.ModelIntegrityException" );
+  end if;
+  select one type related by ref->TypedObject[R406]->Type[R410];
+  target_type_name = type.name;
+  select one obj related by type->Class[R412];
+  is_many = false;
+  if ( empty obj )
+    select one obj related by type->ClassSet[R412]->Class[R411];
+    is_many = true;
+  end if;
+  target_key_letters = obj.key_letters;
+  rel_numb = STR::itoa( i:ref.rel_numb );
+  ref_name = ref.name;
+  isset = false;
+  isempty = true;
+  T::b( s:separator );
+  T::include( file:"java/t.selectrelated.java" );
+  separator = "\n";
+end for;
+empty_selections_block = T::body();
+T::clear();
+
 empty_relates_block = "";
 empty_unrelates_block = "";
 
