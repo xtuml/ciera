@@ -26,7 +26,6 @@ c_t * STRING_trim( c_t * );
 #define STRING_quote() "\""
 c_t * STRING_escapetics( c_t * );
 c_t * STRING_unescapetics( c_t * );
-i_t STRING_compare( c_t *, c_t * );
 
 #ifdef	__cplusplus
 }
