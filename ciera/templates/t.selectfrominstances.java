@@ -15,8 +15,7 @@
         return ((${class_set_name})getInstanceSet(${class_name}.class)).selectMany${class_key_letters}sFromInstances( condition );
     }
 .else
-  .if ( isset )
-    .if ( isempty )
+  .if ( isempty )
     @Override
     public ${class_name} selectAny${class_key_letters}FromInstances( Where condition ) {
         return ${class_name}.empty${class_name};
@@ -26,7 +25,7 @@
     public ${class_set_name} selectMany${class_key_letters}sFromInstances( Where condition ) {
         return ${class_set_name}.empty${class_set_name};
     }
-    .else
+  .else
     public ${class_name} selectAny${class_key_letters}FromInstances( Where condition ) {
         return (${class_name})selectAny( condition );
     }
@@ -34,9 +33,5 @@
     public ${class_set_name} selectMany${class_key_letters}sFromInstances( Where condition ) {
         return (${class_set_name})selectMany( condition );
     }
-    .end if
-  .else
-    .if ( isempty )
-    .end if
   .end if
 .end if

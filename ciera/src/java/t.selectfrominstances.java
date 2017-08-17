@@ -74,7 +74,6 @@ T_b("    ");
 T_b("}");
 T_b("\n");
 } else {
-if ( isset ) {
 if ( isempty ) {
 T_b("    ");
 T_b("@Override");
@@ -153,9 +152,5 @@ T_b("\n");
 T_b("    ");
 T_b("}");
 T_b("\n");
-}
-} else {
-if ( isempty ) {
-}
 }
 }
