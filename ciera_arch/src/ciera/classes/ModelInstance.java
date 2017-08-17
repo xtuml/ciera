@@ -11,6 +11,9 @@ import ciera.statemachine.InstanceStateMachine;
 
 public abstract class ModelInstance implements EventTarget, Comparable<ModelInstance> {
     
+    // empty instance
+    public static final ModelInstance emptyInstance = new EmptyModelInstance();
+
     private UUID instanceId;
     private boolean alive;
 
@@ -78,4 +81,18 @@ public abstract class ModelInstance implements EventTarget, Comparable<ModelInst
         return instanceId.compareTo( instance.getInstanceId() );
     }
 
+}
+
+class EmptyModelInstance extends ModelInstance implements EmptyInstance {
+
+    @Override
+    public int getClassNumber() {
+        return 0;
+    }
+
+    @Override
+    public String getKeyLetters() {
+        return null;
+    }
+    
 }
