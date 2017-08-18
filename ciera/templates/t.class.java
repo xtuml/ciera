@@ -6,6 +6,7 @@ public class ${class_name} extends ModelInstance {
     
     private static final int classNumber = ${class_number};
     private static final String keyLetters = "${class_kl}";
+    private static final Class<?> setClass = ${set_class}.class;
     
     // empty instance
     public static final ${class_name} empty${class_name} = new Empty${class_name}();
@@ -48,6 +49,11 @@ ${unrelates_block}
     @Override
     public String getKeyLetters() {
         return keyLetters;
+    }
+
+    @Override
+    public Class<?> getSetClass() {
+        return setClass;
     }
 
 }
