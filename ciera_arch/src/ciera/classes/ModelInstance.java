@@ -95,5 +95,10 @@ class EmptyModelInstance extends ModelInstance implements EmptyInstance {
     public String getKeyLetters() {
         return null;
     }
+
+    @Override
+    public Class<?> getSetClass() {
+        return null;
+    }
     
 }
