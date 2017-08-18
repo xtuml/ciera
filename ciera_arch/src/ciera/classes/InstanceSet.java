@@ -1,5 +1,6 @@
 package ciera.classes;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.HashSet;
@@ -10,21 +11,23 @@ import ciera.application.XtumlApplication;
 public abstract class InstanceSet implements Set<ModelInstance> {
     
     private static Class<?> setClass = DefaultInstanceSet.class;
+
     private Set<ModelInstance> backingSet;
+    private Class<?> type;
     
     public static <T extends Set<ModelInstance>> void setBackingSetClass( Class<T> newSetClass ) {
         setClass = newSetClass;
     }
     
     @SuppressWarnings("unchecked")
-    public InstanceSet() {
+    public InstanceSet( Class<?> type ) {
         try {
             backingSet = (Set<ModelInstance>) setClass.newInstance();
-        } catch (InstantiationException e) {
+        } catch ( Exception e ) {
             e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
+            XtumlApplication.app.stop();
         }
+        this.type = type;
     }
     
     public ModelInstance selectAny( Where condition ) {
@@ -37,10 +40,10 @@ public abstract class InstanceSet implements Set<ModelInstance> {
     }
     
     public InstanceSet selectMany( Where condition ) {
-        InstanceSet return_set = (InstanceSet)clone();
+        InstanceSet return_set = getNewInstanceSetForClass( type );
         for ( ModelInstance selected : this ) {
-            if ( null != condition && !condition.evaluate(selected) ) {
-                return_set.remove(selected);
+            if ( null == condition || condition.evaluate(selected) ) {
+                return_set.add(selected);
             }
         }
         return return_set;
@@ -50,7 +53,8 @@ public abstract class InstanceSet implements Set<ModelInstance> {
         try {
             Method getSetClass = object.getMethod( "getSetClass" );
             Class<?> setClass = (Class<?>) getSetClass.invoke( null );
-            Object newInstanceSet = setClass.newInstance();
+            Constructor<?> constructor = setClass.getConstructor( Class.class );
+            Object newInstanceSet = constructor.newInstance( object );
             return (InstanceSet)newInstanceSet;
         }
         catch ( Exception e ) {
@@ -62,11 +66,6 @@ public abstract class InstanceSet implements Set<ModelInstance> {
 
     public abstract ModelInstance getEmptyInstance();
     
-    @Override
-    public Object clone() {
-        return null;
-    }
-
     @Override
     public int size() {
         return backingSet.size();
