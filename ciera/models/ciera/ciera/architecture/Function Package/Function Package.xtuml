@@ -16,13 +16,6 @@ INSERT INTO O_TFR
 	1,
 	'select one file related by self->File[R403];
 package_name = ::pathToPackage( path:file.path );
-import_block = "";
-select many imports related by file->ImportStatement[R402];
-for each import in imports
-  import.render();
-  import_block = import_block + T::body();
-  T::clear();
-end for;
 simple_package_name = self.name;
 
 function_block = "";
@@ -34,6 +27,8 @@ for each func in funcs
   T::clear();
   separator = "\n\n";
 end for;
+
+import_block = file.getFormattedImports();
 
 T::include( file:"java/t.domainfunctions.java" );',
 	1,

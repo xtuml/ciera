@@ -16,13 +16,6 @@ INSERT INTO O_TFR
 	1,
 	'select one file related by self->File[R403];
 package_name = ::pathToPackage( path:file.path );
-import_block = "";
-select many imports related by file->ImportStatement[R402];
-for each import in imports
-  import.render();
-  import_block = import_block + T::body();
-  T::clear();
-end for;
 application_name = self.name;
 num_threads = STR::itoa( i:self.num_threads );
 component_block = "";
@@ -37,6 +30,7 @@ for each comp in comps
   component_block = component_block + separator + "new " + comp_name + "()";
   separator = ", ";
 end for;
+import_block = file.getFormattedImports();
 T::include( file:"java/t.application.java" );',
 	1,
 	'',
