@@ -50,6 +50,44 @@ INSERT INTO S_DT_PROXY
 	'',
 	'',
 	'../architecture.xtuml');
+INSERT INTO O_TFR
+	VALUES ("c66d5140-b716-4601-b114-91a8cdff9576",
+	"c82b12d2-5ff2-4a6a-90e9-f25c15b23917",
+	'dispose',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'// unresolved
+// builtin
+// class
+// class set
+// enum
+select one unresolved_type related by self->UnresolvedType[R412];
+if ( not_empty unresolved_type )
+  unresolved_type.dispose();
+end if;
+select one obj related by self->Class[R412];
+if ( not_empty obj )
+  unrelate self from obj across R412;
+end if;
+select one objset related by self->ClassSet[R412];
+if ( not_empty objset )
+  unrelate self from objset across R412;
+end if;
+select one edt related by self->EnumeratedType[R412];
+if ( not_empty edt )
+  unrelate self from edt across R412;
+end if;
+select one builtin related by self->BuiltInType[R412];
+if ( not_empty builtin )
+  unrelate self from builtin across R412;
+end if;
+
+delete object instance self;',
+	1,
+	'',
+	"ca07598d-30ab-4f8a-b275-1305dbeab29b",
+	0);
 INSERT INTO O_DBATTR
 	VALUES ("ad3a3f32-996a-4a60-9d4c-c0f2867c4fb3",
 	"c82b12d2-5ff2-4a6a-90e9-f25c15b23917",
@@ -65,7 +103,12 @@ select one objset related by self->ClassSet[R412];
 if ( not_empty objset )
   self.name = objset.name;
 else
+select one enumtype related by self->EnumeratedType[R412];
+if ( not_empty enumtype )
+  self.name = enumtype.name;
+else
   self.name = "";
+end if;
 end if;
 end if;
 end if;',

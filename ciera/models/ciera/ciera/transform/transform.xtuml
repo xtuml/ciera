@@ -236,6 +236,10 @@ for each o_obj in o_objs
 end for;
 
 // transform datatypes
+select many edts related by pe_pes->S_DT[R8001]->S_EDT[R17]->S_DT[R17];
+for each edt in edts
+  ::transformEnumeratedType( s_dt:edt );
+end for;
 
 // transform components
 select many c_cs related by pe_pes->C_C[R8001];
@@ -624,13 +628,11 @@ for each unresolved_type in unresolved_types
   select one type related by unresolved_type->Type[R412];
   select one s_dt related by unresolved_type->S_DT[R419];
 
+  select any new_type from instances of Type where false;
+
   // resolve builtin types
   if ( ::s_dtIsBuiltin( s_dt:s_dt ) )
-    select one builtin related by s_dt->BuiltInType[R413];
-    if ( not_empty builtin )
-      unresolved_type.dispose();
-      relate builtin to type across R412;
-    end if;
+    select one new_type related by s_dt->BuiltInType[R413]->Type[R412];
   else
   
   // resolve class reference types
@@ -639,20 +641,29 @@ for each unresolved_type in unresolved_types
     select one o_obj related by s_irdt->O_OBJ[R123];
     if ( s_irdt.isSet )
       // class sets
-      select one objset related by o_obj->Class[R415]->ClassSet[R411];
-      if ( not_empty objset )
-        unresolved_type.dispose();
-        relate objset to type across R412;
-      end if;
+      select one new_type related by o_obj->Class[R415]->ClassSet[R411]->Type[R412];
     else
       // classes
-      select one obj related by o_obj->Class[R415];
-      if ( not_empty obj )
-        unresolved_type.dispose();
-        relate obj to type across R412;
-      end if;
+      select one new_type related by o_obj->Class[R415]->Type[R412];
     end if;
+  else
+
+  // resolve enumerated types
+  select one s_edt related by s_dt->S_EDT[R17];
+  if ( not_empty s_edt )
+    select one new_type related by s_dt->EnumeratedType[R423]->Type[R412];
   end if;
+  end if;
+  end if;
+  
+  if ( not_empty new_type )
+    select one old_type related by unresolved_type->Type[R412];
+    select many typed_objects related by old_type->TypedObject[R410];
+    for each typed_object in typed_objects
+      unrelate typed_object from old_type across R410;
+      relate typed_object to new_type across R410;
+    end for;
+    old_type.dispose();
   end if;
 
 end for;',
@@ -1037,6 +1048,62 @@ end for;',
 	0);
 INSERT INTO PE_PE
 	VALUES ("026a2c03-fa7a-4eac-ada9-60382ab3b543",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("eb2d19db-99fd-443a-891e-1510a4224c8a",
+	"00000000-0000-0000-0000-000000000000",
+	'transformEnumeratedType',
+	'',
+	's_dt = param.s_dt;
+select one ep_pkg related by s_dt->PE_PE[R8001]->EP_PKG[R8000];
+
+// create the file
+create object instance file of File;
+file.path = ::ep_pkgToPath( ep_pkg:ep_pkg );
+file.name = ::camelCaseName( name:s_dt.Name, start_lower:false ) + ".java";
+
+// create the function package object
+create object instance edt of EnumeratedType;
+edt.name = ::camelCaseName( name:s_dt.Name, start_lower:false );
+relate edt to file across R403;
+relate edt to s_dt across R423;
+
+// create the type
+create object instance type of Type;
+relate type to edt across R412;
+
+// transform enumerators
+select many enums related by s_dt->S_EDT[R17]->S_ENUM[R27];
+for each enumer in enums
+  create object instance e of Enumerator;
+  e.name = T::u( s:enumer.Name );
+  relate e to edt across R422;
+end for;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("39ff61e1-b925-497a-8d8a-1ea86381dec4",
+	"eb2d19db-99fd-443a-891e-1510a4224c8a",
+	's_dt',
+	"4a90cd45-ece0-4e72-afe7-44996f9d7e1e",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("4a90cd45-ece0-4e72-afe7-44996f9d7e1e",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Data Type>',
+	'',
+	'',
+	'../../../../../mcooa/models/mcooa/ooaofooa/Domain/Domain.xtuml');
+INSERT INTO PE_PE
+	VALUES ("eb2d19db-99fd-443a-891e-1510a4224c8a",
 	1,
 	"06787f13-1c16-4275-879c-00bbeee7cb88",
 	"00000000-0000-0000-0000-000000000000",
