@@ -1,4 +1,27 @@
 .if ( isset )
+  .if ( isempty )
+    @Override
+    public ${target_type_name} selectMany${target_key_letters}sOnR${rel_numb}( Where condition ) throws XtumlException {
+        return ${target_type_name}.empty${target_type_name};
+    }
+  .else
+    public ${target_type_name} selectMany${target_key_letters}sOnR${rel_numb}() throws XtumlException {
+        return selectMany${target_key_letters}sOnR${rel_numb}( null );
+    }
+
+    public ${target_type_name} selectMany${target_key_letters}sOnR${rel_numb}( Where condition ) throws XtumlException {
+        ${target_type_name} return_set = new ${target_type_name}();
+        for ( ModelInstance selected : this ) {
+    .if ( is_many )
+            return_set.addAll( ((${class_name})selected).selectMany${target_key_letters}sOnR${rel_numb}( condition ) );
+    .else
+            return_set.add( ((${class_name})selected).selectOne${target_key_letters}OnR${rel_numb}( condition ) );
+    .end if
+        }
+        if ( return_set.isEmpty() ) return ${target_type_name}.empty${target_type_name};
+        else return return_set;
+    }
+  .end if
 .else
   .if ( isempty )
     .if ( is_many )

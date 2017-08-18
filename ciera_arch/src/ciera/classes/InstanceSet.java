@@ -98,7 +98,8 @@ public abstract class InstanceSet implements Set<ModelInstance> {
 
     @Override
     public boolean add(ModelInstance e) {
-        return backingSet.add(e);
+        if ( e instanceof EmptyInstance ) return false;
+        else return backingSet.add(e);
     }
 
     @Override

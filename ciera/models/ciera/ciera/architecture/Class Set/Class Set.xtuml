@@ -16,13 +16,6 @@ INSERT INTO O_TFR
 	1,
 	'select one file related by self->File[R403];
 package_name = ::pathToPackage( path:file.path );
-import_block = "";
-select many imports related by file->ImportStatement[R402];
-for each import in imports
-  import.render();
-  import_block = import_block + T::body();
-  T::clear();
-end for;
 
 class_set_name = self.name;
 
@@ -35,14 +28,74 @@ T::include( file:"java/t.selectfrominstances.java" );
 selections_block = T::body();
 T::clear();
 
+select many refs related by self->Class[R411]->AssociatedClassReference[R417];
+if ( not_empty refs )
+  ::addStringToImports( file:file, s:"ciera.exceptions.XtumlException" );
+  ::addStringToImports( file:file, s:"ciera.classes.Where" );
+  ::addStringToImports( file:file, s:"ciera.classes.ModelInstance" );
+end if;
+for each ref in refs
+  is_unconditional = ref.unconditional;
+  select one type related by ref->TypedObject[R406]->Type[R410];
+  select one obj related by type->Class[R412];
+  is_many = false;
+  if ( empty obj )
+    select one obj related by type->ClassSet[R412]->Class[R411];
+    is_many = true;
+  end if;
+  select one objsettype related by obj->ClassSet[R411]->Type[R412];
+  target_type_name = objsettype.name;
+  target_key_letters = obj.key_letters;
+  rel_numb = STR::itoa( i:ref.rel_numb );
+  ref_name = ref.name;
+  isset = true;
+  isempty = false;
+  T::include( file:"java/t.selectrelated.java" );
+  T::b( s:"\n" );
+end for;
+selections_block = T::body() + selections_block;
+T::clear();
+
+separator = "";
+for each ref in refs
+  is_unconditional = ref.unconditional;
+  select one type related by ref->TypedObject[R406]->Type[R410];
+  select one obj related by type->Class[R412];
+  is_many = false;
+  if ( empty obj )
+    select one obj related by type->ClassSet[R412]->Class[R411];
+    is_many = true;
+  end if;
+  select one objsettype related by obj->ClassSet[R411]->Type[R412];
+  target_type_name = objsettype.name;
+  target_key_letters = obj.key_letters;
+  rel_numb = STR::itoa( i:ref.rel_numb );
+  ref_name = ref.name;
+  isset = true;
+  isempty = true;
+  T::b( s:separator );
+  T::include( file:"java/t.selectrelated.java" );
+  separator = "\n";
+end for;
+empty_selections_block = T::body();
+T::clear();
+
 isgeneric = false;
 isempty = true;
 T::include( file:"java/t.selectfrominstances.java" );
-empty_selections_block = T::body();
+empty_selections_block = empty_selections_block + T::body();
 T::clear();
 
 select one obj related by self->Class[R411];
 class_name = obj.name;
+
+import_block = "";
+select many imports related by file->ImportStatement[R402];
+for each import in imports
+  import.render();
+  import_block = import_block + T::body();
+  T::clear();
+end for;
 
 T::include( file:"java/t.set.java" );',
 	1,
