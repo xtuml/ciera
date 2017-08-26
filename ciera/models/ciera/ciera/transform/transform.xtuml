@@ -65,8 +65,10 @@ for each c_c in c_cs
   select any comp_def from instances of ComponentDefinition where ( selected.name == ::camelCaseName( name:c_c.Name, start_lower:false ) );
   relate comp_inst to comp_def across R401;
   relate comp_inst to app across R400;
-  select one comp_def_file related by comp_def->File[R403];
-  ::addFileToImports( file:file, file_to_import:comp_def_file );
+  if ( comp_def.name != app.name )
+    select one comp_def_file related by comp_def->File[R403];
+    ::addFileToImports( file:file, file_to_import:comp_def_file );
+  end if;
 end for;
 select many cl_ics related by root_package->PE_PE[R8000]->CL_IC[R8001];
 for each cl_ic in cl_ics
@@ -79,8 +81,10 @@ for each cl_ic in cl_ics
   select any comp_def from instances of ComponentDefinition where ( selected.name == ::camelCaseName( name:c_c.Name, start_lower:false ) );
   relate comp_inst to comp_def across R401;
   relate comp_inst to app across R400;
-  select one comp_def_file related by comp_def->File[R403];
-  ::addFileToImports( file:file, file_to_import:comp_def_file );
+  if ( comp_def.name != app.name )
+    select one comp_def_file related by comp_def->File[R403];
+    ::addFileToImports( file:file, file_to_import:comp_def_file );
+  end if;
 end for;
 ',
 	"ba5eda7a-def5-0000-0000-000000000000",
