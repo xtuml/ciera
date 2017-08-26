@@ -37,15 +37,15 @@ end if;
 for each ref in refs
   is_unconditional = ref.unconditional;
   select one type related by ref->TypedObject[R406]->Type[R410];
-  select one obj related by type->Class[R412];
+  select one refobj related by type->Class[R412];
   is_many = false;
-  if ( empty obj )
-    select one obj related by type->ClassSet[R412]->Class[R411];
+  if ( empty refobj )
+    select one refobj related by type->ClassSet[R412]->Class[R411];
     is_many = true;
   end if;
-  select one objsettype related by obj->ClassSet[R411]->Type[R412];
-  target_type_name = objsettype.name;
-  target_key_letters = obj.key_letters;
+  select one refobjsettype related by refobj->ClassSet[R411]->Type[R412];
+  target_type_name = refobjsettype.name;
+  target_key_letters = refobj.key_letters;
   rel_numb = STR::itoa( i:ref.rel_numb );
   ref_name = ref.name;
   isset = true;
@@ -60,15 +60,15 @@ separator = "";
 for each ref in refs
   is_unconditional = ref.unconditional;
   select one type related by ref->TypedObject[R406]->Type[R410];
-  select one obj related by type->Class[R412];
+  select one refobj related by type->Class[R412];
   is_many = false;
-  if ( empty obj )
-    select one obj related by type->ClassSet[R412]->Class[R411];
+  if ( empty refobj )
+    select one refobj related by type->ClassSet[R412]->Class[R411];
     is_many = true;
   end if;
-  select one objsettype related by obj->ClassSet[R411]->Type[R412];
-  target_type_name = objsettype.name;
-  target_key_letters = obj.key_letters;
+  select one refobjsettype related by refobj->ClassSet[R411]->Type[R412];
+  target_type_name = refobjsettype.name;
+  target_key_letters = refobj.key_letters;
   rel_numb = STR::itoa( i:ref.rel_numb );
   ref_name = ref.name;
   isset = true;
@@ -85,9 +85,6 @@ isempty = true;
 T::include( file:"java/t.selectfrominstances.java" );
 empty_selections_block = empty_selections_block + T::body();
 T::clear();
-
-select one obj related by self->Class[R411];
-class_name = obj.name;
 
 import_block = file.getFormattedImports();
 
