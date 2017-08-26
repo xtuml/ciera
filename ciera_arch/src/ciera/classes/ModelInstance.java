@@ -38,7 +38,6 @@ public abstract class ModelInstance implements EventTarget, Comparable<ModelInst
 
     public abstract int getClassNumber();
     public abstract String getKeyLetters();
-    public abstract Class<?> getSetClass();
     
     public UUID getInstanceId() {
         return instanceId;
@@ -96,9 +95,4 @@ class EmptyModelInstance extends ModelInstance implements EmptyInstance {
         return null;
     }
 
-    @Override
-    public Class<?> getSetClass() {
-        return null;
-    }
-    
 }

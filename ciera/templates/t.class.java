@@ -51,8 +51,7 @@ ${unrelates_block}
         return keyLetters;
     }
 
-    @Override
-    public Class<?> getSetClass() {
+    public static Class<?> getSetClass() {
         return setClass;
     }
 

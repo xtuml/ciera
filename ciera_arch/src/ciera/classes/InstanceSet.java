@@ -1,6 +1,5 @@
 package ciera.classes;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.HashSet;
@@ -53,8 +52,7 @@ public abstract class InstanceSet implements Set<ModelInstance> {
         try {
             Method getSetClass = object.getMethod( "getSetClass" );
             Class<?> setClass = (Class<?>) getSetClass.invoke( null );
-            Constructor<?> constructor = setClass.getConstructor( Class.class );
-            Object newInstanceSet = constructor.newInstance( object );
+            Object newInstanceSet = setClass.newInstance();
             return (InstanceSet)newInstanceSet;
         }
         catch ( Exception e ) {
