@@ -65,6 +65,8 @@ for each c_c in c_cs
   select any comp_def from instances of ComponentDefinition where ( selected.name == ::camelCaseName( name:c_c.Name, start_lower:false ) );
   relate comp_inst to comp_def across R401;
   relate comp_inst to app across R400;
+  select one comp_def_file related by comp_def->File[R403];
+  ::addFileToImports( file:file, file_to_import:comp_def_file );
 end for;
 select many cl_ics related by root_package->PE_PE[R8000]->CL_IC[R8001];
 for each cl_ic in cl_ics
@@ -77,6 +79,8 @@ for each cl_ic in cl_ics
   select any comp_def from instances of ComponentDefinition where ( selected.name == ::camelCaseName( name:c_c.Name, start_lower:false ) );
   relate comp_inst to comp_def across R401;
   relate comp_inst to app across R400;
+  select one comp_def_file related by comp_def->File[R403];
+  ::addFileToImports( file:file, file_to_import:comp_def_file );
 end for;
 ',
 	"ba5eda7a-def5-0000-0000-000000000000",
@@ -1016,29 +1020,31 @@ for each r_rel in r_rels
     select many refs from instances of AssociatedClassReference where ( selected.rel_numb == r_rel.Numb );
     select many basic_refs related by refs->BasicReference[R420] where ( not selected.assoc );
     // these must come in pairs
-    if ( 2 == cardinality basic_refs )
-      select any obj1 from instances of Class where false;
-      select any obj2 from instances of Class where false;
-      select any basic1 from instances of BasicReference where false;
-      select any basic2 from instances of BasicReference where false;
-      for each basic_ref in basic_refs
-        if ( empty obj1 )
-          select one obj1 related by basic_ref->AssociatedClassReference[R420]->Class[R417];
-          basic1 = basic_ref;
+    if ( not_empty basic_refs )
+      if ( 2 == cardinality basic_refs )
+        select any obj1 from instances of Class where false;
+        select any obj2 from instances of Class where false;
+        select any basic1 from instances of BasicReference where false;
+        select any basic2 from instances of BasicReference where false;
+        for each basic_ref in basic_refs
+          if ( empty obj1 )
+            select one obj1 related by basic_ref->AssociatedClassReference[R420]->Class[R417];
+            basic1 = basic_ref;
+          else
+            select one obj2 related by basic_ref->AssociatedClassReference[R420]->Class[R417];
+            basic2 = basic_ref;
+          end if;
+        end for;
+        // the participant with the lower class name alphanumerically will be the formalizer
+        if ( 0 > STR::compare( s1:obj1.name, s2:obj2.name ) )
+          basic1.formalizer = true;
         else
-          select one obj2 related by basic_ref->AssociatedClassReference[R420]->Class[R417];
-          basic2 = basic_ref;
+          basic2.formalizer = true;
         end if;
-      end for;
-      // the participant with the lower class name alphanumerically will be the formalizer
-      if ( 0 > STR::compare( s1:obj1.name, s2:obj2.name ) )
-        basic1.formalizer = true;
       else
-        basic2.formalizer = true;
+        // TODO bad
+        TRACE::log( flavor:"failure", id:88, message:"Simple relationship does not have two references" );
       end if;
-    else
-      // TODO bad
-      TRACE::log( flavor:"failure", id:88, message:"Simple relationship does not have two references" );
     end if;
 
   end if;
