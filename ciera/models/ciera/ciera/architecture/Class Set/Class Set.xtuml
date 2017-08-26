@@ -36,16 +36,18 @@ if ( not_empty refs )
 end if;
 for each ref in refs
   is_unconditional = ref.unconditional;
-  select one type related by ref->TypedObject[R406]->Type[R410];
-  select one refobj related by type->Class[R412];
+  select one reftype related by ref->TypedObject[R406]->Type[R410];
+  target_type_name = reftype.name;
+  select one refobj related by reftype->Class[R412];
   is_many = false;
   if ( empty refobj )
-    select one refobj related by type->ClassSet[R412]->Class[R411];
+    select one refobj related by reftype->ClassSet[R412]->Class[R411];
     is_many = true;
   end if;
-  select one refobjsettype related by refobj->ClassSet[R411]->Type[R412];
-  target_type_name = refobjsettype.name;
-  target_key_letters = refobj.key_letters;
+  target_key_letters = "";
+  if ( not_empty refobj )
+    target_key_letters = refobj.key_letters;
+  end if;
   rel_numb = STR::itoa( i:ref.rel_numb );
   ref_name = ref.name;
   isset = true;
@@ -59,16 +61,18 @@ T::clear();
 separator = "";
 for each ref in refs
   is_unconditional = ref.unconditional;
-  select one type related by ref->TypedObject[R406]->Type[R410];
-  select one refobj related by type->Class[R412];
+  select one reftype related by ref->TypedObject[R406]->Type[R410];
+  target_type_name = reftype.name;
+  select one refobj related by reftype->Class[R412];
   is_many = false;
   if ( empty refobj )
-    select one refobj related by type->ClassSet[R412]->Class[R411];
+    select one refobj related by reftype->ClassSet[R412]->Class[R411];
     is_many = true;
   end if;
-  select one refobjsettype related by refobj->ClassSet[R411]->Type[R412];
-  target_type_name = refobjsettype.name;
-  target_key_letters = refobj.key_letters;
+  target_key_letters = "";
+  if ( not_empty refobj )
+    target_key_letters = refobj.key_letters;
+  end if;
   rel_numb = STR::itoa( i:ref.rel_numb );
   ref_name = ref.name;
   isset = true;
