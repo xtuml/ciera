@@ -97,9 +97,14 @@ T::clear();
 
 separator = "";
 for each ref in refs
+  phrase = "";
   is_subtype = false;
   select one subtype_ref related by ref->SubtypeReference[R420];
   if ( empty subtype_ref )
+    select one basic_ref related by ref->BasicReference[R420];
+    if ( not_empty basic_ref )
+      phrase = basic_ref.phrase;
+    end if;
     is_unconditional = ref.unconditional;
     if ( is_unconditional )
       ::addStringToImports( file:file, s:"ciera.exceptions.ModelIntegrityException" );
@@ -156,9 +161,14 @@ unrelates_block = "";
 
 separator = "";
 for each ref in refs
+  phrase = "";
   is_subtype = false;
   select one subtype_ref related by ref->SubtypeReference[R420];
   if ( empty subtype_ref )
+    select one basic_ref related by ref->BasicReference[R420];
+    if ( not_empty basic_ref )
+      phrase = basic_ref.phrase;
+    end if;
     is_unconditional = ref.unconditional;
     if ( is_unconditional )
       ::addStringToImports( file:file, s:"ciera.exceptions.ModelIntegrityException" );

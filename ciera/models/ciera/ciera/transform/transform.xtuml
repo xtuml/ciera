@@ -507,7 +507,29 @@ end for;
 // transform relationships
 select many r_rels related by o_obj->R_REL[R201];
 for each r_rel in r_rels
-  ::transformAssociatedClassReference( r_rel:r_rel, obj:obj );
+  select many r_oirs related by r_rel->R_OIR[R201] where ( selected.Obj_ID == o_obj.Obj_ID );
+  for each r_oir in r_oirs
+    select many foreign_oirs related by r_oir->R_REL[R201]->R_OIR[R201] where ( selected.OIR_ID != r_oir.OIR_ID );
+    transformed_subtype_ref = false;
+    for each foreign_oir in foreign_oirs
+      select one r_sub related by r_oir->R_RGO[R203]->R_SUB[R205];
+      select one foreign_sub related by foreign_oir->R_RGO[R203]->R_SUB[R205];
+      if ( empty r_sub or empty foreign_sub )  // subtypes do not get a reference to other subtypes
+        select one r_aone related by r_oir->R_RTO[R203]->R_AONE[R204];
+        select one foreign_aoth related by foreign_oir->R_RTO[R203]->R_AOTH[R204];
+        select one r_aoth related by r_oir->R_RTO[R203]->R_AOTH[R204];
+        select one foreign_aone related by foreign_oir->R_RTO[R203]->R_AONE[R204];
+        if ( ( empty r_aone or empty foreign_aoth ) and ( empty r_aoth or empty foreign_aone ) )  // one and other do not get direct reference to each other
+          if ( empty foreign_sub or ( not_empty foreign_sub and not transformed_subtype_ref ) ) // only create one subtype reference
+            ::transformAssociatedClassReference( r_rel:r_rel, obj:obj, r_oir:r_oir.OIR_ID, foreign_oir:foreign_oir.OIR_ID );
+            if ( not_empty foreign_sub )
+              transformed_subtype_ref = true;
+            end if;
+          end if;
+        end if;
+      end if;
+    end for;
+  end for;
 end for;
 
 // resolve types for referential attributes
@@ -744,219 +766,6 @@ INSERT INTO PE_PE
 	"00000000-0000-0000-0000-000000000000",
 	1);
 INSERT INTO S_SYNC
-	VALUES ("63607f84-9ce1-4bf7-a444-ed2916332276",
-	"00000000-0000-0000-0000-000000000000",
-	'transformAssociatedClassReference',
-	'',
-	'r_rel = param.r_rel;
-obj = param.obj;
-select one o_obj related by obj->O_OBJ[R415];
-select many r_oirs related by r_rel->R_OIR[R201] where ( selected.Obj_ID == o_obj.Obj_ID );
-for each r_oir in r_oirs
-
-  // create the ACR instance
-  create object instance acr of AssociatedClassReference;
-  acr.rel_numb = r_rel.Numb;
-  relate acr to obj across R417;
-  
-  select any other_dt from instances of S_DT where false;
-  
-  // create subtype
-  select one r_sub related by r_oir->R_RGO[R203]->R_SUB[R205];
-  select one r_super related by r_oir->R_RTO[R203]->R_SUPER[R204];
-  select one r_aone related by r_oir->R_RTO[R203]->R_AONE[R204];
-  select one r_aoth related by r_oir->R_RTO[R203]->R_AOTH[R204];
-  select one r_assr related by r_oir->R_RGO[R203]->R_ASSR[R205];
-  select one r_part related by r_oir->R_RTO[R203]->R_PART[R204];
-  select one r_form related by r_oir->R_RGO[R203]->R_FORM[R205];
-  if ( not_empty r_sub )
-    acr.unconditional = true;
-    create object instance super of SupertypeReference;
-    relate super to acr across R420;
-    select any other_irdt related by r_sub->R_SUBSUP[R213]->R_SUPER[R212]->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->S_IRDT[R123] where ( not selected.isSet );
-    select one other_dt related by other_irdt->S_DT[R17];
-  elif ( not_empty r_super )
-    acr.unconditional = true;
-    create object instance sub of SubtypeReference;
-    relate sub to acr across R420;
-    select any other_dt from instances of S_DT where ( selected.Name == "inst_ref<Object>" );
-  else
-    create object instance basic of BasicReference;
-    if ( not_empty r_aone )
-      basic.assoc = true;
-      basic.formalizer = false;
-      select one assr related by r_aone->R_ASSOC[R209]->R_ASSR[R211];
-      if ( 0 == assr.Mult )
-        select any other_irdt related by assr->R_RGO[R205]->R_OIR[R203]->O_OBJ[R201]->S_IRDT[R123] where ( not selected.isSet );
-        select one other_dt related by other_irdt->S_DT[R17];
-      else
-        select any other_irdt related by assr->R_RGO[R205]->R_OIR[R203]->O_OBJ[R201]->S_IRDT[R123] where ( selected.isSet );
-        select one other_dt related by other_irdt->S_DT[R17];
-      end if;
-      select one aoth related by r_aone->R_ASSOC[R209]->R_AOTH[R210];
-      if ( 0 == aoth.Cond )
-        acr.unconditional = true;
-      else
-        acr.unconditional = false;
-      end if;
-    elif ( not_empty r_aoth )
-      basic.assoc = true;
-      basic.formalizer = false;
-      select one assr related by r_aoth->R_ASSOC[R210]->R_ASSR[R211];
-      if ( 0 == assr.Mult )
-        select any other_irdt related by assr->R_RGO[R205]->R_OIR[R203]->O_OBJ[R201]->S_IRDT[R123] where ( not selected.isSet );
-        select one other_dt related by other_irdt->S_DT[R17];
-      else
-        select any other_irdt related by assr->R_RGO[R205]->R_OIR[R203]->O_OBJ[R201]->S_IRDT[R123] where ( selected.isSet );
-        select one other_dt related by other_irdt->S_DT[R17];
-      end if;
-      select one aone related by r_aoth->R_ASSOC[R210]->R_AONE[R209];
-      if ( 0 == aone.Cond )
-        acr.unconditional = true;
-      else
-        acr.unconditional = false;
-      end if;
-    elif ( not_empty r_assr )
-      // associative links need another ACR instance for the one
-      // this bit of code does everything (creates/populates ACR, links attributes, links data type)
-      // for the one
-      create object instance one_acr of AssociatedClassReference;
-      one_acr.rel_numb = r_rel.Numb;
-      one_acr.unconditional = true;
-      relate one_acr to obj across R417;
-      create object instance one_basic of BasicReference;
-      one_basic.assoc = true;
-      one_basic.formalizer = true;
-      select any one_irdt from instances of S_IRDT where false;
-      select one aone related by r_assr->R_ASSOC[R211]->R_AONE[R209];
-      if ( 0 == aone.Mult )
-        select any one_irdt related by aone->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->S_IRDT[R123] where ( not selected.isSet );
-      else
-        select any one_irdt related by aone->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->S_IRDT[R123] where ( selected.isSet );
-      end if;
-      select many ref_attrs related by r_oir->R_RGO[R203]->O_REF[R111]->O_RATTR[R108]->O_ATTR[R106]->Attribute[R421];
-      for each ref_attr in ref_attrs
-        relate one_acr to ref_attr across R418;
-      end for;
-      create object instance typed_object of TypedObject;
-      select one s_dt related by one_irdt->S_DT[R17];
-      type = UnresolvedType::getInstance( s_dt:s_dt );
-      relate type to typed_object across R410;
-      relate one_acr to typed_object across R406;
-      relate one_basic to one_acr across R420;
-      // the main ACR instance is for the other
-      acr.unconditional = true;
-      basic.assoc = true;
-      basic.formalizer = true;
-      select one aoth related by r_assr->R_ASSOC[R211]->R_AOTH[R210];
-      if ( 0 == aoth.Mult )
-        select any other_irdt related by aoth->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->S_IRDT[R123] where ( not selected.isSet );
-        select one other_dt related by other_irdt->S_DT[R17];
-      else
-        select any other_irdt related by aoth->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->S_IRDT[R123] where ( selected.isSet );
-        select one other_dt related by other_irdt->S_DT[R17];
-      end if;
-    elif ( not_empty r_part )
-      basic.assoc = false;
-      basic.formalizer = false;
-      select any part related by r_part->R_SIMP[R207]->R_PART[R207] where ( selected.OIR_ID != r_part.OIR_ID );
-      if ( not_empty part )
-        if ( 0 == part.Mult )
-          select any other_irdt related by part->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->S_IRDT[R123] where ( not selected.isSet );
-          select one other_dt related by other_irdt->S_DT[R17];
-        else
-          select any other_irdt related by part->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->S_IRDT[R123] where ( selected.isSet );
-          select one other_dt related by other_irdt->S_DT[R17];
-        end if;
-        if ( 0 == part.Cond )
-          acr.unconditional = true;
-        else
-          acr.unconditional = false;
-        end if;
-      else
-        select one form related by r_part->R_SIMP[R207]->R_FORM[R208];
-        if ( 0 == form.Mult )
-          select any other_irdt related by form->R_RGO[R205]->R_OIR[R203]->O_OBJ[R201]->S_IRDT[R123] where ( not selected.isSet );
-          select one other_dt related by other_irdt->S_DT[R17];
-        else
-          select any other_irdt related by form->R_RGO[R205]->R_OIR[R203]->O_OBJ[R201]->S_IRDT[R123] where ( selected.isSet );
-          select one other_dt related by other_irdt->S_DT[R17];
-        end if;
-        if ( 0 == form.Cond )
-          acr.unconditional = true;
-        else
-          acr.unconditional = false;
-        end if;
-      end if;
-    elif ( not_empty r_form )
-      basic.assoc = false;
-      basic.formalizer = true;
-      select any part related by r_form->R_SIMP[R208]->R_PART[R207];
-      if ( 0 == part.Mult )
-        select any other_irdt related by part->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->S_IRDT[R123] where ( not selected.isSet );
-        select one other_dt related by other_irdt->S_DT[R17];
-      else
-        select any other_irdt related by part->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->S_IRDT[R123] where ( selected.isSet );
-        select one other_dt related by other_irdt->S_DT[R17];
-      end if;
-      if ( 0 == part.Cond )
-        acr.unconditional = true;
-      else
-        acr.unconditional = false;
-      end if;
-    end if;
-    relate basic to acr across R420;
-  end if;
-  
-  // relate to referential attributes
-  select many ref_attrs related by r_oir->R_RGO[R203]->O_REF[R111]->O_RATTR[R108]->O_ATTR[R106]->Attribute[R421];
-  for each ref_attr in ref_attrs
-    relate acr to ref_attr across R418;
-  end for;
-  
-  // create and link datatype
-  create object instance typed_object of TypedObject;
-  type = UnresolvedType::getInstance( s_dt:other_dt );
-  relate type to typed_object across R410;
-  relate acr to typed_object across R406;
-
-end for;',
-	"ba5eda7a-def5-0000-0000-000000000000",
-	1,
-	'',
-	0);
-INSERT INTO S_SPARM
-	VALUES ("cd5b29d6-0d5a-46c2-861a-3930bec96a31",
-	"63607f84-9ce1-4bf7-a444-ed2916332276",
-	'r_rel',
-	"4480b008-8c74-4f57-9256-08b7365520bc",
-	0,
-	'',
-	"00000000-0000-0000-0000-000000000000",
-	'');
-INSERT INTO S_DT_PROXY
-	VALUES ("4480b008-8c74-4f57-9256-08b7365520bc",
-	"00000000-0000-0000-0000-000000000000",
-	'inst_ref<Association>',
-	'',
-	'',
-	'../../../../../mcooa/models/mcooa/ooaofooa/Association/Association.xtuml');
-INSERT INTO S_SPARM
-	VALUES ("a8dfe77c-2fde-48ad-bb6a-38bfa1d2eadd",
-	"63607f84-9ce1-4bf7-a444-ed2916332276",
-	'obj',
-	"ac93823e-2644-440b-977c-1f4e8480ec59",
-	0,
-	'',
-	"cd5b29d6-0d5a-46c2-861a-3930bec96a31",
-	'');
-INSERT INTO PE_PE
-	VALUES ("63607f84-9ce1-4bf7-a444-ed2916332276",
-	1,
-	"06787f13-1c16-4275-879c-00bbeee7cb88",
-	"00000000-0000-0000-0000-000000000000",
-	1);
-INSERT INTO S_SYNC
 	VALUES ("a566ca37-5a57-4f7f-9212-c9cf475d697d",
 	"00000000-0000-0000-0000-000000000000",
 	'transformInstanceReferenceTypes',
@@ -1135,6 +944,204 @@ end for;',
 	0);
 INSERT INTO PE_PE
 	VALUES ("056fd761-beb4-4eed-85d2-b466883d17cb",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("6984d6cb-ca5f-4c52-90ce-a69cc62404e9",
+	"00000000-0000-0000-0000-000000000000",
+	'transformAssociatedClassReference',
+	'',
+	'r_rel = param.r_rel;
+obj = param.obj;
+select any r_oir from instances of R_OIR where ( selected.OIR_ID == param.r_oir );
+select any foreign_oir from instances of R_OIR where ( selected.OIR_ID == param.foreign_oir );
+select one o_obj related by obj->O_OBJ[R415];
+
+// create the ACR instance
+create object instance acr of AssociatedClassReference;
+acr.rel_numb = r_rel.Numb;
+relate acr to obj across R417;
+  
+select any foreign_dt from instances of S_DT where false;
+  
+// create subtype
+select one foreign_sub related by foreign_oir->R_RGO[R203]->R_SUB[R205];
+select one foreign_super related by foreign_oir->R_RTO[R203]->R_SUPER[R204];
+select one foreign_aone related by foreign_oir->R_RTO[R203]->R_AONE[R204];
+select one foreign_aoth related by foreign_oir->R_RTO[R203]->R_AOTH[R204];
+select one foreign_assr related by foreign_oir->R_RGO[R203]->R_ASSR[R205];
+select one foreign_part related by foreign_oir->R_RTO[R203]->R_PART[R204];
+select one foreign_form related by foreign_oir->R_RGO[R203]->R_FORM[R205];
+if ( not_empty foreign_sub )
+  acr.unconditional = true;
+  create object instance sub of SubtypeReference;
+  relate sub to acr across R420;
+  select any foreign_dt from instances of S_DT where ( selected.Name == "inst_ref<Object>" );
+elif ( not_empty foreign_super )
+  acr.unconditional = true;
+  create object instance super of SupertypeReference;
+  relate super to acr across R420;
+  select any foreign_irdt related by foreign_oir->O_OBJ[R201]->S_IRDT[R123] where ( not selected.isSet );
+  select one foreign_dt related by foreign_irdt->S_DT[R17];
+else
+  create object instance basic of BasicReference;
+  if ( not_empty foreign_aone or not_empty foreign_aoth )
+    acr.unconditional = true;
+    if ( ::r_rel_is_reflexive( r_rel:r_rel ) )
+      if ( not_empty foreign_aone )
+        basic.phrase = ::camelCaseName( name:foreign_aone.Txt_Phrs, start_lower:false);
+      else
+        basic.phrase = ::camelCaseName( name:foreign_aoth.Txt_Phrs, start_lower:false);
+      end if;
+    else
+      basic.phrase = "";
+    end if;
+    basic.formalizer = true;
+    basic.assoc = true;
+    select any foreign_irdt related by foreign_oir->O_OBJ[R201]->S_IRDT[R123] where ( not selected.isSet );
+    select one foreign_dt related by foreign_irdt->S_DT[R17];
+  elif ( not_empty foreign_assr )
+    basic.formalizer = false;
+    basic.assoc = true;
+    select one r_aone related by r_oir->R_RTO[R203]->R_AONE[R204];
+    select one r_aoth related by r_oir->R_RTO[R203]->R_AOTH[R204];
+    if ( not_empty r_aone )
+      select one foreign_oth related by r_aone->R_ASSOC[R209]->R_AOTH[R210];
+      basic.phrase = ::camelCaseName( name:foreign_oth.Txt_Phrs, start_lower:false );
+      if ( 0 == foreign_oth.Cond )
+        acr.unconditional = true;
+      else
+        acr.unconditional = false;
+      end if;
+      if ( 0 == foreign_assr.Mult and 0 == foreign_oth.Mult )
+        select any foreign_irdt related by foreign_oir->O_OBJ[R201]->S_IRDT[R123] where ( not selected.isSet );
+        select one foreign_dt related by foreign_irdt->S_DT[R17];
+      else
+        select any foreign_irdt related by foreign_oir->O_OBJ[R201]->S_IRDT[R123] where ( selected.isSet );
+        select one foreign_dt related by foreign_irdt->S_DT[R17];
+      end if;
+    elif ( not_empty r_aoth )
+      select one foreign_one related by r_aoth->R_ASSOC[R210]->R_AONE[R209];
+      basic.phrase = ::camelCaseName( name:foreign_one.Txt_Phrs, start_lower:false );
+      if ( 0 == foreign_one.Cond )
+        acr.unconditional = true;
+      else
+        acr.unconditional = false;
+      end if;
+      if ( 0 == foreign_assr.Mult and 0 == foreign_one.Mult )
+        select any foreign_irdt related by foreign_oir->O_OBJ[R201]->S_IRDT[R123] where ( not selected.isSet );
+        select one foreign_dt related by foreign_irdt->S_DT[R17];
+      else
+        select any foreign_irdt related by foreign_oir->O_OBJ[R201]->S_IRDT[R123] where ( selected.isSet );
+        select one foreign_dt related by foreign_irdt->S_DT[R17];
+      end if;
+    end if;
+  elif ( not_empty foreign_part )
+    if ( ::r_rel_is_reflexive( r_rel:r_rel ) )
+      basic.phrase = ::camelCaseName( name:foreign_part.Txt_Phrs, start_lower:false);
+    else
+      basic.phrase = "";
+    end if;
+    basic.assoc = false;
+    basic.formalizer = true;
+    if ( 0 == foreign_part.Cond )
+      acr.unconditional = true;
+    else
+      acr.unconditional = false;
+    end if;
+    if ( 0 == foreign_part.Mult )
+      select any foreign_irdt related by foreign_oir->O_OBJ[R201]->S_IRDT[R123] where ( not selected.isSet );
+      select one foreign_dt related by foreign_irdt->S_DT[R17];
+    else
+      select any foreign_irdt related by foreign_oir->O_OBJ[R201]->S_IRDT[R123] where ( selected.isSet );
+      select one foreign_dt related by foreign_irdt->S_DT[R17];
+    end if;
+  elif ( not_empty foreign_form )
+    if ( ::r_rel_is_reflexive( r_rel:r_rel ) )
+      basic.phrase = ::camelCaseName( name:foreign_form.Txt_Phrs, start_lower:false);
+    else
+      basic.phrase = "";
+    end if;
+    basic.assoc = false;
+    basic.formalizer = false;
+    if ( 0 == foreign_form.Cond )
+      acr.unconditional = true;
+    else
+      acr.unconditional = false;
+    end if;
+    if ( 0 == foreign_form.Mult )
+      select any foreign_irdt related by foreign_oir->O_OBJ[R201]->S_IRDT[R123] where ( not selected.isSet );
+      select one foreign_dt related by foreign_irdt->S_DT[R17];
+    else
+      select any foreign_irdt related by foreign_oir->O_OBJ[R201]->S_IRDT[R123] where ( selected.isSet );
+      select one foreign_dt related by foreign_irdt->S_DT[R17];
+    end if;
+  end if;
+  relate basic to acr across R420;
+end if;
+
+// relate to referential attributes
+select many ref_attrs related by r_oir->R_RGO[R203]->O_REF[R111]->O_RATTR[R108]->O_ATTR[R106]->Attribute[R421];
+for each ref_attr in ref_attrs
+  relate acr to ref_attr across R418;
+end for;
+
+// create and link datatype
+create object instance typed_object of TypedObject;
+type = UnresolvedType::getInstance( s_dt:foreign_dt );
+relate type to typed_object across R410;
+relate acr to typed_object across R406;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("e84e1ed0-cd4e-4b4e-91de-6e138ec2a8f6",
+	"6984d6cb-ca5f-4c52-90ce-a69cc62404e9",
+	'r_rel',
+	"4480b008-8c74-4f57-9256-08b7365520bc",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("4480b008-8c74-4f57-9256-08b7365520bc",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Association>',
+	'',
+	'',
+	'../../../../../mcooa/models/mcooa/ooaofooa/Association/Association.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("65bafefe-3433-4c6d-8ab6-f21a2f0a0116",
+	"6984d6cb-ca5f-4c52-90ce-a69cc62404e9",
+	'obj',
+	"ac93823e-2644-440b-977c-1f4e8480ec59",
+	0,
+	'',
+	"e84e1ed0-cd4e-4b4e-91de-6e138ec2a8f6",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("010f9699-a21a-4a4a-bf15-ba9cc2602f63",
+	"6984d6cb-ca5f-4c52-90ce-a69cc62404e9",
+	'r_oir',
+	"ba5eda7a-def5-0000-0000-000000000005",
+	0,
+	'',
+	"65bafefe-3433-4c6d-8ab6-f21a2f0a0116",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("1cb8ea1b-4b6d-4c66-a5b7-3f3c705d86b0",
+	"6984d6cb-ca5f-4c52-90ce-a69cc62404e9",
+	'foreign_oir',
+	"ba5eda7a-def5-0000-0000-000000000005",
+	0,
+	'',
+	"010f9699-a21a-4a4a-bf15-ba9cc2602f63",
+	'');
+INSERT INTO PE_PE
+	VALUES ("6984d6cb-ca5f-4c52-90ce-a69cc62404e9",
 	1,
 	"06787f13-1c16-4275-879c-00bbeee7cb88",
 	"00000000-0000-0000-0000-000000000000",

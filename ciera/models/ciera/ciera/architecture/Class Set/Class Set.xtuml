@@ -35,9 +35,14 @@ if ( not_empty refs )
   ::addStringToImports( file:file, s:"ciera.classes.ModelInstance" );
 end if;
 for each ref in refs
+  phrase = "";
   is_subtype = false;
   select one subtype_ref related by ref->SubtypeReference[R420];
   if ( empty subtype_ref )
+    select one basic_ref related by ref->BasicReference[R420];
+    if ( not_empty basic_ref )
+      phrase = basic_ref.phrase;
+    end if;
     is_unconditional = ref.unconditional;
     select one refobj related by ref->TypedObject[R406]->Type[R410]->Class[R412];
     is_many = false;
@@ -80,9 +85,14 @@ T::clear();
 
 separator = "";
 for each ref in refs
+  phrase = "";
   is_subtype = false;
   select one subtype_ref related by ref->SubtypeReference[R420];
   if ( empty subtype_ref )
+    select one basic_ref related by ref->BasicReference[R420];
+    if ( not_empty basic_ref )
+      phrase = basic_ref.phrase;
+    end if;
     is_unconditional = ref.unconditional;
     select one refobj related by ref->TypedObject[R406]->Type[R410]->Class[R412];
     is_many = false;

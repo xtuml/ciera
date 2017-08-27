@@ -376,6 +376,61 @@ INSERT INTO PE_PE
 	"65dec46c-ec8b-4464-b227-a7853cadd3b4",
 	"00000000-0000-0000-0000-000000000000",
 	1);
+INSERT INTO S_SYNC
+	VALUES ("eef3919f-d649-464f-8fdf-403f36e1a626",
+	"00000000-0000-0000-0000-000000000000",
+	'r_rel_is_reflexive',
+	'',
+	'r_rel = param.r_rel;
+select one srel related by r_rel->R_SIMP[R206];
+if ( not_empty srel )
+  select many part_set related by srel->R_PART[R207];
+  if ( cardinality part_set > 1 ) 
+    select any part1 related by srel->R_PART[R207];
+    select any part2 related by srel->R_PART[R207] 
+      where selected.OIR_ID != part1.OIR_ID;
+    if ( part1.Obj_ID == part2.Obj_ID )
+      return true;
+    end if;
+  else
+    select any part related by srel->R_PART[R207];
+    select one form related by srel->R_FORM[R208];
+    if ( not_empty form )
+      if ( part.Obj_ID == form.Obj_ID )
+        return true;
+      end if;
+    end if;
+  end if;
+else
+  select one arel related by r_rel->R_ASSOC[R206]; 
+  if ( not_empty arel )
+    select one aone related by arel->R_AONE[R209];
+    select one aoth related by arel->R_AOTH[R210];
+    if ( aone.Obj_ID == aoth.Obj_ID )
+      return true;
+    end if;
+  end if;
+end if;
+return false;',
+	"ba5eda7a-def5-0000-0000-000000000001",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("641d0430-1ae1-4926-8811-b9e88ecae4b5",
+	"eef3919f-d649-464f-8fdf-403f36e1a626",
+	'r_rel',
+	"4480b008-8c74-4f57-9256-08b7365520bc",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO PE_PE
+	VALUES ("eef3919f-d649-464f-8fdf-403f36e1a626",
+	1,
+	"65dec46c-ec8b-4464-b227-a7853cadd3b4",
+	"00000000-0000-0000-0000-000000000000",
+	1);
 INSERT INTO PE_PE
 	VALUES ("65dec46c-ec8b-4464-b227-a7853cadd3b4",
 	1,
