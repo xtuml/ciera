@@ -37,7 +37,6 @@ end if;
 for each ref in refs
   is_unconditional = ref.unconditional;
   select one reftype related by ref->TypedObject[R406]->Type[R410];
-  target_type_name = reftype.name;
   select one refobj related by reftype->Class[R412];
   is_many = false;
   if ( empty refobj )
@@ -45,8 +44,11 @@ for each ref in refs
     is_many = true;
   end if;
   target_key_letters = "";
+  target_type_name = "InstanceSet";
   if ( not_empty refobj )
     target_key_letters = refobj.key_letters;
+    select one refobjsettype related by refobj->ClassSet[R411]->Type[R412];
+    target_type_name = refobjsettype.name;
   end if;
   rel_numb = STR::itoa( i:ref.rel_numb );
   ref_name = ref.name;
@@ -70,8 +72,11 @@ for each ref in refs
     is_many = true;
   end if;
   target_key_letters = "";
+  target_type_name = "InstanceSet";
   if ( not_empty refobj )
     target_key_letters = refobj.key_letters;
+    select one refobjsettype related by refobj->ClassSet[R411]->Type[R412];
+    target_type_name = refobjsettype.name;
   end if;
   rel_numb = STR::itoa( i:ref.rel_numb );
   ref_name = ref.name;

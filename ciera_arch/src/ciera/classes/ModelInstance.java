@@ -12,7 +12,7 @@ import ciera.statemachine.InstanceStateMachine;
 public abstract class ModelInstance implements EventTarget, Comparable<ModelInstance> {
     
     // empty instance
-    public static final ModelInstance emptyInstance = new EmptyModelInstance();
+    public static final ModelInstance emptyModelInstance = new EmptyModelInstance();
 
     private UUID instanceId;
     private boolean alive;
