@@ -52,7 +52,7 @@
         if ( ${ref_name} instanceof EmptyInstanceSet ) throw new ModelIntegrityException( "Uncoditional association with no related instance." );
         else return ${ref_name}.selectAny${target_key_letters}FromInstances( condition );
       .else
-        return ${ref_name}.selectAny${target_key_letters}sFromInstances( condition );
+        return ${ref_name}.selectAny${target_key_letters}FromInstances( condition );
       .end if
     }
 

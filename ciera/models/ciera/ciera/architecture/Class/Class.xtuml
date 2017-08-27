@@ -38,6 +38,7 @@ T::clear();
 select many refs related by self->AssociatedClassReference[R417];
 if ( not_empty refs )
   ::addStringToImports( file:file, s:"ciera.classes.Where" );
+  ::addStringToImports( file:file, s:"ciera.exceptions.XtumlException" );
 end if;
 for each ref in refs
   ref.render();
@@ -112,7 +113,9 @@ for each ref in refs
       select one obj related by type->ClassSet[R412]->Class[R411];
       target_type_obj_name = obj.name;
       is_many = true;
-      ::addStringToImports( file:file, s:"ciera.classes.EmptyInstanceSet" );
+      if ( is_unconditional )
+        ::addStringToImports( file:file, s:"ciera.classes.EmptyInstanceSet" );
+      end if;
     end if;
     target_key_letters = obj.key_letters;
     rel_numb = STR::itoa( i:ref.rel_numb );
@@ -169,7 +172,9 @@ for each ref in refs
       select one obj related by type->ClassSet[R412]->Class[R411];
       target_type_obj_name = obj.name;
       is_many = true;
-      ::addStringToImports( file:file, s:"ciera.classes.EmptyInstanceSet" );
+      if ( is_unconditional )
+        ::addStringToImports( file:file, s:"ciera.classes.EmptyInstanceSet" );
+      end if;
     end if;
     target_key_letters = obj.key_letters;
     rel_numb = STR::itoa( i:ref.rel_numb );

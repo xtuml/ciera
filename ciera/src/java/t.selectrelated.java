@@ -221,7 +221,7 @@ T_b("return ");
 T_b(ref_name);
 T_b(".selectAny");
 T_b(target_key_letters);
-T_b("sFromInstances( condition );");
+T_b("FromInstances( condition );");
 T_b("\n");
 }
 T_b("    ");
