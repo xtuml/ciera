@@ -26,7 +26,12 @@
   .if ( isempty )
     .if ( is_many )
     @Override
-    public ${target_type_name} selectAny${target_key_letters}OnR${rel_numb}( Where condition ) throws XtumlException {
+    public ${target_type_obj_name} selectAny${target_key_letters}OnR${rel_numb}( Where condition ) throws XtumlException {
+        return ${target_type_obj_name}.empty${target_type_obj_name};
+    }
+
+    @Override
+    public ${target_type_name} selectMany${target_key_letters}sOnR${rel_numb}( Where condition ) throws XtumlException {
         return ${target_type_name}.empty${target_type_name};
     }
     .else
@@ -37,17 +42,17 @@
     .end if
   .else
     .if ( is_many )
-    public ${target_type_name} selectAny${target_key_letters}OnR${rel_numb}() throws XtumlException {
+    public ${target_type_obj_name} selectAny${target_key_letters}OnR${rel_numb}() throws XtumlException {
         return selectAny${target_key_letters}OnR${rel_numb}( null );
     }
 
-    public ${target_type_name} selectAny${target_key_letters}OnR${rel_numb}( Where condition ) throws XtumlException {
+    public ${target_type_obj_name} selectAny${target_key_letters}OnR${rel_numb}( Where condition ) throws XtumlException {
         checkLiving();
       .if ( is_unconditional )
-        if ( ${ref_name} instanceof EmptySet ) throw new ModelIntegrityException( "Uncoditional association with no related instance." );
-        else return selectAny${target_key_letters}FromInstances( condition );
+        if ( ${ref_name} instanceof EmptyInstanceSet ) throw new ModelIntegrityException( "Uncoditional association with no related instance." );
+        else return ${ref_name}.selectAny${target_key_letters}FromInstances( condition );
       .else
-        return selectAny${target_key_letters}sFromInstances( condition );
+        return ${ref_name}.selectAny${target_key_letters}sFromInstances( condition );
       .end if
     }
 
@@ -58,10 +63,10 @@
     public ${target_type_name} selectMany${target_key_letters}sOnR${rel_numb}( Where condition ) throws XtumlException {
         checkLiving();
       .if ( is_unconditional )
-        if ( ${ref_name} instanceof EmptySet ) throw new ModelIntegrityException( "Uncoditional association with no related instance." );
-        else return selectMany${target_key_letters}sFromInstances( condition );
+        if ( ${ref_name} instanceof EmptyInstanceSet ) throw new ModelIntegrityException( "Uncoditional association with no related instance." );
+        else return ${ref_name}.selectMany${target_key_letters}sFromInstances( condition );
       .else
-        return selectMany${target_key_letters}sFromInstances( condition );
+        return ${ref_name}.selectMany${target_key_letters}sFromInstances( condition );
       .end if
     }
     .else
