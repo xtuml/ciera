@@ -96,29 +96,50 @@ T::clear();
 
 separator = "";
 for each ref in refs
-  is_unconditional = ref.unconditional;
-  if ( is_unconditional )
-    ::addStringToImports( file:file, s:"ciera.exceptions.ModelIntegrityException" );
-  end if;
-  select one type related by ref->TypedObject[R406]->Type[R410];
-  target_type_name = type.name;
-  select one obj related by type->Class[R412];
-  is_many = false;
-  if ( empty obj )
-    select one obj related by type->ClassSet[R412]->Class[R411];
-    is_many = true;
-  end if;
-  target_key_letters = "";
-  if ( not_empty obj )
+  is_subtype = false;
+  select one subtype_ref related by ref->SubtypeReference[R420];
+  if ( empty subtype_ref )
+    is_unconditional = ref.unconditional;
+    if ( is_unconditional )
+      ::addStringToImports( file:file, s:"ciera.exceptions.ModelIntegrityException" );
+    end if;
+    select one type related by ref->TypedObject[R406]->Type[R410];
+    target_type_name = type.name;
+    select one obj related by type->Class[R412];
+    is_many = false;
+    if ( empty obj )
+      select one obj related by type->ClassSet[R412]->Class[R411];
+      is_many = true;
+    end if;
     target_key_letters = obj.key_letters;
+    rel_numb = STR::itoa( i:ref.rel_numb );
+    ref_name = ref.name;
+    isset = false;
+    isempty = false;
+    T::b( s:separator );
+    T::include( file:"java/t.selectrelated.java" );
+    separator = "\n";
+  else
+    is_subtype = true;
+    select many corresponding_refs related by ref->Class[R417]->ComponentDefinition[R414]->Class[R414]->
+    	AssociatedClassReference[R417]->SupertypeReference[R420]->AssociatedClassReference[R420] where ( selected.rel_numb == ref.rel_numb );
+    for each corresponding_ref in corresponding_refs
+      is_unconditional = ref.unconditional;
+      ::addStringToImports( file:file, s:"ciera.exceptions.ModelIntegrityException" );
+      select one type related by corresponding_ref->Class[R417]->Type[R412];
+      target_type_name = type.name;
+      is_many = false;
+      select one obj related by type->Class[R412];
+      target_key_letters = obj.key_letters;
+      rel_numb = STR::itoa( i:ref.rel_numb );
+      ref_name = ref.name;
+      isset = false;
+      isempty = false;
+      T::b( s:separator );
+      T::include( file:"java/t.selectrelated.java" );
+      separator = "\n";
+    end for;
   end if;
-  rel_numb = STR::itoa( i:ref.rel_numb );
-  ref_name = ref.name;
-  isset = false;
-  isempty = false;
-  T::b( s:separator );
-  T::include( file:"java/t.selectrelated.java" );
-  separator = "\n";
 end for;
 selections_block = T::body();
 T::clear();
@@ -128,29 +149,49 @@ unrelates_block = "";
 
 separator = "";
 for each ref in refs
-  is_unconditional = ref.unconditional;
-  if ( is_unconditional )
-    ::addStringToImports( file:file, s:"ciera.exceptions.ModelIntegrityException" );
-  end if;
-  select one type related by ref->TypedObject[R406]->Type[R410];
-  target_type_name = type.name;
-  select one obj related by type->Class[R412];
-  is_many = false;
-  if ( empty obj )
-    select one obj related by type->ClassSet[R412]->Class[R411];
-    is_many = true;
-  end if;
-  target_key_letters = "";
-  if ( not_empty obj )
+  is_subtype = false;
+  select one subtype_ref related by ref->SubtypeReference[R420];
+  if ( empty subtype_ref )
+    is_unconditional = ref.unconditional;
+    if ( is_unconditional )
+      ::addStringToImports( file:file, s:"ciera.exceptions.ModelIntegrityException" );
+    end if;
+    select one type related by ref->TypedObject[R406]->Type[R410];
+    target_type_name = type.name;
+    select one obj related by type->Class[R412];
+    is_many = false;
+    if ( empty obj )
+      select one obj related by type->ClassSet[R412]->Class[R411];
+      is_many = true;
+    end if;
     target_key_letters = obj.key_letters;
+    rel_numb = STR::itoa( i:ref.rel_numb );
+    ref_name = ref.name;
+    isset = false;
+    isempty = true;
+    T::b( s:separator );
+    T::include( file:"java/t.selectrelated.java" );
+    separator = "\n";
+  else
+    select many corresponding_refs related by ref->Class[R417]->ComponentDefinition[R414]->Class[R414]->
+    	AssociatedClassReference[R417]->SupertypeReference[R420]->AssociatedClassReference[R420] where ( selected.rel_numb == ref.rel_numb );
+    for each corresponding_ref in corresponding_refs
+      is_unconditional = ref.unconditional;
+      ::addStringToImports( file:file, s:"ciera.exceptions.ModelIntegrityException" );
+      select one type related by corresponding_ref->Class[R417]->Type[R412];
+      target_type_name = type.name;
+      is_many = false;
+      select one obj related by type->Class[R412];
+      target_key_letters = obj.key_letters;
+      rel_numb = STR::itoa( i:ref.rel_numb );
+      ref_name = ref.name;
+      isset = false;
+      isempty = true;
+      T::b( s:separator );
+      T::include( file:"java/t.selectrelated.java" );
+      separator = "\n";
+    end for;
   end if;
-  rel_numb = STR::itoa( i:ref.rel_numb );
-  ref_name = ref.name;
-  isset = false;
-  isempty = true;
-  T::b( s:separator );
-  T::include( file:"java/t.selectrelated.java" );
-  separator = "\n";
 end for;
 empty_selections_block = T::body();
 T::clear();

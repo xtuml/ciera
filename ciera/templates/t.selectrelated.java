@@ -73,7 +73,11 @@
         checkLiving();
       .if ( is_unconditional )
         if ( ${ref_name} instanceof EmptyInstance ) throw new ModelIntegrityException( "Uncoditional association with no related instance." );
+        .if ( is_subtype )
+        else if ( ${ref_name} instanceof ${target_type_name} && ( null == condition || condition.evaluate( ${ref_name} ) ) ) return (${target_type_name})${ref_name};
+        .else
         else if ( null == condition || condition.evaluate( ${ref_name} ) ) return ${ref_name};
+        .end if
       .else
         if ( null == condition || condition.evaluate( ${ref_name} ) ) return ${ref_name};
       .end if

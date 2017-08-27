@@ -294,6 +294,21 @@ T_b("if ( ");
 T_b(ref_name);
 T_b(" instanceof EmptyInstance ) throw new ModelIntegrityException( \"Uncoditional association with no related instance.\" );");
 T_b("\n");
+if ( is_subtype ) {
+T_b("        ");
+T_b("else if ( ");
+T_b(ref_name);
+T_b(" instanceof ");
+T_b(target_type_name);
+T_b(" && ( null == condition || condition.evaluate( ");
+T_b(ref_name);
+T_b(" ) ) ) return (");
+T_b(target_type_name);
+T_b(")");
+T_b(ref_name);
+T_b(";");
+T_b("\n");
+} else {
 T_b("        ");
 T_b("else if ( null == condition || condition.evaluate( ");
 T_b(ref_name);
@@ -301,6 +316,7 @@ T_b(" ) ) return ");
 T_b(ref_name);
 T_b(";");
 T_b("\n");
+}
 } else {
 T_b("        ");
 T_b("if ( null == condition || condition.evaluate( ");
