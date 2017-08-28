@@ -1,6 +1,6 @@
 T_b("    ");
 T_b("public void set");
-T_b(ref_name);
+T_b(capital_ref_name);
 T_b("OnR");
 T_b(rel_numb);
 T_b("( ");
@@ -26,7 +26,7 @@ T_b("}");
 T_b("\n");
 T_b("    ");
 T_b("public void clear");
-T_b(ref_name);
+T_b(capital_ref_name);
 T_b("OnR");
 T_b(rel_numb);
 T_b("() throws XtumlException {");
