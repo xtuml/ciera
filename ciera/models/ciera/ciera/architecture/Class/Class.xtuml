@@ -26,7 +26,6 @@ set_class = set.name;
 
 select many attrs related by self->Attribute[R416];
 if ( not_empty attrs )
-  ::addStringToImports( file:file, s:"ciera.exceptions.XtumlException" );
 end if;
 for each attr in attrs
   attr.render();
@@ -38,7 +37,6 @@ T::clear();
 select many refs related by self->AssociatedClassReference[R417];
 if ( not_empty refs )
   ::addStringToImports( file:file, s:"ciera.classes.Where" );
-  ::addStringToImports( file:file, s:"ciera.exceptions.XtumlException" );
 end if;
 for each ref in refs
   ref.render();
@@ -78,7 +76,21 @@ for each ref in refs
   initialize = true;
   T::include( file:"java/t.associatedclassref.java" );
 end for;
-unique_id_init_block = T::body();
+attr_init_block = T::body();
+T::clear();
+
+for each attr in attrs
+  select one type related by attr->TypedObject[R406]->Type[R410];
+  select one builtin related by type->BuiltInType[R412];
+  if ( not_empty builtin and builtin.unique )
+    type_name = type.name;
+    attr_name = attr.name;
+    declaration = false;
+    unique_id_initialize = true;
+    T::include( file:"java/t.attribute.java" );
+  end if;
+end for;
+attr_init_block = attr_init_block + T::body();
 T::clear();
 
 separator = "";
@@ -224,6 +236,7 @@ T::clear();
 empty_relates_block = "";
 empty_unrelates_block = "";
 
+::addStringToImports( file:file, s:"ciera.exceptions.XtumlException" );
 import_block = file.getFormattedImports();
 
 T::include( file:"java/t.class.java" );',

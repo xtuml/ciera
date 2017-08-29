@@ -26,7 +26,7 @@ ${rto_functions_block}
 .else
         super();
 .end if
-${unique_id_init_block}
+${attr_init_block}
     }
     
     // attribute accessors

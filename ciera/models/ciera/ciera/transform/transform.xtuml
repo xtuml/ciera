@@ -405,9 +405,9 @@ for each s_dt in s_dts
     type_name = "";
     type_import = "";
     type_primitive = false;
+    type_unique = false;
     if ( "boolean" == s_dt.Name )
       type_name = "boolean";
-      type_import = "";
       type_primitive = true;
     elif ( "component_ref" == s_dt.Name )
       type_name = "Component";
@@ -423,24 +423,21 @@ for each s_dt in s_dts
       type_import = "ciera.util.Timer";
     elif ( "integer" == s_dt.Name )
       type_name = "int";
-      type_import = "";
       type_primitive = true;
     elif ( "real" == s_dt.Name )
       type_name = "float";
-      type_import = "";
       type_primitive = true;
     elif ( "string" == s_dt.Name )
       type_name = "String";
-      type_import = "";
     elif ( "timestamp" == s_dt.Name )
       type_name = "TimeStamp";
       type_import = "ciera.util.TimeStamp";
     elif ( "unique_id" == s_dt.Name )
-      type_name = "UUID";
-      type_import = "java.util.UUID";
+      type_name = "UniqueId";
+      type_import = "ciera.util.UniqueId";
+      type_unique = true;
     elif ( "void" == s_dt.Name )
       type_name = "void";
-      type_import = "";
       type_primitive = true;
     elif ( "inst_ref_set<Object>" == s_dt.Name )
       type_name = "InstanceSet";
@@ -454,6 +451,8 @@ for each s_dt in s_dts
       create object instance builtin of BuiltInType;
       builtin.name = type_name;
       builtin.import = type_import;
+      builtin.primitive = type_primitive;
+      builtin.unique = type_unique;
       create object instance type of Type;
       relate builtin to type across R412;
       relate builtin to s_dt across R413;

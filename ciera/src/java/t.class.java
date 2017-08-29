@@ -81,7 +81,7 @@ T_b("        ");
 T_b("super();");
 T_b("\n");
 }
-T_b(unique_id_init_block);
+T_b(attr_init_block);
 T_b("\n");
 T_b("    ");
 T_b("}");

@@ -1,21 +1,19 @@
 package ciera.classes;
 
-import java.util.UUID;
-
 import ciera.exceptions.DeletedInstanceException;
 import ciera.exceptions.XtumlException;
 import ciera.statemachine.AssignerStateMachine;
 import ciera.statemachine.Event;
 import ciera.statemachine.EventTarget;
 import ciera.statemachine.InstanceStateMachine;
+import ciera.util.UniqueId;
 
 public abstract class ModelInstance implements EventTarget, Comparable<ModelInstance> {
     
     // empty instance
     public static final ModelInstance emptyModelInstance = new EmptyModelInstance();
 
-    private UUID instanceId;
-    private boolean alive;
+    private UniqueId instanceId;
 
     private InstancePopulation context;
 
@@ -24,27 +22,20 @@ public abstract class ModelInstance implements EventTarget, Comparable<ModelInst
     
     // constructors
     public ModelInstance() {
-        instanceId = UUID.randomUUID();
-        alive = true;
+        instanceId = new UniqueId();
         context = null;
         ism = null;
     }
     
-    public ModelInstance( InstanceStateMachine ism ) {
-        this();
-        this.ism = ism;
-        ism.setInstance( this );
-    }
-
     public abstract int getClassNumber();
     public abstract String getKeyLetters();
     
-    public UUID getInstanceId() {
+    protected UniqueId getInstanceId() {
         return instanceId;
     }
     
     public void checkLiving() throws XtumlException {
-        if ( !alive ) throw new DeletedInstanceException( "Access of deleted instance " );
+        if ( instanceId.isNull() ) throw new DeletedInstanceException( "Access of deleted instance " );
     }
     
     @Override
@@ -63,7 +54,7 @@ public abstract class ModelInstance implements EventTarget, Comparable<ModelInst
     
     public void delete() throws XtumlException {
         checkLiving();
-        alive = false;
+        instanceId.nullify();
     }
 
     public static AssignerStateMachine getAsm() {
