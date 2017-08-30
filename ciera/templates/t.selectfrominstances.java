@@ -15,17 +15,7 @@
         return ((${class_set_name})getInstanceSet(${class_name}.class)).selectMany${class_key_letters}sFromInstances( condition );
     }
 .else
-  .if ( isempty )
-    @Override
-    public synchronized ${class_name} selectAny${class_key_letters}FromInstances( Where condition ) {
-        return ${class_name}.empty${class_name};
-    }
-    
-    @Override
-    public synchronized ${class_set_name} selectMany${class_key_letters}sFromInstances( Where condition ) {
-        return ${class_set_name}.empty${class_set_name};
-    }
-  .else
+  .if ( not isempty )
     public synchronized ${class_name} selectAny${class_key_letters}FromInstances( Where condition ) {
         return (${class_name})selectAny( condition );
     }

@@ -1,10 +1,5 @@
 .if ( isset )
-  .if ( isempty )
-    @Override
-    public synchronized ${target_type_name} selectMany${target_key_letters}sOnR${rel_numb}${phrase}( Where condition ) throws XtumlException {
-        return ${target_type_name}.empty${target_type_name};
-    }
-  .else
+  .if ( not isempty )
     public synchronized ${target_type_name} selectMany${target_key_letters}sOnR${rel_numb}${phrase}() throws XtumlException {
         return selectMany${target_key_letters}sOnR${rel_numb}${phrase}( null );
     }
@@ -18,8 +13,7 @@
             return_set.add( ((${class_name})selected).selectOne${target_key_letters}OnR${rel_numb}${phrase}( condition ) );
     .end if
         }
-        if ( return_set.isEmpty() ) return ${target_type_name}.empty${target_type_name};
-        else return return_set;
+        return return_set;
     }
   .end if
 .else
@@ -32,7 +26,7 @@
 
     @Override
     public synchronized ${target_type_name} selectMany${target_key_letters}sOnR${rel_numb}${phrase}( Where condition ) throws XtumlException {
-        return ${target_type_name}.empty${target_type_name};
+        return new ${target_type_name}();
     }
     .else
     @Override
@@ -49,7 +43,7 @@
     public synchronized ${target_type_obj_name} selectAny${target_key_letters}OnR${rel_numb}${phrase}( Where condition ) throws XtumlException {
         checkLiving();
       .if ( is_unconditional )
-        if ( ${ref_name} instanceof EmptyInstanceSet ) throw new ModelIntegrityException( "Uncoditional association with no related instance." );
+        if ( ${ref_name}.isEmpty() ) throw new ModelIntegrityException( "Uncoditional association with no related instance." );
         else return ${ref_name}.selectAny${target_key_letters}FromInstances( condition );
       .else
         return ${ref_name}.selectAny${target_key_letters}FromInstances( condition );
@@ -63,7 +57,7 @@
     public synchronized ${target_type_name} selectMany${target_key_letters}sOnR${rel_numb}${phrase}( Where condition ) throws XtumlException {
         checkLiving();
       .if ( is_unconditional )
-        if ( ${ref_name} instanceof EmptyInstanceSet ) throw new ModelIntegrityException( "Uncoditional association with no related instance." );
+        if ( ${ref_name}.isEmpty() ) throw new ModelIntegrityException( "Uncoditional association with no related instance." );
         else return ${ref_name}.selectMany${target_key_letters}sFromInstances( condition );
       .else
         return ${ref_name}.selectMany${target_key_letters}sFromInstances( condition );

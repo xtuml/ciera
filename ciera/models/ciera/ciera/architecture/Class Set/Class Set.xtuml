@@ -83,63 +83,6 @@ end for;
 selections_block = T::body() + selections_block;
 T::clear();
 
-separator = "";
-for each ref in refs
-  phrase = "";
-  is_subtype = false;
-  select one subtype_ref related by ref->SubtypeReference[R420];
-  if ( empty subtype_ref )
-    select one basic_ref related by ref->BasicReference[R420];
-    if ( not_empty basic_ref )
-      phrase = basic_ref.phrase;
-    end if;
-    is_unconditional = ref.unconditional;
-    select one refobj related by ref->TypedObject[R406]->Type[R410]->Class[R412];
-    is_many = false;
-    if ( empty refobj )
-      select one refobj related by ref->TypedObject[R406]->Type[R410]->ClassSet[R412]->Class[R411];
-      is_many = true;
-    end if;
-    target_key_letters = refobj.key_letters;
-    select one refobjsettype related by refobj->ClassSet[R411]->Type[R412];
-    target_type_name = refobjsettype.name;
-    target_type_obj_name = target_type_name;
-    rel_numb = STR::itoa( i:ref.rel_numb );
-    ref_name = ref.name;
-    isset = true;
-    isempty = true;
-    T::b( s:separator );
-    T::include( file:"java/t.selectrelated.java" );
-    separator = "\n";
-  else
-    select many corresponding_refs related by ref->Class[R417]->ComponentDefinition[R414]->Class[R414]->
-    	AssociatedClassReference[R417]->SupertypeReference[R420]->AssociatedClassReference[R420] where ( selected.rel_numb == ref.rel_numb );
-    for each corresponding_ref in corresponding_refs
-      is_unconditional = ref.unconditional;
-      select one reftype related by corresponding_ref->Class[R417]->ClassSet[R411]->Type[R412];
-      target_type_name = reftype.name;
-      target_type_obj_name = target_type_name;
-      is_many = false;
-      select one refobj related by corresponding_ref->Class[R417];
-      target_key_letters = refobj.key_letters;
-      rel_numb = STR::itoa( i:ref.rel_numb );
-      ref_name = ref.name;
-      isset = true;
-      isempty = true;
-      T::include( file:"java/t.selectrelated.java" );
-      T::b( s:"\n" );
-    end for;
-  end if;
-end for;
-empty_selections_block = T::body();
-T::clear();
-
-isgeneric = false;
-isempty = true;
-T::include( file:"java/t.selectfrominstances.java" );
-empty_selections_block = empty_selections_block + T::body();
-T::clear();
-
 import_block = file.getFormattedImports();
 
 T::include( file:"java/t.set.java" );',

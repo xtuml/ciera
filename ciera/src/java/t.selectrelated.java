@@ -1,29 +1,5 @@
 if ( isset ) {
-if ( isempty ) {
-T_b("    ");
-T_b("@Override");
-T_b("\n");
-T_b("    ");
-T_b("public synchronized ");
-T_b(target_type_name);
-T_b(" selectMany");
-T_b(target_key_letters);
-T_b("sOnR");
-T_b(rel_numb);
-T_b(phrase);
-T_b("( Where condition ) throws XtumlException {");
-T_b("\n");
-T_b("        ");
-T_b("return ");
-T_b(target_type_name);
-T_b(".empty");
-T_b(target_type_name);
-T_b(";");
-T_b("\n");
-T_b("    ");
-T_b("}");
-T_b("\n");
-} else {
+if ( ! isempty ) {
 T_b("    ");
 T_b("public synchronized ");
 T_b(target_type_name);
@@ -91,14 +67,7 @@ T_b("        ");
 T_b("}");
 T_b("\n");
 T_b("        ");
-T_b("if ( return_set.isEmpty() ) return ");
-T_b(target_type_name);
-T_b(".empty");
-T_b(target_type_name);
-T_b(";");
-T_b("\n");
-T_b("        ");
-T_b("else return return_set;");
+T_b("return return_set;");
 T_b("\n");
 T_b("    ");
 T_b("}");
@@ -144,11 +113,9 @@ T_b(phrase);
 T_b("( Where condition ) throws XtumlException {");
 T_b("\n");
 T_b("        ");
-T_b("return ");
+T_b("return new ");
 T_b(target_type_name);
-T_b(".empty");
-T_b(target_type_name);
-T_b(";");
+T_b("();");
 T_b("\n");
 T_b("    ");
 T_b("}");
@@ -218,7 +185,7 @@ if ( is_unconditional ) {
 T_b("        ");
 T_b("if ( ");
 T_b(ref_name);
-T_b(" instanceof EmptyInstanceSet ) throw new ModelIntegrityException( \"Uncoditional association with no related instance.\" );");
+T_b(".isEmpty() ) throw new ModelIntegrityException( \"Uncoditional association with no related instance.\" );");
 T_b("\n");
 T_b("        ");
 T_b("else return ");
@@ -277,7 +244,7 @@ if ( is_unconditional ) {
 T_b("        ");
 T_b("if ( ");
 T_b(ref_name);
-T_b(" instanceof EmptyInstanceSet ) throw new ModelIntegrityException( \"Uncoditional association with no related instance.\" );");
+T_b(".isEmpty() ) throw new ModelIntegrityException( \"Uncoditional association with no related instance.\" );");
 T_b("\n");
 T_b("        ");
 T_b("else return ");
