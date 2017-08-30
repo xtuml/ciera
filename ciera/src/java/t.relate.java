@@ -1,4 +1,27 @@
 if ( is_formalizer ) {
+if ( is_empty ) {
+T_b("    ");
+T_b("@Override");
+T_b("\n");
+T_b("    ");
+T_b("public synchronized void relateTo");
+T_b(target_key_letters);
+T_b("AcrossR");
+T_b(rel_numb);
+T_b(phrase);
+T_b("( ");
+T_b(target_type_name);
+T_b(" ");
+T_b(target_inst_name);
+T_b(" ) throws XtumlException {");
+T_b("\n");
+T_b("        ");
+T_b("throw new EmptyInstanceException( \"Relate of empty instance\" );");
+T_b("\n");
+T_b("    ");
+T_b("}");
+T_b("\n");
+} else {
 T_b("    ");
 T_b("public synchronized void relateTo");
 T_b(target_key_letters);
@@ -93,6 +116,30 @@ T_b("\n");
 T_b("    ");
 T_b("}");
 T_b("\n");
+}
+} else {
+if ( is_empty ) {
+T_b("    ");
+T_b("@Override");
+T_b("\n");
+T_b("    ");
+T_b("public void relateTo");
+T_b(target_key_letters);
+T_b("AcrossR");
+T_b(rel_numb);
+T_b(phrase);
+T_b("( ");
+T_b(target_type_name);
+T_b(" ");
+T_b(target_inst_name);
+T_b(" ) throws XtumlException {");
+T_b("\n");
+T_b("        ");
+T_b("throw new EmptyInstanceException( \"Relate of empty instance\" );");
+T_b("\n");
+T_b("    ");
+T_b("}");
+T_b("\n");
 } else {
 T_b("    ");
 T_b("public void relateTo");
@@ -118,4 +165,5 @@ T_b("\n");
 T_b("    ");
 T_b("}");
 T_b("\n");
+}
 }
