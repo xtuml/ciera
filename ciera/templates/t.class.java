@@ -6,18 +6,6 @@ public class ${class_name} extends ModelInstance {
     
     private static final int classNumber = ${class_number};
     private static final String keyLetters = "${class_kl}";
-    private static final Class<?> setClass = ${set_class}.class;
-    
-    // empty instance
-    public static final ${class_name} empty${class_name} = new Empty${class_name}();
-    
-    // class attributes
-${attribute_block}
-    
-    // associations
-${assoc_attr_block}
-    
-${rto_functions_block}
 
     // constructor
     public ${class_name}() {
@@ -28,6 +16,11 @@ ${rto_functions_block}
 .end if
 ${attr_init_block}
     }
+    
+    // class attributes
+${attribute_block}
+
+    // operations
     
     // attribute accessors
 ${accessors_block}
@@ -40,6 +33,16 @@ ${relates_block}
     
     // unrelates
 ${unrelates_block}
+
+    // associations
+${assoc_attr_block}
+    
+${rto_functions_block}
+
+    private static final Class<?> setClass = ${set_class}.class;
+
+    // empty instance
+    public static final ${class_name} empty${class_name} = new Empty${class_name}();
 
     @Override
     public int getClassNumber() {

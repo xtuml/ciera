@@ -95,7 +95,7 @@ T_b("}");
 T_b("\n");
 } else {
 T_b("    ");
-T_b("public synchronized void relateTo");
+T_b("public void relateTo");
 T_b(target_key_letters);
 T_b("AcrossR");
 T_b(rel_numb);

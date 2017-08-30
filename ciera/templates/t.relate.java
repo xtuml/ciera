@@ -26,7 +26,7 @@
         else throw new LinkException( "Cannot link to already linked relationship." );
     }
 .else
-    public synchronized void relateTo${target_key_letters}AcrossR${rel_numb}${phrase}( ${target_type_name} ${target_inst_name} ) throws XtumlException {
+    public void relateTo${target_key_letters}AcrossR${rel_numb}${phrase}( ${target_type_name} ${target_inst_name} ) throws XtumlException {
         ${target_inst_name}.relateTo${class_kl}AcrossR${rel_numb}${corresponding_phrase}( this );
     }
 .end if
