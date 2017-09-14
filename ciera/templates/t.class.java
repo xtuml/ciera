@@ -21,6 +21,7 @@ ${attr_init_block}
 ${attribute_block}
 
     // operations
+${operations_block}
     
     // attribute accessors
 ${accessors_block}

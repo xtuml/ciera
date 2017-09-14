@@ -514,6 +514,12 @@ for each o_attr in o_attrs
   end if;
 end for;
 
+// transform operations
+select many o_tfrs related by o_obj->O_TFR[R115];
+for each o_tfr in o_tfrs
+  ::transformOperation( o_tfr:o_tfr, obj:obj );
+end for;
+
 // transform relationships
 select many r_rels related by o_obj->R_REL[R201];
 for each r_rel in r_rels
@@ -1156,6 +1162,97 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("6984d6cb-ca5f-4c52-90ce-a69cc62404e9",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("03e1ea6e-74af-412c-b034-76ab7511674f",
+	"00000000-0000-0000-0000-000000000000",
+	'transformOperation',
+	'',
+	'o_tfr = param.o_tfr;
+obj = param.obj;
+
+// create function object
+create object instance op of Operation;
+op.name = "op_" + o_tfr.Name;
+op.is_static = Scope::Class == o_tfr.Instance_Based;
+relate op to obj across R425;
+
+// create typed object
+create object instance typed_object of TypedObject;
+select one s_dt related by o_tfr->S_DT[R116];
+type = UnresolvedType::getInstance( s_dt:s_dt );
+relate type to typed_object across R410;
+relate op to typed_object across R406;
+
+// create parameters
+create object instance po of ParameterizedObject;
+relate op to po across R405;
+select any o_tparm related by o_tfr->O_TPARM[R117];
+prev_o_tparm = o_tparm;
+// select first parameter
+while ( not_empty prev_o_tparm )
+  o_tparm = prev_o_tparm;
+  select one prev_o_tparm related by o_tparm->O_TPARM[R124.''succeeds''];
+end while;
+while ( not_empty o_tparm )
+  // create parameter
+  create object instance parm of Parameter;
+  parm.name = o_tparm.Name;
+  create object instance parm_typed_object of TypedObject;
+  select one parm_dt related by o_tparm->S_DT[R118];
+  parm_type = UnresolvedType::getInstance( s_dt:parm_dt );
+  relate parm_type to parm_typed_object across R410;
+  relate parm to parm_typed_object across R406;
+  // link parameter
+  relate parm to po across R424;
+  select one first_parm related by po->Parameter[R407];
+  if ( empty first_parm )
+    relate parm to po across R407;
+  else
+    next_parm = first_parm;
+    last_parm = first_parm;
+    while ( not_empty next_parm ) 
+      next_parm = last_parm;
+      select one next_parm related by last_parm->Parameter[R408.''precedes''];
+    end while;
+    relate parm to last_parm across R408.''follows'';
+  end if;
+  select one o_tparm related by o_tparm->O_TPARM[R124.''precedes''];
+end while;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("30ba3ab6-6d9c-4d33-bd48-006d0df3ab1c",
+	"03e1ea6e-74af-412c-b034-76ab7511674f",
+	'o_tfr',
+	"5cb6d426-f094-4cad-8cdb-b16506c9f2e6",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("5cb6d426-f094-4cad-8cdb-b16506c9f2e6",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Operation>',
+	'',
+	'',
+	'../../../../../mcooa/models/mcooa/ooaofooa/Subsystem/Subsystem.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("36319cba-4224-4f29-ab04-3a8b3ee913a7",
+	"03e1ea6e-74af-412c-b034-76ab7511674f",
+	'obj',
+	"ac93823e-2644-440b-977c-1f4e8480ec59",
+	0,
+	'',
+	"30ba3ab6-6d9c-4d33-bd48-006d0df3ab1c",
+	'');
+INSERT INTO PE_PE
+	VALUES ("03e1ea6e-74af-412c-b034-76ab7511674f",
 	1,
 	"06787f13-1c16-4275-879c-00bbeee7cb88",
 	"00000000-0000-0000-0000-000000000000",

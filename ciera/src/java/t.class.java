@@ -56,6 +56,8 @@ T_b("\n");
 T_b("    ");
 T_b("// operations");
 T_b("\n");
+T_b(operations_block);
+T_b("\n");
 T_b("   ");
 T_b(" ");
 T_b("\n");
