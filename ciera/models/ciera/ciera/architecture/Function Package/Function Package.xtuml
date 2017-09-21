@@ -16,13 +16,24 @@ INSERT INTO O_TFR
 	1,
 	'select one file related by self->File[R403];
 package_name = ::pathToPackage( path:file.path );
-simple_package_name = self.name;
+class_name = self.name;
+extends_class = "";
+if ( "ARCH" == class_name or "TIM" == class_name or "LOG" == class_name )
+  extends_class = "Default" + class_name;
+  ::addStringToImports( file:file, s:"ciera.util.ees." + extends_class );
+end if;
 
 function_block = "";
 separator = "";
 select many funcs related by self->Function[R404];
 for each func in funcs
+  if ( "" != extends_class )
+    T::b( s:"    " + STR::openblockcomment() + "\n" );
+  end if;
   func.render();
+  if ( "" != extends_class )
+    T::b( s:"    " + STR::closeblockcomment() + "\n" );
+  end if;
   function_block = function_block + separator + T::body();
   T::clear();
   separator = "\n\n";

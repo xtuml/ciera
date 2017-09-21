@@ -23,7 +23,9 @@ i_t STR_strlen( c_t * );
 i_t STR_indexof( c_t *, c_t * );
 c_t * STR_getword( const i_t, const i_t, c_t * );
 c_t * STR_trim( c_t * );
-#define STRING_quote() "\""
+#define STR_quote() "\""
+#define STR_openblockcomment() "/*"
+#define STR_closeblockcomment() "*/"
 c_t * STR_escapetics( c_t * );
 c_t * STR_unescapetics( c_t * );
 i_t STR_compare( c_t *, c_t * );

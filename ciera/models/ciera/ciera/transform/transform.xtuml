@@ -207,7 +207,7 @@ select many pe_pes related by ep_pkg->PE_PE[R8000];
 
 // transform functions
 select many s_syncs related by pe_pes->S_SYNC[R8001];
-if ( cardinality s_syncs > 0 )
+if ( not_empty s_syncs )
   // create the file
   create object instance file of File;
   file.path = ::ep_pkgToPath( ep_pkg:ep_pkg );
@@ -255,7 +255,28 @@ for each c_c in c_cs
   ::transformComponentDefinition( c_c:c_c, containing_comp_def:containing_comp_def );
 end for;
 
-// transform EEs',
+// transform EEs
+select many s_ees related by pe_pes->S_EE[R8001];
+for each s_ee in s_ees
+  // create the file
+  create object instance file of File;
+  file.path = ::ep_pkgToPath( ep_pkg:ep_pkg );
+  file.name = ::camelCaseName( name:s_ee.Key_Lett, start_lower:false ) + ".java";
+  
+  // create the import block
+  ::addStringToImports( file:file, s:containing_comp_def.fully_qualified_name );
+  
+  // create the function package object
+  create object instance fp of FunctionPackage;
+  fp.name = ::camelCaseName( name:s_ee.Key_Lett, start_lower:false );
+  relate fp to file across R403;
+
+  // transform functions
+  select many s_brgs related by s_ee->S_BRG[R19];
+  for each s_brg in s_brgs
+    ::transformBridgeFunction( s_brg:s_brg, fp:fp, comp_def:containing_comp_def );
+  end for;
+end for;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -334,7 +355,7 @@ while ( not_empty s_sparm )
     next_parm = first_parm;
     last_parm = first_parm;
     while ( not_empty next_parm ) 
-      next_parm = last_parm;
+      last_parm = next_parm;
       select one next_parm related by last_parm->Parameter[R408.''precedes''];
     end while;
     relate parm to last_parm across R408.''follows'';
@@ -1215,7 +1236,7 @@ while ( not_empty o_tparm )
     next_parm = first_parm;
     last_parm = first_parm;
     while ( not_empty next_parm ) 
-      next_parm = last_parm;
+      last_parm = next_parm;
       select one next_parm related by last_parm->Parameter[R408.''precedes''];
     end while;
     relate parm to last_parm across R408.''follows'';
@@ -1253,6 +1274,107 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("03e1ea6e-74af-412c-b034-76ab7511674f",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("e28336c9-6302-4998-8d17-048e447f7420",
+	"00000000-0000-0000-0000-000000000000",
+	'transformBridgeFunction',
+	'',
+	's_brg = param.s_brg;
+fp = param.fp;
+comp_def = param.comp_def;
+
+// create function object
+create object instance func of Function;
+func.name = s_brg.Name;
+relate func to fp across R404;
+relate func to comp_def across R409;
+
+// create typed object
+create object instance typed_object of TypedObject;
+select one s_dt related by s_brg->S_DT[R20];
+type = UnresolvedType::getInstance( s_dt:s_dt );
+relate type to typed_object across R410;
+relate func to typed_object across R406;
+
+// create parameters
+create object instance po of ParameterizedObject;
+relate func to po across R405;
+select any s_bparm related by s_brg->S_BPARM[R21];
+prev_s_bparm = s_bparm;
+// select first parameter
+while ( not_empty prev_s_bparm )
+  s_bparm = prev_s_bparm;
+  select one prev_s_bparm related by s_bparm->S_BPARM[R55.''succeeds''];
+end while;
+while ( not_empty s_bparm )
+  // create parameter
+  create object instance parm of Parameter;
+  parm.name = s_bparm.Name;
+  create object instance parm_typed_object of TypedObject;
+  select one parm_dt related by s_bparm->S_DT[R22];
+  parm_type = UnresolvedType::getInstance( s_dt:parm_dt );
+  relate parm_type to parm_typed_object across R410;
+  relate parm to parm_typed_object across R406;
+  // link parameter
+  relate parm to po across R424;
+  select one first_parm related by po->Parameter[R407];
+  if ( empty first_parm )
+    relate parm to po across R407;
+  else
+    next_parm = first_parm;
+    last_parm = first_parm;
+    while ( not_empty next_parm ) 
+      last_parm = next_parm;
+      select one next_parm related by last_parm->Parameter[R408.''precedes''];
+    end while;
+    relate parm to last_parm across R408.''follows'';
+  end if;
+  select one s_bparm related by s_bparm->S_BPARM[R55.''precedes''];
+end while;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("fe3cbe30-09a0-4862-999e-004a54498465",
+	"e28336c9-6302-4998-8d17-048e447f7420",
+	's_brg',
+	"ecc1ab34-9767-4e8a-82ed-4ab5b2aea2c8",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("ecc1ab34-9767-4e8a-82ed-4ab5b2aea2c8",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Bridge>',
+	'',
+	'',
+	'../../../../../mcooa/models/mcooa/ooaofooa/Domain/Domain.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("b62f2249-e800-47a0-9ced-547006d67635",
+	"e28336c9-6302-4998-8d17-048e447f7420",
+	'fp',
+	"b4ca8fd2-c6bc-40d6-af72-e591e49acc18",
+	0,
+	'',
+	"fe3cbe30-09a0-4862-999e-004a54498465",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("f7736c14-671c-4551-8d35-2d7ed713cf3d",
+	"e28336c9-6302-4998-8d17-048e447f7420",
+	'comp_def',
+	"1fef1559-c5b6-4eb7-a9c4-8b126b9b51a0",
+	0,
+	'',
+	"b62f2249-e800-47a0-9ced-547006d67635",
+	'');
+INSERT INTO PE_PE
+	VALUES ("e28336c9-6302-4998-8d17-048e447f7420",
 	1,
 	"06787f13-1c16-4275-879c-00bbeee7cb88",
 	"00000000-0000-0000-0000-000000000000",

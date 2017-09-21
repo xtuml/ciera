@@ -115,6 +115,16 @@ STR_trim( c_t * p_s )
  * implemented as macro
  */
 
+/*
+ * Bridge:  openblockcomment
+ * implemented as macro
+ */
+
+/*
+ * Bridge:  closeblockcomment
+ * implemented as macro
+ */
+
 
 /*
  * Bridge:  escapetics

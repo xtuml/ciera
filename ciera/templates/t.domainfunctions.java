@@ -2,7 +2,11 @@ package ${package_name};
 
 ${import_block}
 
-public class ${simple_package_name} {
+.if ( "" == extends_class )
+public class ${class_name} {
+.else
+public class ${class_name} extends ${extends_class} {
+.end if
 
 ${function_block}
 
