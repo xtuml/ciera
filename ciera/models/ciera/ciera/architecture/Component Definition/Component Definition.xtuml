@@ -18,6 +18,10 @@ INSERT INTO O_TFR
 package_name = ::pathToPackage( path:file.path );
 component_name = self.name;
 
+// TODO get this from a mark
+extends_class = "Component";
+::addStringToImports( file:file, s:"com.cierasystems.cairn.components.Component" );
+
 class_list = "";
 separator = "";
 select many objects related by self->Class[R414];
@@ -43,6 +47,17 @@ T::clear();
 
 init_block_throws_exception = self.init_block_throws_exception;
 init_block = "";
+
+cond_test = "if";
+for each obj in objects
+  select one objset related by obj->ClassSet[R411];
+  T::b( s:"        " + cond_test + " ( type.equals( " + obj.name + ".class ) ) {\n" );
+  T::b( s:"            return new " + objset.name + "();\n" );
+  T::b( s:"        }\n" );
+  cond_test = "else if";
+end for;
+new_instance_set_block = T::body();
+T::clear();
 
 import_block = file.getFormattedImports();
 

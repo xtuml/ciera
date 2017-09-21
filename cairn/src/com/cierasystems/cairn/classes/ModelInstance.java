@@ -2,6 +2,7 @@ package com.cierasystems.cairn.classes;
 
 import com.cierasystems.summit.classes.IEmptyInstance;
 import com.cierasystems.summit.classes.IInstancePopulation;
+import com.cierasystems.summit.classes.IInstanceSet;
 import com.cierasystems.summit.classes.IModelInstance;
 import com.cierasystems.summit.exceptions.DeletedInstanceException;
 import com.cierasystems.summit.exceptions.XtumlException;
@@ -89,5 +90,10 @@ class EmptyModelInstance extends ModelInstance implements IEmptyInstance {
     public String getKeyLetters() {
         return null;
     }
+
+	@Override
+	public IInstanceSet toSet() {
+		return null;
+	}
 
 }

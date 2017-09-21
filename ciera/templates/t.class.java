@@ -2,7 +2,7 @@ package ${package_name};
 
 ${import_block}
 
-public class ${class_name} extends ModelInstance {
+public class ${class_name} extends ${extends_class} {
     
     private static final int classNumber = ${class_number};
     private static final String keyLetters = "${class_kl}";
@@ -40,8 +40,6 @@ ${assoc_attr_block}
     
 ${rto_functions_block}
 
-    private static final Class<?> setClass = ${set_class}.class;
-
     // empty instance
     public static final ${class_name} empty${class_name} = new Empty${class_name}();
 
@@ -55,13 +53,16 @@ ${rto_functions_block}
         return keyLetters;
     }
 
-    public static Class<?> getSetClass() {
-        return setClass;
+    @Override
+    public IInstanceSet toSet() {
+        IInstanceSet return_set = new ${class_set_name}();
+        return_set.add( this );
+        return return_set;
     }
 
 }
 
-class Empty${class_name} extends ${class_name} implements EmptyInstance {
+class Empty${class_name} extends ${class_name} implements IEmptyInstance {
 
     // selections
 ${empty_selections_block}

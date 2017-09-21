@@ -13,5 +13,6 @@ public interface IModelInstance extends EventTarget, Comparable<IModelInstance> 
     public IInstancePopulation getContext();
     public void setContext( IInstancePopulation context );
     public void delete() throws XtumlException;
+    public IInstanceSet toSet();
     
 }

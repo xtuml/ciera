@@ -19,7 +19,7 @@
             // TODO set referential attributes
         }
     .else
-        if ( ${ref_name} instanceof EmptyInstance ) {
+        if ( ${ref_name} instanceof IEmptyInstance ) {
             ${ref_name} = ${target_inst_name};
       .if ( corresponding_is_many )
             ${target_inst_name}.add${capital_ref_name}( this );

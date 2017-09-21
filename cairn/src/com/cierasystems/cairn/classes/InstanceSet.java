@@ -1,12 +1,10 @@
 package com.cierasystems.cairn.classes;
 
-import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-import com.cierasystems.summit.application.Application;
 import com.cierasystems.summit.classes.IEmptyInstance;
 import com.cierasystems.summit.classes.IInstanceSet;
 import com.cierasystems.summit.classes.IModelInstance;
@@ -14,24 +12,14 @@ import com.cierasystems.summit.classes.IWhere;
 
 public abstract class InstanceSet implements IInstanceSet {
     
-    private static Class<?> setClass = DefaultInstanceSet.class;
-
     private Set<IModelInstance> backingSet;
-    private Class<?> type;
     
-    public static <T extends Set<IModelInstance>> void setBackingSetClass( Class<T> newSetClass ) {
-        setClass = newSetClass;
+    public Set<IModelInstance> getNewBackingSet() {
+    	return new DefaultInstanceSet();
     }
     
-    @SuppressWarnings("unchecked")
-    public InstanceSet( Class<?> type ) {
-        try {
-            backingSet = (Set<IModelInstance>) setClass.newInstance();
-        } catch ( Exception e ) {
-            e.printStackTrace();
-            Application.app.stop();
-        }
-        this.type = type;
+    public InstanceSet() {
+        backingSet = getNewBackingSet();
     }
     
     @Override
@@ -46,30 +34,16 @@ public abstract class InstanceSet implements IInstanceSet {
     
     @Override
     public IInstanceSet selectMany( IWhere condition ) {
-        IInstanceSet return_set = getNewInstanceSetForClass( type );
+        IInstanceSet return_set = null;
         for ( IModelInstance selected : this ) {
             if ( null == condition || condition.evaluate(selected) ) {
-                return_set.add(selected);
+            	if ( null == return_set ) return_set = selected.toSet();
+            	else return_set.add(selected);
             }
         }
         return return_set;
     }
     
-    @Override
-    public IInstanceSet getNewInstanceSetForClass( Class<?> object ) {
-        try {
-            Method getSetClass = object.getMethod( "getSetClass" );
-            Class<?> setClass = (Class<?>) getSetClass.invoke( null );
-            Object newInstanceSet = setClass.newInstance();
-            return (InstanceSet)newInstanceSet;
-        }
-        catch ( Exception e ) {
-            e.printStackTrace();
-            Application.app.stop();
-        }
-        return null;
-    }
-
     @Override
     public int size() {
         return backingSet.size();
@@ -118,7 +92,11 @@ public abstract class InstanceSet implements IInstanceSet {
 
     @Override
     public boolean addAll(Collection<? extends IModelInstance> c) {
-        return backingSet.addAll(c);
+    	boolean ret_val = false;
+    	for ( IModelInstance instance : c ) {
+    		ret_val = ret_val || add( instance );
+    	}
+        return ret_val;
     }
 
     @Override

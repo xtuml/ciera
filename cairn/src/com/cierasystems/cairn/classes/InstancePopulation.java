@@ -13,13 +13,13 @@ public abstract class InstancePopulation implements IInstancePopulation {
     private Map<Class<?>, IInstanceSet> instancePopulation;
 
     @Override
-    public void setInstancePopulation( Map<Class<?>, IInstanceSet> instancePopulation ) {
+    public void setInstancePopulationMap( Map<Class<?>, IInstanceSet> instancePopulation ) {
         this.instancePopulation = instancePopulation;
     }
 
     @Override
-    public IInstanceSet getInstanceSet( Class<?> object ) {
-        return instancePopulation.get( object );
+    public IInstanceSet getInstanceSet( Class<?> type ) {
+        return instancePopulation.get( type );
     }
 
     @Override

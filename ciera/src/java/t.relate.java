@@ -80,7 +80,7 @@ T_b("\n");
 T_b("        ");
 T_b("if ( ");
 T_b(ref_name);
-T_b(" instanceof EmptyInstance ) {");
+T_b(" instanceof IEmptyInstance ) {");
 T_b("\n");
 T_b("            ");
 T_b(ref_name);

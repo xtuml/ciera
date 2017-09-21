@@ -2,12 +2,7 @@ package ${package_name};
 
 ${import_block}
 
-public class ${class_set_name} extends InstanceSet {
-
-    // constructor
-    public ${class_set_name}() {
-        super( ${class_name}.class );
-    }
+public class ${class_set_name} extends ${extends_class} {
 
     // selections
 ${selections_block}
