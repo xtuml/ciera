@@ -26,9 +26,17 @@ c_t *
 STR_itoa( const i_t p_i )
 {
   /* Replace/Insert the following instructions with your implementation code.  */
-  /* RETURN STRING::itoa(i:PARAM.i) */
-  {c_t * xtumlOALrv = STRING_itoa( p_i );
-  return xtumlOALrv;}
+  /* IF ( ( 0 == PARAM.i ) ) */
+  if ( ( 0 == p_i ) ) {
+    /* RETURN 0 */
+    {c_t * xtumlOALrv = "0";
+    return xtumlOALrv;}
+  }
+  else {
+    /* RETURN STRING::itoa(i:PARAM.i) */
+    {c_t * xtumlOALrv = STRING_itoa( p_i );
+    return xtumlOALrv;}
+  }
 }
 
 

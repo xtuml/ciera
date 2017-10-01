@@ -1,0 +1,17 @@
+T_b("    ");
+T_b("public ");
+T_b(port_name);
+T_b(" ");
+T_b(port_name);
+T_b("() {");
+T_b("\n");
+T_b("        ");
+T_b("return (");
+T_b(port_name);
+T_b(")getPort( \"");
+T_b(port_name);
+T_b("\" );");
+T_b("\n");
+T_b("    ");
+T_b("}");
+T_b("\n");

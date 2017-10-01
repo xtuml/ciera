@@ -1,0 +1,143 @@
+-- BP 7.1.6 content: ModelClass syschar: 3 persistence-version: 7.1.6
+
+INSERT INTO O_OBJ
+	VALUES ("dae9f6d1-cef8-40e7-9c0a-fcbdf6289596",
+	'Port',
+	423,
+	'Port',
+	'',
+	"00000000-0000-0000-0000-000000000000");
+INSERT INTO O_TFR
+	VALUES ("8715738f-ec55-47ca-bfad-af816187cd8b",
+	"dae9f6d1-cef8-40e7-9c0a-fcbdf6289596",
+	'render',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'select one file related by self->File[R403];
+package_name = ::pathToPackage( path:file.path );
+
+port_name = self.name;
+
+// TODO get this from a mark
+extends_class = "Port";
+::addStringToImports( file:file, s:"com.cierasystems.cairn.components.Port" );
+
+interface_name = "";
+select one iface related by self->Interface[R427];
+if ( not_empty iface )
+  interface_name = iface.name;
+end if;
+
+// render inbound messages
+select many inbound_msgs related by self->Interface[R427]->Message[R428] where ( ( not selected.to_provider and not self.provider ) or
+                                                                                 ( selected.to_provider and self.provider ) );
+select many inbound_port_msgs related by inbound_msgs->PortMessage[R429] where ( selected.port_name == self.name );
+for each port_msg in inbound_port_msgs
+  port_msg.render();
+end for;
+inbound_message_block = T::body();
+T::clear();
+
+// render outbound messages
+select many outbound_msgs related by self->Interface[R427]->Message[R428] where ( ( selected.to_provider and not self.provider ) or
+                                                                                  ( not selected.to_provider and self.provider ) );
+select many outbound_port_msgs related by outbound_msgs->PortMessage[R429] where ( selected.port_name == self.name );
+for each port_msg in outbound_port_msgs
+  port_msg.render();
+end for;
+outbound_message_block = T::body();
+T::clear();
+
+// render switch block
+for each msg in inbound_msgs
+  message_name = msg.name;
+  message_parameter_list = "";
+  select many msg_parms related by msg->ParameterizedObject[R405]->Parameter[R424];
+  if ( not_empty msg_parms )
+    sep = " ";
+    i = 0;
+    for each msg_parm in msg_parms
+      select one parm_dt related by msg_parm->TypedObject[R406]->Type[R410];
+      message_parameter_list = message_parameter_list + sep + "(" + parm_dt.name + ")message.getData( " + STR::itoa( i:i ) + " )";
+      sep = ", ";
+      i = i + 1;
+    end for;
+  end if;
+  location = "switch";
+  // TODO remove these eventually after templates allow it
+  parameter_list = "";
+  inbound = true;
+  invocation_parameter_list = "";
+  message_class = "";
+  T::include( file:"java/t.message.java" );
+end for;
+message_switch_block = T::body();
+T::clear();
+
+import_block = file.getFormattedImports();
+
+T::include( file:"java/t.port.java" );',
+	1,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	0);
+INSERT INTO O_NBATTR
+	VALUES ("f7e7cd35-612a-48af-846a-e866dc1b9acb",
+	"dae9f6d1-cef8-40e7-9c0a-fcbdf6289596");
+INSERT INTO O_BATTR
+	VALUES ("f7e7cd35-612a-48af-846a-e866dc1b9acb",
+	"dae9f6d1-cef8-40e7-9c0a-fcbdf6289596");
+INSERT INTO O_ATTR
+	VALUES ("f7e7cd35-612a-48af-846a-e866dc1b9acb",
+	"dae9f6d1-cef8-40e7-9c0a-fcbdf6289596",
+	"00000000-0000-0000-0000-000000000000",
+	'name',
+	'',
+	'',
+	'name',
+	0,
+	"ba5eda7a-def5-0000-0000-000000000004",
+	'',
+	'');
+INSERT INTO O_NBATTR
+	VALUES ("e8714e50-672e-4106-ad86-603ba955baa4",
+	"dae9f6d1-cef8-40e7-9c0a-fcbdf6289596");
+INSERT INTO O_BATTR
+	VALUES ("e8714e50-672e-4106-ad86-603ba955baa4",
+	"dae9f6d1-cef8-40e7-9c0a-fcbdf6289596");
+INSERT INTO O_ATTR
+	VALUES ("e8714e50-672e-4106-ad86-603ba955baa4",
+	"dae9f6d1-cef8-40e7-9c0a-fcbdf6289596",
+	"f7e7cd35-612a-48af-846a-e866dc1b9acb",
+	'provider',
+	'',
+	'',
+	'provider',
+	0,
+	"ba5eda7a-def5-0000-0000-000000000001",
+	'',
+	'');
+INSERT INTO O_ID
+	VALUES (0,
+	"dae9f6d1-cef8-40e7-9c0a-fcbdf6289596");
+INSERT INTO O_ID
+	VALUES (1,
+	"dae9f6d1-cef8-40e7-9c0a-fcbdf6289596");
+INSERT INTO O_ID
+	VALUES (2,
+	"dae9f6d1-cef8-40e7-9c0a-fcbdf6289596");
+INSERT INTO PE_PE
+	VALUES ("dae9f6d1-cef8-40e7-9c0a-fcbdf6289596",
+	1,
+	"73f28ea1-414d-499d-893f-5384c59bc0b2",
+	"00000000-0000-0000-0000-000000000000",
+	4);
+INSERT INTO EP_PKG_PROXY
+	VALUES ("73f28ea1-414d-499d-893f-5384c59bc0b2",
+	"00000000-0000-0000-0000-000000000000",
+	"aa743d3c-66dc-49df-a19a-ffbadf9c9d1b",
+	'architecture',
+	'',
+	0,
+	'../architecture.xtuml');

@@ -133,6 +133,12 @@ comp_def.fully_qualified_name = ::pathToPackage( path:file.path ) + "." + comp_d
 comp_def.init_block_throws_exception = false;
 relate comp_def to file across R403;
 
+// transform ports
+select many c_pos related by c_c->C_PO[R4010];
+for each c_po in c_pos
+  ::transformPort( c_po:c_po, comp_def:comp_def );
+end for;
+
 // transform inner packages
 select many ep_pkgs related by c_c->PE_PE[R8003]->EP_PKG[R8001];
 for each ep_pkg in ep_pkgs
@@ -236,6 +242,10 @@ end for;
 // transform constants
 
 // transform interfaces
+select many c_is related by pe_pes->C_I[R8001];
+for each c_i in c_is
+  ::transformInterface( c_i:c_i );
+end for;
 
 // transform classes
 select many o_objs related by pe_pes->O_OBJ[R8001];
@@ -1374,6 +1384,245 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("e28336c9-6302-4998-8d17-048e447f7420",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("cae43083-b72d-40f8-95cb-4b31855ce3ee",
+	"00000000-0000-0000-0000-000000000000",
+	'transformInterface',
+	'',
+	'c_i = param.c_i;
+select one ep_pkg related by c_i->PE_PE[R8001]->EP_PKG[R8000];
+
+// create the file
+create object instance file of File;
+file.path = ::ep_pkgToPath( ep_pkg:ep_pkg );
+file.name = ::camelCaseName( name:c_i.Name, start_lower:false ) + ".java";
+
+// create the interface package object
+create object instance iface of Interface;
+iface.name = ::camelCaseName( name:c_i.Name, start_lower:false );
+relate iface to file across R403;
+
+// relate to the c_i
+relate iface to c_i across R430;
+
+// transform messages
+select many c_eps related by c_i->C_EP[R4003];
+for each c_ep in c_eps
+  ::transformMessage( c_ep:c_ep, iface:iface );
+end for;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("c871a7f5-dd47-49c0-ad37-2478c2c84f13",
+	"cae43083-b72d-40f8-95cb-4b31855ce3ee",
+	'c_i',
+	"80698720-cc57-44ba-8aa5-600c524db338",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("80698720-cc57-44ba-8aa5-600c524db338",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Interface>',
+	'',
+	'',
+	'../../../../../mcooa/models/mcooa/ooaofooa/Component/Component.xtuml');
+INSERT INTO PE_PE
+	VALUES ("cae43083-b72d-40f8-95cb-4b31855ce3ee",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("e5071316-f813-44a9-b6f4-51f4e3089418",
+	"00000000-0000-0000-0000-000000000000",
+	'transformMessage',
+	'',
+	'c_ep = param.c_ep;
+iface = param.iface;
+select one c_as related by c_ep->C_AS[R4004];
+select one c_io related by c_ep->C_IO[R4004];
+
+if ( not_empty c_as )  // TODO currently only support signals
+
+// create message object
+create object instance msg of Message;
+msg.name = c_ep.Name;
+msg.to_provider = true;
+if ( not_empty c_as )
+  msg.to_provider = ( c_as.Direction == IFDirectionType::ClientServer );
+elif ( not_empty c_io )
+  msg.to_provider = ( c_io.Direction == IFDirectionType::ClientServer );
+end if;
+relate msg to iface across R428;
+
+// create typed object
+create object instance typed_object of TypedObject;
+select any s_dt from instances of S_DT where ( selected.Name == "void" );
+type = UnresolvedType::getInstance( s_dt:s_dt );
+relate type to typed_object across R410;
+relate msg to typed_object across R406;
+
+// create parameters
+create object instance po of ParameterizedObject;
+relate msg to po across R405;
+select any c_pp related by c_ep->C_PP[R4006];
+prev_c_pp = c_pp;
+// select first parameter
+while ( not_empty prev_c_pp )
+  c_pp = prev_c_pp;
+  select one prev_c_pp related by c_pp->C_PP[R4021.''succeeds''];
+end while;
+while ( not_empty c_pp )
+  // create parameter
+  create object instance parm of Parameter;
+  parm.name = c_pp.Name;
+  create object instance parm_typed_object of TypedObject;
+  select one parm_dt related by c_pp->S_DT[R4007];
+  parm_type = UnresolvedType::getInstance( s_dt:parm_dt );
+  relate parm_type to parm_typed_object across R410;
+  relate parm to parm_typed_object across R406;
+  // link parameter
+  relate parm to po across R424;
+  select one first_parm related by po->Parameter[R407];
+  if ( empty first_parm )
+    relate parm to po across R407;
+  else
+    next_parm = first_parm;
+    last_parm = first_parm;
+    while ( not_empty next_parm ) 
+      last_parm = next_parm;
+      select one next_parm related by last_parm->Parameter[R408.''precedes''];
+    end while;
+    relate parm to last_parm across R408.''follows'';
+  end if;
+  select one c_pp related by c_pp->C_PP[R4021.''precedes''];
+end while;
+
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("d7b9fb63-0ec0-4363-bf10-f8cee68b219b",
+	"e5071316-f813-44a9-b6f4-51f4e3089418",
+	'c_ep',
+	"5441230d-b4d6-495f-9e87-84acf5819d26",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("5441230d-b4d6-495f-9e87-84acf5819d26",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Executable Property>',
+	'',
+	'',
+	'../../../../../mcooa/models/mcooa/ooaofooa/Component/Component.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("773be1d9-8ccf-438c-a765-b071c635f13f",
+	"e5071316-f813-44a9-b6f4-51f4e3089418",
+	'iface',
+	"fb653c16-f8e6-4951-9132-f0d7d0319578",
+	0,
+	'',
+	"d7b9fb63-0ec0-4363-bf10-f8cee68b219b",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("fb653c16-f8e6-4951-9132-f0d7d0319578",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Interface>',
+	'',
+	'',
+	'../architecture/architecture.xtuml');
+INSERT INTO PE_PE
+	VALUES ("e5071316-f813-44a9-b6f4-51f4e3089418",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("48a30c71-bd16-4087-a818-1c1479c64a33",
+	"00000000-0000-0000-0000-000000000000",
+	'transformPort',
+	'',
+	'c_po = param.c_po;
+comp_def = param.comp_def;
+select one c_c related by c_po->C_C[R4010];
+
+// create the file
+create object instance file of File;
+file.path = ::c_cToPath( c_c:c_c );
+file.name = c_po.Name + ".java";
+
+// create the interface package object
+create object instance port of Port;
+port.name = c_po.Name;
+relate port to file across R403;
+relate port to c_po across R431;
+
+// relate to other component
+relate port to comp_def across R426;
+
+// relate to iface if the iface is there
+select any c_i related by c_po->C_IR[R4016]->C_I[R4012];
+select one iface related by c_i->Interface[R430];
+if ( empty iface )
+  ::transformInterface( c_i:c_i );
+  select one iface related by c_i->Interface[R430];
+end if;
+if ( not_empty iface )
+  relate port to iface across R427;
+  select many msgs related by iface->Message[R428];
+  for each msg in msgs
+    create object instance port_msg of PortMessage;
+    relate port to msg across R429 using port_msg;
+  end for;
+  select one iface_file related by iface->File[R403];
+  ::addFileToImports( file:file, file_to_import:iface_file );
+end if;
+
+// add imports
+::addStringToImports( file:file, s:"com.cierasystems.summit.components.IMessage" );',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("4e27e7e4-b388-4b0c-93bb-d8ccf14f4478",
+	"48a30c71-bd16-4087-a818-1c1479c64a33",
+	'c_po',
+	"7956bd81-f6de-4bc8-9851-92214668ced1",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("7956bd81-f6de-4bc8-9851-92214668ced1",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Port>',
+	'',
+	'',
+	'../../../../../mcooa/models/mcooa/ooaofooa/Component/Component.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("751cc73a-dc3b-419c-b6dd-daba79556a01",
+	"48a30c71-bd16-4087-a818-1c1479c64a33",
+	'comp_def',
+	"1fef1559-c5b6-4eb7-a9c4-8b126b9b51a0",
+	0,
+	'',
+	"4e27e7e4-b388-4b0c-93bb-d8ccf14f4478",
+	'');
+INSERT INTO PE_PE
+	VALUES ("48a30c71-bd16-4087-a818-1c1479c64a33",
 	1,
 	"06787f13-1c16-4275-879c-00bbeee7cb88",
 	"00000000-0000-0000-0000-000000000000",

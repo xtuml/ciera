@@ -7,9 +7,16 @@ public class ${component_name} extends ${extends_class} {
     private static final Class<?>[] classes = new Class<?>[] {
         ${class_list}
     };
+
+    public ${component_name}() {
+        super(${port_initializations});
+    }
     
     // selections
 ${select_from_instances_block}
+
+    // ports
+${ports_block}
 
     // component initialization functions
     @Override

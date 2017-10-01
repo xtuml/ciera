@@ -30,6 +30,17 @@ for each obj in objects
   separator = ", ";
 end for;
 
+port_initializations = "";
+select many ports related by self->Port[R426];
+if ( not_empty ports )
+  sep = " ";
+  for each port in ports
+    port_initializations = port_initializations + sep + "new " + port.name + "()";
+    sep = ", ";
+  end for;
+  port_initializations = port_initializations + " ";
+end if;
+
 separator = "";
 for each obj in objects
   class_name = obj.name;
@@ -43,6 +54,13 @@ for each obj in objects
   separator = "\n";
 end for;
 select_from_instances_block = T::body();
+T::clear();
+
+for each port in ports
+  port_name = port.name;
+  T::include( file:"java/t.portaccessors.java" );
+end for;
+ports_block = T::body();
 T::clear();
 
 init_block_throws_exception = self.init_block_throws_exception;
