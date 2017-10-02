@@ -23,14 +23,14 @@ class_kl = self.key_letters;
 
 // TODO get this from a mark
 extends_class = "ModelInstance";
-::addStringToImports( file:file, s:"com.cierasystems.cairn.classes.ModelInstance" );
+::addStringToImports( file:file, s:"io.ciera.cairn.classes.ModelInstance" );
 
 select one set related by self->ClassSet[R411];
 class_set_name = set.name;
 
 select many attrs related by self->Attribute[R416];
 if ( not_empty attrs )
-  ::addStringToImports( file:file, s:"com.cierasystems.summit.exceptions.XtumlException" );
+  ::addStringToImports( file:file, s:"io.ciera.summit.exceptions.XtumlException" );
 end if;
 for each attr in attrs
   attr.render();
@@ -47,9 +47,9 @@ T::clear();
 
 select many refs related by self->AssociatedClassReference[R417];
 if ( not_empty refs )
-  ::addStringToImports( file:file, s:"com.cierasystems.summit.exceptions.XtumlException" );
-  ::addStringToImports( file:file, s:"com.cierasystems.summit.exceptions.EmptyInstanceException" );
-  ::addStringToImports( file:file, s:"com.cierasystems.summit.classes.IWhere" );
+  ::addStringToImports( file:file, s:"io.ciera.summit.exceptions.XtumlException" );
+  ::addStringToImports( file:file, s:"io.ciera.summit.exceptions.EmptyInstanceException" );
+  ::addStringToImports( file:file, s:"io.ciera.summit.classes.IWhere" );
 end if;
 for each ref in refs
   ref.render();
@@ -63,7 +63,7 @@ for each ref in refs
   select one basic related by ref->BasicReference[R420];
   select one sub related by ref->SubtypeReference[R420];
   if ( not_empty sub or ( not_empty basic and not basic.formalizer ) )
-    ::addStringToImports( file:file, s:"com.cierasystems.summit.exceptions.LinkException" );
+    ::addStringToImports( file:file, s:"io.ciera.summit.exceptions.LinkException" );
     select one type related by ref->TypedObject[R406]->Type[R410];
     is_many = false;
     select one builtin related by type->BuiltInType[R412];
@@ -155,7 +155,7 @@ for each ref in refs
     end if;
     is_unconditional = ref.unconditional;
     if ( is_unconditional )
-      ::addStringToImports( file:file, s:"com.cierasystems.summit.exceptions.ModelIntegrityException" );
+      ::addStringToImports( file:file, s:"io.ciera.summit.exceptions.ModelIntegrityException" );
     end if;
     select one type related by ref->TypedObject[R406]->Type[R410];
     target_type_name = type.name;
@@ -181,7 +181,7 @@ for each ref in refs
     	AssociatedClassReference[R417]->SupertypeReference[R420]->AssociatedClassReference[R420] where ( selected.rel_numb == ref.rel_numb );
     for each corresponding_ref in corresponding_refs
       is_unconditional = ref.unconditional;
-      ::addStringToImports( file:file, s:"com.cierasystems.summit.exceptions.ModelIntegrityException" );
+      ::addStringToImports( file:file, s:"io.ciera.summit.exceptions.ModelIntegrityException" );
       select one type related by corresponding_ref->Class[R417]->Type[R412];
       target_type_name = type.name;
       target_type_obj_name = target_type_name;
@@ -266,7 +266,7 @@ for each ref in refs
       end if;
     else
       is_formalizer = true;
-      ::addStringToImports( file:file, s:"com.cierasystems.summit.exceptions.LinkException" );
+      ::addStringToImports( file:file, s:"io.ciera.summit.exceptions.LinkException" );
       select many corresponding_refs related by obj->AssociatedClassReference[R417] where ( selected.rel_numb == ref.rel_numb );
       select any corresponding_basic_ref related by corresponding_refs->BasicReference[R420] where ( selected.phrase != phrase );
       select one corresponding_ref related by corresponding_basic_ref->AssociatedClassReference[R420];
@@ -307,7 +307,7 @@ for each ref in refs
     end if;
     is_unconditional = ref.unconditional;
     if ( is_unconditional )
-      ::addStringToImports( file:file, s:"com.cierasystems.summit.exceptions.ModelIntegrityException" );
+      ::addStringToImports( file:file, s:"io.ciera.summit.exceptions.ModelIntegrityException" );
     end if;
     select one type related by ref->TypedObject[R406]->Type[R410];
     target_type_name = type.name;
@@ -332,7 +332,7 @@ for each ref in refs
     	AssociatedClassReference[R417]->SupertypeReference[R420]->AssociatedClassReference[R420] where ( selected.rel_numb == ref.rel_numb );
     for each corresponding_ref in corresponding_refs
       is_unconditional = ref.unconditional;
-      ::addStringToImports( file:file, s:"com.cierasystems.summit.exceptions.ModelIntegrityException" );
+      ::addStringToImports( file:file, s:"io.ciera.summit.exceptions.ModelIntegrityException" );
       select one type related by corresponding_ref->Class[R417]->Type[R412];
       target_type_name = type.name;
       target_type_obj_name = target_type_name;
@@ -417,7 +417,7 @@ for each ref in refs
       end if;
     else
       is_formalizer = true;
-      ::addStringToImports( file:file, s:"com.cierasystems.summit.exceptions.LinkException" );
+      ::addStringToImports( file:file, s:"io.ciera.summit.exceptions.LinkException" );
       select many corresponding_refs related by obj->AssociatedClassReference[R417] where ( selected.rel_numb == ref.rel_numb );
       select any corresponding_basic_ref related by corresponding_refs->BasicReference[R420] where ( selected.phrase != phrase );
       select one corresponding_ref related by corresponding_basic_ref->AssociatedClassReference[R420];
