@@ -14,12 +14,12 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'select one file related by self->File[R403];
-package_name = ::pathToPackage( path:file.path );
+	'select one file related by self->File[R401];
+package_name = file.package;
 
 class_set_name = self.name;
 
-select one obj related by self->Class[R411];
+select one obj related by self->Class[R406];
 class_name = obj.name;
 class_key_letters = obj.key_letters;
 isgeneric = false;
@@ -32,7 +32,7 @@ T::clear();
 extends_class = "InstanceSet";
 ::addStringToImports( file:file, s:"io.ciera.cairn.classes.InstanceSet" );
 
-select many refs related by self->Class[R411]->AssociatedClassReference[R417];
+select many refs related by self->Class[R406]->AssociatedClassReference[R411];
 if ( not_empty refs )
   ::addStringToImports( file:file, s:"io.ciera.summit.exceptions.XtumlException" );
   ::addStringToImports( file:file, s:"io.ciera.summit.classes.IWhere" );
@@ -41,21 +41,21 @@ end if;
 for each ref in refs
   phrase = "";
   is_subtype = false;
-  select one subtype_ref related by ref->SubtypeReference[R420];
+  select one subtype_ref related by ref->SubtypeReference[R413];
   if ( empty subtype_ref )
-    select one basic_ref related by ref->BasicReference[R420];
+    select one basic_ref related by ref->BasicReference[R413];
     if ( not_empty basic_ref )
       phrase = basic_ref.phrase;
     end if;
     is_unconditional = ref.unconditional;
-    select one refobj related by ref->TypedObject[R406]->Type[R410]->Class[R412];
+    select one refobj related by ref->Type[R425]->Class[R407];
     is_many = false;
     if ( empty refobj )
-      select one refobj related by ref->TypedObject[R406]->Type[R410]->ClassSet[R412]->Class[R411];
+      select one refobj related by ref->Type[R425]->ClassSet[R407]->Class[R406];
       is_many = true;
     end if;
     target_key_letters = refobj.key_letters;
-    select one refobjsettype related by refobj->ClassSet[R411]->Type[R412];
+    select one refobjsettype related by refobj->ClassSet[R406]->Type[R407];
     target_type_name = refobjsettype.name;
     target_type_obj_name = target_type_name;
     rel_numb = STR::itoa( i:ref.rel_numb );
@@ -65,15 +65,15 @@ for each ref in refs
     T::include( file:"java/t.selectrelated.java" );
     T::b( s:"\n" );
   else
-    select many corresponding_refs related by ref->Class[R417]->ComponentDefinition[R414]->Class[R414]->
-    	AssociatedClassReference[R417]->SupertypeReference[R420]->AssociatedClassReference[R420] where ( selected.rel_numb == ref.rel_numb );
+    select many corresponding_refs related by ref->Class[R411]->ComponentDefinition[R408]->Class[R408]->
+    	AssociatedClassReference[R411]->SupertypeReference[R413]->AssociatedClassReference[R413] where ( selected.rel_numb == ref.rel_numb );
     for each corresponding_ref in corresponding_refs
       is_unconditional = ref.unconditional;
-      select one reftype related by corresponding_ref->Class[R417]->ClassSet[R411]->Type[R412];
+      select one reftype related by corresponding_ref->Class[R411]->ClassSet[R406]->Type[R407];
       target_type_name = reftype.name;
       target_type_obj_name = target_type_name;
       is_many = false;
-      select one refobj related by corresponding_ref->Class[R417];
+      select one refobj related by corresponding_ref->Class[R411];
       target_key_letters = refobj.key_letters;
       rel_numb = STR::itoa( i:ref.rel_numb );
       ref_name = ref.name;

@@ -43,14 +43,15 @@ select one s_sys related by root_package->S_SYS[R1405];
 
 // create the file
 create object instance file of File;
+file.name = ::camelCaseName( name:s_sys.Name, start_lower:false );
 file.path = T::l( s:T::r( s:s_sys.Name ) );
-file.name = ::camelCaseName( name:s_sys.Name, start_lower:false ) + ".java";
+file.package = ::pathToPackage( path:file.path );
+file.extension = ".java";
 
 // create the application object
 create object instance app of Application;
-app.name = ::camelCaseName( name:s_sys.Name, start_lower:false );
 app.num_threads = 1;
-relate app to file across R403;
+relate app to file across R401;
 
 // create the import block
 ::addStringToImports( file:file, s:"io.ciera.summit.application.Application" );
@@ -63,10 +64,9 @@ for each c_c in c_cs
   ::transformComponentDefinition( c_c:c_c, containing_comp_def:empty_comp_def );
   create object instance comp_inst of ComponentInstance;
   select any comp_def from instances of ComponentDefinition where ( selected.name == ::camelCaseName( name:c_c.Name, start_lower:false ) );
-  relate comp_inst to comp_def across R401;
-  relate comp_inst to app across R400;
+  relate  comp_def to app across R426 using comp_inst;
   if ( comp_def.name != app.name )
-    select one comp_def_file related by comp_def->File[R403];
+    select one comp_def_file related by comp_def->File[R401];
     ::addFileToImports( file:file, file_to_import:comp_def_file );
   end if;
 end for;
@@ -79,10 +79,9 @@ for each cl_ic in cl_ics
   end if;
   create object instance comp_inst of ComponentInstance;
   select any comp_def from instances of ComponentDefinition where ( selected.name == ::camelCaseName( name:c_c.Name, start_lower:false ) );
-  relate comp_inst to comp_def across R401;
-  relate comp_inst to app across R400;
+  relate  comp_def to app across R426 using comp_inst;
   if ( comp_def.name != app.name )
-    select one comp_def_file related by comp_def->File[R403];
+    select one comp_def_file related by comp_def->File[R401];
     ::addFileToImports( file:file, file_to_import:comp_def_file );
   end if;
 end for;
@@ -123,15 +122,16 @@ containing_comp_def = param.containing_comp_def;
 
 // create the file
 create object instance file of File;
+file.name = ::camelCaseName( name:c_c.Name, start_lower:false );
 file.path = ::c_cToPath( c_c:c_c );
-file.name = ::camelCaseName( name:c_c.Name, start_lower:false ) + ".java";
+file.package = ::pathToPackage( path:file.path );
+file.extension = ".java";
 
 // create the component definition object
 create object instance comp_def of ComponentDefinition;
-comp_def.name = ::camelCaseName( name:c_c.Name, start_lower:false );
 comp_def.fully_qualified_name = ::pathToPackage( path:file.path ) + "." + comp_def.name;
 comp_def.init_block_throws_exception = false;
-relate comp_def to file across R403;
+relate comp_def to file across R401;
 
 // transform ports
 select many c_pos related by c_c->C_PO[R4010];
@@ -154,10 +154,10 @@ end for;
 // create import block
 ::addStringToImports( file:file, s:"io.ciera.summit.classes.IWhere" );
 ::addStringToImports( file:file, s:"io.ciera.summit.classes.IInstanceSet" );
-select many object_files related by comp_def->Class[R414]->File[R403];
+select many object_files related by comp_def->Class[R408]->File[R401];
 for each object_file in object_files
   ::addFileToImports( file:file, file_to_import:object_file );
-  select one objectset_file related by object_file->Class[R403]->ClassSet[R411]->File[R403];
+  select one objectset_file related by object_file->Class[R401]->ClassSet[R406]->File[R401];
   ::addFileToImports( file:file, file_to_import:objectset_file );
 end for;',
 	"ba5eda7a-def5-0000-0000-000000000000",
@@ -216,16 +216,17 @@ select many s_syncs related by pe_pes->S_SYNC[R8001];
 if ( not_empty s_syncs )
   // create the file
   create object instance file of File;
+  file.name = ::camelCaseName( name:ep_pkg.Name, start_lower:false );
   file.path = ::ep_pkgToPath( ep_pkg:ep_pkg );
-  file.name = ::camelCaseName( name:ep_pkg.Name, start_lower:false ) + ".java";
+  file.package = ::pathToPackage( path:file.path );
+  file.extension = ".java";
   
   // create the import block
   ::addStringToImports( file:file, s:containing_comp_def.fully_qualified_name );
   
   // create the function package object
   create object instance fp of FunctionPackage;
-  fp.name = ::camelCaseName( name:ep_pkg.Name, start_lower:false );
-  relate fp to file across R403;
+  relate fp to file across R401;
 
   // transform functions
   for each s_sync in s_syncs
@@ -270,16 +271,17 @@ select many s_ees related by pe_pes->S_EE[R8001];
 for each s_ee in s_ees
   // create the file
   create object instance file of File;
+  file.name = ::camelCaseName( name:s_ee.Key_Lett, start_lower:false );
   file.path = ::ep_pkgToPath( ep_pkg:ep_pkg );
-  file.name = ::camelCaseName( name:s_ee.Key_Lett, start_lower:false ) + ".java";
+  file.package = ::pathToPackage( path:file.path );
+  file.extension = ".java";
   
   // create the import block
   ::addStringToImports( file:file, s:containing_comp_def.fully_qualified_name );
   
   // create the function package object
   create object instance fp of FunctionPackage;
-  fp.name = ::camelCaseName( name:s_ee.Key_Lett, start_lower:false );
-  relate fp to file across R403;
+  relate fp to file across R401;
 
   // transform functions
   select many s_brgs related by s_ee->S_BRG[R19];
@@ -324,22 +326,22 @@ INSERT INTO S_SYNC
 fp = param.fp;
 comp_def = param.comp_def;
 
+// create invocable
+create object instance invocable of InvocableObject;
+invocable.name = s_sync.Name;
+
 // create function object
 create object instance func of Function;
-func.name = s_sync.Name;
-relate func to fp across R404;
-relate func to comp_def across R409;
+relate func to fp across R403;
+relate func to comp_def across R405;
+relate func to invocable across R427;
 
-// create typed object
-create object instance typed_object of TypedObject;
+// link type
 select one s_dt related by s_sync->S_DT[R25];
 type = UnresolvedType::getInstance( s_dt:s_dt );
-relate type to typed_object across R410;
-relate func to typed_object across R406;
+relate type to invocable across R428;
 
 // create parameters
-create object instance po of ParameterizedObject;
-relate func to po across R405;
 select any s_sparm related by s_sync->S_SPARM[R24];
 prev_s_sparm = s_sparm;
 // select first parameter
@@ -349,26 +351,22 @@ while ( not_empty prev_s_sparm )
 end while;
 while ( not_empty s_sparm )
   // create parameter
-  create object instance parm of Parameter;
+  create object instance parm of FormalParameter;
   parm.name = s_sparm.Name;
-  create object instance parm_typed_object of TypedObject;
+  parm.by_ref = ( 1 == s_sparm.By_Ref );
   select one parm_dt related by s_sparm->S_DT[R26];
   parm_type = UnresolvedType::getInstance( s_dt:parm_dt );
-  relate parm_type to parm_typed_object across R410;
-  relate parm to parm_typed_object across R406;
+  relate parm_type to parm across R431;
   // link parameter
-  relate parm to po across R424;
-  select one first_parm related by po->Parameter[R407];
-  if ( empty first_parm )
-    relate parm to po across R407;
-  else
-    next_parm = first_parm;
-    last_parm = first_parm;
+  relate parm to invocable across R429;
+  select any last_parm related by invocable->FormalParameter[R429];
+  if ( not_empty last_parm )
+    next_parm = last_parm;
     while ( not_empty next_parm ) 
       last_parm = next_parm;
-      select one next_parm related by last_parm->Parameter[R408.''precedes''];
+      select one next_parm related by last_parm->FormalParameter[R404.''precedes''];
     end while;
-    relate parm to last_parm across R408.''follows'';
+    relate parm to last_parm across R404.''follows'';
   end if;
   select one s_sparm related by s_sparm->S_SPARM[R54.''precedes''];
 end while;',
@@ -434,7 +432,7 @@ for each s_dt in s_dts
   if ( ::s_dtIsBuiltin( s_dt:s_dt ) )
 
     type_name = "";
-    type_import = "";
+    type_package = "";
     type_primitive = false;
     type_unique = false;
     type_inst = false;
@@ -444,16 +442,16 @@ for each s_dt in s_dts
       type_primitive = true;
     elif ( "component_ref" == s_dt.Name )
       type_name = "IComponent";
-      type_import = "io.ciera.summit.components.IComponent";
+      type_package = "io.ciera.summit.components";
     elif ( "date" == s_dt.Name )
       type_name = "Date";
-      type_import = "io.ciera.summit.util.Date";
+      type_package = "io.ciera.summit.util";
     elif ( "inst<Event>" == s_dt.Name )
       type_name = "Event";
-      type_import = "io.ciera.summit.statemachine.Event";
+      type_package = "io.ciera.summit.statemachine";
     elif ( "inst_ref<Timer>" == s_dt.Name )
       type_name = "Timer";
-      type_import = "io.ciera.summit.util.Timer";
+      type_package = "io.ciera.summit.util";
     elif ( "integer" == s_dt.Name )
       type_name = "int";
       type_primitive = true;
@@ -464,35 +462,35 @@ for each s_dt in s_dts
       type_name = "String";
     elif ( "timestamp" == s_dt.Name )
       type_name = "TimeStamp";
-      type_import = "io.ciera.summit.util.TimeStamp";
+      type_package = "io.ciera.summit.util";
     elif ( "unique_id" == s_dt.Name )
       type_name = "UniqueId";
-      type_import = "io.ciera.summit.util.UniqueId";
+      type_package = "io.ciera.summit.util";
       type_unique = true;
     elif ( "void" == s_dt.Name )
       type_name = "void";
       type_primitive = true;
     elif ( "inst_ref_set<Object>" == s_dt.Name )
       type_name = "IInstanceSet";
-      type_import = "io.ciera.summit.classes.IInstanceSet";
+      type_package = "io.ciera.summit.classes";
       type_instset = true;
     elif ( "inst_ref<Object>" == s_dt.Name )
       type_name = "IModelInstance";
-      type_import = "io.ciera.summit.classes.IModelInstance";
+      type_package = "io.ciera.summit.classes";
       type_inst = true;
     end if;
 
     if ( "" != type_name )
       create object instance builtin of BuiltInType;
-      builtin.name = type_name;
-      builtin.import = type_import;
       builtin.primitive = type_primitive;
       builtin.unique = type_unique;
       builtin.inst = type_inst;
       builtin.instset = type_instset;
       create object instance type of Type;
-      relate builtin to type across R412;
-      relate builtin to s_dt across R413;
+      type.name = type_name;
+      type.package = type_package;
+      relate builtin to type across R407;
+      relate type to s_dt across R423;
     end if;
   
   end if;
@@ -519,23 +517,27 @@ select one ep_pkg related by o_obj->PE_PE[R8001]->EP_PKG[R8000];
 
 // create the object file
 create object instance file of File;
+file.name = ::camelCaseName( name:o_obj.Name, start_lower:false );
 file.path = ::ep_pkgToPath( ep_pkg:ep_pkg );
-file.name = ::camelCaseName( name:o_obj.Name, start_lower:false ) + ".java";
+file.package = ::pathToPackage( path:file.path );
+file.extension = ".java";
 
 // create the object
 create object instance obj of Class;
-obj.name = ::camelCaseName( name:o_obj.Name, start_lower:false );
 obj.key_letters = o_obj.Key_Lett;
 obj.number = o_obj.Numb;
-relate obj to file across R403;
-relate obj to containing_comp_def across R414;
+relate obj to file across R401;
+create object instance cic of ClassInComponent;
+relate obj to containing_comp_def across R408 using cic;
 
 // create the instance type
 create object instance type of Type;
-relate type to obj across R412;
+type.name = obj.name;
+type.package = obj.package;
+relate type to obj across R407;
 
 // relate to the OOA class
-relate obj to o_obj across R415;
+relate obj to o_obj across R409;
 
 // transform attributes
 select many o_attrs related by o_obj->O_ATTR[R102];
@@ -580,16 +582,15 @@ for each r_rel in r_rels
 end for;
 
 // resolve types for referential attributes
-select many attrs related by obj->Attribute[R416];
+select many attrs related by obj->Attribute[R410];
 for each attr in attrs
-  select any ref related by attr->AssociatedClassReference[R418];
+  select any ref related by attr->AssociatedClassReference[R412];
   if ( not_empty ref )
-    select one s_dt related by attr->O_ATTR[R421]->O_RATTR[R106]->O_BATTR[R113]->O_ATTR[R106]->S_DT[R114];
-    select one typed_object related by attr->TypedObject[R406];
-    select one old_type related by typed_object->Type[R410];
-    unrelate old_type from typed_object across R410;
+    select one s_dt related by attr->O_ATTR[R414]->O_RATTR[R106]->O_BATTR[R113]->O_ATTR[R106]->S_DT[R114];
+    select one old_type related by attr->Type[R424];
+    unrelate old_type from attr across R424;
     new_type = UnresolvedType::getInstance( s_dt:s_dt );
-    relate new_type to typed_object across R410;
+    relate new_type to attr across R424;
   end if;
 end for;
 
@@ -644,18 +645,22 @@ ep_pkg = param.ep_pkg;
 
 // create the class set object
 create object instance objset of ClassSet;
-relate objset to obj across R411;
+relate objset to obj across R406;
 
 // create the object file
 create object instance file of File;
+file.name = obj.name + "Set";
 file.path = ::ep_pkgToPath( ep_pkg:ep_pkg );
-file.name = objset.name + ".java";
+file.package = ::pathToPackage( path:file.path );
+file.extension = ".java";
 
-relate objset to file across R403;
+relate objset to file across R401;
 
 // create the instance type
 create object instance type of Type;
-relate type to objset across R412;
+type.name = objset.name;
+type.package = objset.package;
+relate type to objset across R407;
 
 // create the import block
 ::addStringToImports( file:file, s:"io.ciera.summit.classes.IWhere" );',
@@ -701,14 +706,15 @@ INSERT INTO S_SYNC
 	'',
 	'select many unresolved_types from instances of UnresolvedType;
 for each unresolved_type in unresolved_types
-  select one type related by unresolved_type->Type[R412];
-  select one s_dt related by unresolved_type->S_DT[R419];
+  select one type related by unresolved_type->Type[R407];
+  select one s_dt related by type->S_DT[R423];
 
   select any new_type from instances of Type where false;
 
   // resolve builtin types
   if ( ::s_dtIsBuiltin( s_dt:s_dt ) )
-    select one new_type related by s_dt->BuiltInType[R413]->Type[R412];
+    select many builtin_types from instances of BuiltInType;
+    select any new_type related by builtin_types->Type[R407] where ( selected.DT_ID == s_dt.DT_ID );
   else
   
   // resolve class reference types
@@ -717,27 +723,43 @@ for each unresolved_type in unresolved_types
     select one o_obj related by s_irdt->O_OBJ[R123];
     if ( s_irdt.isSet )
       // class sets
-      select one new_type related by o_obj->Class[R415]->ClassSet[R411]->Type[R412];
+      select one new_type related by o_obj->Class[R409]->ClassSet[R406]->Type[R407];
     else
       // classes
-      select one new_type related by o_obj->Class[R415]->Type[R412];
+      select one new_type related by o_obj->Class[R409]->Type[R407];
     end if;
   else
 
   // resolve enumerated types
   select one s_edt related by s_dt->S_EDT[R17];
   if ( not_empty s_edt )
-    select one new_type related by s_dt->EnumeratedType[R423]->Type[R412];
+    select many enum_types from instances of EnumeratedType;
+    select any new_type related by enum_types->Type[R407] where ( selected.DT_ID == s_dt.DT_ID );
   end if;
   end if;
   end if;
   
   if ( not_empty new_type )
-    select one old_type related by unresolved_type->Type[R412];
-    select many typed_objects related by old_type->TypedObject[R410];
-    for each typed_object in typed_objects
-      unrelate typed_object from old_type across R410;
-      relate typed_object to new_type across R410;
+    select one old_type related by unresolved_type->Type[R407];
+    select many attrs related by old_type->Attribute[R424];
+    for each attr in attrs
+      unrelate old_type from attr across R424;
+      relate new_type to attr across R424;
+    end for;
+    select many acrs related by old_type->AssociatedClassReference[R425];
+    for each acr in acrs
+      unrelate old_type from acr across R425;
+      relate new_type to acr across R425;
+    end for;
+    select many invocables related by old_type->InvocableObject[R428];
+    for each invocable in invocables
+      unrelate old_type from invocable across R428;
+      relate new_type to invocable across R428;
+    end for;
+    select many parms related by old_type->FormalParameter[R431];
+    for each parm in parms
+      unrelate old_type from parm across R431;
+      relate new_type to parm across R431;
     end for;
     old_type.dispose();
   end if;
@@ -763,18 +785,22 @@ obj = param.obj;
 
 // create the attribute
 create object instance attr of Attribute;
+select one rattr related by o_attr->O_RATTR[R106];
+if ( not_empty rattr )
+  attr.name = "ref_" + o_attr.Name;
+else
+  attr.name = "m_" + o_attr.Name;
+end if;
 attr.base_name = o_attr.Name;
-relate attr to obj across R416;
+relate attr to obj across R410;
 
 // set the type
 select one s_dt related by o_attr->S_DT[R114];
 type = UnresolvedType::getInstance( s_dt:s_dt );
-create object instance typed_object of TypedObject;
-relate type to typed_object across R410;
-relate typed_object to attr across R406;
+relate type to attr across R424;
 
 // linke OOA attribute
-relate o_attr to attr across R421;',
+relate o_attr to attr across R414;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -877,7 +903,7 @@ for each r_rel in r_rels
   if ( not ::r_rel_is_formal( r_rel:r_rel ) )
 
     select many refs from instances of AssociatedClassReference where ( selected.rel_numb == r_rel.Numb );
-    select many basic_refs related by refs->BasicReference[R420] where ( not selected.assoc );
+    select many basic_refs related by refs->BasicReference[R413] where ( not selected.assoc );
     // these must come in pairs
     if ( not_empty basic_refs )
       if ( 2 == cardinality basic_refs )
@@ -887,10 +913,10 @@ for each r_rel in r_rels
         select any basic2 from instances of BasicReference where false;
         for each basic_ref in basic_refs
           if ( empty obj1 )
-            select one obj1 related by basic_ref->AssociatedClassReference[R420]->Class[R417];
+            select one obj1 related by basic_ref->AssociatedClassReference[R413]->Class[R411];
             basic1 = basic_ref;
           else
-            select one obj2 related by basic_ref->AssociatedClassReference[R420]->Class[R417];
+            select one obj2 related by basic_ref->AssociatedClassReference[R413]->Class[R411];
             basic2 = basic_ref;
           end if;
         end for;
@@ -928,25 +954,26 @@ select one ep_pkg related by s_dt->PE_PE[R8001]->EP_PKG[R8000];
 
 // create the file
 create object instance file of File;
+file.name = ::camelCaseName( name:s_dt.Name, start_lower:false );
 file.path = ::ep_pkgToPath( ep_pkg:ep_pkg );
-file.name = ::camelCaseName( name:s_dt.Name, start_lower:false ) + ".java";
-
-// create the function package object
-create object instance edt of EnumeratedType;
-edt.name = ::camelCaseName( name:s_dt.Name, start_lower:false );
-relate edt to file across R403;
-relate edt to s_dt across R423;
+file.package = ::pathToPackage( path:file.path );
+file.extension = ".java";
 
 // create the type
+create object instance edt of EnumeratedType;
+relate edt to file across R401;
 create object instance type of Type;
-relate type to edt across R412;
+type.name = file.name;
+type.package = file.package;
+relate type to s_dt across R423;
+relate type to edt across R407;
 
 // transform enumerators
 select many enums related by s_dt->S_EDT[R17]->S_ENUM[R27];
 for each enumer in enums
   create object instance e of Enumerator;
   e.name = T::u( s:enumer.Name );
-  relate e to edt across R422;
+  relate e to edt across R415;
 end for;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -979,9 +1006,48 @@ INSERT INTO S_SYNC
 	"00000000-0000-0000-0000-000000000000",
 	'resolveTypeImports',
 	'',
-	'select many typed_objects from instances of TypedObject;
-for each typed_object in typed_objects
-  typed_object.resolveImports();
+	'select many types from instances of Type;
+for each type in types
+  select many files related by type->AssociatedClassReference[R425]->Class[R411]->File[R401];
+  for each file in files
+    type.addToImports( file:file );
+  end for;
+  select many files related by type->Attribute[R424]->Class[R410]->File[R401];
+  for each file in files
+    type.addToImports( file:file );
+  end for;
+  select many files related by type->FormalParameter[R431]->InvocableObject[R429]->Function[R427]->FunctionPackage[R403]->File[R401];
+  for each file in files
+    type.addToImports( file:file );
+  end for;
+  select many files related by type->FormalParameter[R431]->InvocableObject[R429]->Operation[R427]->Class[R416]->File[R401];
+  for each file in files
+    type.addToImports( file:file );
+  end for;
+  select many files related by type->FormalParameter[R431]->InvocableObject[R429]->Message[R427]->Interface[R419]->File[R401];
+  for each file in files
+    type.addToImports( file:file );
+  end for;
+  select many files related by type->FormalParameter[R431]->InvocableObject[R429]->Message[R427]->Port[R420]->File[R401];
+  for each file in files
+    type.addToImports( file:file );
+  end for;
+  select many files related by type->InvocableObject[R428]->Function[R427]->FunctionPackage[R403]->File[R401];
+  for each file in files
+    type.addToImports( file:file );
+  end for;
+  select many files related by type->InvocableObject[R428]->Operation[R427]->Class[R416]->File[R401];
+  for each file in files
+    type.addToImports( file:file );
+  end for;
+  select many files related by type->InvocableObject[R428]->Message[R427]->Interface[R419]->File[R401];
+  for each file in files
+    type.addToImports( file:file );
+  end for;
+  select many files related by type->InvocableObject[R428]->Message[R427]->Port[R420]->File[R401];
+  for each file in files
+    type.addToImports( file:file );
+  end for;
 end for;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -1002,12 +1068,12 @@ INSERT INTO S_SYNC
 obj = param.obj;
 select any r_oir from instances of R_OIR where ( selected.OIR_ID == param.r_oir );
 select any foreign_oir from instances of R_OIR where ( selected.OIR_ID == param.foreign_oir );
-select one o_obj related by obj->O_OBJ[R415];
+select one o_obj related by obj->O_OBJ[R409];
 
 // create the ACR instance
 create object instance acr of AssociatedClassReference;
 acr.rel_numb = r_rel.Numb;
-relate acr to obj across R417;
+relate acr to obj across R411;
   
 select any foreign_dt from instances of S_DT where false;
   
@@ -1022,12 +1088,12 @@ select one foreign_form related by foreign_oir->R_RGO[R203]->R_FORM[R205];
 if ( not_empty foreign_sub )
   acr.unconditional = true;
   create object instance sub of SubtypeReference;
-  relate sub to acr across R420;
+  relate sub to acr across R413;
   select any foreign_dt from instances of S_DT where ( selected.Name == "inst_ref<Object>" );
 elif ( not_empty foreign_super )
   acr.unconditional = true;
   create object instance super of SupertypeReference;
-  relate super to acr across R420;
+  relate super to acr across R413;
   select any foreign_irdt related by foreign_oir->O_OBJ[R201]->S_IRDT[R123] where ( not selected.isSet );
   select one foreign_dt related by foreign_irdt->S_DT[R17];
 else
@@ -1129,20 +1195,47 @@ else
       select one foreign_dt related by foreign_irdt->S_DT[R17];
     end if;
   end if;
-  relate basic to acr across R420;
+  relate basic to acr across R413;
 end if;
 
+// set the name
+name = "";
+select one subtype related by acr->SubtypeReference[R413];
+if ( not_empty subtype )
+  name = "subtypeOnR" + STR::itoa( i:acr.rel_numb );
+else
+select one supertype related by acr->SupertypeReference[R413];
+if ( not_empty supertype )
+  name = supertype.name;
+  select one obj related by acr->Type[R425]->Class[R407];
+  name = "supertype" + obj.key_letters + "OnR" + STR::itoa( i:acr.rel_numb );
+else
+select one basic related by acr->BasicReference[R413];
+if ( not_empty basic )
+  select one objset related by acr->Type[R425]->ClassSet[R407];
+  if ( empty objset )
+    select one obj related by acr->Type[R425]->Class[R407];
+    name = name + obj.key_letters;
+  else
+    select one obj related by objset->Class[R406];
+    name = name + obj.key_letters + "s";
+  end if;
+  name = name + "OnR" + STR::itoa( i:acr.rel_numb ) + basic.phrase;
+end if;
+end if;
+end if;
+acr.name = name;
+
 // relate to referential attributes
-select many ref_attrs related by r_oir->R_RGO[R203]->O_REF[R111]->O_RATTR[R108]->O_ATTR[R106]->Attribute[R421];
+select many ref_attrs related by r_oir->R_RGO[R203]->O_REF[R111]->O_RATTR[R108]->O_ATTR[R106]->Attribute[R414];
 for each ref_attr in ref_attrs
-  relate acr to ref_attr across R418;
+  create object instance link of ReferentialAttributeLink;
+  relate acr to ref_attr across R412 using link;
 end for;
 
 // create and link datatype
-create object instance typed_object of TypedObject;
 type = UnresolvedType::getInstance( s_dt:foreign_dt );
-relate type to typed_object across R410;
-relate acr to typed_object across R406;',
+relate type to acr across R425;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -1204,22 +1297,22 @@ INSERT INTO S_SYNC
 	'o_tfr = param.o_tfr;
 obj = param.obj;
 
+// create invocable
+create object instance invocable of InvocableObject;
+invocable.name = "op_" + o_tfr.Name;
+
 // create function object
 create object instance op of Operation;
-op.name = "op_" + o_tfr.Name;
 op.is_static = Scope::Class == o_tfr.Instance_Based;
-relate op to obj across R425;
+relate op to obj across R416;
+relate op to invocable across R427;
 
-// create typed object
-create object instance typed_object of TypedObject;
+// link type
 select one s_dt related by o_tfr->S_DT[R116];
 type = UnresolvedType::getInstance( s_dt:s_dt );
-relate type to typed_object across R410;
-relate op to typed_object across R406;
+relate type to invocable across R428;
 
 // create parameters
-create object instance po of ParameterizedObject;
-relate op to po across R405;
 select any o_tparm related by o_tfr->O_TPARM[R117];
 prev_o_tparm = o_tparm;
 // select first parameter
@@ -1229,26 +1322,22 @@ while ( not_empty prev_o_tparm )
 end while;
 while ( not_empty o_tparm )
   // create parameter
-  create object instance parm of Parameter;
+  create object instance parm of FormalParameter;
   parm.name = o_tparm.Name;
-  create object instance parm_typed_object of TypedObject;
+  parm.by_ref = ( 1 == o_tparm.By_Ref );
   select one parm_dt related by o_tparm->S_DT[R118];
   parm_type = UnresolvedType::getInstance( s_dt:parm_dt );
-  relate parm_type to parm_typed_object across R410;
-  relate parm to parm_typed_object across R406;
+  relate parm_type to parm across R431;
   // link parameter
-  relate parm to po across R424;
-  select one first_parm related by po->Parameter[R407];
-  if ( empty first_parm )
-    relate parm to po across R407;
-  else
-    next_parm = first_parm;
-    last_parm = first_parm;
+  relate parm to invocable across R429;
+  select any last_parm related by invocable->FormalParameter[R429];
+  if ( not_empty last_parm )
+    next_parm = last_parm;
     while ( not_empty next_parm ) 
       last_parm = next_parm;
-      select one next_parm related by last_parm->Parameter[R408.''precedes''];
+      select one next_parm related by last_parm->FormalParameter[R404.''precedes''];
     end while;
-    relate parm to last_parm across R408.''follows'';
+    relate parm to last_parm across R404.''follows'';
   end if;
   select one o_tparm related by o_tparm->O_TPARM[R124.''precedes''];
 end while;',
@@ -1296,22 +1385,22 @@ INSERT INTO S_SYNC
 fp = param.fp;
 comp_def = param.comp_def;
 
+// create invocable
+create object instance invocable of InvocableObject;
+invocable.name = s_brg.Name;
+
 // create function object
 create object instance func of Function;
-func.name = s_brg.Name;
-relate func to fp across R404;
-relate func to comp_def across R409;
+relate func to fp across R403;
+relate func to comp_def across R405;
+relate func to invocable across R427;
 
-// create typed object
-create object instance typed_object of TypedObject;
+// link type
 select one s_dt related by s_brg->S_DT[R20];
 type = UnresolvedType::getInstance( s_dt:s_dt );
-relate type to typed_object across R410;
-relate func to typed_object across R406;
+relate type to invocable across R428;
 
 // create parameters
-create object instance po of ParameterizedObject;
-relate func to po across R405;
 select any s_bparm related by s_brg->S_BPARM[R21];
 prev_s_bparm = s_bparm;
 // select first parameter
@@ -1321,26 +1410,22 @@ while ( not_empty prev_s_bparm )
 end while;
 while ( not_empty s_bparm )
   // create parameter
-  create object instance parm of Parameter;
+  create object instance parm of FormalParameter;
   parm.name = s_bparm.Name;
-  create object instance parm_typed_object of TypedObject;
+  parm.by_ref = ( 1 == s_bparm.By_Ref );
   select one parm_dt related by s_bparm->S_DT[R22];
   parm_type = UnresolvedType::getInstance( s_dt:parm_dt );
-  relate parm_type to parm_typed_object across R410;
-  relate parm to parm_typed_object across R406;
+  relate parm_type to parm across R431;
   // link parameter
-  relate parm to po across R424;
-  select one first_parm related by po->Parameter[R407];
-  if ( empty first_parm )
-    relate parm to po across R407;
-  else
-    next_parm = first_parm;
-    last_parm = first_parm;
+  relate parm to invocable across R429;
+  select any last_parm related by invocable->FormalParameter[R429];
+  if ( not_empty last_parm )
+    next_parm = last_parm;
     while ( not_empty next_parm ) 
       last_parm = next_parm;
-      select one next_parm related by last_parm->Parameter[R408.''precedes''];
+      select one next_parm related by last_parm->FormalParameter[R404.''precedes''];
     end while;
-    relate parm to last_parm across R408.''follows'';
+    relate parm to last_parm across R404.''follows'';
   end if;
   select one s_bparm related by s_bparm->S_BPARM[R55.''precedes''];
 end while;',
@@ -1401,13 +1486,18 @@ create object instance file of File;
 file.path = ::ep_pkgToPath( ep_pkg:ep_pkg );
 file.name = ::camelCaseName( name:c_i.Name, start_lower:false ) + ".java";
 
+create object instance file of File;
+file.name = ::camelCaseName( name:c_i.Name, start_lower:false );
+file.path = ::ep_pkgToPath( ep_pkg:ep_pkg );
+file.package = ::pathToPackage( path:file.path );
+file.extension = ".java";
+
 // create the interface package object
 create object instance iface of Interface;
-iface.name = ::camelCaseName( name:c_i.Name, start_lower:false );
-relate iface to file across R403;
+relate iface to file across R401;
 
 // relate to the c_i
-relate iface to c_i across R430;
+relate iface to c_i across R421;
 
 // transform messages
 select many c_eps related by c_i->C_EP[R4003];
@@ -1452,27 +1542,27 @@ select one c_io related by c_ep->C_IO[R4004];
 
 if ( not_empty c_as )  // TODO currently only support signals
 
+// create invocable
+create object instance invocable of InvocableObject;
+invocable.name = c_ep.Name;
+
 // create message object
 create object instance msg of Message;
-msg.name = c_ep.Name;
 msg.to_provider = true;
 if ( not_empty c_as )
   msg.to_provider = ( c_as.Direction == IFDirectionType::ClientServer );
 elif ( not_empty c_io )
   msg.to_provider = ( c_io.Direction == IFDirectionType::ClientServer );
 end if;
-relate msg to iface across R428;
+relate msg to iface across R419;
+relate msg to invocable across R427;
 
-// create typed object
-create object instance typed_object of TypedObject;
-select any s_dt from instances of S_DT where ( selected.Name == "void" );
+// link type
+select any s_dt from instances of S_DT where ( "void" == selected.Name );
 type = UnresolvedType::getInstance( s_dt:s_dt );
-relate type to typed_object across R410;
-relate msg to typed_object across R406;
+relate type to invocable across R428;
 
 // create parameters
-create object instance po of ParameterizedObject;
-relate msg to po across R405;
 select any c_pp related by c_ep->C_PP[R4006];
 prev_c_pp = c_pp;
 // select first parameter
@@ -1482,26 +1572,22 @@ while ( not_empty prev_c_pp )
 end while;
 while ( not_empty c_pp )
   // create parameter
-  create object instance parm of Parameter;
+  create object instance parm of FormalParameter;
   parm.name = c_pp.Name;
-  create object instance parm_typed_object of TypedObject;
+  parm.by_ref = ( 1 == c_pp.By_Ref );
   select one parm_dt related by c_pp->S_DT[R4007];
   parm_type = UnresolvedType::getInstance( s_dt:parm_dt );
-  relate parm_type to parm_typed_object across R410;
-  relate parm to parm_typed_object across R406;
+  relate parm_type to parm across R431;
   // link parameter
-  relate parm to po across R424;
-  select one first_parm related by po->Parameter[R407];
-  if ( empty first_parm )
-    relate parm to po across R407;
-  else
-    next_parm = first_parm;
-    last_parm = first_parm;
+  relate parm to invocable across R429;
+  select any last_parm related by invocable->FormalParameter[R429];
+  if ( not_empty last_parm )
+    next_parm = last_parm;
     while ( not_empty next_parm ) 
       last_parm = next_parm;
-      select one next_parm related by last_parm->Parameter[R408.''precedes''];
+      select one next_parm related by last_parm->FormalParameter[R404.''precedes''];
     end while;
-    relate parm to last_parm across R408.''follows'';
+    relate parm to last_parm across R404.''follows'';
   end if;
   select one c_pp related by c_pp->C_PP[R4021.''precedes''];
 end while;
@@ -1560,33 +1646,34 @@ select one c_c related by c_po->C_C[R4010];
 
 // create the file
 create object instance file of File;
+file.name = ::camelCaseName( name:c_po.Name, start_lower:false );
 file.path = ::c_cToPath( c_c:c_c );
-file.name = c_po.Name + ".java";
+file.package = ::pathToPackage( path:file.path );
+file.extension = ".java";
 
 // create the interface package object
 create object instance port of Port;
-port.name = c_po.Name;
-relate port to file across R403;
-relate port to c_po across R431;
+relate port to file across R401;
+relate port to c_po across R422;
 
 // relate to other component
-relate port to comp_def across R426;
+relate port to comp_def across R417;
 
 // relate to iface if the iface is there
 select any c_i related by c_po->C_IR[R4016]->C_I[R4012];
-select one iface related by c_i->Interface[R430];
-if ( empty iface )
+select one iface related by c_i->Interface[R421];
+if ( empty iface and not_empty c_i )
   ::transformInterface( c_i:c_i );
-  select one iface related by c_i->Interface[R430];
+  select one iface related by c_i->Interface[R421];
 end if;
 if ( not_empty iface )
-  relate port to iface across R427;
-  select many msgs related by iface->Message[R428];
+  relate port to iface across R418;
+  select many msgs related by iface->Message[R419];
   for each msg in msgs
     create object instance port_msg of PortMessage;
-    relate port to msg across R429 using port_msg;
+    relate port to msg across R420 using port_msg;
   end for;
-  select one iface_file related by iface->File[R403];
+  select one iface_file related by iface->File[R401];
   ::addFileToImports( file:file, file_to_import:iface_file );
 end if;
 

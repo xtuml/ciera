@@ -20,16 +20,18 @@ INSERT INTO O_TFR
 	's_dt = param.s_dt;
 select many unresolved_types from instances of UnresolvedType;
 for each unresolved_type in unresolved_types
-  select one dt related by unresolved_type->S_DT[R419];
+  select one dt related by unresolved_type->Type[R407]->S_DT[R423];
   if ( s_dt.DT_ID == dt.DT_ID )
-    select one type related by unresolved_type->Type[R412];
+    select one type related by unresolved_type->Type[R407];
     return type;
   end if;
 end for;
-create object instance unresolved_type of UnresolvedType;
-relate s_dt to unresolved_type across R419;
 create object instance type of Type;
-relate unresolved_type to type across R412;
+type.name = "";
+type.package = "";
+relate s_dt to type across R423;
+create object instance unresolved_type of UnresolvedType;
+relate unresolved_type to type across R407;
 return type;',
 	1,
 	'',
@@ -65,10 +67,8 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'select one type related by self->Type[R412];
-unrelate self from type across R412;
-select one s_dt related by self->S_DT[R419];
-unrelate self from s_dt across R419;
+	'select one type related by self->Type[R407];
+unrelate self from type across R407;
 delete object instance self;',
 	1,
 	'',

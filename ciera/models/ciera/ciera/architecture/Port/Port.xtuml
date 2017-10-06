@@ -14,8 +14,8 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'select one file related by self->File[R403];
-package_name = ::pathToPackage( path:file.path );
+	'select one file related by self->File[R401];
+package_name = self.package;
 
 port_name = self.name;
 
@@ -24,15 +24,15 @@ extends_class = "Port";
 ::addStringToImports( file:file, s:"io.ciera.cairn.components.Port" );
 
 interface_name = "";
-select one iface related by self->Interface[R427];
+select one iface related by self->Interface[R418];
 if ( not_empty iface )
   interface_name = iface.name;
 end if;
 
 // render inbound messages
-select many inbound_msgs related by self->Interface[R427]->Message[R428] where ( ( not selected.to_provider and not self.provider ) or
+select many inbound_msgs related by self->Interface[R418]->Message[R419] where ( ( not selected.to_provider and not self.provider ) or
                                                                                  ( selected.to_provider and self.provider ) );
-select many inbound_port_msgs related by inbound_msgs->PortMessage[R429] where ( selected.port_name == self.name );
+select many inbound_port_msgs related by inbound_msgs->PortMessage[R420] where ( selected.port_name == self.name );
 for each port_msg in inbound_port_msgs
   port_msg.render();
 end for;
@@ -40,9 +40,9 @@ inbound_message_block = T::body();
 T::clear();
 
 // render outbound messages
-select many outbound_msgs related by self->Interface[R427]->Message[R428] where ( ( selected.to_provider and not self.provider ) or
+select many outbound_msgs related by self->Interface[R418]->Message[R419] where ( ( selected.to_provider and not self.provider ) or
                                                                                   ( not selected.to_provider and self.provider ) );
-select many outbound_port_msgs related by outbound_msgs->PortMessage[R429] where ( selected.port_name == self.name );
+select many outbound_port_msgs related by outbound_msgs->PortMessage[R420] where ( selected.port_name == self.name );
 for each port_msg in outbound_port_msgs
   port_msg.render();
 end for;
@@ -53,12 +53,12 @@ T::clear();
 for each msg in inbound_msgs
   message_name = msg.name;
   message_parameter_list = "";
-  select many msg_parms related by msg->ParameterizedObject[R405]->Parameter[R424];
+  select many msg_parms related by msg->InvocableObject[R427]->FormalParameter[R429];
   if ( not_empty msg_parms )
     sep = " ";
     i = 0;
     for each msg_parm in msg_parms
-      select one parm_dt related by msg_parm->TypedObject[R406]->Type[R410];
+      select one parm_dt related by msg_parm->Type[R431];
       message_parameter_list = message_parameter_list + sep + "(" + parm_dt.name + ")message.getData( " + STR::itoa( i:i ) + " )";
       sep = ", ";
       i = i + 1;

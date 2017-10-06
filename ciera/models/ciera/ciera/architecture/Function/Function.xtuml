@@ -14,19 +14,24 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'select one type related by self->TypedObject[R406]->Type[R410];
+	'select one type related by self->InvocableObject[R427]->Type[R428];
 type_name = type.name;
 function_name = self.name;
 
-select one comp_def related by self->ComponentDefinition[R409];
+select one comp_def related by self->ComponentDefinition[R405];
 component_name = comp_def.name;
 
 parameter_list = "";
-select one parm related by self->ParameterizedObject[R405]->Parameter[R407];
+select any parm from instances of FormalParameter where false;
+select any prev_parm related by self->InvocableObject[R427]->FormalParameter[R429];
+while ( not_empty prev_parm )
+  parm = prev_parm;
+  select one prev_parm related by parm->FormalParameter[R404.''follows''];
+end while;
 while ( not_empty parm )
-  select one parm_type related by parm->TypedObject[R406]->Type[R410];
+  select one parm_type related by parm->Type[R431];
   parameter_list = parameter_list + ", " + parm_type.name + " "  + parm.name;
-  select one parm related by parm->Parameter[R408.''precedes''];
+  select one parm related by parm->FormalParameter[R404.''precedes''];
 end while;
 
 body = "";

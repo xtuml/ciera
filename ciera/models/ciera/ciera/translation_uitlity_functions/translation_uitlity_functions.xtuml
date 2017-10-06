@@ -250,10 +250,11 @@ INSERT INTO S_SYNC
 	'',
 	'file = param.file;
 if ( "" != param.s )
-  select any import related by file->ImportStatement[R402] where ( selected.fully_qualified_name == param.s );
+  select any import related by file->TypeImport[R402] where ( selected.fully_qualified_name == param.s );
   if ( empty import )
-    import = ImportStatement::get_import( import:param.s );
-    relate import to file across R402;
+    import = TypeImport::get_import( import:param.s );
+    create object instance import_ref of TypeImportReference;
+    relate import to file across R402 using import_ref;
   end if;
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
@@ -437,7 +438,7 @@ INSERT INTO S_SYNC
 	'is_primitive_type',
 	'',
 	'type = param.type;
-select one builtin related by type->BuiltInType[R412];
+select one builtin related by type->BuiltInType[R407];
 if ( not_empty builtin )
   return builtin.primitive;
 else
