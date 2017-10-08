@@ -47,14 +47,21 @@
   .end for
 .end function
 .//
+.function get_unique_id_dt_id
+  .select any dt from instances of S_DT where ( selected.Name == "unique_id" )
+  .assign attr_dt_id = dt.DT_ID
+.end function
+.//
 .function check_creates
   .select many bodies from instances of ACT_ACT
+  .invoke result = get_unique_id_dt_id()
+  .assign unique_id = result.dt_id
   .for each body in bodies
     .// get all create no variables. For these statements, they are invalide
     .// unless they have no identifying attributes
     .select many create_nv_smts related by body->ACT_BLK[R601]->ACT_SMT[R602]->ACT_CNV[R603]
     .for each create_nv_smt in create_nv_smts
-      .select any id_attr related by create_nv_smt->O_OBJ[R672]->O_ID[R104]->O_OIDA[R105]
+      .select any id_attr related by create_nv_smt->O_OBJ[R672]->O_ID[R104]->O_OIDA[R105]->O_ATTR[R105] where ( selected.DT_ID != unique_id )
       .if ( not_empty id_attr )
         .select one smt related by create_nv_smt->ACT_SMT[R603]
         .select one obj related by create_nv_smt->O_OBJ[R672]
@@ -70,8 +77,10 @@
       .select many oidas related by obj->O_ID[R104]->O_OIDA[R105]
       .for each oida in oidas
         .// set each oida uninitialized
+        .// unique_id attrs are automatically initialized
+        .select one attr related by oida->O_ATTR[R105]
         .create object instance oidi of O_OIDI
-        .assign oidi.initialized = false
+        .assign oidi.initialized = ( attr.DT_ID == unique_id )
         .relate var to oidi across R199
         .relate oida to oidi across R199
       .end for
