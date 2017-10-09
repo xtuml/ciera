@@ -29,6 +29,12 @@
 .// reassignments are not flagged -- it is valid to unrelate and re-relate
 .// instances in this situation.
 .//
+.// For relates that refer to the created instance (number 2 above), it is
+.// possible to have a valid situation where not all identifying attributes
+.// are initialized, but all identifying attributes for the the ID used to
+.// formalize the relationship are initialized. For simplicity, this algorithm
+.// still throws a warning.
+.//
 .function emit_warning
   .param inst_ref smt
   .param string msg
@@ -95,6 +101,7 @@
   .select any attr_block from instances of ACT_BLK where ( false )
   .select any attr_smt from instances of ACT_SMT where ( false )
   .assign attr_in_for_while = in_for_while
+  .select one current_block related by smt->ACT_BLK[R602]
   .invoke result = get_unique_id_dt_id()
   .assign unique_id = result.dt_id
   .select one if_smt related by smt->ACT_IF[R603]
@@ -122,11 +129,12 @@
     .end if
     .// create initializations for the new block
     .for each oida in oidas
-      .// set each oida uninitialized
-      .// unique_id attrs are automatically initialized
+      .// set each oida to the initialization state
+      .// of the parent block
+      .select any parent_oidi related by oida->O_OIDI[R199] where ( ( selected.Var_ID == var.Var_ID ) and ( selected.Block_ID == current_block.Block_ID ) )
       .select one attr related by oida->O_ATTR[R105]
       .create object instance oidi of O_OIDI
-      .assign oidi.initialized = ( attr.DT_ID == unique_id )
+      .assign oidi.initialized = parent_oidi.initialized
       .relate oidi to var across R199
       .relate oidi to oida across R199
       .relate oidi to attr_block across R198
@@ -287,31 +295,38 @@
             .end if
           .end if
           .// check relate statement initializations
-          .select many ref_idas related by obj->O_ATTR[R102]->O_RATTR[R106]->O_ATTR[R106]->O_OIDA[R105]
-          .if ( not_empty ref_idas )
-            .select one relate_smt related by smt->ACT_REL[R603]
-            .select one relate_using_smt related by smt->ACT_RU[R603]
-            .if ( ( not_empty relate_smt ) or ( not_empty relate_using_smt ) )
+          .select one relate_smt related by smt->ACT_REL[R603]
+          .select one relate_using_smt related by smt->ACT_RU[R603]
+          .if ( ( not_empty relate_smt ) or ( not_empty relate_using_smt ) )
+            .select one one_var related by relate_using_smt->V_VAR[R617]
+            .select one oth_var related by relate_using_smt->V_VAR[R618]
+            .select one use_var related by relate_using_smt->V_VAR[R619]
+            .if ( ( empty one_var ) and ( empty oth_var ) )
+              .select one one_var related by relate_smt->V_VAR[R615]
+              .select one oth_var related by relate_smt->V_VAR[R616]
+            .end if
+            .if ( ( ( var == one_var ) or ( var == oth_var ) ) or ( var == use_var ) )
               .select one rel related by relate_using_smt->R_REL[R654]
               .if ( empty rel )
                 .select one rel related by relate_smt->R_REL[R653]
               .end if
               .select any rgo related by rel->R_OIR[R201]->R_RGO[R203] where ( selected.Obj_ID == obj.Obj_ID )
+              .select any rto related by rel->R_OIR[R201]->R_RTO[R203] where ( selected.Obj_ID == obj.Obj_ID )
+              .// for RGOs, the referential attributes as identifier are being initialized
               .if ( not_empty rgo )
-                .select one one_var related by relate_using_smt->V_VAR[R617]
-                .select one oth_var related by relate_using_smt->V_VAR[R618]
-                .select one use_var related by relate_using_smt->V_VAR[R619]
-                .if ( ( empty one_var ) and ( empty oth_var ) )
-                  .select one one_var related by relate_smt->V_VAR[R615]
-                  .select one oth_var related by relate_smt->V_VAR[R616]
-                .end if
-                .if ( ( ( var == one_var ) or ( var == oth_var ) ) or ( var == use_var ) )
-                  .for each ref_ida in ref_idas
-                    .select any oidi related by ref_ida->O_OIDI[R199] where ( ( selected.Var_ID == var.Var_ID ) and ( selected.Block_ID == block.Block_ID ) )
-                    .if ( ( not in_for_while ) and ( not after_return ) )
-                      .assign oidi.initialized = true
-                    .end if
-                  .end for
+                .select many ref_idas related by obj->O_ATTR[R102]->O_RATTR[R106]->O_ATTR[R106]->O_OIDA[R105]
+                .for each ref_ida in ref_idas
+                  .select any oidi related by ref_ida->O_OIDI[R199] where ( ( selected.Var_ID == var.Var_ID ) and ( selected.Block_ID == block.Block_ID ) )
+                  .if ( ( not in_for_while ) and ( not after_return ) )
+                    .assign oidi.initialized = true
+                  .end if
+                .end for
+              .// for RTOs, the identifying attributes are being referenced and the
+              .// identifier must be initialized
+              .elif ( not_empty rto )
+                .invoke result = is_fully_initialized_in_block( var, block )
+                .if ( not result.ret )
+                  .invoke emit_warning( smt, "Instance referred to as participant in association before all identifying attributes are initialized: ${var.Name}" )
                 .end if
               .end if
             .end if
