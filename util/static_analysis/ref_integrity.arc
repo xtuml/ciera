@@ -263,6 +263,7 @@
       .assign done = false
       .assign original_block = block
       .assign in_for_while = false
+      .assign after_return = false
       .while ( ( not_empty block ) and ( not done ) )
         .while ( ( not_empty smt ) and ( not done ) )
           .//.print "Processing statement on line: ${smt.LineNumber}"
@@ -278,7 +279,7 @@
                 .if ( oidi.initialized )
                   .invoke emit_warning( smt, "Reassignment of identifying attribute: ${var.Name}.${assigned_to_oattr.Name}" )
                 .else
-                  .if ( not in_for_while )
+                  .if ( ( not in_for_while ) and ( not after_return ) )
                     .assign oidi.initialized = true
                   .end if
                 .end if
@@ -307,13 +308,18 @@
                 .if ( ( ( var == one_var ) or ( var == oth_var ) ) or ( var == use_var ) )
                   .for each ref_ida in ref_idas
                     .select any oidi related by ref_ida->O_OIDI[R199] where ( ( selected.Var_ID == var.Var_ID ) and ( selected.Block_ID == block.Block_ID ) )
-                    .if ( not in_for_while )
+                    .if ( ( not in_for_while ) and ( not after_return ) )
                       .assign oidi.initialized = true
                     .end if
                   .end for
                 .end if
               .end if
             .end if
+          .end if
+          .// check if this is a return statement
+          .select one return_smt related by smt->ACT_RET[R603]
+          .if ( not_empty return_smt )
+            .assign after_return = true
           .end if
           .// check if all are initialized (short circuit)
           .//.invoke result = is_fully_initialized_in_block( var, block )
