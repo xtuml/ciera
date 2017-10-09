@@ -46,7 +46,7 @@
 .end function
 .//
 .function display_warnings
-  .// print out all the warnings sorting them first by body label
+  .// display all the warnings sorting them first by body label
   .// then by line number. This is an extremely simple and inefficient
   .// sort.
   .select any warning from instances of INT_WARN
@@ -65,7 +65,8 @@
         .assign warning = other_warning
       .end if
     .end for
-    .// print the warning
+    .//
+    .// display the warning
     .print "Warning: ${warning.BodyLabel} line: ${warning.LineNumber} -- ${warning.Message}"
     .// delete the warning
     .delete object instance warning
@@ -180,7 +181,7 @@
   .end if
 .end function
 .//
-.function ascend_block
+.function ascend_block_forward
   .param inst_ref block
   .param boolean in_for_while
   .select any attr_block from instances of ACT_BLK where ( false )
@@ -263,6 +264,35 @@
   .end if
 .end function
 .//
+.function ascend_block_backward
+  .param inst_ref block
+  .select any attr_block from instances of ACT_BLK where ( false )
+  .select any attr_smt from instances of ACT_SMT where ( false )
+  .select one if_smt related by block->ACT_IF[R607]
+  .select one elif_smt related by block->ACT_EL[R658]
+  .select one else_smt related by block->ACT_E[R606]
+  .select one for_smt related by block->ACT_FOR[R605]
+  .select one while_smt related by block->ACT_WHL[R608]
+  .if ( ( ( ( not_empty if_smt ) or ( not_empty elif_smt ) ) or ( ( not_empty else_smt ) or ( not_empty for_smt ) ) ) or ( not_empty while_smt ) )
+    .if ( not_empty if_smt )
+      .select one attr_smt related by if_smt->ACT_SMT[R603]
+    .end if
+    .if ( not_empty elif_smt )
+      .select one attr_smt related by elif_smt->ACT_IF[R682]->ACT_SMT[R603]
+    .end if
+    .if ( not_empty else_smt )
+      .select one attr_smt related by else_smt->ACT_IF[R683]->ACT_SMT[R603]
+    .end if
+    .if ( not_empty for_smt )
+      .select one attr_smt related by for_smt->ACT_SMT[R603]
+    .end if
+    .if ( not_empty while_smt )
+      .select one attr_smt related by while_smt->ACT_SMT[R603]
+    .end if
+    .select one attr_block related by attr_smt->ACT_BLK[R602]
+  .end if
+.end function
+.//
 .function check_creates
   .select many bodies from instances of ACT_ACT
   .invoke result = get_unique_id_dt_id()
@@ -276,7 +306,7 @@
       .if ( not_empty id_attr )
         .select one smt related by create_nv_smt->ACT_SMT[R603]
         .select one obj related by create_nv_smt->O_OBJ[R672]
-        .invoke create_warning( smt, "Create no variable statement used with class that has identifying attributes: ${obj.Key_Lett}" )
+        .invoke create_warning( smt, "Create no variable of class with identifying attributes: ${obj.Key_Lett}" )
       .end if
     .end for
     .// get all create statements
@@ -357,7 +387,7 @@
               .elif ( not_empty rto )
                 .invoke result = is_fully_initialized_in_block( var, block )
                 .if ( not result.ret )
-                  .invoke create_warning( smt, "Instance referred to as participant in association before all identifying attributes are initialized: ${var.Name}" )
+                  .invoke create_warning( smt, "Instance referred to in association before all identifying attributes are initialized: ${var.Name}" )
                 .end if
               .end if
             .end if
@@ -398,7 +428,7 @@
             .end for
           .end if
           .// ascend to the outer block or go to the next block (for if and elif statements)
-          .invoke result = ascend_block( block, in_for_while )
+          .invoke result = ascend_block_forward( block, in_for_while )
           .assign block = result.block
           .assign smt = result.smt
           .assign in_for_while = result.in_for_while
@@ -416,7 +446,57 @@
   .end for .// for each body in bodies
 .end function
 .//
+.function has_create_in_body
+  .param inst_ref var
+  .param inst_ref smt
+  .assign attr_ret = false
+  .// iterate through all preceding statements
+  .select one block related by smt->ACT_BLK[R602]
+  .select one smt related by smt->ACT_SMT[R661.'succeeds']
+  .while ( ( not_empty block ) and ( not attr_ret ) )
+    .while ( ( not_empty smt ) and ( not attr_ret ) )
+      .//.select one act related by block->ACT_ACT[R601]
+      .//.print "Processing statement in body: ${act.Label} on line: ${smt.LineNumber}"
+      .// check if this is a create statement
+      .select one create_smt related by smt->ACT_CR[R603]
+      .select one create_var related by create_smt->V_VAR[R633]
+      .if ( not_empty create_var )
+        .if ( var.Var_ID == create_var.Var_ID )
+          .assign attr_ret = true
+        .end if
+      .end if
+      .// select previous statement
+      .select one smt related by smt->ACT_SMT[R661.'succeeds']
+    .end while
+    .// ascend to the outer block or go to the next block (for if and elif statements)
+    .invoke result = ascend_block_backward( block )
+    .assign block = result.block
+    .assign smt = result.smt
+  .end while
+.end function
+.//
 .function check_assignments
+  .select many bodies from instances of ACT_ACT
+  .for each body in bodies
+    .select many assign_smts related by body->ACT_BLK[R601]->ACT_SMT[R602]->ACT_AI[R603]
+    .for each assign_smt in assign_smts
+      .select any assigned_to_attr related by assign_smt->V_VAL[R689]->V_AVL[R801]->O_ATTR[R806]
+      .select any assigned_to_oida related by assigned_to_attr->O_OIDA[R105]
+      .select any assigned_to_var related by assign_smt->V_VAL[R689]->V_AVL[R801]->V_VAL[R807]->V_IRF[R801]->V_VAR[R808]
+      .if ( ( not_empty assigned_to_oida ) and ( not_empty assigned_to_var ) )
+        .select one smt related by assign_smt->ACT_SMT[R603]
+        .invoke result = has_create_in_body( assigned_to_var, smt )
+        .if ( not result.ret )
+          .invoke create_warning( smt, "Assignment of identifying attribute of non-local instance: ${assigned_to_var.Name}.${assigned_to_attr.Name}" )
+        .end if
+      .end if
+    .end for .// for each assign_smt in assign_smts
+    .//
+    .//.select one relate_smt related by smt->ACT_REL[R603]
+    .//.select one relate_using_smt related by smt->ACT_RU[R603]
+    .//.select one assign_smt related by smt->ACT_AI[R603]
+    .//
+  .end for .// for each body in bodies
 .end function
 .//
 .function analyze
