@@ -321,9 +321,6 @@
           .if ( not_empty return_smt )
             .assign after_return = true
           .end if
-          .// check if all are initialized (short circuit)
-          .//.invoke result = is_fully_initialized_in_block( var, block )
-          .//.assign done = result.ret
           .// select inner block for "if", "for", and "while" statements
           .invoke result = descend_block( smt, in_for_while, oidas, var )
           .if ( not_empty result.block )
