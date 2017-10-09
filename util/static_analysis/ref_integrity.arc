@@ -235,7 +235,6 @@
     .end for
     .// get all create statements
     .select many create_smts related by body->ACT_BLK[R601]->ACT_SMT[R602]->ACT_CR[R603]
-    .if ( "transformAttribute" == body.Label )
     .for each create_smt in create_smts
       .select one smt related by create_smt->ACT_SMT[R603]
       .select one obj related by create_smt->O_OBJ[R671]
@@ -259,7 +258,7 @@
       .assign in_for_while = false
       .while ( ( not_empty block ) and ( not done ) )
         .while ( ( not_empty smt ) and ( not done ) )
-          .print "Processing statement on line: ${smt.LineNumber}"
+          .//.print "Processing statement on line: ${smt.LineNumber}"
           .// check assignment statement initializations
           .select one assign_smt related by smt->ACT_AI[R603]
           .if ( not_empty assign_smt )
@@ -362,7 +361,6 @@
         .invoke emit_warning( smt, "Instance identifiers may not have been initialized after create statement: ${obj.Key_Lett}" )
       .end if
     .end for .// for each create_smt in create_smts
-    .end if
   .end for .// for each body in bodies
 .end function
 .//
