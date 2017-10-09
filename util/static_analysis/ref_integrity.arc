@@ -35,11 +35,42 @@
 .// formalize the relationship are initialized. For simplicity, this algorithm
 .// still throws a warning.
 .//
-.function emit_warning
+.function create_warning
   .param inst_ref smt
   .param string msg
   .select one act related by smt->ACT_BLK[R602]->ACT_ACT[R601]
-  .print "Warning: ${act.Label} line: ${smt.LineNumber} -- ${msg}"
+  .create object instance warning of INT_WARN
+  .assign warning.BodyLabel = act.Label
+  .assign warning.LineNumber = smt.LineNumber
+  .assign warning.Message = msg
+.end function
+.//
+.function display_warnings
+  .// print out all the warnings sorting them first by body label
+  .// then by line number. This is an extremely simple and inefficient
+  .// sort.
+  .select any warning from instances of INT_WARN
+  .while ( not_empty warning )
+    .// get the smallest alphanumeric body
+    .select many other_warnings from instances of INT_WARN
+    .for each other_warning in other_warnings
+      .if ( other_warning.BodyLabel < warning.BodyLabel )
+        .assign warning = other_warning
+      .end if
+    .end for
+    .// get the smallest line number in that body
+    .select many other_warnings from instances of INT_WARN where ( selected.BodyLabel == warning.BodyLabel )
+    .for each other_warning in other_warnings
+      .if ( other_warning.LineNumber < warning.LineNumber )
+        .assign warning = other_warning
+      .end if
+    .end for
+    .// print the warning
+    .print "Warning: ${warning.BodyLabel} line: ${warning.LineNumber} -- ${warning.Message}"
+    .// delete the warning
+    .delete object instance warning
+    .select any warning from instances of INT_WARN
+  .end while
 .end function
 .//
 .function is_fully_initialized_in_block
@@ -245,7 +276,7 @@
       .if ( not_empty id_attr )
         .select one smt related by create_nv_smt->ACT_SMT[R603]
         .select one obj related by create_nv_smt->O_OBJ[R672]
-        .invoke emit_warning( smt, "Create no variable statement used with class that has identifying attributes: ${obj.Key_Lett}" )
+        .invoke create_warning( smt, "Create no variable statement used with class that has identifying attributes: ${obj.Key_Lett}" )
       .end if
     .end for
     .// get all create statements
@@ -285,7 +316,7 @@
               .for each assigned_to_oida in assigned_to_oidas
                 .select any oidi related by assigned_to_oida->O_OIDI[R199] where ( ( selected.Var_ID == var.Var_ID ) and ( selected.Block_ID == block.Block_ID ) )
                 .if ( oidi.initialized )
-                  .invoke emit_warning( smt, "Reassignment of identifying attribute: ${var.Name}.${assigned_to_oattr.Name}" )
+                  .invoke create_warning( smt, "Reassignment of identifying attribute: ${var.Name}.${assigned_to_oattr.Name}" )
                 .else
                   .if ( ( not in_for_while ) and ( not after_return ) )
                     .assign oidi.initialized = true
@@ -326,7 +357,7 @@
               .elif ( not_empty rto )
                 .invoke result = is_fully_initialized_in_block( var, block )
                 .if ( not result.ret )
-                  .invoke emit_warning( smt, "Instance referred to as participant in association before all identifying attributes are initialized: ${var.Name}" )
+                  .invoke create_warning( smt, "Instance referred to as participant in association before all identifying attributes are initialized: ${var.Name}" )
                 .end if
               .end if
             .end if
@@ -379,7 +410,7 @@
       .invoke result = is_fully_initialized_in_block( var, original_block )
       .if ( not result.ret )
         .select one smt related by create_smt->ACT_SMT[R603]
-        .invoke emit_warning( smt, "Instance identifiers may not have been initialized after create statement: ${obj.Key_Lett}" )
+        .invoke create_warning( smt, "Instance identifiers may not have been initialized after create statement: ${obj.Key_Lett}" )
       .end if
     .end for .// for each create_smt in create_smts
   .end for .// for each body in bodies
@@ -395,3 +426,4 @@
 .//
 .//------ MAIN CODE -------//
 .invoke analyze()
+.invoke display_warnings()

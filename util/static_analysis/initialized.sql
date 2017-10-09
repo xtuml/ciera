@@ -1,3 +1,8 @@
+CREATE TABLE INT_WARN (
+    BodyLabel STRING,
+    LineNumber INTEGER,
+    Message STRING
+);
 CREATE TABLE O_OIDI (
     Var_ID UNIQUE_ID,
     Attr_ID UNIQUE_ID,
