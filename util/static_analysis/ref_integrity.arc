@@ -2,25 +2,32 @@
 .// potential issues with referential integrity.
 .//
 .// For each create statement, it checks that:
-.//   1. All identifiers for the instance are initialized before the end of the
-.//      body
+.//   1. All identifier attributes for the instance are initialized before the
+.//      end of the body.
 .//   2. The instance is not used in a relate statement for a formalized
 .//      association in which it is the participant before all its identifying
-.//      attributes are set (in the formalizing identifier)
+.//      attributes are set (in the formalizing identifier).
+.//   3. None of the identifier attributes are reassigned by assignment
+.//      statement.
 .//
-.// For each assignement of an identifying attribute (regular assignment or
-.// relate statement for referential as identifying attribute), it checks that:
+.// For each assignment of an identifying attribute (regular assignment or
+.// relate statement for referential attribute as identifier), it checks that:
 .//   1. There is a create statement earlier in the body
-.//   2. It is not a reassigment
 .//
-.// The algorithm considers all "while" and "for" blocks potentially
-.// unreachable. "if", "elif", and "else" blocks are considered potentially
-.// unreachable, however, if an idntifing attribute is set in all blocks of an
-.// "if" statement, it is considered to be guaranteed initialized.
+.// The algorithm considers all statements within "while" and "for" blocks
+.// potentially unreachable. Statements within "if", "elif", and "else" blocks
+.// are considered potentially unreachable, however, if an identifying attribute
+.// is set in all blocks of an "if" statement, it is considered to be
+.// initialized. Any statement after a "return" statement is considered
+.// potentially unreachable.
 .//
-.// The algorithm considers assigment statements and relate statements for
-.// assigning identifier attributes. It does not consider assigments as part
+.// The algorithm considers assignment statements and relate statements for
+.// assigning identifier attributes. It does not consider assignments as part
 .// of expressions.
+.//
+.// For relate statements that initialize referential attributes as identifier,
+.// reassignments are not flagged -- it is valid to unrelate and re-relate
+.// instances in this situation.
 .//
 .function emit_warning
   .param inst_ref smt
@@ -300,12 +307,8 @@
                 .if ( ( ( var == one_var ) or ( var == oth_var ) ) or ( var == use_var ) )
                   .for each ref_ida in ref_idas
                     .select any oidi related by ref_ida->O_OIDI[R199] where ( ( selected.Var_ID == var.Var_ID ) and ( selected.Block_ID == block.Block_ID ) )
-                    .if ( oidi.initialized )
-                      .invoke emit_warning( smt, "Reassignment of identifying attributes through relate: ${var.Name}" )
-                    .else
-                      .if ( not in_for_while )
-                        .assign oidi.initialized = true
-                      .end if
+                    .if ( not in_for_while )
+                      .assign oidi.initialized = true
                     .end if
                   .end for
                 .end if
