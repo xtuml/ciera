@@ -512,17 +512,11 @@
             .end if
             .invoke create_warning( smt, "Assignment of identifying attribute of non-local instance: param.${param_name}.${assigned_to_attr.Name}" )
           .else
-            .print "here"
             .invoke create_warning( smt, "Assignment of identifying attribute of non-local instance: ${assigned_to_attr.Name}" )
           .end if
         .end if
       .end if
     .end for .// for each assign_smt in assign_smts
-    .//
-    .//.select one relate_smt related by smt->ACT_REL[R603]
-    .//.select one relate_using_smt related by smt->ACT_RU[R603]
-    .//.select one assign_smt related by smt->ACT_AI[R603]
-    .//
   .end for .// for each body in bodies
 .end function
 .//
