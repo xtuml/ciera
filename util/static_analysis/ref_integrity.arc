@@ -480,14 +480,41 @@
   .for each body in bodies
     .select many assign_smts related by body->ACT_BLK[R601]->ACT_SMT[R602]->ACT_AI[R603]
     .for each assign_smt in assign_smts
-      .select any assigned_to_attr related by assign_smt->V_VAL[R689]->V_AVL[R801]->O_ATTR[R806]
-      .select any assigned_to_oida related by assigned_to_attr->O_OIDA[R105]
-      .select any assigned_to_var related by assign_smt->V_VAL[R689]->V_AVL[R801]->V_VAL[R807]->V_IRF[R801]->V_VAR[R808]
-      .if ( ( not_empty assigned_to_oida ) and ( not_empty assigned_to_var ) )
+      .select one assigned_to_attr related by assign_smt->V_VAL[R689]->V_AVL[R801]->O_ATTR[R806]
+      .select one assigned_to_oida related by assigned_to_attr->O_OIDA[R105]
+      .select one assigned_to_var related by assign_smt->V_VAL[R689]->V_AVL[R801]->V_VAL[R807]->V_IRF[R801]->V_VAR[R808]
+      .if ( not_empty assigned_to_oida )
         .select one smt related by assign_smt->ACT_SMT[R603]
-        .invoke result = has_create_in_body( assigned_to_var, smt )
-        .if ( not result.ret )
-          .invoke create_warning( smt, "Assignment of identifying attribute of non-local instance: ${assigned_to_var.Name}.${assigned_to_attr.Name}" )
+        .if ( not_empty assigned_to_var )
+          .invoke result = has_create_in_body( assigned_to_var, smt )
+          .if ( not result.ret )
+            .invoke create_warning( smt, "Assignment of identifying attribute of non-local instance: ${assigned_to_var.Name}.${assigned_to_attr.Name}" )
+          .end if
+        .else
+          .select one assigned_to_param related by assign_smt->V_VAL[R689]->V_AVL[R801]->V_VAL[R807]->V_PVL[R801]
+          .if ( not_empty assigned_to_param )
+            .assign param_name = ""
+            .select one c_pp related by assigned_to_param->C_PP[R843]
+            .if ( not_empty c_pp )
+              .assign param_name = c_pp.Name
+            .end if
+            .select one s_bparm related by assigned_to_param->S_BPARM[R831]
+            .if ( not_empty s_bparm )
+              .assign param_name = s_bparm.Name
+            .end if
+            .select one s_sparm related by assigned_to_param->S_SPARM[R832]
+            .if ( not_empty s_sparm )
+              .assign param_name = s_sparm.Name
+            .end if
+            .select one o_tparm related by assigned_to_param->O_TPARM[R833]
+            .if ( not_empty o_tparm )
+              .assign param_name = o_tparm.Name
+            .end if
+            .invoke create_warning( smt, "Assignment of identifying attribute of non-local instance: param.${param_name}.${assigned_to_attr.Name}" )
+          .else
+            .print "here"
+            .invoke create_warning( smt, "Assignment of identifying attribute of non-local instance: ${assigned_to_attr.Name}" )
+          .end if
         .end if
       .end if
     .end for .// for each assign_smt in assign_smts
