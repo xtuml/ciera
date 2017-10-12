@@ -1078,6 +1078,7 @@ acr.rel_numb = r_rel.Numb;
 relate acr to obj across R411;
   
 select any foreign_dt from instances of S_DT where false;
+select any foreign_irdt from instances of S_IRDT where false;
   
 // create subtype
 select one foreign_sub related by foreign_oir->R_RGO[R203]->R_SUB[R205];
@@ -1088,16 +1089,19 @@ select one foreign_assr related by foreign_oir->R_RGO[R203]->R_ASSR[R205];
 select one foreign_part related by foreign_oir->R_RTO[R203]->R_PART[R204];
 select one foreign_form related by foreign_oir->R_RGO[R203]->R_FORM[R205];
 if ( not_empty foreign_sub )
+  select any foreign_dt from instances of S_DT where ( selected.Name == "inst_ref<Object>" );
+  acr.name = "subtypeOnR" + STR::itoa( i:acr.rel_numb );
   acr.unconditional = true;
   create object instance sub of SubtypeReference;
   relate sub to acr across R413;
-  select any foreign_dt from instances of S_DT where ( selected.Name == "inst_ref<Object>" );
 elif ( not_empty foreign_super )
+  select one foreign_obj related by foreign_oir->O_OBJ[R201];
+  select any foreign_irdt related by foreign_obj->S_IRDT[R123] where ( not selected.isSet );
+  select one foreign_dt related by foreign_irdt->S_DT[R17];
+  acr.name = "supertype" + foreign_obj.Key_Lett + "OnR" + STR::itoa( i:acr.rel_numb );
   acr.unconditional = true;
   create object instance super of SupertypeReference;
   relate super to acr across R413;
-  select any foreign_irdt related by foreign_oir->O_OBJ[R201]->S_IRDT[R123] where ( not selected.isSet );
-  select one foreign_dt related by foreign_irdt->S_DT[R17];
 else
   create object instance basic of BasicReference;
   if ( not_empty foreign_aone or not_empty foreign_aoth )
@@ -1197,36 +1201,16 @@ else
       select one foreign_dt related by foreign_irdt->S_DT[R17];
     end if;
   end if;
+  name = "";
+  select one foreign_obj related by foreign_irdt->O_OBJ[R123];
+  if ( foreign_irdt.isSet )
+    name = foreign_obj.Key_Lett;
+  else
+    name = foreign_obj.Key_Lett;
+  end if;
+  acr.name = name + "OnR" + STR::itoa( i:acr.rel_numb ) + basic.phrase;
   relate basic to acr across R413;
 end if;
-
-// set the name
-name = "";
-select one subtype related by acr->SubtypeReference[R413];
-if ( not_empty subtype )
-  name = "subtypeOnR" + STR::itoa( i:acr.rel_numb );
-else
-select one supertype related by acr->SupertypeReference[R413];
-if ( not_empty supertype )
-  name = supertype.name;
-  select one obj related by acr->Type[R425]->Class[R407];
-  name = "supertype" + obj.key_letters + "OnR" + STR::itoa( i:acr.rel_numb );
-else
-select one basic related by acr->BasicReference[R413];
-if ( not_empty basic )
-  select one objset related by acr->Type[R425]->ClassSet[R407];
-  if ( empty objset )
-    select one obj related by acr->Type[R425]->Class[R407];
-    name = name + obj.key_letters;
-  else
-    select one obj related by objset->Class[R406];
-    name = name + obj.key_letters + "s";
-  end if;
-  name = name + "OnR" + STR::itoa( i:acr.rel_numb ) + basic.phrase;
-end if;
-end if;
-end if;
-acr.name = name;
 
 // relate to referential attributes
 select many ref_attrs related by r_oir->R_RGO[R203]->O_REF[R111]->O_RATTR[R108]->O_ATTR[R106]->Attribute[R414];
