@@ -37,23 +37,15 @@
 .//
 .include "util_functions.inc"
 .//
-.function is_fully_initialized_in_block
+.function is_initialized_in_block
   .param inst_ref var
   .param inst_ref block
-  .assign attr_ret = true
-  .select one obj related by var->S_DT[R848]->S_IRDT[R17]->O_OBJ[R123]
-  .if ( empty obj )
-    .select one obj related by var->V_INT[R814]->O_OBJ[R818]
+  .param inst_ref oida
+  .assign attr_ret = false
+  .select any oidi related by oida->O_OIDI[R199] where ( ( selected.Var_ID == var.Var_ID ) and ( selected.Block_ID == block.Block_ID ) )
+  .if ( not_empty oidi )
+    .assign attr_ret = oidi.initialized 
   .end if
-  .select many oidas related by obj->O_ID[R104]->O_OIDA[R105]
-  .select many oidis related by oidas->O_OIDI[R199] where ( ( selected.Var_ID == var.Var_ID ) and ( selected.Block_ID == block.Block_ID ) )
-  .assign card_oidis = cardinality oidis
-  .assign attr_ret = ( ( attr_ret ) and ( ( cardinality oidas ) == ( cardinality oidis ) ) )
-  .assign oida_card = cardinality oidas
-  .assign oidi_card = cardinality oidis
-  .for each oidi in oidis
-    .assign attr_ret = ( ( attr_ret ) and ( oidi.initialized ) )
-  .end for
 .end function
 .//
 .function is_initialized_in_if
@@ -72,6 +64,8 @@
     .select any oidi related by oida->O_OIDI[R199] where ( ( selected.Var_ID == var.Var_ID ) and ( selected.Block_ID == elif_blk.Block_ID ) )
     .if ( not_empty oidi )
       .assign attr_ret = ( ( attr_ret ) and ( oidi.initialized ) )
+    .else
+      .assign attr_ret = false
     .end if
   .end for
   .// check "else" block
@@ -79,6 +73,8 @@
     .select any oidi related by oida->O_OIDI[R199] where ( ( selected.Var_ID == var.Var_ID ) and ( selected.Block_ID == else_blk.Block_ID ) )
     .if ( not_empty oidi )
       .assign attr_ret = ( ( attr_ret ) and ( oidi.initialized ) )
+    .else
+      .assign attr_ret = false
     .end if
   .end if
 .end function
@@ -348,10 +344,13 @@
               .// for RTOs, the identifying attributes are being referenced and the
               .// identifier must be initialized
               .elif ( not_empty rto )
-                .invoke result = is_fully_initialized_in_block( var, block )
-                .if ( not result.ret )
-                  .invoke create_warning( smt, "Instance referred to in association before all identifying attributes are initialized: ${var.Name}" )
-                .end if
+                .for each oida in oidas
+                  .invoke result = is_initialized_in_block( var, block, oida )
+                  .if ( not result.ret )
+                    .select one attr related by oida->O_ATTR[R105]
+                    .invoke create_warning( smt, "Instance referred to in association before identifying attribute is initialized: ${var.Name}.${attr.Name}" )
+                  .end if
+                .end for
               .end if
             .end if
           .end if
@@ -400,11 +399,14 @@
         .end if
       .end while
       .// check if the identifiers are potentially uninitialized
-      .invoke result = is_fully_initialized_in_block( var, original_block )
-      .if ( not result.ret )
-        .select one smt related by create_smt->ACT_SMT[R603]
-        .invoke create_warning( smt, "Instance identifiers may not have been initialized after create statement: ${obj.Key_Lett}" )
-      .end if
+      .for each oida in oidas
+        .invoke result = is_initialized_in_block( var, original_block, oida )
+        .if ( not result.ret )
+          .select one smt related by create_smt->ACT_SMT[R603]
+          .select one attr related by oida->O_ATTR[R105]
+          .invoke create_warning( smt, "Instance identifier may not have been initialized after create statement: ${var.Name}.${attr.Name}" )
+        .end if
+      .end for
     .end for .// for each create_smt in create_smts
   .end for .// for each body in bodies
 .end function
