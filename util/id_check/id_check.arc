@@ -386,7 +386,7 @@
               .select one outer_block related by if_smt->ACT_SMT[R603]->ACT_BLK[R602]
               .invoke result = is_initialized_in_if( var, oida, if_smt )
               .select any oidi related by oida->O_OIDI[R199] where ( ( selected.Var_ID == var.Var_ID ) and ( selected.Block_ID == outer_block.Block_ID ) )
-              .assign oidi.initialized = result.ret
+              .assign oidi.initialized = ( oidi.initialized or result.ret )
             .end for
           .end if
           .// ascend to the outer block or go to the next block (for if and elif statements)
