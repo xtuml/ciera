@@ -1,1 +1,1 @@
-((${selected_type})selected)\
+((${selected_type_name})selected)\
