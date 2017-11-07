@@ -1,53 +1,42 @@
-package ${package_name};
+package ${package};
 
-${import_block}
+${imports}
 
-public class ${class_name} extends ${extends_class} {
+public class ${name} extends ${extends} {
     
-    private static final int classNumber = ${class_number};
-    private static final String keyLetters = "${class_kl}";
+    private static final String keyLetters = "${key_letters}";
 
     // constructor
-    public ${class_name}() {
-.if ( has_ism )
-        super( new ${class_name}InstanceStateMachine() );
+    public ${name}() {
+.if ( stateful )
+        super( new ${name}InstanceStateMachine() );
 .else
         super();
 .end if
-${attr_init_block}
+${attribute_initializers}
     }
     
     // class attributes
-${attribute_block}
+${attributes}
 
     // operations
-${operations_block}
+${operations}
     
-    // attribute accessors
-${accessors_block}
-
     // selections
-${selections_block}
+${selectors}
     
     // relates
-${relates_block}
+${relators}
     
     // unrelates
-${unrelates_block}
+${unrelators}
 
     // associations
-${assoc_attr_block}
-    
-${rto_functions_block}
+${associations}
 
     // empty instance
-    public static final ${class_name} empty${class_name} = new Empty${class_name}();
+    public static final ${name} empty${name} = new Empty${name}();
 
-    @Override
-    public int getClassNumber() {
-        return classNumber;
-    }
-    
     @Override
     public String getKeyLetters() {
         return keyLetters;
@@ -55,22 +44,22 @@ ${rto_functions_block}
 
     @Override
     public IInstanceSet toSet() {
-        IInstanceSet return_set = new ${class_set_name}();
-        return_set.add( this );
-        return return_set;
+        IInstanceSet set = new ${class_set_name}();
+        set.add( this );
+        return set;
     }
 
 }
 
-class Empty${class_name} extends ${class_name} implements IEmptyInstance {
+class Empty${name} extends ${name} implements IEmptyInstance {
 
     // selections
-${empty_selections_block}
+${empty_selectors}
 
     // relates
-${empty_relates_block}
+${empty_relators}
 
     // unrelates
-${empty_unrelates_block}
+${empty_unrelators}
 
 }
