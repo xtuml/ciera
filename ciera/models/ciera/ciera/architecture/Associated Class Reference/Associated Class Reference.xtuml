@@ -17,13 +17,9 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'select one type related by self->Type[R425];
-target_type_name = type.name;
-ref_name = self.name;
-declaration = true;
-initialize = false;
-is_many = false; // does not make a difference here
-T::include( file:"java/t.associatedclassref.java" );',
+	'type_name = self.type_name;
+name = self.name;
+T::include( file:"java/t.associatedclassreference.java" );',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",
@@ -146,8 +142,22 @@ INSERT INTO O_ATTR
 INSERT INTO O_DBATTR
 	VALUES ("01d0a624-2ec6-468b-9981-65f4054846eb",
 	"eb73ded0-7f93-4746-9f7e-0a5079c6d6ed",
-	'',
-	3,
+	'select one ref_to_form related by self->ReferenceToFormalizer[R413];
+if ( not_empty ref_to_form )
+  ref_to_form.render();
+  self.name = T::body();
+  T::clear();
+else
+  select one ref_to_part related by self->ReferenceToParticipant[R413];
+  if ( not_empty ref_to_part )
+    ref_to_part.render();
+    self.name = T::body();
+    T::clear();
+  else
+    self.name = "";
+  end if;
+end if;',
+	1,
 	0);
 INSERT INTO O_BATTR
 	VALUES ("01d0a624-2ec6-468b-9981-65f4054846eb",
