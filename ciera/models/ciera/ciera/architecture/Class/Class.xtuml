@@ -717,7 +717,7 @@ INSERT INTO O_DBATTR
 attribute_initializers = "";
 separator = "";
 for each attribute in attributes
-  attribute_initializers = separator + attribute.initializer;
+  attribute_initializers = attribute_initializers + separator + attribute.initializer;
   separator = "\n";
 end for;
 self.attribute_initializers = attribute_initializers;',
@@ -746,7 +746,7 @@ attributes = "";
 separator = "";
 for each attribute in attrs
   attribute.render();
-  attributes = separator + T::body();
+  attributes = attributes + separator + T::body();
   T::clear();
   separator = "\n";
 end for;
@@ -776,7 +776,7 @@ operations = "";
 separator = "";
 for each operation in ops
   operation.render();
-  operations = separator + T::body();
+  operations = operations + separator + T::body();
   T::clear();
   separator = "\n";
 end for;
@@ -806,7 +806,7 @@ selectors = "";
 separator = "";
 for each selector in sels
   selector.render();
-  selectors = separator + T::body();
+  selectors = selectors + separator + T::body();
   T::clear();
   separator = "\n";
 end for;
@@ -836,7 +836,7 @@ relators = "";
 separator = "";
 for each relator in rels
   relator.render();
-  relators = separator + T::body();
+  relators = relators + separator + T::body();
   T::clear();
   separator = "\n";
 end for;
@@ -866,7 +866,7 @@ unrelators = "";
 separator = "";
 for each unrelator in unrels
   unrelator.render();
-  unrelators = separator + T::body();
+  unrelators = unrelators + separator + T::body();
   T::clear();
   separator = "\n";
 end for;
@@ -918,7 +918,7 @@ selectors = "";
 separator = "";
 for each selector in sels
   selector.render_empty();
-  selectors = separator + T::body();
+  selectors = selectors + separator + T::body();
   T::clear();
   separator = "\n";
 end for;
@@ -948,7 +948,7 @@ relators = "";
 separator = "";
 for each relator in rels
   relator.render_empty();
-  relators = separator + T::body();
+  relators = relators + separator + T::body();
   T::clear();
   separator = "\n";
 end for;
@@ -978,7 +978,7 @@ unrelators = "";
 separator = "";
 for each unrelator in unrels
   unrelator.render_empty();
-  unrelators = separator + T::body();
+  unrelators = unrelators + separator + T::body();
   T::clear();
   separator = "\n";
 end for;
@@ -1048,20 +1048,25 @@ associations = "";
 separator = "";
 for each acr in acrs
   acr.render();
-  associations = separator + T::body();
+  associations = associations + separator + T::body();
   T::clear();
   separator = "\n";
   select one ref_to_form related by acr->ReferenceToFormalizer[R413];
   if ( not_empty ref_to_form )
-    // for participants, render the linker and unlinker
-    select one linker related by ref_to_form->Linker[R438.''populated by''];
-    linker.render();
-    associations = separator + T::body();
-    T::clear();
-    select one unlinker related by ref_to_form->Unlinker[R439.''cleared by''];
-    unlinker.render();
-    associations = separator + T::body() + "\n";
-    T::clear();
+    // for participants, render the linkers and unlinkers
+    select many linkers related by ref_to_form->Linker[R438.''populated by''];
+    for each linker in linkers
+      linker.render();
+      associations = associations + separator + T::body();
+      T::clear();
+    end for;
+    select many unlinkers related by ref_to_form->Unlinker[R439.''cleared by''];
+    for each unlinker in unlinkers
+      unlinker.render();
+      associations = associations + separator + T::body() + "\n";
+      T::clear();
+    end for;
+    associations = associations + "\n";
   end if;
 end for;
 self.associations = associations;',
