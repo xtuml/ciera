@@ -280,7 +280,9 @@ INSERT INTO O_DBATTR
 attribute_initializers = "";
 separator = "";
 for each attribute in attributes
-  attribute_initializers = attribute_initializers + separator + attribute.initializer;
+  attribute.render_initializer();
+  attribute_initializers = attribute_initializers + separator + T::body();
+  T::clear();
   separator = "\n";
 end for;
 self.attribute_initializers = attribute_initializers;',
@@ -309,6 +311,8 @@ attributes = "";
 separator = "";
 for each attribute in attrs
   attribute.render();
+  T::b( s:"\n" );
+  attribute.render_accessors();
   attributes = attributes + separator + T::body();
   T::clear();
   separator = "\n";

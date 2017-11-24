@@ -1,16 +1,7 @@
-if ( declaration ) {
 T_b("    ");
 T_b("private ");
 T_b(type_name);
 T_b(" ");
-T_b(attr_name);
+T_b(name);
 T_b(";");
 T_b("\n");
-} else if ( unique_id_initialize ) {
-T_b("        ");
-T_b(attr_name);
-T_b(" = new ");
-T_b(type_name);
-T_b("();");
-T_b("\n");
-}
