@@ -1,11 +1,11 @@
-package ${package_name};
+package ${package};
 
-${import_block}
+${imports}
 
-public class ${class_set_name} extends ${extends_class} {
+public class ${name} extends ${extends} {
 
     // selections
-${selections_block}
+${selectors}
 
     @Override
     public ${class_name} getEmptyInstance() {
