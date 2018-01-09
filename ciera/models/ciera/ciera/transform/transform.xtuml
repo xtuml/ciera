@@ -728,11 +728,6 @@ for each unresolved_type in unresolved_types
       unrelate old_type from attr across R424;
       relate new_type to attr across R424;
     end for;
-    select many acrs related by old_type->AssociatedClassReference[R425];
-    for each acr in acrs
-      unrelate old_type from acr across R425;
-      relate new_type to acr across R425;
-    end for;
     select many invocables related by old_type->InvocableObject[R428];
     for each invocable in invocables
       unrelate old_type from invocable across R428;
@@ -873,60 +868,6 @@ INSERT INTO PE_PE
 	"00000000-0000-0000-0000-000000000000",
 	1);
 INSERT INTO S_SYNC
-	VALUES ("026a2c03-fa7a-4eac-ada9-60382ab3b543",
-	"00000000-0000-0000-0000-000000000000",
-	'pseudoFormalize',
-	'',
-	'// for simple relationships with two participants, one must
-// be considered the formalizer
-select many r_simps from instances of R_SIMP;
-select many r_rels related by r_simps->R_REL[R206];
-for each r_rel in r_rels
-  if ( not ::r_rel_is_formal( r_rel:r_rel ) )
-
-    select many refs from instances of AssociatedClassReference where ( selected.rel_numb == r_rel.Numb );
-    select many basic_refs related by refs->BasicReference[R413] where ( not selected.assoc );
-    // these must come in pairs
-    if ( not_empty basic_refs )
-      if ( 2 == cardinality basic_refs )
-        select any obj1 from instances of Class where false;
-        select any obj2 from instances of Class where false;
-        select any basic1 from instances of BasicReference where false;
-        select any basic2 from instances of BasicReference where false;
-        for each basic_ref in basic_refs
-          if ( empty obj1 )
-            select one obj1 related by basic_ref->AssociatedClassReference[R413]->Class[R411];
-            basic1 = basic_ref;
-          else
-            select one obj2 related by basic_ref->AssociatedClassReference[R413]->Class[R411];
-            basic2 = basic_ref;
-          end if;
-        end for;
-        // the participant with the lower class name alphanumerically will be the formalizer
-        if ( 0 > STR::compare( s1:obj1.name, s2:obj2.name ) )
-          basic1.formalizer = true;
-        else
-          basic2.formalizer = true;
-        end if;
-      else
-        // TODO bad
-        TRACE::log( flavor:"failure", id:88, message:"Simple relationship does not have two references" );
-      end if;
-    end if;
-
-  end if;
-end for;',
-	"ba5eda7a-def5-0000-0000-000000000000",
-	1,
-	'',
-	0);
-INSERT INTO PE_PE
-	VALUES ("026a2c03-fa7a-4eac-ada9-60382ab3b543",
-	1,
-	"06787f13-1c16-4275-879c-00bbeee7cb88",
-	"00000000-0000-0000-0000-000000000000",
-	1);
-INSERT INTO S_SYNC
 	VALUES ("eb2d19db-99fd-443a-891e-1510a4224c8a",
 	"00000000-0000-0000-0000-000000000000",
 	'transformEnumeratedType',
@@ -990,10 +931,6 @@ INSERT INTO S_SYNC
 	'',
 	'select many types from instances of Type;
 for each type in types
-  select many files related by type->AssociatedClassReference[R425]->Class[R411]->File[R401];
-  for each file in files
-    type.addToImports( file:file );
-  end for;
   select many files related by type->Attribute[R424]->Class[R410]->File[R401];
   for each file in files
     type.addToImports( file:file );
@@ -1037,225 +974,6 @@ end for;',
 	0);
 INSERT INTO PE_PE
 	VALUES ("056fd761-beb4-4eed-85d2-b466883d17cb",
-	1,
-	"06787f13-1c16-4275-879c-00bbeee7cb88",
-	"00000000-0000-0000-0000-000000000000",
-	1);
-INSERT INTO S_SYNC
-	VALUES ("6984d6cb-ca5f-4c52-90ce-a69cc62404e9",
-	"00000000-0000-0000-0000-000000000000",
-	'transformAssociatedClassReference',
-	'',
-	'select any r_oir from instances of R_OIR where ( selected.OIR_ID == param.r_oir );
-select any foreign_oir from instances of R_OIR where ( selected.OIR_ID == param.foreign_oir );
-select one obj related by r_oir->O_OBJ[R201]->Class[R409];
-select one r_rel related by r_oir->R_REL[R201];
-if ( not_empty r_oir and not_empty foreign_oir and not_empty obj and not_empty r_rel )
-
-  // select subtypes
-  select one r_sub related by r_oir->R_RGO[R203]->R_SUB[R205];
-  select one r_aone related by r_oir->R_RTO[R203]->R_AONE[R204];
-  select one r_aoth related by r_oir->R_RTO[R203]->R_AOTH[R204];
-  select one foreign_form related by foreign_oir->R_RGO[R203]->R_FORM[R205];
-  select one foreign_sub related by foreign_oir->R_RGO[R203]->R_SUB[R205];
-  select one foreign_assr related by foreign_oir->R_RGO[R203]->R_ASSR[R205];
-  select one foreign_part related by foreign_oir->R_RTO[R203]->R_PART[R204];
-  select one foreign_super related by foreign_oir->R_RTO[R203]->R_SUPER[R204];
-  select one foreign_aone related by foreign_oir->R_RTO[R203]->R_AONE[R204];
-  select one foreign_aoth related by foreign_oir->R_RTO[R203]->R_AOTH[R204];
-  
-  // do not create relationships between two subtypes or between an aone and aoth
-  if ( ( empty r_sub or empty foreign_sub ) and ( empty r_aone or empty foreign_aoth ) and ( empty r_aoth or empty foreign_aone ) )
-    if ( not_empty foreign_part )
-      // create the ACR instance
-      create object instance acr of AssociatedClassReference;
-      relate acr to obj across R411.''provides relational link for'';
-      acr.rel_numb = r_rel.Numb;
-      // only include the text phrase if the relationship is reflexive
-      if ( ::r_rel_is_reflexive( r_rel:r_rel ) )
-        phrase = foreign_part.Txt_Phrs;
-      else
-        phrase = "";
-      end if;
-      // create subtype
-      create object instance ref_to_part of ReferenceToParticipant;
-      create object instance binary_ref_to_part of BinaryReferenceToParticipant;
-      relate acr to ref_to_part across R413;
-      relate ref_to_part to binary_ref_to_part across R442;
-      binary_ref_to_part.unconditional = foreign_part.Cond == 0;
-      // link type
-      select any s_irdt related by foreign_part->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->S_IRDT[R123] where ( selected.isSet == ( 1 == foreign_part.Mult ) );
-      select one s_dt related by s_irdt->S_DT[R17];
-      type = UnresolvedType::getInstance( s_dt:s_dt );
-      relate type to acr across R425.''defines class type for'';
-      // create referred to class
-      select one foreign_obj related by foreign_part->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->Class[R409.''is basis for''];
-      create object instance rto of ReferencedClassType;
-      relate foreign_obj to acr across R444 using rto;
-    end if;
-    if ( not_empty foreign_super )
-      // create the ACR instance
-      create object instance acr of AssociatedClassReference;
-      relate acr to obj across R411.''provides relational link for'';
-      acr.rel_numb = r_rel.Numb;
-      phrase = "";
-      // create subtype
-      create object instance ref_to_part of ReferenceToParticipant;
-      create object instance ref_to_supertype of ReferenceToSupertype;
-      relate acr to ref_to_part across R413;
-      relate ref_to_part to ref_to_supertype across R442;
-      // link type
-      select any s_irdt related by foreign_super->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->S_IRDT[R123] where ( selected.isSet == false );
-      select one s_dt related by s_irdt->S_DT[R17];
-      type = UnresolvedType::getInstance( s_dt:s_dt );
-      relate type to acr across R425.''defines class type for'';
-      // create referred to class
-      select one foreign_obj related by foreign_super->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->Class[R409.''is basis for''];
-      create object instance rto of ReferencedClassType;
-      relate foreign_obj to acr across R444 using rto;
-    end if;
-    if ( not_empty foreign_aone )
-      // create the ACR instance
-      create object instance acr of AssociatedClassReference;
-      relate acr to obj across R411.''provides relational link for'';
-      acr.rel_numb = r_rel.Numb;
-      // only include the text phrase if the relationship is reflexive
-      if ( ::r_rel_is_reflexive( r_rel:r_rel ) )
-        phrase = foreign_aone.Txt_Phrs;
-      else
-        phrase = "";
-      end if;
-      // create subtype
-      create object instance ref_to_part of ReferenceToParticipant;
-      create object instance ref_to_assoc of ReferenceToAssociative;
-      relate acr to ref_to_part across R413;
-      relate ref_to_part to ref_to_assoc across R442;
-      // link type
-      select any s_irdt related by foreign_aone->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->S_IRDT[R123] where ( selected.isSet == false );
-      select one s_dt related by s_irdt->S_DT[R17];
-      type = UnresolvedType::getInstance( s_dt:s_dt );
-      relate type to acr across R425.''defines class type for'';
-      // create referred to class
-      select one foreign_obj related by foreign_aone->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->Class[R409.''is basis for''];
-      create object instance rto of ReferencedClassType;
-      relate foreign_obj to acr across R444 using rto;
-    end if;
-    if ( not_empty foreign_aoth )
-      // create the ACR instance
-      create object instance acr of AssociatedClassReference;
-      relate acr to obj across R411.''provides relational link for'';
-      acr.rel_numb = r_rel.Numb;
-      // only include the text phrase if the relationship is reflexive
-      if ( ::r_rel_is_reflexive( r_rel:r_rel ) )
-        phrase = foreign_aoth.Txt_Phrs;
-      else
-        phrase = "";
-      end if;
-      // create subtype
-      create object instance ref_to_part of ReferenceToParticipant;
-      create object instance ref_to_assoc of ReferenceToAssociative;
-      relate acr to ref_to_part across R413;
-      relate ref_to_part to ref_to_assoc across R442;
-      // link type
-      select any s_irdt related by foreign_aoth->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->S_IRDT[R123] where ( selected.isSet == false );
-      select one s_dt related by s_irdt->S_DT[R17];
-      type = UnresolvedType::getInstance( s_dt:s_dt );
-      relate type to acr across R425.''defines class type for'';
-      // create referred to class
-      select one foreign_obj related by foreign_aoth->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->Class[R409.''is basis for''];
-      create object instance rto of ReferencedClassType;
-      relate foreign_obj to acr across R444 using rto;
-    end if;
-    if ( not_empty foreign_form )
-      // create the ACR instance
-      create object instance acr of AssociatedClassReference;
-      relate acr to obj across R411.''provides relational link for'';
-      acr.rel_numb = r_rel.Numb;
-      // only include the text phrase if the relationship is reflexive
-      if ( ::r_rel_is_reflexive( r_rel:r_rel ) )
-        phrase = foreign_form.Txt_Phrs;
-      else
-        phrase = "";
-      end if;
-      // create subtype
-      create object instance ref_to_form of ReferenceToFormalizer;
-      create object instance binary_ref_to_form of BinaryReferenceToFormalizer;
-      relate acr to ref_to_form across R413;
-      relate ref_to_form to binary_ref_to_form across R443;
-      binary_ref_to_form.unconditional = foreign_form.Cond == 0;
-      // link type
-      select any s_irdt related by foreign_form->R_RGO[R205]->R_OIR[R203]->O_OBJ[R201]->S_IRDT[R123] where ( selected.isSet == ( 1 == foreign_form.Mult ) );
-      select one s_dt related by s_irdt->S_DT[R17];
-      type = UnresolvedType::getInstance( s_dt:s_dt );
-      relate type to acr across R425.''defines class type for'';
-      // create referred to class
-      select one foreign_obj related by foreign_form->R_RGO[R205]->R_OIR[R203]->O_OBJ[R201]->Class[R409.''is basis for''];
-      create object instance rto of ReferencedClassType;
-      relate foreign_obj to acr across R444 using rto;
-    end if;
-    if ( not_empty foreign_sub )
-      // create the ACR instance
-      create object instance acr of AssociatedClassReference;
-      relate acr to obj across R411.''provides relational link for'';
-      acr.rel_numb = r_rel.Numb;
-      // create subtype
-      create object instance ref_to_form of ReferenceToFormalizer;
-      create object instance ref_to_sub of ReferenceToSubtype;
-      relate acr to ref_to_form across R413;
-      relate ref_to_form to ref_to_sub across R443;
-    end if;
-    if ( not_empty foreign_assr )
-      // create the ACR instance
-      create object instance acr of AssociatedClassReference;
-      relate acr to obj across R411.''provides relational link for'';
-      acr.rel_numb = r_rel.Numb;
-      create object instance ref_to_form of ReferenceToFormalizer;
-      create object instance ref_to_assr of ReferenceToAssociator;
-      // only include the text phrase if the relationship is reflexive
-      if ( ::r_rel_is_reflexive( r_rel:r_rel ) )
-        select one corresponding_oth related by r_aone->R_ASSOC[R209]->R_AOTH[R210];
-        if ( not_empty corresponding_oth )
-          phrase = corresponding_oth.Txt_Phrs;
-          ref_to_assr.unconditional = corresponding_oth.Cond == 0;
-        else
-          select one corresponding_one related by r_aoth->R_ASSOC[R210]->R_AONE[R209];
-          phrase = corresponding_one.Txt_Phrs;
-          ref_to_assr.unconditional = corresponding_one.Cond == 0;
-        end if;
-      else
-        phrase = "";
-      end if;
-      relate acr to ref_to_form across R413;
-      relate ref_to_form to ref_to_assr across R443;
-    end if;
-  end if;
-else
-  // TODO bad
-end if;',
-	"ba5eda7a-def5-0000-0000-000000000000",
-	1,
-	'',
-	0);
-INSERT INTO S_SPARM
-	VALUES ("010f9699-a21a-4a4a-bf15-ba9cc2602f63",
-	"6984d6cb-ca5f-4c52-90ce-a69cc62404e9",
-	'r_oir',
-	"ba5eda7a-def5-0000-0000-000000000005",
-	0,
-	'',
-	"00000000-0000-0000-0000-000000000000",
-	'');
-INSERT INTO S_SPARM
-	VALUES ("335f7d67-f86f-42bb-a0a6-cff9faa0fcad",
-	"6984d6cb-ca5f-4c52-90ce-a69cc62404e9",
-	'foreign_oir',
-	"ba5eda7a-def5-0000-0000-000000000005",
-	0,
-	'',
-	"010f9699-a21a-4a4a-bf15-ba9cc2602f63",
-	'');
-INSERT INTO PE_PE
-	VALUES ("6984d6cb-ca5f-4c52-90ce-a69cc62404e9",
 	1,
 	"06787f13-1c16-4275-879c-00bbeee7cb88",
 	"00000000-0000-0000-0000-000000000000",
@@ -1669,7 +1387,6 @@ select many r_oirs related by r_rel->R_OIR[R201];
 for each r_oir in r_oirs
   select many foreign_oirs related by r_rel->R_OIR[R201] where ( selected.OIR_ID != r_oir.OIR_ID );
   for each foreign_oir in foreign_oirs
-    ::transformAssociatedClassReference( r_oir:r_oir.OIR_ID, foreign_oir: foreign_oir.OIR_ID );
   end for;
 end for;
 
