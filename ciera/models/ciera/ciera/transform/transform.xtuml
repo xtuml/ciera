@@ -1381,18 +1381,140 @@ INSERT INTO S_SYNC
 	'transformAssociation',
 	'',
 	'r_rel = param.r_rel;
+select one ep_pkg related by r_rel->PE_PE[R8001]->EP_PKG[R8000];
 
-// create an ACR for each oir
-select many r_oirs related by r_rel->R_OIR[R201];
-for each r_oir in r_oirs
-  select many foreign_oirs related by r_rel->R_OIR[R201] where ( selected.OIR_ID != r_oir.OIR_ID );
-  for each foreign_oir in foreign_oirs
-  end for;
-end for;
+// create the relationship file
+create object instance file of File;
+file.name = "R" + STR::itoa( i:r_rel.Numb );
+file.path = ::ep_pkgToPath( ep_pkg:ep_pkg );
+file.package = ::pathToPackage( path:file.path );
+file.extension = ".java";
 
-// hook up linkers, relators, unlinkers and unrelators
+// create the relationship
+create object instance rel of Relationship;
+rel.num = r_rel.Numb;
+rel.extends = "Relationship";
+relate rel to file across R401;
 
-// create referential attributes',
+// create the relationsip subtype
+select one r_simp related by r_rel->R_SIMP[R206];
+if ( not_empty r_simp )
+
+  // create the subtype
+  create object instance binary of BinaryRelationship;
+  relate binary to rel across R433;
+  
+  // Link the ''one'' and ''other'' classes. If there is a R_FORM, it is considered
+  // the ''one''. Otherwise, an arbitrary ''one'' and ''other'' are chosen
+  select one r_form_class related by r_simp->R_FORM[R208]->R_RGO[R205]->R_OIR[R203]->O_OBJ[R201]->Class[R409.''is basis for''];
+  if ( not_empty r_form_class )
+    select any r_part_class related by r_simp->R_PART[R207]->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->Class[R409.''is basis for''];
+    if ( not_empty r_part_class )
+      relate r_form_class to binary across R434.''one class for'';
+      relate r_part_class to binary across R435.''other class for'';
+      select one form_type related by r_form_class->Type[R407];
+      form_type.addToImports( file:file );
+      select one part_tpye related by r_part_class->Type[R407];
+      part_tpye.addToImports( file:file );
+    else
+      // TODO bad
+    end if;
+  else
+    select any r_part1_class related by r_simp->R_PART[R207]->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->Class[R409.''is basis for''];
+    select any r_part2_class related by r_simp->R_PART[R207]->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->Class[R409.''is basis for''] where ( not ( selected.name == r_part1_class.name and
+                                                                                                                                              selected.package == r_part1_class.package ) );
+    if ( not_empty r_part1_class and not_empty r_part2_class )
+      relate r_part1_class to binary across R434.''one class for'';
+      relate r_part2_class to binary across R435.''other class for'';
+      select one part1_type related by r_part1_class->Type[R407];
+      part1_type.addToImports( file:file );
+      select one part2_type related by r_part2_class->Type[R407];
+      part2_type.addToImports( file:file );
+    else
+      // TODO bad
+    end if;
+  end if;
+
+else
+select one r_subsup related by r_rel->R_SUBSUP[R206];
+if ( not_empty r_subsup )
+   
+   // create the subtype
+   create object instance subsup of SubsuperRelationship;
+   relate subsup to rel across R433;
+   
+   // add import
+   ::addStringToImports( file:file, s:"io.ciera.summit.classes.IModelInstance" );
+   
+   // link the ''super'' class
+   select one r_super_class related by r_subsup->R_SUPER[R212]->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->Class[R409.''is basis for''];
+   if ( not_empty r_super_class )
+     relate r_super_class to subsup across R436.''supertype class for'';
+     select one super_type related by r_super_class->Type[R407];
+     super_type.addToImports( file:file );
+   else
+     // TODO bad
+   end if;
+   
+   // link all the ''sub'' classes
+   select many r_sub_classes related by r_subsup->R_SUB[R213]->R_RGO[R205]->R_OIR[R203]->O_OBJ[R201]->Class[R409.''is basis for''];
+   if ( cardinality r_sub_classes > 0 )
+     for each r_sub_class in r_sub_classes
+       create object instance class_as_sub of ClassAsSubtype;
+       relate r_sub_class to subsup across R437.''subtype class for'' using class_as_sub;
+       select one sub_type related by r_super_class->Type[R407];
+       sub_type.addToImports( file:file );
+     end for;
+   else
+     // TODO bad
+   end if;
+
+else
+select one r_assoc related by r_rel->R_ASSOC[R206];
+if ( not_empty r_assoc )
+  
+  // create subtype
+  create object instance assoc of AssociativeRelationship;
+  relate assoc to rel across R433;
+  
+  // link the ''one'' class
+  select one r_aone_class related by r_assoc->R_AONE[R209]->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->Class[R409.''is basis for''];
+  if ( not_empty r_aone_class )
+    relate r_aone_class to assoc across R438.''one class for'';
+    select one aone_type related by r_aone_class->Type[R407];
+    aone_type.addToImports( file:file );
+  else
+    // TODO bad
+  end if;
+
+  // link the ''other'' class
+  select one r_aoth_class related by r_assoc->R_AOTH[R210]->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->Class[R409.''is basis for''];
+  if ( not_empty r_aoth_class )
+    relate r_aoth_class to assoc across R439.''other class for'';
+    select one aoth_type related by r_aoth_class->Type[R407];
+    aoth_type.addToImports( file:file );
+  else
+    // TODO bad
+  end if;
+  
+  // link the ''link'' class
+  select one r_assr_class related by r_assoc->R_ASSR[R211]->R_RGO[R205]->R_OIR[R203]->O_OBJ[R201]->Class[R409.''is basis for''];
+  if ( not_empty r_assr_class )
+    relate r_assr_class to assoc across R440.''link class for'';
+    select one assr_type related by r_assr_class->Type[R407];
+    assr_type.addToImports( file:file );
+  else
+    // TODO bad
+  end if;
+
+else
+  // TODO bad
+end if; end if; end if;
+
+// create relationship references
+
+// add necessary imports
+::addStringToImports( file:file, s:"io.ciera.cairn.classes.Relationship" );',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',

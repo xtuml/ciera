@@ -6,7 +6,6 @@ import io.ciera.summit.util.UniqueId;
 
 public interface IModelInstance extends EventTarget, Comparable<IModelInstance> {
     
-    public int getClassNumber();
     public String getKeyLetters();
     public UniqueId getInstanceId();
     public void checkLiving() throws XtumlException;

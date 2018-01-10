@@ -82,11 +82,6 @@ public abstract class ModelInstance implements IModelInstance {
 class EmptyModelInstance extends ModelInstance implements IEmptyInstance {
 
     @Override
-    public int getClassNumber() {
-        return 0;
-    }
-
-    @Override
     public String getKeyLetters() {
         return null;
     }
