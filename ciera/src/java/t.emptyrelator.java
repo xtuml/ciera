@@ -10,7 +10,7 @@ T_b(phrase);
 T_b("( ");
 T_b(type_name);
 T_b(" ");
-T_b(type_name);
+T_b(T_l(type_name));
 T_b(" ) throws XtumlException {");
 T_b("\n");
 T_b("        ");

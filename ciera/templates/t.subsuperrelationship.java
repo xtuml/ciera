@@ -5,9 +5,9 @@ ${imports}
 public class ${name} extends ${extends} {
 
   // supertype class
-  private ${supertype_class_name} sup;
+  private ${supertype_class_name} $l{supertype_class_name};
 
   // subtype class
-  private IModelInstance sub;
+  private IModelInstance subtype;
 
 }
