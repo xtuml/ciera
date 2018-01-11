@@ -530,6 +530,49 @@ INSERT INTO PE_PE
 	"65dec46c-ec8b-4464-b227-a7853cadd3b4",
 	"00000000-0000-0000-0000-000000000000",
 	1);
+INSERT INTO S_SYNC
+	VALUES ("bfe0ba14-5516-41e9-9953-ffbf536c26ca",
+	"00000000-0000-0000-0000-000000000000",
+	'oirGetPhrase',
+	'',
+	'select any r_oir from instances of R_OIR where ( selected.OIR_ID == param.r_oir_id );
+phrase = "";
+select one r_part related by r_oir->R_RTO[R203]->R_PART[R204];
+if ( not_empty r_part )
+  phrase = r_part.Txt_Phrs;
+else
+select one r_form related by r_oir->R_RGO[R203]->R_FORM[R205];
+if ( not_empty r_form )
+  phrase = r_form.Txt_Phrs;
+else
+select one r_aone related by r_oir->R_RTO[R203]->R_AONE[R204];
+if ( not_empty r_aone )
+  phrase = r_aone.Txt_Phrs;
+else
+select one r_aoth related by r_oir->R_RTO[R203]->R_AOTH[R204];
+if ( not_empty r_aoth )
+  phrase = r_aoth.Txt_Phrs;
+end if; end if; end if; end if;
+return phrase;',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("b6fa1c16-12ed-4a37-8e66-5555a1b945b6",
+	"bfe0ba14-5516-41e9-9953-ffbf536c26ca",
+	'r_oir_id',
+	"ba5eda7a-def5-0000-0000-000000000005",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO PE_PE
+	VALUES ("bfe0ba14-5516-41e9-9953-ffbf536c26ca",
+	1,
+	"65dec46c-ec8b-4464-b227-a7853cadd3b4",
+	"00000000-0000-0000-0000-000000000000",
+	1);
 INSERT INTO PE_PE
 	VALUES ("65dec46c-ec8b-4464-b227-a7853cadd3b4",
 	1,

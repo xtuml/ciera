@@ -1538,6 +1538,37 @@ else
 end if; end if; end if;
 
 // create relationship references
+select many r_oirs related by r_rel->R_OIR[R201];
+for each r_oir in r_oirs
+  // get the opposite oir
+  select one opposite_oir related by r_oir->R_RTO[R203]->R_PART[R204]->R_SIMP[R207]->R_FORM[R208]->R_RGO[R205]->R_OIR[R203];
+  if ( empty opposite_oir )
+  select any opposite_oir related by r_oir->R_RGO[R203]->R_FORM[R205]->R_SIMP[R208]->R_PART[R207]->R_RTO[R204]->R_OIR[R203];
+  if ( empty opposite_oir )
+  select any opposite_oir related by r_oir->R_RTO[R203]->R_PART[R204]->R_SIMP[R207]->R_PART[R207]->R_RTO[R204]->R_OIR[R203] where ( selected.OIR_ID != r_oir.OIR_ID );
+  if ( empty opposite_oir )
+  select one opposite_oir related by r_oir->R_RTO[R203]->R_AONE[R204]->R_ASSOC[R209]->R_AOTH[R210]->R_RTO[R204]->R_OIR[R203];
+  if ( empty opposite_oir )
+  select one opposite_oir related by r_oir->R_RTO[R203]->R_AOTH[R204]->R_ASSOC[R210]->R_AONE[R209]->R_RTO[R204]->R_OIR[R203];
+  end if; end if; end if; end if;
+  // get the class object
+  select one _class related by r_oir->O_OBJ[R201]->Class[R409.''is basis for''];
+  if ( not_empty _class )
+    // create relationship reference
+    create object instance rel_ref of RelationshipReference;
+    relate rel_ref to _class across R432.''provides link for'';
+    relate rel_ref to rel across R441.''refers to instances of'';
+    rel_ref.name = T::l( s:rel.name );
+    if ( not_empty opposite_oir )
+      phrase = ::oirGetPhrase( r_oir_id:opposite_oir.OIR_ID );
+      if ( "" != phrase )
+        rel_ref.name = rel_ref.name + "_" + T::underscore( s:phrase );
+      end if;
+    end if;
+  else
+    // TODO bad
+  end if;
+end for;
 
 // add necessary imports
 ::addStringToImports( file:file, s:"io.ciera.cairn.classes.Relationship" );',
