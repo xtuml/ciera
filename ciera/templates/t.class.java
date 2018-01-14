@@ -24,15 +24,6 @@ ${operations}
     
     // selections
 ${selectors}
-    
-    // relates
-${relators}
-    
-    // unrelates
-${unrelators}
-
-    // associations
-${associations}
 
     // empty instance
     public static final ${name} empty${name} = new Empty${name}();
@@ -55,11 +46,5 @@ class Empty${name} extends ${name} implements IEmptyInstance {
 
     // selections
 ${empty_selectors}
-
-    // relates
-${empty_relators}
-
-    // unrelates
-${empty_unrelators}
 
 }
