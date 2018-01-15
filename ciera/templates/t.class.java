@@ -8,15 +8,11 @@ public class ${name} extends ${extends} {
 
     // constructor
     public ${name}() {
-.if ( stateful )
-        super( new ${name}InstanceStateMachine() );
-.else
         super();
-.end if
 ${attribute_initializers}
     }
     
-    // class attributes
+    // attributes
 ${attributes}
 
     // operations

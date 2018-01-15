@@ -28,7 +28,13 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'',
+	'type_name = self.type_name;
+capital_name = self.capital_name;
+referential_getters = self.referential_getters;
+referential_setters = self.referential_setters;
+attribute_processor = self.attribute_processor;
+name = self.name;
+T::include( file:"java/t.attributeaccessors.java" );',
 	1,
 	'',
 	"e6b12a3a-b6d0-43ad-bcce-133247e27cf0",
@@ -396,9 +402,14 @@ INSERT INTO O_ATTR
 	"ba5eda7a-def5-0000-0000-000000000004",
 	'',
 	'');
-INSERT INTO O_NBATTR
+INSERT INTO O_DBATTR
 	VALUES ("17c411bd-8fe8-424f-b7e1-e15130d3b92f",
-	"bb5ee8e4-4865-4664-a642-5a8bde07c9ad");
+	"bb5ee8e4-4865-4664-a642-5a8bde07c9ad",
+	'first_letter = T::c( s:STR::substr( s:self.base_name, begin:0, end:1 ) );
+the_rest = STR::substr( s:self.base_name, begin:1, end:-1 );
+self.capital_name = first_letter + the_rest;',
+	1,
+	0);
 INSERT INTO O_BATTR
 	VALUES ("17c411bd-8fe8-424f-b7e1-e15130d3b92f",
 	"bb5ee8e4-4865-4664-a642-5a8bde07c9ad");
@@ -415,50 +426,73 @@ INSERT INTO O_ATTR
 	'',
 	'');
 INSERT INTO O_DBATTR
-	VALUES ("4a091fbe-ae57-440a-afdb-9e69fcb65297",
+	VALUES ("10cf4236-f659-4b30-b8b4-f289cca030c9",
 	"bb5ee8e4-4865-4664-a642-5a8bde07c9ad",
-	'self.is_referential = false; // TODO',
+	'self.referential_getters = "";',
 	1,
 	0);
 INSERT INTO O_BATTR
-	VALUES ("4a091fbe-ae57-440a-afdb-9e69fcb65297",
+	VALUES ("10cf4236-f659-4b30-b8b4-f289cca030c9",
 	"bb5ee8e4-4865-4664-a642-5a8bde07c9ad");
 INSERT INTO O_ATTR
-	VALUES ("4a091fbe-ae57-440a-afdb-9e69fcb65297",
+	VALUES ("10cf4236-f659-4b30-b8b4-f289cca030c9",
 	"bb5ee8e4-4865-4664-a642-5a8bde07c9ad",
-	"fd115fc3-d133-40e8-b78b-962a468a2950",
-	'is_referential',
+	"17cc2222-ccaf-43e4-9416-585faea31197",
+	'referential_getters',
 	'',
 	'',
-	'is_referential',
+	'referential_getters',
 	0,
-	"ba5eda7a-def5-0000-0000-000000000001",
+	"ba5eda7a-def5-0000-0000-000000000004",
 	'',
 	'');
 INSERT INTO O_DBATTR
-	VALUES ("f388a6d0-09d6-4d0d-8b38-99abcd3e3e89",
+	VALUES ("bdcfaf81-50ab-4e9a-9bbe-75cf4f0a8c3f",
 	"bb5ee8e4-4865-4664-a642-5a8bde07c9ad",
-	'select one builtin_type related by self->Type[R424.''is typed by'']->BuiltInType[R407];
-if ( not_empty builtin_type )
-  self.is_primitive_type = builtin_type.primitive;
+	'self.referential_setters = "";',
+	1,
+	0);
+INSERT INTO O_BATTR
+	VALUES ("bdcfaf81-50ab-4e9a-9bbe-75cf4f0a8c3f",
+	"bb5ee8e4-4865-4664-a642-5a8bde07c9ad");
+INSERT INTO O_ATTR
+	VALUES ("bdcfaf81-50ab-4e9a-9bbe-75cf4f0a8c3f",
+	"bb5ee8e4-4865-4664-a642-5a8bde07c9ad",
+	"10cf4236-f659-4b30-b8b4-f289cca030c9",
+	'referential_setters',
+	'',
+	'',
+	'referential_setters',
+	0,
+	"ba5eda7a-def5-0000-0000-000000000004",
+	'',
+	'');
+INSERT INTO O_DBATTR
+	VALUES ("17cc2222-ccaf-43e4-9416-585faea31197",
+	"bb5ee8e4-4865-4664-a642-5a8bde07c9ad",
+	'select one attr_proc related by self->AttributeProcessor[R441];
+if ( not_empty attr_proc )
+  attr_proc.render();
+  self.attribute_processor = T::body();
+  T::clear();
 else
-  self.is_primitive_type = false;
+  self.attribute_processor = "";
 end if;',
 	1,
 	0);
 INSERT INTO O_BATTR
-	VALUES ("f388a6d0-09d6-4d0d-8b38-99abcd3e3e89",
+	VALUES ("17cc2222-ccaf-43e4-9416-585faea31197",
 	"bb5ee8e4-4865-4664-a642-5a8bde07c9ad");
 INSERT INTO O_ATTR
-	VALUES ("f388a6d0-09d6-4d0d-8b38-99abcd3e3e89",
+	VALUES ("17cc2222-ccaf-43e4-9416-585faea31197",
 	"bb5ee8e4-4865-4664-a642-5a8bde07c9ad",
-	"4a091fbe-ae57-440a-afdb-9e69fcb65297",
-	'is_primitive_type',
+	"fd115fc3-d133-40e8-b78b-962a468a2950",
+	'attribute_processor',
 	'',
 	'',
-	'is_primitive_type',
+	'attribute_processor',
 	0,
-	"ba5eda7a-def5-0000-0000-000000000001",
+	"ba5eda7a-def5-0000-0000-000000000004",
 	'',
 	'');
 INSERT INTO O_ID

@@ -773,11 +773,21 @@ relate attr to obj across R410;
 
 // set the type
 select one s_dt related by o_attr->S_DT[R114];
+if ( "same_as<Base_Attribute>" == s_dt.Name )
+  select one s_dt related by o_attr->O_RATTR[R106]->O_BATTR[R113]->O_ATTR[R106]->S_DT[R114];
+end if;
+if ( empty s_dt )
+  // TODO bad
+end if;
 type = UnresolvedType::getInstance( s_dt:s_dt );
 relate type to attr across R424;
 
-// linke OOA attribute
-relate o_attr to attr across R414;',
+// link OOA attribute
+relate o_attr to attr across R414;
+
+// add import to object file
+select one file related by obj->File[R401];
+::addStringToImports( file:file, s:"io.ciera.summit.exceptions.XtumlException" );',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',

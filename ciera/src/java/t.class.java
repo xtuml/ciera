@@ -26,17 +26,9 @@ T_b("public ");
 T_b(name);
 T_b("() {");
 T_b("\n");
-if ( stateful ) {
-T_b("        ");
-T_b("super( new ");
-T_b(name);
-T_b("InstanceStateMachine() );");
-T_b("\n");
-} else {
 T_b("        ");
 T_b("super();");
 T_b("\n");
-}
 T_b(attribute_initializers);
 T_b("\n");
 T_b("    ");
@@ -46,7 +38,7 @@ T_b("   ");
 T_b(" ");
 T_b("\n");
 T_b("    ");
-T_b("// class attributes");
+T_b("// attributes");
 T_b("\n");
 T_b(attributes);
 T_b("\n");
