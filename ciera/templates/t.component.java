@@ -9,6 +9,8 @@ public class ${name} extends ${extends} {
 
     public ${name}() {
         super(${port_initializers});
+        setClasses();
+        setRelationships();
     }
     
     // selections
@@ -31,6 +33,16 @@ ${init}
     @Override
     public Map<Integer, Class<?>> getRelationships() {
         return relationships;
+    }
+
+    private void setClasses() {
+        classes = new HashMap<>();
+${classes}\
+    }
+
+    private void setRelationships() {
+        relationships = new HashMap<>();
+${relationships}\
     }
 
 }
