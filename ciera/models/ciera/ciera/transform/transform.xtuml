@@ -242,25 +242,6 @@ for each c_i in c_is
   ::transformInterface( c_i:c_i );
 end for;
 
-// transform classes
-select many o_objs related by pe_pes->O_OBJ[R8001];
-for each o_obj in o_objs
-  ::transformClass( o_obj:o_obj, containing_comp_def:containing_comp_def );
-end for;
-
-// transform imported classes (must be done before associations are transformed)
-select many o_iobjs related by pe_pes->O_IOBJ[R8001];
-for each o_iobj in o_iobjs
-  select one o_obj related by o_iobj->O_OBJ[R101];
-  ::transformClass( o_obj:o_obj, containing_comp_def:containing_comp_def );
-end for;
-
-// transform associations
-select many r_rels related by pe_pes->R_REL[R8001];
-for each r_rel in r_rels
-  ::transformAssociation( r_rel:r_rel );
-end for;
-
 // transform datatypes
 select many edts related by pe_pes->S_DT[R8001]->S_EDT[R17]->S_DT[R17];
 for each edt in edts
@@ -289,6 +270,31 @@ for each s_ee in s_ees
   for each s_brg in s_brgs
     ::transformBridgeFunction( s_brg:s_brg, fp:fp, comp_def:containing_comp_def );
   end for;
+end for;
+
+// transform classes
+select many o_objs related by pe_pes->O_OBJ[R8001];
+for each o_obj in o_objs
+  ::transformClass( o_obj:o_obj, containing_comp_def:containing_comp_def );
+end for;
+
+// transform imported classes (must be done before associations are transformed)
+select many o_iobjs related by pe_pes->O_IOBJ[R8001];
+for each o_iobj in o_iobjs
+  select one o_obj related by o_iobj->O_OBJ[R101];
+  ::transformClass( o_obj:o_obj, containing_comp_def:containing_comp_def );
+end for;
+
+// transform associations
+select many r_rels related by pe_pes->R_REL[R8001];
+for each r_rel in r_rels
+  ::transformAssociation( r_rel:r_rel );
+end for;
+
+// transform selectors
+select many objs related by o_objs->Class[R409.''is basis for''];
+for each obj in objs
+  ::transformSelectors( obj:obj );
 end for;
 
 // transform components
@@ -721,6 +727,7 @@ for each unresolved_type in unresolved_types
   end if;
   end if;
   
+  // unrelate old types and hook up the new types
   if ( not_empty new_type )
     select one old_type related by unresolved_type->Type[R407];
     select many attrs related by old_type->Attribute[R424];
@@ -737,6 +744,11 @@ for each unresolved_type in unresolved_types
     for each parm in parms
       unrelate old_type from parm across R431;
       relate new_type to parm across R431;
+    end for;
+    select many selectors related by old_type->Selector[R446.''shapes return of''];
+    for each selector in selectors
+      unrelate old_type from selector across R446.''shapes return of'';
+      relate new_type to selector across R446.''shapes return of'';
     end for;
     old_type.dispose();
   end if;
@@ -974,6 +986,14 @@ for each type in types
     type.addToImports( file:file );
   end for;
   select many files related by type->InvocableObject[R428]->Message[R427]->Port[R420]->File[R401];
+  for each file in files
+    type.addToImports( file:file );
+  end for;
+  select many files related by type->Selector[R446.''shapes return of'']->InstanceSelector[R445]->Class[R442.''navigates from'']->File[R401];
+  for each file in files
+    type.addToImports( file:file );
+  end for;
+  select many files related by type->Selector[R446.''shapes return of'']->SetSelector[R445]->ClassSet[R444.''navigates from'']->File[R401];
   for each file in files
     type.addToImports( file:file );
   end for;
@@ -1434,10 +1454,31 @@ if ( not_empty r_simp )
       part_tpye.addToImports( file:file );
       // set phrases
       if ( "" != r_form.Txt_Phrs )
-        binary.one_phrase = r_form.Txt_Phrs + "_";
+        binary.one_phrase = r_form.Txt_Phrs;
       end if;
       if ( "" != r_part.Txt_Phrs )
-        binary.other_phrase = r_part.Txt_Phrs + "_";
+        binary.other_phrase = r_part.Txt_Phrs;
+      end if;
+      // set conditionalities and multiplicities
+      if ( 0 == r_form.Cond )
+        binary.one_conditionality = Cond::UNCONDITIONAL;
+      else
+        binary.one_conditionality = Cond::CONDITIONAL;
+      end if;
+      if ( 0 == r_form.Mult )
+        binary.one_multiplicity = Mult::ONE;
+      else
+        binary.one_multiplicity = Mult::MANY;
+      end if;
+      if ( 0 == r_part.Cond )
+        binary.other_conditionality = Cond::UNCONDITIONAL;
+      else
+        binary.other_conditionality = Cond::CONDITIONAL;
+      end if;
+      if ( 0 == r_part.Mult )
+        binary.other_multiplicity = Mult::ONE;
+      else
+        binary.other_multiplicity = Mult::MANY;
       end if;
     else
       // TODO bad
@@ -1458,10 +1499,31 @@ if ( not_empty r_simp )
       part2_type.addToImports( file:file );
       // set phrases
       if ( "" != r_part1.Txt_Phrs )
-        binary.one_phrase = r_part1.Txt_Phrs + "_";
+        binary.one_phrase = r_part1.Txt_Phrs;
       end if;
       if ( "" != r_part2.Txt_Phrs )
-        binary.other_phrase = r_part2.Txt_Phrs + "_";
+        binary.other_phrase = r_part2.Txt_Phrs;
+      end if;
+      // set conditionalities and multiplicities
+      if ( 0 == r_part1.Cond )
+        binary.one_conditionality = Cond::UNCONDITIONAL;
+      else
+        binary.one_conditionality = Cond::CONDITIONAL;
+      end if;
+      if ( 0 == r_part1.Mult )
+        binary.one_multiplicity = Mult::ONE;
+      else
+        binary.one_multiplicity = Mult::MANY;
+      end if;
+      if ( 0 == r_part2.Cond )
+        binary.other_conditionality = Cond::UNCONDITIONAL;
+      else
+        binary.other_conditionality = Cond::CONDITIONAL;
+      end if;
+      if ( 0 == r_part2.Mult )
+        binary.other_multiplicity = Mult::ONE;
+      else
+        binary.other_multiplicity = Mult::MANY;
       end if;
     else
       // TODO bad
@@ -1531,10 +1593,10 @@ if ( not_empty r_assoc )
     assr_type.addToImports( file:file );
     // set phrases
     if ( "" != r_aone.Txt_Phrs )
-      assoc.one_phrase = r_aone.Txt_Phrs + "_";
+      assoc.one_phrase = r_aone.Txt_Phrs;
     end if;
     if ( "" != r_aoth.Txt_Phrs )
-      assoc.other_phrase = r_aoth.Txt_Phrs + "_";
+      assoc.other_phrase = r_aoth.Txt_Phrs;
     end if;
   else
     // TODO bad
@@ -1569,6 +1631,189 @@ INSERT INTO S_DT_PROXY
 	'../../../../../mcooa/models/mcooa/ooaofooa/Association/Association.xtuml');
 INSERT INTO PE_PE
 	VALUES ("65d02f39-685e-434b-971f-e57fb66067f8",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("805f004a-96b0-4655-b033-f9311da42460",
+	"00000000-0000-0000-0000-000000000000",
+	'transformSelectors',
+	'',
+	'obj = param.obj;
+
+// transform selectors for binary associations
+select many one_binary_rels related by obj->BinaryRelationship[R434.''one class for''];
+for each one_binary_rel in one_binary_rels
+  select one one_rel related by one_binary_rel->Relationship[R433];
+  select one other_obj related by one_binary_rel->Class[R435.''has other''];
+  ::transformSelector( obj:obj, target_class_name: one_binary_rel.other_class_name, rel_num:one_rel.num,
+                       phrase:one_binary_rel.other_phrase, cond:one_binary_rel.other_conditionality,
+                       mult:one_binary_rel.other_multiplicity, other_obj:other_obj );
+end for;
+select many other_binary_rels related by obj->BinaryRelationship[R435.''other class for''];
+for each other_binary_rel in other_binary_rels
+  select one other_rel related by other_binary_rel->Relationship[R433];
+  select one one_obj related by other_binary_rel->Class[R434.''has one''];
+  ::transformSelector( obj:obj, target_class_name: other_binary_rel.one_class_name, rel_num:other_rel.num,
+                       phrase:other_binary_rel.one_phrase, cond:other_binary_rel.one_conditionality,
+                       mult:other_binary_rel.one_multiplicity, other_obj:one_obj );
+end for;
+
+// transform selectors for linked associations
+// TODO
+
+// transform selectors for subsuper associations
+// TODO
+
+// if there are any relationships, add type imports
+num_rels = cardinality one_binary_rels + cardinality other_binary_rels; // TODO etc
+if ( num_rels > 0 )
+  select one file related by obj->File[R401];
+  ::addStringToImports( file:file, s:"io.ciera.summit.classes.IWhere" );
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("20d5b38b-69c9-4fdd-a4d2-5fddb7bcf9bd",
+	"805f004a-96b0-4655-b033-f9311da42460",
+	'obj',
+	"ac93823e-2644-440b-977c-1f4e8480ec59",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO PE_PE
+	VALUES ("805f004a-96b0-4655-b033-f9311da42460",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("47432932-84af-42f4-8df8-1fefb66ca9b3",
+	"00000000-0000-0000-0000-000000000000",
+	'transformSelector',
+	'',
+	'obj = param.obj;
+other_obj = param.other_obj;
+
+// create the instance selector
+if ( Mult::ONE == param.mult )
+
+  // create a single selector
+  name = "selectOneR" + STR::itoa( i:param.rel_num );
+  if ( "" != param.phrase )
+    name = name + "_" + T::underscore( s:param.phrase );
+  end if;
+  name = name + "_" + param.target_class_name;
+  create object instance sel of Selector;
+  sel.parent_name = obj.name;
+  sel.parent_package = obj.package;
+  sel.name = name;
+  sel.unconditional = ( Cond::UNCONDITIONAL == param.cond );
+  create object instance inst_sel of InstanceSelector;
+  relate inst_sel to sel across R445;
+  relate inst_sel to obj across R442.''navigates from'';
+
+  // link up type
+  select any s_irdt related by other_obj->O_OBJ[R409.''is transformed from'']->S_IRDT[R123] where ( not selected.isSet );
+  select one s_dt related by s_irdt->S_DT[R17];
+  if ( empty s_dt )
+    // TODO bad
+  end if;
+  type = UnresolvedType::getInstance( s_dt:s_dt );
+  relate type to sel across R446.''shapes return of'';
+
+else
+  // TODO
+end if;
+
+// create set selector',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("b81cbde9-cf73-4bf5-b4f8-3eb2e2cc1593",
+	"47432932-84af-42f4-8df8-1fefb66ca9b3",
+	'obj',
+	"ac93823e-2644-440b-977c-1f4e8480ec59",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("a36f73e6-39bf-4863-912d-294bd48d6003",
+	"47432932-84af-42f4-8df8-1fefb66ca9b3",
+	'target_class_name',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"b81cbde9-cf73-4bf5-b4f8-3eb2e2cc1593",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("f708f32f-8d0f-40ec-9cc7-0fd1733c8f48",
+	"47432932-84af-42f4-8df8-1fefb66ca9b3",
+	'rel_num',
+	"ba5eda7a-def5-0000-0000-000000000002",
+	0,
+	'',
+	"a36f73e6-39bf-4863-912d-294bd48d6003",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("0fc92035-82d5-4383-b4ae-026358c73fb5",
+	"47432932-84af-42f4-8df8-1fefb66ca9b3",
+	'phrase',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"f708f32f-8d0f-40ec-9cc7-0fd1733c8f48",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("e4b07e41-5de1-453c-b389-7cab38261f79",
+	"47432932-84af-42f4-8df8-1fefb66ca9b3",
+	'cond',
+	"a2a4c58a-abbb-4d3a-afee-8f80d4ab0cd4",
+	0,
+	'',
+	"0fc92035-82d5-4383-b4ae-026358c73fb5",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("a2a4c58a-abbb-4d3a-afee-8f80d4ab0cd4",
+	"00000000-0000-0000-0000-000000000000",
+	'Cond',
+	'',
+	'',
+	'../types/types.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("1ac9195e-0a27-4cad-81de-677a96ff5688",
+	"47432932-84af-42f4-8df8-1fefb66ca9b3",
+	'mult',
+	"8774ba5f-d952-424f-a26a-4815240d9ec8",
+	0,
+	'',
+	"e4b07e41-5de1-453c-b389-7cab38261f79",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("8774ba5f-d952-424f-a26a-4815240d9ec8",
+	"00000000-0000-0000-0000-000000000000",
+	'Mult',
+	'',
+	'',
+	'../types/types.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("85857ae0-d439-4e33-b983-8e7ea2fa5d48",
+	"47432932-84af-42f4-8df8-1fefb66ca9b3",
+	'other_obj',
+	"ac93823e-2644-440b-977c-1f4e8480ec59",
+	0,
+	'',
+	"1ac9195e-0a27-4cad-81de-677a96ff5688",
+	'');
+INSERT INTO PE_PE
+	VALUES ("47432932-84af-42f4-8df8-1fefb66ca9b3",
 	1,
 	"06787f13-1c16-4275-879c-00bbeee7cb88",
 	"00000000-0000-0000-0000-000000000000",

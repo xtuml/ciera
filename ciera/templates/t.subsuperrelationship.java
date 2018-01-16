@@ -4,10 +4,10 @@ ${imports}
 
 public class ${name} extends ${extends} {
 
-  // supertype class
-  private UniqueId $l{supertype_class_name};
+    // supertype class
+    private UniqueId ${supertype_class_name};
 
-  // subtype class
-  private UniqueId subtype;
+    // subtype class
+    private UniqueId subtype;
 
 }

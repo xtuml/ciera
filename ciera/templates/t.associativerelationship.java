@@ -4,13 +4,21 @@ ${imports}
 
 public class ${name} extends ${extends} {
 
-  // one class
-  private UniqueId $_l{one_phrase}$l{one_class_name};
+    // one class
+    private UniqueId \
+.if ( "" != one_phrase )
+$_l{one_phrase}_\
+.end if
+${one_class_name};
 
-  // other class
-  private UniqueId $_l{other_phrase}$l{other_class_name};
+    // other class
+    private UniqueId \
+.if ( "" != other_phrase )
+$_l{other_phrase}_\
+.end if
+${other_class_name};
 
-  // link class
-  private UniqueId $l{link_class_name};
+    // link class
+    private UniqueId ${link_class_name};
 
 }
