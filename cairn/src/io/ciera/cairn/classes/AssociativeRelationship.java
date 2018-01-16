@@ -2,6 +2,7 @@ package io.ciera.cairn.classes;
 
 import io.ciera.summit.classes.IAssociativeRelationship;
 import io.ciera.summit.classes.IRelationship;
+import io.ciera.summit.classes.IRelationshipSet;
 
 public abstract class AssociativeRelationship implements IAssociativeRelationship {
 	
@@ -23,6 +24,13 @@ public abstract class AssociativeRelationship implements IAssociativeRelationshi
     	hash = 31 * hash + getOther().hashCode();
     	hash = 31 * hash + getLink().hashCode();
     	return hash;
+    }
+    
+    @Override
+    public IRelationshipSet toSet() {
+    	IRelationshipSet newSet = new AssociativeRelationshipSet( getNumber() );
+    	newSet.add( this );
+    	return newSet;
     }
 
 }

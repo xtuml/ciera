@@ -4,7 +4,8 @@ import io.ciera.summit.util.UniqueId;
 
 public interface IBinaryRelationshipSet extends IRelationshipSet {
 	
-	public IRelationship getByOneId( UniqueId oneId );
-	public IRelationship getByOtherId( UniqueId otherId );
+	public IRelationshipSet getByOneId( UniqueId oneId );
+	public IRelationshipSet getByOtherId( UniqueId otherId );
+	public IRelationship getByInstanceIds( UniqueId oneId, UniqueId otherId );
 
 }

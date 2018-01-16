@@ -7,8 +7,8 @@ public class ${name} extends ${extends} {
     private static final String keyLetters = "${key_letters}";
 
     // constructor
-    public ${name}() {
-        super();
+    public ${name}( IInstancePopulation context ) {
+        super( context );
 ${attribute_initializers}
     }
     
@@ -39,6 +39,10 @@ ${selectors}
 }
 
 class Empty${name} extends ${name} implements IEmptyInstance {
+    
+    public Empty${name}() {
+        super( null );
+    }
 
     // selections
 ${empty_selectors}

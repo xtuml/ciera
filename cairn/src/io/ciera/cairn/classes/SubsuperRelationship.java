@@ -2,6 +2,7 @@ package io.ciera.cairn.classes;
 
 import io.ciera.summit.classes.ISubsuperRelationship;
 import io.ciera.summit.classes.IRelationship;
+import io.ciera.summit.classes.IRelationshipSet;
 
 public abstract class SubsuperRelationship implements ISubsuperRelationship {
 
@@ -21,6 +22,13 @@ public abstract class SubsuperRelationship implements ISubsuperRelationship {
     	hash = 31 * hash + getSupertype().hashCode();
     	hash = 31 * hash + getSubtype().hashCode();
     	return hash;
+    }
+    
+    @Override
+    public IRelationshipSet toSet() {
+    	IRelationshipSet newSet = new SubsuperRelationshipSet( getNumber() );
+    	newSet.add( this );
+    	return newSet;
     }
 
 }

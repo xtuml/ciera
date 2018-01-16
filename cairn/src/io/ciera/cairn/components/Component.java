@@ -13,6 +13,7 @@ public abstract class Component extends InstancePopulation implements IComponent
 	private Map<String, IPort> ports;
     
     public Component( IPort ... ports ) {
+    	/*
         Map<Class<?>, IInstanceSet> instancePopulation = new ConcurrentHashMap<Class<?>, IInstanceSet>();
         for ( Class<?> type : getClasses() ) {
             instancePopulation.put( type, getNewInstanceSetForClass( type ) );
@@ -22,6 +23,7 @@ public abstract class Component extends InstancePopulation implements IComponent
         for ( IPort port : ports ) {
         	this.ports.put( port.getClass().getName(), port );
         }
+        */
     }
 
 	@Override

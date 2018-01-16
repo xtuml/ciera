@@ -56,12 +56,14 @@ public abstract class RelationshipSet implements IRelationshipSet {
 
 	@Override
 	public boolean add( IRelationship e ) {
-		return hashSet.add( e );
+		if ( null != e ) return hashSet.add( e );
+		else return false;
 	}
 
 	@Override
 	public boolean remove( Object o ) {
-		return hashSet.remove( o );
+		if ( null != o ) return hashSet.remove( o );
+		else return false;
 	}
 
 	@Override

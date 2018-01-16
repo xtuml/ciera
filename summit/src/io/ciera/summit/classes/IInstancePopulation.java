@@ -6,11 +6,13 @@ import io.ciera.summit.exceptions.XtumlException;
 
 public interface IInstancePopulation {
 
-    public void setInstancePopulationMap( Map<Class<?>, IInstanceSet> instancePopulation );
-    public IInstanceSet getInstanceSet( Class<?> type );
-    public <T extends IModelInstance> T createObjectInstance( T instance ) throws XtumlException;
-    public <T extends IModelInstance> void deleteObjectInstance( T instance ) throws XtumlException;
-    public IInstanceSet getNewInstanceSetForClass( Class<?> type );
-    public Class<?>[] getClasses();
+    public IInstanceSet getInstanceSet( String keyLetters );
+    public IModelInstance createObjectInstance( String keyLetters ) throws XtumlException;
+    public void deleteObjectInstance( IModelInstance instance ) throws XtumlException;
+    public Map<String, Class<?>> getClasses();
+    public IRelationshipSet getRelationshipSet( int relNum );
+    public void relateAcross( int relNum, IModelInstance ... instances ) throws XtumlException;
+    public void unrelateAcross( int relNum, IModelInstance ... instances ) throws XtumlException;
+    public Map<Integer, Class<?>> getRelationships();
 
 }

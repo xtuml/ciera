@@ -12,7 +12,7 @@ public class ${name} extends ${extends} {
     // subtype class
     private UniqueId subtype;
 
-    public ${name}( UniqueId ${supertype_class_name}, UniqueId subtype ) {
+    public ${name}( UniqueId ${supertype_class_name}, UniqueId subtype ) throws XtumlException {
         this.${supertype_class_name} = ${supertype_class_name};
         this.subtype = subtype;
     }
@@ -30,6 +30,10 @@ public class ${name} extends ${extends} {
     @Override
     public int getNumber() {
         return relNum;
+    }
+
+    @Override
+    public void delete() {
     }
 
 }

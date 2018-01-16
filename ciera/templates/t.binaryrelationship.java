@@ -28,7 +28,7 @@ ${one_class_name}, UniqueId \
 .if ( "" != other_phrase )
 $_l{other_phrase}_\
 .end if
-${other_class_name} ) {
+${other_class_name} ) throws XtumlException {
         this.\
 .if ( "" != one_phrase )
 $_l{one_phrase}_\
@@ -70,6 +70,10 @@ ${other_class_name};
     @Override
     public int getNumber() {
         return relNum;
+    }
+
+    @Override
+    public void delete() {
     }
 
 }
