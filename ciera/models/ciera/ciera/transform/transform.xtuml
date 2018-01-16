@@ -1423,7 +1423,6 @@ file.extension = ".java";
 // create the relationship
 create object instance rel of Relationship;
 rel.num = r_rel.Numb;
-rel.extends = "Relationship";
 relate rel to file across R401;
 
 // create the relationsip subtype
@@ -1435,6 +1434,10 @@ if ( not_empty r_simp )
   relate binary to rel across R433;
   binary.one_phrase = "";
   binary.other_phrase = "";
+
+  // set the extends class
+  rel.extends = "BinaryRelationship";
+  ::addStringToImports( file:file, s:"io.ciera.cairn.classes.BinaryRelationship" );
   
   // Link the ''one'' and ''other'' classes. If there is a R_FORM, it is considered
   // the ''one''. Otherwise, an arbitrary ''one'' and ''other'' are chosen
@@ -1537,6 +1540,10 @@ if ( not_empty r_subsup )
   // create the subtype
   create object instance subsup of SubsuperRelationship;
   relate subsup to rel across R433;
+
+  // set the extends class
+  rel.extends = "SubsuperRelationship";
+  ::addStringToImports( file:file, s:"io.ciera.cairn.classes.SubsuperRelationship" );
   
   // link the ''super'' class
   select one r_super_class related by r_subsup->R_SUPER[R212]->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->Class[R409.''is basis for''];
@@ -1574,6 +1581,10 @@ if ( not_empty r_assoc )
   relate assoc to rel across R433;
   assoc.one_phrase = "";
   assoc.other_phrase = "";
+
+  // set the extends class
+  rel.extends = "AssociativeRelationship";
+  ::addStringToImports( file:file, s:"io.ciera.cairn.classes.AssociativeRelationship" );
   
   // link the ''one'', ''other'', and ''link'' classes
   select one r_aone related by r_assoc->R_AONE[R209];
@@ -1636,7 +1647,6 @@ else
 end if; end if; end if;
 
 // add necessary imports
-::addStringToImports( file:file, s:"io.ciera.cairn.classes.Relationship" );
 ::addStringToImports( file:file, s:"io.ciera.summit.util.UniqueId" );',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
