@@ -130,8 +130,7 @@ file.extension = ".java";
 // create the component definition object
 create object instance comp_def of ComponentDefinition;
 relate comp_def to file across R401;
-comp_def.fully_qualified_name = ::pathToPackage( path:file.path ) + "." + comp_def.name;
-comp_def.init_block_throws_exception = false;
+comp_def.extends = "Component";
 
 // transform ports
 select many c_pos related by c_c->C_PO[R4010];
@@ -145,21 +144,25 @@ for each ep_pkg in ep_pkgs
   ::transformPackage( ep_pkg:ep_pkg, containing_comp_def:comp_def );
 end for;
 
-// transform innter components
+// transform inner components
 select many inner_c_cs related by c_c->PE_PE[R8003]->C_C[R8001];
 for each inner_c_c in inner_c_cs
   ::transformComponentDefinition( c_c:inner_c_c, containing_comp_def:comp_def );
 end for;
 
+
 // create import block
-::addStringToImports( file:file, s:"io.ciera.summit.classes.IWhere" );
-::addStringToImports( file:file, s:"io.ciera.summit.classes.IInstanceSet" );
 select many object_files related by comp_def->Class[R408]->File[R401];
 for each object_file in object_files
   ::addFileToImports( file:file, file_to_import:object_file );
   select one objectset_file related by object_file->Class[R401]->ClassSet[R406]->File[R401];
   ::addFileToImports( file:file, file_to_import:objectset_file );
-end for;',
+end for;
+::addStringToImports( file:file, s:"io.ciera.summit.classes.IWhere" );
+::addStringToImports( file:file, s:"io.ciera.summit.classes.IInstanceSet" );
+::addStringToImports( file:file, s:"io.ciera.summit.exceptions.XtumlException" );
+::addStringToImports( file:file, s:"io.ciera.cairn.components.Component" );
+::addStringToImports( file:file, s:"java.util.Map" );',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -221,9 +224,6 @@ if ( not_empty s_syncs )
   file.package = ::pathToPackage( path:file.path );
   file.extension = ".java";
   
-  // create the import block
-  ::addStringToImports( file:file, s:containing_comp_def.fully_qualified_name );
-  
   // create the function package object
   create object instance fp of FunctionPackage;
   relate fp to file across R401;
@@ -257,9 +257,6 @@ for each s_ee in s_ees
   file.path = ::ep_pkgToPath( ep_pkg:ep_pkg );
   file.package = ::pathToPackage( path:file.path );
   file.extension = ".java";
-  
-  // create the import block
-  ::addStringToImports( file:file, s:containing_comp_def.fully_qualified_name );
   
   // create the function package object
   create object instance fp of FunctionPackage;

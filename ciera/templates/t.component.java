@@ -1,42 +1,36 @@
-package ${package_name};
+package ${package};
 
-${import_block}
+${imports}
 
-public class ${component_name} extends ${extends_class} {
+public class ${name} extends ${extends} {
     
-    private static final Class<?>[] classes = new Class<?>[] {
-        ${class_list}
-    };
+    private Map<String, Class<?>> classes;
+    private Map<Integer, Class<?>> relationships;
 
-    public ${component_name}() {
-        super(${port_initializations});
+    public ${name}() {
+        super(${port_initializers});
     }
     
     // selections
-${select_from_instances_block}
+${selects}
 
     // ports
-${ports_block}
+${ports}
 
-    // component initialization functions
+    // component initialization function
     @Override
-.if ( init_block_throws_exception )
     public void initialize() throws XtumlException {
-.else
-    public void initialize() {
-.end if
-${init_block}
+${init}
     }
 
     @Override
-    public IInstanceSet getNewInstanceSetForClass( Class<?> type ) {
-${new_instance_set_block}
-        return null;
-    }
-
-    @Override
-    public Class<?>[] getClasses() {
+    public Map<String, Class<?>> getClasses() {
         return classes;
+    }
+
+    @Override
+    public Map<Integer, Class<?>> getRelationships() {
+        return relationships;
     }
 
 }
