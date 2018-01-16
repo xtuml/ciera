@@ -2,6 +2,7 @@ package io.ciera.cairn.classes;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -36,12 +37,14 @@ public abstract class InstancePopulation implements IInstancePopulation {
 
     @Override
     public IModelInstance createObjectInstance( String keyLetters ) throws XtumlException {
-        IInstanceSet instanceSet = instancePopulation.get( keyLetters );
-        if ( null != instanceSet ) {
+    	Class<?> instanceClass = getClasses().get( keyLetters );
+        if ( null != instanceClass ) {
 			try {
-                Constructor<?> newInstanceConstructor = getClasses().get( keyLetters ).getConstructor( IInstancePopulation.class );
+                Constructor<?> newInstanceConstructor = instanceClass.getConstructor( IInstancePopulation.class );
                 IModelInstance newInstance = (IModelInstance)newInstanceConstructor.newInstance( this );
-                instanceSet.add( newInstance );
+		        IInstanceSet instanceSet = instancePopulation.get( keyLetters );
+		        if ( null == instanceSet ) instancePopulation.put( keyLetters, newInstance.toSet() );
+		        else instanceSet.add( newInstance );
                 return newInstance;
 			} catch ( NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e ) {
 				throw new InstancePopulationException( "Error creating instance." );
@@ -72,25 +75,26 @@ public abstract class InstancePopulation implements IInstancePopulation {
 		for ( IModelInstance instance : instances ) {
     	    if ( null == instance || instance instanceof IEmptyInstance ) throw new EmptyInstanceException( "Cannot relate empty instance." );
 		}
-        IRelationshipSet relationshipSet = relationshipPopulation.get( relNum );
-        if ( null != relationshipSet ) {
+        //IRelationshipSet relationshipSet = relationshipPopulation.get( relNum );
+        Class<?> relationshipClass = getRelationships().get( relNum );
+        if ( null != relationshipClass ) {
 			try {
 				IRelationship newRelationship = null;
-                if ( relationshipSet instanceof IBinaryRelationshipSet ) {
+                if ( Arrays.asList( relationshipClass.getInterfaces() ).contains( IBinaryRelationshipSet.class ) ) {
                     if ( 2 == instances.length ) {
                         Constructor<?> newRelationshipConstructor = getRelationships().get( relNum ).getConstructor( IInstancePopulation.class, UniqueId.class, UniqueId.class );
                         newRelationship = (IRelationship)newRelationshipConstructor.newInstance( this, instances[0].getInstanceId(), instances[1].getInstanceId() );
                     }
                     else throw new InstancePopulationException( "Wrong number of instances passed." );
                 }
-                else if ( relationshipSet instanceof IAssociativeRelationshipSet ) {
+                else if ( Arrays.asList( relationshipClass.getInterfaces() ).contains( IAssociativeRelationshipSet.class ) ) {
                     if ( 3 == instances.length ) {
                         Constructor<?> newRelationshipConstructor = getRelationships().get( relNum ).getConstructor( IInstancePopulation.class, UniqueId.class, UniqueId.class, UniqueId.class );
                         newRelationship = (IRelationship)newRelationshipConstructor.newInstance( this, instances[0].getInstanceId(), instances[1].getInstanceId(), instances[2].getInstanceId() );
                     }
                     else throw new InstancePopulationException( "Wrong number of instances passed." );
                 }
-                else if ( relationshipSet instanceof ISubsuperRelationshipSet ) {
+                else if ( Arrays.asList( relationshipClass.getInterfaces() ).contains( ISubsuperRelationshipSet.class ) ) {
                     if ( 2 == instances.length ) {
                         Constructor<?> newRelationshipConstructor = getRelationships().get( relNum ).getConstructor( IInstancePopulation.class, UniqueId.class, UniqueId.class );
                         newRelationship = (IRelationship)newRelationshipConstructor.newInstance( this, instances[0].getInstanceId(), instances[1].getInstanceId() );
@@ -98,7 +102,9 @@ public abstract class InstancePopulation implements IInstancePopulation {
                     else throw new InstancePopulationException( "Wrong number of instances passed." );
                 }
                 else throw new InstancePopulationException( "Unknown relationship set." );
-                relationshipSet.add( newRelationship );
+                IRelationshipSet relationshipSet = relationshipPopulation.get( relNum );
+                if ( null == relationshipSet ) relationshipPopulation.put( relNum, newRelationship.toSet() );
+		        else relationshipSet.add( newRelationship );
 			} catch ( NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e ) {
 				throw new InstancePopulationException( "Error relating instances." );
 			}
