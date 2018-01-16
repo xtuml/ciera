@@ -1572,13 +1572,16 @@ if ( not_empty r_assoc )
   // create subtype
   create object instance assoc of AssociativeRelationship;
   relate assoc to rel across R433;
+  assoc.one_phrase = "";
+  assoc.other_phrase = "";
   
   // link the ''one'', ''other'', and ''link'' classes
   select one r_aone related by r_assoc->R_AONE[R209];
   select one r_aone_class related by r_aone->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->Class[R409.''is basis for''];
   select one r_aoth related by r_assoc->R_AOTH[R210];
   select one r_aoth_class related by r_aoth->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->Class[R409.''is basis for''];
-  select one r_assr_class related by r_assoc->R_ASSR[R211]->R_RGO[R205]->R_OIR[R203]->O_OBJ[R201]->Class[R409.''is basis for''];
+  select one r_assr related by r_assoc->R_ASSR[R211];
+  select one r_assr_class related by r_assr->R_RGO[R205]->R_OIR[R203]->O_OBJ[R201]->Class[R409.''is basis for''];
   if ( not_empty r_aone_class and not_empty r_aoth_class and not_empty r_assr_class )
     // relate classes
     relate r_aone_class to assoc across R438.''one class for'';
@@ -1597,6 +1600,32 @@ if ( not_empty r_assoc )
     end if;
     if ( "" != r_aoth.Txt_Phrs )
       assoc.other_phrase = r_aoth.Txt_Phrs;
+    end if;
+    // set conditionalities and multiplicities
+    if ( 0 == r_aone.Cond )
+      assoc.one_conditionality = Cond::UNCONDITIONAL;
+    else
+      assoc.one_conditionality = Cond::CONDITIONAL;
+    end if;
+    if ( 0 == r_aone.Mult )
+      assoc.one_multiplicity = Mult::ONE;
+    else
+      assoc.one_multiplicity = Mult::MANY;
+    end if;
+    if ( 0 == r_aoth.Cond )
+      assoc.other_conditionality = Cond::UNCONDITIONAL;
+    else
+      assoc.other_conditionality = Cond::CONDITIONAL;
+    end if;
+    if ( 0 == r_aoth.Mult )
+      assoc.other_multiplicity = Mult::ONE;
+    else
+      assoc.other_multiplicity = Mult::MANY;
+    end if;
+    if ( 0 == r_assr.Mult )
+      assoc.link_multiplicity = Mult::ONE;
+    else
+      assoc.link_multiplicity = Mult::MANY;
     end if;
   else
     // TODO bad
@@ -1643,34 +1672,108 @@ INSERT INTO S_SYNC
 	'obj = param.obj;
 
 // transform selectors for binary associations
+// one to other case
 select many one_binary_rels related by obj->BinaryRelationship[R434.''one class for''];
 for each one_binary_rel in one_binary_rels
   select one one_rel related by one_binary_rel->Relationship[R433];
   select one other_obj related by one_binary_rel->Class[R435.''has other''];
-  ::transformSelector( obj:obj, target_class_name: one_binary_rel.other_class_name, rel_num:one_rel.num,
+  ::transformSelector( obj:obj, target_class_name:one_binary_rel.other_class_name, rel_num:one_rel.num,
                        phrase:one_binary_rel.other_phrase, cond:one_binary_rel.other_conditionality,
                        mult:one_binary_rel.other_multiplicity, other_obj:other_obj );
 end for;
+// other to one case
 select many other_binary_rels related by obj->BinaryRelationship[R435.''other class for''];
 for each other_binary_rel in other_binary_rels
   select one other_rel related by other_binary_rel->Relationship[R433];
   select one one_obj related by other_binary_rel->Class[R434.''has one''];
-  ::transformSelector( obj:obj, target_class_name: other_binary_rel.one_class_name, rel_num:other_rel.num,
+  ::transformSelector( obj:obj, target_class_name:other_binary_rel.one_class_name, rel_num:other_rel.num,
                        phrase:other_binary_rel.one_phrase, cond:other_binary_rel.one_conditionality,
                        mult:other_binary_rel.one_multiplicity, other_obj:one_obj );
 end for;
 
 // transform selectors for linked associations
-// TODO
+select many link_assoc_rels related by obj->AssociativeRelationship[R440.''link class for''];
+for each link_assoc_rel in link_assoc_rels
+  // link to one case
+  select one link_rel related by link_assoc_rel->Relationship[R433];
+  select one one_obj related by link_assoc_rel->Class[R438.''has one''];
+  ::transformSelector( obj:obj, target_class_name:link_assoc_rel.one_class_name, rel_num:link_rel.num,
+                       phrase:link_assoc_rel.one_phrase, cond:Cond::UNCONDITIONAL,
+                       mult:Mult::ONE, other_obj:one_obj );
+  // link to other case
+  select one other_obj related by link_assoc_rel->Class[R439.''has other''];
+  ::transformSelector( obj:obj, target_class_name:link_assoc_rel.other_class_name, rel_num:link_rel.num,
+                       phrase:link_assoc_rel.other_phrase, cond:Cond::UNCONDITIONAL,
+                       mult:Mult::ONE, other_obj:other_obj );
+end for;
+select many one_assoc_rels related by obj->AssociativeRelationship[R438.''one class for''];
+for each one_assoc_rel in one_assoc_rels
+  // one to other case
+  select one one_rel related by one_assoc_rel->Relationship[R433];
+  select one other_obj related by one_assoc_rel->Class[R439.''has other''];
+  ::transformSelector( obj:obj, target_class_name:one_assoc_rel.other_class_name, rel_num:one_rel.num,
+                       phrase:one_assoc_rel.other_phrase, cond:one_assoc_rel.other_conditionality,
+                       mult:one_assoc_rel.other_multiplicity, other_obj:other_obj );
+  // one to link case
+  select one link_obj related by one_assoc_rel->Class[R440.''has link''];
+  link_mult = Mult::ONE;
+  if ( Mult::MANY == one_assoc_rel.link_multiplicity or Mult::MANY == one_assoc_rel.other_multiplicity ) link_mult = Mult::MANY; end if;
+  ::transformSelector( obj:obj, target_class_name:one_assoc_rel.link_class_name, rel_num:one_rel.num,
+                       phrase:"", cond:one_assoc_rel.other_conditionality,
+                       mult:link_mult, other_obj:link_obj );
+end for;
+select many other_assoc_rels related by obj->AssociativeRelationship[R439.''other class for''];
+for each other_assoc_rel in other_assoc_rels
+  // other to one case
+  select one other_rel related by other_assoc_rel->Relationship[R433];
+  select one one_obj related by other_assoc_rel->Class[R438.''has one''];
+  ::transformSelector( obj:obj, target_class_name:other_assoc_rel.one_class_name, rel_num:other_rel.num,
+                       phrase:other_assoc_rel.one_phrase, cond:other_assoc_rel.one_conditionality,
+                       mult:other_assoc_rel.one_multiplicity, other_obj:one_obj );
+  // other to link case
+  select one link_obj related by other_assoc_rel->Class[R440.''has link''];
+  link_mult = Mult::ONE;
+  if ( Mult::MANY == other_assoc_rel.link_multiplicity or Mult::MANY == other_assoc_rel.one_multiplicity ) link_mult = Mult::MANY; end if;
+  ::transformSelector( obj:obj, target_class_name:other_assoc_rel.link_class_name, rel_num:other_rel.num,
+                       phrase:"", cond:other_assoc_rel.one_conditionality,
+                       mult:link_mult, other_obj:link_obj );
+end for;
 
 // transform selectors for subsuper associations
-// TODO
+select many sub_subsuper_rels related by obj->ClassAsSubtype[R437]->SubsuperRelationship[R437.''subtype class for''];
+for each sub_subsuper_rel in sub_subsuper_rels
+  // sub to super case
+  select one sub_rel related by sub_subsuper_rel->Relationship[R433];
+  select one super_obj related by sub_subsuper_rel->Class[R436.''has supertype''];
+  ::transformSelector( obj:obj, target_class_name:sub_subsuper_rel.supertype_class_name, rel_num:sub_rel.num,
+                       phrase:"is a", cond:Cond::UNCONDITIONAL,
+                       mult: Mult::ONE, other_obj:super_obj );
+end for;
+select many super_subsuper_rels related by obj->SubsuperRelationship[R436.''supertype class for''];
+for each super_subsuper_rel in super_subsuper_rels
+  // super to sub cases
+  select one super_rel related by super_subsuper_rel->Relationship[R433];
+  select many sub_objs related by super_subsuper_rel->ClassAsSubtype[R437]->Class[R437.''has subtype''];
+  for each sub_obj in sub_objs
+    ::transformSelector( obj:obj, target_class_name:sub_obj.name, rel_num:super_rel.num,
+                         phrase:"is a", cond:Cond::UNCONDITIONAL,
+                         mult: Mult::ONE, other_obj:sub_obj );
+  end for;
+end for;
 
 // if there are any relationships, add type imports
-num_rels = cardinality one_binary_rels + cardinality other_binary_rels; // TODO etc
+num_rels = cardinality one_binary_rels +
+           cardinality other_binary_rels +
+           cardinality one_assoc_rels +
+           cardinality other_assoc_rels +
+           cardinality link_assoc_rels +
+           cardinality sub_subsuper_rels +
+           cardinality super_subsuper_rels;
 if ( num_rels > 0 )
   select one file related by obj->File[R401];
   ::addStringToImports( file:file, s:"io.ciera.summit.classes.IWhere" );
+  select one set_file related by obj->ClassSet[R406.''is type of single element in'']->File[R401];
+  ::addStringToImports( file:set_file, s:"io.ciera.summit.classes.IWhere" );
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -1699,10 +1802,15 @@ INSERT INTO S_SYNC
 	'obj = param.obj;
 other_obj = param.other_obj;
 
-// create the instance selector
+// This function creates selectors for the class and set for a single path
+// through a relationship. For single instances, a selectOne or selectAny and
+// selectMany are created based on multiplicity. For sets, a selectAny and
+// SelectMany are always created.
+
+// create the instance selectors
 if ( Mult::ONE == param.mult )
 
-  // create a single selector
+  // create ''one'' selector
   name = "selectOneR" + STR::itoa( i:param.rel_num );
   if ( "" != param.phrase )
     name = name + "_" + T::underscore( s:param.phrase );
@@ -1713,6 +1821,7 @@ if ( Mult::ONE == param.mult )
   sel.parent_package = obj.package;
   sel.name = name;
   sel.unconditional = ( Cond::UNCONDITIONAL == param.cond );
+  sel.is_many = false;
   create object instance inst_sel of InstanceSelector;
   relate inst_sel to sel across R445;
   relate inst_sel to obj across R442.''navigates from'';
@@ -1727,10 +1836,111 @@ if ( Mult::ONE == param.mult )
   relate type to sel across R446.''shapes return of'';
 
 else
-  // TODO
+  
+  // create ''any'' selector
+  name1 = "selectAnyR" + STR::itoa( i:param.rel_num );
+  if ( "" != param.phrase )
+    name1 = name1 + "_" + T::underscore( s:param.phrase );
+  end if;
+  name1 = name1 + "_" + param.target_class_name;
+  create object instance sel1 of Selector;
+  sel1.parent_name = obj.name;
+  sel1.parent_package = obj.package;
+  sel1.name = name1;
+  sel1.unconditional = ( Cond::UNCONDITIONAL == param.cond );
+  sel1.is_many = false;
+  create object instance inst_sel1 of InstanceSelector;
+  relate inst_sel1 to sel1 across R445;
+  relate inst_sel1 to obj across R442.''navigates from'';
+
+  // link up type
+  select any s_irdt1 related by other_obj->O_OBJ[R409.''is transformed from'']->S_IRDT[R123] where ( not selected.isSet );
+  select one s_dt1 related by s_irdt1->S_DT[R17];
+  if ( empty s_dt1 )
+    // TODO bad
+  end if;
+  type1 = UnresolvedType::getInstance( s_dt:s_dt1 );
+  relate type1 to sel1 across R446.''shapes return of'';
+
+  // create ''many'' selector
+  name2 = "selectManyR" + STR::itoa( i:param.rel_num );
+  if ( "" != param.phrase )
+    name2 = name2 + "_" + T::underscore( s:param.phrase );
+  end if;
+  name2 = name2 + "_" + param.target_class_name;
+  create object instance sel2 of Selector;
+  sel2.parent_name = obj.name;
+  sel2.parent_package = obj.package;
+  sel2.name = name2;
+  sel2.unconditional = ( Cond::UNCONDITIONAL == param.cond );
+  sel2.is_many = true;
+  create object instance inst_sel2 of InstanceSelector;
+  relate inst_sel2 to sel2 across R445;
+  relate inst_sel2 to obj across R442.''navigates from'';
+
+  // link up type
+  select any s_irdt2 related by other_obj->O_OBJ[R409.''is transformed from'']->S_IRDT[R123] where ( selected.isSet );
+  select one s_dt2 related by s_irdt2->S_DT[R17];
+  if ( empty s_dt2 )
+    // TODO bad
+  end if;
+  type2 = UnresolvedType::getInstance( s_dt:s_dt2 );
+  relate type2 to sel2 across R446.''shapes return of'';
+
 end if;
 
-// create set selector',
+// create set selectors
+select one obj_set related by obj->ClassSet[R406.''is type of single element in''];
+
+// create ''any'' selector
+name3 = "selectAnyR" + STR::itoa( i:param.rel_num );
+if ( "" != param.phrase )
+  name3 = name3 + "_" + T::underscore( s:param.phrase );
+end if;
+name3 = name3 + "_" + param.target_class_name;
+create object instance sel3 of Selector;
+sel3.parent_name = obj_set.name;
+sel3.parent_package = obj_set.package;
+sel3.name = name3;
+sel3.unconditional = ( Cond::UNCONDITIONAL == param.cond );
+sel3.is_many = false;
+create object instance set_sel3 of SetSelector;
+relate set_sel3 to sel3 across R445;
+relate set_sel3 to obj_set across R444.''navigates from'';
+
+// link up type
+select any s_irdt3 related by other_obj->O_OBJ[R409.''is transformed from'']->S_IRDT[R123] where ( not selected.isSet );
+select one s_dt3 related by s_irdt3->S_DT[R17];
+if ( empty s_dt3 )
+  // TODO bad
+end if;
+type3 = UnresolvedType::getInstance( s_dt:s_dt3 );
+relate type3 to sel3 across R446.''shapes return of'';
+
+// create ''many'' selector
+name4 = "selectManyR" + STR::itoa( i:param.rel_num );
+if ( "" != param.phrase )
+  name4 = name4 + "_" + T::underscore( s:param.phrase );
+end if;
+name4 = name4 + "_" + param.target_class_name;
+create object instance sel4 of Selector;
+sel4.parent_name = obj_set.name;
+sel4.parent_package = obj_set.package;
+sel4.name = name4;
+sel4.unconditional = ( Cond::UNCONDITIONAL == param.cond );
+sel4.is_many = true;
+create object instance set_sel4 of SetSelector;
+relate set_sel4 to sel4 across R445;
+relate set_sel4 to obj_set across R444.''navigates from'';
+
+// link up type
+select any s_irdt4 related by other_obj->O_OBJ[R409.''is transformed from'']->S_IRDT[R123] where ( selected.isSet );
+select one s_dt4 related by s_irdt4->S_DT[R17];
+if ( empty s_dt4 )
+  // TODO bad
+end if;
+type4 = UnresolvedType::getInstance( s_dt:s_dt4 );
+relate type4 to sel4 across R446.''shapes return of'';',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
