@@ -1718,8 +1718,10 @@ for each one_assoc_rel in one_assoc_rels
   select one link_obj related by one_assoc_rel->Class[R440.''has link''];
   link_mult = Mult::ONE;
   if ( Mult::MANY == one_assoc_rel.link_multiplicity or Mult::MANY == one_assoc_rel.other_multiplicity ) link_mult = Mult::MANY; end if;
+  link_phrase = "";
+  if ( obj.name == other_obj.name and obj.package == other_obj.package ) link_phrase = one_assoc_rel.other_phrase; end if;
   ::transformSelector( obj:obj, target_class_name:one_assoc_rel.link_class_name, rel_num:one_rel.num,
-                       phrase:"", cond:one_assoc_rel.other_conditionality,
+                       phrase:link_phrase, cond:one_assoc_rel.other_conditionality,
                        mult:link_mult, other_obj:link_obj );
 end for;
 select many other_assoc_rels related by obj->AssociativeRelationship[R439.''other class for''];
@@ -1734,8 +1736,10 @@ for each other_assoc_rel in other_assoc_rels
   select one link_obj related by other_assoc_rel->Class[R440.''has link''];
   link_mult = Mult::ONE;
   if ( Mult::MANY == other_assoc_rel.link_multiplicity or Mult::MANY == other_assoc_rel.one_multiplicity ) link_mult = Mult::MANY; end if;
+  link_phrase = "";
+  if ( obj.name == one_obj.name and obj.package == one_obj.package ) link_phrase = other_assoc_rel.one_phrase; end if;
   ::transformSelector( obj:obj, target_class_name:other_assoc_rel.link_class_name, rel_num:other_rel.num,
-                       phrase:"", cond:other_assoc_rel.one_conditionality,
+                       phrase:link_phrase, cond:other_assoc_rel.one_conditionality,
                        mult:link_mult, other_obj:link_obj );
 end for;
 
