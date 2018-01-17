@@ -20,6 +20,6 @@ return (${type_name})candidate;
 .if ( is_many )
         return $l{type_name};
 .else
-        return ${type_name}.empty${type_name};
+        return ${type_name}.EMPTY_$u_{type_name};
 .end if
     }

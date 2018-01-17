@@ -6,6 +6,6 @@
 .else
     @Override
     public ${type_name} ${name}( IWhere condition ) {
-        return ${type_name}.empty${type_name};
+        return ${type_name}.EMPTY_$u_{type_name};
     }
 .end if

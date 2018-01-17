@@ -69,8 +69,8 @@ T_b("\n");
 T_b("        ");
 T_b("return ");
 T_b(type_name);
-T_b(".empty");
-T_b(type_name);
+T_b(".EMPTY_");
+T_b(T_underscore(T_u(type_name)));
 T_b(";");
 T_b("\n");
 }

@@ -4,7 +4,8 @@ ${imports}
 
 public class ${name} extends ${extends} {
     
-    private static final String keyLetters = "${key_letters}";
+    public static final String KEY_LETTERS = "${key_letters}";
+    public static final ${name} EMPTY_$u_{name} = new Empty${name}();
 
     // constructor
     public ${name}( IInstancePopulation context ) {
@@ -21,12 +22,9 @@ ${operations}
     // selections
 ${selectors}
 
-    // empty instance
-    public static final ${name} empty${name} = new Empty${name}();
-
     @Override
     public String getKeyLetters() {
-        return keyLetters;
+        return KEY_LETTERS;
     }
 
     @Override
