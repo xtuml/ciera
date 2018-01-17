@@ -50,22 +50,22 @@ if ( is_many ) {
 T_b(T_l(type_name));
 T_b(".add( candidate );");
 T_b("\n");
-} else {
-T_b("return (");
-T_b(type_name);
-T_b(")candidate;");
-T_b("\n");
-}
 T_b("        ");
 T_b("}");
 T_b("\n");
-if ( is_many ) {
 T_b("        ");
 T_b("return ");
 T_b(T_l(type_name));
 T_b(";");
 T_b("\n");
 } else {
+T_b("return (");
+T_b(type_name);
+T_b(")candidate;");
+T_b("\n");
+T_b("        ");
+T_b("}");
+T_b("\n");
 T_b("        ");
 T_b("return ");
 T_b(type_name);

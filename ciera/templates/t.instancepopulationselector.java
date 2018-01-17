@@ -13,13 +13,11 @@
             if ( null == condition || condition.passes( candidate ) ) \
 .if ( is_many )
 $l{type_name}.add( candidate );
-.else
-return (${type_name})candidate;
-.end if
         }
-.if ( is_many )
         return $l{type_name};
 .else
+return (${type_name})candidate;
+        }
         return ${type_name}.EMPTY_$u_{type_name};
 .end if
     }
