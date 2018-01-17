@@ -44,7 +44,7 @@ T_b("\n");
 T_b("    ");
 T_b("// selections");
 T_b("\n");
-T_b(selects);
+T_b(selectors);
 T_b("\n");
 T_b("    ");
 T_b("// ports");

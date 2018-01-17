@@ -1,6 +1,7 @@
 package io.ciera.cairn.classes;
 
 import io.ciera.summit.classes.IEmptyInstance;
+import io.ciera.summit.classes.IInstanceIdentifier;
 import io.ciera.summit.classes.IInstancePopulation;
 import io.ciera.summit.classes.IInstanceSet;
 import io.ciera.summit.classes.IModelInstance;
@@ -10,11 +11,8 @@ import io.ciera.summit.util.UniqueId;
 
 public abstract class ModelInstance implements IModelInstance {
     
-    // empty instance
-    public static final ModelInstance emptyModelInstance = new EmptyModelInstance();
 
     private UniqueId instanceId;
-
     private IInstancePopulation context;
 
     // constructors
@@ -47,14 +45,43 @@ public abstract class ModelInstance implements IModelInstance {
 
     @Override
     public boolean equals( Object obj ) {
-        if ( !(obj instanceof ModelInstance ) ) return false;
-        return ((ModelInstance)obj).getInstanceId().equals(instanceId);
+    	if ( null != obj && obj instanceof IModelInstance ) {
+    		return getKeyLetters().equals( ((IModelInstance)obj).getKeyLetters() ) &&
+    			   getInstanceId().equals( ((IModelInstance)obj).getInstanceId() ) &&
+    		       ( null == getId1() || getId1().equals( ((IModelInstance)obj).getId1() ) ) &&
+    		       ( null == getId2() || getId2().equals( ((IModelInstance)obj).getId2() ) ) &&
+    		       ( null == getId3() || getId3().equals( ((IModelInstance)obj).getId3() ) );
+    	}
+    	else return false;
     }
     
     @Override
-    public int compareTo( IModelInstance instance ) {
-        return instanceId.compareTo( instance.getInstanceId() );
+    public int hashCode() {
+    	int hash = getKeyLetters().hashCode();
+    	hash = hash * 31 + getInstanceId().hashCode();
+    	if ( null != getId1() ) hash = hash * 31 + getId1().hashCode();
+    	if ( null != getId2() ) hash = hash * 31 + getId2().hashCode();
+    	if ( null != getId3() ) hash = hash * 31 + getId3().hashCode();
+    	return hash;
     }
+    
+    // empty instance
+    public static final ModelInstance emptyModelInstance = new EmptyModelInstance();
+
+	@Override
+	public IInstanceIdentifier getId1() {
+		return null;
+	}
+
+	@Override
+	public IInstanceIdentifier getId2() {
+		return null;
+	}
+
+	@Override
+	public IInstanceIdentifier getId3() {
+		return null;
+	}
 
 }
 

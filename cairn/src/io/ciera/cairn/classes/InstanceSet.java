@@ -1,121 +1,134 @@
 package io.ciera.cairn.classes;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 
-import io.ciera.summit.classes.IEmptyInstance;
+import io.ciera.summit.classes.IInstanceIdentifier;
 import io.ciera.summit.classes.IInstanceSet;
 import io.ciera.summit.classes.IModelInstance;
-import io.ciera.summit.classes.IWhere;
 
 public abstract class InstanceSet implements IInstanceSet {
     
-    private Set<IModelInstance> backingSet;
-    
-    public Set<IModelInstance> getNewBackingSet() {
-    	return new DefaultInstanceSet();
-    }
-    
-    public InstanceSet() {
-        backingSet = getNewBackingSet();
-    }
-    
-    @Override
-    public IModelInstance selectAny( IWhere condition ) {
-        for ( IModelInstance selected : this ) {
-            if ( null == condition || condition.evaluate(selected) ) {
-                return selected;
-            }
-        }
-        return getEmptyInstance();
-    }
-    
-    @Override
-    public IInstanceSet selectMany( IWhere condition ) {
-        IInstanceSet return_set = null;
-        for ( IModelInstance selected : this ) {
-            if ( null == condition || condition.evaluate(selected) ) {
-            	if ( null == return_set ) return_set = selected.toSet();
-            	else return_set.add(selected);
-            }
-        }
-        return return_set;
-    }
-    
-    @Override
-    public int size() {
-        return backingSet.size();
-    }
+	private String keyLetters;
+	
+	private Set<IModelInstance> hashSet;
+	private Map<IInstanceIdentifier, IModelInstance> id1Set;
+	private Map<IInstanceIdentifier, IModelInstance> id2Set;
+	private Map<IInstanceIdentifier, IModelInstance> id3Set;
+	
+	public InstanceSet( String keyLetters ) {
+		this.keyLetters = keyLetters;
+		hashSet = new HashSet<>();
+		id1Set = new HashMap<>();
+		id2Set = new HashMap<>();
+		id3Set = new HashMap<>();
+	}
 
-    @Override
-    public boolean isEmpty() {
-        return backingSet.isEmpty();
-    }
+	@Override
+	public String getKeyLetters() {
+		return keyLetters;
+	}
 
-    @Override
-    public boolean contains(Object o) {
-        return backingSet.contains(o);
-    }
+	@Override
+	public int size() {
+		return hashSet.size();
+	}
 
-    @Override
-    public Iterator<IModelInstance> iterator() {
-        return backingSet.iterator();
-    }
+	@Override
+	public boolean isEmpty() {
+		return ( 0 == size() );
+	}
 
-    @Override
-    public Object[] toArray() {
-        return backingSet.toArray();
-    }
+	@Override
+	public boolean contains( Object o ) {
+		return hashSet.contains( o );
+	}
 
-    @Override
-    public <T> T[] toArray(T[] a) {
-        return backingSet.toArray(a);
-    }
+	@Override
+	public Iterator<IModelInstance> iterator() {
+		return hashSet.iterator();
+	}
 
-    @Override
-    public boolean add(IModelInstance e) {
-        if ( e instanceof IEmptyInstance ) return false;
-        else return backingSet.add(e);
-    }
+	@Override
+	public Object[] toArray() {
+		return hashSet.toArray();
+	}
 
-    @Override
-    public boolean remove(Object o) {
-        return backingSet.remove(o);
-    }
+	@Override
+	public <T> T[] toArray( T[] a ) {
+		return hashSet.toArray( a );
+	}
 
-    @Override
-    public boolean containsAll(Collection<?> c) {
-        return backingSet.containsAll(c);
-    }
+	@Override
+	public boolean add( IModelInstance e ) {
+		if ( null != e && hashSet.add( e ) ) {
+			if ( null != e.getId1() ) id1Set.put( e.getId1(), e );
+			if ( null != e.getId2() ) id2Set.put( e.getId2(), e );
+			if ( null != e.getId3() ) id3Set.put( e.getId3(), e );
+			return true;
+		}
+		else return false;
+	}
 
-    @Override
-    public boolean addAll(Collection<? extends IModelInstance> c) {
-    	boolean ret_val = false;
-    	for ( IModelInstance instance : c ) {
-    		ret_val = ret_val || add( instance );
-    	}
-        return ret_val;
-    }
+	@Override
+	public boolean remove( Object o ) {
+		if ( null != o && hashSet.remove( o ) ) {
+			if ( null != ((IModelInstance)o).getId1() ) id1Set.remove( ((IModelInstance)o).getId1() );
+			if ( null != ((IModelInstance)o).getId2() )id2Set.remove( ((IModelInstance)o).getId2() );
+			if ( null != ((IModelInstance)o).getId3() )id3Set.remove( ((IModelInstance)o).getId3() );
+			return true;
+		}
+		else return false;
+	}
 
-    @Override
-    public boolean retainAll(Collection<?> c) {
-        return backingSet.retainAll(c);
-    }
+	@Override
+	public boolean containsAll( Collection<?> c ) {
+		boolean containsAll = true;
+		for ( Object o : c ) {
+			containsAll = containsAll && contains( o );
+		}
+		return containsAll;
+	}
 
-    @Override
-    public boolean removeAll(Collection<?> c) {
-        return backingSet.removeAll(c);
-    }
+	@Override
+	public boolean addAll( Collection<? extends IModelInstance> c ) {
+		boolean addAll = false;
+		for ( IModelInstance e : c ) {
+			addAll = add( e ) || addAll;
+		}
+		return addAll;
+	}
 
-    @Override
-    public void clear() {
-        backingSet.clear();
-    }
+	@Override
+	public boolean retainAll( Collection<?> c ) {
+		boolean retainAll = false;
+		for ( IModelInstance e : hashSet ) {
+			if ( !c.contains( e ) ) {
+				retainAll = remove( e ) || retainAll;
+			}
+		}
+		return retainAll;
+	}
 
-}
+	@Override
+	public boolean removeAll( Collection<?> c ) {
+		boolean removeAll = false;
+		for ( Object o : c ) {
+			removeAll = remove( o ) || removeAll;
+		}
+		return removeAll;
+	}
 
-@SuppressWarnings("serial")
-class DefaultInstanceSet extends HashSet<IModelInstance> {
+	@Override
+	public void clear() {
+		hashSet.clear();
+		id1Set.clear();
+		id2Set.clear();
+		id3Set.clear();
+	}
+
 }

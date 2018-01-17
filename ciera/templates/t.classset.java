@@ -4,12 +4,11 @@ ${imports}
 
 public class ${name} extends ${extends} {
 
+    public ${name}() {
+        super( "${class_key_letters}" );
+    }
+
     // selections
 ${selectors}
-
-    @Override
-    public ${class_name} getEmptyInstance() {
-        return ${class_name}.empty${class_name};
-    }
 
 }

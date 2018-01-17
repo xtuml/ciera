@@ -14,7 +14,7 @@ public class ${name} extends ${extends} {
     }
     
     // selections
-${selects}
+${selectors}
 
     // ports
 ${ports}
