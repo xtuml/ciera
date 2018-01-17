@@ -150,6 +150,44 @@ for each inner_c_c in inner_c_cs
   ::transformComponentDefinition( c_c:inner_c_c, containing_comp_def:comp_def );
 end for;
 
+// transform instance population selectors
+select many objs related by comp_def->ClassInComponent[R408]->Class[R408.''maintains instances of''];
+if ( cardinality objs > 0 )
+  ::addStringToImports( file:file, s:"java.util.Iterator" );
+  ::addStringToImports( file:file, s:"io.ciera.summit.classes.IWhere" );
+  ::addStringToImports( file:file, s:"io.ciera.summit.classes.IModelInstance" );
+end if;
+for each obj in objs
+  // create ''any'' selector
+  create object instance any_inst_pop_selector of InstancePopulationSelector;
+  any_inst_pop_selector.name = "selectAnyFromInstances_" + obj.name;
+  any_inst_pop_selector.class_key_letters = obj.key_letters;
+  any_inst_pop_selector.is_many = false;
+  relate any_inst_pop_selector to comp_def across R447.''selects instances out of population of'';
+  // link type
+  select any s_irdt1 related by obj->O_OBJ[R409.''is transformed from'']->S_IRDT[R123] where ( not selected.isSet );
+  select one s_dt1 related by s_irdt1->S_DT[R17];
+  if ( empty s_dt1 )
+    // TODO bad
+  end if;
+  type1 = UnresolvedType::getInstance( s_dt:s_dt1 );
+  relate type1 to any_inst_pop_selector across R449.''shapes return of'';
+  // create ''many'' selector
+  create object instance many_inst_pop_selector of InstancePopulationSelector;
+  many_inst_pop_selector.name = "selectManyFromInstances_" + obj.name;
+  many_inst_pop_selector.class_key_letters = obj.key_letters;
+  many_inst_pop_selector.is_many = true;
+  relate many_inst_pop_selector to comp_def across R447.''selects instances out of population of'';
+  // link type
+  select any s_irdt2 related by obj->O_OBJ[R409.''is transformed from'']->S_IRDT[R123] where ( selected.isSet );
+  select one s_dt2 related by s_irdt2->S_DT[R17];
+  if ( empty s_dt2 )
+    // TODO bad
+  end if;
+  type2 = UnresolvedType::getInstance( s_dt:s_dt2 );
+  relate type2 to many_inst_pop_selector across R449.''shapes return of'';
+end for;
+
 // create import block
 ::addStringToImports( file:file, s:"io.ciera.summit.exceptions.XtumlException" );
 ::addStringToImports( file:file, s:"io.ciera.cairn.components.Component" );
@@ -746,6 +784,11 @@ for each unresolved_type in unresolved_types
       unrelate old_type from selector across R446.''shapes return of'';
       relate new_type to selector across R446.''shapes return of'';
     end for;
+    select many instpopselectors related by old_type->InstancePopulationSelector[R449.''shapes return of''];
+    for each instpopselector in instpopselectors
+      unrelate old_type from instpopselector across R449.''shapes return of'';
+      relate new_type to instpopselector across R449.''shapes return of'';
+    end for;
     old_type.dispose();
   end if;
 
@@ -990,6 +1033,10 @@ for each type in types
     type.addToImports( file:file );
   end for;
   select many files related by type->Selector[R446.''shapes return of'']->SetSelector[R445]->ClassSet[R444.''navigates from'']->File[R401];
+  for each file in files
+    type.addToImports( file:file );
+  end for;
+  select many files related by type->InstancePopulationSelector[R449.''shapes return of'']->ComponentDefinition[R447.''selects instances out of population of'']->File[R401];
   for each file in files
     type.addToImports( file:file );
   end for;
