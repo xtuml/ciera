@@ -153,7 +153,6 @@ end for;
 // transform instance population selectors
 select many objs related by comp_def->ClassInComponent[R408]->Class[R408.''maintains instances of''];
 if ( cardinality objs > 0 )
-  ::addStringToImports( file:file, s:"java.util.Iterator" );
   ::addStringToImports( file:file, s:"io.ciera.summit.classes.IWhere" );
   ::addStringToImports( file:file, s:"io.ciera.summit.classes.IModelInstance" );
   ::addStringToImports( file:file, s:"io.ciera.summit.classes.IInstanceSet" );
@@ -1899,14 +1898,14 @@ if ( Mult::ONE == param.mult )
   sel.parent_name = obj.name;
   sel.parent_package = obj.package;
   sel.name = name;
-  sel.rel_num = param.rel_num;
-  sel.unconditional = ( Cond::UNCONDITIONAL == param.cond );
-  sel.multiplicity_many = false;
-  sel.is_many = false;
-  sel.src_class = param.src_class;
-  sel.dst_class = param.dst_class;
-  sel.relationship_cast = param.relationship_cast;
   create object instance inst_sel of InstanceSelector;
+  inst_sel.rel_num = param.rel_num;
+  inst_sel.unconditional = ( Cond::UNCONDITIONAL == param.cond );
+  inst_sel.multiplicity_many = false;
+  inst_sel.is_many = false;
+  inst_sel.src_class = param.src_class;
+  inst_sel.dst_class = param.dst_class;
+  inst_sel.relationship_cast = param.relationship_cast;
   relate inst_sel to sel across R445;
   relate inst_sel to obj across R442.''navigates from'';
 
@@ -1931,14 +1930,14 @@ else
   sel1.parent_name = obj.name;
   sel1.parent_package = obj.package;
   sel1.name = name1;
-  sel1.rel_num = param.rel_num;
-  sel1.unconditional = ( Cond::UNCONDITIONAL == param.cond );
-  sel1.multiplicity_many = true;
-  sel1.is_many = false;
-  sel1.src_class = param.src_class;
-  sel1.dst_class = param.dst_class;
-  sel1.relationship_cast = param.relationship_cast;
   create object instance inst_sel1 of InstanceSelector;
+  inst_sel1.rel_num = param.rel_num;
+  inst_sel1.unconditional = ( Cond::UNCONDITIONAL == param.cond );
+  inst_sel1.multiplicity_many = true;
+  inst_sel1.is_many = false;
+  inst_sel1.src_class = param.src_class;
+  inst_sel1.dst_class = param.dst_class;
+  inst_sel1.relationship_cast = param.relationship_cast;
   relate inst_sel1 to sel1 across R445;
   relate inst_sel1 to obj across R442.''navigates from'';
 
@@ -1961,14 +1960,14 @@ else
   sel2.parent_name = obj.name;
   sel2.parent_package = obj.package;
   sel2.name = name2;
-  sel2.rel_num = param.rel_num;
-  sel2.unconditional = ( Cond::UNCONDITIONAL == param.cond );
-  sel2.multiplicity_many = true;
-  sel2.is_many = true;
-  sel2.src_class = param.src_class;
-  sel2.dst_class = param.dst_class;
-  sel2.relationship_cast = param.relationship_cast;
   create object instance inst_sel2 of InstanceSelector;
+  inst_sel2.rel_num = param.rel_num;
+  inst_sel2.unconditional = ( Cond::UNCONDITIONAL == param.cond );
+  inst_sel2.multiplicity_many = true;
+  inst_sel2.is_many = true;
+  inst_sel2.src_class = param.src_class;
+  inst_sel2.dst_class = param.dst_class;
+  inst_sel2.relationship_cast = param.relationship_cast;
   relate inst_sel2 to sel2 across R445;
   relate inst_sel2 to obj across R442.''navigates from'';
 
@@ -1996,17 +1995,6 @@ create object instance sel3 of Selector;
 sel3.parent_name = obj_set.name;
 sel3.parent_package = obj_set.package;
 sel3.name = name3;
-sel3.rel_num = param.rel_num;
-sel3.unconditional = ( Cond::UNCONDITIONAL == param.cond );
-if ( Mult::ONE == param.mult )
-  sel3.multiplicity_many = false;
-else
-  sel3.multiplicity_many = true;
-end if;
-sel3.is_many = false;
-sel3.src_class = param.src_class;
-sel3.dst_class = param.dst_class;
-sel3.relationship_cast = param.relationship_cast;
 create object instance set_sel3 of SetSelector;
 relate set_sel3 to sel3 across R445;
 relate set_sel3 to obj_set across R444.''navigates from'';
@@ -2030,17 +2018,6 @@ create object instance sel4 of Selector;
 sel4.parent_name = obj_set.name;
 sel4.parent_package = obj_set.package;
 sel4.name = name4;
-sel4.rel_num = param.rel_num;
-sel4.unconditional = ( Cond::UNCONDITIONAL == param.cond );
-if ( Mult::ONE == param.mult )
-  sel4.multiplicity_many = false;
-else
-  sel4.multiplicity_many = true;
-end if;
-sel4.is_many = true;
-sel4.src_class = param.src_class;
-sel4.dst_class = param.dst_class;
-sel4.relationship_cast = param.relationship_cast;
 create object instance set_sel4 of SetSelector;
 relate set_sel4 to sel4 across R445;
 relate set_sel4 to obj_set across R444.''navigates from'';
@@ -2059,11 +2036,12 @@ select one file related by obj->File[R401];
 ::addStringToImports( file:file, s:"io.ciera.summit.exceptions.XtumlException" );
 ::addStringToImports( file:file, s:"io.ciera.summit.classes.IWhere" );
 ::addStringToImports( file:file, s:"io.ciera.summit.classes.IRelationshipSet" );
-::addStringToImports( file:file, s:"io.ciera.summit.classes.IRelationship" );
 ::addStringToImports( file:file, s:"io.ciera.summit.classes.IModelInstance" );
-::addStringToImports( file:file, s:"java.util.Iterator" );
 if ( Cond::UNCONDITIONAL == param.cond or Mult::ONE == param.mult )
   ::addStringToImports( file:file, s:"io.ciera.summit.exceptions.ModelIntegrityException" );
+end if;
+if ( Mult::MANY == param.mult )
+  ::addStringToImports( file:file, s:"io.ciera.summit.classes.IRelationship" );
 end if;
 ::addStringToImports( file:file, s:"io.ciera.summit.classes." + param.relationship_cast );
 ::addStringToImports( file:file, s:"io.ciera.summit.classes." + param.relationship_cast + "Set" );

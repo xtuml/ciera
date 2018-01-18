@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+import io.ciera.summit.classes.IEmptyInstance;
 import io.ciera.summit.classes.IInstanceIdentifier;
 import io.ciera.summit.classes.IInstanceSet;
 import io.ciera.summit.classes.IModelInstance;
@@ -70,7 +71,7 @@ public abstract class InstanceSet implements IInstanceSet {
 
 	@Override
 	public boolean add( IModelInstance e ) {
-		if ( !immutable && ( null != e && hashSet.add( e ) ) ) {
+		if ( !immutable && null != e && !(e instanceof IEmptyInstance) && hashSet.add( e ) ) {
 			instanceIdSet.put( e.getInstanceId(), e );
 			if ( null != e.getId1() ) id1Set.put( e.getId1(), e );
 			if ( null != e.getId2() ) id2Set.put( e.getId2(), e );
@@ -82,7 +83,7 @@ public abstract class InstanceSet implements IInstanceSet {
 
 	@Override
 	public boolean remove( Object o ) {
-		if ( !immutable && ( null != o && hashSet.remove( o ) ) ) {
+		if ( !immutable && null != o && !(o instanceof IEmptyInstance) && hashSet.remove( o ) ) {
 			instanceIdSet.remove( ((IModelInstance)o).getInstanceId() );
 			if ( null != ((IModelInstance)o).getId1() ) id1Set.remove( ((IModelInstance)o).getId1() );
 			if ( null != ((IModelInstance)o).getId2() )id2Set.remove( ((IModelInstance)o).getId2() );

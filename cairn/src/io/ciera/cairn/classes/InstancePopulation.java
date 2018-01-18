@@ -33,14 +33,14 @@ public abstract class InstancePopulation implements IInstancePopulation {
 	@Override
 	public boolean addInstance( IModelInstance instance ) throws XtumlException {
     	if ( null == instance ) throw new BadArgumentException( "Null instance passed." );
-    	if ( instance instanceof IEmptyInstance ) throw new EmptyInstanceException( "Cannot add empty instance." );
+    	if ( instance instanceof IEmptyInstance ) throw new EmptyInstanceException( "Cannot add empty instance to population." );
     	return getInstanceSet( instance.getKeyLetters() ).add( instance );
 	}
 
 	@Override
 	public boolean removeInstance( IModelInstance instance ) throws XtumlException {
     	if ( null == instance ) throw new BadArgumentException( "Null instance passed." );
-    	if ( instance instanceof IEmptyInstance ) throw new EmptyInstanceException( "Cannot add empty instance." );
+    	if ( instance instanceof IEmptyInstance ) throw new EmptyInstanceException( "Cannot remove empty instance from population." );
     	return getInstanceSet( instance.getKeyLetters() ).remove( instance );
 	}
 

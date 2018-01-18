@@ -10,20 +10,20 @@
 .if ( unconditional )
         if ( R${rel_num}set.isEmpty() ) throw new ModelIntegrityException( "Unconditional association has no related instances." );
 .end if
-        Iterator<IRelationship> iter = R${rel_num}set.iterator();
 .if ( is_many )
-        while ( iter.hasNext() ) {
-            IModelInstance candidate = getContext().getInstanceSet( $l{type_name}.getKeyLetters() ).getByInstanceId( ((${relationship_cast})iter.next()).get$c{dst_class}() );
+        for ( IRelationship r${rel_num} : R${rel_num}set ) {
+            IModelInstance candidate = getContext().getInstanceSet( $l{type_name}.getKeyLetters() ).getByInstanceId( ((${relationship_cast})r${rel_num}).get$c{dst_class}() );
             if ( null == condition || condition.passes( candidate ) ) $l{type_name}.add( candidate );
         }
         return (${type_name})$l{type_name}.toImmutableSet();
 .else
   .if ( multiplicity_many )
-        while ( iter.hasNext() ) {
+        for ( IRelationship r${rel_num} : R${rel_num}set ) {
+            IModelInstance candidate = getContext().getInstanceSet( ${type_name}.KEY_LETTERS ).getByInstanceId( ((${relationship_cast})r${rel_num}).get$c{dst_class}() );
   .else
         if ( 1 == R${rel_num}set.size() ) {
+            IModelInstance candidate = getContext().getInstanceSet( ${type_name}.KEY_LETTERS ).getByInstanceId( ((${relationship_cast})R${rel_num}set.iterator().next()).get$c{dst_class}() );
   .end if
-            IModelInstance candidate = getContext().getInstanceSet( ${type_name}.KEY_LETTERS ).getByInstanceId( ((${relationship_cast})iter.next()).get$c{dst_class}() );
             if ( \
   .if ( "subtype" == dst_class )
 candidate instanceof ${type_name} && ( \
