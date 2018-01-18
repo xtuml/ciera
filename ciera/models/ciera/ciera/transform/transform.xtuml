@@ -1760,7 +1760,8 @@ for each one_binary_rel in one_binary_rels
   select one other_obj related by one_binary_rel->Class[R435.''has other''];
   ::transformSelector( obj:obj, target_class_name:one_binary_rel.other_class_name, rel_num:one_rel.num,
                        phrase:one_binary_rel.other_phrase, cond:one_binary_rel.other_conditionality,
-                       mult:one_binary_rel.other_multiplicity, selection_type:0, other_obj:other_obj );
+                       mult:one_binary_rel.other_multiplicity, src_class:"one", dst_class:"other",
+                       relationship_cast:"IBinaryRelationship", other_obj:other_obj );
 end for;
 // other to one case
 select many other_binary_rels related by obj->BinaryRelationship[R435.''other class for''];
@@ -1769,7 +1770,8 @@ for each other_binary_rel in other_binary_rels
   select one one_obj related by other_binary_rel->Class[R434.''has one''];
   ::transformSelector( obj:obj, target_class_name:other_binary_rel.one_class_name, rel_num:other_rel.num,
                        phrase:other_binary_rel.one_phrase, cond:other_binary_rel.one_conditionality,
-                       mult:other_binary_rel.one_multiplicity, selection_type:1, other_obj:one_obj );
+                       mult:other_binary_rel.one_multiplicity, src_class:"other", dst_class:"one",
+                       relationship_cast:"IBinaryRelationship", other_obj:one_obj );
 end for;
 
 // transform selectors for linked associations
@@ -1779,13 +1781,16 @@ for each link_assoc_rel in link_assoc_rels
   select one link_rel related by link_assoc_rel->Relationship[R433];
   select one one_obj related by link_assoc_rel->Class[R438.''has one''];
   ::transformSelector( obj:obj, target_class_name:link_assoc_rel.one_class_name, rel_num:link_rel.num,
-                       phrase:link_assoc_rel.one_phrase, cond:Cond::UNCONDITIONAL,
-                       mult:Mult::ONE, selection_type:2, other_obj:one_obj );
+                       phrase:link_assoc_rel.one_phrase, cond:Cond::UNCONDITIONAL, mult:Mult::ONE,
+                       src_class:"link", dst_class:"one", relationship_cast:"IAssociativeRelationship",
+                       other_obj:one_obj );
   // link to other case
   select one other_obj related by link_assoc_rel->Class[R439.''has other''];
   ::transformSelector( obj:obj, target_class_name:link_assoc_rel.other_class_name, rel_num:link_rel.num,
-                       phrase:link_assoc_rel.other_phrase, cond:Cond::UNCONDITIONAL,
-                       mult:Mult::ONE, selection_type:3, other_obj:other_obj );
+                       phrase:link_assoc_rel.other_phrase, cond:Cond::UNCONDITIONAL, mult:Mult::ONE,
+                       src_class:"link", dst_class:"other", relationship_cast:"IAssociativeRelationship",
+                       other_obj:other_obj );
+  // link to other case
 end for;
 select many one_assoc_rels related by obj->AssociativeRelationship[R438.''one class for''];
 for each one_assoc_rel in one_assoc_rels
@@ -1794,7 +1799,8 @@ for each one_assoc_rel in one_assoc_rels
   select one other_obj related by one_assoc_rel->Class[R439.''has other''];
   ::transformSelector( obj:obj, target_class_name:one_assoc_rel.other_class_name, rel_num:one_rel.num,
                        phrase:one_assoc_rel.other_phrase, cond:one_assoc_rel.other_conditionality,
-                       mult:one_assoc_rel.other_multiplicity, selection_type:4, other_obj:other_obj );
+                       mult:one_assoc_rel.other_multiplicity, src_class:"one", dst_class:"other",
+                       relationship_cast:"IAssociativeRelationship", other_obj:other_obj );
   // one to link case
   select one link_obj related by one_assoc_rel->Class[R440.''has link''];
   link_mult = Mult::ONE;
@@ -1802,8 +1808,9 @@ for each one_assoc_rel in one_assoc_rels
   link_phrase = "";
   if ( obj.name == other_obj.name and obj.package == other_obj.package ) link_phrase = one_assoc_rel.other_phrase; end if;
   ::transformSelector( obj:obj, target_class_name:one_assoc_rel.link_class_name, rel_num:one_rel.num,
-                       phrase:link_phrase, cond:one_assoc_rel.other_conditionality,
-                       mult:link_mult, selection_type:5, other_obj:link_obj );
+                       phrase:link_phrase, cond:one_assoc_rel.other_conditionality, mult:link_mult,
+                       src_class:"one", dst_class:"link", relationship_cast:"IAssociativeRelationship",
+                       other_obj:link_obj );
 end for;
 select many other_assoc_rels related by obj->AssociativeRelationship[R439.''other class for''];
 for each other_assoc_rel in other_assoc_rels
@@ -1812,7 +1819,8 @@ for each other_assoc_rel in other_assoc_rels
   select one one_obj related by other_assoc_rel->Class[R438.''has one''];
   ::transformSelector( obj:obj, target_class_name:other_assoc_rel.one_class_name, rel_num:other_rel.num,
                        phrase:other_assoc_rel.one_phrase, cond:other_assoc_rel.one_conditionality,
-                       mult:other_assoc_rel.one_multiplicity, selection_type:6, other_obj:one_obj );
+                       mult:other_assoc_rel.one_multiplicity, src_class:"other", dst_class:"one",
+                       relationship_cast:"IAssociativeRelationship", other_obj:one_obj );
   // other to link case
   select one link_obj related by other_assoc_rel->Class[R440.''has link''];
   link_mult = Mult::ONE;
@@ -1820,8 +1828,9 @@ for each other_assoc_rel in other_assoc_rels
   link_phrase = "";
   if ( obj.name == one_obj.name and obj.package == one_obj.package ) link_phrase = other_assoc_rel.one_phrase; end if;
   ::transformSelector( obj:obj, target_class_name:other_assoc_rel.link_class_name, rel_num:other_rel.num,
-                       phrase:link_phrase, cond:other_assoc_rel.one_conditionality,
-                       mult:link_mult, selection_type:7, other_obj:link_obj );
+                       phrase:link_phrase, cond:other_assoc_rel.one_conditionality, mult:link_mult,
+                       src_class:"other", dst_class:"link", relationship_cast:"IAssociativeRelationship",
+                       other_obj:link_obj );
 end for;
 
 // transform selectors for subsuper associations
@@ -1831,8 +1840,8 @@ for each sub_subsuper_rel in sub_subsuper_rels
   select one sub_rel related by sub_subsuper_rel->Relationship[R433];
   select one super_obj related by sub_subsuper_rel->Class[R436.''has supertype''];
   ::transformSelector( obj:obj, target_class_name:sub_subsuper_rel.supertype_class_name, rel_num:sub_rel.num,
-                       phrase:"is a", cond:Cond::UNCONDITIONAL,
-                       mult: Mult::ONE, selection_type:8, other_obj:super_obj );
+                       phrase:"is a", cond:Cond::UNCONDITIONAL, mult: Mult::ONE, src_class:"subtype",
+                       dst_class:"supertype", relationship_cast:"ISubsuperRelationship", other_obj:super_obj );
 end for;
 select many super_subsuper_rels related by obj->SubsuperRelationship[R436.''supertype class for''];
 for each super_subsuper_rel in super_subsuper_rels
@@ -1841,8 +1850,8 @@ for each super_subsuper_rel in super_subsuper_rels
   select many sub_objs related by super_subsuper_rel->ClassAsSubtype[R437]->Class[R437.''has subtype''];
   for each sub_obj in sub_objs
     ::transformSelector( obj:obj, target_class_name:sub_obj.name, rel_num:super_rel.num,
-                         phrase:"is a", cond:Cond::UNCONDITIONAL,
-                         mult: Mult::ONE, selection_type:9, other_obj:sub_obj );
+                         phrase:"is a", cond:Cond::UNCONDITIONAL, mult: Mult::ONE, src_class:"supertype",
+                         dst_class:"subtype", relationship_cast:"ISubsuperRelationship", other_obj:sub_obj );
   end for;
 end for;',
 	"ba5eda7a-def5-0000-0000-000000000000",
@@ -1894,7 +1903,9 @@ if ( Mult::ONE == param.mult )
   sel.unconditional = ( Cond::UNCONDITIONAL == param.cond );
   sel.multiplicity_many = false;
   sel.is_many = false;
-  sel.selection_type = param.selection_type;
+  sel.src_class = param.src_class;
+  sel.dst_class = param.dst_class;
+  sel.relationship_cast = param.relationship_cast;
   create object instance inst_sel of InstanceSelector;
   relate inst_sel to sel across R445;
   relate inst_sel to obj across R442.''navigates from'';
@@ -1924,7 +1935,9 @@ else
   sel1.unconditional = ( Cond::UNCONDITIONAL == param.cond );
   sel1.multiplicity_many = true;
   sel1.is_many = false;
-  sel1.selection_type = param.selection_type;
+  sel1.src_class = param.src_class;
+  sel1.dst_class = param.dst_class;
+  sel1.relationship_cast = param.relationship_cast;
   create object instance inst_sel1 of InstanceSelector;
   relate inst_sel1 to sel1 across R445;
   relate inst_sel1 to obj across R442.''navigates from'';
@@ -1952,7 +1965,9 @@ else
   sel2.unconditional = ( Cond::UNCONDITIONAL == param.cond );
   sel2.multiplicity_many = true;
   sel2.is_many = true;
-  sel2.selection_type = param.selection_type;
+  sel2.src_class = param.src_class;
+  sel2.dst_class = param.dst_class;
+  sel2.relationship_cast = param.relationship_cast;
   create object instance inst_sel2 of InstanceSelector;
   relate inst_sel2 to sel2 across R445;
   relate inst_sel2 to obj across R442.''navigates from'';
@@ -1989,7 +2004,9 @@ else
   sel3.multiplicity_many = true;
 end if;
 sel3.is_many = false;
-sel3.selection_type = param.selection_type;
+sel3.src_class = param.src_class;
+sel3.dst_class = param.dst_class;
+sel3.relationship_cast = param.relationship_cast;
 create object instance set_sel3 of SetSelector;
 relate set_sel3 to sel3 across R445;
 relate set_sel3 to obj_set across R444.''navigates from'';
@@ -2021,7 +2038,9 @@ else
   sel4.multiplicity_many = true;
 end if;
 sel4.is_many = true;
-sel4.selection_type = param.selection_type;
+sel4.src_class = param.src_class;
+sel4.dst_class = param.dst_class;
+sel4.relationship_cast = param.relationship_cast;
 create object instance set_sel4 of SetSelector;
 relate set_sel4 to sel4 across R445;
 relate set_sel4 to obj_set across R444.''navigates from'';
@@ -2039,18 +2058,15 @@ relate type4 to sel4 across R446.''shapes return of'';
 select one file related by obj->File[R401];
 ::addStringToImports( file:file, s:"io.ciera.summit.exceptions.XtumlException" );
 ::addStringToImports( file:file, s:"io.ciera.summit.classes.IWhere" );
-// one to other binary    
-if ( 0 == param.selection_type or 1 == param.selection_type )
-  ::addStringToImports( file:file, s:"io.ciera.summit.classes.IRelationshipSet" );
-  ::addStringToImports( file:file, s:"io.ciera.summit.classes.IRelationship" );
-  ::addStringToImports( file:file, s:"io.ciera.summit.classes.IBinaryRelationshipSet" );
-  ::addStringToImports( file:file, s:"io.ciera.summit.classes.IBinaryRelationship" );
-  ::addStringToImports( file:file, s:"io.ciera.summit.classes.IModelInstance" );
-  ::addStringToImports( file:file, s:"java.util.Iterator" );
-  if ( Cond::UNCONDITIONAL == param.cond or Mult::ONE == param.mult )
-    ::addStringToImports( file:file, s:"io.ciera.summit.exceptions.ModelIntegrityException" );
-  end if;
+::addStringToImports( file:file, s:"io.ciera.summit.classes.IRelationshipSet" );
+::addStringToImports( file:file, s:"io.ciera.summit.classes.IRelationship" );
+::addStringToImports( file:file, s:"io.ciera.summit.classes.IModelInstance" );
+::addStringToImports( file:file, s:"java.util.Iterator" );
+if ( Cond::UNCONDITIONAL == param.cond or Mult::ONE == param.mult )
+  ::addStringToImports( file:file, s:"io.ciera.summit.exceptions.ModelIntegrityException" );
 end if;
+::addStringToImports( file:file, s:"io.ciera.summit.classes." + param.relationship_cast );
+::addStringToImports( file:file, s:"io.ciera.summit.classes." + param.relationship_cast + "Set" );
 
 // add imports to object set file
 select one set_file related by obj_set->File[R401];
@@ -2140,11 +2156,29 @@ INSERT INTO S_SPARM
 INSERT INTO S_SPARM
 	VALUES ("97a8b201-770e-4c9c-bb31-e9ae2807ad04",
 	"47432932-84af-42f4-8df8-1fefb66ca9b3",
-	'selection_type',
-	"ba5eda7a-def5-0000-0000-000000000002",
+	'relationship_cast',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"351a2fc2-3520-48b5-a8dc-3662662e5c19",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("265cd96c-63d3-444d-8d66-6ea14b9fe330",
+	"47432932-84af-42f4-8df8-1fefb66ca9b3",
+	'src_class',
+	"ba5eda7a-def5-0000-0000-000000000004",
 	0,
 	'',
 	"1ac9195e-0a27-4cad-81de-677a96ff5688",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("351a2fc2-3520-48b5-a8dc-3662662e5c19",
+	"47432932-84af-42f4-8df8-1fefb66ca9b3",
+	'dst_class',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"265cd96c-63d3-444d-8d66-6ea14b9fe330",
 	'');
 INSERT INTO PE_PE
 	VALUES ("47432932-84af-42f4-8df8-1fefb66ca9b3",
