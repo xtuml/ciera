@@ -38,7 +38,35 @@
 .//
 .// other to one binary
 .elif ( 1 == selection_type )
-        return null;
+  .if ( is_many )
+        ${type_name} $l{type_name} = new ${type_name}();
+  .end if
+        IRelationshipSet R${rel_num}set = ((IBinaryRelationshipSet)getContext().getRelationshipSet( ${rel_num} )).getByOtherId( getInstanceId() );
+  .if ( unconditional )
+        if ( R${rel_num}set.isEmpty() ) throw new ModelIntegrityException( "Unconditional association has no related instances." );
+  .end if
+        Iterator<IRelationship> iter = R${rel_num}set.iterator();
+  .if ( multiplicity_many )
+        while ( iter.hasNext() ) {
+    .if ( is_many )
+            IModelInstance candidate = getContext().getInstanceSet( $l{type_name}.getKeyLetters() ).getByInstanceId( ((IBinaryRelationship)iter.next()).getOne() );
+            if ( null == condition || condition.passes( candidate ) ) $l{type_name}.add( candidate );
+        }
+        return $l{type_name};
+    .else
+            IModelInstance candidate = getContext().getInstanceSet( ${type_name}.KEY_LETTERS ).getByInstanceId( ((IBinaryRelationship)iter.next()).getOne() );
+            if ( null == condition || condition.passes( candidate ) ) return (${type_name})candidate;
+        }
+        return ${type_name}.EMPTY_$u_{type_name};
+    .end if
+  .else
+        if ( 1 == R${rel_num}set.size() ) {
+            IModelInstance candidate = getContext().getInstanceSet( ${type_name}.KEY_LETTERS ).getByInstanceId( ((IBinaryRelationship)iter.next()).getOne() );
+            if ( null == condition || condition.passes( candidate ) ) return (${type_name})candidate;
+            else return ${type_name}.EMPTY_$u_{type_name};
+        }
+        else throw new ModelIntegrityException( "Association with multiplicity 'one' has more than one related instance." );
+  .end if
 .// link to one assoc
 .elif ( 2 == selection_type )
         return null;
