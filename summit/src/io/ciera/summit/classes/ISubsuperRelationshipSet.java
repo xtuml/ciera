@@ -4,7 +4,7 @@ import io.ciera.summit.util.UniqueId;
 
 public interface ISubsuperRelationshipSet extends IRelationshipSet {
 
-	public IRelationshipSet getBySupertypeId( UniqueId supertypeId );
-	public IRelationshipSet getBySubtypeId( UniqueId subtypeId );
-	public IRelationship getByInstanceIds( UniqueId supertypeId, UniqueId subtypeId );
+	public ISubsuperRelationshipSet getBySupertypeId( UniqueId supertypeId );
+	public ISubsuperRelationshipSet getBySubtypeId( UniqueId subtypeId );
+	public ISubsuperRelationship getByInstanceIds( UniqueId supertypeId, UniqueId subtypeId );
 }

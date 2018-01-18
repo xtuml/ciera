@@ -4,9 +4,9 @@ import io.ciera.summit.util.UniqueId;
 
 public interface IAssociativeRelationshipSet extends IRelationshipSet {
 
-	public IRelationshipSet getByOneId( UniqueId oneId );
-	public IRelationshipSet getByOtherId( UniqueId otherId );
-	public IRelationshipSet getByLinkId( UniqueId linkId );
-	public IRelationship getByInstanceIds( UniqueId oneId, UniqueId otherId, UniqueId linkId );
+	public IAssociativeRelationshipSet getByOneId( UniqueId oneId );
+	public IAssociativeRelationshipSet getByOtherId( UniqueId otherId );
+	public IAssociativeRelationshipSet getByLinkId( UniqueId linkId );
+	public IAssociativeRelationship getByInstanceIds( UniqueId oneId, UniqueId otherId, UniqueId linkId );
 
 }

@@ -156,6 +156,7 @@ if ( cardinality objs > 0 )
   ::addStringToImports( file:file, s:"java.util.Iterator" );
   ::addStringToImports( file:file, s:"io.ciera.summit.classes.IWhere" );
   ::addStringToImports( file:file, s:"io.ciera.summit.classes.IModelInstance" );
+  ::addStringToImports( file:file, s:"io.ciera.summit.classes.IInstanceSet" );
 end if;
 for each obj in objs
   // create ''any'' selector
@@ -1480,6 +1481,7 @@ if ( not_empty r_simp )
   relate binary to rel across R433;
   binary.one_phrase = "";
   binary.other_phrase = "";
+  ric.relationship_type = 0;
 
   // set the extends class
   rel.extends = "BinaryRelationship";
@@ -1586,6 +1588,7 @@ if ( not_empty r_subsup )
   // create the subtype
   create object instance subsup of SubsuperRelationship;
   relate subsup to rel across R433;
+  ric.relationship_type = 2;
 
   // set the extends class
   rel.extends = "SubsuperRelationship";
@@ -1627,6 +1630,7 @@ if ( not_empty r_assoc )
   relate assoc to rel across R433;
   assoc.one_phrase = "";
   assoc.other_phrase = "";
+  ric.relationship_type = 1;
 
   // set the extends class
   rel.extends = "AssociativeRelationship";
@@ -1694,7 +1698,14 @@ end if; end if; end if;
 
 // add to the containing component imports
 select one component_file related by containing_comp_def->File[R401];
-::addFileToImports( file:component_file, file_to_import:file );
+::addStringToImports( file:component_file, s:"io.ciera.summit.classes.IRelationshipSet" );
+if ( 0 == ric.relationship_type )
+  ::addStringToImports( file:component_file, s:"io.ciera.cairn.classes.BinaryRelationshipSet" );
+elif ( 1 == ric.relationship_type )
+  ::addStringToImports( file:component_file, s:"io.ciera.cairn.classes.AssociativeRelationshipSet" );
+elif ( 2 == ric.relationship_type )
+  ::addStringToImports( file:component_file, s:"io.ciera.cairn.classes.SubsuperRelationshipSet" );
+end if;
 
 // add necessary imports
 ::addStringToImports( file:file, s:"io.ciera.summit.util.UniqueId" );

@@ -1,8 +1,8 @@
-    public ${type_name} ${name}() {
+    public ${type_name} ${name}() throws XtumlException {
         return ${name}( null );
     }
 
-    public ${type_name} ${name}( IWhere condition ) {
+    public ${type_name} ${name}( IWhere condition ) throws XtumlException {
 .if ( is_many )
         // TODO shortcut for when the condition is null
         ${type_name} $l{type_name} = new ${type_name}();

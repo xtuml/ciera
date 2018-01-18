@@ -5,13 +5,12 @@ import java.util.Map;
 import io.ciera.summit.classes.IBinaryRelationship;
 import io.ciera.summit.classes.IBinaryRelationshipSet;
 import io.ciera.summit.classes.IRelationship;
-import io.ciera.summit.classes.IRelationshipSet;
 import io.ciera.summit.util.UniqueId;
 
 public class BinaryRelationshipSet extends RelationshipSet implements IBinaryRelationshipSet {
 	
-	private Map<UniqueId, IRelationshipSet> oneSetMap;
-	private Map<UniqueId, IRelationshipSet> otherSetMap;
+	private Map<UniqueId, IBinaryRelationshipSet> oneSetMap;
+	private Map<UniqueId, IBinaryRelationshipSet> otherSetMap;
 	
 	public BinaryRelationshipSet( int relNum ) {
 		super( relNum );
@@ -22,15 +21,15 @@ public class BinaryRelationshipSet extends RelationshipSet implements IBinaryRel
 	@Override
 	public boolean add( IRelationship e ) {
 		if ( super.add( e ) ) {
-			IRelationshipSet oneSet = oneSetMap.get( ((IBinaryRelationship)e).getOne() );
+			IBinaryRelationshipSet oneSet = oneSetMap.get( ((IBinaryRelationship)e).getOne() );
 			if ( null == oneSet ) {
-				oneSet = e.toSet();
+				oneSet = (IBinaryRelationshipSet)e.toSet();
 				oneSetMap.put( ((IBinaryRelationship)e).getOne(), oneSet );
 			}
 			else oneSet.add( e );
-			IRelationshipSet otherSet = otherSetMap.get( ((IBinaryRelationship)e).getOther() );
+			IBinaryRelationshipSet otherSet = otherSetMap.get( ((IBinaryRelationship)e).getOther() );
 			if ( null == otherSet ) {
-				otherSet = e.toSet();
+				otherSet = (IBinaryRelationshipSet)e.toSet();
 				otherSetMap.put( ((IBinaryRelationship)e).getOther(), otherSet );
 			}
 			else otherSet.add( e );
@@ -42,9 +41,9 @@ public class BinaryRelationshipSet extends RelationshipSet implements IBinaryRel
 	@Override
 	public boolean remove( Object o ) {
 		if ( super.remove( o ) ) {
-			IRelationshipSet oneSet = oneSetMap.get( ((IBinaryRelationship)o).getOne() );
+			IBinaryRelationshipSet oneSet = oneSetMap.get( ((IBinaryRelationship)o).getOne() );
 			if ( null != oneSet ) oneSet.remove( o );
-			IRelationshipSet otherSet = otherSetMap.get( ((IBinaryRelationship)o).getOther() );
+			IBinaryRelationshipSet otherSet = otherSetMap.get( ((IBinaryRelationship)o).getOther() );
 			if ( null != otherSet ) otherSet.remove( o );
 			return true;
 		}
@@ -59,21 +58,21 @@ public class BinaryRelationshipSet extends RelationshipSet implements IBinaryRel
 	}
 
 	@Override
-	public IRelationshipSet getByOneId( UniqueId oneId ) {
+	public IBinaryRelationshipSet getByOneId( UniqueId oneId ) {
 		return oneSetMap.get( oneId );
 	}
 
 	@Override
-	public IRelationshipSet getByOtherId( UniqueId otherId ) {
+	public IBinaryRelationshipSet getByOtherId( UniqueId otherId ) {
 		return otherSetMap.get( otherId );
 	}
 
 	@Override
-	public IRelationship getByInstanceIds( UniqueId oneId, UniqueId otherId ) {
-		IRelationshipSet oneSet = getByOneId( oneId );
+	public IBinaryRelationship getByInstanceIds( UniqueId oneId, UniqueId otherId ) {
+		IBinaryRelationshipSet oneSet = getByOneId( oneId );
 		if ( null != oneSet ) {
-			IRelationshipSet otherSet = ((IBinaryRelationshipSet)oneSet).getByOtherId( otherId );
-			if ( null != otherSet && 1 == otherSet.size() ) return otherSet.toArray( new IRelationship[0] )[0];
+			IBinaryRelationshipSet otherSet = ((IBinaryRelationshipSet)oneSet).getByOtherId( otherId );
+			if ( null != otherSet && 1 == otherSet.size() ) return otherSet.toArray( new IBinaryRelationship[0] )[0];
 			else return null;
 		}
 		else return null;

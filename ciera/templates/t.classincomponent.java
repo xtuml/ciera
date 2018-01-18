@@ -1,1 +1,1 @@
-        classes.put( "${class_key_letters}", ${class_name}.class );
+        classes.put( "${class_key_letters}", new ${class_set_name}() );

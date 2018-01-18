@@ -3,7 +3,7 @@ T_b("public ");
 T_b(type_name);
 T_b(" ");
 T_b(name);
-T_b("() {");
+T_b("() throws XtumlException {");
 T_b("\n");
 T_b("        ");
 T_b("return ");
@@ -18,7 +18,7 @@ T_b("public ");
 T_b(type_name);
 T_b(" ");
 T_b(name);
-T_b("( IWhere condition ) {");
+T_b("( IWhere condition ) throws XtumlException {");
 T_b("\n");
 if ( is_many ) {
 T_b("        ");
