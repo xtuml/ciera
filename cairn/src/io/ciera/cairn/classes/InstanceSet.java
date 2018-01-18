@@ -14,6 +14,7 @@ import io.ciera.summit.util.UniqueId;
 
 public abstract class InstanceSet implements IInstanceSet {
     
+	private boolean immutable;
 	private String keyLetters;
 	
 	private Set<IModelInstance> hashSet;
@@ -23,6 +24,7 @@ public abstract class InstanceSet implements IInstanceSet {
 	private Map<IInstanceIdentifier, IModelInstance> id3Set;
 	
 	public InstanceSet( String keyLetters ) {
+		immutable = false;
 		this.keyLetters = keyLetters;
 		hashSet = new HashSet<>();
 		instanceIdSet = new HashMap<>();
@@ -68,7 +70,7 @@ public abstract class InstanceSet implements IInstanceSet {
 
 	@Override
 	public boolean add( IModelInstance e ) {
-		if ( null != e && hashSet.add( e ) ) {
+		if ( !immutable && ( null != e && hashSet.add( e ) ) ) {
 			instanceIdSet.put( e.getInstanceId(), e );
 			if ( null != e.getId1() ) id1Set.put( e.getId1(), e );
 			if ( null != e.getId2() ) id2Set.put( e.getId2(), e );
@@ -80,7 +82,7 @@ public abstract class InstanceSet implements IInstanceSet {
 
 	@Override
 	public boolean remove( Object o ) {
-		if ( null != o && hashSet.remove( o ) ) {
+		if ( !immutable && ( null != o && hashSet.remove( o ) ) ) {
 			instanceIdSet.remove( ((IModelInstance)o).getInstanceId() );
 			if ( null != ((IModelInstance)o).getId1() ) id1Set.remove( ((IModelInstance)o).getId1() );
 			if ( null != ((IModelInstance)o).getId2() )id2Set.remove( ((IModelInstance)o).getId2() );
@@ -155,6 +157,12 @@ public abstract class InstanceSet implements IInstanceSet {
 	@Override
 	public IModelInstance getById3( IInstanceIdentifier id3 ) {
 		return id1Set.get( id3 );
+	}
+	
+	@Override
+	public IInstanceSet toImmutableSet() {
+		immutable = true;
+		return this;
 	}
 
 }

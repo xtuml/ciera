@@ -11,5 +11,6 @@ public interface IInstanceSet extends Set<IModelInstance> {
 	public IModelInstance getById1( IInstanceIdentifier id1 );
 	public IModelInstance getById2( IInstanceIdentifier id2 );
 	public IModelInstance getById3( IInstanceIdentifier id3 );
+	public IInstanceSet toImmutableSet();
 
 }

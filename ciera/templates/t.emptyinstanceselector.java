@@ -1,7 +1,7 @@
 .if ( is_many )
     @Override
     public ${type_name} ${name}( IWhere condition ) {
-        return new ${type_name}();
+        return (${type_name})(new ${type_name}()).toImmutableSet();
     }
 .else
     @Override

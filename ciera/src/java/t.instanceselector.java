@@ -69,9 +69,11 @@ T_b("        ");
 T_b("}");
 T_b("\n");
 T_b("        ");
-T_b("return ");
+T_b("return (");
+T_b(type_name);
+T_b(")");
 T_b(T_l(type_name));
-T_b(";");
+T_b(".toImmutableSet();");
 T_b("\n");
 } else {
 T_b("            ");
@@ -174,9 +176,11 @@ T_b("        ");
 T_b("}");
 T_b("\n");
 T_b("        ");
-T_b("return ");
+T_b("return (");
+T_b(type_name);
+T_b(")");
 T_b(T_l(type_name));
-T_b(";");
+T_b(".toImmutableSet();");
 T_b("\n");
 } else {
 T_b("            ");

@@ -20,7 +20,7 @@
             IModelInstance candidate = getContext().getInstanceSet( $l{type_name}.getKeyLetters() ).getByInstanceId( ((IBinaryRelationship)iter.next()).getOther() );
             if ( null == condition || condition.passes( candidate ) ) $l{type_name}.add( candidate );
         }
-        return $l{type_name};
+        return (${type_name})$l{type_name}.toImmutableSet();
     .else
             IModelInstance candidate = getContext().getInstanceSet( ${type_name}.KEY_LETTERS ).getByInstanceId( ((IBinaryRelationship)iter.next()).getOther() );
             if ( null == condition || condition.passes( candidate ) ) return (${type_name})candidate;
@@ -52,7 +52,7 @@
             IModelInstance candidate = getContext().getInstanceSet( $l{type_name}.getKeyLetters() ).getByInstanceId( ((IBinaryRelationship)iter.next()).getOne() );
             if ( null == condition || condition.passes( candidate ) ) $l{type_name}.add( candidate );
         }
-        return $l{type_name};
+        return (${type_name})$l{type_name}.toImmutableSet();
     .else
             IModelInstance candidate = getContext().getInstanceSet( ${type_name}.KEY_LETTERS ).getByInstanceId( ((IBinaryRelationship)iter.next()).getOne() );
             if ( null == condition || condition.passes( candidate ) ) return (${type_name})candidate;

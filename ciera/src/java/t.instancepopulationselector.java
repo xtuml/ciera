@@ -22,7 +22,11 @@ T_b("( IWhere condition ) throws XtumlException {");
 T_b("\n");
 if ( is_many ) {
 T_b("        ");
-T_b("// TODO shortcut for when the condition is null");
+T_b("if ( null == condition ) return (");
+T_b(type_name);
+T_b(")getInstanceSet( \"");
+T_b(class_key_letters);
+T_b("\" ).toImmutableSet();");
 T_b("\n");
 T_b("        ");
 T_b(type_name);
@@ -54,9 +58,11 @@ T_b("        ");
 T_b("}");
 T_b("\n");
 T_b("        ");
-T_b("return ");
+T_b("return (");
+T_b(type_name);
+T_b(")");
 T_b(T_l(type_name));
-T_b(";");
+T_b(".toImmutableSet();");
 T_b("\n");
 } else {
 T_b("return (");
