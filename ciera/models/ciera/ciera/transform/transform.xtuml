@@ -1885,103 +1885,6 @@ other_obj = param.other_obj;
 // selectMany are created based on multiplicity. For sets, a selectAny and
 // SelectMany are always created.
 
-// create the instance selectors
-if ( Mult::ONE == param.mult )
-
-  // create ''one'' selector
-  name = "selectOneR" + STR::itoa( i:param.rel_num );
-  if ( "" != param.phrase )
-    name = name + "_" + T::underscore( s:param.phrase );
-  end if;
-  name = name + "_" + param.target_class_name;
-  create object instance sel of Selector;
-  sel.parent_name = obj.name;
-  sel.parent_package = obj.package;
-  sel.name = name;
-  create object instance inst_sel of InstanceSelector;
-  inst_sel.rel_num = param.rel_num;
-  inst_sel.unconditional = ( Cond::UNCONDITIONAL == param.cond );
-  inst_sel.multiplicity_many = false;
-  inst_sel.is_many = false;
-  inst_sel.src_class = param.src_class;
-  inst_sel.dst_class = param.dst_class;
-  inst_sel.relationship_cast = param.relationship_cast;
-  relate inst_sel to sel across R445;
-  relate inst_sel to obj across R442.''navigates from'';
-
-  // link up type
-  select any s_irdt related by other_obj->O_OBJ[R409.''is transformed from'']->S_IRDT[R123] where ( not selected.isSet );
-  select one s_dt related by s_irdt->S_DT[R17];
-  if ( empty s_dt )
-    // TODO bad
-  end if;
-  type = UnresolvedType::getInstance( s_dt:s_dt );
-  relate type to sel across R446.''shapes return of'';
-
-else
-  
-  // create ''any'' selector
-  name1 = "selectAnyR" + STR::itoa( i:param.rel_num );
-  if ( "" != param.phrase )
-    name1 = name1 + "_" + T::underscore( s:param.phrase );
-  end if;
-  name1 = name1 + "_" + param.target_class_name;
-  create object instance sel1 of Selector;
-  sel1.parent_name = obj.name;
-  sel1.parent_package = obj.package;
-  sel1.name = name1;
-  create object instance inst_sel1 of InstanceSelector;
-  inst_sel1.rel_num = param.rel_num;
-  inst_sel1.unconditional = ( Cond::UNCONDITIONAL == param.cond );
-  inst_sel1.multiplicity_many = true;
-  inst_sel1.is_many = false;
-  inst_sel1.src_class = param.src_class;
-  inst_sel1.dst_class = param.dst_class;
-  inst_sel1.relationship_cast = param.relationship_cast;
-  relate inst_sel1 to sel1 across R445;
-  relate inst_sel1 to obj across R442.''navigates from'';
-
-  // link up type
-  select any s_irdt1 related by other_obj->O_OBJ[R409.''is transformed from'']->S_IRDT[R123] where ( not selected.isSet );
-  select one s_dt1 related by s_irdt1->S_DT[R17];
-  if ( empty s_dt1 )
-    // TODO bad
-  end if;
-  type1 = UnresolvedType::getInstance( s_dt:s_dt1 );
-  relate type1 to sel1 across R446.''shapes return of'';
-
-  // create ''many'' selector
-  name2 = "selectManyR" + STR::itoa( i:param.rel_num );
-  if ( "" != param.phrase )
-    name2 = name2 + "_" + T::underscore( s:param.phrase );
-  end if;
-  name2 = name2 + "_" + param.target_class_name;
-  create object instance sel2 of Selector;
-  sel2.parent_name = obj.name;
-  sel2.parent_package = obj.package;
-  sel2.name = name2;
-  create object instance inst_sel2 of InstanceSelector;
-  inst_sel2.rel_num = param.rel_num;
-  inst_sel2.unconditional = ( Cond::UNCONDITIONAL == param.cond );
-  inst_sel2.multiplicity_many = true;
-  inst_sel2.is_many = true;
-  inst_sel2.src_class = param.src_class;
-  inst_sel2.dst_class = param.dst_class;
-  inst_sel2.relationship_cast = param.relationship_cast;
-  relate inst_sel2 to sel2 across R445;
-  relate inst_sel2 to obj across R442.''navigates from'';
-
-  // link up type
-  select any s_irdt2 related by other_obj->O_OBJ[R409.''is transformed from'']->S_IRDT[R123] where ( selected.isSet );
-  select one s_dt2 related by s_irdt2->S_DT[R17];
-  if ( empty s_dt2 )
-    // TODO bad
-  end if;
-  type2 = UnresolvedType::getInstance( s_dt:s_dt2 );
-  relate type2 to sel2 across R446.''shapes return of'';
-
-end if;
-
 // create set selectors
 select one obj_set related by obj->ClassSet[R406.''is type of single element in''];
 
@@ -1995,6 +1898,12 @@ create object instance sel3 of Selector;
 sel3.parent_name = obj_set.name;
 sel3.parent_package = obj_set.package;
 sel3.name = name3;
+if ( Mult::MANY == param.mult )
+  sel3.multiplicity_many = true;
+else
+  sel3.multiplicity_many = false;
+end if;
+sel3.is_many = false;
 create object instance set_sel3 of SetSelector;
 relate set_sel3 to sel3 across R445;
 relate set_sel3 to obj_set across R444.''navigates from'';
@@ -2018,6 +1927,12 @@ create object instance sel4 of Selector;
 sel4.parent_name = obj_set.name;
 sel4.parent_package = obj_set.package;
 sel4.name = name4;
+if ( Mult::MANY == param.mult )
+  sel4.multiplicity_many = true;
+else
+  sel4.multiplicity_many = false;
+end if;
+sel4.is_many = true;
 create object instance set_sel4 of SetSelector;
 relate set_sel4 to sel4 across R445;
 relate set_sel4 to obj_set across R444.''navigates from'';
@@ -2030,6 +1945,107 @@ if ( empty s_dt4 )
 end if;
 type4 = UnresolvedType::getInstance( s_dt:s_dt4 );
 relate type4 to sel4 across R446.''shapes return of'';
+
+// create the instance selectors
+if ( Mult::ONE == param.mult )
+
+  // create ''one'' selector
+  name = "selectOneR" + STR::itoa( i:param.rel_num );
+  if ( "" != param.phrase )
+    name = name + "_" + T::underscore( s:param.phrase );
+  end if;
+  name = name + "_" + param.target_class_name;
+  create object instance sel of Selector;
+  sel.parent_name = obj.name;
+  sel.parent_package = obj.package;
+  sel.name = name;
+  sel.multiplicity_many = false;
+  sel.is_many = false;
+  create object instance inst_sel of InstanceSelector;
+  inst_sel.rel_num = param.rel_num;
+  inst_sel.unconditional = ( Cond::UNCONDITIONAL == param.cond );
+  inst_sel.src_class = param.src_class;
+  inst_sel.dst_class = param.dst_class;
+  inst_sel.relationship_cast = param.relationship_cast;
+  relate inst_sel to sel across R445;
+  relate inst_sel to obj across R442.''navigates from'';
+  relate inst_sel to set_sel3 across R4505.''invoked by'';
+  relate inst_sel to set_sel4 across R4505.''invoked by'';
+
+  // link up type
+  select any s_irdt related by other_obj->O_OBJ[R409.''is transformed from'']->S_IRDT[R123] where ( not selected.isSet );
+  select one s_dt related by s_irdt->S_DT[R17];
+  if ( empty s_dt )
+    // TODO bad
+  end if;
+  type = UnresolvedType::getInstance( s_dt:s_dt );
+  relate type to sel across R446.''shapes return of'';
+
+else
+  
+  // create ''any'' selector
+  name1 = "selectAnyR" + STR::itoa( i:param.rel_num );
+  if ( "" != param.phrase )
+    name1 = name1 + "_" + T::underscore( s:param.phrase );
+  end if;
+  name1 = name1 + "_" + param.target_class_name;
+  create object instance sel1 of Selector;
+  sel1.parent_name = obj.name;
+  sel1.parent_package = obj.package;
+  sel1.name = name1;
+  sel1.multiplicity_many = true;
+  sel1.is_many = false;
+  create object instance inst_sel1 of InstanceSelector;
+  inst_sel1.rel_num = param.rel_num;
+  inst_sel1.unconditional = ( Cond::UNCONDITIONAL == param.cond );
+  inst_sel1.src_class = param.src_class;
+  inst_sel1.dst_class = param.dst_class;
+  inst_sel1.relationship_cast = param.relationship_cast;
+  relate inst_sel1 to sel1 across R445;
+  relate inst_sel1 to obj across R442.''navigates from'';
+  relate inst_sel1 to set_sel3 across R4505.''invoked by'';
+
+  // link up type
+  select any s_irdt1 related by other_obj->O_OBJ[R409.''is transformed from'']->S_IRDT[R123] where ( not selected.isSet );
+  select one s_dt1 related by s_irdt1->S_DT[R17];
+  if ( empty s_dt1 )
+    // TODO bad
+  end if;
+  type1 = UnresolvedType::getInstance( s_dt:s_dt1 );
+  relate type1 to sel1 across R446.''shapes return of'';
+
+  // create ''many'' selector
+  name2 = "selectManyR" + STR::itoa( i:param.rel_num );
+  if ( "" != param.phrase )
+    name2 = name2 + "_" + T::underscore( s:param.phrase );
+  end if;
+  name2 = name2 + "_" + param.target_class_name;
+  create object instance sel2 of Selector;
+  sel2.parent_name = obj.name;
+  sel2.parent_package = obj.package;
+  sel2.name = name2;
+  sel2.multiplicity_many = true;
+  sel2.is_many = true;
+  create object instance inst_sel2 of InstanceSelector;
+  inst_sel2.rel_num = param.rel_num;
+  inst_sel2.unconditional = ( Cond::UNCONDITIONAL == param.cond );
+  inst_sel2.src_class = param.src_class;
+  inst_sel2.dst_class = param.dst_class;
+  inst_sel2.relationship_cast = param.relationship_cast;
+  relate inst_sel2 to sel2 across R445;
+  relate inst_sel2 to obj across R442.''navigates from'';
+  relate inst_sel2 to set_sel4 across R4505.''invoked by'';
+
+  // link up type
+  select any s_irdt2 related by other_obj->O_OBJ[R409.''is transformed from'']->S_IRDT[R123] where ( selected.isSet );
+  select one s_dt2 related by s_irdt2->S_DT[R17];
+  if ( empty s_dt2 )
+    // TODO bad
+  end if;
+  type2 = UnresolvedType::getInstance( s_dt:s_dt2 );
+  relate type2 to sel2 across R446.''shapes return of'';
+
+end if;
 
 // add imports to object file
 select one file related by obj->File[R401];
@@ -2049,7 +2065,9 @@ end if;
 // add imports to object set file
 select one set_file related by obj_set->File[R401];
 ::addStringToImports( file:set_file, s:"io.ciera.summit.exceptions.XtumlException" );
-::addStringToImports( file:set_file, s:"io.ciera.summit.classes.IWhere" );',
+::addStringToImports( file:set_file, s:"io.ciera.summit.classes.IWhere" );
+::addStringToImports( file:set_file, s:"io.ciera.summit.classes.IModelInstance" );
+::addStringToImports( file:set_file, s:"io.ciera.summit.classes.IEmptyInstance" );',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',

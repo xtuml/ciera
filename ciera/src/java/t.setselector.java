@@ -20,9 +20,71 @@ T_b(" ");
 T_b(name);
 T_b("( IWhere condition ) throws XtumlException {");
 T_b("\n");
+if ( is_many ) {
 T_b("        ");
-T_b("return null;");
+T_b(type_name);
+T_b(" ");
+T_b(T_l(type_name));
+T_b(" = new ");
+T_b(type_name);
+T_b("();");
 T_b("\n");
+}
+T_b("        ");
+T_b("for ( IModelInstance ");
+T_b(T_l(selector_class_name));
+T_b(" : this ) {");
+T_b("\n");
+if ( is_many ) {
+T_b("            ");
+T_b(T_l(type_name));
+T_b(".add");
+if ( multiplicity_many ) {
+T_b("All");
+}
+T_b("( ((");
+T_b(selector_class_name);
+T_b(")");
+T_b(T_l(selector_class_name));
+T_b(").");
+T_b(selector_name);
+T_b("( condition ) );");
+T_b("\n");
+T_b("        ");
+T_b("}");
+T_b("\n");
+T_b("        ");
+T_b("return (");
+T_b(type_name);
+T_b(")");
+T_b(T_l(type_name));
+T_b(".toImmutableSet();");
+T_b("\n");
+} else {
+T_b("            ");
+T_b(type_name);
+T_b(" candidate = ((");
+T_b(selector_class_name);
+T_b(")");
+T_b(T_l(selector_class_name));
+T_b(").");
+T_b(selector_name);
+T_b("( condition );");
+T_b("\n");
+T_b("            ");
+T_b("if ( !(candidate instanceof IEmptyInstance) ) return candidate;");
+T_b("\n");
+T_b("        ");
+T_b("}");
+T_b("\n");
+T_b("        ");
+T_b("return ");
+T_b(type_name);
+T_b(".EMPTY_");
+T_b(T_underscore(T_u(type_name)));
+T_b(";");
+T_b("\n");
+}
 T_b("    ");
 T_b("}");
 T_b("\n");
