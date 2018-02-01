@@ -18,7 +18,7 @@ public abstract class ModelInstance implements IModelInstance {
     // constructors
     public ModelInstance( IInstancePopulation context ) {
         instanceId = new UniqueId();
-        this.context = null;
+        this.context = context;
     }
     
     @Override

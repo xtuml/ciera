@@ -580,8 +580,14 @@ create object instance obj of Class;
 obj.key_letters = o_obj.Key_Lett;
 obj.extends = "ModelInstance";
 relate obj to file across R401;
+
+// add the class to the component
 create object instance cic of ClassInComponent;
 relate obj to containing_comp_def across R408 using cic;
+create object instance instance_creator of InstanceCreator;
+instance_creator.name = "createObjectInstanceOf" + obj.name;
+relate instance_creator to containing_comp_def across R4550.''adds instances to population of'';
+relate instance_creator to cic across R4551.''creates instances of'';
 
 // create the instance type
 create object instance type of Type;
@@ -614,6 +620,8 @@ select one component_file related by containing_comp_def->File[R401];
 ::addFileToImports( file:component_file, file_to_import:file );
 select one set_file related by obj->ClassSet[R406.''is type of single element in'']->File[R401];
 ::addFileToImports( file:component_file, file_to_import:set_file );
+::addStringToImports( file: component_file, s:"io.ciera.summit.exceptions.XtumlException" );
+::addStringToImports( file: component_file, s:"io.ciera.summit.exceptions.InstancePopulationException" );
 
 // create the import block
 ::addStringToImports( file:file, s:"io.ciera.summit.classes.IEmptyInstance" );
