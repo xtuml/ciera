@@ -7,6 +7,15 @@ public class ${name} extends ${extends} {
     public ${name}() {
         super(${port_initializers});
     }
+
+    // creates
+${creates}
+
+    // relates
+${relates}
+
+    // unrelates
+${unrelates}
     
     // selections
 ${selectors}
