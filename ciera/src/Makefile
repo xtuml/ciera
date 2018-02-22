@@ -2,7 +2,8 @@ CC=gcc
 CFLAGS=-Wno-pointer-to-int-cast -g
 SOURCES := $(shell ls *.c)
 OBJECTS=$(SOURCES:.c=.o)
-EXECUTABLE=ciera
+OUTDIR=../bin
+EXECUTABLE=$(OUTDIR)/ciera
 
 all:  $(SOURCES) $(EXECUTABLE)
 
@@ -11,3 +12,6 @@ $(EXECUTABLE): $(OBJECTS)
 
 .o:
 	$(CC) $(CFLAGS) -c $<
+
+clean:
+	rm -f $(OBJECTS) $(EXECUTABLE)
