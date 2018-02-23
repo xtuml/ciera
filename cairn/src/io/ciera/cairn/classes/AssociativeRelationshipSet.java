@@ -5,7 +5,7 @@ import java.util.Map;
 import io.ciera.summit.classes.IAssociativeRelationship;
 import io.ciera.summit.classes.IAssociativeRelationshipSet;
 import io.ciera.summit.classes.IRelationship;
-import io.ciera.summit.util.UniqueId;
+import io.ciera.summit.classes.UniqueId;
 
 public class AssociativeRelationshipSet extends RelationshipSet implements IAssociativeRelationshipSet {
 	

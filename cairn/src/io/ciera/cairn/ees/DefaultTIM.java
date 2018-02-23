@@ -2,9 +2,9 @@ package io.ciera.cairn.ees;
 
 import io.ciera.summit.application.Application;
 import io.ciera.summit.statemachine.Event;
-import io.ciera.summit.util.Date;
-import io.ciera.summit.util.TimeStamp;
-import io.ciera.summit.util.Timer;
+import io.ciera.summit.time.Date;
+import io.ciera.summit.time.TimeStamp;
+import io.ciera.summit.time.Timer;
 
 public class DefaultTIM {
     

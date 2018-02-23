@@ -1,4 +1,4 @@
-package io.ciera.summit.util;
+package io.ciera.summit.classes;
 
 import io.ciera.summit.exceptions.UniqueIdException;
 import io.ciera.summit.exceptions.XtumlException;

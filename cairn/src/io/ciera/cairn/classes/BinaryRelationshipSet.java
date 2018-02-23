@@ -5,7 +5,7 @@ import java.util.Map;
 import io.ciera.summit.classes.IBinaryRelationship;
 import io.ciera.summit.classes.IBinaryRelationshipSet;
 import io.ciera.summit.classes.IRelationship;
-import io.ciera.summit.util.UniqueId;
+import io.ciera.summit.classes.UniqueId;
 
 public class BinaryRelationshipSet extends RelationshipSet implements IBinaryRelationshipSet {
 	

@@ -11,7 +11,7 @@ import io.ciera.summit.classes.IEmptyInstance;
 import io.ciera.summit.classes.IInstanceIdentifier;
 import io.ciera.summit.classes.IInstanceSet;
 import io.ciera.summit.classes.IModelInstance;
-import io.ciera.summit.util.UniqueId;
+import io.ciera.summit.classes.UniqueId;
 
 public abstract class InstanceSet implements IInstanceSet {
     

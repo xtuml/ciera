@@ -1,4 +1,4 @@
-package io.ciera.summit.util;
+package io.ciera.summit.time;
 
 import java.util.Calendar;
 import java.util.GregorianCalendar;

@@ -6,7 +6,7 @@ import java.util.Map;
 import io.ciera.summit.classes.IRelationship;
 import io.ciera.summit.classes.ISubsuperRelationship;
 import io.ciera.summit.classes.ISubsuperRelationshipSet;
-import io.ciera.summit.util.UniqueId;
+import io.ciera.summit.classes.UniqueId;
 
 public class SubsuperRelationshipSet extends RelationshipSet implements ISubsuperRelationshipSet {
 	

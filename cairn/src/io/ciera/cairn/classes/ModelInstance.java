@@ -5,9 +5,9 @@ import io.ciera.summit.classes.IInstanceIdentifier;
 import io.ciera.summit.classes.IInstancePopulation;
 import io.ciera.summit.classes.IInstanceSet;
 import io.ciera.summit.classes.IModelInstance;
+import io.ciera.summit.classes.UniqueId;
 import io.ciera.summit.exceptions.DeletedInstanceException;
 import io.ciera.summit.exceptions.XtumlException;
-import io.ciera.summit.util.UniqueId;
 
 public abstract class ModelInstance implements IModelInstance {
     

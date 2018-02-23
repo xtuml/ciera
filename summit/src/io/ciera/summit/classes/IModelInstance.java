@@ -1,7 +1,6 @@
 package io.ciera.summit.classes;
 
 import io.ciera.summit.exceptions.XtumlException;
-import io.ciera.summit.util.UniqueId;
 
 public interface IModelInstance {
     

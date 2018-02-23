@@ -2,8 +2,6 @@ package io.ciera.summit.classes;
 
 import java.util.Set;
 
-import io.ciera.summit.util.UniqueId;
-
 public interface IInstanceSet extends Set<IModelInstance> {
 	
 	public String getKeyLetters();

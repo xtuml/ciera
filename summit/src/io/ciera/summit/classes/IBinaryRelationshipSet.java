@@ -1,7 +1,5 @@
 package io.ciera.summit.classes;
 
-import io.ciera.summit.util.UniqueId;
-
 public interface IBinaryRelationshipSet extends IRelationshipSet {
 	
 	public IBinaryRelationshipSet getByOneId( UniqueId oneId );

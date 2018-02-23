@@ -2,8 +2,8 @@ package io.ciera.summit.application;
 
 import io.ciera.summit.components.IComponent;
 import io.ciera.summit.exceptions.XtumlException;
-import io.ciera.summit.util.DefaultTimeKeeper;
-import io.ciera.summit.util.TimeKeeper;
+import io.ciera.summit.time.DefaultTimeKeeper;
+import io.ciera.summit.time.TimeKeeper;
 
 public abstract class Application {
     
