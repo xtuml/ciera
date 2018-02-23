@@ -1,0 +1,15 @@
+T_b("package ");
+T_b(package);
+T_b(";");
+T_b("\n");
+T_b("public class ");
+T_b(name);
+T_b(" {");
+T_b("\n");
+T_b("    ");
+T_b("public static final int UNINITIALIZED_ENUM = -1;");
+T_b("\n");
+T_b(enumerators);
+T_b("\n");
+T_b("}");
+T_b("\n");

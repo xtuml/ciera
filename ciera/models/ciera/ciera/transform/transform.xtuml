@@ -488,17 +488,17 @@ for each s_dt in s_dts
     end if;
 
     if ( "" != type_name )
+      create object instance type of Type;
+      type.name = type_name;
+      type.package = type_package;
+      type.default_value = type_default_value;
+      relate type to s_dt across R423;
       create object instance builtin of BuiltInType;
+      relate builtin to type across R407;
       builtin.primitive = type_primitive;
       builtin.unique = type_unique;
       builtin.inst = type_inst;
       builtin.instset = type_instset;
-      builtin.default_value = type_default_value;
-      create object instance type of Type;
-      type.name = type_name;
-      type.package = type_package;
-      relate builtin to type across R407;
-      relate type to s_dt across R423;
     end if;
   
   end if;
@@ -549,6 +549,14 @@ relate instance_creator to cic across R4551.''creates instances of'';
 create object instance type of Type;
 type.name = obj.name;
 type.package = obj.package;
+select any s_irdt related by o_obj->S_IRDT[R123] where ( not selected.isSet );
+select one s_dt related by s_irdt->S_DT[R17];
+if ( not_empty s_dt )
+  relate s_dt to type across R423.''is basis of'';
+else
+  // TODO bad
+end if;
+type.default_value = "EMPTY_" + T::u( s:T::underscore( s:obj.name ) );
 relate type to obj across R407;
 
 // relate to the OOA class
@@ -646,6 +654,14 @@ relate objset to file across R401;
 create object instance type of Type;
 type.name = objset.name;
 type.package = objset.package;
+select any s_irdt related by obj->O_OBJ[R409.''is transformed from'']->S_IRDT[R123] where ( selected.isSet );
+select one s_dt related by s_irdt->S_DT[R17];
+if ( not_empty s_dt )
+  relate s_dt to type across R423.''is basis of'';
+else
+  // TODO bad
+end if;
+type.default_value = "("  + objset.name + ")(new " + objset.name + "()).toImmutableSet()";
 relate type to objset across R407;
 
 // create the import block
@@ -910,19 +926,23 @@ file.extension = ".java";
 file.exclude = false;
 
 // create the type
-create object instance edt of EnumeratedType;
-relate edt to file across R401;
 create object instance type of Type;
 type.name = file.name;
 type.package = file.package;
+type.default_value = type.name + ".UNINITIALIZED_ENUM";
 relate type to s_dt across R423;
+create object instance edt of EnumeratedType;
 relate type to edt across R407;
+relate edt to file across R401;
 
 // transform enumerators
 select many enums related by s_dt->S_EDT[R17]->S_ENUM[R27];
+value = 0;
 for each enumer in enums
   create object instance e of Enumerator;
   e.name = T::u( s:enumer.Name );
+  e.value = value;
+  value = value + 1;
   relate e to edt across R415;
 end for;',
 	"ba5eda7a-def5-0000-0000-000000000000",
@@ -1564,7 +1584,7 @@ if ( not_empty binary )
   select any other_cic related by other_class->ClassInComponent[R408] where ( selected.comp_name == containing_comp_def.name and selected.comp_package == containing_comp_def.package );
   if ( not_empty one_cic and not_empty other_cic )
     create object instance ilm_relator of InstanceLinkModifier;
-    ilm_relator.name = "relate" + one_class.name + "To" + other_class.name + "AcrossR" + STRING::itoa( i:rel.num );
+    ilm_relator.name = "relate" + one_class.name + "To" + other_class.name + "AcrossR" + STR::itoa( i:rel.num );
     relate ilm_relator to containing_comp_def across R4552.''instances linked in population of'';
     relate ilm_relator to ric across R4554.''creates instances of'';
     create object instance relator of InstanceRelator;
@@ -1579,7 +1599,7 @@ if ( not_empty binary )
     else relator_param_other.name = T::l( s:other_class.name ); end if;
     relate relator_param_other to relator_param_one across R4557.''follows'';
     create object instance ilm_unrelator of InstanceLinkModifier;
-    ilm_unrelator.name = "unrelate" + one_class.name + "From" + other_class.name + "AcrossR" + STRING::itoa( i:rel.num );
+    ilm_unrelator.name = "unrelate" + one_class.name + "From" + other_class.name + "AcrossR" + STR::itoa( i:rel.num );
     relate ilm_unrelator to containing_comp_def across R4552.''instances linked in population of'';
     relate ilm_unrelator to ric across R4554.''creates instances of'';
     create object instance unrelator of InstanceUnrelator;
@@ -1607,7 +1627,7 @@ if ( not_empty subsup )
     select any sub_cic related by super_class->ClassInComponent[R408] where ( selected.comp_name == containing_comp_def.name and selected.comp_package == containing_comp_def.package );
     if ( not_empty super_cic and not_empty sub_cic )
       create object instance ilm_relator of InstanceLinkModifier;
-      ilm_relator.name = "relate" + sub_class.name + "To" + super_class.name + "AcrossR" + STRING::itoa( i:rel.num );
+      ilm_relator.name = "relate" + sub_class.name + "To" + super_class.name + "AcrossR" + STR::itoa( i:rel.num );
       relate ilm_relator to containing_comp_def across R4552.''instances linked in population of'';
       relate ilm_relator to ric across R4554.''creates instances of'';
       create object instance relator of InstanceRelator;
@@ -1620,7 +1640,7 @@ if ( not_empty subsup )
       relator_param_super.name = T::l( s:super_class.name );
       relate relator_param_super to relator_param_sub across R4557.''follows'';
       create object instance ilm_unrelator of InstanceLinkModifier;
-      ilm_unrelator.name = "unrelate" + sub_class.name + "From" + super_class.name + "AcrossR" + STRING::itoa( i:rel.num );
+      ilm_unrelator.name = "unrelate" + sub_class.name + "From" + super_class.name + "AcrossR" + STR::itoa( i:rel.num );
       relate ilm_unrelator to containing_comp_def across R4552.''instances linked in population of'';
       relate ilm_unrelator to ric across R4554.''creates instances of'';
       create object instance unrelator of InstanceUnrelator;
@@ -1648,7 +1668,7 @@ if ( not_empty assoc )
   select any link_cic related by link_class->ClassInComponent[R408] where ( selected.comp_name == containing_comp_def.name and selected.comp_package == containing_comp_def.package );
   if ( not_empty one_cic and not_empty other_cic and not_empty link_cic )
     create object instance ilm_relator of InstanceLinkModifier;
-    ilm_relator.name = "relate" + one_class.name + "To" + other_class.name + "AcrossR" + STRING::itoa( i:rel.num ) + "Using" + link_class.name;
+    ilm_relator.name = "relate" + one_class.name + "To" + other_class.name + "AcrossR" + STR::itoa( i:rel.num ) + "Using" + link_class.name;
     relate ilm_relator to containing_comp_def across R4552.''instances linked in population of'';
     relate ilm_relator to ric across R4554.''creates instances of'';
     create object instance relator of InstanceRelator;
@@ -1667,7 +1687,7 @@ if ( not_empty assoc )
     relator_param_link.name = T::l( s:link_class.name );
     relate relator_param_link to relator_param_other across R4557.''follows'';
     create object instance ilm_unrelator of InstanceLinkModifier;
-    ilm_unrelator.name = "unrelate" + one_class.name + "From" + other_class.name + "AcrossR" + STRING::itoa( i:rel.num ) + "Using" + link_class.name;
+    ilm_unrelator.name = "unrelate" + one_class.name + "From" + other_class.name + "AcrossR" + STR::itoa( i:rel.num ) + "Using" + link_class.name;
     relate ilm_unrelator to containing_comp_def across R4552.''instances linked in population of'';
     relate ilm_unrelator to ric across R4554.''creates instances of'';
     create object instance unrelator of InstanceUnrelator;
