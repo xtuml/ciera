@@ -1,3 +1,3 @@
-    public ${modifiers}${type_name} ${op_name}( ${parameter_list} ) {
+    public ${modifiers}${type_name} ${name}(${parameter_list}) {
 ${body}
     }
