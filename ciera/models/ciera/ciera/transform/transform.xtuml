@@ -24,7 +24,7 @@ INSERT INTO GD_MD
 	200,
 	150,
 	0,
-	'',
+	'4.1.17',
 	'ciera::ciera::transform');
 INSERT INTO DIM_DIA
 	VALUES ("a442477a-0195-4034-8986-e4129bb601d0",
@@ -47,6 +47,7 @@ file.name = ::camelCaseName( name:s_sys.Name, start_lower:false );
 file.path = T::l( s:T::r( s:s_sys.Name ) );
 file.package = ::pathToPackage( path:file.path );
 file.extension = ".java";
+file.exclude = false;
 
 // create the application object
 create object instance app of Application;
@@ -126,6 +127,7 @@ file.name = ::camelCaseName( name:c_c.Name, start_lower:false );
 file.path = ::c_cToPath( c_c:c_c );
 file.package = ::pathToPackage( path:file.path );
 file.extension = ".java";
+file.exclude = false;
 
 // create the component definition object
 create object instance comp_def of ComponentDefinition;
@@ -267,6 +269,7 @@ end for;
 // transform EEs
 select many s_ees related by pe_pes->S_EE[R8001];
 for each s_ee in s_ees
+  ::transformUtility( s_ee:s_ee, ep_pkg:ep_pkg, containing_comp_def:containing_comp_def, exclude:false );
 end for;
 
 // transform classes
@@ -526,6 +529,7 @@ file.name = ::camelCaseName( name:o_obj.Name, start_lower:false );
 file.path = ::ep_pkgToPath( ep_pkg:ep_pkg );
 file.package = ::pathToPackage( path:file.path );
 file.extension = ".java";
+file.exclude = false;
 
 // create the object
 create object instance obj of Class;
@@ -634,6 +638,7 @@ file.name = obj.name + "Set";
 file.path = ::ep_pkgToPath( ep_pkg:ep_pkg );
 file.package = ::pathToPackage( path:file.path );
 file.extension = ".java";
+file.exclude = false;
 
 relate objset to file across R401;
 
@@ -902,6 +907,7 @@ file.name = ::camelCaseName( name:s_dt.Name, start_lower:false );
 file.path = ::ep_pkgToPath( ep_pkg:ep_pkg );
 file.package = ::pathToPackage( path:file.path );
 file.extension = ".java";
+file.exclude = false;
 
 // create the type
 create object instance edt of EnumeratedType;
@@ -961,11 +967,15 @@ for each type in types
   files = files | more_files;
   select many more_files related by type->FormalParameter[R431]->InvocableObject[R429]->Message[R427]->Port[R420]->File[R401];
   files = files | more_files;
+  select many more_files related by type->FormalParameter[R431]->InvocableObject[R429.''shapes data for'']->UtilityFunction[R427]->Utility[R4559.''provided by'']->File[R401];
+  files = files | more_files;
   select many more_files related by type->InvocableObject[R428]->Operation[R427]->Class[R416]->File[R401];
   files = files | more_files;
   select many more_files related by type->InvocableObject[R428]->Message[R427]->Interface[R419]->File[R401];
   files = files | more_files;
   select many more_files related by type->InvocableObject[R428]->Message[R427]->Port[R420]->File[R401];
+  files = files | more_files;
+  select many more_files related by type->InvocableObject[R428.''defines return type for'']->UtilityFunction[R427]->Utility[R4559.''provided by'']->File[R401];
   files = files | more_files;
   select many more_files related by type->Selector[R446.''shapes return of'']->InstanceSelector[R445]->Class[R442.''navigates from'']->File[R401];
   files = files | more_files;
@@ -1080,6 +1090,7 @@ file.name = ::camelCaseName( name:c_i.Name, start_lower:false );
 file.path = ::ep_pkgToPath( ep_pkg:ep_pkg );
 file.package = ::pathToPackage( path:file.path );
 file.extension = ".java";
+file.exclude = false;
 
 // create the interface package object
 create object instance iface of Interface;
@@ -1231,6 +1242,7 @@ file.name = ::camelCaseName( name:c_po.Name, start_lower:false );
 file.path = ::c_cToPath( c_c:c_c );
 file.package = ::pathToPackage( path:file.path );
 file.extension = ".java";
+file.exclude = false;
 
 // create the interface package object
 create object instance port of Port;
@@ -1310,6 +1322,7 @@ file.name = "R" + STR::itoa( i:r_rel.Numb );
 file.path = ::ep_pkgToPath( ep_pkg:ep_pkg );
 file.package = ::pathToPackage( path:file.path );
 file.extension = ".java";
+file.exclude = false;
 
 // create the relationship
 create object instance rel of Relationship;
@@ -2169,6 +2182,185 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("47432932-84af-42f4-8df8-1fefb66ca9b3",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("0b1dcdfd-3e1a-4aaa-a22a-df354cd09e94",
+	"00000000-0000-0000-0000-000000000000",
+	'transformUtility',
+	'',
+	's_ee = param.s_ee;
+ep_pkg = param.ep_pkg;
+containing_comp_def = param.containing_comp_def;
+
+// create the file
+create object instance file of File;
+file.name = ::camelCaseName( name:s_ee.Key_Lett, start_lower:false );
+file.path = ::ep_pkgToPath( ep_pkg:ep_pkg );
+file.package = ::pathToPackage( path:file.path );
+file.extension = ".java";
+file.exclude = param.exclude;
+
+// create the utility object
+create object instance utility of Utility;
+relate utility to file across R401;
+
+// relate the containing component
+if ( not_empty containing_comp_def )
+  relate utility to containing_comp_def across R4558.''may exist within context of'';
+  select one component_file related by containing_comp_def->File[R401];
+  ::addFileToImports( file:file, file_to_import:component_file );
+end if;
+
+// relate the default implementation if it exists
+select any default_utility from instances of Utility where ( selected.package == "io.ciera.cairn.util" and selected.name == "Default" + utility.name );
+if ( not_empty default_utility )
+  relate default_utility to utility across R4560.''provides default implementation for'';
+  select one default_file related by default_utility->File[R401];
+  ::addFileToImports( file:file, file_to_import:default_file );
+end if;
+
+// transform each utility function
+select many s_brgs related by s_ee->S_BRG[R19];
+for each s_brg in s_brgs
+  ::transformUtilityFunction( s_brg:s_brg, utility:utility );
+end for;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("3e2fdcea-3b0f-4b1e-9bc8-f44f1c434121",
+	"0b1dcdfd-3e1a-4aaa-a22a-df354cd09e94",
+	's_ee',
+	"fc04695e-75c8-413e-a409-6dbc6465e011",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("fc04695e-75c8-413e-a409-6dbc6465e011",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<External Entity>',
+	'',
+	'',
+	'../../../../../mcooa/models/mcooa/ooaofooa/Domain/Domain.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("2b01a5a1-1096-4eba-abb6-9c8d15e4bb40",
+	"0b1dcdfd-3e1a-4aaa-a22a-df354cd09e94",
+	'containing_comp_def',
+	"1fef1559-c5b6-4eb7-a9c4-8b126b9b51a0",
+	0,
+	'',
+	"17f7d23f-e0a1-41a5-9816-8fe56e4f9d41",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("42579ca2-d6b4-465a-8be0-bdfe32b0f0bc",
+	"0b1dcdfd-3e1a-4aaa-a22a-df354cd09e94",
+	'exclude',
+	"ba5eda7a-def5-0000-0000-000000000001",
+	0,
+	'',
+	"2b01a5a1-1096-4eba-abb6-9c8d15e4bb40",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("17f7d23f-e0a1-41a5-9816-8fe56e4f9d41",
+	"0b1dcdfd-3e1a-4aaa-a22a-df354cd09e94",
+	'ep_pkg',
+	"9939c670-a721-4742-a824-ed4b0df4acd6",
+	0,
+	'',
+	"3e2fdcea-3b0f-4b1e-9bc8-f44f1c434121",
+	'');
+INSERT INTO PE_PE
+	VALUES ("0b1dcdfd-3e1a-4aaa-a22a-df354cd09e94",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("9280b1e4-c562-48f3-8530-1ad3cee50c62",
+	"00000000-0000-0000-0000-000000000000",
+	'transformUtilityFunction',
+	'',
+	's_brg = param.s_brg;
+utility = param.utility;
+
+// create utility function object
+create object instance util_func of UtilityFunction;
+relate util_func to utility across R4559.''provided by'';
+
+// create invocable
+create object instance invocable of InvocableObject;
+invocable.name = s_brg.Name;
+invocable.parent_name = utility.name;
+invocable.parent_package = utility.package;
+relate util_func to invocable across R427;
+
+// link type
+select one s_dt related by s_brg->S_DT[R20];
+type = UnresolvedType::getInstance( s_dt:s_dt );
+relate type to invocable across R428;
+
+// create parameters
+select any s_bparm related by s_brg->S_BPARM[R21];
+prev_s_bparm = s_bparm;
+// select first parameter
+while ( not_empty prev_s_bparm )
+  s_bparm = prev_s_bparm;
+  select one prev_s_bparm related by s_bparm->S_BPARM[R55.''succeeds''];
+end while;
+while ( not_empty s_bparm )
+  // create parameter
+  create object instance parm of FormalParameter;
+  parm.name = s_bparm.Name;
+  parm.by_ref = ( 1 == s_bparm.By_Ref );
+  select one parm_dt related by s_bparm->S_DT[R22];
+  parm_type = UnresolvedType::getInstance( s_dt:parm_dt );
+  relate parm_type to parm across R431;
+  ::linkParameter( invocable:invocable, parameter:parm );
+  select one s_bparm related by s_bparm->S_BPARM[R55.''precedes''];
+end while;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("7a55a482-325f-4c69-8b40-f5000de09729",
+	"9280b1e4-c562-48f3-8530-1ad3cee50c62",
+	'utility',
+	"93db392d-1bd7-4276-baa0-47f361e867b5",
+	0,
+	'',
+	"ea9b2942-b98d-4911-9a84-fb52e87ac401",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("93db392d-1bd7-4276-baa0-47f361e867b5",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Utility>',
+	'',
+	'',
+	'../architecture/component/component.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("ea9b2942-b98d-4911-9a84-fb52e87ac401",
+	"9280b1e4-c562-48f3-8530-1ad3cee50c62",
+	's_brg',
+	"ecc1ab34-9767-4e8a-82ed-4ab5b2aea2c8",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("ecc1ab34-9767-4e8a-82ed-4ab5b2aea2c8",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Bridge>',
+	'',
+	'',
+	'../../../../../mcooa/models/mcooa/ooaofooa/Domain/Domain.xtuml');
+INSERT INTO PE_PE
+	VALUES ("9280b1e4-c562-48f3-8530-1ad3cee50c62",
 	1,
 	"06787f13-1c16-4275-879c-00bbeee7cb88",
 	"00000000-0000-0000-0000-000000000000",

@@ -1,4 +1,4 @@
-package io.ciera.cairn.ees;
+package io.ciera.cairn.util;
 
 import io.ciera.summit.application.Application;
 import io.ciera.summit.statemachine.Event;

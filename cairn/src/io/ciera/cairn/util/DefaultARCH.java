@@ -1,9 +1,9 @@
-package io.ciera.cairn.ees;
+package io.ciera.cairn.util;
 
 import io.ciera.summit.application.Application;
 
-public class DefaultARCH {
-    
+public final class DefaultARCH {
+
     public static void shutdown() {
         Application.app.stop();
     }

@@ -246,24 +246,8 @@ INSERT INTO O_ATTR
 INSERT INTO O_DBATTR
 	VALUES ("9583d941-033a-494f-97a8-70039a7734b7",
 	"398cfb93-ffa0-403e-925f-5cb6683d1173",
-	'parameter_list = "";
-select any parm from instances of FormalParameter where false;
-select any prev_parm related by self->InvocableObject[R427]->FormalParameter[R429];
-while ( not_empty prev_parm )
-  parm = prev_parm;
-  select one prev_parm related by parm->FormalParameter[R404.''follows''];
-end while;
-separator = " ";
-while ( not_empty parm )
-  select one parm_type related by parm->Type[R431];
-  parameter_list = parameter_list + separator + parm_type.name + " "  + parm.name;
-  separator = ",  ";
-  select one parm related by parm->FormalParameter[R404.''precedes''];
-  if ( empty parm )
-    parameter_list = parameter_list + " ";
-  end if;
-end while;
-self.parameter_list = parameter_list;',
+	'select one invocable related by self->InvocableObject[R427];
+self.parameter_list = invocable.parameter_list;',
 	1,
 	0);
 INSERT INTO O_BATTR
@@ -284,7 +268,8 @@ INSERT INTO O_ATTR
 INSERT INTO O_DBATTR
 	VALUES ("62cf3b0b-48f1-4c42-8671-bdfb7808eb7a",
 	"398cfb93-ffa0-403e-925f-5cb6683d1173",
-	'self.body = "";',
+	'select one invocable related by self->InvocableObject[R427];
+self.body = invocable.body;',
 	1,
 	0);
 INSERT INTO O_BATTR

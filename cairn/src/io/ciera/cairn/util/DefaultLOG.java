@@ -1,4 +1,4 @@
-package io.ciera.cairn.ees;
+package io.ciera.cairn.util;
 
 public class DefaultLOG {
 	
