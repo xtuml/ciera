@@ -8,6 +8,9 @@ public class ${name} extends ${extends} {
         super(${port_initializers});
     }
 
+    // domain functions
+${functions}
+
     // creates
 ${creates}
 
