@@ -2365,6 +2365,34 @@ INSERT INTO PE_PE
 	"06787f13-1c16-4275-879c-00bbeee7cb88",
 	"00000000-0000-0000-0000-000000000000",
 	1);
+INSERT INTO S_SYNC
+	VALUES ("95dbd48c-d367-4051-91dd-946f605e8a0b",
+	"00000000-0000-0000-0000-000000000000",
+	'transformBuiltinUtilities',
+	'',
+	'select any cairn from instances of S_SYS where ( selected.Name == "cairn" );
+// select to io.ciera.cairn.util
+select any io_pkg related by cairn->EP_PKG[R1401] where ( selected.Name == "io" );
+select any ciera_pkg related by io_pkg->PE_PE[R8000]->EP_PKG[R8001] where ( selected.Name == "ciera" );
+select any cairn_pkg related by ciera_pkg->PE_PE[R8000]->EP_PKG[R8001] where ( selected.Name == "cairn" );
+select any util_pkg related by cairn_pkg->PE_PE[R8000]->EP_PKG[R8001] where ( selected.Name == "util" );
+select many s_ees related by util_pkg->PE_PE[R8000]->S_EE[R8001];
+for each s_ee in s_ees
+  select any empty_comp_def from instances of ComponentDefinition where false;
+  // modify the key letters of the EE
+  s_ee.Key_Lett = "Default" + s_ee.Key_Lett;
+  ::transformUtility( s_ee:s_ee, ep_pkg:util_pkg, containing_comp_def: empty_comp_def, exclude:true );
+end for;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO PE_PE
+	VALUES ("95dbd48c-d367-4051-91dd-946f605e8a0b",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
 INSERT INTO PE_PE
 	VALUES ("06787f13-1c16-4275-879c-00bbeee7cb88",
 	1,

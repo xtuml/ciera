@@ -280,6 +280,7 @@ INSERT INTO O_DBATTR
 	'select one invocable related by self->InvocableObject[R427];
 body = invocable.body;
 if ( "" == body )
+  select one return_type related by self->InvocableObject[R427]->Type[R428.''return value is typed by''];
   select any default_function related by self->Utility[R4559.''provided by'']->Utility[R4560.''default implementation provided by'']->UtilityFunction[R4559.''provides''] where ( selected.name == self.name );
   if ( not_empty default_function )
     invocation_parameter_list = "";
@@ -298,10 +299,13 @@ if ( "" == body )
         invocation_parameter_list = invocation_parameter_list + " ";
       end if;
     end while;
-    body = "        " + default_function.utility_name + "." + default_function.name + "(" + invocation_parameter_list + ");\n";
+    body = "        ";
+    if ( "void" != return_type.name )
+      body = body + "return ";
+    end if;
+    body = body + default_function.utility_name + "." + default_function.name + "(" + invocation_parameter_list + ");";
   else
     body = "        // Insert your implementation here";
-    select one return_type related by self->InvocableObject[R427]->Type[R428.''return value is typed by''];
     if ( "void" != return_type.name )
       body = body + "\n        return " + return_type.default_value + ";";
     end if;
