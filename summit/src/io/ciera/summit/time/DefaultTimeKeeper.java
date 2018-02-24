@@ -4,8 +4,8 @@ import java.util.SortedSet;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentSkipListSet;
 
-import io.ciera.summit.application.Application;
-import io.ciera.summit.application.ApplicationTask;
+import io.ciera.cairn.application.Application;
+import io.ciera.cairn.application.ApplicationTask;
 import io.ciera.summit.exceptions.XtumlException;
 import io.ciera.summit.statemachine.Event;
 

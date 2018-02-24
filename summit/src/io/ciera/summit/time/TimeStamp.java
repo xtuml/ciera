@@ -1,6 +1,6 @@
 package io.ciera.summit.time;
 
-import io.ciera.summit.application.Application;
+import io.ciera.cairn.application.Application;
 
 @SuppressWarnings("serial")
 public class TimeStamp extends java.util.Date {

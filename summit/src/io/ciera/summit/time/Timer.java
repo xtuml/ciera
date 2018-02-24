@@ -1,6 +1,6 @@
 package io.ciera.summit.time;
 
-import io.ciera.summit.application.Application;
+import io.ciera.cairn.application.Application;
 import io.ciera.summit.statemachine.Event;
 
 public class Timer implements Comparable<Timer> {

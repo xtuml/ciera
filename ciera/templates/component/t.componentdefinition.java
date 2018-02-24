@@ -3,9 +3,12 @@ package ${package};
 ${imports}
 
 public class ${name} extends ${extends} {
+
+    private IRunContext runContext;
     
-    public ${name}() {
+    public ${name}( IRunContext runContext ) {
         super(${port_initializers});
+        this.runContext = runContext;
     }
 
     // domain functions
@@ -44,6 +47,11 @@ ${classes}\
         Map<Integer, IRelationshipSet> relationships  = new HashMap<>();
 ${relationships}\
         return relationships;
+    }
+
+    @Override
+    public IRunContext getRunContext() {
+        return runContext;
     }
 
 }

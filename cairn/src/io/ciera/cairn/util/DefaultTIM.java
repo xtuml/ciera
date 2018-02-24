@@ -1,7 +1,6 @@
 package io.ciera.cairn.util;
 
-import io.ciera.summit.application.Application;
-import io.ciera.summit.statemachine.Event;
+import io.ciera.summit.statemachines.IEvent;
 import io.ciera.summit.time.Date;
 import io.ciera.summit.time.TimeStamp;
 import io.ciera.summit.time.Timer;
@@ -45,30 +44,33 @@ public class DefaultTIM {
     }
     
     public static boolean timer_add_time( int microseconds, Timer timer_inst_ref ) {
-        Application.app.getTimeKeeper().addTime( timer_inst_ref, microseconds );
+        //Application.app.getTimeKeeper().addTime( timer_inst_ref, microseconds );
         return true;
     }
     
     public static boolean timer_cancel( Timer timer_inst_ref ) {
-        Application.app.getTimeKeeper().cancel( timer_inst_ref );
+        //Application.app.getTimeKeeper().cancel( timer_inst_ref );
         return true;
     }
     
     public static int timer_remaining_time( Timer timer_inst_ref ) {
-        return Application.app.getTimeKeeper().getRemainingTime( timer_inst_ref );
+        //return Application.app.getTimeKeeper().getRemainingTime( timer_inst_ref );
+    	return 0;
     }
 
     public static boolean timer_reset_time( int microseconds, Timer timer_inst_ref ) {
-        Application.app.getTimeKeeper().resetTime( timer_inst_ref, microseconds );
+        //Application.app.getTimeKeeper().resetTime( timer_inst_ref, microseconds );
         return true;
     }
 
-    public static Timer timer_start( Event event_inst, int microseconds) {
-        return Application.app.getTimeKeeper().newTimer( event_inst, microseconds, false );
+    public static Timer timer_start( IEvent event_inst, int microseconds) {
+        //return Application.app.getTimeKeeper().newTimer( event_inst, microseconds, false );
+    	return null;
     }
 
-    public static Timer timer_start_recurring( Event event_inst, int microseconds) {
-        return Application.app.getTimeKeeper().newTimer( event_inst, microseconds, false );
+    public static Timer timer_start_recurring( IEvent event_inst, int microseconds) {
+        //return Application.app.getTimeKeeper().newTimer( event_inst, microseconds, false );
+    	return null;
     }
 
 }
