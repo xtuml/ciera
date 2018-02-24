@@ -5,7 +5,7 @@ T_b(" ");
 T_b(name);
 T_b("(");
 T_b(parameter_list);
-T_b(") {");
+T_b(") throws XtumlException {");
 T_b("\n");
 T_b(body);
 T_b("\n");

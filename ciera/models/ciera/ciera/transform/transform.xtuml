@@ -120,11 +120,16 @@ INSERT INTO S_SYNC
 	'',
 	'c_c = param.c_c;
 containing_comp_def = param.containing_comp_def;
+select one ep_pkg related by c_c->PE_PE[R8001]->EP_PKG[R8000];
 
 // create the file
 create object instance file of File;
 file.name = ::camelCaseName( name:c_c.Name, start_lower:false );
-file.path = ::c_cToPath( c_c:c_c );
+if ( not_empty ep_pkg )
+  file.path = ::ep_pkgToPath( ep_pkg:ep_pkg );
+else
+  file.path = containing_comp_def.package + T::l( s:T::r( s:containing_comp_def.name ) );
+end if;
 file.package = ::pathToPackage( path:file.path );
 file.extension = ".java";
 file.exclude = false;
@@ -379,7 +384,25 @@ while ( not_empty s_sparm )
   relate parm_type to parm across R431;
   ::linkParameter( invocable:invocable, parameter:parm );
   select one s_sparm related by s_sparm->S_SPARM[R54.''precedes''];
-end while;',
+end while;
+
+// see if this is an initializer function
+select any init_function_mark from instances of Mark where ( selected.markable_name == "Component" and
+                                                             selected.path == ::packageToMarkingPath( package:comp_def.package ) + "::" + comp_def.name and
+                                                             selected.feature_name == "InitFunction" );
+if ( not_empty init_function_mark and func.name == init_function_mark.value )
+  select any s_sparm related by s_sync->S_SPARM[R24];
+  if ( empty s_sparm )
+    select one init_function related by comp_def->Function[R4561.''initialized by''];
+    if ( empty init_function )
+      relate func to comp_def across R4561.''initializes'';
+    else
+      // TODO bad
+    end if;
+  else
+    // TODO bad
+  end if;
+end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -1292,7 +1315,11 @@ if ( not_empty iface )
 end if;
 
 // add imports
-::addStringToImports( file:file, s:"io.ciera.summit.components.IMessage" );',
+::addStringToImports( file:file, s:"io.ciera.summit.components.IMessage" );
+
+// add to component file
+select one component_file related by comp_def->File[R401];
+::addFileToImports( file:component_file, file_to_import:file );',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
