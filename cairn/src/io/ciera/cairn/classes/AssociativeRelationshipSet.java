@@ -1,7 +1,11 @@
 package io.ciera.cairn.classes;
 
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+
 import io.ciera.summit.classes.IAssociativeRelationship;
 import io.ciera.summit.classes.IAssociativeRelationshipSet;
 import io.ciera.summit.classes.IRelationship;
@@ -9,9 +13,9 @@ import io.ciera.summit.classes.UniqueId;
 
 public class AssociativeRelationshipSet extends RelationshipSet implements IAssociativeRelationshipSet {
 	
-	private Map<UniqueId, IAssociativeRelationshipSet> oneSetMap;
-	private Map<UniqueId, IAssociativeRelationshipSet> otherSetMap;
-	private Map<UniqueId, IAssociativeRelationshipSet> linkSetMap;
+	private Map<UniqueId, Set<IRelationship>> oneSetMap;
+	private Map<UniqueId, Set<IRelationship>> otherSetMap;
+	private Map<UniqueId, Set<IRelationship>> linkSetMap;
 	
 	public AssociativeRelationshipSet( int relNum ) {
 		super( relNum );
@@ -19,28 +23,33 @@ public class AssociativeRelationshipSet extends RelationshipSet implements IAsso
 		otherSetMap = new HashMap<>();
 		linkSetMap = new HashMap<>();
 	}
+	
+	private AssociativeRelationshipSet( int relNum, Collection<IRelationship> c ) {
+		this( relNum );
+		addAll( c );
+	}
 
 	@Override
 	public boolean add( IRelationship e ) {
 		if ( super.add( e ) ) {
-			IAssociativeRelationshipSet oneSet = oneSetMap.get( ((IAssociativeRelationship)e).getOne() );
+			Set<IRelationship> oneSet = oneSetMap.get( ((IAssociativeRelationship)e).getOne() );
 			if ( null == oneSet ) {
-				oneSet = (IAssociativeRelationshipSet)e.toSet();
+				oneSet = new HashSet<>();
 				oneSetMap.put( ((IAssociativeRelationship)e).getOne(), oneSet );
 			}
-			else oneSet.add( e );
-			IAssociativeRelationshipSet otherSet = otherSetMap.get( ((IAssociativeRelationship)e).getOther() );
+			oneSet.add( e );
+			Set<IRelationship> otherSet = otherSetMap.get( ((IAssociativeRelationship)e).getOther() );
 			if ( null == otherSet ) {
-				otherSet = (IAssociativeRelationshipSet)e.toSet();
+				otherSet = new HashSet<>();
 				otherSetMap.put( ((IAssociativeRelationship)e).getOther(), otherSet );
 			}
-			else otherSet.add( e );
-			IAssociativeRelationshipSet linkSet = linkSetMap.get( ((IAssociativeRelationship)e).getLink() );
+			otherSet.add( e );
+			Set<IRelationship> linkSet = linkSetMap.get( ((IAssociativeRelationship)e).getLink() );
 			if ( null == linkSet ) {
-				linkSet = (IAssociativeRelationshipSet)e.toSet();
+				linkSet = new HashSet<>();
 				linkSetMap.put( ((IAssociativeRelationship)e).getLink(), linkSet );
 			}
-			else linkSet.add( e );
+			linkSet.add( e );
 			return true;
 		}
 		else return false;
@@ -49,11 +58,11 @@ public class AssociativeRelationshipSet extends RelationshipSet implements IAsso
 	@Override
 	public boolean remove( Object o ) {
 		if ( super.remove( o ) ) {
-			IAssociativeRelationshipSet oneSet = oneSetMap.get( ((IAssociativeRelationship)o).getOne() );
+			Set<IRelationship> oneSet = oneSetMap.get( ((IAssociativeRelationship)o).getOne() );
 			if ( null != oneSet ) oneSet.remove( o );
-			IAssociativeRelationshipSet otherSet = otherSetMap.get( ((IAssociativeRelationship)o).getOther() );
+			Set<IRelationship> otherSet = otherSetMap.get( ((IAssociativeRelationship)o).getOther() );
 			if ( null != otherSet ) otherSet.remove( o );
-			IAssociativeRelationshipSet linkSet = linkSetMap.get( ((IAssociativeRelationship)o).getLink() );
+			Set<IRelationship> linkSet = linkSetMap.get( ((IAssociativeRelationship)o).getLink() );
 			if ( null != linkSet ) linkSet.remove( o );
 			return true;
 		}
@@ -70,17 +79,17 @@ public class AssociativeRelationshipSet extends RelationshipSet implements IAsso
 
 	@Override
 	public IAssociativeRelationshipSet getByOneId( UniqueId oneId ) {
-		return oneSetMap.get( oneId );
+		return new AssociativeRelationshipSet( getNumber(), oneSetMap.get( oneId ) );
 	}
 
 	@Override
 	public IAssociativeRelationshipSet getByOtherId( UniqueId otherId ) {
-		return otherSetMap.get( otherId );
+		return new AssociativeRelationshipSet( getNumber(), otherSetMap.get( otherId ) );
 	}
 
 	@Override
 	public IAssociativeRelationshipSet getByLinkId( UniqueId linkId ) {
-		return linkSetMap.get( linkId );
+		return new AssociativeRelationshipSet( getNumber(), linkSetMap.get( linkId ) );
 	}
 
 	@Override

@@ -1,7 +1,10 @@
 package io.ciera.cairn.classes;
 
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import io.ciera.summit.classes.IRelationship;
 import io.ciera.summit.classes.ISubsuperRelationship;
@@ -10,30 +13,35 @@ import io.ciera.summit.classes.UniqueId;
 
 public class SubsuperRelationshipSet extends RelationshipSet implements ISubsuperRelationshipSet {
 	
-	private Map<UniqueId, ISubsuperRelationshipSet> supertypeSetMap;
-	private Map<UniqueId, ISubsuperRelationshipSet> subtypeSetMap;
+	private Map<UniqueId, Set<IRelationship>> supertypeSetMap;
+	private Map<UniqueId, Set<IRelationship>> subtypeSetMap;
 	
 	public SubsuperRelationshipSet( int relNum ) {
 		super( relNum );
 		supertypeSetMap = new HashMap<>();
 		subtypeSetMap = new HashMap<>();
 	}
+	
+	private SubsuperRelationshipSet( int relNum, Collection<IRelationship> c ) {
+		this( relNum );
+		addAll( c );
+	}
 
 	@Override
 	public boolean add( IRelationship e ) {
 		if ( super.add( e ) ) {
-			ISubsuperRelationshipSet supertypeSet = supertypeSetMap.get( ((ISubsuperRelationship)e).getSupertype() );
+			Set<IRelationship> supertypeSet = supertypeSetMap.get( ((ISubsuperRelationship)e).getSupertype() );
 			if ( null == supertypeSet ) {
-				supertypeSet = (ISubsuperRelationshipSet)e.toSet();
+				supertypeSet = new HashSet<>();
 				supertypeSetMap.put( ((ISubsuperRelationship)e).getSupertype(), supertypeSet );
 			}
-			else supertypeSet.add( e );
-			ISubsuperRelationshipSet subtypeSet = subtypeSetMap.get( ((ISubsuperRelationship)e).getSubtype() );
+			supertypeSet.add( e );
+			Set<IRelationship> subtypeSet = subtypeSetMap.get( ((ISubsuperRelationship)e).getSubtype() );
 			if ( null == subtypeSet ) {
-				subtypeSet = (ISubsuperRelationshipSet)e.toSet();
+				subtypeSet = new HashSet<>();
 				subtypeSetMap.put( ((ISubsuperRelationship)e).getSubtype(), subtypeSet );
 			}
-			else subtypeSet.add( e );
+			subtypeSet.add( e );
 			return true;
 		}
 		else return false;
@@ -42,9 +50,9 @@ public class SubsuperRelationshipSet extends RelationshipSet implements ISubsupe
 	@Override
 	public boolean remove( Object o ) {
 		if ( super.remove( o ) ) {
-			ISubsuperRelationshipSet supertypeSet = supertypeSetMap.get( ((ISubsuperRelationship)o).getSupertype() );
+			Set<IRelationship> supertypeSet = supertypeSetMap.get( ((ISubsuperRelationship)o).getSupertype() );
 			if ( null != supertypeSet ) supertypeSet.remove( o );
-			ISubsuperRelationshipSet subtypeSet = subtypeSetMap.get( ((ISubsuperRelationship)o).getSubtype() );
+			Set<IRelationship> subtypeSet = subtypeSetMap.get( ((ISubsuperRelationship)o).getSubtype() );
 			if ( null != subtypeSet ) subtypeSet.remove( o );
 			return true;
 		}
@@ -60,12 +68,12 @@ public class SubsuperRelationshipSet extends RelationshipSet implements ISubsupe
 
 	@Override
 	public ISubsuperRelationshipSet getBySupertypeId( UniqueId supertypeId ) {
-		return supertypeSetMap.get( supertypeId );
+		return new SubsuperRelationshipSet( getNumber(), supertypeSetMap.get( supertypeId ) );
 	}
 
 	@Override
 	public ISubsuperRelationshipSet getBySubtypeId( UniqueId subtypeId ) {
-		return subtypeSetMap.get( subtypeId );
+		return new SubsuperRelationshipSet( getNumber(), subtypeSetMap.get( subtypeId ) );
 	}
 
 	@Override
