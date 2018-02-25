@@ -1,12 +1,13 @@
 package io.ciera.cairn.util;
 
-import io.ciera.summit.statemachines.IEvent;
-import io.ciera.summit.time.Date;
-import io.ciera.summit.time.TimeStamp;
-import io.ciera.summit.time.Timer;
+//import io.ciera.summit.statemachines.IEvent;
+//import io.ciera.summit.time.Date;
+//import io.ciera.summit.time.TimeStamp;
+//import io.ciera.summit.time.Timer;
 
 public class DefaultTIM {
     
+    /*
     public static Date create_date( int day, int hour, int minute, int month, int second, int year ) {
         return new Date( year, month, day, hour, minute, second );
     }
@@ -72,5 +73,6 @@ public class DefaultTIM {
         //return Application.app.getTimeKeeper().newTimer( event_inst, microseconds, false );
     	return null;
     }
+    */
 
 }
