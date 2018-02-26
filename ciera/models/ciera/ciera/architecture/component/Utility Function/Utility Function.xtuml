@@ -249,12 +249,14 @@ INSERT INTO O_DBATTR
 	'select one invocable related by self->InvocableObject[R427];
 parameter_list = invocable.parameter_list;
 select one containing_comp_def related by self->Utility[R4559.''provided by'']->ComponentDefinition[R4558.''may exist within context of''];
+separator = ",";
+if ( "" == parameter_list )
+  separator = " ";
+end if;
 if ( not_empty containing_comp_def )
-  separator = ",";
-  if ( "" == parameter_list )
-    separator = " ";
-  end if;
   parameter_list = " " + containing_comp_def.name + " context" + separator + parameter_list;
+else
+  parameter_list = " IComponent context" + separator + parameter_list;
 end if;
 self.parameter_list = parameter_list;',
 	1,
@@ -283,22 +285,18 @@ if ( "" == body )
   select one return_type related by self->InvocableObject[R427]->Type[R428.''return value is typed by''];
   select any default_function related by self->Utility[R4559.''provided by'']->Utility[R4560.''default implementation provided by'']->UtilityFunction[R4559.''provides''] where ( selected.name == self.name );
   if ( not_empty default_function )
-    invocation_parameter_list = "";
+    invocation_parameter_list = " context";
     select any parm from instances of FormalParameter where false;
     select any prev_parm related by self->InvocableObject[R427]->FormalParameter[R429.''declares signature with''];
     while ( not_empty prev_parm )
       parm = prev_parm;
       select one prev_parm related by parm->FormalParameter[R404.''follows''];
     end while;
-    separator = " ";
     while ( not_empty parm )
-      invocation_parameter_list = invocation_parameter_list + separator + parm.name;
-      separator = ",  ";
+      invocation_parameter_list = invocation_parameter_list + ", " + parm.name;
       select one parm related by parm->FormalParameter[R404.''precedes''];
-      if ( empty parm )
-        invocation_parameter_list = invocation_parameter_list + " ";
-      end if;
     end while;
+    invocation_parameter_list = invocation_parameter_list + " ";
     body = "        ";
     if ( "void" != return_type.name )
       body = body + "return ";
