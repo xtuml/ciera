@@ -1,6 +1,5 @@
 package io.ciera.cairn.classes;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -20,11 +19,6 @@ public class SubsuperRelationshipSet extends RelationshipSet implements ISubsupe
 		super( relNum );
 		supertypeSetMap = new HashMap<>();
 		subtypeSetMap = new HashMap<>();
-	}
-	
-	private SubsuperRelationshipSet( int relNum, Collection<IRelationship> c ) {
-		this( relNum );
-		addAll( c );
 	}
 
 	@Override
@@ -67,23 +61,24 @@ public class SubsuperRelationshipSet extends RelationshipSet implements ISubsupe
 	}
 
 	@Override
-	public ISubsuperRelationshipSet getBySupertypeId( UniqueId supertypeId ) {
-		return new SubsuperRelationshipSet( getNumber(), supertypeSetMap.get( supertypeId ) );
+	public Set<IRelationship> getBySupertypeId( UniqueId supertypeId ) {
+		Set<IRelationship> returnSet = supertypeSetMap.get( supertypeId );
+		if ( null != returnSet ) return returnSet;
+		else return new HashSet<>();
 	}
 
 	@Override
-	public ISubsuperRelationshipSet getBySubtypeId( UniqueId subtypeId ) {
-		return new SubsuperRelationshipSet( getNumber(), subtypeSetMap.get( subtypeId ) );
+	public Set<IRelationship> getBySubtypeId( UniqueId subtypeId ) {
+		Set<IRelationship> returnSet = subtypeSetMap.get( subtypeId );
+		if ( null != returnSet ) return returnSet;
+		else return new HashSet<>();
 	}
 
 	@Override
 	public ISubsuperRelationship getByInstanceIds( UniqueId supertypeId, UniqueId subtypeId ) {
-		ISubsuperRelationshipSet supertypeSet = getBySupertypeId( supertypeId );
-		if ( null != supertypeSet ) {
-			ISubsuperRelationshipSet subtypeSet = ((ISubsuperRelationshipSet)supertypeSet).getBySubtypeId( subtypeId );
-			if ( null != subtypeSet && 1 == subtypeSet.size() ) return subtypeSet.toArray( new ISubsuperRelationship[0] )[0];
-			else return null;
-		}
+		Set<IRelationship> returnSet = getBySupertypeId( supertypeId );
+		returnSet.retainAll( getBySubtypeId( subtypeId ) );
+		if ( null != returnSet && 1 == returnSet.size() ) return returnSet.toArray( new ISubsuperRelationship[0] )[0];
 		else return null;
 	}
 

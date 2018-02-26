@@ -1,6 +1,5 @@
 package io.ciera.cairn.classes;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -22,11 +21,6 @@ public class AssociativeRelationshipSet extends RelationshipSet implements IAsso
 		oneSetMap = new HashMap<>();
 		otherSetMap = new HashMap<>();
 		linkSetMap = new HashMap<>();
-	}
-	
-	private AssociativeRelationshipSet( int relNum, Collection<IRelationship> c ) {
-		this( relNum );
-		addAll( c );
 	}
 
 	@Override
@@ -78,33 +72,33 @@ public class AssociativeRelationshipSet extends RelationshipSet implements IAsso
 	}
 
 	@Override
-	public IAssociativeRelationshipSet getByOneId( UniqueId oneId ) {
-		return new AssociativeRelationshipSet( getNumber(), oneSetMap.get( oneId ) );
+	public Set<IRelationship> getByOneId( UniqueId oneId ) {
+		Set<IRelationship> returnSet = oneSetMap.get( oneId );
+		if ( null != returnSet ) return returnSet;
+		else return new HashSet<>();
 	}
 
 	@Override
-	public IAssociativeRelationshipSet getByOtherId( UniqueId otherId ) {
-		return new AssociativeRelationshipSet( getNumber(), otherSetMap.get( otherId ) );
+	public Set<IRelationship> getByOtherId( UniqueId otherId ) {
+		Set<IRelationship> returnSet = otherSetMap.get( otherId );
+		if ( null != returnSet ) return returnSet;
+		else return new HashSet<>();
 	}
 
 	@Override
-	public IAssociativeRelationshipSet getByLinkId( UniqueId linkId ) {
-		return new AssociativeRelationshipSet( getNumber(), linkSetMap.get( linkId ) );
+	public Set<IRelationship> getByLinkId( UniqueId linkId ) {
+		Set<IRelationship> returnSet = linkSetMap.get( linkId );
+		if ( null != returnSet ) return returnSet;
+		else return new HashSet<>();
 	}
 
 	@Override
 	public IAssociativeRelationship getByInstanceIds( UniqueId oneId, UniqueId otherId, UniqueId linkId ) {
-		IAssociativeRelationshipSet oneSet = getByOneId( oneId );
-		if ( null != oneSet ) {
-			IAssociativeRelationshipSet otherSet = ((IAssociativeRelationshipSet)oneSet).getByOtherId( otherId );
-			if ( null != otherSet ) {
-				IAssociativeRelationshipSet linkSet = ((IAssociativeRelationshipSet)otherSet).getByLinkId( linkId );
-				if ( null != linkSet && 1 == linkSet.size() ) return linkSet.toArray( new IAssociativeRelationship[0] )[0];
-				else return null;
-			}
-			else return null;
-		}
-		else return null;
+		Set<IRelationship> returnSet = getByOneId( oneId );
+		returnSet.retainAll( getByOtherId( otherId ) );
+		returnSet.retainAll( getByLinkId( linkId ) );
+		if ( null != returnSet && 1 == returnSet.size() ) return returnSet.toArray( new IAssociativeRelationship[0] )[0];
+	    else return null;
 	}
 
 }

@@ -31,7 +31,7 @@ T_b("();");
 T_b("\n");
 }
 T_b("        ");
-T_b("IRelationshipSet R");
+T_b("Set<IRelationship> R");
 T_b(rel_num);
 T_b("set = ((");
 T_b(relationship_cast);

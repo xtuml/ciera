@@ -6,7 +6,7 @@
 .if ( is_many )
         ${type_name} $l{type_name} = new ${type_name}();
 .end if
-        IRelationshipSet R${rel_num}set = ((${relationship_cast}Set)getContext().getRelationshipSet( ${rel_num} )).getBy$c{src_class}Id( getInstanceId() );
+        Set<IRelationship> R${rel_num}set = ((${relationship_cast}Set)getContext().getRelationshipSet( ${rel_num} )).getBy$c{src_class}Id( getInstanceId() );
 .if ( unconditional )
         if ( R${rel_num}set.isEmpty() ) throw new ModelIntegrityException( "Unconditional association has no related instances." );
 .end if

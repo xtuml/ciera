@@ -1,6 +1,5 @@
 package io.ciera.cairn.classes;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -20,11 +19,6 @@ public class BinaryRelationshipSet extends RelationshipSet implements IBinaryRel
 		super( relNum );
 		oneSetMap = new HashMap<>();
 		otherSetMap = new HashMap<>();
-	}
-
-	private BinaryRelationshipSet( int relNum, Collection<IRelationship> c ) {
-		this( relNum );
-		addAll( c );
 	}
 
 	@Override
@@ -67,23 +61,24 @@ public class BinaryRelationshipSet extends RelationshipSet implements IBinaryRel
 	}
 
 	@Override
-	public IBinaryRelationshipSet getByOneId( UniqueId oneId ) {
-		return new BinaryRelationshipSet( getNumber(), oneSetMap.get( oneId ) );
+	public Set<IRelationship> getByOneId( UniqueId oneId ) {
+		Set<IRelationship> returnSet = oneSetMap.get( oneId );
+		if ( null != returnSet ) return returnSet;
+		else return new HashSet<>();
 	}
 
 	@Override
-	public IBinaryRelationshipSet getByOtherId( UniqueId otherId ) {
-		return new BinaryRelationshipSet( getNumber(), otherSetMap.get( otherId ) );
+	public Set<IRelationship> getByOtherId( UniqueId otherId ) {
+		Set<IRelationship> returnSet = otherSetMap.get( otherId );
+		if ( null != returnSet ) return returnSet;
+		else return new HashSet<>();
 	}
 
 	@Override
 	public IBinaryRelationship getByInstanceIds( UniqueId oneId, UniqueId otherId ) {
-		IBinaryRelationshipSet oneSet = getByOneId( oneId );
-		if ( null != oneSet ) {
-			IBinaryRelationshipSet otherSet = ((IBinaryRelationshipSet)oneSet).getByOtherId( otherId );
-			if ( null != otherSet && 1 == otherSet.size() ) return otherSet.toArray( new IBinaryRelationship[0] )[0];
-			else return null;
-		}
+		Set<IRelationship> returnSet = getByOneId( oneId );
+		returnSet.retainAll( getByOtherId( otherId ) );
+	    if ( null != returnSet && 1 == returnSet.size() ) return returnSet.toArray( new IBinaryRelationship[0] )[0];
 		else return null;
 	}
 
