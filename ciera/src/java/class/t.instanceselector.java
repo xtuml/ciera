@@ -47,6 +47,18 @@ T_b("if ( R");
 T_b(rel_num);
 T_b("set.isEmpty() ) throw new ModelIntegrityException( \"Unconditional association has no related instances.\" );");
 T_b("\n");
+} else {
+if ( ! is_many ) {
+T_b("        ");
+T_b("if ( R");
+T_b(rel_num);
+T_b("set.isEmpty() ) return ");
+T_b(type_name);
+T_b(".EMPTY_");
+T_b(T_underscore(T_u(type_name)));
+T_b(";");
+T_b("\n");
+}
 }
 if ( is_many ) {
 T_b("        ");

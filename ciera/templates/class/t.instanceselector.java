@@ -9,6 +9,10 @@
         Set<IRelationship> R${rel_num}set = ((${relationship_cast}Set)getContext().getRelationshipSet( ${rel_num} )).getBy$c{src_class}Id( getInstanceId() );
 .if ( unconditional )
         if ( R${rel_num}set.isEmpty() ) throw new ModelIntegrityException( "Unconditional association has no related instances." );
+.else
+  .if ( not is_many )
+        if ( R${rel_num}set.isEmpty() ) return ${type_name}.EMPTY_$u_{type_name};
+  .end if
 .end if
 .if ( is_many )
         for ( IRelationship r${rel_num} : R${rel_num}set ) {
