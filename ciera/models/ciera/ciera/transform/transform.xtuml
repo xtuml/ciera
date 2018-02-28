@@ -303,6 +303,11 @@ for each obj in objs
   ::transformSelectors( obj:obj );
 end for;
 
+// transform attribute references
+for each obj in objs
+  ::transformAttributeReferences( obj:obj );
+end for;
+
 // transform relators/unrelators
 for each r_rel in r_rels
   select any rel from instances of Relationship where ( selected.num == r_rel.Numb );
@@ -2598,6 +2603,39 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("c8d55ce3-b33a-4e74-8624-a5b9cbf037da",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("b36bee85-a614-4d69-9feb-cda336242c18",
+	"00000000-0000-0000-0000-000000000000",
+	'transformAttributeReferences',
+	'',
+	'obj = param.obj;
+select many attrs related by obj->Attribute[R410.''data abstracted by''];
+for each attr in attrs
+  select many referred_to_attrs related by attr->O_ATTR[R414.''is transformed from'']->O_RATTR[R106]->O_REF[R108]->O_RTIDA[R111]->O_OIDA[R110]->O_ATTR[R105]->Attribute[R414.''is basis for''];
+  for each referred_to_attr in referred_to_attrs
+    create object instance attr_ref of AttributeReference;
+    relate attr to referred_to_attr across R4506.''has value provided by'' using attr_ref;
+  end for;
+end for;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("305d84cf-5ace-4032-bde8-9f647e76e318",
+	"b36bee85-a614-4d69-9feb-cda336242c18",
+	'obj',
+	"ac93823e-2644-440b-977c-1f4e8480ec59",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO PE_PE
+	VALUES ("b36bee85-a614-4d69-9feb-cda336242c18",
 	1,
 	"06787f13-1c16-4275-879c-00bbeee7cb88",
 	"00000000-0000-0000-0000-000000000000",
