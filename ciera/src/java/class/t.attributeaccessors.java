@@ -11,7 +11,7 @@ T_b("\n");
 T_b("        ");
 T_b("if ( this instanceof IEmptyInstance ) throw new EmptyInstanceException( \"Cannot get attribute of empty instance.\" );");
 T_b("\n");
-T_b(attribute_processor);
+T_b(attribute_derivation);
 T_b("\n");
 T_b("        ");
 T_b("return ");

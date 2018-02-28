@@ -1,7 +1,7 @@
     public ${type_name} get${capital_name}() throws XtumlException {
         checkLiving();
         if ( this instanceof IEmptyInstance ) throw new EmptyInstanceException( "Cannot get attribute of empty instance." );
-${attribute_processor}
+${attribute_derivation}
         return ${name};
     }
 
