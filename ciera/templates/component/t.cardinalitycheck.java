@@ -1,1 +1,1 @@
-        if ( !(${link_parameter_name}.${selector_name}() instanceof IEmptyInstance) ) throw new ModelIntegrityException( "Cannot relate more than one instance across association." );
+        if ( !((${relationship_set_cast})getRelationshipSet( ${rel_num} ) ).getBy$c{participant}Id( ${link_parameter_name}.getInstanceId() ).isEmpty() ) throw new ModelIntegrityException( "Cannot relate more than one instance across association." );

@@ -2351,32 +2351,26 @@ if ( not_empty binary )
     else relator_param_other.name = T::l( s:other_class.name ); end if;
     relator_param_other.phrase = binary.one_phrase;
     relate relator_param_other to relator_param_one across R4557.''follows'';
-    // one to other case
+    // one case
     if ( Mult::ONE == binary.other_multiplicity )
       select any parm related by relator->InstanceLinkModifier[R4556]->ClassAsLinkParameter[R4555] where ( selected.class_name == one_class.name and
                                                                                                            selected.class_package == one_class.package and
                                                                                                            selected.phrase == binary.other_phrase );
-      select any irdt related by other_class->O_OBJ[R409.''is transformed from'']->S_IRDT[R123] where ( not selected.isSet );
-      select any selector related by irdt->S_DT[R17]->Type[R423.''is basis of'']->Selector[R446.''shapes return of'']->InstanceSelector[R445] where ( selected.class_name == one_class.name and
-                                                                                                                                selected.class_package == one_class.package and
-                                                                                                                                selected.rel_num == rel.num and
-                                                                                                                                selected.phrase == binary.other_phrase );
       create object instance check of CardinalityCheck;
-      relate relator to selector across R4562.''existing relationships checked by'' using check;
+      check.participant = "one";
+      check.relationship_set_cast = "IBinaryRelationshipSet";
+      relate relator to check across R4562.''existing relationships checked by'';
       relate parm to check across R4563.''starting point for'';
     end if;
-    // other to one case
+    // other case
     if ( Mult::ONE == binary.one_multiplicity )
       select any parm related by relator->InstanceLinkModifier[R4556]->ClassAsLinkParameter[R4555] where ( selected.class_name == other_class.name and
                                                                                                            selected.class_package == other_class.package and
                                                                                                            selected.phrase == binary.one_phrase );
-      select any irdt related by one_class->O_OBJ[R409.''is transformed from'']->S_IRDT[R123] where ( not selected.isSet );
-      select any selector related by irdt->S_DT[R17]->Type[R423.''is basis of'']->Selector[R446.''shapes return of'']->InstanceSelector[R445] where ( selected.class_name == other_class.name and
-                                                                                                                                selected.class_package == other_class.package and
-                                                                                                                                selected.rel_num == rel.num and
-                                                                                                                                selected.phrase == binary.one_phrase );
       create object instance check of CardinalityCheck;
-      relate relator to selector across R4562.''existing relationships checked by'' using check;
+      check.participant = "other";
+      check.relationship_set_cast = "IBinaryRelationshipSet";
+      relate relator to check across R4562.''existing relationships checked by'';
       relate parm to check across R4563.''starting point for'';
     end if;
     // create unrelator
@@ -2426,25 +2420,21 @@ if ( not_empty subsup )
       relator_param_super.name = T::l( s:super_class.name );
       relator_param_super.phrase = "";
       relate relator_param_super to relator_param_sub across R4557.''follows'';
-      // super to sub case
+      // super case
       select any parm1 related by relator->InstanceLinkModifier[R4556]->ClassAsLinkParameter[R4555] where ( selected.class_name == super_class.name and
                                                                                                             selected.class_package == super_class.package );
-      select any irdt1 related by sub_class->O_OBJ[R409.''is transformed from'']->S_IRDT[R123] where ( not selected.isSet );
-      select any selector1 related by irdt1->S_DT[R17]->Type[R423.''is basis of'']->Selector[R446.''shapes return of'']->InstanceSelector[R445] where ( selected.class_name == super_class.name and
-                                                                                                                                selected.class_package == super_class.package and
-                                                                                                                                selected.rel_num == rel.num );
       create object instance check1 of CardinalityCheck;
-      relate relator to selector1 across R4562.''existing relationships checked by'' using check1;
+      check1.participant = "supertype";
+      check1.relationship_set_cast = "ISubsuperRelationshipSet";
+      relate relator to check1 across R4562.''existing relationships checked by'';
       relate parm1 to check1 across R4563.''starting point for'';
-      // sub to super case
+      // sub case
       select any parm2 related by relator->InstanceLinkModifier[R4556]->ClassAsLinkParameter[R4555] where ( selected.class_name == sub_class.name and
                                                                                                             selected.class_package == sub_class.package );
-      select any irdt2 related by super_class->O_OBJ[R409.''is transformed from'']->S_IRDT[R123] where ( not selected.isSet );
-      select any selector2 related by irdt2->S_DT[R17]->Type[R423.''is basis of'']->Selector[R446.''shapes return of'']->InstanceSelector[R445] where ( selected.class_name == sub_class.name and
-                                                                                                                                selected.class_package == sub_class.package and
-                                                                                                                                selected.rel_num == rel.num );
       create object instance check2 of CardinalityCheck;
-      relate relator to selector2 across R4562.''existing relationships checked by'' using check2;
+      check2.participant = "subtype";
+      check2.relationship_set_cast = "ISubsuperRelationshipSet";
+      relate relator to check2 across R4562.''existing relationships checked by'';
       relate parm2 to check2 across R4563.''starting point for'';
       // create unrelator
       create object instance ilm_unrelator of InstanceLinkModifier;
@@ -2500,90 +2490,37 @@ if ( not_empty assoc )
     relator_param_link.name = T::l( s:link_class.name );
     relator_param_link.phrase = "";
     relate relator_param_link to relator_param_other across R4557.''follows'';
-    // one to other case
+    // one case
     if ( Mult::ONE == assoc.other_multiplicity )
       select any parm related by relator->InstanceLinkModifier[R4556]->ClassAsLinkParameter[R4555] where ( selected.class_name == one_class.name and
                                                                                                            selected.class_package == one_class.package and
                                                                                                            selected.phrase == assoc.other_phrase );
-      select any irdt related by other_class->O_OBJ[R409.''is transformed from'']->S_IRDT[R123] where ( not selected.isSet );
-      select any selector related by irdt->S_DT[R17]->Type[R423.''is basis of'']->Selector[R446.''shapes return of'']->InstanceSelector[R445] where ( selected.class_name == one_class.name and
-                                                                                                                                selected.class_package == one_class.package and
-                                                                                                                                selected.rel_num == rel.num and
-                                                                                                                                selected.phrase == assoc.other_phrase );
       create object instance check of CardinalityCheck;
-      relate relator to selector across R4562.''existing relationships checked by'' using check;
+      check.participant = "one";
+      check.relationship_set_cast = "IAssociativeRelationshipSet";
+      relate relator to check across R4562.''existing relationships checked by'';
       relate parm to check across R4563.''starting point for'';
     end if;
-    // other to one case
+    // other case
     if ( Mult::ONE == assoc.one_multiplicity )
       select any parm related by relator->InstanceLinkModifier[R4556]->ClassAsLinkParameter[R4555] where ( selected.class_name == other_class.name and
                                                                                                            selected.class_package == other_class.package and
                                                                                                            selected.phrase == assoc.one_phrase );
-      select any irdt related by one_class->O_OBJ[R409.''is transformed from'']->S_IRDT[R123] where ( not selected.isSet );
-      select any selector related by irdt->S_DT[R17]->Type[R423.''is basis of'']->Selector[R446.''shapes return of'']->InstanceSelector[R445] where ( selected.class_name == other_class.name and
-                                                                                                                                selected.class_package == other_class.package and
-                                                                                                                                selected.rel_num == rel.num and
-                                                                                                                                selected.phrase == assoc.one_phrase );
       create object instance check of CardinalityCheck;
-      relate relator to selector across R4562.''existing relationships checked by'' using check;
+      check.participant = "other";
+      check.relationship_set_cast = "IAssociativeRelationshipSet";
+      relate relator to check across R4562.''existing relationships checked by'';
       relate parm to check across R4563.''starting point for'';
     end if;
-    // link to other case
+    // link case
     if ( Mult::ONE == assoc.other_multiplicity )
       select any parm related by relator->InstanceLinkModifier[R4556]->ClassAsLinkParameter[R4555] where ( selected.class_name == link_class.name and
                                                                                                            selected.class_package == link_class.package and
                                                                                                            selected.phrase == "" );
-      select any irdt related by other_class->O_OBJ[R409.''is transformed from'']->S_IRDT[R123] where ( not selected.isSet );
-      select any selector related by irdt->S_DT[R17]->Type[R423.''is basis of'']->Selector[R446.''shapes return of'']->InstanceSelector[R445] where ( selected.class_name == link_class.name and
-                                                                                                                                selected.class_package == link_class.package and
-                                                                                                                                selected.rel_num == rel.num and
-                                                                                                                                selected.phrase == assoc.other_phrase );
       create object instance check of CardinalityCheck;
-      relate relator to selector across R4562.''existing relationships checked by'' using check;
-      relate parm to check across R4563.''starting point for'';
-    end if;
-    // other to link case
-    if ( Mult::ONE == assoc.link_multiplicity )
-      link_phrase = "";
-      if ( one_class.name == other_class.name and one_class.package == other_class.package ) link_phrase = assoc.one_phrase; end if;
-      select any parm related by relator->InstanceLinkModifier[R4556]->ClassAsLinkParameter[R4555] where ( selected.class_name == other_class.name and
-                                                                                                           selected.class_package == other_class.package );
-      select any irdt related by link_class->O_OBJ[R409.''is transformed from'']->S_IRDT[R123] where ( not selected.isSet );
-      select any selector related by irdt->S_DT[R17]->Type[R423.''is basis of'']->Selector[R446.''shapes return of'']->InstanceSelector[R445] where ( selected.class_name == other_class.name and
-                                                                                                                                selected.class_package == other_class.package and
-                                                                                                                                selected.rel_num == rel.num and
-                                                                                                                                selected.phrase == link_phrase );
-      create object instance check of CardinalityCheck;
-      relate relator to selector across R4562.''existing relationships checked by'' using check;
-      relate parm to check across R4563.''starting point for'';
-    end if;
-    // one to link case
-    if ( Mult::ONE == assoc.link_multiplicity )
-      link_phrase = "";
-      if ( one_class.name == other_class.name and one_class.package == other_class.package ) link_phrase = assoc.other_phrase; end if;
-      select any parm related by relator->InstanceLinkModifier[R4556]->ClassAsLinkParameter[R4555] where ( selected.class_name == one_class.name and
-                                                                                                           selected.class_package == one_class.package );
-      select any irdt related by link_class->O_OBJ[R409.''is transformed from'']->S_IRDT[R123] where ( not selected.isSet );
-      select any selector related by irdt->S_DT[R17]->Type[R423.''is basis of'']->Selector[R446.''shapes return of'']->InstanceSelector[R445] where ( selected.class_name == one_class.name and
-                                                                                                                                selected.class_package == one_class.package and
-                                                                                                                                selected.rel_num == rel.num and
-                                                                                                                                selected.phrase == link_phrase );
-      create object instance check of CardinalityCheck;
-      relate relator to selector across R4562.''existing relationships checked by'' using check;
-      relate parm to check across R4563.''starting point for'';
-    end if;
-    // link to one case
-    if ( Mult::ONE == assoc.one_multiplicity )
-      select any parm related by relator->InstanceLinkModifier[R4556]->ClassAsLinkParameter[R4555] where ( selected.class_name == link_class.name and
-                                                                                                           selected.class_package == link_class.package and
-                                                                                                           selected.phrase == "" );
-      select any irdt related by one_class->O_OBJ[R409.''is transformed from'']->S_IRDT[R123] where ( not selected.isSet );
-      select any selector related by irdt->S_DT[R17]->Type[R423.''is basis of'']->Selector[R446.''shapes return of'']->InstanceSelector[R445] where ( selected.class_name == link_class.name and
-                                                                                                                                selected.class_package == link_class.package and
-                                                                                                                                selected.rel_num == rel.num and
-                                                                                                                                selected.phrase == assoc.one_phrase );
-      create object instance check of CardinalityCheck;
-      relate relator to selector across R4562.''existing relationships checked by'' using check;
+      check.participant = "link";
+      check.relationship_set_cast = "IAssociativeRelationshipSet";
+      relate relator to check across R4562.''existing relationships checked by'';
       relate parm to check across R4563.''starting point for'';
     end if;
     // create unrelator
