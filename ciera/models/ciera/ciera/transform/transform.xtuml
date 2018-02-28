@@ -1677,7 +1677,7 @@ for each one_binary_rel in one_binary_rels
   select one one_rel related by one_binary_rel->Relationship[R433];
   select one other_obj related by one_binary_rel->Class[R435.''has other''];
   ::transformSelector( obj:obj, target_class_name:one_binary_rel.other_class_name, rel_num:one_rel.num,
-                       phrase:one_binary_rel.other_phrase, cond:one_binary_rel.other_conditionality,
+                       phrase:one_binary_rel.one_phrase, cond:one_binary_rel.other_conditionality,
                        mult:one_binary_rel.other_multiplicity, src_class:"one", dst_class:"other",
                        relationship_cast:"IBinaryRelationship", other_obj:other_obj );
 end for;
@@ -1687,7 +1687,7 @@ for each other_binary_rel in other_binary_rels
   select one other_rel related by other_binary_rel->Relationship[R433];
   select one one_obj related by other_binary_rel->Class[R434.''has one''];
   ::transformSelector( obj:obj, target_class_name:other_binary_rel.one_class_name, rel_num:other_rel.num,
-                       phrase:other_binary_rel.one_phrase, cond:other_binary_rel.one_conditionality,
+                       phrase:other_binary_rel.other_phrase, cond:other_binary_rel.one_conditionality,
                        mult:other_binary_rel.one_multiplicity, src_class:"other", dst_class:"one",
                        relationship_cast:"IBinaryRelationship", other_obj:one_obj );
 end for;
@@ -1699,16 +1699,15 @@ for each link_assoc_rel in link_assoc_rels
   select one link_rel related by link_assoc_rel->Relationship[R433];
   select one one_obj related by link_assoc_rel->Class[R438.''has one''];
   ::transformSelector( obj:obj, target_class_name:link_assoc_rel.one_class_name, rel_num:link_rel.num,
-                       phrase:link_assoc_rel.one_phrase, cond:Cond::UNCONDITIONAL, mult:Mult::ONE,
+                       phrase:link_assoc_rel.other_phrase, cond:Cond::UNCONDITIONAL, mult:Mult::ONE,
                        src_class:"link", dst_class:"one", relationship_cast:"IAssociativeRelationship",
                        other_obj:one_obj );
   // link to other case
   select one other_obj related by link_assoc_rel->Class[R439.''has other''];
   ::transformSelector( obj:obj, target_class_name:link_assoc_rel.other_class_name, rel_num:link_rel.num,
-                       phrase:link_assoc_rel.other_phrase, cond:Cond::UNCONDITIONAL, mult:Mult::ONE,
+                       phrase:link_assoc_rel.one_phrase, cond:Cond::UNCONDITIONAL, mult:Mult::ONE,
                        src_class:"link", dst_class:"other", relationship_cast:"IAssociativeRelationship",
                        other_obj:other_obj );
-  // link to other case
 end for;
 select many one_assoc_rels related by obj->AssociativeRelationship[R438.''one class for''];
 for each one_assoc_rel in one_assoc_rels
@@ -1716,7 +1715,7 @@ for each one_assoc_rel in one_assoc_rels
   select one one_rel related by one_assoc_rel->Relationship[R433];
   select one other_obj related by one_assoc_rel->Class[R439.''has other''];
   ::transformSelector( obj:obj, target_class_name:one_assoc_rel.other_class_name, rel_num:one_rel.num,
-                       phrase:one_assoc_rel.other_phrase, cond:one_assoc_rel.other_conditionality,
+                       phrase:one_assoc_rel.one_phrase, cond:one_assoc_rel.other_conditionality,
                        mult:one_assoc_rel.other_multiplicity, src_class:"one", dst_class:"other",
                        relationship_cast:"IAssociativeRelationship", other_obj:other_obj );
   // one to link case
@@ -1724,7 +1723,7 @@ for each one_assoc_rel in one_assoc_rels
   link_mult = Mult::ONE;
   if ( Mult::MANY == one_assoc_rel.link_multiplicity or Mult::MANY == one_assoc_rel.other_multiplicity ) link_mult = Mult::MANY; end if;
   link_phrase = "";
-  if ( obj.name == other_obj.name and obj.package == other_obj.package ) link_phrase = one_assoc_rel.other_phrase; end if;
+  if ( obj.name == other_obj.name and obj.package == other_obj.package ) link_phrase = one_assoc_rel.one_phrase; end if;
   ::transformSelector( obj:obj, target_class_name:one_assoc_rel.link_class_name, rel_num:one_rel.num,
                        phrase:link_phrase, cond:one_assoc_rel.other_conditionality, mult:link_mult,
                        src_class:"one", dst_class:"link", relationship_cast:"IAssociativeRelationship",
@@ -1736,7 +1735,7 @@ for each other_assoc_rel in other_assoc_rels
   select one other_rel related by other_assoc_rel->Relationship[R433];
   select one one_obj related by other_assoc_rel->Class[R438.''has one''];
   ::transformSelector( obj:obj, target_class_name:other_assoc_rel.one_class_name, rel_num:other_rel.num,
-                       phrase:other_assoc_rel.one_phrase, cond:other_assoc_rel.one_conditionality,
+                       phrase:other_assoc_rel.other_phrase, cond:other_assoc_rel.one_conditionality,
                        mult:other_assoc_rel.one_multiplicity, src_class:"other", dst_class:"one",
                        relationship_cast:"IAssociativeRelationship", other_obj:one_obj );
   // other to link case
@@ -1744,7 +1743,7 @@ for each other_assoc_rel in other_assoc_rels
   link_mult = Mult::ONE;
   if ( Mult::MANY == other_assoc_rel.link_multiplicity or Mult::MANY == other_assoc_rel.one_multiplicity ) link_mult = Mult::MANY; end if;
   link_phrase = "";
-  if ( obj.name == one_obj.name and obj.package == one_obj.package ) link_phrase = other_assoc_rel.one_phrase; end if;
+  if ( obj.name == one_obj.name and obj.package == one_obj.package ) link_phrase = other_assoc_rel.other_phrase; end if;
   ::transformSelector( obj:obj, target_class_name:other_assoc_rel.link_class_name, rel_num:other_rel.num,
                        phrase:link_phrase, cond:other_assoc_rel.one_conditionality, mult:link_mult,
                        src_class:"other", dst_class:"link", relationship_cast:"IAssociativeRelationship",
@@ -1808,11 +1807,11 @@ other_obj = param.other_obj;
 select one obj_set related by obj->ClassSet[R406.''is type of single element in''];
 
 // create ''any'' selector
-name3 = "selectAnyR" + STR::itoa( i:param.rel_num );
+name3 = "selectAny" + param.target_class_name;
 if ( "" != param.phrase )
-  name3 = name3 + "_" + T::underscore( s:param.phrase );
+  name3 = name3 + "_" + T::underscore( s:param.phrase ) + "_" + obj.name;
 end if;
-name3 = name3 + "_" + param.target_class_name;
+name3 = name3 + "OnR" + STR::itoa( i:param.rel_num );
 create object instance sel3 of Selector;
 sel3.parent_name = obj_set.name;
 sel3.parent_package = obj_set.package;
@@ -1838,11 +1837,11 @@ type3 = UnresolvedType::getInstance( s_dt:s_dt3 );
 relate type3 to sel3 across R446.''shapes return of'';
 
 // create ''many'' selector
-name4 = "selectManyR" + STR::itoa( i:param.rel_num );
+name4 = "selectMany" + param.target_class_name;
 if ( "" != param.phrase )
-  name4 = name4 + "_" + T::underscore( s:param.phrase );
+  name4 = name4 + "_" + T::underscore( s:param.phrase ) + "_" + obj.name;
 end if;
-name4 = name4 + "_" + param.target_class_name;
+name4 = name4 + "OnR" + STR::itoa( i:param.rel_num );
 create object instance sel4 of Selector;
 sel4.parent_name = obj_set.name;
 sel4.parent_package = obj_set.package;
@@ -1871,11 +1870,11 @@ relate type4 to sel4 across R446.''shapes return of'';
 if ( Mult::ONE == param.mult )
 
   // create ''one'' selector
-  name = "selectOneR" + STR::itoa( i:param.rel_num );
+  name = "selectOne" + param.target_class_name;
   if ( "" != param.phrase )
-    name = name + "_" + T::underscore( s:param.phrase );
+    name = name + "_" + T::underscore( s:param.phrase ) + "_" + obj.name;
   end if;
-  name = name + "_" + param.target_class_name;
+  name = name + "OnR" + STR::itoa( i:param.rel_num );
   create object instance sel of Selector;
   sel.parent_name = obj.name;
   sel.parent_package = obj.package;
@@ -1906,11 +1905,11 @@ if ( Mult::ONE == param.mult )
 else
   
   // create ''any'' selector
-  name1 = "selectAnyR" + STR::itoa( i:param.rel_num );
+  name1 = "selectAny" + param.target_class_name;
   if ( "" != param.phrase )
-    name1 = name1 + "_" + T::underscore( s:param.phrase );
+    name1 = name1 + "_" + T::underscore( s:param.phrase ) + "_" + obj.name;
   end if;
-  name1 = name1 + "_" + param.target_class_name;
+  name1 = name1 + "OnR" + STR::itoa( i:param.rel_num );
   create object instance sel1 of Selector;
   sel1.parent_name = obj.name;
   sel1.parent_package = obj.package;
@@ -1938,11 +1937,11 @@ else
   relate type1 to sel1 across R446.''shapes return of'';
 
   // create ''many'' selector
-  name2 = "selectManyR" + STR::itoa( i:param.rel_num );
+  name2 = "selectMany" + param.target_class_name;
   if ( "" != param.phrase )
-    name2 = name2 + "_" + T::underscore( s:param.phrase );
+    name2 = name2 + "_" + T::underscore( s:param.phrase ) + "_" + obj.name;
   end if;
-  name2 = name2 + "_" + param.target_class_name;
+  name2 = name2 + "OnR" + STR::itoa( i:param.rel_num );
   create object instance sel2 of Selector;
   sel2.parent_name = obj.name;
   sel2.parent_package = obj.package;
@@ -2342,12 +2341,12 @@ if ( not_empty binary )
     relate relator to ilm_relator across R4556;
     create object instance relator_param_one of ClassAsLinkParameter;
     relate ilm_relator to one_cic across R4555 using relator_param_one;
-    if ( "" != binary.other_phrase ) relator_param_one.name = T::l( s:T::underscore( s:binary.other_phrase ) ) + "_" + T::l( s:one_class.name );
+    if ( "" != binary.other_phrase ) relator_param_one.name = one_class.name + "_" + T::l( s:T::underscore( s:binary.other_phrase ) ) + "_" + other_class.name;
     else relator_param_one.name = T::l( s:one_class.name ); end if;
     relator_param_one.phrase = binary.other_phrase;
     create object instance relator_param_other of ClassAsLinkParameter;
     relate ilm_relator to other_cic across R4555 using relator_param_other;
-    if ( "" != binary.one_phrase ) relator_param_other.name = T::l( s:T::underscore( s:binary.one_phrase ) ) + "_" + T::l( s:other_class.name );
+    if ( "" != binary.one_phrase ) relator_param_other.name = other_class.name + "_" + T::l( s:T::underscore( s:binary.one_phrase ) ) + "_" + one_class.name;
     else relator_param_other.name = T::l( s:other_class.name ); end if;
     relator_param_other.phrase = binary.one_phrase;
     relate relator_param_other to relator_param_one across R4557.''follows'';
@@ -2383,12 +2382,12 @@ if ( not_empty binary )
     unrelator.relationship_set_cast = "IBinaryRelationshipSet";
     create object instance unrelator_param_one of ClassAsLinkParameter;
     relate ilm_unrelator to one_cic across R4555 using unrelator_param_one;
-    if ( "" != binary.other_phrase ) unrelator_param_one.name = T::l( s:T::underscore( s:binary.other_phrase ) ) + "_" + T::l( s:one_class.name );
+    if ( "" != binary.other_phrase ) unrelator_param_one.name = one_class.name + "_" + T::l( s:T::underscore( s:binary.other_phrase ) ) + "_" + other_class.name;
     else unrelator_param_one.name = T::l( s:one_class.name ); end if;
     unrelator_param_one.phrase = binary.other_phrase;
     create object instance unrelator_param_other of ClassAsLinkParameter;
     relate ilm_unrelator to other_cic across R4555 using unrelator_param_other;
-    if ( "" != binary.one_phrase ) unrelator_param_other.name = T::l( s:T::underscore( s:binary.one_phrase ) ) + "_" + T::l( s:other_class.name );
+    if ( "" != binary.one_phrase ) unrelator_param_other.name = other_class.name + "_" + T::l( s:T::underscore( s:binary.one_phrase ) ) + "_" + one_class.name;
     else unrelator_param_other.name = T::l( s:other_class.name ); end if;
     unrelator_param_other.phrase = binary.one_phrase;
     relate unrelator_param_other to unrelator_param_one across R4557.''follows'';
@@ -2476,12 +2475,12 @@ if ( not_empty assoc )
     relate relator to ilm_relator across R4556;
     create object instance relator_param_one of ClassAsLinkParameter;
     relate ilm_relator to one_cic across R4555 using relator_param_one;
-    if ( "" != assoc.other_phrase ) relator_param_one.name = T::l( s:T::underscore( s:assoc.other_phrase ) ) + "_" + T::l( s:one_class.name );
+    if ( "" != assoc.other_phrase ) relator_param_one.name = one_class.name + "_" + T::l( s:T::underscore( s:assoc.other_phrase ) ) + "_" + other_class.name;
     else relator_param_one.name = T::l( s:one_class.name ); end if;
     relator_param_one.phrase = assoc.other_phrase;
     create object instance relator_param_other of ClassAsLinkParameter;
     relate ilm_relator to other_cic across R4555 using relator_param_other;
-    if ( "" != assoc.one_phrase ) relator_param_other.name = T::l( s:T::underscore( s:assoc.one_phrase ) ) + "_" + T::l( s:other_class.name );
+    if ( "" != assoc.one_phrase ) relator_param_other.name = other_class.name + "_" + T::l( s:T::underscore( s:assoc.one_phrase ) ) + "_" + one_class.name;
     else relator_param_other.name = T::l( s:other_class.name ); end if;
     relator_param_other.phrase = assoc.one_phrase;
     relate relator_param_other to relator_param_one across R4557.''follows'';
@@ -2533,12 +2532,12 @@ if ( not_empty assoc )
     unrelator.relationship_set_cast = "IAssociativeRelationshipSet";
     create object instance unrelator_param_one of ClassAsLinkParameter;
     relate ilm_unrelator to one_cic across R4555 using unrelator_param_one;
-    if ( "" != assoc.other_phrase ) unrelator_param_one.name = T::l( s:T::underscore( s:assoc.other_phrase ) ) + "_" + T::l( s:one_class.name );
+    if ( "" != assoc.other_phrase ) unrelator_param_one.name = one_class.name + "_" + T::l( s:T::underscore( s:assoc.other_phrase ) ) + "_" + other_class.name;
     else unrelator_param_one.name = T::l( s:one_class.name ); end if;
     unrelator_param_one.phrase = assoc.other_phrase;
     create object instance unrelator_param_other of ClassAsLinkParameter;
     relate ilm_unrelator to other_cic across R4555 using unrelator_param_other;
-    if ( "" != assoc.one_phrase ) unrelator_param_other.name = T::l( s:T::underscore( s:assoc.one_phrase ) ) + "_" + T::l( s:other_class.name );
+    if ( "" != assoc.one_phrase ) unrelator_param_other.name = other_class.name + "_" + T::l( s:T::underscore( s:assoc.one_phrase ) ) + "_" + one_class.name;
     else unrelator_param_other.name = T::l( s:other_class.name ); end if;
     unrelator_param_other.phrase = assoc.one_phrase;
     relate unrelator_param_other to unrelator_param_one across R4557.''follows'';

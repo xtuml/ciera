@@ -20,72 +20,119 @@ T_b("// one class");
 T_b("\n");
 T_b("    ");
 T_b("private UniqueId ");
-if ( 0!=strcmp("",one_phrase) ) {
-T_b(T_l(T_underscore(one_phrase)));
+if ( 0!=strcmp("",other_phrase) ) {
+T_b(one_class_name);
 T_b("_");
-}
+T_b(T_l(T_underscore(other_phrase)));
+T_b("_");
+T_b(other_class_name);
+T_b(";");
+T_b("\n");
+} else {
 T_b(one_class_name);
 T_b(";");
 T_b("\n");
+}
 T_b("    ");
 T_b("// other class");
 T_b("\n");
 T_b("    ");
 T_b("private UniqueId ");
-if ( 0!=strcmp("",other_phrase) ) {
-T_b(T_l(T_underscore(other_phrase)));
+if ( 0!=strcmp("",one_phrase) ) {
+T_b(other_class_name);
 T_b("_");
-}
+T_b(T_l(T_underscore(one_phrase)));
+T_b("_");
+T_b(one_class_name);
+T_b(";");
+T_b("\n");
+} else {
 T_b(other_class_name);
 T_b(";");
 T_b("\n");
+}
 T_b("    ");
 T_b("public ");
 T_b(name);
 T_b("( UniqueId ");
-if ( 0!=strcmp("",one_phrase) ) {
-T_b(T_l(T_underscore(one_phrase)));
-T_b("_");
-}
+if ( 0!=strcmp("",other_phrase) ) {
 T_b(one_class_name);
+T_b("_");
+T_b(T_l(T_underscore(other_phrase)));
+T_b("_");
+T_b(other_class_name);
+T_b("");
+} else {
+T_b(one_class_name);
+T_b("");
+}
 T_b(", UniqueId ");
-if ( 0!=strcmp("",other_phrase) ) {
-T_b(T_l(T_underscore(other_phrase)));
-T_b("_");
-}
+if ( 0!=strcmp("",one_phrase) ) {
 T_b(other_class_name);
-T_b(" ) throws XtumlException {");
-T_b("\n");
-T_b("        ");
-T_b("this.");
-if ( 0!=strcmp("",one_phrase) ) {
+T_b("_");
 T_b(T_l(T_underscore(one_phrase)));
 T_b("_");
-}
 T_b(one_class_name);
-T_b(" = ");
-if ( 0!=strcmp("",one_phrase) ) {
-T_b(T_l(T_underscore(one_phrase)));
-T_b("_");
+T_b("");
+} else {
+T_b(other_class_name);
+T_b("");
 }
-T_b(one_class_name);
-T_b(";");
+T_b(" ");
+T_b(") throws XtumlException {");
 T_b("\n");
 T_b("        ");
 T_b("this.");
 if ( 0!=strcmp("",other_phrase) ) {
+T_b(one_class_name);
+T_b("_");
 T_b(T_l(T_underscore(other_phrase)));
 T_b("_");
-}
 T_b(other_class_name);
 T_b(" = ");
+} else {
+T_b(one_class_name);
+T_b(" = ");
+}
 if ( 0!=strcmp("",other_phrase) ) {
+T_b(one_class_name);
+T_b("_");
 T_b(T_l(T_underscore(other_phrase)));
 T_b("_");
-}
 T_b(other_class_name);
 T_b(";");
 T_b("\n");
+} else {
+T_b(one_class_name);
+T_b(";");
+T_b("\n");
+}
+T_b("        ");
+T_b("this.");
+if ( 0!=strcmp("",one_phrase) ) {
+T_b(other_class_name);
+T_b("_");
+T_b(T_l(T_underscore(one_phrase)));
+T_b("_");
+T_b(one_class_name);
+T_b(" = ");
+} else {
+T_b(other_class_name);
+T_b(" = ");
+}
+if ( 0!=strcmp("",one_phrase) ) {
+T_b(other_class_name);
+T_b("_");
+T_b(T_l(T_underscore(one_phrase)));
+T_b("_");
+T_b(one_class_name);
+T_b(";");
+T_b("\n");
+} else {
+T_b(other_class_name);
+T_b(";");
+T_b("\n");
+}
 T_b("    ");
 T_b("}");
 T_b("\n");
@@ -97,13 +144,19 @@ T_b("public UniqueId getOne() {");
 T_b("\n");
 T_b("        ");
 T_b("return ");
-if ( 0!=strcmp("",one_phrase) ) {
-T_b(T_l(T_underscore(one_phrase)));
+if ( 0!=strcmp("",other_phrase) ) {
+T_b(one_class_name);
 T_b("_");
-}
+T_b(T_l(T_underscore(other_phrase)));
+T_b("_");
+T_b(other_class_name);
+T_b(";");
+T_b("\n");
+} else {
 T_b(one_class_name);
 T_b(";");
 T_b("\n");
+}
 T_b("    ");
 T_b("}");
 T_b("\n");
@@ -115,13 +168,19 @@ T_b("public UniqueId getOther() {");
 T_b("\n");
 T_b("        ");
 T_b("return ");
-if ( 0!=strcmp("",other_phrase) ) {
-T_b(T_l(T_underscore(other_phrase)));
+if ( 0!=strcmp("",one_phrase) ) {
+T_b(other_class_name);
 T_b("_");
-}
+T_b(T_l(T_underscore(one_phrase)));
+T_b("_");
+T_b(one_class_name);
+T_b(";");
+T_b("\n");
+} else {
 T_b(other_class_name);
 T_b(";");
 T_b("\n");
+}
 T_b("    ");
 T_b("}");
 T_b("\n");
