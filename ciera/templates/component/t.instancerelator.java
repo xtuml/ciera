@@ -3,5 +3,4 @@
         if ( ${link_parameter_empty_check} ) throw new EmptyInstanceException( "Cannot relate empty instances." );
 ${cardinality_checks}
         if ( !addRelationship( new ${relationship_name}( ${link_parameter_ids} ) ) ) throw new ModelIntegrityException( "Instances already related." );
-        // TODO propagate referentials?
     }

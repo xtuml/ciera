@@ -9,14 +9,13 @@ ${attribute_derivation}
     public void set${capital_name}( ${type_name} ${attribute_name} ) throws XtumlException {
         checkLiving();
         if ( this instanceof IEmptyInstance ) throw new EmptyInstanceException( "Cannot set attribute of empty instance." );
-${referential_checks}
   .if ( primitive )
         if ( ${attribute_name} != this.${attribute_name} ) {
   .else
         if ( !${attribute_name}.equals( this.${attribute_name} ) ) {
   .end if
             this.${attribute_name} = ${attribute_name};
-${referential_setters}
+${attribute_propagations}\
         }
     }
 .end if
