@@ -1,5 +1,5 @@
 T_b("        ");
-T_b(name);
+T_b(self->name);
 T_b(" = ");
 T_b(initializer);
 T_b(";");

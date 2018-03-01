@@ -1,14 +1,14 @@
-package ${package};
+package ${self.package};
 
 ${imports}
 
-public class ${name} extends ${extends} {
+public class ${self.name} extends ${self.extends} {
     
-    public static final String KEY_LETTERS = "${key_letters}";
-    public static final ${name} EMPTY_$u_{name} = new Empty${name}();
+    public static final String KEY_LETTERS = "${self.key_letters}";
+    public static final ${self.name} EMPTY_$u_{self.name} = new Empty${self.name}();
 
     // constructor
-    public ${name}( IInstancePopulation context ) {
+    public ${self.name}( IInstancePopulation context ) {
         super( context );
 ${attribute_initializers}
     }
@@ -36,9 +36,9 @@ ${selectors}
 
 }
 
-class Empty${name} extends ${name} implements IEmptyInstance {
+class Empty${self.name} extends ${self.name} implements IEmptyInstance {
     
-    public Empty${name}() {
+    public Empty${self.name}() {
         super( null );
     }
 

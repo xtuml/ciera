@@ -2,12 +2,12 @@ T_b("    ");
 T_b("public ");
 T_b(type_name);
 T_b(" ");
-T_b(name);
+T_b(self->name);
 T_b("() throws XtumlException {");
 T_b("\n");
 T_b("        ");
 T_b("return ");
-T_b(name);
+T_b(self->name);
 T_b("( null );");
 T_b("\n");
 T_b("    ");
@@ -17,10 +17,10 @@ T_b("    ");
 T_b("public ");
 T_b(type_name);
 T_b(" ");
-T_b(name);
+T_b(self->name);
 T_b("( IWhere condition ) throws XtumlException {");
 T_b("\n");
-if ( is_many ) {
+if ( returns_set ) {
 T_b("        ");
 T_b(type_name);
 T_b(" ");
@@ -32,10 +32,10 @@ T_b("\n");
 }
 T_b("        ");
 T_b("for ( IModelInstance ");
-T_b(T_l(selector_class_name));
+T_b(T_l(self->selector_class_name));
 T_b(" : this ) {");
 T_b("\n");
-if ( is_many ) {
+if ( returns_set ) {
 T_b("            ");
 T_b(T_l(type_name));
 T_b(".add");
@@ -43,11 +43,11 @@ if ( multiplicity_many ) {
 T_b("All");
 }
 T_b("( ((");
-T_b(selector_class_name);
+T_b(self->selector_class_name);
 T_b(")");
-T_b(T_l(selector_class_name));
+T_b(T_l(self->selector_class_name));
 T_b(").");
-T_b(selector_name);
+T_b(self->selector_name);
 T_b("( condition ) );");
 T_b("\n");
 T_b("        ");
@@ -64,11 +64,11 @@ T_b("\n");
 T_b("            ");
 T_b(type_name);
 T_b(" candidate = ((");
-T_b(selector_class_name);
+T_b(self->selector_class_name);
 T_b(")");
-T_b(T_l(selector_class_name));
+T_b(T_l(self->selector_class_name));
 T_b(").");
-T_b(selector_name);
+T_b(self->selector_name);
 T_b("( condition );");
 T_b("\n");
 T_b("            ");

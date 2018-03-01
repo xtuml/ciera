@@ -858,10 +858,10 @@ relate o_attr to attr across R414;
 
 // create accessors
 create object instance getter of AttributeAccessor;
-getter.getter = true;
+getter.accessor_type = AttributeAccessor::GETTER;
 relate getter to attr across R4510.''gets and sets'';
 create object instance setter of AttributeAccessor;
-setter.getter = false;
+setter.accessor_type = AttributeAccessor::SETTER;
 relate setter to attr across R4510.''gets and sets'';
 
 // add import to object file
@@ -1075,7 +1075,7 @@ obj = param.obj;
 
 // create function object
 create object instance op of Operation;
-op.is_static = Scope::Class == o_tfr.Instance_Based;
+op.is_class_based = Scope::Class == o_tfr.Instance_Based;
 relate op to obj across R416;
 
 // create invocable
@@ -1830,12 +1830,8 @@ sel3.parent_name = obj_set.name;
 sel3.parent_package = obj_set.package;
 sel3.name = name3;
 sel3.phrase = param.phrase;
-if ( Mult::MANY == param.mult )
-  sel3.multiplicity_many = true;
-else
-  sel3.multiplicity_many = false;
-end if;
-sel3.is_many = false;
+sel3.multiplicity = param.mult;
+sel3.returns_set = false;
 create object instance set_sel3 of SetSelector;
 relate set_sel3 to sel3 across R445;
 relate set_sel3 to obj_set across R444.''navigates from'';
@@ -1860,12 +1856,8 @@ sel4.parent_name = obj_set.name;
 sel4.parent_package = obj_set.package;
 sel4.name = name4;
 sel4.phrase = param.phrase;
-if ( Mult::MANY == param.mult )
-  sel4.multiplicity_many = true;
-else
-  sel4.multiplicity_many = false;
-end if;
-sel4.is_many = true;
+sel4.multiplicity = param.mult;
+sel4.returns_set = true;
 create object instance set_sel4 of SetSelector;
 relate set_sel4 to sel4 across R445;
 relate set_sel4 to obj_set across R444.''navigates from'';
@@ -1893,11 +1885,11 @@ if ( Mult::ONE == param.mult )
   sel.parent_package = obj.package;
   sel.name = name;
   sel.phrase = param.phrase;
-  sel.multiplicity_many = false;
-  sel.is_many = false;
+  sel.multiplicity = Mult::ONE;
+  sel.returns_set = false;
   create object instance inst_sel of InstanceSelector;
   inst_sel.rel_num = param.rel_num;
-  inst_sel.unconditional = ( Cond::UNCONDITIONAL == param.cond );
+  inst_sel.conditionality = param.cond;
   inst_sel.src_class = param.src_class;
   inst_sel.dst_class = param.dst_class;
   inst_sel.relationship_cast = param.relationship_cast;
@@ -1928,11 +1920,11 @@ else
   sel1.parent_package = obj.package;
   sel1.name = name1;
   sel1.phrase = param.phrase;
-  sel1.multiplicity_many = true;
-  sel1.is_many = false;
+  sel1.multiplicity = Mult::MANY;
+  sel1.returns_set = false;
   create object instance inst_sel1 of InstanceSelector;
   inst_sel1.rel_num = param.rel_num;
-  inst_sel1.unconditional = ( Cond::UNCONDITIONAL == param.cond );
+  inst_sel1.conditionality = param.cond;
   inst_sel1.src_class = param.src_class;
   inst_sel1.dst_class = param.dst_class;
   inst_sel1.relationship_cast = param.relationship_cast;
@@ -1960,11 +1952,11 @@ else
   sel2.parent_package = obj.package;
   sel2.name = name2;
   sel2.phrase = param.phrase;
-  sel2.multiplicity_many = true;
-  sel2.is_many = true;
+  sel2.multiplicity = Mult::MANY;
+  sel2.returns_set = true;
   create object instance inst_sel2 of InstanceSelector;
   inst_sel2.rel_num = param.rel_num;
-  inst_sel2.unconditional = ( Cond::UNCONDITIONAL == param.cond );
+  inst_sel2.conditionality = param.cond;
   inst_sel2.src_class = param.src_class;
   inst_sel2.dst_class = param.dst_class;
   inst_sel2.relationship_cast = param.relationship_cast;
@@ -2636,7 +2628,7 @@ for each attr in attrs
     attr_ref.phrase = ::oirGetPhrase( r_oir_id:o_rtida.OIR_ID );
     
     // create attribute propagation
-    select any accessor related by referred_to_attr->AttributeAccessor[R4510.''value accessed through''] where ( not selected.getter );
+    select any accessor related by referred_to_attr->AttributeAccessor[R4510.''value accessed through''] where ( selected.accessor_type == AttributeAccessor::SETTER );
     select any irdt related by attr->Class[R410.''abstracts data for'']->O_OBJ[R409.''is transformed from'']->S_IRDT[R123] where ( not selected.isSet );
     select any selector related by irdt->S_DT[R17]->Type[R423.''is basis of'']->Selector[R446.''shapes return of'']->InstanceSelector[R445] where ( selected.class_name == referred_to_attr.class_name and
                                                                                                                                                 selected.class_package == referred_to_attr.class_package and

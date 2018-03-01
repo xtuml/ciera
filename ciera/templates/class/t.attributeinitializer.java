@@ -1,1 +1,1 @@
-        ${name} = ${initializer};
+        ${self.name} = ${initializer};

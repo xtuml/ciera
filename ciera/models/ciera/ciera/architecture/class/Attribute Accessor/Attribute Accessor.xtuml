@@ -14,16 +14,39 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'type_name = self.type_name;
-capital_name = self.capital_name;
+	'select one attribute related by self->Attribute[R4510.''gets and sets''];
+type_name = attribute.type_name;
+
+first_letter = T::c( s:STR::substr( s:attribute.base_name, begin:0, end:1 ) );
+the_rest = STR::substr( s:attribute.base_name, begin:1, end:-1 );
+capital_name = first_letter + the_rest;
+
 body_save = T::body(); // TODO this is weird
 T::clear();
-attribute_propagations = self.attribute_propagations;
+select many propagations related by self->AttributePropagation[R4507.''propagates values via''];
+for each propagation in propagations
+  propagation.render();
+end for;
+attribute_propagations = T::body();
+T::clear();
 T::b( s:body_save );
-attribute_derivation = self.attribute_derivation;
-primitive = self.primitive;
-attribute_name = self.attribute_name;
-getter = self.getter;
+
+body_save = T::body(); // TODO this is weird
+T::clear();
+attribute_derivation = "";
+select one attr_deriv related by self->AttributeDerivation[R441];
+if ( not_empty attr_deriv )
+  attr_deriv.render();
+  attribute_derivation = T::body();
+  T::clear();
+end if;
+T::b( s:body_save );
+
+select one type related by self->Attribute[R4510.''gets and sets'']->Type[R424.''is typed by''];
+primitive = type.primitive;
+
+is_getter = self.accessor_type == AttributeAccessor::GETTER;
+
 T::include( file:"java/class/t.attributeaccessor.java" );',
 	1,
 	'',
@@ -182,136 +205,21 @@ INSERT INTO O_ATTR
 	VALUES ("e023b969-8f49-4c8f-a233-07ce76673eb4",
 	"d453c081-2796-49f4-aa9f-5aaa45b571f4",
 	"ad12fc84-cbef-4a7c-9c05-a9d8fe8d4bee",
-	'getter',
+	'accessor_type',
 	'',
 	'',
-	'getter',
+	'accessor_type',
 	0,
-	"ba5eda7a-def5-0000-0000-000000000001",
+	"f57f303f-171f-4297-89b6-f7b415112523",
 	'',
 	'');
-INSERT INTO O_DBATTR
-	VALUES ("76656884-3541-4bf7-be97-df7a43f45795",
-	"d453c081-2796-49f4-aa9f-5aaa45b571f4",
-	'select one attribute related by self->Attribute[R4510.''gets and sets''];
-self.type_name = attribute.type_name;',
-	1,
-	0);
-INSERT INTO O_BATTR
-	VALUES ("76656884-3541-4bf7-be97-df7a43f45795",
-	"d453c081-2796-49f4-aa9f-5aaa45b571f4");
-INSERT INTO O_ATTR
-	VALUES ("76656884-3541-4bf7-be97-df7a43f45795",
-	"d453c081-2796-49f4-aa9f-5aaa45b571f4",
-	"e023b969-8f49-4c8f-a233-07ce76673eb4",
-	'type_name',
+INSERT INTO S_DT_PROXY
+	VALUES ("f57f303f-171f-4297-89b6-f7b415112523",
+	"00000000-0000-0000-0000-000000000000",
+	'AttributeAccessor',
 	'',
 	'',
-	'type_name',
-	0,
-	"ba5eda7a-def5-0000-0000-000000000004",
-	'',
-	'');
-INSERT INTO O_DBATTR
-	VALUES ("dced56b0-def9-4937-afc6-bc5abacf54b6",
-	"d453c081-2796-49f4-aa9f-5aaa45b571f4",
-	'select one attribute related by self->Attribute[R4510.''gets and sets''];
-first_letter = T::c( s:STR::substr( s:attribute.base_name, begin:0, end:1 ) );
-the_rest = STR::substr( s:attribute.base_name, begin:1, end:-1 );
-self.capital_name = first_letter + the_rest;',
-	1,
-	0);
-INSERT INTO O_BATTR
-	VALUES ("dced56b0-def9-4937-afc6-bc5abacf54b6",
-	"d453c081-2796-49f4-aa9f-5aaa45b571f4");
-INSERT INTO O_ATTR
-	VALUES ("dced56b0-def9-4937-afc6-bc5abacf54b6",
-	"d453c081-2796-49f4-aa9f-5aaa45b571f4",
-	"76656884-3541-4bf7-be97-df7a43f45795",
-	'capital_name',
-	'',
-	'',
-	'capital_name',
-	0,
-	"ba5eda7a-def5-0000-0000-000000000004",
-	'',
-	'');
-INSERT INTO O_DBATTR
-	VALUES ("764de843-6c6b-4f9f-90ac-1f2038813483",
-	"d453c081-2796-49f4-aa9f-5aaa45b571f4",
-	'select many propagations related by self->AttributePropagation[R4507.''propagates values via''];
-for each propagation in propagations
-  propagation.render();
-end for;
-self.attribute_propagations = T::body();
-T::clear();',
-	1,
-	0);
-INSERT INTO O_BATTR
-	VALUES ("764de843-6c6b-4f9f-90ac-1f2038813483",
-	"d453c081-2796-49f4-aa9f-5aaa45b571f4");
-INSERT INTO O_ATTR
-	VALUES ("764de843-6c6b-4f9f-90ac-1f2038813483",
-	"d453c081-2796-49f4-aa9f-5aaa45b571f4",
-	"dced56b0-def9-4937-afc6-bc5abacf54b6",
-	'attribute_propagations',
-	'',
-	'',
-	'attribute_propagations',
-	0,
-	"ba5eda7a-def5-0000-0000-000000000004",
-	'',
-	'');
-INSERT INTO O_DBATTR
-	VALUES ("95b590af-c448-4493-9502-3eba031b58c3",
-	"d453c081-2796-49f4-aa9f-5aaa45b571f4",
-	'select one attr_deriv related by self->AttributeDerivation[R441];
-if ( not_empty attr_deriv )
-  attr_deriv.render();
-  self.attribute_derivation = T::body();
-  T::clear();
-else
-  self.attribute_derivation = "";
-end if;',
-	1,
-	0);
-INSERT INTO O_BATTR
-	VALUES ("95b590af-c448-4493-9502-3eba031b58c3",
-	"d453c081-2796-49f4-aa9f-5aaa45b571f4");
-INSERT INTO O_ATTR
-	VALUES ("95b590af-c448-4493-9502-3eba031b58c3",
-	"d453c081-2796-49f4-aa9f-5aaa45b571f4",
-	"764de843-6c6b-4f9f-90ac-1f2038813483",
-	'attribute_derivation',
-	'',
-	'',
-	'attribute_derivation',
-	0,
-	"ba5eda7a-def5-0000-0000-000000000004",
-	'',
-	'');
-INSERT INTO O_DBATTR
-	VALUES ("8a36414b-23e5-4618-bb5c-9519e3771164",
-	"d453c081-2796-49f4-aa9f-5aaa45b571f4",
-	'select one type related by self->Attribute[R4510.''gets and sets'']->Type[R424.''is typed by''];
-self.primitive = type.primitive;',
-	1,
-	0);
-INSERT INTO O_BATTR
-	VALUES ("8a36414b-23e5-4618-bb5c-9519e3771164",
-	"d453c081-2796-49f4-aa9f-5aaa45b571f4");
-INSERT INTO O_ATTR
-	VALUES ("8a36414b-23e5-4618-bb5c-9519e3771164",
-	"d453c081-2796-49f4-aa9f-5aaa45b571f4",
-	"95b590af-c448-4493-9502-3eba031b58c3",
-	'primitive',
-	'',
-	'',
-	'primitive',
-	0,
-	"ba5eda7a-def5-0000-0000-000000000001",
-	'',
-	'');
+	'../../../types/types.xtuml');
 INSERT INTO O_ID
 	VALUES (0,
 	"d453c081-2796-49f4-aa9f-5aaa45b571f4");
@@ -319,7 +227,7 @@ INSERT INTO O_OIDA
 	VALUES ("e023b969-8f49-4c8f-a233-07ce76673eb4",
 	"d453c081-2796-49f4-aa9f-5aaa45b571f4",
 	0,
-	'getter');
+	'accessor_type');
 INSERT INTO O_OIDA
 	VALUES ("ad12fc84-cbef-4a7c-9c05-a9d8fe8d4bee",
 	"d453c081-2796-49f4-aa9f-5aaa45b571f4",

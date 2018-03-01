@@ -1,4 +1,4 @@
-if ( is_many ) {
+if ( returns_set ) {
 T_b("    ");
 T_b("@Override");
 T_b("\n");
@@ -6,7 +6,7 @@ T_b("    ");
 T_b("public ");
 T_b(type_name);
 T_b(" ");
-T_b(name);
+T_b(self->name);
 T_b("( IWhere condition ) {");
 T_b("\n");
 T_b("        ");
@@ -27,7 +27,7 @@ T_b("    ");
 T_b("public ");
 T_b(type_name);
 T_b(" ");
-T_b(name);
+T_b(self->name);
 T_b("( IWhere condition ) {");
 T_b("\n");
 T_b("        ");
