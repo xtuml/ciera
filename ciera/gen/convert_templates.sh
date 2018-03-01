@@ -1,7 +1,7 @@
-rm -rf ../src/java/*
 MCMC_DIR=/media/sf_levi/git/mc/mcmc/arlan
 filelist=`find ../templates -name t.*.java`
 for f in $filelist; do
+  if [[ $f = *"t.attributepropagation.java"* ]]; then continue; fi;
   DIR=`dirname $f`
   mkdir -p ../src/java/${DIR:12}
   cat  $f | sed "s/^.assign[^\"]*\"\(.*\)\"/\1/" | \
