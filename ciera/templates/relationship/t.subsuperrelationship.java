@@ -1,25 +1,25 @@
-package ${package};
+package ${self.package};
 
 ${imports}
 
-public class ${name} extends ${extends} {
+public class ${self.name} extends ${extends} {
 
-    private static final int relNum = ${num};
+    private static final int relNum = $t{num};
 
     // supertype class
-    private UniqueId ${supertype_class_name};
+    private UniqueId ${self.supertype_class_name};
 
     // subtype class
     private UniqueId subtype;
 
-    public ${name}( UniqueId ${supertype_class_name}, UniqueId subtype ) throws XtumlException {
-        this.${supertype_class_name} = ${supertype_class_name};
+    public ${self.name}( UniqueId ${self.supertype_class_name}, UniqueId subtype ) throws XtumlException {
+        this.${self.supertype_class_name} = ${self.supertype_class_name};
         this.subtype = subtype;
     }
 
     @Override
     public UniqueId getSupertype() {
-        return ${supertype_class_name};
+        return ${self.supertype_class_name};
     }
 
     @Override

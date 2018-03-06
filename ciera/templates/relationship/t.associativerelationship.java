@@ -1,91 +1,79 @@
-package ${package};
+package ${self.package};
 
 ${imports}
 
-public class ${name} extends ${extends} {
+public class ${self.name} extends ${extends} {
 
-    private static final int relNum = ${num};
+    private static final int relNum = $t{num};
 
     // one class
-    private UniqueId \
-.if ( "" != other_phrase )
-${one_class_name}_$_l{other_phrase}_${other_class_name};
-.else
-${one_class_name};
+    private UniqueId ${self.one_class_name}\
+.if ( "" != self->other_phrase )
+_$_l{self.other_phrase}_${self.other_class_name}\
 .end if
+;
 
     // other class
-    private UniqueId \
-.if ( "" != one_phrase )
-${other_class_name}_$_l{one_phrase}_${one_class_name};
-.else
-${other_class_name};
+    private UniqueId ${self.other_class_name}\
+.if ( "" != self->one_phrase )
+_$_l{self.one_phrase}_${self.one_class_name}\
 .end if
+;
 
     // link class
-    private UniqueId ${link_class_name};
+    private UniqueId ${self.link_class_name};
 
-    public ${name}( UniqueId \
-.if ( "" != other_phrase )
-${one_class_name}_$_l{other_phrase}_${other_class_name}\
-.else
-${one_class_name}\
+    public ${self.name}( UniqueId ${self.one_class_name}\
+.if ( "" != self->other_phrase )
+_$_l{self.other_phrase}_${self.other_class_name}\
 .end if
-, UniqueId \
-.if ( "" != one_phrase )
-${other_class_name}_$_l{one_phrase}_${one_class_name}\
-.else
-${other_class_name}\
+, UniqueId ${self.other_class_name}\
+.if ( "" != self->one_phrase )
+_$_l{self.one_phrase}_${self.one_class_name}\
 .end if
-, UniqueId ${link_class_name} ) throws XtumlException {
-        this.\
-.if ( "" != other_phrase )
-${one_class_name}_$_l{other_phrase}_${other_class_name} = \
-.else
-${one_class_name} = \
+, UniqueId ${self.link_class_name} ) throws XtumlException {
+        this.${self.one_class_name}\
+.if ( "" != self->other_phrase )
+_$_l{self.other_phrase}_${self.other_class_name}\
 .end if
-.if ( "" != other_phrase )
-${one_class_name}_$_l{other_phrase}_${other_class_name};
-.else
-${one_class_name};
+ = ${self.one_class_name}\
+.if ( "" != self->other_phrase )
+_$_l{self.other_phrase}_${self.other_class_name}\
 .end if
-        this.\
-.if ( "" != one_phrase )
-${other_class_name}_$_l{one_phrase}_${one_class_name} = \
-.else
-${other_class_name} = \
+;
+        this.${self.other_class_name}\
+.if ( "" != self->one_phrase )
+_$_l{self.one_phrase}_${self.one_class_name}\
 .end if
-.if ( "" != one_phrase )
-${other_class_name}_$_l{one_phrase}_${one_class_name};
-.else
-${other_class_name};
+ = ${self.other_class_name}\
+.if ( "" != self->one_phrase )
+_$_l{self.one_phrase}_${self.one_class_name}\
 .end if
-        this.${link_class_name} = ${link_class_name};
+;
+        this.${self.link_class_name} = ${self.link_class_name};
     }
 
     @Override
     public UniqueId getOne() {
-        return \
-.if ( "" != other_phrase )
-${one_class_name}_$_l{other_phrase}_${other_class_name};
-.else
-${one_class_name};
+        return ${self.one_class_name}\
+.if ( "" != self->other_phrase )
+_$_l{self.other_phrase}_${self.other_class_name}\
 .end if
+;
     }
 
     @Override
     public UniqueId getOther() {
-        return \
-.if ( "" != one_phrase )
-${other_class_name}_$_l{one_phrase}_${one_class_name};
-.else
-${other_class_name};
+        return ${self.other_class_name}\
+.if ( "" != self->one_phrase )
+_$_l{self.one_phrase}_${self.one_class_name}\
 .end if
+;
     }
 
     @Override
     public UniqueId getLink() {
-        return ${link_class_name};
+        return ${self.link_class_name};
     }
 
     @Override
