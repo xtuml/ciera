@@ -1,4 +1,4 @@
-    public void ${name}( ${link_parameter_list} ) throws XtumlException {
+    public void ${self.name}( ${link_parameter_list} ) throws XtumlException {
         if ( ${link_parameter_null_check} ) throw new BadArgumentException( "Null instances passed." );
         if ( ${link_parameter_empty_check} ) throw new EmptyInstanceException( "Cannot relate empty instances." );
 ${cardinality_checks}

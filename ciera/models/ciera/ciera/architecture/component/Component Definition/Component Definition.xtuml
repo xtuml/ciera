@@ -15,19 +15,86 @@ INSERT INTO O_TFR
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'package = self.package;
-imports = self.imports;
 name = self.name;
 extends = self.extends;
-port_initializers = self.port_initializers;
-functions = self.functions;
-creates = self.creates;
-relates = self.relates;
-unrelates = self.unrelates;
-classes = self.classes;
-relationships = self.relationships;
-selectors = self.selectors;
-ports = self.ports;
-init = self.init;
+
+select one file related by self->File[R401];
+imports = file.getFormattedImports();
+
+select many comp_ports related by self->Port[R417];
+if ( not_empty comp_ports )
+  separator = " ";
+  for each port in comp_ports
+    T::b( s:separator );
+    port.render_initializer();
+    separator = ", ";
+  end for;
+  T::b( s:" " );
+end if;
+port_initializers = T::body();
+T::clear();
+
+select many funcs related by self->Function[R405.''provides synchronous''];
+for each function in funcs
+  function.render();
+end for;
+functions = T::body();
+T::clear();
+
+select many instance_creators related by self->InstanceCreator[R4550.''instance added through''];
+for each instance_creator in instance_creators
+  instance_creator.render();
+end for;
+creates = T::body();
+T::clear();
+
+select many instance_relators related by self->InstanceLinkModifier[R4552.''links instances through'']->InstanceRelator[R4556];
+for each instance_relator in instance_relators
+  instance_relator.render();
+end for;
+relates = T::body();
+T::clear();
+
+select many instance_unrelators related by self->InstanceLinkModifier[R4552.''links instances through'']->InstanceUnrelator[R4556];
+for each instance_unrelator in instance_unrelators
+  instance_unrelator.render();
+end for;
+unrelates = T::body();
+T::clear();
+
+select many selects related by self->InstancePopulationSelector[R447.''selects instances through''];
+for each selector in selects
+  selector.render();
+end for;
+selectors = T::body();
+T::clear();
+
+for each port in comp_ports
+  port.render_acccessor();
+end for;
+ports = T::body();
+T::clear();
+
+init = "";
+select one init_function related by self->Function[R4561.''initialized by''];
+if ( not_empty init_function )
+  init = "        " + init_function.name + "();";
+end if;
+
+select many classes_in_comp related by self->ClassInComponent[R408];
+for each class_in_comp in classes_in_comp
+  class_in_comp.render();
+end for;
+classes = T::body();
+T::clear();
+
+select many rels_in_comp related by self->RelationshipInComponent[R448];
+for each rel_in_comp in rels_in_comp
+  rel_in_comp.render();
+end for;
+relationships = T::body();
+T::clear();
+
 T::include( file:"java/component/t.componentdefinition.java" );',
 	1,
 	'',
@@ -185,28 +252,6 @@ INSERT INTO O_ATTR
 	"ba5eda7a-def5-0000-0000-000000000007",
 	'',
 	'');
-INSERT INTO O_DBATTR
-	VALUES ("adf476ff-773d-4af8-883e-663e7c4f2cbf",
-	"e3ac4a49-65cb-448a-a3dd-9c87254c638b",
-	'select one file related by self->File[R401];
-self.imports = file.getFormattedImports();',
-	1,
-	0);
-INSERT INTO O_BATTR
-	VALUES ("adf476ff-773d-4af8-883e-663e7c4f2cbf",
-	"e3ac4a49-65cb-448a-a3dd-9c87254c638b");
-INSERT INTO O_ATTR
-	VALUES ("adf476ff-773d-4af8-883e-663e7c4f2cbf",
-	"e3ac4a49-65cb-448a-a3dd-9c87254c638b",
-	"f9a50f85-4041-4846-8d26-7c6ba484be4a",
-	'imports',
-	'',
-	'',
-	'imports',
-	0,
-	"ba5eda7a-def5-0000-0000-000000000004",
-	'',
-	'');
 INSERT INTO O_NBATTR
 	VALUES ("58354557-bcc7-463f-af38-a065d65db099",
 	"e3ac4a49-65cb-448a-a3dd-9c87254c638b");
@@ -216,294 +261,11 @@ INSERT INTO O_BATTR
 INSERT INTO O_ATTR
 	VALUES ("58354557-bcc7-463f-af38-a065d65db099",
 	"e3ac4a49-65cb-448a-a3dd-9c87254c638b",
-	"adf476ff-773d-4af8-883e-663e7c4f2cbf",
+	"f9a50f85-4041-4846-8d26-7c6ba484be4a",
 	'extends',
 	'',
 	'',
 	'extends',
-	0,
-	"ba5eda7a-def5-0000-0000-000000000004",
-	'',
-	'');
-INSERT INTO O_DBATTR
-	VALUES ("a5d5c22b-258c-4705-93fc-cd95bc605d6a",
-	"e3ac4a49-65cb-448a-a3dd-9c87254c638b",
-	'select many ports related by self->Port[R417];
-if ( not_empty ports )
-  separator = " ";
-  for each port in ports
-    T::b( s:separator );
-    port.render_initializer();
-    separator = ", ";
-  end for;
-  T::b( s:" " );
-end if;
-self.port_initializers = T::body();
-T::clear();',
-	1,
-	0);
-INSERT INTO O_BATTR
-	VALUES ("a5d5c22b-258c-4705-93fc-cd95bc605d6a",
-	"e3ac4a49-65cb-448a-a3dd-9c87254c638b");
-INSERT INTO O_ATTR
-	VALUES ("a5d5c22b-258c-4705-93fc-cd95bc605d6a",
-	"e3ac4a49-65cb-448a-a3dd-9c87254c638b",
-	"58354557-bcc7-463f-af38-a065d65db099",
-	'port_initializers',
-	'',
-	'',
-	'port_initializers',
-	0,
-	"ba5eda7a-def5-0000-0000-000000000004",
-	'',
-	'');
-INSERT INTO O_DBATTR
-	VALUES ("4ce59bc7-891d-414f-b502-601deb724bcc",
-	"e3ac4a49-65cb-448a-a3dd-9c87254c638b",
-	'select many selectors related by self->InstancePopulationSelector[R447.''selects instances through''];
-separator = "";
-for each selector in selectors
-  T::b( s:separator );
-  selector.render();
-  separator = "\n";
-end for;
-self.selectors = T::body();
-T::clear();',
-	1,
-	0);
-INSERT INTO O_BATTR
-	VALUES ("4ce59bc7-891d-414f-b502-601deb724bcc",
-	"e3ac4a49-65cb-448a-a3dd-9c87254c638b");
-INSERT INTO O_ATTR
-	VALUES ("4ce59bc7-891d-414f-b502-601deb724bcc",
-	"e3ac4a49-65cb-448a-a3dd-9c87254c638b",
-	"f3ac5698-e391-43ed-a2db-6daf5f4fb771",
-	'selectors',
-	'',
-	'',
-	'selectors',
-	0,
-	"ba5eda7a-def5-0000-0000-000000000004",
-	'',
-	'');
-INSERT INTO O_DBATTR
-	VALUES ("2db3808e-4c22-43b4-a75a-59e8d384d1eb",
-	"e3ac4a49-65cb-448a-a3dd-9c87254c638b",
-	'select many ports related by self->Port[R417];
-separator = "";
-for each port in ports
-  T::b( s:separator );
-  port.render_acccessor();
-  separator = "\n";
-end for;
-self.ports = T::body();
-T::clear();',
-	1,
-	0);
-INSERT INTO O_BATTR
-	VALUES ("2db3808e-4c22-43b4-a75a-59e8d384d1eb",
-	"e3ac4a49-65cb-448a-a3dd-9c87254c638b");
-INSERT INTO O_ATTR
-	VALUES ("2db3808e-4c22-43b4-a75a-59e8d384d1eb",
-	"e3ac4a49-65cb-448a-a3dd-9c87254c638b",
-	"4ce59bc7-891d-414f-b502-601deb724bcc",
-	'ports',
-	'',
-	'',
-	'ports',
-	0,
-	"ba5eda7a-def5-0000-0000-000000000004",
-	'',
-	'');
-INSERT INTO O_DBATTR
-	VALUES ("a14d687a-9f51-426d-a9a1-942cc24edaf1",
-	"e3ac4a49-65cb-448a-a3dd-9c87254c638b",
-	'self.init = "";
-select one init_function related by self->Function[R4561.''initialized by''];
-if ( not_empty init_function )
-  self.init = "        " + init_function.name + "();";
-end if;',
-	1,
-	0);
-INSERT INTO O_BATTR
-	VALUES ("a14d687a-9f51-426d-a9a1-942cc24edaf1",
-	"e3ac4a49-65cb-448a-a3dd-9c87254c638b");
-INSERT INTO O_ATTR
-	VALUES ("a14d687a-9f51-426d-a9a1-942cc24edaf1",
-	"e3ac4a49-65cb-448a-a3dd-9c87254c638b",
-	"2db3808e-4c22-43b4-a75a-59e8d384d1eb",
-	'init',
-	'',
-	'',
-	'init',
-	0,
-	"ba5eda7a-def5-0000-0000-000000000004",
-	'',
-	'');
-INSERT INTO O_DBATTR
-	VALUES ("a4dab23b-126b-4997-b1ad-b2b7b69a8d82",
-	"e3ac4a49-65cb-448a-a3dd-9c87254c638b",
-	'select many classes_in_comp related by self->ClassInComponent[R408];
-for each class_in_comp in classes_in_comp
-  class_in_comp.render();
-end for;
-self.classes = T::body();
-T::clear();',
-	1,
-	0);
-INSERT INTO O_BATTR
-	VALUES ("a4dab23b-126b-4997-b1ad-b2b7b69a8d82",
-	"e3ac4a49-65cb-448a-a3dd-9c87254c638b");
-INSERT INTO O_ATTR
-	VALUES ("a4dab23b-126b-4997-b1ad-b2b7b69a8d82",
-	"e3ac4a49-65cb-448a-a3dd-9c87254c638b",
-	"a14d687a-9f51-426d-a9a1-942cc24edaf1",
-	'classes',
-	'',
-	'',
-	'classes',
-	0,
-	"ba5eda7a-def5-0000-0000-000000000004",
-	'',
-	'');
-INSERT INTO O_DBATTR
-	VALUES ("68418903-5f1e-4486-8cc8-c48237bc7146",
-	"e3ac4a49-65cb-448a-a3dd-9c87254c638b",
-	'select many rels_in_comp related by self->RelationshipInComponent[R448];
-for each rel_in_comp in rels_in_comp
-  rel_in_comp.render();
-end for;
-self.relationships = T::body();
-T::clear();',
-	1,
-	0);
-INSERT INTO O_BATTR
-	VALUES ("68418903-5f1e-4486-8cc8-c48237bc7146",
-	"e3ac4a49-65cb-448a-a3dd-9c87254c638b");
-INSERT INTO O_ATTR
-	VALUES ("68418903-5f1e-4486-8cc8-c48237bc7146",
-	"e3ac4a49-65cb-448a-a3dd-9c87254c638b",
-	"a4dab23b-126b-4997-b1ad-b2b7b69a8d82",
-	'relationships',
-	'',
-	'',
-	'relationships',
-	0,
-	"ba5eda7a-def5-0000-0000-000000000004",
-	'',
-	'');
-INSERT INTO O_DBATTR
-	VALUES ("43bc4e11-77dd-43a3-805f-e19c9f7408a5",
-	"e3ac4a49-65cb-448a-a3dd-9c87254c638b",
-	'select many instance_creators related by self->InstanceCreator[R4550.''instance added through''];
-separator = "";
-for each instance_creator in instance_creators
-  T::b( s:separator );
-  instance_creator.render();
-  separator = "\n";
-end for;
-self.creates = T::body();
-T::clear();',
-	1,
-	0);
-INSERT INTO O_BATTR
-	VALUES ("43bc4e11-77dd-43a3-805f-e19c9f7408a5",
-	"e3ac4a49-65cb-448a-a3dd-9c87254c638b");
-INSERT INTO O_ATTR
-	VALUES ("43bc4e11-77dd-43a3-805f-e19c9f7408a5",
-	"e3ac4a49-65cb-448a-a3dd-9c87254c638b",
-	"60629ebf-a37b-4d98-aef5-20308594acbc",
-	'creates',
-	'',
-	'',
-	'creates',
-	0,
-	"ba5eda7a-def5-0000-0000-000000000004",
-	'',
-	'');
-INSERT INTO O_DBATTR
-	VALUES ("61af7631-0dca-4e48-9ac6-c8a67c33fa28",
-	"e3ac4a49-65cb-448a-a3dd-9c87254c638b",
-	'select many instance_relators related by self->InstanceLinkModifier[R4552.''links instances through'']->InstanceRelator[R4556];
-separator = "";
-for each instance_relator in instance_relators
-  T::b( s:separator );
-  instance_relator.render();
-  separator = "\n";
-end for;
-self.relates = T::body();
-T::clear();',
-	1,
-	0);
-INSERT INTO O_BATTR
-	VALUES ("61af7631-0dca-4e48-9ac6-c8a67c33fa28",
-	"e3ac4a49-65cb-448a-a3dd-9c87254c638b");
-INSERT INTO O_ATTR
-	VALUES ("61af7631-0dca-4e48-9ac6-c8a67c33fa28",
-	"e3ac4a49-65cb-448a-a3dd-9c87254c638b",
-	"43bc4e11-77dd-43a3-805f-e19c9f7408a5",
-	'relates',
-	'',
-	'',
-	'relates',
-	0,
-	"ba5eda7a-def5-0000-0000-000000000004",
-	'',
-	'');
-INSERT INTO O_DBATTR
-	VALUES ("f3ac5698-e391-43ed-a2db-6daf5f4fb771",
-	"e3ac4a49-65cb-448a-a3dd-9c87254c638b",
-	'select many instance_unrelators related by self->InstanceLinkModifier[R4552.''links instances through'']->InstanceUnrelator[R4556];
-separator = "";
-for each instance_unrelator in instance_unrelators
-  T::b( s:separator );
-  instance_unrelator.render();
-  separator = "\n";
-end for;
-self.unrelates = T::body();
-T::clear();',
-	1,
-	0);
-INSERT INTO O_BATTR
-	VALUES ("f3ac5698-e391-43ed-a2db-6daf5f4fb771",
-	"e3ac4a49-65cb-448a-a3dd-9c87254c638b");
-INSERT INTO O_ATTR
-	VALUES ("f3ac5698-e391-43ed-a2db-6daf5f4fb771",
-	"e3ac4a49-65cb-448a-a3dd-9c87254c638b",
-	"61af7631-0dca-4e48-9ac6-c8a67c33fa28",
-	'unrelates',
-	'',
-	'',
-	'unrelates',
-	0,
-	"ba5eda7a-def5-0000-0000-000000000004",
-	'',
-	'');
-INSERT INTO O_DBATTR
-	VALUES ("60629ebf-a37b-4d98-aef5-20308594acbc",
-	"e3ac4a49-65cb-448a-a3dd-9c87254c638b",
-	'select many functions related by self->Function[R405.''provides synchronous''];
-separator = "";
-for each function in functions
-  T::b( s:separator );
-  function.render();
-  separator = "\n";
-end for;
-self.functions = T::body();
-T::clear();',
-	1,
-	0);
-INSERT INTO O_BATTR
-	VALUES ("60629ebf-a37b-4d98-aef5-20308594acbc",
-	"e3ac4a49-65cb-448a-a3dd-9c87254c638b");
-INSERT INTO O_ATTR
-	VALUES ("60629ebf-a37b-4d98-aef5-20308594acbc",
-	"e3ac4a49-65cb-448a-a3dd-9c87254c638b",
-	"a5d5c22b-258c-4705-93fc-cd95bc605d6a",
-	'functions',
-	'',
-	'',
-	'functions',
 	0,
 	"ba5eda7a-def5-0000-0000-000000000004",
 	'',

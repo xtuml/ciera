@@ -1,6 +1,6 @@
 T_b("    ");
 T_b("public void ");
-T_b(name);
+T_b(self->name);
 T_b("( ");
 T_b(link_parameter_list);
 T_b(" ) throws XtumlException {");
@@ -17,9 +17,9 @@ T_b(" ) throw new EmptyInstanceException( \"Cannot relate empty instances.\" );"
 T_b("\n");
 T_b("        ");
 T_b("if ( !removeRelationship( ((");
-T_b(relationship_set_cast);
+T_b(self->relationship_set_cast);
 T_b(")getRelationshipSet( ");
-T_b(rel_num);
+T_b(T_s(rel_num));
 T_b(" )).getByInstanceIds( ");
 T_b(link_parameter_ids);
 T_b(" ) ) ) throw new ModelIntegrityException( \"Instances are not related.\" );");

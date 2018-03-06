@@ -1,3 +1,3 @@
-    public static ${type_name} ${name}(${parameter_list}) {
+    public static ${type_name} ${self.name}(${parameter_list}) {
 ${body}
     }

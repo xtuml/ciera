@@ -1,21 +1,21 @@
-    public ${type_name} ${name}() throws XtumlException {
-        return ${name}( null );
+    public ${self.type_name} ${self.name}() throws XtumlException {
+        return ${self.name}( null );
     }
 
-    public ${type_name} ${name}( IWhere condition ) throws XtumlException {
-.if ( is_many )
-        if ( null == condition ) return (${type_name})getInstanceSet( "${class_key_letters}" ).toImmutableSet();
-        ${type_name} $l{type_name} = new ${type_name}();
+    public ${self.type_name} ${self.name}( IWhere condition ) throws XtumlException {
+.if ( self->returns_set )
+        if ( null == condition ) return (${self.type_name})getInstanceSet( "${self.class_key_letters}" ).toImmutableSet();
+        ${self.type_name} $l{self.type_name} = new ${self.type_name}();
 .end if
-        for ( IModelInstance candidate : getInstanceSet( "${class_key_letters}" ) ) {
+        for ( IModelInstance candidate : getInstanceSet( "${self.class_key_letters}" ) ) {
             if ( null == condition || condition.passes( candidate ) ) \
-.if ( is_many )
-$l{type_name}.add( candidate );
+.if ( self->returns_set )
+$l{self.type_name}.add( candidate );
         }
-        return (${type_name})$l{type_name}.toImmutableSet();
+        return (${self.type_name})$l{self.type_name}.toImmutableSet();
 .else
-return (${type_name})candidate;
+return (${self.type_name})candidate;
         }
-        return ${type_name}.EMPTY_$u_{type_name};
+        return ${self.type_name}.EMPTY_$u_{self.type_name};
 .end if
     }

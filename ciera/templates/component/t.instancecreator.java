@@ -1,8 +1,8 @@
-    public ${class_name} ${name}() throws XtumlException {
-        ${class_name} new${class_name} = new ${class_name}( this );
-        if ( addInstance( new${class_name} ) ) return new${class_name};
+    public ${self.class_name} ${self.name}() throws XtumlException {
+        ${self.class_name} new${self.class_name} = new ${self.class_name}( this );
+        if ( addInstance( new${self.class_name} ) ) return new${self.class_name};
         else {
-            new${class_name}.delete();
-            throw new InstancePopulationException( "Error creating instance of ${class_name}." );
+            new${self.class_name}.delete();
+            throw new InstancePopulationException( "Error creating instance of ${self.class_name}." );
         }
     }

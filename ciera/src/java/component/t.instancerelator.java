@@ -1,6 +1,6 @@
 T_b("    ");
 T_b("public void ");
-T_b(name);
+T_b(self->name);
 T_b("( ");
 T_b(link_parameter_list);
 T_b(" ) throws XtumlException {");

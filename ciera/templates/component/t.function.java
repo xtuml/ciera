@@ -1,3 +1,3 @@
-    public ${type_name} ${name}(${parameter_list}) throws XtumlException {
+    public ${type_name} ${self.name}(${parameter_list}) throws XtumlException {
 ${body}
     }

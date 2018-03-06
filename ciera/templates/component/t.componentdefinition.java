@@ -1,12 +1,12 @@
-package ${package};
+package ${self.package};
 
 ${imports}
 
-public class ${name} extends ${extends} {
+public class ${self.name} extends ${self.extends} {
 
     private IRunContext runContext;
     
-    public ${name}( IRunContext runContext ) {
+    public ${self.name}( IRunContext runContext ) {
         super(${port_initializers});
         this.runContext = runContext;
     }

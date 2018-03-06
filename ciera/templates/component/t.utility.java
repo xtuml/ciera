@@ -1,8 +1,8 @@
-package ${package};
+package ${self.package};
 
 ${imports}
 
-public final class ${name} {
+public final class ${self.name} {
 
 ${utility_functions}
 
