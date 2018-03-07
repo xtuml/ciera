@@ -17,42 +17,21 @@ INSERT INTO O_TFR
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'select one file related by self->File[R401];
-package_name = ::pathToPackage( path:file.path );
-application_name = self.name;
-num_threads = STR::itoa( i:self.num_threads );
-component_block = "";
-separator = "";
-select many comps related by self->ComponentInstance[R426];
+imports = file.getFormattedImports();
+select many comps related by self->ComponentInstantiation[R426];
 for each comp in comps
-  select one comp_def related by comp->ComponentDefinition[R426];
-  comp_name = comp_def.name;
-  component_block = component_block + separator + "new " + comp_name + "()";
-  separator = ", ";
+  comp.render();
 end for;
-import_block = file.getFormattedImports();
+component_instantiations = T::body();
+T::clear();
+num_component_instances = cardinality comps;
+select many executors related by self->ApplicationExecutor[R4027.''delegates execution to''];
+num_executors = cardinality executors;
 T::include( file:"java/application/t.application.java" );',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",
 	0);
-INSERT INTO O_NBATTR
-	VALUES ("7afa5416-da4f-472f-9a95-a71018ecdc19",
-	"91c41d5e-a379-412a-94a3-af6cce3ed183");
-INSERT INTO O_BATTR
-	VALUES ("7afa5416-da4f-472f-9a95-a71018ecdc19",
-	"91c41d5e-a379-412a-94a3-af6cce3ed183");
-INSERT INTO O_ATTR
-	VALUES ("7afa5416-da4f-472f-9a95-a71018ecdc19",
-	"91c41d5e-a379-412a-94a3-af6cce3ed183",
-	"6148d058-9ffa-4ef0-ae57-354397c00709",
-	'num_threads',
-	'',
-	'',
-	'num_threads',
-	0,
-	"ba5eda7a-def5-0000-0000-000000000002",
-	'',
-	'');
 INSERT INTO O_REF
 	VALUES ("91c41d5e-a379-412a-94a3-af6cce3ed183",
 	"cf3f6a66-3c80-4818-a5ad-6b491a84e448",

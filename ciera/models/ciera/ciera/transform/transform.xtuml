@@ -43,50 +43,55 @@ select one s_sys related by root_package->S_SYS[R1405];
 
 // create the file
 create object instance file of File;
-file.name = ::camelCaseName( name:s_sys.Name, start_lower:false );
+file.name = ::camelCaseName( name:s_sys.Name, start_lower:false ) + "Application";
 file.path = T::l( s:T::r( s:s_sys.Name ) );
 file.package = ::pathToPackage( path:file.path );
 file.extension = ".java";
-file.exclude = true; // TODO
+file.exclude = false;
 
 // create the application object
 create object instance app of Application;
-app.num_threads = 1;
 relate app to file across R401;
 
+// create application executors
+index = 0;
+while ( index < 1 ) // single executor for now
+  create object instance executor of ApplicationExecutor;
+  executor.index = index;
+  relate executor to app across R4027.''executes tasks for'';
+  index = index + 1;
+end while;
+
 // create the import block
-::addStringToImports( file:file, s:"io.ciera.summit.application.Application" );
-::addStringToImports( file:file, s:"io.ciera.summit.components.IComponent" );
+::addStringToImports( file:file, s:"io.ciera.cairn.application.ApplicationExecutor" );
+::addStringToImports( file:file, s:"io.ciera.summit.application.IApplication" );      
+::addStringToImports( file:file, s:"io.ciera.summit.application.IRunContext" );       
+::addStringToImports( file:file, s:"io.ciera.summit.components.IComponent" );         
+::addStringToImports( file:file, s:"io.ciera.summit.exceptions.XtumlException" );
 
 // translate components definitions
 select many c_cs related by root_package->PE_PE[R8000]->C_C[R8001];
+select many cl_ics related by root_package->PE_PE[R8000]->CL_IC[R8001]->C_C[R4201];
+c_cs = c_cs | cl_ics;
 select any empty_comp_def from instances of ComponentDefinition where false;
+select any current_comp_inst from instances of ComponentInstantiation where false;
 for each c_c in c_cs
-  ::transformComponentDefinition( c_c:c_c, containing_comp_def:empty_comp_def );
-  create object instance comp_inst of ComponentInstance;
-  select any comp_def from instances of ComponentDefinition where ( selected.name == ::camelCaseName( name:c_c.Name, start_lower:false ) );
-  relate  comp_def to app across R426 using comp_inst;
-  if ( comp_def.name != app.name )
-    select one comp_def_file related by comp_def->File[R401];
-    ::addFileToImports( file:file, file_to_import:comp_def_file );
-  end if;
-end for;
-select many cl_ics related by root_package->PE_PE[R8000]->CL_IC[R8001];
-for each cl_ic in cl_ics
-  select one c_c related by cl_ic->C_C[R4201];
   select any comp_def from instances of ComponentDefinition where ( selected.name == ::camelCaseName( name:c_c.Name, start_lower:false ) );
   if ( empty comp_def )
     ::transformComponentDefinition( c_c:c_c, containing_comp_def:empty_comp_def );
+    select any comp_def from instances of ComponentDefinition where ( selected.name == ::camelCaseName( name:c_c.Name, start_lower:false ) );
   end if;
-  create object instance comp_inst of ComponentInstance;
-  select any comp_def from instances of ComponentDefinition where ( selected.name == ::camelCaseName( name:c_c.Name, start_lower:false ) );
+  create object instance comp_inst of ComponentInstantiation;
   relate  comp_def to app across R426 using comp_inst;
-  if ( comp_def.name != app.name )
-    select one comp_def_file related by comp_def->File[R401];
-    ::addFileToImports( file:file, file_to_import:comp_def_file );
+  select one comp_def_file related by comp_def->File[R401];
+  ::addFileToImports( file:file, file_to_import:comp_def_file );
+  select any executor from instances of ApplicationExecutor where ( selected.index == 0 );  // single executor for now
+  relate executor to comp_inst across R4028.''provides execution context for'';
+  if ( not_empty current_comp_inst )
+    relate comp_inst to current_comp_inst across R4029.''follows'';
   end if;
-end for;
-',
+  current_comp_inst = comp_inst;
+end for;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
