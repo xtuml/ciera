@@ -36,22 +36,24 @@ ${init}
     }
 
     @Override
+    public IRunContext getRunContext() {
+        return runContext;
+    }
+
+    @Override
     public Map<String, IInstanceSet> initializeInstanceSets() {
         Map<String, IInstanceSet> classes = new HashMap<>();
-${classes}\
+${class_sets}\
         return classes;
     }
 
     @Override
     public Map<Integer, IRelationshipSet> initializeRelationshipSets() {
         Map<Integer, IRelationshipSet> relationships  = new HashMap<>();
-${relationships}\
+${relationship_sets}\
         return relationships;
     }
 
-    @Override
-    public IRunContext getRunContext() {
-        return runContext;
-    }
+${relationships}
 
 }

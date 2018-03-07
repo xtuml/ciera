@@ -1391,20 +1391,13 @@ INSERT INTO S_SYNC
 	'',
 	'r_rel = param.r_rel;
 containing_comp_def = param.containing_comp_def;
+select one file related by containing_comp_def->File[R401];
 select one ep_pkg related by r_rel->PE_PE[R8001]->EP_PKG[R8000];
-
-// create the relationship file
-create object instance file of File;
-file.name = "R" + STR::itoa( i:r_rel.Numb );
-file.path = ::ep_pkgToPath( ep_pkg:ep_pkg );
-file.package = ::pathToPackage( path:file.path );
-file.extension = ".java";
-file.exclude = false;
 
 // create the relationship
 create object instance rel of Relationship;
+rel.name = "R" + STR::itoa( i:r_rel.Numb );
 rel.num = r_rel.Numb;
-relate rel to file across R401;
 create object instance ric of RelationshipInComponent;
 relate rel to containing_comp_def across R448.''forms relationship population of'' using ric;
 
@@ -1632,20 +1625,17 @@ else
   // TODO bad
 end if; end if; end if;
 
-// add to the containing component imports
-select one component_file related by containing_comp_def->File[R401];
-::addStringToImports( file:component_file, s:"io.ciera.summit.classes.IRelationshipSet" );
-if ( 0 == ric.relationship_type )
-  ::addStringToImports( file:component_file, s:"io.ciera.cairn.classes.BinaryRelationshipSet" );
-elif ( 1 == ric.relationship_type )
-  ::addStringToImports( file:component_file, s:"io.ciera.cairn.classes.AssociativeRelationshipSet" );
-elif ( 2 == ric.relationship_type )
-  ::addStringToImports( file:component_file, s:"io.ciera.cairn.classes.SubsuperRelationshipSet" );
-end if;
-
 // add necessary imports
+::addStringToImports( file:file, s:"io.ciera.summit.classes.IRelationshipSet" );
 ::addStringToImports( file:file, s:"io.ciera.summit.classes.UniqueId" );
-::addStringToImports( file:file, s:"io.ciera.summit.exceptions.XtumlException" );',
+::addStringToImports( file:file, s:"io.ciera.summit.exceptions.XtumlException" );
+if ( 0 == ric.relationship_type )
+  ::addStringToImports( file:file, s:"io.ciera.cairn.classes.BinaryRelationshipSet" );
+elif ( 1 == ric.relationship_type )
+  ::addStringToImports( file:file, s:"io.ciera.cairn.classes.AssociativeRelationshipSet" );
+elif ( 2 == ric.relationship_type )
+  ::addStringToImports( file:file, s:"io.ciera.cairn.classes.SubsuperRelationshipSet" );
+end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -2332,7 +2322,7 @@ INSERT INTO S_SYNC
 	'',
 	'rel = param.rel;
 containing_comp_def = param.containing_comp_def;
-select any ric related by containing_comp_def->RelationshipInComponent[R448] where ( selected.relationship_name == rel.name and selected.relationship_package == rel.package );
+select any ric related by containing_comp_def->RelationshipInComponent[R448] where ( selected.relationship_name == rel.name );
 
 // create the linker(s) and unlinker(s)
 select one binary related by rel->BinaryRelationship[R433];
@@ -2346,7 +2336,7 @@ if ( not_empty binary )
     create object instance ilm_relator of InstanceLinkModifier;
     ilm_relator.name = "relate" + one_class.name + "To" + other_class.name + "AcrossR" + STR::itoa( i:rel.num );
     relate ilm_relator to containing_comp_def across R4552.''instances linked in population of'';
-    relate ilm_relator to ric across R4554.''creates instances of'';
+    relate ilm_relator to ric across R4554.''modifies instances of'';
     create object instance relator of InstanceRelator;
     relate relator to ilm_relator across R4556;
     create object instance relator_param_one of ClassAsLinkParameter;
@@ -2386,7 +2376,7 @@ if ( not_empty binary )
     create object instance ilm_unrelator of InstanceLinkModifier;
     ilm_unrelator.name = "unrelate" + one_class.name + "From" + other_class.name + "AcrossR" + STR::itoa( i:rel.num );
     relate ilm_unrelator to containing_comp_def across R4552.''instances linked in population of'';
-    relate ilm_unrelator to ric across R4554.''creates instances of'';
+    relate ilm_unrelator to ric across R4554.''modifies instances of'';
     create object instance unrelator of InstanceUnrelator;
     relate unrelator to ilm_unrelator across R4556;
     unrelator.relationship_set_cast = "IBinaryRelationshipSet";
@@ -2417,7 +2407,7 @@ if ( not_empty subsup )
       create object instance ilm_relator of InstanceLinkModifier;
       ilm_relator.name = "relate" + sub_class.name + "To" + super_class.name + "AcrossR" + STR::itoa( i:rel.num );
       relate ilm_relator to containing_comp_def across R4552.''instances linked in population of'';
-      relate ilm_relator to ric across R4554.''creates instances of'';
+      relate ilm_relator to ric across R4554.''modifies instances of'';
       create object instance relator of InstanceRelator;
       relate relator to ilm_relator across R4556;
       create object instance relator_param_sub of ClassAsLinkParameter;
@@ -2449,7 +2439,7 @@ if ( not_empty subsup )
       create object instance ilm_unrelator of InstanceLinkModifier;
       ilm_unrelator.name = "unrelate" + sub_class.name + "From" + super_class.name + "AcrossR" + STR::itoa( i:rel.num );
       relate ilm_unrelator to containing_comp_def across R4552.''instances linked in population of'';
-      relate ilm_unrelator to ric across R4554.''creates instances of'';
+      relate ilm_unrelator to ric across R4554.''modifies instances of'';
       create object instance unrelator of InstanceUnrelator;
       relate unrelator to ilm_unrelator across R4556;
       unrelator.relationship_set_cast = "ISubsuperRelationshipSet";
@@ -2480,7 +2470,7 @@ if ( not_empty assoc )
     create object instance ilm_relator of InstanceLinkModifier;
     ilm_relator.name = "relate" + one_class.name + "To" + other_class.name + "AcrossR" + STR::itoa( i:rel.num ) + "Using" + link_class.name;
     relate ilm_relator to containing_comp_def across R4552.''instances linked in population of'';
-    relate ilm_relator to ric across R4554.''creates instances of'';
+    relate ilm_relator to ric across R4554.''modifies instances of'';
     create object instance relator of InstanceRelator;
     relate relator to ilm_relator across R4556;
     create object instance relator_param_one of ClassAsLinkParameter;
@@ -2536,7 +2526,7 @@ if ( not_empty assoc )
     create object instance ilm_unrelator of InstanceLinkModifier;
     ilm_unrelator.name = "unrelate" + one_class.name + "From" + other_class.name + "AcrossR" + STR::itoa( i:rel.num ) + "Using" + link_class.name;
     relate ilm_unrelator to containing_comp_def across R4552.''instances linked in population of'';
-    relate ilm_unrelator to ric across R4554.''creates instances of'';
+    relate ilm_unrelator to ric across R4554.''modifies instances of'';
     create object instance unrelator of InstanceUnrelator;
     relate unrelator to ilm_unrelator across R4556;
     unrelator.relationship_set_cast = "IAssociativeRelationshipSet";
@@ -2563,19 +2553,17 @@ end if; end if; end if;
 
 
 // add to the containing component imports
-select one file related by rel->File[R401];
-select one component_file related by containing_comp_def->File[R401];
-::addStringToImports( file:component_file, s:"io.ciera.summit.classes.IEmptyInstance" );
-::addStringToImports( file:component_file, s:"io.ciera.summit.exceptions.BadArgumentException" );
-::addStringToImports( file:component_file, s:"io.ciera.summit.exceptions.EmptyInstanceException" );
-::addStringToImports( file:component_file, s:"io.ciera.summit.exceptions.ModelIntegrityException" );
-::addFileToImports( file:component_file, file_to_import:file );
+select one file related by containing_comp_def->File[R401];
+::addStringToImports( file:file, s:"io.ciera.summit.classes.IEmptyInstance" );
+::addStringToImports( file:file, s:"io.ciera.summit.exceptions.BadArgumentException" );
+::addStringToImports( file:file, s:"io.ciera.summit.exceptions.EmptyInstanceException" );
+::addStringToImports( file:file, s:"io.ciera.summit.exceptions.ModelIntegrityException" );
 if ( 0 == ric.relationship_type )
-  ::addStringToImports( file:component_file, s:"io.ciera.summit.classes.IBinaryRelationshipSet" );
+  ::addStringToImports( file:file, s:"io.ciera.summit.classes.IBinaryRelationshipSet" );
 elif ( 1 == ric.relationship_type )
-  ::addStringToImports( file:component_file, s:"io.ciera.summit.classes.IAssociativeRelationshipSet" );
+  ::addStringToImports( file:file, s:"io.ciera.summit.classes.IAssociativeRelationshipSet" );
 elif ( 2 == ric.relationship_type )
-  ::addStringToImports( file:component_file, s:"io.ciera.summit.classes.ISubsuperRelationshipSet" );
+  ::addStringToImports( file:file, s:"io.ciera.summit.classes.ISubsuperRelationshipSet" );
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
