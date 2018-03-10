@@ -1,56 +1,51 @@
 package io.ciera.cairn.application;
 
-import java.util.PriorityQueue;
-import java.util.Queue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.PriorityBlockingQueue;
 
+import io.ciera.cairn.application.tasks.HaltExecutionTask;
 import io.ciera.summit.application.IApplicationTask;
 import io.ciera.summit.application.IExceptionHandler;
-import io.ciera.summit.application.IGeneratedEvent;
-import io.ciera.summit.application.IPoppedTimer;
-import io.ciera.summit.application.IReceivedMessage;
 import io.ciera.summit.application.IRunContext;
 import io.ciera.summit.exceptions.XtumlException;
 
-public class ApplicationExecutor implements IRunContext {
+public class ApplicationExecutor extends Thread implements IRunContext {
 
 	private IExceptionHandler handler;
-    private Queue<IApplicationTask> tasks;
+    private BlockingQueue<IApplicationTask> tasks;
+    private boolean running;
     
-    public ApplicationExecutor() {
+    public ApplicationExecutor( String name ) {
+    	super( name );
     	handler = new DefaultExceptionHandler();
-    	tasks = new PriorityQueue<>();
+    	tasks = new PriorityBlockingQueue<>();
+    	running = false;
     }
 
 	@Override
-	public void execute( Runnable command ) {
-		if ( !(command instanceof IApplicationTask) ) {
-			// generic code to execute
-			tasks.add( new IApplicationTask() {
-				@Override
-				public void run() {
-					command.run();
-				}
-				@Override
-				public int compareTo( IApplicationTask o ) {
-					if ( o instanceof IGeneratedEvent || o instanceof IPoppedTimer || o instanceof IReceivedMessage ) {
-						return -1; // lower priority than any other type of task
-					}
-					else return 0; // same priority as other generic tasks
-				}
-			});
-		}
-		else tasks.add( (IApplicationTask)command );
+	public void execute( IApplicationTask task ) {
+		tasks.add( task );
 	}
 	
 	@Override
 	public void run() {
-    	while ( !tasks.isEmpty() ) {
+		running = true;
+    	while ( running ) {
     		try {
-    		    tasks.remove().run();
-    		}
-    	    catch ( XtumlException e ) {
-    	    	handler.handle( e );
-    	    }
+				IApplicationTask task = tasks.take();
+				if ( task instanceof HaltExecutionTask ) {
+					running = false;
+				}
+				else {
+                    try {
+                      task.run();
+                    }
+                    catch ( XtumlException e ) {
+                      handler.handle( e );
+                    }
+				}
+			}
+    		catch ( InterruptedException e ) {}
     	}
 	}
 

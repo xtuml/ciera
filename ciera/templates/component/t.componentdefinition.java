@@ -4,11 +4,8 @@ ${imports}
 
 public class ${self.name} extends ${self.extends} {
 
-    private IRunContext runContext;
-    
     public ${self.name}( IRunContext runContext ) {
-        super(${port_initializers});
-        this.runContext = runContext;
+        super( runContext );
     }
 
     // domain functions
@@ -27,17 +24,14 @@ ${unrelates}
 ${selectors}
 
     // ports
+    /*
 ${ports}
+    */
 
     // component initialization function
     @Override
     public void initialize() throws XtumlException {
 ${init}
-    }
-
-    @Override
-    public IRunContext getRunContext() {
-        return runContext;
     }
 
     @Override

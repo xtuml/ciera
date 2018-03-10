@@ -1,9 +1,9 @@
 package io.ciera.summit.application;
 
-import java.util.concurrent.Executor;
-
-public interface IRunContext extends Executor, Runnable {
+public interface IRunContext {
 	
+	public void start();
+	public void execute( IApplicationTask task );
 	public IExceptionHandler getExceptionHandler();
 	public void setExceptionHandler( IExceptionHandler h );
 

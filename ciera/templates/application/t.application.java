@@ -15,22 +15,17 @@ public class ${self.name} implements IApplication {
     @Override
     public void setup() {
         for ( int i = 0; i < executors.length; i++ )
-            executors[i] = new ApplicationExecutor();
+            executors[i] = new ApplicationExecutor( "${self.name}Executor" + i );
 ${component_instantiations}
     }
 
     @Override
     public void initialize() {
         for ( IComponent component : components ) {
-            component.getRunContext().execute( new Runnable() {
+            component.getRunContext().execute( new GenericExecutionTask() {
                 @Override
-                public void run() {
-                    try {
-                        component.initialize();
-                    }
-                    catch ( XtumlException e ) {
-                        component.getRunContext().getExceptionHandler().handle( e );
-                    }
+                public void run() throws XtumlException {
+                    component.initialize();
                 }
             });
         }
@@ -38,13 +33,8 @@ ${component_instantiations}
 
     @Override
     public void start() {
-        if ( executors.length > 0 ) {
-            if ( executors.length > 1 ) {
-                for ( int i = 1; i < executors.length; i++ ) {
-                    new Thread( executors[i] ).start();
-                }
-            }
-            executors[0].run();
+        for ( IRunContext executor : executors ) {
+            executor.start();
         }
     }
 
