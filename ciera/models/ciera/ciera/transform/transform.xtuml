@@ -145,6 +145,10 @@ create object instance comp_def of ComponentDefinition;
 relate comp_def to file across R401;
 comp_def.extends = "Component";
 
+// create universal creator
+create object instance universal_creator of UniversalCreator;
+relate universal_creator to comp_def across R4564.''adds instances to population of'';
+
 // transform ports
 select many c_pos related by c_c->C_PO[R4010];
 for each c_po in c_pos
@@ -167,7 +171,6 @@ end for;
 select many objs related by comp_def->ClassInComponent[R408]->Class[R408.''maintains instances of''];
 if ( cardinality objs > 0 )
   ::addStringToImports( file:file, s:"io.ciera.summit.classes.IWhere" );
-  ::addStringToImports( file:file, s:"io.ciera.summit.classes.IModelInstance" );
   ::addStringToImports( file:file, s:"io.ciera.summit.classes.IInstanceSet" );
 end if;
 for each obj in objs
@@ -202,9 +205,11 @@ for each obj in objs
 end for;
 
 // create import block
-::addStringToImports( file:file, s:"io.ciera.summit.application.IRunContext" );
-::addStringToImports( file:file, s:"io.ciera.summit.exceptions.XtumlException" );
 ::addStringToImports( file:file, s:"io.ciera.cairn.components.Component" );
+::addStringToImports( file:file, s:"io.ciera.summit.application.IRunContext" );
+::addStringToImports( file:file, s:"io.ciera.summit.classes.IModelInstance" );
+::addStringToImports( file:file, s:"io.ciera.summit.exceptions.InstancePopulationException" );
+::addStringToImports( file:file, s:"io.ciera.summit.exceptions.XtumlException" );
 ::addStringToImports( file:file, s:"java.util.Map" );
 ::addStringToImports( file:file, s:"java.util.HashMap" );',
 	"ba5eda7a-def5-0000-0000-000000000000",
