@@ -17,10 +17,10 @@ public interface IInstancePopulation {
     public boolean removeRelationship( IRelationship relationship ) throws XtumlException;
 
     public IModelInstance createObjectInstance( String keyLetters ) throws XtumlException;
-    //public void relate( int relNum, IModelInstance one, IModelInstance other ) throws XtumlException;
-    //public void relate( int relNum, IModelInstance one, IModelInstance other, IModelInstance link ) throws XtumlException;
-    //public void unrelate( int relNum, IModelInstance one, IModelInstance other ) throws XtumlException;
-    //public void unrelate( int relNum, IModelInstance one, IModelInstance other, IModelInstance link ) throws XtumlException;
+    public void relate( int relNum, IModelInstance one, IModelInstance other ) throws XtumlException;
+    public void relate( int relNum, IModelInstance one, IModelInstance other, IModelInstance link ) throws XtumlException;
+    public void unrelate( int relNum, IModelInstance one, IModelInstance other ) throws XtumlException;
+    public void unrelate( int relNum, IModelInstance one, IModelInstance other, IModelInstance link ) throws XtumlException;
     public void deleteObjectInstance( IModelInstance instance ) throws XtumlException;
 
 }
