@@ -15,12 +15,18 @@ INSERT INTO O_TFR
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'creations = "";
-select many creators related by self->ComponentDefinition[R4564.''adds instances to population of'']->InstanceCreator[R4550.''instance added through''];
-for each inst_creator in creators
-  select one created_class related by inst_creator->ClassInComponent[R4551.''creates instances of'']->Class[R408.''maintains instances of''];
-  creations = creations + "            case ( " + STR::quote() + created_class.key_letters + STR::quote() + " ):\n";
-  creations = creations + "                return " + inst_creator.name + "();\n";
-end for;
+select any instance_creator from instances of InstanceCreator where false;
+select any prev_instance_creator related by self->ComponentDefinition[R4564.''adds instances to population of'']->InstanceCreator[R4550.''instance added through''];
+while ( not_empty prev_instance_creator )
+  instance_creator = prev_instance_creator;
+  select one prev_instance_creator related by instance_creator->InstanceCreator[R4567.''follows''];
+end while;
+while ( not_empty instance_creator )
+  instance_creator.render();
+  select one instance_creator related by instance_creator->InstanceCreator[R4567.''precedes''];
+end while;
+creations = T::body();
+T::clear();
 T::include( file:"java/component/t.universalcreator.java" );',
 	1,
 	'',
