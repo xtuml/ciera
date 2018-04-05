@@ -7,7 +7,7 @@ public class ${self.name} implements IApplication {
     IComponent[] components;
     IRunContext[] executors;
 
-    public MicrowaveOvenApplication() {
+    public ${self.name}() {
         components = new IComponent[$t{num_component_instances}];
         executors = new IRunContext[$t{num_executors}];
     }
