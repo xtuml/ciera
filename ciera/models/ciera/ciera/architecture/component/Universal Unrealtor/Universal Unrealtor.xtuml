@@ -16,20 +16,25 @@ INSERT INTO O_TFR
 	1,
 	'associative_unrelates = "";
 other_unrelates = "";
-select many unrelators related by self->ComponentDefinition[R4566.''instances unlinked in population of'']->InstanceLinkModifier[R4552.''links instances through'']->InstanceUnrelator[R4556];
-for each unrelator in unrelators
-  select one rel related by unrelator->InstanceLinkModifier[R4556]->RelationshipInComponent[R4554.''modifies instances of'']->Relationship[R448.''maintains instances of''];
+select any instance_unrelator from instances of InstanceUnrelator where false;
+select any prev_instance_unrelator related by self->ComponentDefinition[R4566.''instances unlinked in population of'']->InstanceLinkModifier[R4552.''links instances through'']->InstanceUnrelator[R4556];
+while ( not_empty prev_instance_unrelator )
+  instance_unrelator = prev_instance_unrelator;
+  select one prev_instance_unrelator related by instance_unrelator->InstanceUnrelator[R4569.''follows''];
+end while;
+while ( not_empty instance_unrelator )
+  instance_unrelator.render();
+  select one rel related by instance_unrelator->InstanceLinkModifier[R4556]->RelationshipInComponent[R4554.''modifies instances of'']->Relationship[R448.''maintains instances of''];
   select one assoc related by rel->AssociativeRelationship[R433];
   if ( not_empty assoc )
-    associative_unrelates = associative_unrelates + "            case ( " + STR::itoa( i:rel.num ) + " ):\n";
-    associative_unrelates = associative_unrelates + "                " + unrelator.name + "( one, other, link );\n";
-    associative_unrelates = associative_unrelates + "                break;\n";
+    associative_unrelates = associative_unrelates + T::body();
+    T::clear();
   else
-    other_unrelates = other_unrelates + "            case ( " + STR::itoa( i:rel.num ) + " ):\n";
-    other_unrelates = other_unrelates + "                " + unrelator.name + "( one, other );\n";
-    other_unrelates = other_unrelates + "                break;\n";
+    other_unrelates = other_unrelates + T::body();
+    T::clear();
   end if;
-end for;
+  select one instance_unrelator related by instance_unrelator->InstanceUnrelator[R4569.''precedes''];
+end while;
 T::include( file:"java/component/t.universalunrelator.java" );',
 	1,
 	'',

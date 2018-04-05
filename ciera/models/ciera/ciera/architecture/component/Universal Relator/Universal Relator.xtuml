@@ -16,20 +16,25 @@ INSERT INTO O_TFR
 	1,
 	'associative_relates = "";
 other_relates = "";
-select many relators related by self->ComponentDefinition[R4565.''instances linked in population of'']->InstanceLinkModifier[R4552.''links instances through'']->InstanceRelator[R4556];
-for each relator in relators
-  select one rel related by relator->InstanceLinkModifier[R4556]->RelationshipInComponent[R4554.''modifies instances of'']->Relationship[R448.''maintains instances of''];
+select any instance_relator from instances of InstanceRelator where false;
+select any prev_instance_relator related by self->ComponentDefinition[R4565.''instances linked in population of'']->InstanceLinkModifier[R4552.''links instances through'']->InstanceRelator[R4556];
+while ( not_empty prev_instance_relator )
+  instance_relator = prev_instance_relator;
+  select one prev_instance_relator related by instance_relator->InstanceRelator[R4568.''follows''];
+end while;
+while ( not_empty instance_relator )
+  instance_relator.render();
+  select one rel related by instance_relator->InstanceLinkModifier[R4556]->RelationshipInComponent[R4554.''modifies instances of'']->Relationship[R448.''maintains instances of''];
   select one assoc related by rel->AssociativeRelationship[R433];
   if ( not_empty assoc )
-    associative_relates = associative_relates + "            case ( " + STR::itoa( i:rel.num ) + " ):\n";
-    associative_relates = associative_relates + "                " + relator.name + "( one, other, link );\n";
-    associative_relates = associative_relates + "                break;\n";
+    associative_relates = associative_relates + T::body();
+    T::clear();
   else
-    other_relates = other_relates + "            case ( " + STR::itoa( i:rel.num ) + " ):\n";
-    other_relates = other_relates + "                " + relator.name + "( one, other );\n";
-    other_relates = other_relates + "                break;\n";
+    other_relates = other_relates + T::body();
+    T::clear();
   end if;
-end for;
+  select one instance_relator related by instance_relator->InstanceRelator[R4568.''precedes''];
+end while;
 T::include( file:"java/component/t.universalrelator.java" );',
 	1,
 	'',

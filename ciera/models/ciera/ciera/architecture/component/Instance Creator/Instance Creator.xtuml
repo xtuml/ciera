@@ -26,6 +26,61 @@ T::include( file:"java/component/t.instancecreator.java" );',
 	'',
 	"00000000-0000-0000-0000-000000000000",
 	0);
+INSERT INTO O_TFR
+	VALUES ("9f245d3e-d5a2-4f25-872f-1c1599077924",
+	"8fb3a209-2510-4d51-ad3c-cdcad99b1e92",
+	'initializeOrder',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'// find the bounding instances
+select any before_creator from instances of InstanceCreator where false;
+select any after_creator from instances of InstanceCreator where false;
+select any candidate_creator related by self->ComponentDefinition[R4550.''adds instances to population of'']->InstanceCreator[R4550.''instance added through'']
+  where ( not ( selected.comp_name == self.comp_name and selected.comp_package == self.comp_package and
+                selected.class_name == self.class_name and selected.class_package == self.class_package ) );
+if ( not_empty candidate_creator )
+  if ( self.class_name > candidate_creator.class_name )
+    before_creator = candidate_creator;
+    select one candidate_creator related by before_creator->InstanceCreator[R4567.''precedes''];
+    while ( not_empty candidate_creator )
+      if ( self.class_name > candidate_creator.class_name )
+        before_creator = candidate_creator;
+        select one candidate_creator related by before_creator->InstanceCreator[R4567.''precedes''];
+      else
+        after_creator = candidate_creator;
+        break;
+      end if;
+    end while;
+  else
+    after_creator = candidate_creator;
+    select one candidate_creator related by after_creator->InstanceCreator[R4567.''follows''];
+    while ( not_empty candidate_creator )
+      if ( self.class_name > candidate_creator.class_name )
+        before_creator = candidate_creator;
+        break;
+      else
+        after_creator = candidate_creator;
+        select one candidate_creator related by after_creator->InstanceCreator[R4567.''follows''];
+      end if;
+    end while;
+  end if;
+end if;
+
+// add to order
+if ( not_empty before_creator and not_empty after_creator )
+  unrelate before_creator from after_creator across R4567.''precedes'';
+end if;
+if ( not_empty before_creator )
+  relate before_creator to self across R4567.''precedes'';
+end if;
+if ( not_empty after_creator )
+  relate self to after_creator across R4567.''precedes'';
+end if;',
+	1,
+	'',
+	"7427ddb6-fd52-4379-aa2e-e238f39570c3",
+	0);
 INSERT INTO O_REF
 	VALUES ("8fb3a209-2510-4d51-ad3c-cdcad99b1e92",
 	"e3ac4a49-65cb-448a-a3dd-9c87254c638b",

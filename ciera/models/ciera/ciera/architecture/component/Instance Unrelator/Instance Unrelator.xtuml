@@ -14,17 +14,81 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'select one modifier related by self->InstanceLinkModifier[R4556];
+	'test = "else if";
+select many before_unrelators related by self->InstanceLinkModifier[R4556]->ComponentDefinition[R4552.''instances linked in population of'']->InstanceLinkModifier[R4552.''links instances through'']->InstanceUnrelator[R4556]
+  where ( selected.name < self.name );
+select any before_unrelator_assoc related by before_unrelators->InstanceLinkModifier[R4556]->RelationshipInComponent[R4554.''modifies instances of'']->Relationship[R448.''maintains instances of'']->AssociativeRelationship[R433];
+select any before_unrelator_binary related by before_unrelators->InstanceLinkModifier[R4556]->RelationshipInComponent[R4554.''modifies instances of'']->Relationship[R448.''maintains instances of'']->BinaryRelationship[R433];
+select any before_unrelator_subsuper related by before_unrelators->InstanceLinkModifier[R4556]->RelationshipInComponent[R4554.''modifies instances of'']->Relationship[R448.''maintains instances of'']->SubsuperRelationship[R433];
+select one self_assoc related by self->InstanceLinkModifier[R4556]->RelationshipInComponent[R4554.''modifies instances of'']->Relationship[R448.''maintains instances of'']->AssociativeRelationship[R433];
+if ( empty before_unrelators or ( not_empty self_assoc and empty before_unrelator_assoc ) or ( empty self_assoc and empty before_unrelator_binary and empty before_unrelator_subsuper ) )
+  test = "if";
+end if;
+  
+select one modifier related by self->InstanceLinkModifier[R4556];
 select one rel related by modifier->RelationshipInComponent[R4554.''modifies instances of'']->Relationship[R448.''maintains instances of''];
 rel_num = rel.num;
-link_parameter_list = modifier.link_parameter_list;
-link_parameter_null_check = modifier.link_parameter_null_check;
-link_parameter_empty_check = modifier.link_parameter_empty_check;
+relationship_name = modifier.relationship_name;
 link_parameter_ids = modifier.link_parameter_ids;
+link_parameter_type_check = modifier.link_parameter_type_check;
 T::include( file:"java/component/t.instanceunrelator.java" );',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",
+	0);
+INSERT INTO O_TFR
+	VALUES ("0d978862-b429-4708-bcc6-915a40557137",
+	"e5c23d5f-9310-4bca-8bb3-b0d825b47fd5",
+	'initializeOrder',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'// find the bounding instances
+select any before_unrelator from instances of InstanceUnrelator where false;
+select any after_unrelator from instances of InstanceUnrelator where false;
+select any candidate_unrelator related by self->InstanceLinkModifier[R4556]->ComponentDefinition[R4552.''instances linked in population of'']->InstanceLinkModifier[R4552.''links instances through'']->InstanceUnrelator[R4556]
+  where ( not ( selected.comp_name == self.comp_name and selected.comp_package == self.comp_package and selected.name == self.name ) );
+if ( not_empty candidate_unrelator )
+  if ( self.name > candidate_unrelator.name )
+    before_unrelator = candidate_unrelator;
+    select one candidate_unrelator related by before_unrelator->InstanceUnrelator[R4569.''precedes''];
+    while ( not_empty candidate_unrelator )
+      if ( self.name > candidate_unrelator.name )
+        before_unrelator = candidate_unrelator;
+        select one candidate_unrelator related by before_unrelator->InstanceUnrelator[R4569.''precedes''];
+      else
+        after_unrelator = candidate_unrelator;
+        break;
+      end if;
+    end while;
+  else
+    after_unrelator = candidate_unrelator;
+    select one candidate_unrelator related by after_unrelator->InstanceUnrelator[R4569.''follows''];
+    while ( not_empty candidate_unrelator )
+      if ( self.name > candidate_unrelator.name )
+        before_unrelator = candidate_unrelator;
+        break;
+      else
+        after_unrelator = candidate_unrelator;
+        select one candidate_unrelator related by after_unrelator->InstanceUnrelator[R4569.''follows''];
+      end if;
+    end while;
+  end if;
+end if;
+
+// add to order
+if ( not_empty before_unrelator and not_empty after_unrelator )
+  unrelate before_unrelator from after_unrelator across R4569.''precedes'';
+end if;
+if ( not_empty before_unrelator )
+  relate before_unrelator to self across R4569.''precedes'';
+end if;
+if ( not_empty after_unrelator )
+  relate self to after_unrelator across R4569.''precedes'';
+end if;',
+	1,
+	'',
+	"1f0a65b6-0104-4635-afc3-910b717d00d3",
 	0);
 INSERT INTO O_REF
 	VALUES ("e5c23d5f-9310-4bca-8bb3-b0d825b47fd5",
@@ -54,6 +118,34 @@ INSERT INTO O_RTIDA_PROXY
 	"a324c5aa-1ceb-425c-a487-f327e4675cd2",
 	"1b095090-8144-48f3-8c8c-4933281348c2",
 	'../component.xtuml');
+INSERT INTO O_REF
+	VALUES ("e5c23d5f-9310-4bca-8bb3-b0d825b47fd5",
+	"e5c23d5f-9310-4bca-8bb3-b0d825b47fd5",
+	0,
+	"592b0da8-8da1-4877-aed7-ea4ae00264a6",
+	"de2ee12b-4924-4296-bbd9-85d5dba2abca",
+	"3c1c9e80-5678-4629-8c8f-f75446166b1c",
+	"f723b5f7-db77-434f-9982-8ae576a35625",
+	"592b0da8-8da1-4877-aed7-ea4ae00264a6",
+	"ce08fdca-2e78-4e1d-acac-924075472f20",
+	"75af8bd8-d44b-4807-b165-01d9995d9acd",
+	0,
+	'',
+	'Instance Unrelator',
+	'comp_name',
+	'R4569.''precedes''');
+INSERT INTO R_RGO_PROXY
+	VALUES ("e5c23d5f-9310-4bca-8bb3-b0d825b47fd5",
+	"de2ee12b-4924-4296-bbd9-85d5dba2abca",
+	"3c1c9e80-5678-4629-8c8f-f75446166b1c",
+	'../component.xtuml');
+INSERT INTO O_RTIDA_PROXY
+	VALUES ("592b0da8-8da1-4877-aed7-ea4ae00264a6",
+	"e5c23d5f-9310-4bca-8bb3-b0d825b47fd5",
+	0,
+	"de2ee12b-4924-4296-bbd9-85d5dba2abca",
+	"f723b5f7-db77-434f-9982-8ae576a35625",
+	'../component.xtuml');
 INSERT INTO O_RATTR
 	VALUES ("592b0da8-8da1-4877-aed7-ea4ae00264a6",
 	"e5c23d5f-9310-4bca-8bb3-b0d825b47fd5",
@@ -70,7 +162,9 @@ INSERT INTO O_ATTR
 	"e5c23d5f-9310-4bca-8bb3-b0d825b47fd5",
 	"00000000-0000-0000-0000-000000000000",
 	'comp_name',
-	'',
+	'
+
+',
 	'',
 	'comp_name',
 	2,
@@ -100,6 +194,29 @@ INSERT INTO O_RTIDA_PROXY
 	"a324c5aa-1ceb-425c-a487-f327e4675cd2",
 	"1b095090-8144-48f3-8c8c-4933281348c2",
 	'../component.xtuml');
+INSERT INTO O_REF
+	VALUES ("e5c23d5f-9310-4bca-8bb3-b0d825b47fd5",
+	"e5c23d5f-9310-4bca-8bb3-b0d825b47fd5",
+	0,
+	"6d9888fe-1408-483a-89bc-3737f090c409",
+	"de2ee12b-4924-4296-bbd9-85d5dba2abca",
+	"3c1c9e80-5678-4629-8c8f-f75446166b1c",
+	"f723b5f7-db77-434f-9982-8ae576a35625",
+	"6d9888fe-1408-483a-89bc-3737f090c409",
+	"5796ca03-9867-4408-8f0a-03d731a482c2",
+	"50648b2f-1c03-47dd-bbfc-f116c62bddbf",
+	0,
+	'',
+	'Instance Unrelator',
+	'comp_package',
+	'R4569.''precedes''');
+INSERT INTO O_RTIDA_PROXY
+	VALUES ("6d9888fe-1408-483a-89bc-3737f090c409",
+	"e5c23d5f-9310-4bca-8bb3-b0d825b47fd5",
+	0,
+	"de2ee12b-4924-4296-bbd9-85d5dba2abca",
+	"f723b5f7-db77-434f-9982-8ae576a35625",
+	'../component.xtuml');
 INSERT INTO O_RATTR
 	VALUES ("6d9888fe-1408-483a-89bc-3737f090c409",
 	"e5c23d5f-9310-4bca-8bb3-b0d825b47fd5",
@@ -116,7 +233,9 @@ INSERT INTO O_ATTR
 	"e5c23d5f-9310-4bca-8bb3-b0d825b47fd5",
 	"592b0da8-8da1-4877-aed7-ea4ae00264a6",
 	'comp_package',
-	'',
+	'
+
+',
 	'',
 	'comp_package',
 	2,
@@ -178,13 +297,55 @@ INSERT INTO O_BATTR
 INSERT INTO O_ATTR
 	VALUES ("db2464a4-ff70-43ed-9c62-2ac5508281ed",
 	"e5c23d5f-9310-4bca-8bb3-b0d825b47fd5",
-	"4f963144-d494-4d70-bc0a-941640408d00",
+	"7a7a4303-1600-4b82-86f8-c191a9486e64",
 	'relationship_set_cast',
 	'',
 	'',
 	'relationship_set_cast',
 	0,
 	"ba5eda7a-def5-0000-0000-000000000004",
+	'',
+	'');
+INSERT INTO O_REF
+	VALUES ("e5c23d5f-9310-4bca-8bb3-b0d825b47fd5",
+	"e5c23d5f-9310-4bca-8bb3-b0d825b47fd5",
+	0,
+	"4f963144-d494-4d70-bc0a-941640408d00",
+	"de2ee12b-4924-4296-bbd9-85d5dba2abca",
+	"3c1c9e80-5678-4629-8c8f-f75446166b1c",
+	"f723b5f7-db77-434f-9982-8ae576a35625",
+	"7a7a4303-1600-4b82-86f8-c191a9486e64",
+	"3691e838-155b-47cf-b6e1-61b594886dfb",
+	"00000000-0000-0000-0000-000000000000",
+	0,
+	'',
+	'Instance Unrelator',
+	'name',
+	'R4569.''precedes''');
+INSERT INTO O_RTIDA_PROXY
+	VALUES ("4f963144-d494-4d70-bc0a-941640408d00",
+	"e5c23d5f-9310-4bca-8bb3-b0d825b47fd5",
+	0,
+	"de2ee12b-4924-4296-bbd9-85d5dba2abca",
+	"f723b5f7-db77-434f-9982-8ae576a35625",
+	'../component.xtuml');
+INSERT INTO O_RATTR
+	VALUES ("7a7a4303-1600-4b82-86f8-c191a9486e64",
+	"e5c23d5f-9310-4bca-8bb3-b0d825b47fd5",
+	"ef8a8682-60f8-4e72-ab92-7431a969a0a0",
+	"e04776f4-2228-48e2-99af-1227b51d731a",
+	1,
+	'name');
+INSERT INTO O_ATTR
+	VALUES ("7a7a4303-1600-4b82-86f8-c191a9486e64",
+	"e5c23d5f-9310-4bca-8bb3-b0d825b47fd5",
+	"4f963144-d494-4d70-bc0a-941640408d00",
+	'next_name',
+	'',
+	'next_',
+	'name',
+	1,
+	"ba5eda7a-def5-0000-0000-000000000007",
 	'',
 	'');
 INSERT INTO O_ID

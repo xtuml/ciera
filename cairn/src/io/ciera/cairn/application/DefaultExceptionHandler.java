@@ -7,8 +7,7 @@ public class DefaultExceptionHandler implements IExceptionHandler {
 
 	@Override
 	public void handle( XtumlException e ) {
-		System.err.println( e.getMessage() );
-		System.err.println( e.getStackTrace() );
+		e.printStackTrace( System.err );
 	}
 
 }

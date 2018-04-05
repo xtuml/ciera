@@ -14,12 +14,23 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'select one modifier related by self->InstanceLinkModifier[R4556];
+	'test = "else if";
+select many before_relators related by self->InstanceLinkModifier[R4556]->ComponentDefinition[R4552.''instances linked in population of'']->InstanceLinkModifier[R4552.''links instances through'']->InstanceRelator[R4556]
+  where ( selected.name < self.name );
+select any before_relator_assoc related by before_relators->InstanceLinkModifier[R4556]->RelationshipInComponent[R4554.''modifies instances of'']->Relationship[R448.''maintains instances of'']->AssociativeRelationship[R433];
+select any before_relator_binary related by before_relators->InstanceLinkModifier[R4556]->RelationshipInComponent[R4554.''modifies instances of'']->Relationship[R448.''maintains instances of'']->BinaryRelationship[R433];
+select any before_relator_subsuper related by before_relators->InstanceLinkModifier[R4556]->RelationshipInComponent[R4554.''modifies instances of'']->Relationship[R448.''maintains instances of'']->SubsuperRelationship[R433];
+select one self_assoc related by self->InstanceLinkModifier[R4556]->RelationshipInComponent[R4554.''modifies instances of'']->Relationship[R448.''maintains instances of'']->AssociativeRelationship[R433];
+if ( empty before_relators or ( not_empty self_assoc and empty before_relator_assoc ) or ( empty self_assoc and empty before_relator_binary and empty before_relator_subsuper ) )
+  test = "if";
+end if;
+  
+select one modifier related by self->InstanceLinkModifier[R4556];
+select one rel related by modifier->RelationshipInComponent[R4554.''modifies instances of'']->Relationship[R448.''maintains instances of''];
+rel_num = rel.num;
 relationship_name = modifier.relationship_name;
-link_parameter_list = modifier.link_parameter_list;
-link_parameter_null_check = modifier.link_parameter_null_check;
-link_parameter_empty_check = modifier.link_parameter_empty_check;
 link_parameter_ids = modifier.link_parameter_ids;
+link_parameter_type_check = modifier.link_parameter_type_check;
 
 body_save = T::body(); // TODO this is weird... have multiple buffers?
 T::clear();
@@ -35,6 +46,60 @@ T::include( file:"java/component/t.instancerelator.java" );',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",
+	0);
+INSERT INTO O_TFR
+	VALUES ("92511620-b2ab-479b-a4c1-3af394ca5b7d",
+	"18f877ff-d27e-4820-bea3-fdef69c109d7",
+	'initializeOrder',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'// find the bounding instances
+select any before_relator from instances of InstanceRelator where false;
+select any after_relator from instances of InstanceRelator where false;
+select any candidate_relator related by self->InstanceLinkModifier[R4556]->ComponentDefinition[R4552.''instances linked in population of'']->InstanceLinkModifier[R4552.''links instances through'']->InstanceRelator[R4556]
+  where ( not ( selected.comp_name == self.comp_name and selected.comp_package == self.comp_package and selected.name == self.name ) );
+if ( not_empty candidate_relator )
+  if ( self.name > candidate_relator.name )
+    before_relator = candidate_relator;
+    select one candidate_relator related by before_relator->InstanceRelator[R4568.''precedes''];
+    while ( not_empty candidate_relator )
+      if ( self.name > candidate_relator.name )
+        before_relator = candidate_relator;
+        select one candidate_relator related by before_relator->InstanceRelator[R4568.''precedes''];
+      else
+        after_relator = candidate_relator;
+        break;
+      end if;
+    end while;
+  else
+    after_relator = candidate_relator;
+    select one candidate_relator related by after_relator->InstanceRelator[R4568.''follows''];
+    while ( not_empty candidate_relator )
+      if ( self.name > candidate_relator.name )
+        before_relator = candidate_relator;
+        break;
+      else
+        after_relator = candidate_relator;
+        select one candidate_relator related by after_relator->InstanceRelator[R4568.''follows''];
+      end if;
+    end while;
+  end if;
+end if;
+
+// add to order
+if ( not_empty before_relator and not_empty after_relator )
+  unrelate before_relator from after_relator across R4568.''precedes'';
+end if;
+if ( not_empty before_relator )
+  relate before_relator to self across R4568.''precedes'';
+end if;
+if ( not_empty after_relator )
+  relate self to after_relator across R4568.''precedes'';
+end if;',
+	1,
+	'',
+	"c79bd22a-fe43-4162-ab55-1b34ffc04221",
 	0);
 INSERT INTO O_REF
 	VALUES ("18f877ff-d27e-4820-bea3-fdef69c109d7",
@@ -64,6 +129,34 @@ INSERT INTO O_RTIDA_PROXY
 	"a324c5aa-1ceb-425c-a487-f327e4675cd2",
 	"1b095090-8144-48f3-8c8c-4933281348c2",
 	'../component.xtuml');
+INSERT INTO O_REF
+	VALUES ("18f877ff-d27e-4820-bea3-fdef69c109d7",
+	"18f877ff-d27e-4820-bea3-fdef69c109d7",
+	0,
+	"81b7b6dd-23f2-4920-9306-da40c0bedc40",
+	"c056d8bd-2dcf-4d66-ae28-60252b18b21a",
+	"af6e5960-8f59-47c2-afd5-594a2bc4533c",
+	"683a6c68-8ac1-46da-9a11-ec851becfcbf",
+	"81b7b6dd-23f2-4920-9306-da40c0bedc40",
+	"8b737ab1-5df6-4bb9-8e0c-474416b29f16",
+	"d1357d41-e937-4324-a109-09c400971977",
+	0,
+	'',
+	'Instance Relator',
+	'comp_name',
+	'R4568.''precedes''');
+INSERT INTO R_RGO_PROXY
+	VALUES ("18f877ff-d27e-4820-bea3-fdef69c109d7",
+	"c056d8bd-2dcf-4d66-ae28-60252b18b21a",
+	"af6e5960-8f59-47c2-afd5-594a2bc4533c",
+	'../component.xtuml');
+INSERT INTO O_RTIDA_PROXY
+	VALUES ("81b7b6dd-23f2-4920-9306-da40c0bedc40",
+	"18f877ff-d27e-4820-bea3-fdef69c109d7",
+	0,
+	"c056d8bd-2dcf-4d66-ae28-60252b18b21a",
+	"683a6c68-8ac1-46da-9a11-ec851becfcbf",
+	'../component.xtuml');
 INSERT INTO O_RATTR
 	VALUES ("81b7b6dd-23f2-4920-9306-da40c0bedc40",
 	"18f877ff-d27e-4820-bea3-fdef69c109d7",
@@ -80,7 +173,9 @@ INSERT INTO O_ATTR
 	"18f877ff-d27e-4820-bea3-fdef69c109d7",
 	"00000000-0000-0000-0000-000000000000",
 	'comp_name',
-	'',
+	'
+
+',
 	'',
 	'comp_name',
 	2,
@@ -110,6 +205,29 @@ INSERT INTO O_RTIDA_PROXY
 	"a324c5aa-1ceb-425c-a487-f327e4675cd2",
 	"1b095090-8144-48f3-8c8c-4933281348c2",
 	'../component.xtuml');
+INSERT INTO O_REF
+	VALUES ("18f877ff-d27e-4820-bea3-fdef69c109d7",
+	"18f877ff-d27e-4820-bea3-fdef69c109d7",
+	0,
+	"9f2e8a83-ce09-4e3b-bb62-15c2d045c8b1",
+	"c056d8bd-2dcf-4d66-ae28-60252b18b21a",
+	"af6e5960-8f59-47c2-afd5-594a2bc4533c",
+	"683a6c68-8ac1-46da-9a11-ec851becfcbf",
+	"9f2e8a83-ce09-4e3b-bb62-15c2d045c8b1",
+	"089d994d-682c-429e-9265-4ed7cdc2cf4a",
+	"c2bfe6f1-4aee-45ac-a3b4-9470dc495b80",
+	0,
+	'',
+	'Instance Relator',
+	'comp_package',
+	'R4568.''precedes''');
+INSERT INTO O_RTIDA_PROXY
+	VALUES ("9f2e8a83-ce09-4e3b-bb62-15c2d045c8b1",
+	"18f877ff-d27e-4820-bea3-fdef69c109d7",
+	0,
+	"c056d8bd-2dcf-4d66-ae28-60252b18b21a",
+	"683a6c68-8ac1-46da-9a11-ec851becfcbf",
+	'../component.xtuml');
 INSERT INTO O_RATTR
 	VALUES ("9f2e8a83-ce09-4e3b-bb62-15c2d045c8b1",
 	"18f877ff-d27e-4820-bea3-fdef69c109d7",
@@ -126,7 +244,9 @@ INSERT INTO O_ATTR
 	"18f877ff-d27e-4820-bea3-fdef69c109d7",
 	"81b7b6dd-23f2-4920-9306-da40c0bedc40",
 	'comp_package',
-	'',
+	'
+
+',
 	'',
 	'comp_package',
 	2,
@@ -176,6 +296,48 @@ INSERT INTO O_ATTR
 	'',
 	'name',
 	0,
+	"ba5eda7a-def5-0000-0000-000000000007",
+	'',
+	'');
+INSERT INTO O_REF
+	VALUES ("18f877ff-d27e-4820-bea3-fdef69c109d7",
+	"18f877ff-d27e-4820-bea3-fdef69c109d7",
+	0,
+	"b3632dfb-3bc2-4cf1-8307-4870e6d05f1c",
+	"c056d8bd-2dcf-4d66-ae28-60252b18b21a",
+	"af6e5960-8f59-47c2-afd5-594a2bc4533c",
+	"683a6c68-8ac1-46da-9a11-ec851becfcbf",
+	"008b96c5-42ef-4546-982e-ef91e77e82a2",
+	"31527958-aa7b-4324-8d58-377cb29d6006",
+	"00000000-0000-0000-0000-000000000000",
+	0,
+	'',
+	'Instance Relator',
+	'name',
+	'R4568.''precedes''');
+INSERT INTO O_RTIDA_PROXY
+	VALUES ("b3632dfb-3bc2-4cf1-8307-4870e6d05f1c",
+	"18f877ff-d27e-4820-bea3-fdef69c109d7",
+	0,
+	"c056d8bd-2dcf-4d66-ae28-60252b18b21a",
+	"683a6c68-8ac1-46da-9a11-ec851becfcbf",
+	'../component.xtuml');
+INSERT INTO O_RATTR
+	VALUES ("008b96c5-42ef-4546-982e-ef91e77e82a2",
+	"18f877ff-d27e-4820-bea3-fdef69c109d7",
+	"ef8a8682-60f8-4e72-ab92-7431a969a0a0",
+	"e04776f4-2228-48e2-99af-1227b51d731a",
+	1,
+	'name');
+INSERT INTO O_ATTR
+	VALUES ("008b96c5-42ef-4546-982e-ef91e77e82a2",
+	"18f877ff-d27e-4820-bea3-fdef69c109d7",
+	"b3632dfb-3bc2-4cf1-8307-4870e6d05f1c",
+	'next_name',
+	'',
+	'next_',
+	'name',
+	1,
 	"ba5eda7a-def5-0000-0000-000000000007",
 	'',
 	'');

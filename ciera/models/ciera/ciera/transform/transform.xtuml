@@ -595,8 +595,9 @@ relate obj to file across R401;
 create object instance cic of ClassInComponent;
 relate obj to containing_comp_def across R408 using cic;
 create object instance instance_creator of InstanceCreator;
-containing_comp_def.insert_creator( inst_creator:instance_creator );
+relate instance_creator to containing_comp_def across R4550.''adds instances to population of'';
 relate instance_creator to cic across R4551.''creates instances of'';
+instance_creator.initializeOrder();
 
 // create the instance type
 create object instance type of Type;
@@ -2343,20 +2344,18 @@ if ( not_empty binary )
   if ( not_empty one_cic and not_empty other_cic )
     // create relator
     create object instance ilm_relator of InstanceLinkModifier;
-    ilm_relator.name = "relate" + one_class.name + "To" + other_class.name + "AcrossR" + STR::itoa( i:rel.num );
+    ilm_relator.name = "relateR" + STR::itoa( i:rel.num ) + one_class.name + "To" + other_class.name;
     relate ilm_relator to containing_comp_def across R4552.''instances linked in population of'';
     relate ilm_relator to ric across R4554.''modifies instances of'';
     create object instance relator of InstanceRelator;
     relate relator to ilm_relator across R4556;
     create object instance relator_param_one of ClassAsLinkParameter;
     relate ilm_relator to one_cic across R4555 using relator_param_one;
-    if ( "" != binary.other_phrase ) relator_param_one.name = one_class.name + "_" + T::l( s:T::underscore( s:binary.other_phrase ) ) + "_" + other_class.name;
-    else relator_param_one.name = T::l( s:one_class.name ); end if;
+    relator_param_one.name = "one";
     relator_param_one.phrase = binary.other_phrase;
     create object instance relator_param_other of ClassAsLinkParameter;
     relate ilm_relator to other_cic across R4555 using relator_param_other;
-    if ( "" != binary.one_phrase ) relator_param_other.name = other_class.name + "_" + T::l( s:T::underscore( s:binary.one_phrase ) ) + "_" + one_class.name;
-    else relator_param_other.name = T::l( s:other_class.name ); end if;
+    relator_param_other.name = "other";
     relator_param_other.phrase = binary.one_phrase;
     relate relator_param_other to relator_param_one across R4557.''follows'';
     // one case
@@ -2381,9 +2380,10 @@ if ( not_empty binary )
       relate relator to check across R4562.''existing relationships checked by'';
       relate parm to check across R4563.''starting point for'';
     end if;
+    relator.initializeOrder();
     // create unrelator
     create object instance ilm_unrelator of InstanceLinkModifier;
-    ilm_unrelator.name = "unrelate" + one_class.name + "From" + other_class.name + "AcrossR" + STR::itoa( i:rel.num );
+    ilm_unrelator.name = "unrelateR" + STR::itoa( i:rel.num ) + one_class.name + "From" + other_class.name;
     relate ilm_unrelator to containing_comp_def across R4552.''instances linked in population of'';
     relate ilm_unrelator to ric across R4554.''modifies instances of'';
     create object instance unrelator of InstanceUnrelator;
@@ -2391,15 +2391,14 @@ if ( not_empty binary )
     unrelator.relationship_set_cast = "IBinaryRelationshipSet";
     create object instance unrelator_param_one of ClassAsLinkParameter;
     relate ilm_unrelator to one_cic across R4555 using unrelator_param_one;
-    if ( "" != binary.other_phrase ) unrelator_param_one.name = one_class.name + "_" + T::l( s:T::underscore( s:binary.other_phrase ) ) + "_" + other_class.name;
-    else unrelator_param_one.name = T::l( s:one_class.name ); end if;
+    unrelator_param_one.name = "one";
     unrelator_param_one.phrase = binary.other_phrase;
     create object instance unrelator_param_other of ClassAsLinkParameter;
     relate ilm_unrelator to other_cic across R4555 using unrelator_param_other;
-    if ( "" != binary.one_phrase ) unrelator_param_other.name = other_class.name + "_" + T::l( s:T::underscore( s:binary.one_phrase ) ) + "_" + one_class.name;
-    else unrelator_param_other.name = T::l( s:other_class.name ); end if;
+    unrelator_param_other.name = "other";
     unrelator_param_other.phrase = binary.one_phrase;
     relate unrelator_param_other to unrelator_param_one across R4557.''follows'';
+    unrelator.initializeOrder();
   else
     // TODO bad
   end if;
@@ -2414,20 +2413,20 @@ if ( not_empty subsup )
     if ( not_empty super_cic and not_empty sub_cic )
       // create relator
       create object instance ilm_relator of InstanceLinkModifier;
-      ilm_relator.name = "relate" + sub_class.name + "To" + super_class.name + "AcrossR" + STR::itoa( i:rel.num );
+      ilm_relator.name = "relateR" + STR::itoa( i:rel.num ) + sub_class.name + "To" + super_class.name;
       relate ilm_relator to containing_comp_def across R4552.''instances linked in population of'';
       relate ilm_relator to ric across R4554.''modifies instances of'';
       create object instance relator of InstanceRelator;
       relate relator to ilm_relator across R4556;
-      create object instance relator_param_sub of ClassAsLinkParameter;
-      relate ilm_relator to sub_cic across R4555 using relator_param_sub;
-      relator_param_sub.name = T::l( s:sub_class.name );
-      relator_param_sub.phrase = "";
       create object instance relator_param_super of ClassAsLinkParameter;
       relate ilm_relator to super_cic across R4555 using relator_param_super;
-      relator_param_super.name = T::l( s:super_class.name );
+      relator_param_super.name = "one";
       relator_param_super.phrase = "";
-      relate relator_param_super to relator_param_sub across R4557.''follows'';
+      create object instance relator_param_sub of ClassAsLinkParameter;
+      relate ilm_relator to sub_cic across R4555 using relator_param_sub;
+      relator_param_sub.name = "other";
+      relator_param_sub.phrase = "";
+      relate relator_param_sub to relator_param_super across R4557.''follows'';
       // super case
       select any parm1 related by relator->InstanceLinkModifier[R4556]->ClassAsLinkParameter[R4555] where ( selected.class_name == super_class.name and
                                                                                                             selected.class_package == super_class.package );
@@ -2444,23 +2443,25 @@ if ( not_empty subsup )
       check2.relationship_set_cast = "ISubsuperRelationshipSet";
       relate relator to check2 across R4562.''existing relationships checked by'';
       relate parm2 to check2 across R4563.''starting point for'';
+      relator.initializeOrder();
       // create unrelator
       create object instance ilm_unrelator of InstanceLinkModifier;
-      ilm_unrelator.name = "unrelate" + sub_class.name + "From" + super_class.name + "AcrossR" + STR::itoa( i:rel.num );
+      ilm_unrelator.name = "unrelateR" + STR::itoa( i:rel.num ) + sub_class.name + "From" + super_class.name;
       relate ilm_unrelator to containing_comp_def across R4552.''instances linked in population of'';
       relate ilm_unrelator to ric across R4554.''modifies instances of'';
       create object instance unrelator of InstanceUnrelator;
       relate unrelator to ilm_unrelator across R4556;
       unrelator.relationship_set_cast = "ISubsuperRelationshipSet";
-      create object instance unrelator_param_sub of ClassAsLinkParameter;
-      relate ilm_unrelator to sub_cic across R4555 using unrelator_param_sub;
-      unrelator_param_sub.name = T::l( s:sub_class.name );
-      unrelator_param_sub.phrase = "";
       create object instance unrelator_param_super of ClassAsLinkParameter;
       relate ilm_unrelator to super_cic across R4555 using unrelator_param_super;
-      unrelator_param_super.name = T::l( s:super_class.name );
+      unrelator_param_super.name = "one";
       unrelator_param_super.phrase = "";
-      relate unrelator_param_super to unrelator_param_sub across R4557.''follows'';
+      create object instance unrelator_param_sub of ClassAsLinkParameter;
+      relate ilm_unrelator to sub_cic across R4555 using unrelator_param_sub;
+      unrelator_param_sub.name = "other";
+      unrelator_param_sub.phrase = "";
+      relate unrelator_param_sub to unrelator_param_super across R4557.''follows'';
+      unrelator.initializeOrder();
     else
       // TODO bad
     end if;
@@ -2477,25 +2478,23 @@ if ( not_empty assoc )
   if ( not_empty one_cic and not_empty other_cic and not_empty link_cic )
     // create relator
     create object instance ilm_relator of InstanceLinkModifier;
-    ilm_relator.name = "relate" + one_class.name + "To" + other_class.name + "AcrossR" + STR::itoa( i:rel.num ) + "Using" + link_class.name;
+    ilm_relator.name = "relateR" + STR::itoa( i:rel.num ) + one_class.name + "To" + other_class.name + "Using" + link_class.name;
     relate ilm_relator to containing_comp_def across R4552.''instances linked in population of'';
     relate ilm_relator to ric across R4554.''modifies instances of'';
     create object instance relator of InstanceRelator;
     relate relator to ilm_relator across R4556;
     create object instance relator_param_one of ClassAsLinkParameter;
     relate ilm_relator to one_cic across R4555 using relator_param_one;
-    if ( "" != assoc.other_phrase ) relator_param_one.name = one_class.name + "_" + T::l( s:T::underscore( s:assoc.other_phrase ) ) + "_" + other_class.name;
-    else relator_param_one.name = T::l( s:one_class.name ); end if;
+    relator_param_one.name = "one";
     relator_param_one.phrase = assoc.other_phrase;
     create object instance relator_param_other of ClassAsLinkParameter;
     relate ilm_relator to other_cic across R4555 using relator_param_other;
-    if ( "" != assoc.one_phrase ) relator_param_other.name = other_class.name + "_" + T::l( s:T::underscore( s:assoc.one_phrase ) ) + "_" + one_class.name;
-    else relator_param_other.name = T::l( s:other_class.name ); end if;
+    relator_param_other.name = "other";
     relator_param_other.phrase = assoc.one_phrase;
     relate relator_param_other to relator_param_one across R4557.''follows'';
     create object instance relator_param_link of ClassAsLinkParameter;
     relate ilm_relator to link_cic across R4555 using relator_param_link;
-    relator_param_link.name = T::l( s:link_class.name );
+    relator_param_link.name = "link";
     relator_param_link.phrase = "";
     relate relator_param_link to relator_param_other across R4557.''follows'';
     // one case
@@ -2531,9 +2530,10 @@ if ( not_empty assoc )
       relate relator to check across R4562.''existing relationships checked by'';
       relate parm to check across R4563.''starting point for'';
     end if;
+    relator.initializeOrder();
     // create unrelator
     create object instance ilm_unrelator of InstanceLinkModifier;
-    ilm_unrelator.name = "unrelate" + one_class.name + "From" + other_class.name + "AcrossR" + STR::itoa( i:rel.num ) + "Using" + link_class.name;
+    ilm_unrelator.name = "unrelateR" + STR::itoa( i:rel.num ) + one_class.name + "From" + other_class.name + "Using" + link_class.name;
     relate ilm_unrelator to containing_comp_def across R4552.''instances linked in population of'';
     relate ilm_unrelator to ric across R4554.''modifies instances of'';
     create object instance unrelator of InstanceUnrelator;
@@ -2541,20 +2541,19 @@ if ( not_empty assoc )
     unrelator.relationship_set_cast = "IAssociativeRelationshipSet";
     create object instance unrelator_param_one of ClassAsLinkParameter;
     relate ilm_unrelator to one_cic across R4555 using unrelator_param_one;
-    if ( "" != assoc.other_phrase ) unrelator_param_one.name = one_class.name + "_" + T::l( s:T::underscore( s:assoc.other_phrase ) ) + "_" + other_class.name;
-    else unrelator_param_one.name = T::l( s:one_class.name ); end if;
+    unrelator_param_one.name = "one";
     unrelator_param_one.phrase = assoc.other_phrase;
     create object instance unrelator_param_other of ClassAsLinkParameter;
     relate ilm_unrelator to other_cic across R4555 using unrelator_param_other;
-    if ( "" != assoc.one_phrase ) unrelator_param_other.name = other_class.name + "_" + T::l( s:T::underscore( s:assoc.one_phrase ) ) + "_" + one_class.name;
-    else unrelator_param_other.name = T::l( s:other_class.name ); end if;
+    unrelator_param_other.name = "other";
     unrelator_param_other.phrase = assoc.one_phrase;
     relate unrelator_param_other to unrelator_param_one across R4557.''follows'';
     create object instance unrelator_param_link of ClassAsLinkParameter;
     relate ilm_unrelator to link_cic across R4555 using unrelator_param_link;
-    unrelator_param_link.name = T::l( s:link_class.name );
+    unrelator_param_link.name = "link";
     unrelator_param_link.phrase = "";
     relate unrelator_param_link to unrelator_param_other across R4557.''follows'';
+    unrelator.initializeOrder();
   else
     // TODO bad
   end if;
