@@ -11,9 +11,8 @@ T_b("        ");
 T_b("if ( one instanceof IEmptyInstance || other instanceof IEmptyInstance || link instanceof IEmptyInstance ) throw new EmptyInstanceException( \"Cannot unrelate empty instances.\" );");
 T_b("\n");
 T_b(associative_unrelates);
-T_b("");
-if ( 0!=strcmp("",associative_unrelates) ) {
 T_b("        ");
+if ( 0!=strcmp("",associative_unrelates) ) {
 T_b("else ");
 }
 T_b("throw new InstancePopulationException( \"Relationship '\" + relNum + \"' between '\" + one.getClass().getName() + \"', '\" + other.getClass().getName() + \"', and '\" + link.getClass().getName() + \"' not supported.\" );");
@@ -34,9 +33,8 @@ T_b("        ");
 T_b("if ( one instanceof IEmptyInstance || other instanceof IEmptyInstance ) throw new EmptyInstanceException( \"Cannot unrelate empty instances.\" );");
 T_b("\n");
 T_b(other_unrelates);
-T_b("");
-if ( 0!=strcmp("",other_unrelates) ) {
 T_b("        ");
+if ( 0!=strcmp("",other_unrelates) ) {
 T_b("else ");
 }
 T_b("throw new InstancePopulationException( \"Relationship '\" + relNum + \"' between '\" + one.getClass().getName() + \"' and '\" + other.getClass().getName() + \"' not supported.\" );");
