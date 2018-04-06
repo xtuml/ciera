@@ -437,6 +437,12 @@ if ( not_empty init_function_mark and func.name == init_function_mark.value )
   else
     // TODO bad
   end if;
+end if;
+
+// relate the body
+select one act_act related by s_sync->ACT_FNB[R695]->ACT_ACT[R698];
+if ( not_empty act_act )
+  relate act_act to invocable across R432.''actions transformed from'';
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -2259,7 +2265,10 @@ while ( not_empty s_bparm )
   relate parm_type to parm across R431;
   ::linkParameter( invocable:invocable, parameter:parm );
   select one s_bparm related by s_bparm->S_BPARM[R55.''precedes''];
-end while;',
+end while;
+
+// relate bridge
+relate s_brg to util_func across R4570.''is basis for'';',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -2307,18 +2316,33 @@ INSERT INTO S_SYNC
 	"00000000-0000-0000-0000-000000000000",
 	'transformBuiltinUtilities',
 	'',
-	'select any cairn from instances of S_SYS where ( selected.Name == "cairn" );
+	'/*
+select any cairn from instances of S_SYS where ( selected.Name == "cairn" );
 // select to io.ciera.cairn.util
 select any io_pkg related by cairn->EP_PKG[R1401] where ( selected.Name == "io" );
 select any ciera_pkg related by io_pkg->PE_PE[R8000]->EP_PKG[R8001] where ( selected.Name == "ciera" );
 select any cairn_pkg related by ciera_pkg->PE_PE[R8000]->EP_PKG[R8001] where ( selected.Name == "cairn" );
 select any util_pkg related by cairn_pkg->PE_PE[R8000]->EP_PKG[R8001] where ( selected.Name == "util" );
 select many s_ees related by util_pkg->PE_PE[R8000]->S_EE[R8001];
+*/
+
+// transform only utilities that are referenced
+select many bridge_statements from instances of ACT_BRG;
+select many bridge_values from instances of V_BRV;
+
+select many s_ees related by bridge_statements->S_BRG[R674]->S_EE[R19];
+select many expr_s_ees related by bridge_values->S_BRG[R828]->S_EE[R19];
+s_ees = s_ees | expr_s_ees;
+
 for each s_ee in s_ees
-  select any empty_comp_def from instances of ComponentDefinition where false;
-  // modify the key letters of the EE
-  s_ee.Key_Lett = "Default" + s_ee.Key_Lett;
-  ::transformUtility( s_ee:s_ee, ep_pkg:util_pkg, containing_comp_def: empty_comp_def, exclude:true );
+  select one pkg related by s_ee->PE_PE[R8001]->EP_PKG[R8000];
+  select one s_sys related by pkg->S_SYS[R1405];
+  if ( s_sys.Name == "cairn" and pkg.Name == "util" )
+    select any empty_comp_def from instances of ComponentDefinition where false;
+    // modify the key letters of the EE
+    s_ee.Key_Lett = "Default" + s_ee.Key_Lett;
+    ::transformUtility( s_ee:s_ee, ep_pkg:pkg, containing_comp_def: empty_comp_def, exclude:true );
+  end if;
 end for;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -2661,6 +2685,182 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("b36bee85-a614-4d69-9feb-cda336242c18",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("4c082589-b030-438b-be8e-93dad37a6df3",
+	"00000000-0000-0000-0000-000000000000",
+	'transformBody',
+	'',
+	'invocable = param.invocable;
+select one act_act related by invocable->ACT_ACT[R432.''transforms actions from''];
+if ( not_empty act_act and not_empty invocable )
+
+  // create top level code block
+  create object instance block of CodeBlock;
+  relate block to invocable across R430.''is invoked first for'';
+  block.block_number = "1";
+  block.tab_depth = 0;
+  
+  // transform all statements TODO, order
+  select any empty_smt from instances of Statement where false;
+  select many smts related by act_act->ACT_BLK[R601]->ACT_SMT[R602];
+  for each smt in smts
+    ::transformStatement( act_smt:smt, block:block, prev_smt:empty_smt );
+  end for;
+
+else
+  // TODO bad
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("c5bdf924-36f6-42d6-b2c5-e3690fe23749",
+	"4c082589-b030-438b-be8e-93dad37a6df3",
+	'invocable',
+	"30c7a5ba-c6d9-44fd-8e61-f22cde8fdc41",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("30c7a5ba-c6d9-44fd-8e61-f22cde8fdc41",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Invocable Object>',
+	'',
+	'',
+	'../architecture/invocable/invocable.xtuml');
+INSERT INTO PE_PE
+	VALUES ("4c082589-b030-438b-be8e-93dad37a6df3",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("32c6aeb5-838d-4564-a401-ffc6720e4e0c",
+	"00000000-0000-0000-0000-000000000000",
+	'transformStatement',
+	'',
+	'act_smt = param.act_smt;
+block = param.block;
+prev_smt = param.prev_smt;
+if ( not_empty act_smt and not_empty block )
+
+  // create a statement
+  create object instance smt of Statement;
+  relate smt to block across R450.''is contained by'';
+  if ( not_empty prev_smt )
+    smt.statement_number = STR::itoa( i:STR::atoi( s:prev_smt.statement_number ) + 1 );
+    relate smt to prev_smt across R477.''executes after'';
+  else
+    smt.statement_number = "1";
+  end if;
+  
+  // create subtype
+
+  // bridge invocation
+  select one act_brg related by act_smt->ACT_BRG[R603];
+  if ( not_empty act_brg )
+    //select one invocable related by act_brg->S_BRG[R674]->UtilityFunction[R4570.''is basis for'']->InvocableObject[R427];
+    select one foo1 related by act_brg->S_BRG[R674];
+    select one foo2 related by foo1->UtilityFunction[R4570.''is basis for''];
+    select one invocable related by foo2->InvocableObject[R427];
+    if ( not_empty invocable )
+      // create expression as statement
+      create object instance eas of ExpressionAsStatement;
+      relate eas to smt across R451;
+      // create expression
+      create object instance expr of Expression;
+      relate expr to smt across R775.''expressed within'';
+      expr.expression_number = "1";
+      // create invocation
+      create object instance invoc of Invocation;
+      relate invoc to expr across R776;
+      relate invoc to invocable across R792;
+      // relate expression to expression as statement
+      relate eas to expr across R476.''executes as statement'';
+    else
+      // TODO bad
+    end if;
+  end if;
+
+else
+  // TODO bad
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("e6de2932-eaf3-4f5d-a37a-9c86f8c8fa3d",
+	"32c6aeb5-838d-4564-a401-ffc6720e4e0c",
+	'act_smt',
+	"662b119d-df79-49dc-af2c-7da35bb62945",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("662b119d-df79-49dc-af2c-7da35bb62945",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Statement>',
+	'',
+	'',
+	'../../../../../mcooa/models/mcooa/ooaofooa/Body/Body.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("7c646715-082c-40f2-96ff-eb2028097a2c",
+	"32c6aeb5-838d-4564-a401-ffc6720e4e0c",
+	'block',
+	"e2eb4f67-ca2b-42ab-accf-5a2b475f8933",
+	0,
+	'',
+	"e6de2932-eaf3-4f5d-a37a-9c86f8c8fa3d",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("e2eb4f67-ca2b-42ab-accf-5a2b475f8933",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Code Block>',
+	'',
+	'',
+	'../architecture/invocable/invocable.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("41c4eee6-42be-46ce-8460-3fd5c66541ff",
+	"32c6aeb5-838d-4564-a401-ffc6720e4e0c",
+	'prev_smt',
+	"056a9b55-7c4c-45a4-a684-ea45fce8fa86",
+	0,
+	'',
+	"7c646715-082c-40f2-96ff-eb2028097a2c",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("056a9b55-7c4c-45a4-a684-ea45fce8fa86",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Statement>',
+	'',
+	'',
+	'../architecture/statement/statement.xtuml');
+INSERT INTO PE_PE
+	VALUES ("32c6aeb5-838d-4564-a401-ffc6720e4e0c",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("a8ec0a61-3784-4612-8238-859ed7537299",
+	"00000000-0000-0000-0000-000000000000",
+	'transformExpression',
+	'',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO PE_PE
+	VALUES ("a8ec0a61-3784-4612-8238-859ed7537299",
 	1,
 	"06787f13-1c16-4275-879c-00bbeee7cb88",
 	"00000000-0000-0000-0000-000000000000",

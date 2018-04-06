@@ -1,6 +1,6 @@
 package io.ciera.summit.application;
 
-public interface IRunner {
+public interface IActionHome {
 	
 	public IRunContext getRunContext();
 
