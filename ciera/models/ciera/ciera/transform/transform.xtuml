@@ -2247,6 +2247,18 @@ select one s_dt related by s_brg->S_DT[R20];
 type = UnresolvedType::getInstance( s_dt:s_dt );
 relate type to invocable across R428;
 
+// create context parameter
+select any parm_type from instances of Type where ( selected.name == "IComponent" and selected.package == "io.ciera.summit.components" );
+if ( not_empty parm_type )
+  create object instance parm of FormalParameter;
+  parm.name = "populationContext";
+  parm.by_ref = false;
+  relate parm_type to parm across R431;
+  ::linkParameter( invocable:invocable, parameter:parm );
+else
+  // TODO bad
+end if;
+
 // create parameters
 select any s_bparm related by s_brg->S_BPARM[R21];
 prev_s_bparm = s_bparm;
@@ -2692,7 +2704,7 @@ if ( not_empty act_act and not_empty invocable )
   create object instance block of CodeBlock;
   relate block to invocable across R430.''is invoked first for'';
   block.block_number = "1";
-  block.tab_depth = 0;
+  block.tab_depth = 2;
   
   // transform all statements TODO, order
   select any empty_smt from instances of Statement where false;
@@ -2777,12 +2789,14 @@ if ( not_empty act_smt and not_empty block )
       // create named reference expression
       create object instance expr2 of Expression;
       relate expr2 to smt across R775.''expressed within'';
-      expr.expression_number = "2";
+      expr.expression_number = "1.1";
       // create named reference
       create object instance named_ref of NamedReference;
       relate named_ref to expr2 across R776;
       relate expr2 to invoc across R798.''is used as basis for'';
       named_ref.name = utility.name;
+      // transform actual parameters
+      ::transformActualParameters( invocation:invoc );
     else
       // TODO bad
     end if;
@@ -2862,6 +2876,134 @@ INSERT INTO S_SYNC
 	0);
 INSERT INTO PE_PE
 	VALUES ("a8ec0a61-3784-4612-8238-859ed7537299",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("a0f73479-987f-4bb5-9986-1578bf4c46ec",
+	"00000000-0000-0000-0000-000000000000",
+	'transformActualParameter',
+	'',
+	'invocation = param.invocation;
+parm = param.parm;
+
+select one smt related by invocation->Expression[R776]->Statement[R775.''expressed within''];
+
+select any expr from instances of Expression where false;
+
+if ( parm.name == "populationContext" )
+  // special parameter for passing population context to a utility function
+  // create named reference expression
+  create object instance expr of Expression;
+  relate expr to smt across R775.''expressed within'';
+  expr.expression_number = param.expression_num;
+  // create named reference
+  create object instance named_ref of NamedReference;
+  relate named_ref to expr across R776;
+  named_ref.name = "getPopulationContext()";
+else
+  // transform expression
+end if;
+
+if ( not_empty expr )
+
+  // create the actual parameter
+  create object instance act_parm of ActualParameter;
+  relate act_parm to expr across R794.''parameter value specified by'';
+  relate invocation to parm across R793.''is provided data from'' using act_parm;
+
+else
+  // TODO bad
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("faf34262-4a1c-4150-95a7-e111fcc9f93b",
+	"a0f73479-987f-4bb5-9986-1578bf4c46ec",
+	'invocation',
+	"bf11e8b5-3fe2-4389-be6d-ff5c89b9ddf0",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("bf11e8b5-3fe2-4389-be6d-ff5c89b9ddf0",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Invocation>',
+	'',
+	'',
+	'../architecture/expression/expression.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("321637ef-dfe6-4763-89fb-60a54c3d76a9",
+	"a0f73479-987f-4bb5-9986-1578bf4c46ec",
+	'parm',
+	"a4048d05-d8f6-4f96-b1fc-79a73158a744",
+	0,
+	'',
+	"faf34262-4a1c-4150-95a7-e111fcc9f93b",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("a4048d05-d8f6-4f96-b1fc-79a73158a744",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Formal Parameter>',
+	'',
+	'',
+	'../architecture/invocable/invocable.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("1da29959-3bd4-4d1f-93ed-cac7516f145d",
+	"a0f73479-987f-4bb5-9986-1578bf4c46ec",
+	'expression_num',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"321637ef-dfe6-4763-89fb-60a54c3d76a9",
+	'');
+INSERT INTO PE_PE
+	VALUES ("a0f73479-987f-4bb5-9986-1578bf4c46ec",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("f646e3fa-6e55-4420-b552-196b12458e30",
+	"00000000-0000-0000-0000-000000000000",
+	'transformActualParameters',
+	'',
+	'invocation = param.invocation;
+
+// get first formal parameter
+select any parm related by invocation->InvocableObject[R792]->FormalParameter[R429.''declares signature with''];
+select one prev_parm related by parm->FormalParameter[R404.''follows''];
+while ( not_empty prev_parm )
+  parm = prev_parm;
+  select one prev_parm related by parm->FormalParameter[R404.''follows''];
+end while;
+
+// transform each parameter
+num = 2;
+while ( not_empty parm )
+  ::transformActualParameter( invocation:invocation, parm:parm, expression_num:"1." + STR::itoa( i:num ) );
+  select one parm related by parm->FormalParameter[R404.''precedes''];
+  num = num + 1;
+end while;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("4534090f-233e-4933-b401-5f0e07410e52",
+	"f646e3fa-6e55-4420-b552-196b12458e30",
+	'invocation',
+	"bf11e8b5-3fe2-4389-be6d-ff5c89b9ddf0",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO PE_PE
+	VALUES ("f646e3fa-6e55-4420-b552-196b12458e30",
 	1,
 	"06787f13-1c16-4275-879c-00bbeee7cb88",
 	"00000000-0000-0000-0000-000000000000",

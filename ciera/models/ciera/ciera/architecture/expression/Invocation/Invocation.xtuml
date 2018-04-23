@@ -18,6 +18,27 @@ INSERT INTO O_TFR
 base_expr.render();
 base_name = T::body();
 T::clear();
+
+parameter_list = "";
+sep = " ";
+// get first formal parameter
+select any parm related by self->InvocableObject[R792]->FormalParameter[R429.''declares signature with''];
+select one prev_parm related by parm->FormalParameter[R404.''follows''];
+while ( not_empty prev_parm )
+  parm = prev_parm;
+  select one prev_parm related by parm->FormalParameter[R404.''follows''];
+end while;
+// render each parameter
+while ( not_empty parm )
+  select any act_parm related by self->ActualParameter[R793] where ( selected.param_name == parm.name );
+  act_parm.render();
+  parameter_list = parameter_list + sep + T::body();
+  sep = ", ";
+  T::clear();
+  select one parm related by parm->FormalParameter[R404.''precedes''];
+end while;
+if ( "" != parameter_list ) parameter_list = parameter_list + " "; end if;
+
 T::include( file:"java/expression/t.invocation.java" );',
 	1,
 	'',
@@ -449,7 +470,7 @@ INSERT INTO O_REF
 	'',
 	'Invocable Object',
 	'parent_name',
-	'R792');
+	'R792.''invokes''');
 INSERT INTO R_RGO_PROXY
 	VALUES ("65950964-9230-4c01-9b17-7fb97242c4e2",
 	"76a8d10c-ede4-4e96-9e0a-5cc86e3eada7",
@@ -496,7 +517,7 @@ INSERT INTO O_REF
 	'',
 	'Invocable Object',
 	'parent_package',
-	'R792');
+	'R792.''invokes''');
 INSERT INTO O_RTIDA_PROXY
 	VALUES ("f4bf34ce-c959-41f0-9fbc-0ee777c67db8",
 	"3011a585-aede-400f-bae7-b1116cd67c87",
@@ -538,7 +559,7 @@ INSERT INTO O_REF
 	'',
 	'Invocable Object',
 	'name',
-	'R792');
+	'R792.''invokes''');
 INSERT INTO O_RTIDA_PROXY
 	VALUES ("92cbbcb2-99b9-4aed-ba33-40c22d783296",
 	"3011a585-aede-400f-bae7-b1116cd67c87",
@@ -563,24 +584,6 @@ INSERT INTO O_ATTR
 	'name',
 	1,
 	"ba5eda7a-def5-0000-0000-000000000007",
-	'',
-	'');
-INSERT INTO O_NBATTR
-	VALUES ("920630c7-6d4e-457d-b53d-64faeb645581",
-	"65950964-9230-4c01-9b17-7fb97242c4e2");
-INSERT INTO O_BATTR
-	VALUES ("920630c7-6d4e-457d-b53d-64faeb645581",
-	"65950964-9230-4c01-9b17-7fb97242c4e2");
-INSERT INTO O_ATTR
-	VALUES ("920630c7-6d4e-457d-b53d-64faeb645581",
-	"65950964-9230-4c01-9b17-7fb97242c4e2",
-	"911647ef-d80d-409b-8bde-667cc56d8df4",
-	'parameter_list',
-	'',
-	'',
-	'parameter_list',
-	0,
-	"ba5eda7a-def5-0000-0000-000000000004",
 	'',
 	'');
 INSERT INTO O_REF
@@ -616,7 +619,7 @@ INSERT INTO O_RATTR
 INSERT INTO O_ATTR
 	VALUES ("3763a1d0-b129-4a5b-abd9-82d922214535",
 	"65950964-9230-4c01-9b17-7fb97242c4e2",
-	"920630c7-6d4e-457d-b53d-64faeb645581",
+	"911647ef-d80d-409b-8bde-667cc56d8df4",
 	'base_expression_number',
 	'',
 	'base_',
