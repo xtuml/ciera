@@ -8,7 +8,7 @@ public class ${self.name} extends ${self.extends} {
     public static final ${self.name} EMPTY_$u_{self.name} = new Empty${self.name}();
 
     // constructor
-    public ${self.name}( IInstancePopulation context ) {
+    public ${self.name}( IComponent context ) {
         super( context );
 ${attribute_initializers}
     }

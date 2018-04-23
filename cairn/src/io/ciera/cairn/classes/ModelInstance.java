@@ -1,11 +1,12 @@
 package io.ciera.cairn.classes;
 
+import io.ciera.summit.application.IRunContext;
 import io.ciera.summit.classes.IEmptyInstance;
 import io.ciera.summit.classes.IInstanceIdentifier;
-import io.ciera.summit.classes.IInstancePopulation;
 import io.ciera.summit.classes.IInstanceSet;
 import io.ciera.summit.classes.IModelInstance;
 import io.ciera.summit.classes.UniqueId;
+import io.ciera.summit.components.IComponent;
 import io.ciera.summit.exceptions.DeletedInstanceException;
 import io.ciera.summit.exceptions.XtumlException;
 
@@ -13,12 +14,12 @@ public abstract class ModelInstance implements IModelInstance {
     
 
     private UniqueId instanceId;
-    private IInstancePopulation context;
+    private IComponent populationContext;
 
     // constructors
-    public ModelInstance( IInstancePopulation context ) {
+    public ModelInstance( IComponent context ) {
         instanceId = new UniqueId();
-        this.context = context;
+        this.populationContext = context;
     }
     
     @Override
@@ -32,14 +33,19 @@ public abstract class ModelInstance implements IModelInstance {
     }
     
     @Override
-    public IInstancePopulation getContext() {
-        return context;
+    public IComponent getPopulationContext() {
+        return populationContext;
+    }
+    
+    @Override
+    public IRunContext getRunContext() {
+    	return populationContext.getRunContext();
     }
     
     @Override
     public void delete() throws XtumlException {
         checkLiving();
-        context = null;
+        populationContext = null;
         instanceId.nullify();
     }
 

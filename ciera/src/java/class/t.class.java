@@ -33,7 +33,7 @@ T_b("\n");
 T_b("    ");
 T_b("public ");
 T_b(self->name);
-T_b("( IInstancePopulation context ) {");
+T_b("( IComponent context ) {");
 T_b("\n");
 T_b("        ");
 T_b("super( context );");
