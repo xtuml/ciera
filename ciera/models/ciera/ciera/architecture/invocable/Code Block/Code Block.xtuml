@@ -16,7 +16,8 @@ INSERT INTO O_TFR
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'select many smts related by self->Statement[R450];
-multiline = ( cardinality smts > 1 );
+select one invocable related by self->InvocableObject[R430.''is invoked first for''];
+enclose = ( cardinality smts > 1 ) and empty invocable; // enclose with braces if multiline block that is not the top level block
 select any statement related by self->Statement[R450];
 select one prev_statement related by statement->Statement[R477.''executes after''];
 while ( not_empty prev_statement )
@@ -28,41 +29,12 @@ while ( not_empty statement )
   select one statement related by statement->Statement[R477.''executes before''];
 end while;
 statements = T::body();
+indent = ::getIndent( tab_depth:self.tab_depth );
 T::clear();
 T::include( file:"java/invocable/t.codeblock.java" );',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",
-	0);
-INSERT INTO O_TFR
-	VALUES ("d766a5ad-dbad-4e7c-a906-60f90bf17ff8",
-	"1aaad242-9800-47dc-bd59-7be5652a09c8",
-	'getIndent',
-	'',
-	"ba5eda7a-def5-0000-0000-000000000004",
-	1,
-	'select any tab_width_mark from instances of Mark where ( selected.markable_name == "*" and selected.path == "*" and selected.feature_name == "TabWidth" );
-indent = "";
-default_tab_width = 4;
-tab_width = 0;
-if ( not_empty tab_width_mark )
-  tab_width = STR::atoi( s:tab_width_mark.value );
-else
-  tab_width = default_tab_width;
-end if;
-i = 0;
-while ( i < self.tab_depth )
-  j = 0;
-  while ( j < tab_width )
-    indent = indent + " ";
-    j = j + 1;
-  end while;
-  i = i + 1;
-end while;
-return indent;',
-	1,
-	'',
-	"b43b13ce-425d-4d31-ae0e-f0f03c03a4bd",
 	0);
 INSERT INTO O_REF
 	VALUES ("1aaad242-9800-47dc-bd59-7be5652a09c8",

@@ -2708,14 +2708,29 @@ if ( not_empty act_act and not_empty invocable )
   create object instance block of CodeBlock;
   relate block to invocable across R430.''is invoked first for'';
   block.block_number = "1";
-  block.tab_depth = 2;
+  block.tab_depth = 1;
   
-  // transform all statements TODO, order
-  select any empty_smt from instances of Statement where false;
-  select many smts related by act_act->ACT_BLK[R601]->ACT_SMT[R602];
-  for each smt in smts
-    ::transformStatement( act_smt:smt, block:block, prev_smt:empty_smt );
-  end for;
+  // transform all statements
+  // BridgePoint produces statement lists in reverse order of what they would be expected
+  // to be according to the role phrases: https://support.onefact.net/issues/5382.
+  // This code appears to select the last statement which is actually the first statement.
+  // Then, when iterating to the next statement, it iterates backwards which is actually
+  // forwards (gah).
+  select any act_smt related by act_act->ACT_BLK[R601]->ACT_SMT[R602];
+  select one prev_act_smt related by act_smt->ACT_SMT[R661.''precedes''];
+  while ( not_empty prev_act_smt )
+    act_smt = prev_act_smt;
+    select one prev_act_smt related by act_smt->ACT_SMT[R661.''precedes''];
+  end while;
+  
+  select any prev_smt from instances of Statement where false;
+  smt_num = 1;
+  while ( not_empty act_smt )
+    ::transformStatement( act_smt:act_smt, block:block, prev_smt:prev_smt );
+    select any prev_smt related by block->Statement[R450.''is scope for''] where ( selected.statement_number == STR::itoa( i:smt_num ) );
+    smt_num = smt_num + 1;
+    select one act_smt related by act_smt->ACT_SMT[R661.''succeeds''];
+  end while;
 
 else
   // TODO bad
@@ -2795,14 +2810,15 @@ if ( not_empty act_smt and not_empty block )
       // create named reference expression
       create object instance expr2 of Expression;
       relate expr2 to smt across R775.''expressed within'';
-      expr.expression_number = "1.1";
+      expr2.expression_number = "1.1";
       // create named reference
       create object instance named_ref of NamedReference;
       relate named_ref to expr2 across R776;
       relate expr2 to invoc across R798.''is used as basis for'';
       named_ref.name = utility.name;
       // transform actual parameters
-      ::transformActualParameters( invocation:invoc );
+      select many v_pars related by act_brg->V_PAR[R628];
+      ::transformActualParameters( invocation:invoc, v_pars:v_pars );
     else
       // TODO bad
     end if;
@@ -2875,11 +2891,65 @@ INSERT INTO S_SYNC
 	"00000000-0000-0000-0000-000000000000",
 	'transformExpression',
 	'',
-	'',
+	'v_val = param.v_val;
+smt = param.smt;
+
+// create expression
+create object instance expr of Expression;
+relate expr to smt across R775.''expressed within'';
+expr.expression_number = param.expr_number;
+
+// link type
+select one s_dt related by v_val->S_DT[R820];
+type = UnresolvedType::getInstance( s_dt:s_dt );
+relate type to expr across R795.''defines type of'';
+
+// create subtype
+select one v_lst related by v_val->V_LST[R801];
+if ( not_empty v_lst )
+  // create literal
+  create object instance lit of Literal;
+  relate lit to expr across R776;
+  lit.value = STR::quote() + v_lst.Value + STR::quote();
+end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
 	0);
+INSERT INTO S_SPARM
+	VALUES ("e59210d7-9cfa-4283-9165-399cf318f85a",
+	"a8ec0a61-3784-4612-8238-859ed7537299",
+	'v_val',
+	"5400d269-ee31-4742-ac70-8532512a854c",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("5400d269-ee31-4742-ac70-8532512a854c",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Value>',
+	'',
+	'',
+	'../../../../../mcooa/models/mcooa/ooaofooa/Value/Value.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("4d557abc-fa3b-4ac5-9535-931b617dea74",
+	"a8ec0a61-3784-4612-8238-859ed7537299",
+	'expr_number',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"e59210d7-9cfa-4283-9165-399cf318f85a",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("2511f4b9-1b4e-446e-b4c2-28b2e1dff2f8",
+	"a8ec0a61-3784-4612-8238-859ed7537299",
+	'smt',
+	"056a9b55-7c4c-45a4-a684-ea45fce8fa86",
+	0,
+	'',
+	"4d557abc-fa3b-4ac5-9535-931b617dea74",
+	'');
 INSERT INTO PE_PE
 	VALUES ("a8ec0a61-3784-4612-8238-859ed7537299",
 	1,
@@ -2893,6 +2963,7 @@ INSERT INTO S_SYNC
 	'',
 	'invocation = param.invocation;
 parm = param.parm;
+v_par = param.v_par;
 
 select one smt related by invocation->Expression[R776]->Statement[R775.''expressed within''];
 
@@ -2909,7 +2980,13 @@ if ( parm.name == "populationContext" )
   relate named_ref to expr across R776;
   named_ref.name = "getPopulationContext()";
 else
-  // transform expression
+  select one v_val related by v_par->V_VAL[R800];
+  if ( not_empty v_val )
+    ::transformExpression( v_val:v_val, expr_number:param.expression_num, smt:smt );
+    select any expr related by smt->Expression[R775.''may contain''] where ( selected.expression_number == param.expression_num );
+  else
+    // TODO bad
+  end if;
 end if;
 
 if ( not_empty expr )
@@ -2967,6 +3044,22 @@ INSERT INTO S_SPARM
 	'',
 	"321637ef-dfe6-4763-89fb-60a54c3d76a9",
 	'');
+INSERT INTO S_SPARM
+	VALUES ("d5c2972f-55dd-4ea5-addb-29f83853f9c2",
+	"a0f73479-987f-4bb5-9986-1578bf4c46ec",
+	'v_par',
+	"2f2a9dba-8f5a-45a4-8c26-dfe684dbe206",
+	0,
+	'',
+	"1da29959-3bd4-4d1f-93ed-cac7516f145d",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("2f2a9dba-8f5a-45a4-8c26-dfe684dbe206",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Actual Parameter>',
+	'',
+	'',
+	'../../../../../mcooa/models/mcooa/ooaofooa/Value/Value.xtuml');
 INSERT INTO PE_PE
 	VALUES ("a0f73479-987f-4bb5-9986-1578bf4c46ec",
 	1,
@@ -2979,6 +3072,7 @@ INSERT INTO S_SYNC
 	'transformActualParameters',
 	'',
 	'invocation = param.invocation;
+v_pars = param.v_pars;
 
 // get first formal parameter
 select any parm related by invocation->InvocableObject[R792]->FormalParameter[R429.''declares signature with''];
@@ -2990,8 +3084,15 @@ end while;
 
 // transform each parameter
 num = 2;
+select any v_par from instances of V_PAR where false;
 while ( not_empty parm )
-  ::transformActualParameter( invocation:invocation, parm:parm, expression_num:"1." + STR::itoa( i:num ) );
+  for each par in v_pars
+    if ( par.Name == parm.name )
+      v_par = par;
+      break;
+    end if;
+  end for;
+  ::transformActualParameter( invocation:invocation, parm:parm, expression_num:"1." + STR::itoa( i:num ), v_par:v_par );
   select one parm related by parm->FormalParameter[R404.''precedes''];
   num = num + 1;
 end while;',
@@ -3008,6 +3109,22 @@ INSERT INTO S_SPARM
 	'',
 	"00000000-0000-0000-0000-000000000000",
 	'');
+INSERT INTO S_SPARM
+	VALUES ("9f8418eb-510e-42ca-b1b6-15044048de73",
+	"f646e3fa-6e55-4420-b552-196b12458e30",
+	'v_pars',
+	"cff0610c-aa78-4735-bf53-f7fa31ce74fd",
+	0,
+	'',
+	"4534090f-233e-4933-b401-5f0e07410e52",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("cff0610c-aa78-4735-bf53-f7fa31ce74fd",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref_set<Actual Parameter>',
+	'',
+	'',
+	'../../../../../mcooa/models/mcooa/ooaofooa/Value/Value.xtuml');
 INSERT INTO PE_PE
 	VALUES ("f646e3fa-6e55-4420-b552-196b12458e30",
 	1,

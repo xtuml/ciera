@@ -1,1 +1,1 @@
-${value}\
+${self.value}\

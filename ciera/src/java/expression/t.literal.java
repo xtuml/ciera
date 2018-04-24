@@ -1,2 +1,2 @@
-T_b(value);
+T_b(self->value);
 T_b("");
