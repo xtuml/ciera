@@ -395,6 +395,7 @@ invocable.name = s_sync.Name;
 invocable.parent_name = comp_def.name;
 invocable.parent_package = comp_def.package;
 relate func to invocable across R427;
+invocable.oal = s_sync.Action_Semantics_internal;
 
 // link type
 select one s_dt related by s_sync->S_DT[R25];
@@ -1110,6 +1111,7 @@ invocable.name = "op_" + o_tfr.Name;
 invocable.parent_name = op.class_name;
 invocable.parent_package = op.class_package;
 relate op to invocable across R427;
+invocable.oal = o_tfr.Action_Semantics_internal;
 
 // link type
 select one s_dt related by o_tfr->S_DT[R116];
@@ -1252,6 +1254,7 @@ invocable.name = c_ep.Name;
 invocable.parent_name = msg.iface_name;
 invocable.parent_package = msg.iface_package;
 relate msg to invocable across R427;
+// invocable.oal = s_brg.Action_Semantics_internal; TODO what to do here?
 
 // link type
 select any s_dt from instances of S_DT where ( "void" == selected.Name );
@@ -2241,6 +2244,7 @@ invocable.name = s_brg.Name;
 invocable.parent_name = utility.name;
 invocable.parent_package = utility.package;
 relate util_func to invocable across R427;
+invocable.oal = s_brg.Action_Semantics_internal;
 
 // link type
 select one s_dt related by s_brg->S_DT[R20];
@@ -2761,6 +2765,8 @@ if ( not_empty act_smt and not_empty block )
   else
     smt.statement_number = "1";
   end if;
+  select one body related by block->InvocableObject[R430.''is invoked first for'']; // TODO only works for top level blocks
+  smt.oal = ::getOalStatement( body:body.oal, line_num:act_smt.LineNumber );
   
   // create subtype
 
