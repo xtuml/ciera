@@ -14,10 +14,33 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'// TODO remove this when templates use attributes
-cond_expression_body = self.cond_expression_body;
-then_block_body = self.then_block_body;
-else_block_body = self.else_block_body;
+	'old_body = T::body();
+T::clear();
+
+select one cond_expression related by self->Expression[R471.''executes then block if true''];
+cond_expression.render();
+cond_expr = T::body();
+T::clear();
+
+select one then_blk related by self->CodeBlock[R453.''has then''];
+then_blk.render();
+then_block = T::body();
+T::clear();
+
+select one else_blk related by self->CodeBlock[R454.''has else''];
+else_block = "";
+if ( not_empty else_blk )
+  else_blk.render();
+  else_block = T::body();
+  T::clear();
+end if;
+
+select one enclosing_block related by self->Statement[R451]->CodeBlock[R450.''is contained by''];
+indent = ::getIndent( tab_depth:enclosing_block.tab_depth + 1 );
+
+// TODO oal comment for if statements
+
+T::b( s:old_body );
 T::include( file:"java/statement/t.if.java" );',
 	1,
 	'',

@@ -1,2 +1,4 @@
-if ( ${cond_expression_body} ) ${then_block_body}
-else ${else_block_body}
+${indent}if ( ${cond_expr} ) ${then_block}
+.if ( "" != else_block )
+${indent}else ${else_block}
+.end if

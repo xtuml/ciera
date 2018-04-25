@@ -2707,6 +2707,7 @@ if ( not_empty act_act and not_empty invocable )
   // create top level code block
   create object instance block of CodeBlock;
   relate block to invocable across R430.''is invoked first for'';
+  relate block to invocable across R4000.''is invoked in'';
   block.block_number = "1";
   block.tab_depth = 1;
   
@@ -2716,7 +2717,7 @@ if ( not_empty act_act and not_empty invocable )
   // This code appears to select the last statement which is actually the first statement.
   // Then, when iterating to the next statement, it iterates backwards which is actually
   // forwards (gah).
-  select any act_smt related by act_act->ACT_BLK[R601]->ACT_SMT[R602];
+  select any act_smt related by act_act->ACT_BLK[R666]->ACT_SMT[R602];
   select one prev_act_smt related by act_smt->ACT_SMT[R661.''precedes''];
   while ( not_empty prev_act_smt )
     act_smt = prev_act_smt;
@@ -2780,7 +2781,7 @@ if ( not_empty act_smt and not_empty block )
   else
     smt.statement_number = "1";
   end if;
-  select one body related by block->InvocableObject[R430.''is invoked first for'']; // TODO only works for top level blocks
+  select one body related by block->InvocableObject[R4000.''is invoked in''];
   smt.oal = ::getOalStatement( body:body.oal, line_num:act_smt.LineNumber );
   
   // create subtype
@@ -2822,7 +2823,33 @@ if ( not_empty act_smt and not_empty block )
     else
       // TODO bad
     end if;
-  end if;
+    
+  else
+  select one act_if related by act_smt->ACT_IF[R603];
+  if ( not_empty act_if )
+    // create if statement
+    create object instance if_smt of IfSmt;
+    relate if_smt to smt across R451;
+    // translate if expression
+    select one if_val related by act_if->V_VAL[R625];
+    ::transformExpression( v_val:if_val, expr_number:"1", smt:smt );
+    select any if_expr related by smt->Expression[R775.''may contain''] where ( selected.expression_number == "1" );
+    relate if_expr to if_smt across R471.''determines execution of blocks for'';
+    // create then block
+    select one then_blk related by act_if->ACT_BLK[R607];
+    ::transformBlock( upper_block:block, act_blk:then_blk, block_number:block.block_number + ".1" );  // TODO block number needs to be figured out better
+    select any then_block related by block->InvocableObject[R4000.''is invoked in'']->CodeBlock[R4000.''has''] where ( selected.block_number == block.block_number + ".1" );
+    relate then_block to if_smt across R453.''controls then for'';
+    // TODO elifs
+    // create else block
+    select one else_blk related by act_if->ACT_E[R683]->ACT_BLK[R606];
+    if ( not_empty else_blk )
+      ::transformBlock( upper_block:block, act_blk:else_blk, block_number:block.block_number + ".2" );  // TODO block number needs to be figured out better
+      select any else_block related by block->InvocableObject[R4000.''is invoked in'']->CodeBlock[R4000.''has''] where ( selected.block_number == block.block_number + ".2" );
+      relate else_block to if_smt across R454.''controls else for'';
+    end if;
+  
+  end if; end if;
 
 else
   // TODO bad
@@ -2911,7 +2938,20 @@ if ( not_empty v_lst )
   create object instance lit of Literal;
   relate lit to expr across R776;
   lit.value = STR::quote() + v_lst.Value + STR::quote();
-end if;',
+  
+else
+select one v_lbo related by v_val->V_LBO[R801];
+if ( not_empty v_lbo )
+  // create literal
+  create object instance lit of Literal;
+  relate lit to expr across R776;
+  if ( "TRUE" == v_lbo.Value or "true" == v_lbo.Value )
+    lit.value = "true";
+  else
+    lit.value = "false";
+  end if;
+
+end if; end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -3127,6 +3167,92 @@ INSERT INTO S_DT_PROXY
 	'../../../../../mcooa/models/mcooa/ooaofooa/Value/Value.xtuml');
 INSERT INTO PE_PE
 	VALUES ("f646e3fa-6e55-4420-b552-196b12458e30",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("dcbd4997-dc06-45ba-af97-cd7cb131175e",
+	"00000000-0000-0000-0000-000000000000",
+	'transformBlock',
+	'',
+	'upper_block = param.upper_block;
+act_blk = param.act_blk;
+if ( not_empty upper_block and not_empty act_blk )
+  
+  select one invocable related by upper_block->InvocableObject[R4000.''is invoked in''];
+
+  // create code block
+  create object instance block of CodeBlock;
+  relate block to invocable across R4000.''is invoked in'';
+  block.block_number = param.block_number;
+  block.tab_depth = upper_block.tab_depth + 1;
+  
+  // transform all statements
+  // BridgePoint produces statement lists in reverse order of what they would be expected
+  // to be according to the role phrases: https://support.onefact.net/issues/5382.
+  // This code appears to select the last statement which is actually the first statement.
+  // Then, when iterating to the next statement, it iterates backwards which is actually
+  // forwards (gah).
+  select any act_smt related by act_blk->ACT_SMT[R602];
+  select one prev_act_smt related by act_smt->ACT_SMT[R661.''precedes''];
+  while ( not_empty prev_act_smt )
+    act_smt = prev_act_smt;
+    select one prev_act_smt related by act_smt->ACT_SMT[R661.''precedes''];
+  end while;
+  
+  select any prev_smt from instances of Statement where false;
+  smt_num = 1;
+  while ( not_empty act_smt )
+    ::transformStatement( act_smt:act_smt, block:block, prev_smt:prev_smt );
+    select any prev_smt related by block->Statement[R450.''is scope for''] where ( selected.statement_number == STR::itoa( i:smt_num ) );
+    smt_num = smt_num + 1;
+    select one act_smt related by act_smt->ACT_SMT[R661.''succeeds''];
+  end while;
+
+else
+  // TODO bad
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("d5291ef9-84b0-4e71-93b1-85310f657651",
+	"dcbd4997-dc06-45ba-af97-cd7cb131175e",
+	'upper_block',
+	"e2eb4f67-ca2b-42ab-accf-5a2b475f8933",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("219af228-d78c-4c38-905c-dc5eda8dc21b",
+	"dcbd4997-dc06-45ba-af97-cd7cb131175e",
+	'act_blk',
+	"a9d95d81-e20a-41f2-8a79-ce75e8a5f255",
+	0,
+	'',
+	"d5291ef9-84b0-4e71-93b1-85310f657651",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("a9d95d81-e20a-41f2-8a79-ce75e8a5f255",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Block>',
+	'',
+	'',
+	'../../../../../mcooa/models/mcooa/ooaofooa/Body/Body.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("bee5b5d3-f64a-42c6-a999-5a0d6a7f8ddd",
+	"dcbd4997-dc06-45ba-af97-cd7cb131175e",
+	'block_number',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"219af228-d78c-4c38-905c-dc5eda8dc21b",
+	'');
+INSERT INTO PE_PE
+	VALUES ("dcbd4997-dc06-45ba-af97-cd7cb131175e",
 	1,
 	"06787f13-1c16-4275-879c-00bbeee7cb88",
 	"00000000-0000-0000-0000-000000000000",
