@@ -2704,34 +2704,9 @@ INSERT INTO S_SYNC
 select one act_act related by invocable->ACT_ACT[R432.''transforms actions from''];
 if ( not_empty act_act and not_empty invocable )
 
-  // create top level code block
-  create object instance block of CodeBlock;
-  relate block to invocable across R430.''is invoked first for'';
-  relate block to invocable across R4000.''is invoked in'';
-  block.block_number = "1";
-  block.tab_depth = 1;
-  
-  // transform all statements
-  // BridgePoint produces statement lists in reverse order of what they would be expected
-  // to be according to the role phrases: https://support.onefact.net/issues/5382.
-  // This code appears to select the last statement which is actually the first statement.
-  // Then, when iterating to the next statement, it iterates backwards which is actually
-  // forwards (gah).
-  select any act_smt related by act_act->ACT_BLK[R666]->ACT_SMT[R602];
-  select one prev_act_smt related by act_smt->ACT_SMT[R661.''precedes''];
-  while ( not_empty prev_act_smt )
-    act_smt = prev_act_smt;
-    select one prev_act_smt related by act_smt->ACT_SMT[R661.''precedes''];
-  end while;
-  
-  select any prev_smt from instances of Statement where false;
-  smt_num = 1;
-  while ( not_empty act_smt )
-    ::transformStatement( act_smt:act_smt, block:block, prev_smt:prev_smt );
-    select any prev_smt related by block->Statement[R450.''is scope for''] where ( selected.statement_number == STR::itoa( i:smt_num ) );
-    smt_num = smt_num + 1;
-    select one act_smt related by act_smt->ACT_SMT[R661.''succeeds''];
-  end while;
+  select any upper_block from instances of CodeBlock where false;
+  select one act_blk related by act_act->ACT_BLK[R666];
+  ::transformBlock( invocable:invocable, upper_block:upper_block, act_blk:act_blk, block_number:"1" );
 
 else
   // TODO bad
@@ -2827,6 +2802,7 @@ if ( not_empty act_smt and not_empty block )
   else
   select one act_if related by act_smt->ACT_IF[R603];
   if ( not_empty act_if )
+    select any empty_invocable from instances of InvocableObject where false;
     // create if statement
     create object instance if_smt of IfSmt;
     relate if_smt to smt across R451;
@@ -2838,7 +2814,7 @@ if ( not_empty act_smt and not_empty block )
     // create then block
     then_block_number = ::getNextBlockNumber( upper_block:block );
     select one then_blk related by act_if->ACT_BLK[R607];
-    ::transformBlock( upper_block:block, act_blk:then_blk, block_number:then_block_number );
+    ::transformBlock( upper_block:block, act_blk:then_blk, block_number:then_block_number, invocable:empty_invocable );
     select any then_block related by block->InvocableObject[R4000.''is invoked in'']->CodeBlock[R4000.''has''] where ( selected.block_number == then_block_number );
     relate then_block to if_smt across R453.''controls then for'';
     // translate elifs
@@ -2876,7 +2852,7 @@ if ( not_empty act_smt and not_empty block )
     else_block_number = ::getNextBlockNumber( upper_block:block );
     select one else_blk related by act_if->ACT_E[R683]->ACT_BLK[R606];
     if ( not_empty else_blk )
-      ::transformBlock( upper_block:block, act_blk:else_blk, block_number:else_block_number );
+      ::transformBlock( upper_block:block, act_blk:else_blk, block_number:else_block_number, invocable:empty_invocable );
       select any else_block related by block->InvocableObject[R4000.''is invoked in'']->CodeBlock[R4000.''has''] where ( selected.block_number == else_block_number );
       relate else_block to if_smt across R454.''controls else for'';
     end if;
@@ -2884,6 +2860,7 @@ if ( not_empty act_smt and not_empty block )
   else
   select one act_whl related by act_smt->ACT_WHL[R603];
   if ( not_empty act_whl )
+    select any empty_invocable from instances of InvocableObject where false;
     // create while statement
     create object instance while_smt of WhileSmt;
     relate while_smt to smt across R451;
@@ -2894,8 +2871,8 @@ if ( not_empty act_smt and not_empty block )
     relate while_expr to while_smt across R472.''determines execution of block for'';
     // create do block
     control_block_number = ::getNextBlockNumber( upper_block:block );
-    select one do_blk related by act_whl->ACT_BLK[R608];
-    ::transformBlock( upper_block:block, act_blk:do_blk, block_number:control_block_number );
+    select one control_blk related by act_whl->ACT_BLK[R608];
+    ::transformBlock( upper_block:block, act_blk:control_blk, block_number:control_block_number, invocable:empty_invocable );
     select any control_block related by block->InvocableObject[R4000.''is invoked in'']->CodeBlock[R4000.''has''] where ( selected.block_number == control_block_number );
     relate control_block to while_smt across R456.''controls'';
 
@@ -2913,6 +2890,8 @@ if ( not_empty act_smt and not_empty block )
     create object instance continue_smt of ContinueSmt;
     relate continue_smt to smt across R451;
 
+  else
+    LOG::LogInfo( message:"statement type not yet supported" );
   end if; end if; end if; end if; end if;
 
 else
@@ -3242,15 +3221,21 @@ INSERT INTO S_SYNC
 	'',
 	'upper_block = param.upper_block;
 act_blk = param.act_blk;
-if ( not_empty upper_block and not_empty act_blk )
+if ( not_empty act_blk )
   
-  select one invocable related by upper_block->InvocableObject[R4000.''is invoked in''];
+  invocable = param.invocable;
 
   // create code block
   create object instance block of CodeBlock;
+  if ( empty upper_block )
+    relate block to invocable across R430.''is invoked first for'';
+    block.tab_depth = 1; // TODO
+  else
+    select one invocable related by upper_block->InvocableObject[R4000.''is invoked in''];
+    block.tab_depth = upper_block.tab_depth + 1;
+  end if;
   relate block to invocable across R4000.''is invoked in'';
   block.block_number = param.block_number;
-  block.tab_depth = upper_block.tab_depth + 1;
   
   // transform all statements
   // BridgePoint produces statement lists in reverse order of what they would be expected
@@ -3258,12 +3243,17 @@ if ( not_empty upper_block and not_empty act_blk )
   // This code appears to select the last statement which is actually the first statement.
   // Then, when iterating to the next statement, it iterates backwards which is actually
   // forwards (gah).
-  select any act_smt related by act_blk->ACT_SMT[R602];
-  select one prev_act_smt related by act_smt->ACT_SMT[R661.''precedes''];
-  while ( not_empty prev_act_smt )
-    act_smt = prev_act_smt;
-    select one prev_act_smt related by act_smt->ACT_SMT[R661.''precedes''];
-  end while;
+  select any act_smt from instances of ACT_SMT where false;
+  select many act_smts related by act_blk->ACT_SMT[R602];
+  for each smt in act_smts
+    if ( empty act_smt )
+      act_smt = smt;
+    else
+      if ( smt.LineNumber < act_smt.LineNumber or smt.LineNumber == act_smt.LineNumber and smt.StartPosition == act_smt.StartPosition )
+        act_smt = smt;
+      end if;
+    end if;
+  end for;
   
   select any prev_smt from instances of Statement where false;
   smt_num = 1;
@@ -3288,7 +3278,7 @@ INSERT INTO S_SPARM
 	"e2eb4f67-ca2b-42ab-accf-5a2b475f8933",
 	0,
 	'',
-	"00000000-0000-0000-0000-000000000000",
+	"00a1d887-1c67-4a49-9991-fed613891665",
 	'');
 INSERT INTO S_SPARM
 	VALUES ("219af228-d78c-4c38-905c-dc5eda8dc21b",
@@ -3314,6 +3304,15 @@ INSERT INTO S_SPARM
 	0,
 	'',
 	"219af228-d78c-4c38-905c-dc5eda8dc21b",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("00a1d887-1c67-4a49-9991-fed613891665",
+	"dcbd4997-dc06-45ba-af97-cd7cb131175e",
+	'invocable',
+	"30c7a5ba-c6d9-44fd-8e61-f22cde8fdc41",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
 	'');
 INSERT INTO PE_PE
 	VALUES ("dcbd4997-dc06-45ba-af97-cd7cb131175e",
@@ -3355,9 +3354,10 @@ select any if_expr related by smt->Expression[R775.''may contain''] where ( sele
 relate if_expr to if_smt across R471.''determines execution of blocks for'';
 
 // create then block
+select any empty_invocable from instances of InvocableObject where false;
 then_block_number = ::getNextBlockNumber( upper_block:block );
 select one then_blk related by act_el->ACT_BLK[R658];
-::transformBlock( upper_block:block, act_blk:then_blk, block_number:then_block_number );
+::transformBlock( upper_block:block, act_blk:then_blk, block_number:then_block_number, invocable:empty_invocable );
 select any then_block related by block->InvocableObject[R4000.''is invoked in'']->CodeBlock[R4000.''has''] where ( selected.block_number == then_block_number );
 relate then_block to if_smt across R453.''controls then for'';',
 	"ba5eda7a-def5-0000-0000-000000000000",
