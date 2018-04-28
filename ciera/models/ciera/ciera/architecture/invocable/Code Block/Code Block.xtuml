@@ -17,14 +17,11 @@ INSERT INTO O_TFR
 	1,
 	'select many smts related by self->Statement[R450];
 select one invocable related by self->InvocableObject[R430.''is invoked first for''];
-// enclose with braces if multiline block that is not the top level block or no lines
-enclose = ( ( cardinality smts > 1 ) and empty invocable ) or ( cardinality smts == 0 );
-// newline if not the top block, and not a single if in an else block
-new_line = false; // TODO
-if ( empty invocable and cardinality smts == 1 )
+is_else_if = false;
+if ( cardinality smts == 1 )
   select one enclosing_else related by self->IfSmt[R454.''controls else for''];
   select any if_smt related by self->Statement[R450.''is scope for'']->IfSmt[R451];
-  new_line = empty enclosing_else or empty if_smt;
+  is_else_if = not_empty enclosing_else and not_empty if_smt;
 end if;
 select any statement related by self->Statement[R450];
 select one prev_statement related by statement->Statement[R477.''executes after''];

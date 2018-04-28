@@ -1,16 +1,15 @@
-if ( enclose ) {
-T_b("{");
+if ( is_else_if ) {
+T_b("/* Block number: ");
+T_b(self->block_number);
+T_b(" */ ");
+T_b(statements);
+T_b("");
+} else {
+T_b("{ // Block number: ");
+T_b(self->block_number);
 T_b("\n");
 T_b(statements);
 T_b(indent);
 T_b("}");
 T_b("\n");
-} else {
-if ( new_line ) {
-T_b(" ");
-T_b(" ");
-T_b("\n");
-}
-T_b(statements);
-T_b("");
 }

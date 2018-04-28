@@ -1,9 +1,6 @@
-.if ( enclose )
-{
-${statements}${indent}}
+.if ( is_else_if )
+/* Block number: ${self.block_number} */ ${statements}\
 .else
-  .if ( new_line )
-  
-  .end if
-${statements}\
+{ // Block number: ${self.block_number}
+${statements}${indent}}
 .end if

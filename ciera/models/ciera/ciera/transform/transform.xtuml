@@ -2836,16 +2836,48 @@ if ( not_empty act_smt and not_empty block )
     select any if_expr related by smt->Expression[R775.''may contain''] where ( selected.expression_number == "1" );
     relate if_expr to if_smt across R471.''determines execution of blocks for'';
     // create then block
+    then_block_number = ::getNextBlockNumber( upper_block:block );
     select one then_blk related by act_if->ACT_BLK[R607];
-    ::transformBlock( upper_block:block, act_blk:then_blk, block_number:block.block_number + ".1" );  // TODO block number needs to be figured out better
-    select any then_block related by block->InvocableObject[R4000.''is invoked in'']->CodeBlock[R4000.''has''] where ( selected.block_number == block.block_number + ".1" );
+    ::transformBlock( upper_block:block, act_blk:then_blk, block_number:then_block_number );
+    select any then_block related by block->InvocableObject[R4000.''is invoked in'']->CodeBlock[R4000.''has''] where ( selected.block_number == then_block_number );
     relate then_block to if_smt across R453.''controls then for'';
-    // TODO elifs
+    /*
+    // translate elifs
+    select many act_els related by act_if->ACT_EL[R682];
+    select many translated_act_els from instances of ACT_EL where false;
+    remaining_act_els = act_els - translated_act_els;
+    while ( not_empty remaining_act_els )
+      // get the next elif
+      select any act_el from instances of ACT_EL where false;
+      for each remaining_act_el in remaining_act_els
+        if ( empty act_el )
+          act_el = remaining_act_el;
+        else
+          select one act_el_smt related by act_el->ACT_SMT[R603];
+          select one remaining_act_el_smt related by remaining_act_el->ACT_SMT[R603];
+          if ( remaining_act_el_smt.LineNumber < act_el_smt.LineNumber or
+               remaining_act_el_smt.LineNumber == act_el_smt.LineNumber and remaining_act_el_smt.StartPosition == act_el_smt.StartPosition )
+            act_el = remaining_act_el;
+          end if;
+        end if;
+      end for;
+      // create block for elif
+      ::transformBlockForElif( upper_block:block, act_el:act_el, block_number:block.block_number + ".elif" );  // TODO figure this out
+      select any else_block related by block->InvocableObject[R4000.''is invoked in'']->CodeBlock[R4000.''has''] where ( selected.block_number == block.block_number + ".elif" );
+      relate else_block to if_smt across R454.''controls else for'';
+      // set the block
+      block = else_block;
+      // mark the elif as translated
+      translated_act_els = translated_act_els + act_el;
+      remaining_act_els = act_els - translated_act_els;
+    end while;
+    */
     // create else block
+    else_block_number = ::getNextBlockNumber( upper_block:block );
     select one else_blk related by act_if->ACT_E[R683]->ACT_BLK[R606];
     if ( not_empty else_blk )
-      ::transformBlock( upper_block:block, act_blk:else_blk, block_number:block.block_number + ".2" );  // TODO block number needs to be figured out better
-      select any else_block related by block->InvocableObject[R4000.''is invoked in'']->CodeBlock[R4000.''has''] where ( selected.block_number == block.block_number + ".2" );
+      ::transformBlock( upper_block:block, act_blk:else_blk, block_number:else_block_number );
+      select any else_block related by block->InvocableObject[R4000.''is invoked in'']->CodeBlock[R4000.''has''] where ( selected.block_number == else_block_number );
       relate else_block to if_smt across R454.''controls else for'';
     end if;
   
@@ -3253,6 +3285,56 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("dcbd4997-dc06-45ba-af97-cd7cb131175e",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("61ed9659-8b4f-4a3d-bfc2-02e931a0536c",
+	"00000000-0000-0000-0000-000000000000",
+	'transformBlockForElif',
+	'',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("ee627ef3-1723-44c4-86f5-011942e8a178",
+	"61ed9659-8b4f-4a3d-bfc2-02e931a0536c",
+	'upper_block',
+	"e2eb4f67-ca2b-42ab-accf-5a2b475f8933",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("fd7222f3-ebb6-48d0-858a-0ad22a86e5aa",
+	"61ed9659-8b4f-4a3d-bfc2-02e931a0536c",
+	'act_el',
+	"c73f7572-ce31-4792-9718-8a411cbfe1eb",
+	0,
+	'',
+	"ee627ef3-1723-44c4-86f5-011942e8a178",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("c73f7572-ce31-4792-9718-8a411cbfe1eb",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<ElseIf Stmt>',
+	'',
+	'',
+	'../../../../../mcooa/models/mcooa/ooaofooa/Body/Body.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("ed1020ba-6ea8-47c8-8327-8f03630cce4f",
+	"61ed9659-8b4f-4a3d-bfc2-02e931a0536c",
+	'block_number',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"fd7222f3-ebb6-48d0-858a-0ad22a86e5aa",
+	'');
+INSERT INTO PE_PE
+	VALUES ("61ed9659-8b4f-4a3d-bfc2-02e931a0536c",
 	1,
 	"06787f13-1c16-4275-879c-00bbeee7cb88",
 	"00000000-0000-0000-0000-000000000000",

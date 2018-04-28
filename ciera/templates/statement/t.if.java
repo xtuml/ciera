@@ -1,3 +1,4 @@
+${indent}// Statement number: ${self.statement_number}
 ${indent}// ${if_oal}
 ${indent}if ( ${cond_expr} ) ${then_block}\
 .if ( "" != else_block )

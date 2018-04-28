@@ -1,4 +1,8 @@
 T_b(indent);
+T_b("// Statement number: ");
+T_b(self->statement_number);
+T_b("\n");
+T_b(indent);
 T_b("// ");
 T_b(if_oal);
 T_b("\n");
