@@ -2899,7 +2899,21 @@ if ( not_empty act_smt and not_empty block )
     select any control_block related by block->InvocableObject[R4000.''is invoked in'']->CodeBlock[R4000.''has''] where ( selected.block_number == control_block_number );
     relate control_block to while_smt across R456.''controls'';
 
-  end if; end if; end if;
+  else
+  select one act_brk related by act_smt->ACT_BRK[R603];
+  if ( not_empty act_brk )
+    // create break statement
+    create object instance break_smt of BreakSmt;
+    relate break_smt to smt across R451;
+
+  else
+  select one act_con related by act_smt->ACT_CON[R603];
+  if ( not_empty act_con )
+    // create continue statement
+    create object instance continue_smt of ContinueSmt;
+    relate continue_smt to smt across R451;
+
+  end if; end if; end if; end if; end if;
 
 else
   // TODO bad
