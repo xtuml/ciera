@@ -1,1 +1,2 @@
-if ( ${cond_expression_body} ) ${control_block_body}
+${indent}// ${oal}
+${indent}while ( ${cond_expr} ) ${control_block}\

@@ -2881,7 +2881,25 @@ if ( not_empty act_smt and not_empty block )
       relate else_block to if_smt across R454.''controls else for'';
     end if;
   
-  end if; end if;
+  else
+  select one act_whl related by act_smt->ACT_WHL[R603];
+  if ( not_empty act_whl )
+    // create while statement
+    create object instance while_smt of WhileSmt;
+    relate while_smt to smt across R451;
+    // translate while expression
+    select one while_val related by act_whl->V_VAL[R626];
+    ::transformExpression( v_val:while_val, expr_number:"1", smt:smt );
+    select any while_expr related by smt->Expression[R775.''may contain''] where ( selected.expression_number == "1" );
+    relate while_expr to while_smt across R472.''determines execution of block for'';
+    // create do block
+    control_block_number = ::getNextBlockNumber( upper_block:block );
+    select one do_blk related by act_whl->ACT_BLK[R608];
+    ::transformBlock( upper_block:block, act_blk:do_blk, block_number:control_block_number );
+    select any control_block related by block->InvocableObject[R4000.''is invoked in'']->CodeBlock[R4000.''has''] where ( selected.block_number == control_block_number );
+    relate control_block to while_smt across R456.''controls'';
+
+  end if; end if; end if;
 
 else
   // TODO bad
