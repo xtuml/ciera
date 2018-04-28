@@ -1,6 +1,10 @@
-${indent}// Statement number: ${self.statement_number}
+.if ( "" != if_oal )
 ${indent}// ${if_oal}
-${indent}if ( ${cond_expr} ) ${then_block}\
+.end if
+.if ( not is_else_if )
+${indent}\
+.end if
+if ( ${cond_expr} ) ${then_block}\
 .if ( "" != else_block )
   .if ( "" != else_oal )
 ${indent}// ${else_oal}

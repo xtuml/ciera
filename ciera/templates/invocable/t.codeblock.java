@@ -1,6 +1,6 @@
 .if ( is_else_if )
-/* Block number: ${self.block_number} */ ${statements}\
+${statements}\
 .else
-{ // Block number: ${self.block_number}
+{
 ${statements}${indent}}
 .end if

@@ -1,12 +1,13 @@
-T_b(indent);
-T_b("// Statement number: ");
-T_b(self->statement_number);
-T_b("\n");
+if ( 0!=strcmp("",if_oal) ) {
 T_b(indent);
 T_b("// ");
 T_b(if_oal);
 T_b("\n");
+}
+if ( ! is_else_if ) {
 T_b(indent);
+T_b("");
+}
 T_b("if ( ");
 T_b(cond_expr);
 T_b(" ) ");

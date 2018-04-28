@@ -2841,7 +2841,6 @@ if ( not_empty act_smt and not_empty block )
     ::transformBlock( upper_block:block, act_blk:then_blk, block_number:then_block_number );
     select any then_block related by block->InvocableObject[R4000.''is invoked in'']->CodeBlock[R4000.''has''] where ( selected.block_number == then_block_number );
     relate then_block to if_smt across R453.''controls then for'';
-    /*
     // translate elifs
     select many act_els related by act_if->ACT_EL[R682];
     select many translated_act_els from instances of ACT_EL where false;
@@ -2862,16 +2861,17 @@ if ( not_empty act_smt and not_empty block )
         end if;
       end for;
       // create block for elif
-      ::transformBlockForElif( upper_block:block, act_el:act_el, block_number:block.block_number + ".elif" );  // TODO figure this out
-      select any else_block related by block->InvocableObject[R4000.''is invoked in'']->CodeBlock[R4000.''has''] where ( selected.block_number == block.block_number + ".elif" );
+      elif_block_number = ::getNextBlockNumber( upper_block:block );
+      ::transformBlockForElif( upper_block:block, act_el:act_el, block_number:elif_block_number );
+      select any else_block related by block->InvocableObject[R4000.''is invoked in'']->CodeBlock[R4000.''has''] where ( selected.block_number == elif_block_number );
       relate else_block to if_smt across R454.''controls else for'';
-      // set the block
+      // set the new current block and if statement
       block = else_block;
+      select any if_smt related by if_smt->CodeBlock[R454.''has else'']->Statement[R450.''is scope for'']->IfSmt[R451];
       // mark the elif as translated
       translated_act_els = translated_act_els + act_el;
       remaining_act_els = act_els - translated_act_els;
     end while;
-    */
     // create else block
     else_block_number = ::getNextBlockNumber( upper_block:block );
     select one else_blk related by act_if->ACT_E[R683]->ACT_BLK[R606];
@@ -3294,7 +3294,40 @@ INSERT INTO S_SYNC
 	"00000000-0000-0000-0000-000000000000",
 	'transformBlockForElif',
 	'',
-	'',
+	'upper_block = param.upper_block;
+act_el = param.act_el;
+
+// create block
+select one invocable related by upper_block->InvocableObject[R4000.''is invoked in''];
+create object instance block of CodeBlock;
+relate block to invocable across R4000.''is invoked in'';
+block.block_number = param.block_number;
+block.tab_depth = upper_block.tab_depth;  // keep same tab depth
+
+// create single statement in block
+create object instance smt of Statement;
+relate smt to block across R450.''is contained by'';
+smt.statement_number = "1";
+select one body related by block->InvocableObject[R4000.''is invoked in''];
+select one act_smt related by act_el->ACT_SMT[R603];
+smt.oal = ::getOalStatement( body:body.oal, line_num:act_smt.LineNumber );
+
+// create if statement
+create object instance if_smt of IfSmt;
+relate if_smt to smt across R451;
+
+// translate if expression
+select one if_val related by act_el->V_VAL[R659];
+::transformExpression( v_val:if_val, expr_number:"1", smt:smt );
+select any if_expr related by smt->Expression[R775.''may contain''] where ( selected.expression_number == "1" );
+relate if_expr to if_smt across R471.''determines execution of blocks for'';
+
+// create then block
+then_block_number = ::getNextBlockNumber( upper_block:block );
+select one then_blk related by act_el->ACT_BLK[R658];
+::transformBlock( upper_block:block, act_blk:then_blk, block_number:then_block_number );
+select any then_block related by block->InvocableObject[R4000.''is invoked in'']->CodeBlock[R4000.''has''] where ( selected.block_number == then_block_number );
+relate then_block to if_smt across R453.''controls then for'';',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
