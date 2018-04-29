@@ -2891,8 +2891,36 @@ if ( not_empty act_smt and not_empty block )
     relate continue_smt to smt across R451;
 
   else
+  select one act_ai related by act_smt->ACT_AI[R603];
+  if ( not_empty act_ai )
+      // create expression as statement
+      create object instance eas of ExpressionAsStatement;
+      relate eas to smt across R451;
+      // create main expression
+      create object instance expr of Expression;
+      relate expr to smt across R775.''expressed within'';
+      expr.expression_number = "1";
+      // create binary operation and assignment expression
+      create object instance binop of BinaryOperation;
+      relate binop to expr across R776;
+      create object instance assgn of Assignment;
+      relate assgn to binop across R780;
+      // relate expression to expression as statement
+      relate eas to expr across R476.''executes as statement'';
+      // create left operand
+      select one l_val related by act_ai->V_VAL[R689];
+      ::transformExpression( v_val:l_val, expr_number:"1.1", smt:smt );
+      select any l_op related by smt->Expression[R775.''may contain''] where ( selected.expression_number == "1.1" );
+      relate l_op to binop across R779.''is left operand for'';
+      // create right operand
+      select one r_val related by act_ai->V_VAL[R609];
+      ::transformExpression( v_val:r_val, expr_number:"1.2", smt:smt );
+      select any r_op related by smt->Expression[R775.''may contain''] where ( selected.expression_number == "1.2" );
+      relate r_op to binop across R778.''is right operand for'';
+
+  else
     LOG::LogInfo( message:"statement type not yet supported" );
-  end if; end if; end if; end if; end if;
+  end if; end if; end if; end if; end if; end if;
 
 else
   // TODO bad
@@ -2994,7 +3022,25 @@ if ( not_empty v_lbo )
     lit.value = "false";
   end if;
 
-end if; end if;',
+else
+select one v_tvl related by v_val->V_TVL[R801];
+if ( not_empty v_tvl )
+  // if this is the first location, create a new variable
+  select one v_var related by v_tvl->V_VAR[R805];
+  select any existing_var related by smt->CodeBlock[R450.''is contained by'']->Variable[R458.''has in scope''] where ( selected.name == v_var.Name );
+  if ( empty existing_var ) // cannot declare two variables of the same name in the same scope
+    ::transformVariable( v_var:v_var, smt:smt );
+  end if;
+  
+  // create variable reference
+  select any var related by smt->CodeBlock[R450.''is contained by'']->Variable[R458.''has in scope''] where ( selected.name == v_var.Name );
+  create object instance var_ref of VariableReference;
+  relate var to var_ref across R782.''referenced through'';
+  relate var_ref to expr across R776;
+
+else
+  LOG::LogInfo( message:"expression type not yet supported" );
+end if; end if; end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -3237,6 +3283,13 @@ if ( not_empty act_blk )
   relate block to invocable across R4000.''is invoked in'';
   block.block_number = param.block_number;
   
+  // copy visibile variables from upper block
+  select many vars related by upper_block->Variable[R458.''has in scope''];
+  for each var in vars
+    create object instance var_in_scope of VariableInScope;
+    relate var to block across R458.''is in scope for'' using var_in_scope;
+  end for;
+  
   // transform all statements
   // BridgePoint produces statement lists in reverse order of what they would be expected
   // to be according to the role phrases: https://support.onefact.net/issues/5382.
@@ -3400,6 +3453,67 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("61ed9659-8b4f-4a3d-bfc2-02e931a0536c",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("cd83a65c-8aff-4835-bc6f-0a7c988adf47",
+	"00000000-0000-0000-0000-000000000000",
+	'transformVariable',
+	'',
+	'v_var = param.v_var;
+smt = param.smt;
+
+// create new variable
+create object instance new_var of Variable;
+relate new_var to smt across R457.''is declared by'';
+new_var.name = v_var.Name;
+
+// link in scope
+select one scope related by smt->CodeBlock[R450.''is contained by''];
+select any existing_var_in_scope related by scope->VariableInScope[R458] where ( selected.var_name == new_var.name );
+if ( not_empty existing_var_in_scope )  // shadow variable of same name
+  select one existing_var related by existing_var_in_scope->Variable[R458.''has in scope''];
+  unrelate existing_var from scope across R458.''is in scope for'' using existing_var_in_scope;
+end if;
+create object instance var_in_scope of VariableInScope;
+relate new_var to scope across R458.''is in scope for'' using var_in_scope;
+
+// link data type
+select one var_type related by v_var->S_DT[R848]->Type[R423.''is basis of''];
+relate var_type to new_var across R461.''defines declared type of'';',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("9f592e3e-e19e-4b50-b018-fc17308c182c",
+	"cd83a65c-8aff-4835-bc6f-0a7c988adf47",
+	'v_var',
+	"0e65b778-e815-4f26-b470-456b52561157",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("0e65b778-e815-4f26-b470-456b52561157",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Variable>',
+	'',
+	'',
+	'../../../../../mcooa/models/mcooa/ooaofooa/Value/Value.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("30b9e9b5-ce48-4643-b8de-1b3ed21cca43",
+	"cd83a65c-8aff-4835-bc6f-0a7c988adf47",
+	'smt',
+	"056a9b55-7c4c-45a4-a684-ea45fce8fa86",
+	0,
+	'',
+	"9f592e3e-e19e-4b50-b018-fc17308c182c",
+	'');
+INSERT INTO PE_PE
+	VALUES ("cd83a65c-8aff-4835-bc6f-0a7c988adf47",
 	1,
 	"06787f13-1c16-4275-879c-00bbeee7cb88",
 	"00000000-0000-0000-0000-000000000000",

@@ -18,20 +18,15 @@ INSERT INTO O_TFR
 	"be784cfe-3f8b-4e25-b183-484885b71173",
 	0,
 	's_dt = param.s_dt;
-select many unresolved_types from instances of UnresolvedType;
-for each unresolved_type in unresolved_types
-  select one dt related by unresolved_type->Type[R407]->S_DT[R423];
-  if ( s_dt.DT_ID == dt.DT_ID )
-    select one type related by unresolved_type->Type[R407];
-    return type;
-  end if;
-end for;
-create object instance type of Type;
-type.name = "";
-type.package = "";
-relate s_dt to type across R423;
-create object instance unresolved_type of UnresolvedType;
-relate unresolved_type to type across R407;
+select one type related by s_dt->Type[R423.''is basis of''];
+if ( empty type )
+  create object instance type of Type;
+  type.name = "UnresolvedType";
+  type.package = "";
+  relate s_dt to type across R423;
+  create object instance unresolved_type of UnresolvedType;
+  relate unresolved_type to type across R407;
+end if;
 return type;',
 	1,
 	'',
