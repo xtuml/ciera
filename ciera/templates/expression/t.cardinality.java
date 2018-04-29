@@ -1,1 +1,0 @@
-${var_name}.cardinality()\
