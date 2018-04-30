@@ -1,1 +1,2 @@
-for ( ${iterator_type} ${iterator_name} : ${set_name} ) ${control_block_body}
+${indent}// ${oal}
+${indent}for ( ${iterator_type} ${self.iterator_name} : ${iterable_expr} ) ${control_block}\

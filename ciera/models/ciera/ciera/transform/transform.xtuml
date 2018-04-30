@@ -2869,7 +2869,7 @@ if ( not_empty act_smt and not_empty block )
     ::transformExpression( v_val:while_val, expr_number:"1", smt:smt );
     select any while_expr related by smt->Expression[R775.''may contain''] where ( selected.expression_number == "1" );
     relate while_expr to while_smt across R472.''determines execution of block for'';
-    // create do block
+    // create control block
     control_block_number = ::getNextBlockNumber( upper_block:block );
     select one control_blk related by act_whl->ACT_BLK[R608];
     ::transformBlock( upper_block:block, act_blk:control_blk, block_number:control_block_number, invocable:empty_invocable );
@@ -2893,33 +2893,67 @@ if ( not_empty act_smt and not_empty block )
   else
   select one act_ai related by act_smt->ACT_AI[R603];
   if ( not_empty act_ai )
-      // create expression as statement
-      create object instance eas of ExpressionAsStatement;
-      relate eas to smt across R451;
-      // create main expression
-      create object instance expr of Expression;
-      relate expr to smt across R775.''expressed within'';
-      expr.expression_number = "1";
-      // create binary operation and assignment expression
-      create object instance binop of BinaryOperation;
-      relate binop to expr across R776;
-      binop.operator = "=";
-      // relate expression to expression as statement
-      relate eas to expr across R476.''executes as statement'';
-      // create left operand
-      select one l_val related by act_ai->V_VAL[R689];
-      ::transformExpression( v_val:l_val, expr_number:"1.1", smt:smt );
-      select any l_op related by smt->Expression[R775.''may contain''] where ( selected.expression_number == "1.1" );
-      relate l_op to binop across R779.''is left operand for'';
-      // create right operand
-      select one r_val related by act_ai->V_VAL[R609];
-      ::transformExpression( v_val:r_val, expr_number:"1.2", smt:smt );
-      select any r_op related by smt->Expression[R775.''may contain''] where ( selected.expression_number == "1.2" );
-      relate r_op to binop across R778.''is right operand for'';
+    // create expression as statement
+    create object instance eas of ExpressionAsStatement;
+    relate eas to smt across R451;
+    // create main expression
+    create object instance expr of Expression;
+    relate expr to smt across R775.''expressed within'';
+    expr.expression_number = "1";
+    // create binary operation and assignment expression
+    create object instance binop of BinaryOperation;
+    relate binop to expr across R776;
+    binop.operator = "=";
+    // relate expression to expression as statement
+    relate eas to expr across R476.''executes as statement'';
+    // create left operand
+    select one l_val related by act_ai->V_VAL[R689];
+    ::transformExpression( v_val:l_val, expr_number:"1.1", smt:smt );
+    select any l_op related by smt->Expression[R775.''may contain''] where ( selected.expression_number == "1.1" );
+    relate l_op to binop across R779.''is left operand for'';
+    // create right operand
+    select one r_val related by act_ai->V_VAL[R609];
+    ::transformExpression( v_val:r_val, expr_number:"1.2", smt:smt );
+    select any r_op related by smt->Expression[R775.''may contain''] where ( selected.expression_number == "1.2" );
+    relate r_op to binop across R778.''is right operand for'';
+
+  else
+  select one act_for related by act_smt->ACT_FOR[R603];
+  if ( not_empty act_for )
+    // create for statement
+    create object instance for_smt of ForSmt;
+    relate for_smt to smt across R451;
+    // translate iterable expression
+    select one iterable_v_var related by act_for->V_VAR[R652];
+    select any iterable_var related by smt->CodeBlock[R450.''is contained by'']->Variable[R458.''has in scope''] where ( selected.name == iterable_v_var.Name );
+    create object instance expr of Expression;
+    relate expr to smt across R775.''expressed within'';
+    expr.expression_number = "1";
+    select one s_dt related by iterable_v_var->S_DT[R848];
+    type = UnresolvedType::getInstance( s_dt:s_dt );
+    relate type to expr across R795.''defines type of'';
+    create object instance var_ref of VariableReference;
+    relate iterable_var to var_ref across R782.''referenced through'';
+    relate var_ref to expr across R776;
+    // create iterator variable
+    select one iter_v_var related by act_for->V_VAR[R614];
+    create object instance iter_var of Variable;
+    relate iter_var to smt across R457.''is declared by'';
+    iter_var.name = iter_v_var.Name;
+    select one var_dt related by iter_v_var->S_DT[R848];
+    var_type = UnresolvedType::getInstance( s_dt:var_dt );
+    relate var_type to iter_var across R461.''defines declared type of'';
+    relate iter_var to for_smt across R459.''is iterator for'';
+    // create control block
+    control_block_number = ::getNextBlockNumber( upper_block:block );
+    select one control_blk related by act_for->ACT_BLK[R605];
+    ::transformBlockForFor( upper_block:block, act_blk:control_blk, block_number:control_block_number, iter_var:iter_var );
+    select any control_block related by block->InvocableObject[R4000.''is invoked in'']->CodeBlock[R4000.''has''] where ( selected.block_number == control_block_number );
+    relate control_block to for_smt across R455.''controls'';
 
   else
     LOG::LogInfo( message:"statement type not yet supported" );
-  end if; end if; end if; end if; end if; end if;
+  end if; end if; end if; end if; end if; end if; end if;
 
 else
   // TODO bad
@@ -3290,32 +3324,8 @@ if ( not_empty act_blk )
   end for;
   
   // transform all statements
-  // BridgePoint produces statement lists in reverse order of what they would be expected
-  // to be according to the role phrases: https://support.onefact.net/issues/5382.
-  // This code appears to select the last statement which is actually the first statement.
-  // Then, when iterating to the next statement, it iterates backwards which is actually
-  // forwards (gah).
-  select any act_smt from instances of ACT_SMT where false;
-  select many act_smts related by act_blk->ACT_SMT[R602];
-  for each smt in act_smts
-    if ( empty act_smt )
-      act_smt = smt;
-    else
-      if ( smt.LineNumber < act_smt.LineNumber or smt.LineNumber == act_smt.LineNumber and smt.StartPosition == act_smt.StartPosition )
-        act_smt = smt;
-      end if;
-    end if;
-  end for;
+  ::transformStatements( act_blk:act_blk, block:block );
   
-  select any prev_smt from instances of Statement where false;
-  smt_num = 1;
-  while ( not_empty act_smt )
-    ::transformStatement( act_smt:act_smt, block:block, prev_smt:prev_smt );
-    select any prev_smt related by block->Statement[R450.''is scope for''] where ( selected.statement_number == STR::itoa( i:smt_num ) );
-    smt_num = smt_num + 1;
-    select one act_smt related by act_smt->ACT_SMT[R661.''succeeds''];
-  end while;
-
 else
   // TODO bad
 end if;',
@@ -3480,7 +3490,8 @@ create object instance var_in_scope of VariableInScope;
 relate new_var to scope across R458.''is in scope for'' using var_in_scope;
 
 // link data type
-select one var_type related by v_var->S_DT[R848]->Type[R423.''is basis of''];
+select one var_dt related by v_var->S_DT[R848];
+var_type = UnresolvedType::getInstance( s_dt:var_dt );
 relate var_type to new_var across R461.''defines declared type of'';',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -3513,6 +3524,149 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("cd83a65c-8aff-4835-bc6f-0a7c988adf47",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("fb475e46-f8de-40de-b96d-6bb83d18536b",
+	"00000000-0000-0000-0000-000000000000",
+	'transformStatements',
+	'',
+	'act_blk = param.act_blk;
+block = param.block;
+// transform all statements
+// BridgePoint produces statement lists in reverse order of what they would be expected
+// to be according to the role phrases: https://support.onefact.net/issues/5382.
+// This code appears to select the last statement which is actually the first statement.
+// Then, when iterating to the next statement, it iterates backwards which is actually
+// forwards (gah).
+select any act_smt from instances of ACT_SMT where false;
+select many act_smts related by act_blk->ACT_SMT[R602];
+for each smt in act_smts
+  if ( empty act_smt )
+    act_smt = smt;
+  else
+    if ( smt.LineNumber < act_smt.LineNumber or smt.LineNumber == act_smt.LineNumber and smt.StartPosition == act_smt.StartPosition )
+      act_smt = smt;
+    end if;
+  end if;
+end for;
+
+select any prev_smt from instances of Statement where false;
+smt_num = 1;
+while ( not_empty act_smt )
+  ::transformStatement( act_smt:act_smt, block:block, prev_smt:prev_smt );
+  select any prev_smt related by block->Statement[R450.''is scope for''] where ( selected.statement_number == STR::itoa( i:smt_num ) );
+  smt_num = smt_num + 1;
+  select one act_smt related by act_smt->ACT_SMT[R661.''succeeds''];
+end while;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("a562eba2-df83-4436-a9ae-7627a446615b",
+	"fb475e46-f8de-40de-b96d-6bb83d18536b",
+	'act_blk',
+	"069f7c9f-7387-4d78-8d66-5f72c773e58e",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("29d1e42f-caef-46df-8da1-5f6923cf541b",
+	"fb475e46-f8de-40de-b96d-6bb83d18536b",
+	'block',
+	"e2eb4f67-ca2b-42ab-accf-5a2b475f8933",
+	0,
+	'',
+	"a562eba2-df83-4436-a9ae-7627a446615b",
+	'');
+INSERT INTO PE_PE
+	VALUES ("fb475e46-f8de-40de-b96d-6bb83d18536b",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("59879fac-8e6b-40b0-a208-84d17e37f54c",
+	"00000000-0000-0000-0000-000000000000",
+	'transformBlockForFor',
+	'',
+	'upper_block = param.upper_block;
+act_blk = param.act_blk;
+iter_var = param.iter_var;
+  
+// create code block
+create object instance block of CodeBlock;
+select one invocable related by upper_block->InvocableObject[R4000.''is invoked in''];
+block.tab_depth = upper_block.tab_depth + 1;
+relate block to invocable across R4000.''is invoked in'';
+block.block_number = param.block_number;
+
+// copy visibile variables from upper block
+select many vars related by upper_block->Variable[R458.''has in scope''];
+for each var in vars
+  create object instance var_in_scope of VariableInScope;
+  relate var to block across R458.''is in scope for'' using var_in_scope;
+end for;
+
+// link iterator variable to new block
+create object instance var_in_scope of VariableInScope;
+relate iter_var to block across R458.''is in scope for'' using var_in_scope;
+
+// transform all statements
+::transformStatements( act_blk:act_blk, block:block );',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("8515610e-01e9-493e-8d5f-d747c59134a5",
+	"59879fac-8e6b-40b0-a208-84d17e37f54c",
+	'upper_block',
+	"e2eb4f67-ca2b-42ab-accf-5a2b475f8933",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("9a87e0d9-841a-4a09-b37b-25b4824326fa",
+	"59879fac-8e6b-40b0-a208-84d17e37f54c",
+	'act_blk',
+	"069f7c9f-7387-4d78-8d66-5f72c773e58e",
+	0,
+	'',
+	"8515610e-01e9-493e-8d5f-d747c59134a5",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("c2e404d8-6149-4e1d-b8ac-d383aaee3d43",
+	"59879fac-8e6b-40b0-a208-84d17e37f54c",
+	'block_number',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"9a87e0d9-841a-4a09-b37b-25b4824326fa",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("4de857b8-5133-41f0-963d-e031c3ae7e57",
+	"59879fac-8e6b-40b0-a208-84d17e37f54c",
+	'iter_var',
+	"896e75b4-b433-4661-b842-63b5ed57b2ae",
+	0,
+	'',
+	"c2e404d8-6149-4e1d-b8ac-d383aaee3d43",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("896e75b4-b433-4661-b842-63b5ed57b2ae",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Variable>',
+	'',
+	'',
+	'../architecture/statement/statement.xtuml');
+INSERT INTO PE_PE
+	VALUES ("59879fac-8e6b-40b0-a208-84d17e37f54c",
 	1,
 	"06787f13-1c16-4275-879c-00bbeee7cb88",
 	"00000000-0000-0000-0000-000000000000",
