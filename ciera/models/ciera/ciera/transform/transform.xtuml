@@ -2925,22 +2925,27 @@ if ( not_empty act_smt and not_empty block )
     relate for_smt to smt across R451;
     // translate iterable expression
     select one iterable_v_var related by act_for->V_VAR[R652];
+    select one iterable_o_obj related by iterable_v_var->V_INS[R814]->O_OBJ[R819];
     select any iterable_var related by smt->CodeBlock[R450.''is contained by'']->Variable[R458.''has in scope''] where ( selected.name == iterable_v_var.Name );
     create object instance expr of Expression;
     relate expr to smt across R775.''expressed within'';
     expr.expression_number = "1";
     select one s_dt related by iterable_v_var->S_DT[R848];
+    s_dt = ::getInstRefTypeForClass( s_dt:s_dt, o_obj:iterable_o_obj );
     type = UnresolvedType::getInstance( s_dt:s_dt );
     relate type to expr across R795.''defines type of'';
     create object instance var_ref of VariableReference;
     relate iterable_var to var_ref across R782.''referenced through'';
     relate var_ref to expr across R776;
+    relate expr to for_smt across R478.''is iterated by'';
     // create iterator variable
     select one iter_v_var related by act_for->V_VAR[R614];
+    select one iter_o_obj related by iter_v_var->V_INT[R814]->O_OBJ[R818];
     create object instance iter_var of Variable;
     relate iter_var to smt across R457.''is declared by'';
     iter_var.name = iter_v_var.Name;
     select one var_dt related by iter_v_var->S_DT[R848];
+    var_dt = ::getInstRefTypeForClass( s_dt:var_dt, o_obj:iter_o_obj );
     var_type = UnresolvedType::getInstance( s_dt:var_dt );
     relate var_type to iter_var across R461.''defines declared type of'';
     relate iter_var to for_smt across R459.''is iterator for'';
@@ -3541,6 +3546,11 @@ relate new_var to scope across R458.''is in scope for'' using var_in_scope;
 
 // link data type
 select one var_dt related by v_var->S_DT[R848];
+select one var_obj related by v_var->V_INT[R814]->O_OBJ[R818];
+if ( empty var_obj )
+  select one var_obj related by v_var->V_INS[R814]->O_OBJ[R819];
+end if;
+var_dt = ::getInstRefTypeForClass( s_dt:var_dt, o_obj:var_obj );
 var_type = UnresolvedType::getInstance( s_dt:var_dt );
 relate var_type to new_var across R461.''defines declared type of'';',
 	"ba5eda7a-def5-0000-0000-000000000000",
