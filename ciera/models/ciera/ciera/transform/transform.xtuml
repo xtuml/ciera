@@ -2952,8 +2952,58 @@ if ( not_empty act_smt and not_empty block )
     relate control_block to for_smt across R455.''controls'';
 
   else
+  select one act_fio related by act_smt->ACT_FIO[R603];
+  if ( not_empty act_fio )
+    // create expression as statement
+    create object instance eas of ExpressionAsStatement;
+    relate eas to smt across R451;
+    // create main expression
+    create object instance expr of Expression;
+    relate expr to smt across R775.''expressed within'';
+    expr.expression_number = "1";
+    // create binary operation and assignment expression
+    create object instance binop of BinaryOperation;
+    relate binop to expr across R776;
+    binop.operator = "=";
+    // relate expression to expression as statement
+    relate eas to expr across R476.''executes as statement'';
+    // create left operand
+    select one select_v_var related by act_fio->V_VAR[R639];
+    create object instance l_op of Expression;
+    relate l_op to smt across R775.''expressed within'';
+    l_op.expression_number = "1.1";
+    select one select_s_dt related by select_v_var->S_DT[R848];
+    select one select_obj related by act_fio->O_OBJ[R677];
+    select_s_dt = ::getInstRefTypeForClass( s_dt:select_s_dt, o_obj:select_obj );
+    select_type = UnresolvedType::getInstance( s_dt:select_s_dt );
+    relate select_type to l_op across R795.''defines type of'';
+    select any existing_var related by smt->CodeBlock[R450.''is contained by'']->Variable[R458.''has in scope''] where ( selected.name == select_v_var.Name );
+    if ( empty existing_var ) // cannot declare two variables of the same name in the same scope
+      ::transformVariable( v_var:select_v_var, smt:smt );
+    end if;
+    select any select_var related by smt->CodeBlock[R450.''is contained by'']->Variable[R458.''has in scope''] where ( selected.name == select_v_var.Name );
+    create object instance var_ref of VariableReference;
+    relate select_var to var_ref across R782.''referenced through'';
+    relate var_ref to l_op across R776;
+    relate l_op to binop across R779.''is left operand for'';
+    // create right operand
+    // TODO relate all invocables to containing components
+    select one containing_component related by block->InvocableObject[R4000.''is invoked in'']->Function[R427]->ComponentDefinition[R405.''can execute synchronously within''];
+    select any selector related by select_s_dt->Type[R423.''is basis of'']->InstancePopulationSelector[R449.''shapes return of'']
+      where ( selected.comp_name == containing_component.name and selected.comp_package == containing_component.package );
+    create object instance r_op of Expression;
+    relate r_op to smt across R775.''expressed within'';
+    r_op.expression_number = "1.2";
+    create object instance sel of Select;
+    relate sel to r_op across R776;
+    create object instance sel_fi of SelectFromInstances;
+    relate sel_fi to sel across R789;
+    relate selector to sel_fi across R799.''invoked by'';
+    relate r_op to binop across R778.''is right operand for'';
+
+  else
     LOG::LogInfo( message:"statement type not yet supported" );
-  end if; end if; end if; end if; end if; end if; end if;
+  end if; end if; end if; end if; end if; end if; end if; end if;
 
 else
   // TODO bad

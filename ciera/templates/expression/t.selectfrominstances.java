@@ -1,1 +1,1 @@
-selectAnyFromInstances(${where_body})\
+${self.selector_name}()\

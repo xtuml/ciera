@@ -1,3 +1,2 @@
-T_b("selectAnyFromInstances(");
-T_b(where_body);
-T_b(")");
+T_b(self->selector_name);
+T_b("()");
