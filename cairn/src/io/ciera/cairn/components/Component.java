@@ -23,10 +23,5 @@ public abstract class Component extends InstancePopulation implements IComponent
 	public IRunContext getRunContext() {
 		return runContext;
 	}
-	
-	@Override
-	public IComponent getPopulationContext() {
-		return this;
-	}
-	
+
 }

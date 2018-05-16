@@ -6,8 +6,8 @@ import io.ciera.summit.exceptions.XtumlException;
 
 public interface IInstancePopulation {
 
-	public Map<String, IInstanceSet> initializeInstanceSets();
-    public IInstanceSet getInstanceSet( String keyLetters ) throws XtumlException;
+	public <E extends IModelInstance> Map<String, IInstanceSet<E>> initializeInstanceSets();
+    public <E extends IModelInstance> IInstanceSet<E> getInstanceSet( String keyLetters ) throws XtumlException;
     public boolean addInstance( IModelInstance instance ) throws XtumlException;
     public boolean removeInstance( IModelInstance instance ) throws XtumlException;
 

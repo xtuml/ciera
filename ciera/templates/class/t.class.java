@@ -8,7 +8,7 @@ public class ${self.name} extends ${self.extends} {
     public static final ${self.name} EMPTY_$u_{self.name} = new Empty${self.name}();
 
     // constructor
-    public ${self.name}( IComponent context ) {
+    public ${self.name}( ${self.comp_name} context ) {
         super( context );
 ${attribute_initializers}
     }
@@ -25,13 +25,6 @@ ${selectors}
     @Override
     public String getKeyLetters() {
         return KEY_LETTERS;
-    }
-
-    @Override
-    public IInstanceSet toSet() {
-        IInstanceSet set = new ${class_set_name}();
-        set.add( this );
-        return set;
     }
 
 }

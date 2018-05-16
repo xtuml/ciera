@@ -1,14 +1,24 @@
 package io.ciera.summit.classes;
 
-import java.util.Set;
+import java.util.function.Predicate;
 
-public interface IInstanceSet extends Set<IModelInstance> {
+import io.ciera.summit.exceptions.XtumlException;
+import io.ciera.summit.types.ISet;
+
+public interface IInstanceSet<E extends IModelInstance> extends ISet<E> {
 	
 	public String getKeyLetters();
-	public IModelInstance getByInstanceId( UniqueId instanceId );
-	public IModelInstance getById1( IInstanceIdentifier id1 );
-	public IModelInstance getById2( IInstanceIdentifier id2 );
-	public IModelInstance getById3( IInstanceIdentifier id3 );
-	public IInstanceSet toImmutableSet();
+
+	public E getByInstanceId( UniqueId instanceId );
+	public E getById1( IInstanceIdentifier id1 );
+	public E getById2( IInstanceIdentifier id2 );
+	public E getById3( IInstanceIdentifier id3 );
+	
+	public E any();
+	public E anyWhere( Predicate<E> test ) throws XtumlException;
+	public IInstanceSet<E> manyWhere( Predicate<E> test ) throws XtumlException;
+	
+	public E emptyInstance();
+	public IInstanceSet<E> emptySet();
 
 }

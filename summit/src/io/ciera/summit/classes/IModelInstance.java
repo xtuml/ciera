@@ -12,6 +12,5 @@ public interface IModelInstance extends IActionHome {
     public IInstanceIdentifier getId3();
     public void checkLiving() throws XtumlException;
     public void delete() throws XtumlException;
-    public IInstanceSet toSet();
     
 }

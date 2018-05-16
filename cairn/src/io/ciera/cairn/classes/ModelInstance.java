@@ -3,7 +3,6 @@ package io.ciera.cairn.classes;
 import io.ciera.summit.application.IRunContext;
 import io.ciera.summit.classes.IEmptyInstance;
 import io.ciera.summit.classes.IInstanceIdentifier;
-import io.ciera.summit.classes.IInstanceSet;
 import io.ciera.summit.classes.IModelInstance;
 import io.ciera.summit.classes.UniqueId;
 import io.ciera.summit.components.IComponent;
@@ -14,12 +13,10 @@ public abstract class ModelInstance implements IModelInstance {
     
 
     private UniqueId instanceId;
-    private IComponent populationContext;
 
     // constructors
-    public ModelInstance( IComponent context ) {
+    public ModelInstance() {
         instanceId = new UniqueId();
-        this.populationContext = context;
     }
     
     @Override
@@ -33,19 +30,13 @@ public abstract class ModelInstance implements IModelInstance {
     }
     
     @Override
-    public IComponent getPopulationContext() {
-        return populationContext;
-    }
-    
-    @Override
     public IRunContext getRunContext() {
-    	return populationContext.getRunContext();
+    	return getPopulationContext().getRunContext();
     }
     
     @Override
     public void delete() throws XtumlException {
         checkLiving();
-        populationContext = null;
         instanceId.nullify();
     }
 
@@ -93,17 +84,13 @@ public abstract class ModelInstance implements IModelInstance {
 
 class EmptyModelInstance extends ModelInstance implements IEmptyInstance {
 
-    public EmptyModelInstance() {
-		super( null );
-	}
-
 	@Override
     public String getKeyLetters() {
         return null;
     }
 
 	@Override
-	public IInstanceSet toSet() {
+	public <E extends IComponent> E getPopulationContext() {
 		return null;
 	}
 

@@ -1,33 +1,31 @@
 package io.ciera.cairn.classes;
 
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
+import java.util.function.Predicate;
 
+import io.ciera.cairn.types.Set;
 import io.ciera.summit.classes.IEmptyInstance;
 import io.ciera.summit.classes.IInstanceIdentifier;
 import io.ciera.summit.classes.IInstanceSet;
 import io.ciera.summit.classes.IModelInstance;
 import io.ciera.summit.classes.UniqueId;
+import io.ciera.summit.exceptions.BadArgumentException;
+import io.ciera.summit.exceptions.XtumlException;
 
-public abstract class InstanceSet implements IInstanceSet {
+public abstract class InstanceSet<E extends IModelInstance> extends Set<E> implements IInstanceSet<E> {
     
-	private boolean immutable;
+	private static final long serialVersionUID = 1L;
+
 	private String keyLetters;
 	
-	private Set<IModelInstance> hashSet;
-	private Map<UniqueId, IModelInstance> instanceIdSet;
-	private Map<IInstanceIdentifier, IModelInstance> id1Set;
-	private Map<IInstanceIdentifier, IModelInstance> id2Set;
-	private Map<IInstanceIdentifier, IModelInstance> id3Set;
+	private Map<UniqueId, E> instanceIdSet;
+	private Map<IInstanceIdentifier, E> id1Set;
+	private Map<IInstanceIdentifier, E> id2Set;
+	private Map<IInstanceIdentifier, E> id3Set;
 	
 	public InstanceSet( String keyLetters ) {
-		immutable = false;
 		this.keyLetters = keyLetters;
-		hashSet = new HashSet<>();
 		instanceIdSet = new HashMap<>();
 		id1Set = new HashMap<>();
 		id2Set = new HashMap<>();
@@ -40,38 +38,8 @@ public abstract class InstanceSet implements IInstanceSet {
 	}
 
 	@Override
-	public int size() {
-		return hashSet.size();
-	}
-
-	@Override
-	public boolean isEmpty() {
-		return ( 0 == size() );
-	}
-
-	@Override
-	public boolean contains( Object o ) {
-		return hashSet.contains( o );
-	}
-
-	@Override
-	public Iterator<IModelInstance> iterator() {
-		return hashSet.iterator();
-	}
-
-	@Override
-	public Object[] toArray() {
-		return hashSet.toArray();
-	}
-
-	@Override
-	public <T> T[] toArray( T[] a ) {
-		return hashSet.toArray( a );
-	}
-
-	@Override
-	public boolean add( IModelInstance e ) {
-		if ( !immutable && null != e && !(e instanceof IEmptyInstance) && hashSet.add( e ) ) {
+	public boolean add( E e ) {
+		if ( null != e && !(e instanceof IEmptyInstance) && super.add( e ) ) {
 			instanceIdSet.put( e.getInstanceId(), e );
 			if ( null != e.getId1() ) id1Set.put( e.getId1(), e );
 			if ( null != e.getId2() ) id2Set.put( e.getId2(), e );
@@ -83,7 +51,7 @@ public abstract class InstanceSet implements IInstanceSet {
 
 	@Override
 	public boolean remove( Object o ) {
-		if ( !immutable && null != o && !(o instanceof IEmptyInstance) && hashSet.remove( o ) ) {
+		if ( null != o && !(o instanceof IEmptyInstance) && super.remove( o ) ) {
 			instanceIdSet.remove( ((IModelInstance)o).getInstanceId() );
 			if ( null != ((IModelInstance)o).getId1() ) id1Set.remove( ((IModelInstance)o).getId1() );
 			if ( null != ((IModelInstance)o).getId2() )id2Set.remove( ((IModelInstance)o).getId2() );
@@ -94,46 +62,8 @@ public abstract class InstanceSet implements IInstanceSet {
 	}
 
 	@Override
-	public boolean containsAll( Collection<?> c ) {
-		boolean containsAll = true;
-		for ( Object o : c ) {
-			containsAll = containsAll && contains( o );
-		}
-		return containsAll;
-	}
-
-	@Override
-	public boolean addAll( Collection<? extends IModelInstance> c ) {
-		boolean addAll = false;
-		for ( IModelInstance e : c ) {
-			addAll = add( e ) || addAll;
-		}
-		return addAll;
-	}
-
-	@Override
-	public boolean retainAll( Collection<?> c ) {
-		boolean retainAll = false;
-		for ( IModelInstance e : hashSet ) {
-			if ( !c.contains( e ) ) {
-				retainAll = remove( e ) || retainAll;
-			}
-		}
-		return retainAll;
-	}
-
-	@Override
-	public boolean removeAll( Collection<?> c ) {
-		boolean removeAll = false;
-		for ( Object o : c ) {
-			removeAll = remove( o ) || removeAll;
-		}
-		return removeAll;
-	}
-
-	@Override
 	public void clear() {
-		hashSet.clear();
+		super.clear();
 		instanceIdSet.clear();
 		id1Set.clear();
 		id2Set.clear();
@@ -141,29 +71,51 @@ public abstract class InstanceSet implements IInstanceSet {
 	}
 
 	@Override
-	public IModelInstance getByInstanceId( UniqueId instanceId ) {
+	public E getByInstanceId( UniqueId instanceId ) {
 		return instanceIdSet.get( instanceId );
 	}
 
 	@Override
-	public IModelInstance getById1( IInstanceIdentifier id1 ) {
+	public E getById1( IInstanceIdentifier id1 ) {
 		return id1Set.get( id1 );
 	}
 
 	@Override
-	public IModelInstance getById2( IInstanceIdentifier id2 ) {
+	public E getById2( IInstanceIdentifier id2 ) {
 		return id1Set.get( id2 );
 	}
 
 	@Override
-	public IModelInstance getById3( IInstanceIdentifier id3 ) {
+	public E getById3( IInstanceIdentifier id3 ) {
 		return id1Set.get( id3 );
 	}
 	
 	@Override
-	public IInstanceSet toImmutableSet() {
-		immutable = true;
-		return this;
+	public E any() {
+		E instance = null;
+		try {
+		  instance = anyWhere( selected -> true );
+		} catch ( XtumlException e ) { /* cannot happen */ }
+		return instance;
+	}
+
+	@Override
+	public E anyWhere( Predicate<E> test ) throws XtumlException {
+		if ( null == test ) throw new BadArgumentException( "Null test passed to selection" );
+	    for ( E selected : this ) {
+			if ( test.test( selected ) ) return selected;
+		}
+	    return emptyInstance();
+	}
+
+	@Override
+	public IInstanceSet<E> manyWhere( Predicate<E> test ) throws XtumlException {
+		if ( null == test ) throw new BadArgumentException( "Null test passed to selection" );
+		IInstanceSet<E> resultSet = emptySet();
+	    for ( E selected : this ) {
+			if ( test.test( selected ) ) resultSet.add( selected );
+		}
+		return (IInstanceSet<E>)resultSet.toImmutableSet();
 	}
 
 }

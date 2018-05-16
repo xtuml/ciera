@@ -5,6 +5,6 @@ import io.ciera.summit.components.IComponent;
 public interface IActionHome {
 	
 	public IRunContext getRunContext();
-	public IComponent getPopulationContext();
+	public <E extends IComponent> E getPopulationContext();
 
 }

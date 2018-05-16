@@ -34,11 +34,18 @@ ${ports}
 ${init}
     }
 
+    /*
     @Override
     public Map<String, IInstanceSet> initializeInstanceSets() {
         Map<String, IInstanceSet> classes = new HashMap<>();
 ${class_sets}\
         return classes;
+    }
+    */
+
+    @Override
+    public <E extends IModelInstance> IInstanceSet<E> getInstanceSet( String keyLetters ) throws XtumlException {
+        return null;  // TODO implement
     }
 
     @Override
