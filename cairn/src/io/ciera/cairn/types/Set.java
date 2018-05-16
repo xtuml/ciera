@@ -2,32 +2,33 @@ package io.ciera.cairn.types;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 
 import io.ciera.summit.types.ISet;
 
-public class Set<E> extends HashSet<E> implements ISet<E> {
+public class Set<E> implements ISet<E> {
 
-	private static final long serialVersionUID = 1L;
-	
+
 	private boolean immutable;
+	private HashSet<E> internalSet;
 	
 	public Set() {
-		super();
+		internalSet = new HashSet<>();
 		immutable = false;
 	}
 
 	public Set( Collection<? extends E> c ) {
-		super( c );
+		internalSet = new HashSet<>( c );
 		immutable = false;
 	}
 
 	public Set( int initialCapacity ) {
-		super( initialCapacity );
+		internalSet = new HashSet<>( initialCapacity );
 		immutable = false;
 	}
 
 	public Set( int initialCapacity, float loadFactor ) {
-		super( initialCapacity, loadFactor );
+		internalSet = new HashSet<>( initialCapacity, loadFactor );
 		immutable = false;
 	}
 
@@ -104,6 +105,47 @@ public class Set<E> extends HashSet<E> implements ISet<E> {
 			removeAll = remove( o ) || removeAll;
 		}
 		return removeAll;
+	}
+
+	// Methods inherited from HashSet
+	@Override
+	public int size() {
+		return internalSet.size();
+	}
+
+	@Override
+	public boolean isEmpty() {
+		return internalSet.isEmpty();
+	}
+
+	@Override
+	public boolean contains(Object o) {
+		return internalSet.contains(o);
+	}
+
+	@Override
+	public Iterator<E> iterator() {
+		return internalSet.iterator();
+	}
+
+	@Override
+	public Object[] toArray() {
+		return internalSet.toArray();
+	}
+
+	@Override
+	public <T> T[] toArray(T[] a) {
+		return internalSet.toArray(a);
+	}
+
+	@Override
+	public boolean containsAll(Collection<?> c) {
+		return internalSet.containsAll(c);
+	}
+
+	@Override
+	public void clear() {
+		internalSet.clear();
 	}
 
 }

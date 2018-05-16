@@ -2,9 +2,9 @@ package io.ciera.summit.application;
 
 import io.ciera.summit.components.IComponent;
 
-public interface IActionHome {
+public interface IActionHome<C extends IComponent<C>> {
 	
 	public IRunContext getRunContext();
-	public <E extends IComponent> E getPopulationContext();
+	public C getPopulationContext();
 
 }

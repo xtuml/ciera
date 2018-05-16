@@ -15,7 +15,9 @@ ${attribute_derivation}
         if ( !${self.attribute_name}.equals( this.${self.attribute_name} ) ) {
   .end if
             this.${self.attribute_name} = ${self.attribute_name};
+/* TODO
 ${attribute_propagations}\
+*/
         }
     }
 .end if

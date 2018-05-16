@@ -4,6 +4,6 @@ import io.ciera.summit.exceptions.XtumlException;
 
 public interface IWhere {
 	
-	public <T extends IModelInstance> boolean evaluate( T selected ) throws XtumlException;
+	public boolean evaluate( IModelInstance selected ) throws XtumlException;
 
 }

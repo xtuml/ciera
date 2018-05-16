@@ -21,18 +21,16 @@ extends = self.extends;
 select one file related by self->File[R401];
 imports = file.getFormattedImports();
 
-select many comp_ports related by self->Port[R417];
-if ( not_empty comp_ports )
-  separator = " ";
-  for each port in comp_ports
-    T::b( s:separator );
-    port.render_initializer();
-    separator = ", ";
-  end for;
-  T::b( s:" " );
-end if;
-port_initializers = T::body();
-T::clear();
+instance_extents = "";
+instance_extent_initializers = "";
+separator = "";
+select many classes related by self->Class[R408.''maintains instances of''];
+for each class_in_comp in classes
+  select one class_set related by class_in_comp->ClassSet[R406.''is type of single element in''];
+  instance_extents = instance_extents + separator + "    " + class_set.name + " " + class_in_comp.name + "_extent;";
+  instance_extent_initializers = instance_extent_initializers + separator + "        " + class_in_comp.name + "_extent = new " + class_set.name + "();";
+  separator = "\n";
+end for;
 
 select many funcs related by self->Function[R405.''provides synchronous''];
 for each function in funcs
@@ -63,6 +61,7 @@ end for;
 selectors = T::body();
 T::clear();
 
+select many comp_ports related by self->Port[R417];
 for each port in comp_ports
   port.render_acccessor();
 end for;
@@ -74,14 +73,6 @@ select one init_function related by self->Function[R4561.''initialized by''];
 if ( not_empty init_function )
   init = "        " + init_function.name + "();";
 end if;
-
-//select many classes_in_comp related by self->Class[R408.''maintains instances of''];
-//for each class_in_comp in classes_in_comp
-//  class_in_comp.render();
-//end for;
-//class_sets = T::body();
-//T::clear();
-class_sets = "";
 
 //select many rels_in_comp related by self->RelationshipInComponent[R448];
 //for each rel_in_comp in rels_in_comp

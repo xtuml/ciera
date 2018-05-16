@@ -143,7 +143,7 @@ file.exclude = false;
 // create the component definition object
 create object instance comp_def of ComponentDefinition;
 relate comp_def to file across R401;
-comp_def.extends = "Component";
+comp_def.extends = "Component<" + comp_def.name + ">";
 
 // create universal creator, relator, unrelator
 create object instance universal_creator of UniversalCreator;
@@ -173,28 +173,10 @@ end for;
 
 // transform instance population selectors
 select many objs related by comp_def->Class[R408.''maintains instances of''];
-if ( cardinality objs > 0 )
-  ::addStringToImports( file:file, s:"io.ciera.summit.classes.IWhere" );
-  ::addStringToImports( file:file, s:"io.ciera.summit.classes.IInstanceSet" );
-end if;
 for each obj in objs
-  // create ''any'' selector
-  create object instance any_inst_pop_selector of InstancePopulationSelector;
-  any_inst_pop_selector.name = "selectAnyFromInstances_" + obj.name;
-  any_inst_pop_selector.class_key_letters = obj.key_letters;
-  any_inst_pop_selector.returns_set = false;
-  relate any_inst_pop_selector to comp_def across R447.''selects instances out of population of'';
-  // link type
-  select any s_irdt1 related by obj->O_OBJ[R409.''is transformed from'']->S_IRDT[R123] where ( not selected.isSet );
-  select one s_dt1 related by s_irdt1->S_DT[R17];
-  if ( empty s_dt1 )
-    // TODO bad
-  end if;
-  type1 = UnresolvedType::getInstance( s_dt:s_dt1 );
-  relate type1 to any_inst_pop_selector across R449.''shapes return of'';
   // create ''many'' selector
   create object instance many_inst_pop_selector of InstancePopulationSelector;
-  many_inst_pop_selector.name = "selectManyFromInstances_" + obj.name;
+  many_inst_pop_selector.name = obj.name + "instances";
   many_inst_pop_selector.class_key_letters = obj.key_letters;
   many_inst_pop_selector.returns_set = true;
   relate many_inst_pop_selector to comp_def across R447.''selects instances out of population of'';
@@ -600,7 +582,7 @@ file.exclude = false;
 // create the object
 create object instance obj of Class;
 obj.key_letters = o_obj.Key_Lett;
-obj.extends = "ModelInstance";
+obj.extends = "ModelInstance<" + containing_comp_def.name + ">";
 relate obj to file across R401;
 
 // add the class to the component
@@ -653,10 +635,11 @@ select one set_file related by obj->ClassSet[R406.''is type of single element in
 ::addStringToImports( file: component_file, s:"io.ciera.summit.exceptions.InstancePopulationException" );
 
 // create the import block
+::addFileToImports( file:file, file_to_import:component_file );
+::addStringToImports( file:file, s:"io.ciera.summit.application.IRunContext" );
 ::addStringToImports( file:file, s:"io.ciera.summit.classes.IEmptyInstance" );
-::addStringToImports( file:file, s:"io.ciera.summit.classes.IInstanceSet" );
-::addStringToImports( file:file, s:"io.ciera.summit.components.IComponent" );
-::addStringToImports( file:file, s:"io.ciera.cairn.classes.ModelInstance" );',
+::addStringToImports( file:file, s:"io.ciera.cairn.classes.ModelInstance" );
+',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -703,7 +686,7 @@ ep_pkg = param.ep_pkg;
 // create the class set object
 create object instance objset of ClassSet;
 relate objset to obj across R406;
-objset.extends = "InstanceSet";
+objset.extends = "InstanceSet<" + obj.name + ">";
 
 // create the object file
 create object instance file of File;
@@ -730,7 +713,7 @@ type.default_value = "("  + objset.name + ")(new " + objset.name + "()).toImmuta
 relate type to objset across R407;
 
 // create the import block
-::addStringToImports( file:file, s:"io.ciera.summit.classes.IWhere" );
+::addStringToImports( file:file, s:"io.ciera.summit.classes.IInstanceSet" );
 ::addStringToImports( file:file, s:"io.ciera.cairn.classes.InstanceSet" );',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -1837,32 +1820,6 @@ other_obj = param.other_obj;
 // create set selectors
 select one obj_set related by obj->ClassSet[R406.''is type of single element in''];
 
-// create ''any'' selector
-name3 = "selectAny" + param.target_class_name;
-if ( "" != param.phrase )
-  name3 = name3 + "_" + T::underscore( s:param.phrase ) + "_" + obj.name;
-end if;
-name3 = name3 + "OnR" + STR::itoa( i:param.rel_num );
-create object instance sel3 of Selector;
-sel3.parent_name = obj_set.name;
-sel3.parent_package = obj_set.package;
-sel3.name = name3;
-sel3.phrase = param.phrase;
-sel3.multiplicity = param.mult;
-sel3.returns_set = false;
-create object instance set_sel3 of SetSelector;
-relate set_sel3 to sel3 across R445;
-relate set_sel3 to obj_set across R444.''navigates from'';
-
-// link up type
-select any s_irdt3 related by other_obj->O_OBJ[R409.''is transformed from'']->S_IRDT[R123] where ( not selected.isSet );
-select one s_dt3 related by s_irdt3->S_DT[R17];
-if ( empty s_dt3 )
-  // TODO bad
-end if;
-type3 = UnresolvedType::getInstance( s_dt:s_dt3 );
-relate type3 to sel3 across R446.''shapes return of'';
-
 // create ''many'' selector
 name4 = "selectMany" + param.target_class_name;
 if ( "" != param.phrase )
@@ -1913,7 +1870,6 @@ if ( Mult::ONE == param.mult )
   inst_sel.relationship_cast = param.relationship_cast;
   relate inst_sel to sel across R445;
   relate inst_sel to obj across R442.''navigates from'';
-  relate inst_sel to set_sel3 across R4505.''invoked by'';
   relate inst_sel to set_sel4 across R4505.''invoked by'';
 
   // link up type
@@ -1927,38 +1883,6 @@ if ( Mult::ONE == param.mult )
 
 else
   
-  // create ''any'' selector
-  name1 = "selectAny" + param.target_class_name;
-  if ( "" != param.phrase )
-    name1 = name1 + "_" + T::underscore( s:param.phrase ) + "_" + obj.name;
-  end if;
-  name1 = name1 + "OnR" + STR::itoa( i:param.rel_num );
-  create object instance sel1 of Selector;
-  sel1.parent_name = obj.name;
-  sel1.parent_package = obj.package;
-  sel1.name = name1;
-  sel1.phrase = param.phrase;
-  sel1.multiplicity = Mult::MANY;
-  sel1.returns_set = false;
-  create object instance inst_sel1 of InstanceSelector;
-  inst_sel1.rel_num = param.rel_num;
-  inst_sel1.conditionality = param.cond;
-  inst_sel1.src_class = param.src_class;
-  inst_sel1.dst_class = param.dst_class;
-  inst_sel1.relationship_cast = param.relationship_cast;
-  relate inst_sel1 to sel1 across R445;
-  relate inst_sel1 to obj across R442.''navigates from'';
-  relate inst_sel1 to set_sel3 across R4505.''invoked by'';
-
-  // link up type
-  select any s_irdt1 related by other_obj->O_OBJ[R409.''is transformed from'']->S_IRDT[R123] where ( not selected.isSet );
-  select one s_dt1 related by s_irdt1->S_DT[R17];
-  if ( empty s_dt1 )
-    // TODO bad
-  end if;
-  type1 = UnresolvedType::getInstance( s_dt:s_dt1 );
-  relate type1 to sel1 across R446.''shapes return of'';
-
   // create ''many'' selector
   name2 = "selectMany" + param.target_class_name;
   if ( "" != param.phrase )
@@ -1997,9 +1921,7 @@ end if;
 select one file related by obj->File[R401];
 ::addStringToImports( file:file, s:"java.util.Set" );
 ::addStringToImports( file:file, s:"io.ciera.summit.exceptions.XtumlException" );
-::addStringToImports( file:file, s:"io.ciera.summit.classes.IWhere" );
 ::addStringToImports( file:file, s:"io.ciera.summit.classes.IRelationship" );
-::addStringToImports( file:file, s:"io.ciera.summit.classes.IModelInstance" );
 if ( Cond::UNCONDITIONAL == param.cond or Mult::ONE == param.mult )
   ::addStringToImports( file:file, s:"io.ciera.summit.exceptions.ModelIntegrityException" );
 end if;
@@ -2011,10 +1933,7 @@ end if;
 
 // add imports to object set file
 select one set_file related by obj_set->File[R401];
-::addStringToImports( file:set_file, s:"io.ciera.summit.exceptions.XtumlException" );
-::addStringToImports( file:set_file, s:"io.ciera.summit.classes.IWhere" );
-::addStringToImports( file:set_file, s:"io.ciera.summit.classes.IModelInstance" );
-::addStringToImports( file:set_file, s:"io.ciera.summit.classes.IEmptyInstance" );',
+::addStringToImports( file:set_file, s:"io.ciera.summit.exceptions.XtumlException" );',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -2665,6 +2584,13 @@ for each attr in attrs
                                                                                                                                                 selected.class_package == referred_to_attr.class_package and
                                                                                                                                                 selected.rel_num == relationship.num and
                                                                                                                                                 selected.phrase == attr_ref.phrase );
+    if ( empty selector )
+      select any irdt related by attr->Class[R410.''abstracts data for'']->O_OBJ[R409.''is transformed from'']->S_IRDT[R123] where ( selected.isSet );
+      select any selector related by irdt->S_DT[R17]->Type[R423.''is basis of'']->Selector[R446.''shapes return of'']->InstanceSelector[R445] where ( selected.class_name == referred_to_attr.class_name and
+                                                                                                                                                  selected.class_package == referred_to_attr.class_package and
+                                                                                                                                                  selected.rel_num == relationship.num and
+                                                                                                                                                  selected.phrase == attr_ref.phrase );
+    end if;
     create object instance propagation of AttributePropagation;
     relate accessor to propagation across R4507.''propagates values via'';
     relate selector to propagation across R4509.''provides instance for'';

@@ -7,9 +7,11 @@ public class ${self.name} extends ${self.extends} {
     public static final String KEY_LETTERS = "${self.key_letters}";
     public static final ${self.name} EMPTY_$u_{self.name} = new Empty${self.name}();
 
+    private ${self.comp_name} context;
+
     // constructor
     public ${self.name}( ${self.comp_name} context ) {
-        super( context );
+        this.context = context;
 ${attribute_initializers}
     }
     
@@ -21,6 +23,17 @@ ${operations}
     
     // selections
 ${selectors}
+
+    @Override
+    public IRunContext getRunContext() {
+        //return getPopulationContext().getRunContext(); // TODO
+        return null;
+    }
+
+    @Override
+    public ${self.comp_name} getPopulationContext() {
+        return context;
+    }
 
     @Override
     public String getKeyLetters() {

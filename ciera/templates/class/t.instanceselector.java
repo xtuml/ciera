@@ -1,8 +1,4 @@
     public ${type_name} ${self.name}() throws XtumlException {
-        return ${self.name}( null );
-    }
-
-    public ${type_name} ${self.name}( IWhere condition ) throws XtumlException {
 .if ( returns_set )
         ${type_name} $l{type_name} = new ${type_name}();
 .end if
@@ -16,34 +12,13 @@
 .end if
 .if ( returns_set )
         for ( IRelationship r$t{self.rel_num} : R$t{self.rel_num}set ) {
-            IModelInstance candidate = getPopulationContext().getInstanceSet( $l{type_name}.getKeyLetters() ).getByInstanceId( ((${self.relationship_cast})r$t{self.rel_num}).get$c{self.dst_class}() );
-            if ( null == condition || condition.passes( candidate ) ) $l{type_name}.add( candidate );
+            $l{type_name}.add( getPopulationContext().${target_class_name}instances().getByInstanceId( ((${self.relationship_cast})r$t{self.rel_num}).get$c{self.dst_class}() ) );
         }
         return (${type_name})$l{type_name}.toImmutableSet();
 .else
-  .if ( multiplicity_many )
-        for ( IRelationship r$t{self.rel_num} : R$t{self.rel_num}set ) {
-            IModelInstance candidate = getPopulationContext().getInstanceSet( ${type_name}.KEY_LETTERS ).getByInstanceId( ((${self.relationship_cast})r$t{self.rel_num}).get$c{self.dst_class}() );
-  .else
         if ( 1 == R$t{self.rel_num}set.size() ) {
-            IModelInstance candidate = getPopulationContext().getInstanceSet( ${type_name}.KEY_LETTERS ).getByInstanceId( ((${self.relationship_cast})R$t{self.rel_num}set.iterator().next()).get$c{self.dst_class}() );
-  .end if
-            if ( \
-  .if ( "subtype" == self->dst_class )
-candidate instanceof ${type_name} && ( \
-  .end if
-null == condition || condition.passes( candidate )\
-  .if ( "subtype" == self->dst_class )
- )\
-  .end if
- ) return (${type_name})candidate;
-  .if ( multiplicity_many )
-        }
-        return ${type_name}.EMPTY_$u_{type_name};
-  .else
-            else return ${type_name}.EMPTY_$u_{type_name};
+            return (${type_name})getPopulationContext().${target_class_name}instances().getByInstanceId( ((${self.relationship_cast})R$t{self.rel_num}set.iterator().next()).get$c{self.dst_class}() );
         }
         else throw new ModelIntegrityException( "Association with multiplicity 'one' has more than one related instance." );
-  .end if
 .end if
     }

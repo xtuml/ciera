@@ -1,11 +1,10 @@
 package io.ciera.summit.classes;
 
-import io.ciera.summit.application.IActionHome;
 import io.ciera.summit.exceptions.XtumlException;
 
-public interface IModelInstance extends IActionHome {
+public interface IModelInstance {
     
-    public String getKeyLetters();
+	public String getKeyLetters();
     public UniqueId getInstanceId();
     public IInstanceIdentifier getId1();
     public IInstanceIdentifier getId2();

@@ -2,39 +2,29 @@ package io.ciera.cairn.classes;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Predicate;
 
 import io.ciera.cairn.types.Set;
 import io.ciera.summit.classes.IEmptyInstance;
 import io.ciera.summit.classes.IInstanceIdentifier;
 import io.ciera.summit.classes.IInstanceSet;
 import io.ciera.summit.classes.IModelInstance;
+import io.ciera.summit.classes.IWhere;
 import io.ciera.summit.classes.UniqueId;
 import io.ciera.summit.exceptions.BadArgumentException;
 import io.ciera.summit.exceptions.XtumlException;
 
 public abstract class InstanceSet<E extends IModelInstance> extends Set<E> implements IInstanceSet<E> {
-    
-	private static final long serialVersionUID = 1L;
 
-	private String keyLetters;
-	
 	private Map<UniqueId, E> instanceIdSet;
 	private Map<IInstanceIdentifier, E> id1Set;
 	private Map<IInstanceIdentifier, E> id2Set;
 	private Map<IInstanceIdentifier, E> id3Set;
 	
-	public InstanceSet( String keyLetters ) {
-		this.keyLetters = keyLetters;
+	public InstanceSet() {
 		instanceIdSet = new HashMap<>();
 		id1Set = new HashMap<>();
 		id2Set = new HashMap<>();
 		id3Set = new HashMap<>();
-	}
-
-	@Override
-	public String getKeyLetters() {
-		return keyLetters;
 	}
 
 	@Override
@@ -100,20 +90,20 @@ public abstract class InstanceSet<E extends IModelInstance> extends Set<E> imple
 	}
 
 	@Override
-	public E anyWhere( Predicate<E> test ) throws XtumlException {
-		if ( null == test ) throw new BadArgumentException( "Null test passed to selection" );
+	public E anyWhere( IWhere condition ) throws XtumlException {
+		if ( null == condition ) throw new BadArgumentException( "Null condition passed to selection" );
 	    for ( E selected : this ) {
-			if ( test.test( selected ) ) return selected;
+			if ( condition.evaluate( selected ) ) return selected;
 		}
 	    return emptyInstance();
 	}
 
 	@Override
-	public IInstanceSet<E> manyWhere( Predicate<E> test ) throws XtumlException {
-		if ( null == test ) throw new BadArgumentException( "Null test passed to selection" );
+	public IInstanceSet<E> manyWhere( IWhere condition ) throws XtumlException {
+		if ( null == condition ) throw new BadArgumentException( "Null condition passed to selection" );
 		IInstanceSet<E> resultSet = emptySet();
 	    for ( E selected : this ) {
-			if ( test.test( selected ) ) resultSet.add( selected );
+			if ( condition.evaluate( selected ) ) resultSet.add( selected );
 		}
 		return (IInstanceSet<E>)resultSet.toImmutableSet();
 	}

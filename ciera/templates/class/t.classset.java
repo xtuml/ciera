@@ -4,11 +4,16 @@ ${imports}
 
 public class ${self.name} extends ${self.extends} {
 
-    public ${self.name}() {
-        super( ${self.class_name}.KEY_LETTERS );
-    }
-
     // selections
 ${selectors}
+
+    @Override
+    public ${self.class_name} emptyInstance() {
+        return ${self.class_name}.EMPTY_${self.class_name};
+    }
+    @Override
+    public IInstanceSet<${self.class_name}> emptySet() {
+      return new ${self.name}();
+    }
 
 }

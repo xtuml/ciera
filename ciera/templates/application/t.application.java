@@ -4,11 +4,11 @@ ${imports}
 
 public class ${self.name} implements IApplication {
 
-    IComponent[] components;
+    IComponent<?>[] components;
     IRunContext[] executors;
 
     public ${self.name}() {
-        components = new IComponent[$t{num_component_instances}];
+        components = new IComponent<?>[$t{num_component_instances}];
         executors = new IRunContext[$t{num_executors}];
     }
 
@@ -21,7 +21,7 @@ ${component_instantiations}
 
     @Override
     public void initialize() {
-        for ( IComponent component : components ) {
+        for ( IComponent<?> component : components ) {
             component.getRunContext().execute( new GenericExecutionTask() {
                 @Override
                 public void run() throws XtumlException {

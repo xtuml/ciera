@@ -1,5 +1,6 @@
 package io.ciera.cairn.classes;
 
+import io.ciera.summit.application.IActionHome;
 import io.ciera.summit.application.IRunContext;
 import io.ciera.summit.classes.IEmptyInstance;
 import io.ciera.summit.classes.IInstanceIdentifier;
@@ -9,7 +10,7 @@ import io.ciera.summit.components.IComponent;
 import io.ciera.summit.exceptions.DeletedInstanceException;
 import io.ciera.summit.exceptions.XtumlException;
 
-public abstract class ModelInstance implements IModelInstance {
+public abstract class ModelInstance<C extends IComponent<C>> implements IModelInstance, IActionHome<C> {
     
 
     private UniqueId instanceId;
@@ -27,11 +28,6 @@ public abstract class ModelInstance implements IModelInstance {
     @Override
     public void checkLiving() throws XtumlException {
         if ( instanceId.isNull() ) throw new DeletedInstanceException( "Access of deleted instance " );
-    }
-    
-    @Override
-    public IRunContext getRunContext() {
-    	return getPopulationContext().getRunContext();
     }
     
     @Override
@@ -63,7 +59,7 @@ public abstract class ModelInstance implements IModelInstance {
     }
     
     // empty instance
-    public static final ModelInstance emptyModelInstance = new EmptyModelInstance();
+    public static final ModelInstance<?> emptyModelInstance = new EmptyModelInstance<>();
 
 	@Override
 	public IInstanceIdentifier getId1() {
@@ -82,7 +78,7 @@ public abstract class ModelInstance implements IModelInstance {
 
 }
 
-class EmptyModelInstance extends ModelInstance implements IEmptyInstance {
+class EmptyModelInstance<C extends IComponent<C>> extends ModelInstance<C> implements IEmptyInstance {
 
 	@Override
     public String getKeyLetters() {
@@ -90,7 +86,12 @@ class EmptyModelInstance extends ModelInstance implements IEmptyInstance {
     }
 
 	@Override
-	public <E extends IComponent> E getPopulationContext() {
+	public IRunContext getRunContext() {
+		return null;
+	}
+
+	@Override
+	public C getPopulationContext() {
 		return null;
 	}
 

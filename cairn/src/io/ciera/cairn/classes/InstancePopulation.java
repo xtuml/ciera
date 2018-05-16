@@ -1,9 +1,11 @@
 package io.ciera.cairn.classes;
 
+import java.lang.reflect.Method;
 import java.util.Map;
 
 import io.ciera.summit.classes.IEmptyInstance;
 import io.ciera.summit.classes.IInstancePopulation;
+import io.ciera.summit.classes.IInstanceSet;
 import io.ciera.summit.classes.IModelInstance;
 import io.ciera.summit.classes.IRelationship;
 import io.ciera.summit.classes.IRelationshipSet;
@@ -24,14 +26,28 @@ public abstract class InstancePopulation implements IInstancePopulation {
 	public boolean addInstance( IModelInstance instance ) throws XtumlException {
     	if ( null == instance ) throw new BadArgumentException( "Null instance passed." );
     	if ( instance instanceof IEmptyInstance ) throw new EmptyInstanceException( "Cannot add empty instance to population." );
-    	return getInstanceSet( instance.getKeyLetters() ).add( instance );
+    	// TODO don't use reflection here. it is a temporary hack
+    	try {
+    	    Method selector = this.getClass().getMethod( instance.getClass().getName() + "instances" );
+    		return ((IInstanceSet<IModelInstance>)selector.invoke( this )).add( instance );
+    	}
+    	catch ( Exception e ) {
+    		return false;
+    	}
 	}
 
 	@Override
 	public boolean removeInstance( IModelInstance instance ) throws XtumlException {
     	if ( null == instance ) throw new BadArgumentException( "Null instance passed." );
     	if ( instance instanceof IEmptyInstance ) throw new EmptyInstanceException( "Cannot remove empty instance from population." );
-    	return getInstanceSet( instance.getKeyLetters() ).remove( instance );
+        // TODO don't use reflection here. it is a temporary hack
+    	try {
+    	    Method selector = this.getClass().getMethod( instance.getClass().getName() + "instances" );
+    		return ((IInstanceSet<IModelInstance>)selector.invoke( this )).remove( instance );
+    	}
+    	catch ( Exception e ) {
+    		return false;
+    	}
 	}
 
     @Override
