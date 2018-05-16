@@ -1,6 +1,6 @@
 #!/bin/bash
-GEN_ERATE=~/xtuml/$BPVER/BridgePoint.app/Contents/Eclipse/tools/mc/bin/gen_erate-v0.6.0.pyz
-OOA_SCHEMA=~/xtuml/$BPVER/BridgePoint.app/Contents/Eclipse/tools/mc/schema/sql/xtumlmc_schema.sql
+GEN_ERATE=~/bin/gen_erate.pyz
+OOA_SCHEMA=$BPHOME/tools/mc/schema/sql/xtumlmc_schema.sql
 if [[ $# > 0 ]]; then
   IMPORT_FILES=
   ARCHETYPE=

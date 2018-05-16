@@ -93,8 +93,6 @@
   .select any attr_smt from instances of ACT_SMT where ( false )
   .assign attr_in_for_while = in_for_while
   .select one current_block related by smt->ACT_BLK[R602]
-  .invoke result = get_unique_id_dt_id()
-  .assign unique_id = result.dt_id
   .select one if_smt related by smt->ACT_IF[R603]
   .select one elif_smt related by smt->ACT_EL[R603]
   .select one else_smt related by smt->ACT_E[R603]
@@ -255,13 +253,13 @@
 .function check_creates
   .select many bodies from instances of ACT_ACT
   .invoke result = get_unique_id_dt_id()
-  .assign unique_id = result.dt_id
+  .assign uniq_id = result.dt_id
   .for each body in bodies
     .// get all create no variables. For these statements, they are invalide
     .// unless they have no identifying attributes
     .select many create_nv_smts related by body->ACT_BLK[R601]->ACT_SMT[R602]->ACT_CNV[R603]
     .for each create_nv_smt in create_nv_smts
-      .select any id_attr related by create_nv_smt->O_OBJ[R672]->O_ID[R104]->O_OIDA[R105]->O_ATTR[R105] where ( selected.DT_ID != unique_id )
+      .select any id_attr related by create_nv_smt->O_OBJ[R672]->O_ID[R104]->O_OIDA[R105]->O_ATTR[R105] where ( selected.DT_ID != uniq_id )
       .if ( not_empty id_attr )
         .select one smt related by create_nv_smt->ACT_SMT[R603]
         .select one obj related by create_nv_smt->O_OBJ[R672]
@@ -281,7 +279,7 @@
         .// unique_id attrs are automatically initialized
         .select one attr related by oida->O_ATTR[R105]
         .create object instance oidi of O_OIDI
-        .assign oidi.initialized = ( attr.DT_ID == unique_id )
+        .assign oidi.initialized = ( attr.DT_ID == uniq_id )
         .relate oidi to var across R199
         .relate oidi to oida across R199
         .relate oidi to block across R198
@@ -492,4 +490,4 @@
 .//
 .//------ MAIN CODE -------//
 .invoke analyze()
-.invoke display_warnings()
+.invoke display_warnings( "id_check" )

@@ -53,4 +53,4 @@
 .//
 .//------ MAIN CODE -------//
 .invoke analyze()
-.invoke display_warnings()
+.invoke display_warnings( "model_check" )

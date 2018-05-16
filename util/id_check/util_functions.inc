@@ -17,6 +17,7 @@
 .end function
 .//
 .function display_warnings
+  .param string source
   .// display all the warnings sorting them first by body label
   .// then by line number. This is an extremely simple and inefficient
   .// sort.
@@ -39,12 +40,13 @@
     .//
     .// display the warning
     .if ( ( "" == warning.BodyLabel ) and ( 0 == warning.LineNumber ) )
-      .print "Warning: ${warning.Message}"
+"Warning: ${warning.Message}"\
     .else
-      .print "Warning: ${warning.BodyLabel} line: ${warning.LineNumber} -- ${warning.Message}"
+"Warning: ${warning.BodyLabel} line: ${warning.LineNumber} -- ${warning.Message}"\
     .end if
     .// delete the warning
     .delete object instance warning
     .select any warning from instances of INT_WARN
   .end while
+  .emit to file "${source}.warnings.txt"
 .end function
