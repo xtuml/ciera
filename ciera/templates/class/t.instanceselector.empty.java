@@ -1,7 +1,7 @@
 .if ( returns_set )
     @Override
     public ${type_name} ${self.name}() {
-        return (${type_name})(new ${type_name}()).toImmutableSet();
+        return (new ${type_name}()).toImmutableSet();
     }
 .else
     @Override

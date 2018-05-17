@@ -146,8 +146,6 @@ relate comp_def to file across R401;
 comp_def.extends = "Component<" + comp_def.name + ">";
 
 // create universal creator, relator, unrelator
-create object instance universal_creator of UniversalCreator;
-relate universal_creator to comp_def across R4564.''adds instances to population of'';
 create object instance universal_relator of UniversalRelator;
 relate universal_relator to comp_def across R4565.''instances linked in population of'';
 create object instance universal_unrelator of UniversalUnrealtor;
@@ -638,6 +636,7 @@ select one set_file related by obj->ClassSet[R406.''is type of single element in
 ::addFileToImports( file:file, file_to_import:component_file );
 ::addStringToImports( file:file, s:"io.ciera.summit.application.IRunContext" );
 ::addStringToImports( file:file, s:"io.ciera.summit.classes.IEmptyInstance" );
+::addStringToImports( file:file, s:"io.ciera.summit.exceptions.InstancePopulationException" );
 ::addStringToImports( file:file, s:"io.ciera.cairn.classes.ModelInstance" );
 ',
 	"ba5eda7a-def5-0000-0000-000000000000",
@@ -683,11 +682,6 @@ INSERT INTO S_SYNC
 	'obj = param.obj;
 ep_pkg = param.ep_pkg;
 
-// create the class set object
-create object instance objset of ClassSet;
-relate objset to obj across R406;
-objset.extends = "InstanceSet<" + obj.name + ">";
-
 // create the object file
 create object instance file of File;
 file.name = obj.name + "Set";
@@ -696,7 +690,11 @@ file.package = ::pathToPackage( path:file.path );
 file.extension = ".java";
 file.exclude = false;
 
+// create the class set object
+create object instance objset of ClassSet;
+relate objset to obj across R406;
 relate objset to file across R401;
+objset.extends = "InstanceSet<" + objset.name + "," + obj.name + ">";
 
 // create the instance type
 create object instance type of Type;
@@ -713,7 +711,6 @@ type.default_value = "("  + objset.name + ")(new " + objset.name + "()).toImmuta
 relate type to objset across R407;
 
 // create the import block
-::addStringToImports( file:file, s:"io.ciera.summit.classes.IInstanceSet" );
 ::addStringToImports( file:file, s:"io.ciera.cairn.classes.InstanceSet" );',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -3116,7 +3113,7 @@ if ( parm.name == "populationContext" )
   // create named reference
   create object instance named_ref of NamedReference;
   relate named_ref to expr across R776;
-  named_ref.name = "getPopulationContext()";
+  named_ref.name = "population()";
 else
   select one v_val related by v_par->V_VAL[R800];
   if ( not_empty v_val )

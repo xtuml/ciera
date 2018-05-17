@@ -4,9 +4,12 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 
+import io.ciera.summit.classes.IWhere;
+import io.ciera.summit.exceptions.BadArgumentException;
+import io.ciera.summit.exceptions.XtumlException;
 import io.ciera.summit.types.ISet;
 
-public class Set<E> implements ISet<E> {
+public abstract class Set<S extends ISet<S,E>,E> implements ISet<S,E> {
 
 
 	private boolean immutable;
@@ -33,37 +36,63 @@ public class Set<E> implements ISet<E> {
 	}
 
 	@Override
-	public ISet<E> union( ISet<E> set ) {
-		ISet<E> returnSet = new Set<>( this );
+	public S union( S set ) {
+		S returnSet = emptySet();
+		returnSet.addAll( this );
 		returnSet.addAll( set );
 		return returnSet.toImmutableSet();
 	}
 
 	@Override
-	public ISet<E> intersection( ISet<E> set ) {
-		ISet<E> returnSet = new Set<>( this );
+	public S intersection( S set ) {
+		S returnSet = emptySet();
+		returnSet.addAll( this );
 		returnSet.retainAll( set );       
-		return returnSet;
+		return returnSet.toImmutableSet();
 	}
 
 	@Override
-	public ISet<E> difference( ISet<E> set ) {
-		ISet<E> returnSet = new Set<>( this );
+	public S difference( S set ) {
+		S returnSet = emptySet();
+		returnSet.addAll( this );
 		returnSet.removeAll( set );
-		return returnSet;
+		return returnSet.toImmutableSet();
 	}
 
 	@Override
-	public ISet<E> disunion( ISet<E> set ) {
-		ISet<E> returnSet = this.union( set );
-		returnSet.removeAll( this.intersection( set ) );
-		return returnSet;
+	public S disunion( S set ) {
+		S returnSet = union( set );
+		returnSet.removeAll( intersection( set ) );
+		return returnSet.toImmutableSet();
 	}
 
 	@Override
-	public ISet<E> toImmutableSet() {
+	public E any() {
+		if ( !isEmpty() ) return iterator().next();
+		else return nullElement();
+	}
+
+	@Override
+	public S where( IWhere<E> condition ) throws XtumlException {
+		if ( null == condition ) throw new BadArgumentException( "Null condition passed to selection." );
+		S resultSet = emptySet();
+	    for ( E selected : this ) {
+			if ( condition.evaluate( selected ) ) resultSet.add( selected );
+		}
+		return resultSet.toImmutableSet();
+	}
+	
+	@Override
+	public void setImmutable() {
 		immutable = true;
-		return this;
+	}
+
+	@Override
+	public S toImmutableSet() {
+		S returnSet = emptySet();
+		returnSet.addAll( this );
+		returnSet.setImmutable();
+		return returnSet;
 	}
 
 	@Override
@@ -147,5 +176,5 @@ public class Set<E> implements ISet<E> {
 	public void clear() {
 		internalSet.clear();
 	}
-
+	
 }

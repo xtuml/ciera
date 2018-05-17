@@ -2,13 +2,22 @@ package io.ciera.summit.types;
 
 import java.util.Set;
 
-public interface ISet<E> extends Set<E> {
+import io.ciera.summit.classes.IWhere;
+import io.ciera.summit.exceptions.XtumlException;
+
+public interface ISet<S extends ISet<S,E>, E> extends Set<E> {
 	
-	ISet<E> union( ISet<E> set );
-	ISet<E> intersection( ISet<E> set );
-	ISet<E> difference( ISet<E> set );
-	ISet<E> disunion( ISet<E> set );
+	public S union( S set );
+	public S intersection( S set );
+	public S difference( S set );
+	public S disunion( S set );
 	
-	ISet<E> toImmutableSet();
+	public E any();
+	public S where( IWhere<E> condition ) throws XtumlException;
+	
+	public void setImmutable();
+	public S toImmutableSet();
+	public E nullElement();
+	public S emptySet();
 
 }

@@ -8,6 +8,7 @@ import io.ciera.summit.classes.IModelInstance;
 import io.ciera.summit.classes.UniqueId;
 import io.ciera.summit.components.IComponent;
 import io.ciera.summit.exceptions.DeletedInstanceException;
+import io.ciera.summit.exceptions.InstancePopulationException;
 import io.ciera.summit.exceptions.XtumlException;
 
 public abstract class ModelInstance<C extends IComponent<C>> implements IModelInstance, IActionHome<C> {
@@ -34,6 +35,7 @@ public abstract class ModelInstance<C extends IComponent<C>> implements IModelIn
     public void delete() throws XtumlException {
         checkLiving();
         instanceId.nullify();
+        if ( !population().removeInstance( this ) ) throw new InstancePopulationException( "Instance does not exist within this population." );
     }
 
     @Override
@@ -91,7 +93,7 @@ class EmptyModelInstance<C extends IComponent<C>> extends ModelInstance<C> imple
 	}
 
 	@Override
-	public C getPopulationContext() {
+	public C population() {
 		return null;
 	}
 

@@ -8,11 +8,11 @@ public class ${self.name} extends ${self.extends} {
 ${selectors}
 
     @Override
-    public ${self.class_name} emptyInstance() {
+    public ${self.class_name} nullElement() {
         return ${self.class_name}.EMPTY_${self.class_name};
     }
     @Override
-    public IInstanceSet<${self.class_name}> emptySet() {
+    public ${self.name} emptySet() {
       return new ${self.name}();
     }
 

@@ -8,12 +8,9 @@ import io.ciera.summit.classes.IEmptyInstance;
 import io.ciera.summit.classes.IInstanceIdentifier;
 import io.ciera.summit.classes.IInstanceSet;
 import io.ciera.summit.classes.IModelInstance;
-import io.ciera.summit.classes.IWhere;
 import io.ciera.summit.classes.UniqueId;
-import io.ciera.summit.exceptions.BadArgumentException;
-import io.ciera.summit.exceptions.XtumlException;
 
-public abstract class InstanceSet<E extends IModelInstance> extends Set<E> implements IInstanceSet<E> {
+public abstract class InstanceSet<S extends IInstanceSet<S,E>,E extends IModelInstance> extends Set<S,E> implements IInstanceSet<S,E> {
 
 	private Map<UniqueId, E> instanceIdSet;
 	private Map<IInstanceIdentifier, E> id1Set;
@@ -80,32 +77,4 @@ public abstract class InstanceSet<E extends IModelInstance> extends Set<E> imple
 		return id1Set.get( id3 );
 	}
 	
-	@Override
-	public E any() {
-		E instance = null;
-		try {
-		  instance = anyWhere( selected -> true );
-		} catch ( XtumlException e ) { /* cannot happen */ }
-		return instance;
-	}
-
-	@Override
-	public E anyWhere( IWhere condition ) throws XtumlException {
-		if ( null == condition ) throw new BadArgumentException( "Null condition passed to selection" );
-	    for ( E selected : this ) {
-			if ( condition.evaluate( selected ) ) return selected;
-		}
-	    return emptyInstance();
-	}
-
-	@Override
-	public IInstanceSet<E> manyWhere( IWhere condition ) throws XtumlException {
-		if ( null == condition ) throw new BadArgumentException( "Null condition passed to selection" );
-		IInstanceSet<E> resultSet = emptySet();
-	    for ( E selected : this ) {
-			if ( condition.evaluate( selected ) ) resultSet.add( selected );
-		}
-		return (IInstanceSet<E>)resultSet.toImmutableSet();
-	}
-
 }

@@ -14,6 +14,12 @@ public class ${self.name} extends ${self.extends} {
         this.context = context;
 ${attribute_initializers}
     }
+
+    public static ${self.name} create( ${self.comp_name} context ) throws XtumlException {
+        ${self.name} new${self.name} = new ${self.name}( context );
+        if ( context.addInstance( new${self.name} ) ) return new${self.name};
+        else throw new InstancePopulationException( "Instance already exists within this population." );
+    }
     
     // attributes
 ${attributes}
@@ -26,12 +32,11 @@ ${selectors}
 
     @Override
     public IRunContext getRunContext() {
-        //return getPopulationContext().getRunContext(); // TODO
-        return null;
+        return population().getRunContext();
     }
 
     @Override
-    public ${self.comp_name} getPopulationContext() {
+    public ${self.comp_name} population() {
         return context;
     }
 
