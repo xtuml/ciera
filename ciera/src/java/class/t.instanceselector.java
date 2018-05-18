@@ -16,15 +16,17 @@ T_b("();");
 T_b("\n");
 }
 T_b("        ");
-T_b("Set<IRelationship> R");
+T_b("IRelationshipSet R");
 T_b(T_s(self->rel_num));
-T_b("set = ((");
-T_b(self->relationship_cast);
-T_b("Set)population().getRelationshipSet( ");
-T_b(T_s(self->rel_num));
-T_b(" )).getBy");
-T_b(T_c(self->src_class));
-T_b("Id( getInstanceId() );");
+T_b("set = population().");
+T_b(selector_name);
+T_b("().get");
+if ( self->formalizer ) {
+T_b("Participating");
+} else {
+T_b("Formalizing");
+}
+T_b("( getInstanceId() );");
 T_b("\n");
 if ( unconditional ) {
 T_b("        ");
@@ -55,12 +57,14 @@ T_b("set ) ");
 T_b(T_l(type_name));
 T_b(".add( population().");
 T_b(target_class_name);
-T_b("_instances().getByInstanceId( ((");
-T_b(self->relationship_cast);
-T_b(")r");
+T_b("_instances().getByInstanceId( r");
 T_b(T_s(self->rel_num));
-T_b(").get");
-T_b(T_c(self->dst_class));
+T_b(".get");
+if ( self->formalizer ) {
+T_b("Part");
+} else {
+T_b("Form");
+}
 T_b("() ) );");
 T_b("\n");
 T_b("        ");
@@ -74,12 +78,14 @@ T_b("if ( 1 == R");
 T_b(T_s(self->rel_num));
 T_b("set.size() ) return population().");
 T_b(target_class_name);
-T_b("_instances().getByInstanceId( ((");
-T_b(self->relationship_cast);
-T_b(")R");
+T_b("_instances().getByInstanceId( R");
 T_b(T_s(self->rel_num));
-T_b("set.iterator().next()).get");
-T_b(T_c(self->dst_class));
+T_b("set.iterator().next().get");
+if ( self->formalizer ) {
+T_b("Part");
+} else {
+T_b("Form");
+}
 T_b("() );");
 T_b("\n");
 T_b("        ");

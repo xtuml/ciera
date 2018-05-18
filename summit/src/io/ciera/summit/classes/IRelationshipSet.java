@@ -1,9 +1,12 @@
 package io.ciera.summit.classes;
 
-import java.util.Set;
+import io.ciera.summit.exceptions.XtumlException;
+import io.ciera.summit.types.ISet;
 
-public interface IRelationshipSet extends Set<IRelationship> {
+public interface IRelationshipSet extends ISet<IRelationshipSet,IRelationship> {
 	
-	public int getNumber();
+	public IRelationshipSet getFormalizing( UniqueId part ) throws XtumlException;
+	public IRelationshipSet getParticipating( UniqueId form ) throws XtumlException;
+	public IRelationship get( UniqueId form, UniqueId part ) throws XtumlException;
 
 }

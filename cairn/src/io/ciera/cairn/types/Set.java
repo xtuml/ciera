@@ -4,10 +4,10 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 
-import io.ciera.summit.classes.IWhere;
 import io.ciera.summit.exceptions.BadArgumentException;
 import io.ciera.summit.exceptions.XtumlException;
 import io.ciera.summit.types.ISet;
+import io.ciera.summit.types.IWhere;
 
 public abstract class Set<S extends ISet<S,E>,E> implements ISet<S,E> {
 
@@ -97,14 +97,14 @@ public abstract class Set<S extends ISet<S,E>,E> implements ISet<S,E> {
 
 	@Override
 	public boolean add( E e ) {
-		if ( immutable ) return false;
-		else return add( e );
+		if ( immutable || null == e || e.equals( nullElement() ) ) return false;
+		else return internalSet.add( e );
 	}
 
 	@Override
 	public boolean remove(Object o) {
-		if ( immutable ) return false;
-		else return remove( o );
+		if ( immutable || null == o || o.equals( nullElement() ) ) return false;
+		else return internalSet.remove( o );
 	}
 
 	@Override

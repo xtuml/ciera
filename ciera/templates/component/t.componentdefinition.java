@@ -7,23 +7,25 @@ public class ${self.name} extends ${self.extends} {
     private IRunContext runContext;
 
 ${instance_extents}
+${relationship_extents}
 
     public ${self.name}( IRunContext runContext ) {
         this.runContext = runContext;
 ${instance_extent_initializers}
+${relationship_extent_initializers}
     }
 
     // domain functions
 ${functions}
 
-    // relates
-${relates}
-
-    // unrelates
-${unrelates}
+    // relates and unrelates
+${relationship_modifiers}
     
-    // selections
-${selectors}
+    // instance selections
+${instance_selectors}
+
+    // relationship selections
+${relationship_selectors}
 
     // ports
     /*
@@ -53,22 +55,13 @@ ${instance_removes}
     }
 
     @Override
-    public Map<Integer, IRelationshipSet> initializeRelationshipSets() {
-        Map<Integer, IRelationshipSet> relationships  = new HashMap<>();
-${relationship_sets}\
-        return relationships;
+    public IRunContext getRunContext() {
+        return runContext;
     }
 
     @Override
-      public IRunContext getRunContext() {
-            return runContext;
-      }
-
-      @Override
-      public ${self.name} population() {
-            return this;
-      }
-
-${relationships}
+    public ${self.name} population() {
+        return this;
+    }
 
 }

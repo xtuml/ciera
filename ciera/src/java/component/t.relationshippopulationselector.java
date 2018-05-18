@@ -1,13 +1,11 @@
 T_b("    ");
-T_b("public ");
-T_b(set_name);
-T_b(" ");
+T_b("public IRelationshipSet ");
 T_b(self->name);
 T_b("() throws XtumlException {");
 T_b("\n");
 T_b("        ");
 T_b("return ");
-T_b(self->class_name);
+T_b(self->rel_name);
 T_b("_extent.toImmutableSet();");
 T_b("\n");
 T_b("    ");

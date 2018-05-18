@@ -38,6 +38,17 @@ for each class_in_comp in classes
   separator = "\n";
 end for;
 
+relationship_extents = "";
+relationship_extent_initializers = "";
+separator = "";
+test = "if";
+select many relationships related by self->Relationship[R448.''maintains instances of''];
+for each rel in relationships
+  relationship_extents = relationship_extents + separator + "    IRelationshipSet " + rel.name + "_extent;";
+  relationship_extent_initializers = relationship_extent_initializers + separator + "        " + rel.name + "_extent = new RelationshipSet();";
+  separator = "\n";
+end for;
+
 select many funcs related by self->Function[R405.''provides synchronous''];
 for each function in funcs
   function.render();
@@ -45,21 +56,24 @@ end for;
 functions = T::body();
 T::clear();
 
-select one universal_relator related by self->UniversalRelator[R4565.''links instances through''];
-universal_relator.render();
-relates = T::body();
-T::clear();
-
-select one universal_unrelator related by self->UniversalUnrealtor[R4566.''unlinks instances through''];
-universal_unrelator.render();
-unrelates = T::body();
-T::clear();
-
-select many selects related by self->InstancePopulationSelector[R447.''selects instances through''];
-for each selector in selects
-  selector.render();
+for each rel in relationships
+  rel.render_modifiers();
 end for;
-selectors = T::body();
+relationship_modifiers = T::body();
+T::clear();
+
+select many instance_selects related by self->InstancePopulationSelector[R447.''selects instances through''];
+for each instance_selector in instance_selects
+  instance_selector.render();
+end for;
+instance_selectors = T::body();
+T::clear();
+
+select many relationship_selects related by self->RelationshipPopulationSelector[R4571.''selects relationships through''];
+for each relationship_selector in relationship_selects
+  relationship_selector.render();
+end for;
+relationship_selectors = T::body();
 T::clear();
 
 select many comp_ports related by self->Port[R417];
@@ -74,21 +88,6 @@ select one init_function related by self->Function[R4561.''initialized by''];
 if ( not_empty init_function )
   init = "        " + init_function.name + "();";
 end if;
-
-//select many rels_in_comp related by self->RelationshipInComponent[R448];
-//for each rel_in_comp in rels_in_comp
-//  rel_in_comp.render();
-//end for;
-//relationship_sets = T::body();
-//T::clear();
-relationship_sets = "";
-
-select many rels related by self->Relationship[R448.''maintains instances of''];
-for each rel in rels
-  rel.render();
-end for;
-relationships = T::body();
-T::clear();
 
 T::include( file:"java/component/t.componentdefinition.java" );',
 	1,

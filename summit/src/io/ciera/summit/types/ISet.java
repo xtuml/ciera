@@ -2,7 +2,6 @@ package io.ciera.summit.types;
 
 import java.util.Set;
 
-import io.ciera.summit.classes.IWhere;
 import io.ciera.summit.exceptions.XtumlException;
 
 public interface ISet<S extends ISet<S,E>, E> extends Set<E> {
