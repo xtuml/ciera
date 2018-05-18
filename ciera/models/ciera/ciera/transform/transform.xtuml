@@ -2559,25 +2559,6 @@ for each attr in attrs
     relate attr to referred_to_attr across R4506.''has value provided by'' using attr_ref;
     relate relationship to attr_ref across R4511.''provides link for'';
     attr_ref.phrase = ::oirGetPhrase( r_oir_id:o_rtida.OIR_ID );
-    
-    // create attribute propagation
-    select any accessor related by referred_to_attr->AttributeAccessor[R4510.''value accessed through''] where ( selected.accessor_type == AttributeAccessor::SETTER );
-    select any irdt related by attr->Class[R410.''abstracts data for'']->O_OBJ[R409.''is transformed from'']->S_IRDT[R123] where ( not selected.isSet );
-    select any selector related by irdt->S_DT[R17]->Type[R423.''is basis of'']->Selector[R446.''shapes return of'']->InstanceSelector[R445] where ( selected.class_name == referred_to_attr.class_name and
-                                                                                                                                                selected.class_package == referred_to_attr.class_package and
-                                                                                                                                                selected.rel_num == relationship.num and
-                                                                                                                                                selected.phrase == attr_ref.phrase );
-    if ( empty selector )
-      select any irdt related by attr->Class[R410.''abstracts data for'']->O_OBJ[R409.''is transformed from'']->S_IRDT[R123] where ( selected.isSet );
-      select any selector related by irdt->S_DT[R17]->Type[R423.''is basis of'']->Selector[R446.''shapes return of'']->InstanceSelector[R445] where ( selected.class_name == referred_to_attr.class_name and
-                                                                                                                                                  selected.class_package == referred_to_attr.class_package and
-                                                                                                                                                  selected.rel_num == relationship.num and
-                                                                                                                                                  selected.phrase == attr_ref.phrase );
-    end if;
-    create object instance propagation of AttributePropagation;
-    relate accessor to propagation across R4507.''propagates values via'';
-    relate selector to propagation across R4509.''provides instance for'';
-    relate attr_ref to propagation across R4508.''specifies attribute for'';
   end for;
 end for;',
 	"ba5eda7a-def5-0000-0000-000000000000",

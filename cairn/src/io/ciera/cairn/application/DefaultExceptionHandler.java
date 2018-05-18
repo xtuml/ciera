@@ -10,4 +10,9 @@ public class DefaultExceptionHandler implements IExceptionHandler {
 		e.printStackTrace( System.err );
 	}
 
+	@Override
+	public void warn( String message ) {
+		System.err.println( message );
+	}
+
 }
