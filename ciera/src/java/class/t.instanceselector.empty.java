@@ -1,4 +1,4 @@
-if ( returns_set ) {
+if ( multiplicity_many ) {
 T_b("    ");
 T_b("@Override");
 T_b("\n");

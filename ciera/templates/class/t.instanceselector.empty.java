@@ -1,4 +1,4 @@
-.if ( returns_set )
+.if ( multiplicity_many )
     @Override
     public ${type_name} ${self.name}() {
         return (new ${type_name}()).toImmutableSet();
