@@ -11,7 +11,7 @@ T_b(" ");
 T_b(T_l(type_name));
 T_b(" = new ");
 T_b(type_name);
-T_b("();");
+T_b("Impl();");
 T_b("\n");
 T_b("        ");
 T_b("for ( ");

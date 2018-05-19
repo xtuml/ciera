@@ -202,7 +202,7 @@ INSERT INTO S_SYNC
 	'',
 	'file_to_import = param.file_to_import;
 import_string = ::pathToPackage( path:file_to_import.path ) + "." + file_to_import.name;
-::addStringToImports( file:param.file, s:import_string );',
+::addStringToImports( file:param.file, s:import_string, type:param.type );',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -232,6 +232,22 @@ INSERT INTO S_SPARM
 	'',
 	"fd1df211-d405-4f1a-8dbf-65a65495196f",
 	'');
+INSERT INTO S_SPARM
+	VALUES ("9c0c9bdc-0647-47c9-8153-6636d4c24fb1",
+	"e18e31ef-e956-4153-8354-5250b33e7730",
+	'type',
+	"a65c34a3-dd47-4b91-a991-7859d23a011d",
+	0,
+	'',
+	"495ce90f-14d7-46b1-8d7e-3b8fb4945e1d",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("a65c34a3-dd47-4b91-a991-7859d23a011d",
+	"00000000-0000-0000-0000-000000000000",
+	'ImportType',
+	'',
+	'',
+	'../types/types.xtuml');
 INSERT INTO PE_PE
 	VALUES ("e18e31ef-e956-4153-8354-5250b33e7730",
 	1,
@@ -245,10 +261,11 @@ INSERT INTO S_SYNC
 	'',
 	'file = param.file;
 if ( "" != param.s )
-  select any import related by file->TypeImport[R402] where ( selected.fully_qualified_name == param.s );
-  if ( empty import )
+  select any import_ref related by file->TypeImportReference[R402] where ( selected.fully_qualified_name == param.s and selected.type == param.type );
+  if ( empty import_ref )
     import = TypeImport::get_import( import:param.s );
     create object instance import_ref of TypeImportReference;
+    import_ref.type = param.type;
     relate import to file across R402 using import_ref;
   end if;
 end if;',
@@ -273,6 +290,15 @@ INSERT INTO S_SPARM
 	0,
 	'',
 	"52a302f9-dfbe-4629-bffa-79123a18e28c",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("ead942a3-0e3c-4b2b-8b25-5e141d94f7a4",
+	"a77c0fdf-2f56-4567-a215-618936c9a71f",
+	'type',
+	"a65c34a3-dd47-4b91-a991-7859d23a011d",
+	0,
+	'',
+	"31f4cf0b-4a12-4f81-8bfb-e411a84df951",
 	'');
 INSERT INTO PE_PE
 	VALUES ("a77c0fdf-2f56-4567-a215-618936c9a71f",

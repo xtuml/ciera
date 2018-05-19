@@ -1,11 +1,11 @@
 .if ( multiplicity_many )
     @Override
     public ${type_name} ${self.name}() {
-        return (new ${type_name}()).toImmutableSet();
+        return (new ${type_name}Impl()).toImmutableSet();
     }
 .else
     @Override
     public ${type_name} ${self.name}() {
-        return ${type_name}.EMPTY_$u_{type_name};
+        return ${type_name}Impl.EMPTY_$u_{type_name};
     }
 .end if

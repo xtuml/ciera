@@ -15,7 +15,7 @@ INSERT INTO O_TFR
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'select one file related by self->File[R401];
-imports = file.getFormattedImports();
+imports = file.getFormattedImports( type:ImportType::IMPL );
 
 select many selects related by self->SetSelector[R444.''selects instances through''];
 for each selector in selects
@@ -24,8 +24,19 @@ end for;
 selectors = T::body();
 T::clear();
 
-T::include( file:"java/class/t.classset.java" );
+T::include( file:"java/class/t.classset.impl.java" );
+T::emit( file:"src-gen/" + file.path + "/impl/" + self.name + "Impl" + file.extension );
+T::clear();
 
+imports = file.getFormattedImports( type:ImportType::INT );
+
+for each selector in selects
+  selector.render_interface();
+end for;
+selectors = T::body();
+T::clear();
+
+T::include( file:"java/class/t.classset.java" );
 T::emit( file:"src-gen/" + file.path + "/" + self.name + file.extension );
 T::clear();',
 	1,

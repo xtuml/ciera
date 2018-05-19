@@ -1,8 +1,6 @@
 package io.ciera.cairn.classes;
 
 import io.ciera.summit.application.IActionHome;
-import io.ciera.summit.application.IRunContext;
-import io.ciera.summit.classes.IEmptyInstance;
 import io.ciera.summit.classes.IInstanceIdentifier;
 import io.ciera.summit.classes.IModelInstance;
 import io.ciera.summit.classes.UniqueId;
@@ -60,9 +58,6 @@ public abstract class ModelInstance<C extends IComponent<C>> implements IModelIn
     	return hash;
     }
     
-    // empty instance
-    public static final ModelInstance<?> emptyModelInstance = new EmptyModelInstance<>();
-
 	@Override
 	public IInstanceIdentifier getId1() {
 		return null;
@@ -75,25 +70,6 @@ public abstract class ModelInstance<C extends IComponent<C>> implements IModelIn
 
 	@Override
 	public IInstanceIdentifier getId3() {
-		return null;
-	}
-
-}
-
-class EmptyModelInstance<C extends IComponent<C>> extends ModelInstance<C> implements IEmptyInstance {
-
-	@Override
-    public String getKeyLetters() {
-        return null;
-    }
-
-	@Override
-	public IRunContext getRunContext() {
-		return null;
-	}
-
-	@Override
-	public C population() {
 		return null;
 	}
 

@@ -1,6 +1,6 @@
     public ${type_name} ${self.name}() throws XtumlException {
 .if ( multiplicity_many )
-        ${type_name} $l{type_name} = new ${type_name}();
+        ${type_name} $l{type_name} = new ${type_name}Impl();
 .end if
         IRelationshipSet R$t{self.rel_num}set = population().${selector_name}().get\
 .if ( self->formalizer )
@@ -13,7 +13,7 @@ Formalizing\
         if ( R$t{self.rel_num}set.isEmpty() ) throw new ModelIntegrityException( "Unconditional association has no related instances." );
 .else
   .if ( not multiplicity_many )
-        if ( R$t{self.rel_num}set.isEmpty() ) return ${type_name}.EMPTY_$u_{type_name};
+        if ( R$t{self.rel_num}set.isEmpty() ) return ${type_name}Impl.EMPTY_$u_{type_name};
   .end if
 .end if
 .if ( multiplicity_many )

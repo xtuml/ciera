@@ -63,12 +63,12 @@ while ( index < 1 ) // single executor for now
 end while;
 
 // create the import block
-::addStringToImports( file:file, s:"io.ciera.cairn.application.ApplicationExecutor" );
-::addStringToImports( file:file, s:"io.ciera.cairn.application.tasks.GenericExecutionTask" );
-::addStringToImports( file:file, s:"io.ciera.summit.application.IApplication" );      
-::addStringToImports( file:file, s:"io.ciera.summit.application.IRunContext" );       
-::addStringToImports( file:file, s:"io.ciera.summit.components.IComponent" );         
-::addStringToImports( file:file, s:"io.ciera.summit.exceptions.XtumlException" );
+::addStringToImports( file:file, s:"io.ciera.cairn.application.ApplicationExecutor", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.cairn.application.tasks.GenericExecutionTask", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.summit.application.IApplication", type:ImportType::IMPL );      
+::addStringToImports( file:file, s:"io.ciera.summit.application.IRunContext", type:ImportType::IMPL );       
+::addStringToImports( file:file, s:"io.ciera.summit.components.IComponent", type:ImportType::IMPL );         
+::addStringToImports( file:file, s:"io.ciera.summit.exceptions.XtumlException", type:ImportType::IMPL );
 
 // translate components definitions
 select many c_cs related by root_package->PE_PE[R8000]->C_C[R8001];
@@ -85,7 +85,7 @@ for each c_c in c_cs
   create object instance comp_inst of ComponentInstantiation;
   relate  comp_def to app across R426 using comp_inst;
   select one comp_def_file related by comp_def->File[R401];
-  ::addFileToImports( file:file, file_to_import:comp_def_file );
+  ::addFileToImports( file:file, file_to_import:comp_def_file, type:ImportType::IMPL );
   select any executor from instances of ApplicationExecutor where ( selected.index == 0 );  // single executor for now
   relate executor to comp_inst across R4028.''provides execution context for'';
   if ( not_empty current_comp_inst )
@@ -182,10 +182,10 @@ for each rel in rels
 end for;
 
 // create import block
-::addStringToImports( file:file, s:"io.ciera.cairn.components.Component" );
-::addStringToImports( file:file, s:"io.ciera.summit.application.IRunContext" );
-::addStringToImports( file:file, s:"io.ciera.summit.classes.IModelInstance" );
-::addStringToImports( file:file, s:"io.ciera.summit.exceptions.XtumlException" );',
+::addStringToImports( file:file, s:"io.ciera.cairn.components.Component", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.summit.application.IRunContext", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.summit.classes.IModelInstance", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.summit.exceptions.XtumlException", type:ImportType::IMPL );',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -602,18 +602,23 @@ end for;
 
 // add to the containing component imports
 select one component_file related by containing_comp_def->File[R401];
-::addFileToImports( file:component_file, file_to_import:file );
 select one set_file related by obj->ClassSet[R406.''is type of single element in'']->File[R401];
-::addFileToImports( file:component_file, file_to_import:set_file );
-::addStringToImports( file: component_file, s:"io.ciera.summit.exceptions.XtumlException" );
+::addFileToImports( file:component_file, file_to_import:file, type:ImportType::IMPL );
+::addFileToImports( file:component_file, file_to_import:set_file, type:ImportType::IMPL );
+::addStringToImports( file: component_file, s: ::pathToPackage( path:set_file.path ) + ".impl." + set_file.name + "Impl", type:ImportType::IMPL );
+::addStringToImports( file: component_file, s:"io.ciera.summit.exceptions.XtumlException", type:ImportType::IMPL );
 
 // create the import block
-::addFileToImports( file:file, file_to_import:component_file );
-::addStringToImports( file:file, s:"io.ciera.summit.application.IRunContext" );
-::addStringToImports( file:file, s:"io.ciera.summit.classes.IEmptyInstance" );
-::addStringToImports( file:file, s:"io.ciera.summit.exceptions.InstancePopulationException" );
-::addStringToImports( file:file, s:"io.ciera.cairn.classes.ModelInstance" );
-',
+::addFileToImports( file:file, file_to_import:component_file, type:ImportType::BOTH );
+
+::addFileToImports( file:file, file_to_import:file, type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.summit.application.IRunContext", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.summit.classes.IEmptyInstance", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.summit.exceptions.InstancePopulationException", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.cairn.classes.ModelInstance", type:ImportType::IMPL );
+
+::addStringToImports( file:file, s:"io.ciera.summit.application.IActionHome", type:ImportType::INT );
+::addStringToImports( file:file, s:"io.ciera.summit.classes.IModelInstance", type:ImportType::INT );',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -686,7 +691,11 @@ type.default_value = "("  + objset.name + ")(new " + objset.name + "()).toImmuta
 relate type to objset across R407;
 
 // create the import block
-::addStringToImports( file:file, s:"io.ciera.cairn.classes.InstanceSet" );',
+select one objfile related by obj->File[R401];
+::addFileToImports( file:file, file_to_import:file, type: ImportType::IMPL );
+::addFileToImports( file:file, file_to_import:objfile, type: ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.cairn.classes.InstanceSet", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.summit.classes.IInstanceSet", type:ImportType::INT );',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -842,8 +851,8 @@ relate setter to attr across R4510.''gets and sets'';
 
 // add import to object file
 select one file related by obj->File[R401];
-::addStringToImports( file:file, s:"io.ciera.summit.exceptions.XtumlException" );
-::addStringToImports( file:file, s:"io.ciera.summit.exceptions.EmptyInstanceException" );',
+::addStringToImports( file:file, s:"io.ciera.summit.exceptions.XtumlException", type:ImportType::BOTH );
+::addStringToImports( file:file, s:"io.ciera.summit.exceptions.EmptyInstanceException", type:ImportType::IMPL );',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -1026,7 +1035,7 @@ for each type in types
   select many more_files related by type->Selector[R446.''shapes return of'']->SetSelector[R445]->ClassSet[R444.''navigates from'']->File[R401];
   files = files | more_files;
   for each file in files
-    type.addToImports( file:file );
+    type.addToImports( file:file, type:ImportType::BOTH );
   end for;
 end for;',
 	"ba5eda7a-def5-0000-0000-000000000000",
@@ -1311,11 +1320,11 @@ if ( not_empty iface )
     relate port to msg across R420 using port_msg;
   end for;
   select one iface_file related by iface->File[R401];
-  ::addFileToImports( file:file, file_to_import:iface_file );
+  ::addFileToImports( file:file, file_to_import:iface_file, type:ImportType::IMPL );
 end if;
 
 // add imports
-::addStringToImports( file:file, s:"io.ciera.summit.interfaces.IMessage" );
+::addStringToImports( file:file, s:"io.ciera.summit.interfaces.IMessage", type:ImportType::IMPL );
 
 // add to component file
 select one component_file related by comp_def->File[R401];
@@ -1522,14 +1531,14 @@ else
 end if; end if; end if;
 
 // add necessary imports
-::addStringToImports( file:file, s:"io.ciera.cairn.classes.RelationshipSet" );
-::addStringToImports( file:file, s:"io.ciera.cairn.classes.Relationship" );
-::addStringToImports( file:file, s:"io.ciera.summit.classes.IEmptyInstance" );
-::addStringToImports( file:file, s:"io.ciera.summit.classes.IRelationshipSet" );
-::addStringToImports( file:file, s:"io.ciera.summit.exceptions.BadArgumentException" );
-::addStringToImports( file:file, s:"io.ciera.summit.exceptions.EmptyInstanceException" );
-::addStringToImports( file:file, s:"io.ciera.summit.exceptions.ModelIntegrityException" );
-::addStringToImports( file:file, s:"io.ciera.summit.exceptions.XtumlException" );',
+::addStringToImports( file:file, s:"io.ciera.cairn.classes.RelationshipSet", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.cairn.classes.Relationship", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.summit.classes.IEmptyInstance", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.summit.classes.IRelationshipSet", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.summit.exceptions.BadArgumentException", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.summit.exceptions.EmptyInstanceException", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.summit.exceptions.ModelIntegrityException", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.summit.exceptions.XtumlException", type:ImportType::IMPL );',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -1706,18 +1715,18 @@ end if;
 
 // add imports to object file
 select one file related by obj->File[R401];
-::addStringToImports( file:file, s:"io.ciera.summit.exceptions.XtumlException" );
-::addStringToImports( file:file, s:"io.ciera.summit.classes.IRelationshipSet" );
+::addStringToImports( file:file, s:"io.ciera.summit.exceptions.XtumlException", type:ImportType::BOTH );
+::addStringToImports( file:file, s:"io.ciera.summit.classes.IRelationshipSet", type:ImportType::IMPL );
 if ( Cond::UNCONDITIONAL == param.cond or Mult::ONE == param.mult )
-  ::addStringToImports( file:file, s:"io.ciera.summit.exceptions.ModelIntegrityException" );
+  ::addStringToImports( file:file, s:"io.ciera.summit.exceptions.ModelIntegrityException", type:ImportType::IMPL );
 end if;
 if ( Mult::MANY == param.mult )
-  ::addStringToImports( file:file, s:"io.ciera.summit.classes.IRelationship" );
+  ::addStringToImports( file:file, s:"io.ciera.summit.classes.IRelationship", type:ImportType::IMPL );
 end if;
 
 // add imports to object set file
 select one set_file related by obj_set->File[R401];
-::addStringToImports( file:set_file, s:"io.ciera.summit.exceptions.XtumlException" );',
+::addStringToImports( file:set_file, s:"io.ciera.summit.exceptions.XtumlException", type:ImportType::BOTH );',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -1837,9 +1846,9 @@ relate utility to file across R401;
 if ( not_empty containing_comp_def )
   relate utility to containing_comp_def across R4558.''may exist within context of'';
   select one component_file related by containing_comp_def->File[R401];
-  ::addFileToImports( file:file, file_to_import:component_file );
+  ::addFileToImports( file:file, file_to_import:component_file, type:ImportType::IMPL );
 else
-  ::addStringToImports( file:file, s:"io.ciera.summit.components.IComponent" );
+  ::addStringToImports( file:file, s:"io.ciera.summit.components.IComponent", type:ImportType::IMPL );
 end if;
 
 // relate the default implementation if it exists
@@ -1847,7 +1856,7 @@ select any default_utility from instances of Utility where ( selected.package ==
 if ( not_empty default_utility )
   relate default_utility to utility across R4560.''provides default implementation for'';
   select one default_file related by default_utility->File[R401];
-  ::addFileToImports( file:file, file_to_import:default_file );
+  ::addFileToImports( file:file, file_to_import:default_file, type:ImportType::IMPL );
 end if;
 
 // transform each utility function
@@ -2155,7 +2164,7 @@ if ( not_empty act_smt and not_empty block )
     select one invocable related by util_func->InvocableObject[R427];
     select one utility related by util_func->Utility[R4559.''provided by''];
     select one utility_file related by utility->File[R401];
-    ::addFileToImports( file: ::getFileForStatement( smt:smt ), file_to_import:utility_file );
+    ::addFileToImports( file: ::getFileForStatement( smt:smt ), file_to_import:utility_file, type:ImportType::IMPL );
     if ( not_empty invocable )
       // create expression as statement
       create object instance eas of ExpressionAsStatement;
