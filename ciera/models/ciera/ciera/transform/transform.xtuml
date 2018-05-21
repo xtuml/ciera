@@ -79,7 +79,7 @@ select any current_comp_inst from instances of ComponentInstantiation where fals
 for each c_c in c_cs
   select any comp_def from instances of ComponentDefinition where ( selected.name == ::camelCaseName( name:c_c.Name, start_lower:false ) );
   if ( empty comp_def )
-    ::transformComponentDefinition( c_c:c_c, containing_comp_def:empty_comp_def );
+    ::transformComponentDefinition( c_c:c_c, containing_comp_def:empty_comp_def, path:param.path );
     select any comp_def from instances of ComponentDefinition where ( selected.name == ::camelCaseName( name:c_c.Name, start_lower:false ) );
   end if;
   create object instance comp_inst of ComponentInstantiation;
@@ -113,6 +113,15 @@ INSERT INTO S_DT_PROXY
 	'',
 	'',
 	'../../../../../mcooa/models/mcooa/ooaofooa/Element Packaging/Element Packaging.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("3f6c7555-b604-4d78-a329-f859ff004ed4",
+	"86c4c157-03cd-481b-a5ed-c7c91b1ad36e",
+	'path',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"6b6c262c-3690-4123-b000-38fb9cc04e80",
+	'');
 INSERT INTO PE_PE
 	VALUES ("86c4c157-03cd-481b-a5ed-c7c91b1ad36e",
 	1,
@@ -126,16 +135,11 @@ INSERT INTO S_SYNC
 	'',
 	'c_c = param.c_c;
 containing_comp_def = param.containing_comp_def;
-select one ep_pkg related by c_c->PE_PE[R8001]->EP_PKG[R8000];
 
 // create the file
 create object instance file of File;
 file.name = ::camelCaseName( name:c_c.Name, start_lower:false );
-if ( not_empty ep_pkg )
-  file.path = ::ep_pkgToPath( ep_pkg:ep_pkg );
-else
-  file.path = containing_comp_def.package + T::l( s:T::r( s:containing_comp_def.name ) );
-end if;
+file.path = param.path;
 file.package = ::pathToPackage( path:file.path );
 file.extension = ".java";
 file.exclude = false;
@@ -148,19 +152,19 @@ comp_def.extends = "Component<" + comp_def.name + ">";
 // transform ports
 select many c_pos related by c_c->C_PO[R4010];
 for each c_po in c_pos
-  ::transformPort( c_po:c_po, comp_def:comp_def );
+  ::transformPort( c_po:c_po, comp_def:comp_def, path:file.path + "/" + T::l( s:c_c.Name ) );
 end for;
 
 // transform inner packages
 select many ep_pkgs related by c_c->PE_PE[R8003]->EP_PKG[R8001];
 for each ep_pkg in ep_pkgs
-  ::transformPackage( ep_pkg:ep_pkg, containing_comp_def:comp_def );
+  ::transformPackage( ep_pkg:ep_pkg, containing_comp_def:comp_def, path:file.path + "/" + T::l( s:c_c.Name ) );
 end for;
 
 // transform inner components
 select many inner_c_cs related by c_c->PE_PE[R8003]->C_C[R8001];
 for each inner_c_c in inner_c_cs
-  ::transformComponentDefinition( c_c:inner_c_c, containing_comp_def:comp_def );
+  ::transformComponentDefinition( c_c:inner_c_c, containing_comp_def:comp_def, path:file.path + "/" + T::l( s:c_c.Name ) );
 end for;
 
 // transform instance population selectors
@@ -222,6 +226,15 @@ INSERT INTO S_DT_PROXY
 	'',
 	'',
 	'../architecture/component/component.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("339de843-5314-4e62-a1ea-25f8e95de699",
+	"a77051bc-22a5-45fc-a0ba-6e4ceeaa7802",
+	'path',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"35145c47-5490-4738-a0b2-7e513f9ed71c",
+	'');
 INSERT INTO PE_PE
 	VALUES ("a77051bc-22a5-45fc-a0ba-6e4ceeaa7802",
 	1,
@@ -234,6 +247,8 @@ INSERT INTO S_SYNC
 	'transformPackage',
 	'',
 	'ep_pkg = param.ep_pkg;
+  path = param.path;
+
 // see if this is a package reference
 select one referred_ep_pkg related by ep_pkg->EP_PKG[R1402.''refers to''];
 if ( not_empty referred_ep_pkg )
@@ -253,32 +268,32 @@ end for;
 // transform interfaces
 select many c_is related by pe_pes->C_I[R8001];
 for each c_i in c_is
-  ::transformInterface( c_i:c_i );
+  ::transformInterface( c_i:c_i, path:path + "/" + T::l( s:ep_pkg.Name ) );
 end for;
 
 // transform datatypes
 select many edts related by pe_pes->S_DT[R8001]->S_EDT[R17]->S_DT[R17];
 for each edt in edts
-  ::transformEnumeratedType( s_dt:edt );
+  ::transformEnumeratedType( s_dt:edt, path:path + "/" + T::l( s:ep_pkg.Name ) );
 end for;
 
 // transform EEs
 select many s_ees related by pe_pes->S_EE[R8001];
 for each s_ee in s_ees
-  ::transformUtility( s_ee:s_ee, ep_pkg:ep_pkg, containing_comp_def:containing_comp_def, exclude:false );
+  ::transformUtility( s_ee:s_ee, ep_pkg:ep_pkg, containing_comp_def:containing_comp_def, exclude:false, path:path + "/" + T::l( s:ep_pkg.Name ) );
 end for;
 
 // transform classes
 select many o_objs related by pe_pes->O_OBJ[R8001];
 for each o_obj in o_objs
-  ::transformClass( o_obj:o_obj, containing_comp_def:containing_comp_def );
+  ::transformClass( o_obj:o_obj, containing_comp_def:containing_comp_def, path:path + "/" + T::l( s:ep_pkg.Name ) );
 end for;
 
 // transform imported classes (must be done before associations are transformed)
 select many o_iobjs related by pe_pes->O_IOBJ[R8001];
 for each o_iobj in o_iobjs
   select one o_obj related by o_iobj->O_OBJ[R101];
-  ::transformClass( o_obj:o_obj, containing_comp_def:containing_comp_def );
+  ::transformClass( o_obj:o_obj, containing_comp_def:containing_comp_def, path:path + "/" + T::l( s:ep_pkg.Name ) );
 end for;
 
 // transform associations
@@ -301,13 +316,13 @@ end for;
 // transform components
 select many c_cs related by pe_pes->C_C[R8001];
 for each c_c in c_cs
-  ::transformComponentDefinition( c_c:c_c, containing_comp_def:containing_comp_def );
+  ::transformComponentDefinition( c_c:c_c, containing_comp_def:containing_comp_def, path:path + "/" + T::l( s:ep_pkg.Name ) );
 end for;
 
 // transform packages
 select many inner_ep_pkgs related by pe_pes->EP_PKG[R8001];
 for each inner_ep_pkg in inner_ep_pkgs
-  ::transformPackage( ep_pkg:inner_ep_pkg, containing_comp_def:containing_comp_def );
+  ::transformPackage( ep_pkg:inner_ep_pkg, containing_comp_def:containing_comp_def, path:path + "/" + T::l( s:ep_pkg.Name ) );
 end for;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -330,6 +345,15 @@ INSERT INTO S_SPARM
 	0,
 	'',
 	"e05335a1-ada2-43dd-bdb1-f29837aff1fc",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("4787f035-98e2-4c37-bf7d-99b5f69be179",
+	"1c26da85-1e78-4183-88ca-60811dc084db",
+	'path',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"0ca0ea7b-7e27-4164-8c8f-51956eba948a",
 	'');
 INSERT INTO PE_PE
 	VALUES ("1c26da85-1e78-4183-88ca-60811dc084db",
@@ -552,7 +576,7 @@ select one ep_pkg related by o_obj->PE_PE[R8001]->EP_PKG[R8000];
 // create the object file
 create object instance file of File;
 file.name = ::camelCaseName( name:o_obj.Name, start_lower:false );
-file.path = ::ep_pkgToPath( ep_pkg:ep_pkg );
+file.path = param.path;
 file.package = ::pathToPackage( path:file.path );
 file.extension = ".java";
 file.exclude = false;
@@ -598,7 +622,7 @@ for each o_tfr in o_tfrs
 end for;
 
 // transform the set object
-::transformClassSet( obj:obj, ep_pkg:ep_pkg );
+::transformClassSet( obj:obj, ep_pkg:ep_pkg, path:param.path );
 
 // add to the containing component imports
 select one component_file related by containing_comp_def->File[R401];
@@ -648,6 +672,15 @@ INSERT INTO S_SPARM
 	'',
 	"aa6be7c4-dd4e-4044-bbf1-81678db4c1f5",
 	'');
+INSERT INTO S_SPARM
+	VALUES ("3e13db8d-1aaf-4219-9775-40e0e6e7760a",
+	"5d5d0e20-88ef-45c3-9564-38aff4db30b8",
+	'path',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"9e76c7fd-92f6-44e6-92b5-aa4874148abc",
+	'');
 INSERT INTO PE_PE
 	VALUES ("5d5d0e20-88ef-45c3-9564-38aff4db30b8",
 	1,
@@ -665,7 +698,7 @@ ep_pkg = param.ep_pkg;
 // create the object file
 create object instance file of File;
 file.name = obj.name + "Set";
-file.path = ::ep_pkgToPath( ep_pkg:ep_pkg );
+file.path = param.path;
 file.package = ::pathToPackage( path:file.path );
 file.extension = ".java";
 file.exclude = false;
@@ -724,6 +757,15 @@ INSERT INTO S_SPARM
 	0,
 	'',
 	"ceb8a015-73b2-4bc0-acbc-a5fa93f21e67",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("12fcf0c4-7b5e-4554-9447-3aee57ad6bd7",
+	"a14540ae-c3dd-4248-890f-99953be47efa",
+	'path',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"72a8d944-1499-487e-9f40-06dbfc501f96",
 	'');
 INSERT INTO PE_PE
 	VALUES ("a14540ae-c3dd-4248-890f-99953be47efa",
@@ -953,7 +995,7 @@ select one ep_pkg related by s_dt->PE_PE[R8001]->EP_PKG[R8000];
 // create the file
 create object instance file of File;
 file.name = ::camelCaseName( name:s_dt.Name, start_lower:false );
-file.path = ::ep_pkgToPath( ep_pkg:ep_pkg );
+file.path = param.path;
 file.package = ::pathToPackage( path:file.path );
 file.extension = ".java";
 file.exclude = false;
@@ -998,6 +1040,15 @@ INSERT INTO S_DT_PROXY
 	'',
 	'',
 	'../../../../../mcooa/models/mcooa/ooaofooa/Domain/Domain.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("1bf95c36-64e1-49e4-9cda-4f9f732d840e",
+	"eb2d19db-99fd-443a-891e-1510a4224c8a",
+	'path',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"39ff61e1-b925-497a-8d8a-1ea86381dec4",
+	'');
 INSERT INTO PE_PE
 	VALUES ("eb2d19db-99fd-443a-891e-1510a4224c8a",
 	1,
@@ -1139,7 +1190,7 @@ select one ep_pkg related by c_i->PE_PE[R8001]->EP_PKG[R8000];
 // create the file
 create object instance file of File;
 file.name = ::camelCaseName( name:c_i.Name, start_lower:false );
-file.path = ::ep_pkgToPath( ep_pkg:ep_pkg );
+file.path = param.path;
 file.package = ::pathToPackage( path:file.path );
 file.extension = ".java";
 file.exclude = false;
@@ -1176,6 +1227,15 @@ INSERT INTO S_DT_PROXY
 	'',
 	'',
 	'../../../../../mcooa/models/mcooa/ooaofooa/Component/Component.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("3cdf04f6-57a6-4a09-933a-9f2bcb94e1ee",
+	"cae43083-b72d-40f8-95cb-4b31855ce3ee",
+	'path',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"c871a7f5-dd47-49c0-ad37-2478c2c84f13",
+	'');
 INSERT INTO PE_PE
 	VALUES ("cae43083-b72d-40f8-95cb-4b31855ce3ee",
 	1,
@@ -1292,7 +1352,7 @@ select one c_c related by c_po->C_C[R4010];
 // create the file
 create object instance file of File;
 file.name = ::camelCaseName( name:c_po.Name, start_lower:false );
-file.path = ::c_cToPath( c_c:c_c );
+file.path = param.path;
 file.package = ::pathToPackage( path:file.path );
 file.extension = ".java";
 file.exclude = true; // TODO
@@ -1309,7 +1369,7 @@ relate port to comp_def across R417;
 select any c_i related by c_po->C_IR[R4016]->C_I[R4012];
 select one iface related by c_i->Interface[R421];
 if ( empty iface and not_empty c_i )
-  ::transformInterface( c_i:c_i );
+  // ::transformInterface( c_i:c_i ); TODO
   select one iface related by c_i->Interface[R421];
 end if;
 if ( not_empty iface )
@@ -1357,6 +1417,15 @@ INSERT INTO S_SPARM
 	0,
 	'',
 	"4e27e7e4-b388-4b0c-93bb-d8ccf14f4478",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("756e5a83-04eb-4baa-801c-b40bddd118e4",
+	"48a30c71-bd16-4087-a818-1c1479c64a33",
+	'path',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"751cc73a-dc3b-419c-b6dd-daba79556a01",
 	'');
 INSERT INTO PE_PE
 	VALUES ("48a30c71-bd16-4087-a818-1c1479c64a33",
@@ -1833,7 +1902,7 @@ containing_comp_def = param.containing_comp_def;
 // create the file
 create object instance file of File;
 file.name = ::camelCaseName( name:s_ee.Key_Lett, start_lower:false );
-file.path = ::ep_pkgToPath( ep_pkg:ep_pkg );
+file.path = param.path;
 file.package = ::pathToPackage( path:file.path );
 file.extension = ".java";
 file.exclude = param.exclude;
@@ -1847,6 +1916,8 @@ if ( not_empty containing_comp_def )
   create object instance util_ref of UtilityReference;
   relate utility to containing_comp_def across R4558 using util_ref;
   select one component_file related by containing_comp_def->File[R401];
+  ::addFileToImports( file:component_file, file_to_import:file, type:ImportType::IMPL );
+  ::addStringToImports( file:component_file, s: ::pathToPackage( path:file.path ) + ".impl." + file.name + "Impl", type:ImportType::IMPL );
 end if;
 
 // transform each utility function
@@ -1905,6 +1976,15 @@ INSERT INTO S_SPARM
 	0,
 	'',
 	"3e2fdcea-3b0f-4b1e-9bc8-f44f1c434121",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("0fc5fb18-6d8e-4224-97dd-38e638cc1e44",
+	"0b1dcdfd-3e1a-4aaa-a22a-df354cd09e94",
+	'path',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"42579ca2-d6b4-465a-8be0-bdfe32b0f0bc",
 	'');
 INSERT INTO PE_PE
 	VALUES ("0b1dcdfd-3e1a-4aaa-a22a-df354cd09e94",
@@ -2019,7 +2099,7 @@ for each s_ee in s_ees
   select one s_sys related by pkg->S_SYS[R1405];
   if ( s_sys.Name == "cairn" and pkg.Name == "util" )
     select any empty_comp_def from instances of ComponentDefinition where false;
-    ::transformUtility( s_ee:s_ee, ep_pkg:pkg, containing_comp_def: empty_comp_def, exclude:true );
+    ::transformUtility( s_ee:s_ee, ep_pkg:pkg, containing_comp_def: empty_comp_def, exclude:true, path:"io/ciera/cairn/util" );
   end if;
 end for;',
 	"ba5eda7a-def5-0000-0000-000000000000",
