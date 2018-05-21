@@ -21,7 +21,6 @@ extends = self.extends;
 select one file related by self->File[R401];
 imports = file.getFormattedImports( type:ImportType::IMPL );
 
-instance_extents = "";
 instance_extent_initializers = "";
 instance_adds = "";
 instance_removes = "";
@@ -30,7 +29,6 @@ test = "if";
 select many classes related by self->Class[R408.''maintains instances of''];
 for each class_in_comp in classes
   select one class_set related by class_in_comp->ClassSet[R406.''is type of single element in''];
-  instance_extents = instance_extents + separator + "    " + class_set.name + " " + class_in_comp.name + "_extent;";
   instance_extent_initializers = instance_extent_initializers + separator + "        " + class_in_comp.name + "_extent = new " + class_set.name + "Impl();";
   instance_adds = instance_adds + separator + "        " + test + " ( instance instanceof " + class_in_comp.name + " ) return " + class_in_comp.name + "_extent.add( (" + class_in_comp.name + ")instance );";
   instance_removes = instance_removes + separator + "        " + test + " ( instance instanceof " + class_in_comp.name + " ) return " + class_in_comp.name + "_extent.remove( (" + class_in_comp.name + ")instance );";
@@ -38,13 +36,11 @@ for each class_in_comp in classes
   separator = "\n";
 end for;
 
-relationship_extents = "";
 relationship_extent_initializers = "";
 separator = "";
 test = "if";
 select many relationships related by self->Relationship[R448.''maintains instances of''];
 for each rel in relationships
-  relationship_extents = relationship_extents + separator + "    IRelationshipSet " + rel.name + "_extent;";
   relationship_extent_initializers = relationship_extent_initializers + separator + "        " + rel.name + "_extent = new RelationshipSet();";
   separator = "\n";
 end for;
@@ -81,6 +77,17 @@ for each port in comp_ports
   port.render_acccessor();
 end for;
 ports = T::body();
+T::clear();
+
+utility_initializers = "";
+separator = "";
+select many util_refs related by self->UtilityReference[R4558];
+for each util_ref in util_refs
+  util_ref.render();
+  utility_initializers = utility_initializers + separator + "        " + util_ref.utility_name + " = null;";
+  separator = "\n";
+end for;
+utilities = T::body();
 T::clear();
 
 init = "";

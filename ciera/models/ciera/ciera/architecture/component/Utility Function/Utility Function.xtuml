@@ -20,44 +20,17 @@ type_name = type.name;
 
 select one invocable related by self->InvocableObject[R427];
 parameter_list = invocable.parameter_list;
-select one containing_comp_def related by self->Utility[R4559.''provided by'']->ComponentDefinition[R4558.''may exist within context of''];
 separator = ",";
 if ( "" == parameter_list )
   separator = " ";
-end if;
-if ( not_empty containing_comp_def )
-  parameter_list = " " + containing_comp_def.name + " context" + separator + parameter_list;
-else
-  parameter_list = " IComponent context" + separator + parameter_list;
 end if;
 
 body = invocable.body;
 if ( "" == body )
   select one return_type related by self->InvocableObject[R427]->Type[R428.''return value is typed by''];
-  select any default_function related by self->Utility[R4559.''provided by'']->Utility[R4560.''default implementation provided by'']->UtilityFunction[R4559.''provides''] where ( selected.name == self.name );
-  if ( not_empty default_function )
-    invocation_parameter_list = " context";
-    select any parm from instances of FormalParameter where false;
-    select any prev_parm related by self->InvocableObject[R427]->FormalParameter[R429.''declares signature with''];
-    while ( not_empty prev_parm )
-      parm = prev_parm;
-      select one prev_parm related by parm->FormalParameter[R404.''follows''];
-    end while;
-    while ( not_empty parm )
-      invocation_parameter_list = invocation_parameter_list + ", " + parm.name;
-      select one parm related by parm->FormalParameter[R404.''precedes''];
-    end while;
-    invocation_parameter_list = invocation_parameter_list + " ";
-    body = "        ";
-    if ( "void" != return_type.name )
-      body = body + "return ";
-    end if;
-    body = body + default_function.utility_name + "." + default_function.name + "(" + invocation_parameter_list + ");";
-  else
-    body = "        // Insert your implementation here";
-    if ( "void" != return_type.name )
-      body = body + "\n        return " + return_type.default_value + ";";
-    end if;
+  body = "        // Insert your implementation here";
+  if ( "void" != return_type.name )
+    body = body + "\n        return " + return_type.default_value + ";";
   end if;
 end if;
 
@@ -65,6 +38,28 @@ T::include( file:"java/component/t.utilityfunction.java" );',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",
+	0);
+INSERT INTO O_TFR
+	VALUES ("92cb5421-6d33-42fb-bbc1-5f6bd96404bf",
+	"9a2e60ab-1b3a-447e-b01f-87bac347e743",
+	'render_interface',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'select one type related by self->InvocableObject[R427]->Type[R428];
+type_name = type.name;
+
+select one invocable related by self->InvocableObject[R427];
+parameter_list = invocable.parameter_list;
+separator = ",";
+if ( "" == parameter_list )
+  separator = " ";
+end if;
+
+T::include( file:"java/component/t.utilityfunction.int.java" );',
+	1,
+	'',
+	"26012fbc-424f-42ef-9fc0-b5ae9c0f2228",
 	0);
 INSERT INTO O_REF
 	VALUES ("9a2e60ab-1b3a-447e-b01f-87bac347e743",

@@ -2,7 +2,7 @@ package ${self.package};
 
 ${imports}
 
-public final class ${self.name} {
+public interface ${self.name} {
 
 ${utility_functions}
 

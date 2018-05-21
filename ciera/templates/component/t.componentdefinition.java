@@ -4,15 +4,11 @@ ${imports}
 
 public class ${self.name} extends ${self.extends} {
     
-    private IRunContext runContext;
-
-${instance_extents}
-${relationship_extents}
-
     public ${self.name}( IRunContext runContext ) {
-        this.runContext = runContext;
+        super( runContext );
 ${instance_extent_initializers}
 ${relationship_extent_initializers}
+${utility_initializers}
     }
 
     // domain functions
@@ -31,6 +27,9 @@ ${relationship_selectors}
     /*
 ${ports}
     */
+
+    // utilities
+${utilities}
 
     // component initialization function
     @Override
@@ -52,11 +51,6 @@ ${instance_adds}
         if ( instance instanceof IEmptyInstance ) throw new EmptyInstanceException( "Cannot remove empty instance from population." );
 ${instance_removes}
         return false;
-    }
-
-    @Override
-    public IRunContext getRunContext() {
-        return runContext;
     }
 
     @Override

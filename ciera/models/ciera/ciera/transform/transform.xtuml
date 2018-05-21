@@ -1844,26 +1844,21 @@ relate utility to file across R401;
 
 // relate the containing component
 if ( not_empty containing_comp_def )
-  relate utility to containing_comp_def across R4558.''may exist within context of'';
+  create object instance util_ref of UtilityReference;
+  relate utility to containing_comp_def across R4558 using util_ref;
   select one component_file related by containing_comp_def->File[R401];
-  ::addFileToImports( file:file, file_to_import:component_file, type:ImportType::IMPL );
-else
-  ::addStringToImports( file:file, s:"io.ciera.summit.components.IComponent", type:ImportType::IMPL );
-end if;
-
-// relate the default implementation if it exists
-select any default_utility from instances of Utility where ( selected.package == "io.ciera.cairn.util" and selected.name == "Default" + utility.name );
-if ( not_empty default_utility )
-  relate default_utility to utility across R4560.''provides default implementation for'';
-  select one default_file related by default_utility->File[R401];
-  ::addFileToImports( file:file, file_to_import:default_file, type:ImportType::IMPL );
 end if;
 
 // transform each utility function
 select many s_brgs related by s_ee->S_BRG[R19];
 for each s_brg in s_brgs
   ::transformUtilityFunction( s_brg:s_brg, utility:utility );
-end for;',
+end for;
+
+// create import block
+::addFileToImports( file:file, file_to_import:file, type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.cairn.util.Utility", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.summit.components.IComponent", type:ImportType::IMPL );',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -1941,18 +1936,6 @@ invocable.oal = s_brg.Action_Semantics_internal;
 select one s_dt related by s_brg->S_DT[R20];
 type = UnresolvedType::getInstance( s_dt:s_dt );
 relate type to invocable across R428;
-
-// create context parameter
-select any parm_type from instances of Type where ( selected.name == "IComponent" and selected.package == "io.ciera.summit.components" );
-if ( not_empty parm_type )
-  create object instance parm of FormalParameter;
-  parm.name = "populationContext";
-  parm.by_ref = false;
-  relate parm_type to parm across R431;
-  ::linkParameter( invocable:invocable, parameter:parm );
-else
-  // TODO bad
-end if;
 
 // create parameters
 select any s_bparm related by s_brg->S_BPARM[R21];
@@ -2036,8 +2019,6 @@ for each s_ee in s_ees
   select one s_sys related by pkg->S_SYS[R1405];
   if ( s_sys.Name == "cairn" and pkg.Name == "util" )
     select any empty_comp_def from instances of ComponentDefinition where false;
-    // modify the key letters of the EE
-    s_ee.Key_Lett = "Default" + s_ee.Key_Lett;
     ::transformUtility( s_ee:s_ee, ep_pkg:pkg, containing_comp_def: empty_comp_def, exclude:true );
   end if;
 end for;',
@@ -2165,6 +2146,15 @@ if ( not_empty act_smt and not_empty block )
     select one utility related by util_func->Utility[R4559.''provided by''];
     select one utility_file related by utility->File[R401];
     ::addFileToImports( file: ::getFileForStatement( smt:smt ), file_to_import:utility_file, type:ImportType::IMPL );
+    ::addStringToImports( file: ::getFileForStatement( smt:smt ), s: ::pathToPackage( path:utility_file.path ) + ".impl." + utility_file.name + "Impl", type:ImportType::IMPL );
+    containing_comp_def = ::getCompDefForStatement( smt:smt );
+    if ( not_empty containing_comp_def )
+      select any util_ref related by utility->UtilityReference[R4558] where ( selected.comp_name == containing_comp_def.name and selected.comp_package == containing_comp_def.package );
+      if ( empty util_ref )
+        create object instance util_ref of UtilityReference;
+        relate utility to containing_comp_def across R4558.''used within context of'' using util_ref;
+      end if;
+    end if;
     if ( not_empty invocable )
       // create expression as statement
       create object instance eas of ExpressionAsStatement;
@@ -2187,7 +2177,7 @@ if ( not_empty act_smt and not_empty block )
       create object instance named_ref of NamedReference;
       relate named_ref to expr2 across R776;
       relate expr2 to invoc across R798.''is used as basis for'';
-      named_ref.name = utility.name;
+      named_ref.name = "population()." + utility.name + "()";
       // transform actual parameters
       select many v_pars related by act_brg->V_PAR[R628];
       ::transformActualParameters( invocation:invoc, v_pars:v_pars );
@@ -2581,24 +2571,12 @@ select one smt related by invocation->Expression[R776]->Statement[R775.''express
 
 select any expr from instances of Expression where false;
 
-if ( parm.name == "populationContext" )
-  // special parameter for passing population context to a utility function
-  // create named reference expression
-  create object instance expr of Expression;
-  relate expr to smt across R775.''expressed within'';
-  expr.expression_number = param.expression_num;
-  // create named reference
-  create object instance named_ref of NamedReference;
-  relate named_ref to expr across R776;
-  named_ref.name = "population()";
+select one v_val related by v_par->V_VAL[R800];
+if ( not_empty v_val )
+  ::transformExpression( v_val:v_val, expr_number:param.expression_num, smt:smt );
+  select any expr related by smt->Expression[R775.''may contain''] where ( selected.expression_number == param.expression_num );
 else
-  select one v_val related by v_par->V_VAL[R800];
-  if ( not_empty v_val )
-    ::transformExpression( v_val:v_val, expr_number:param.expression_num, smt:smt );
-    select any expr related by smt->Expression[R775.''may contain''] where ( selected.expression_number == param.expression_num );
-  else
-    // TODO bad
-  end if;
+  // TODO bad
 end if;
 
 if ( not_empty expr )
