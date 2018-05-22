@@ -3,7 +3,7 @@ package io.ciera.summit.classes;
 import io.ciera.summit.exceptions.XtumlException;
 import io.ciera.summit.types.ISet;
 
-public interface IInstanceSet<S extends IInstanceSet<S,E>,E extends IModelInstance> extends ISet<S,E> {
+public interface IInstanceSet<S extends IInstanceSet<S,E>,E extends IModelInstance<E,?>> extends ISet<S,E> {
 	
 	public E getByInstanceId( UniqueId instanceId ) throws XtumlException;
 	public E getById1( IInstanceIdentifier id1 ) throws XtumlException;

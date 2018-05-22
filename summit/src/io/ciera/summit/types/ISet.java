@@ -4,7 +4,7 @@ import java.util.Set;
 
 import io.ciera.summit.exceptions.XtumlException;
 
-public interface ISet<S extends ISet<S,E>, E> extends Set<E> {
+public interface ISet<S extends ISet<S,E>, E> extends Set<E>, IXtumlType<S> {
 	
 	public S union( S set );
 	public S intersection( S set );

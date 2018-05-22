@@ -7,7 +7,7 @@ import io.ciera.summit.classes.IModelInstance;
 import io.ciera.summit.classes.UniqueId;
 import io.ciera.summit.exceptions.XtumlException;
 
-public abstract class InstanceSet<S extends IInstanceSet<S,E>,E extends IModelInstance> extends Set<S,E> implements IInstanceSet<S,E> {
+public abstract class InstanceSet<S extends IInstanceSet<S,E>,E extends IModelInstance<E,?>> extends Set<S,E> implements IInstanceSet<S,E> {
 
 	@Override
 	public E getByInstanceId( UniqueId instanceId ) throws XtumlException {

@@ -38,7 +38,7 @@ ${init}
     }
 
     @Override
-    public boolean addInstance( IModelInstance instance ) throws XtumlException {
+    public boolean addInstance( IModelInstance<?,?> instance ) throws XtumlException {
         if ( null == instance ) throw new BadArgumentException( "Null instance passed." );
         if ( instance instanceof IEmptyInstance ) throw new EmptyInstanceException( "Cannot add empty instance to population." );
 ${instance_adds}
@@ -46,7 +46,7 @@ ${instance_adds}
     }
 
     @Override
-    public boolean removeInstance( IModelInstance instance ) throws XtumlException {
+    public boolean removeInstance( IModelInstance<?,?> instance ) throws XtumlException {
         if ( null == instance ) throw new BadArgumentException( "Null instance passed." );
         if ( instance instanceof IEmptyInstance ) throw new EmptyInstanceException( "Cannot remove empty instance from population." );
 ${instance_removes}

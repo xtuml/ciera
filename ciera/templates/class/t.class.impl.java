@@ -45,6 +45,11 @@ ${selectors}
         return KEY_LETTERS;
     }
 
+    @Override
+    public ${self.name} defaultValue() {
+        return EMPTY_$u_{self.name};
+    }
+
 }
 
 class Empty${self.name} extends ${self.name}Impl implements IEmptyInstance {
