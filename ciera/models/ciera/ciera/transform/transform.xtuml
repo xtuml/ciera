@@ -2371,10 +2371,18 @@ if ( not_empty act_smt and not_empty block )
     create object instance binop of BinaryOperation;
     relate binop to expr across R776;
     binop.operator = "=";
+    binop.invocation = false;
     // relate expression to expression as statement
     relate eas to expr across R476.''executes as statement'';
     // create left operand
     select one l_val related by act_ai->V_VAL[R689];
+    select one l_avl related by l_val->V_AVL[R801];
+    if ( not_empty l_avl )  // invocation operator for setting attribute values
+      select any accessor related by l_avl->O_ATTR[R806]->Attribute[R414.''is basis for'']->AttributeAccessor[R4510.''value accessed through'']
+        where ( selected.accessor_type == AttributeAccessor::SETTER );
+      binop.operator = accessor.getName();
+      binop.invocation = true;
+    end if;
     ::transformExpression( v_val:l_val, expr_number:"1.1", smt:smt );
     select any l_op related by smt->Expression[R775.''may contain''] where ( selected.expression_number == "1.1" );
     relate l_op to binop across R779.''is left operand for'';
@@ -2437,6 +2445,7 @@ if ( not_empty act_smt and not_empty block )
     create object instance binop of BinaryOperation;
     relate binop to expr across R776;
     binop.operator = "=";
+    binop.invocation = false;
     // relate expression to expression as statement
     relate eas to expr across R476.''executes as statement'';
     // create left operand
@@ -2486,6 +2495,7 @@ if ( not_empty act_smt and not_empty block )
     create object instance binop of BinaryOperation;
     relate binop to expr across R776;
     binop.operator = "=";
+    binop.invocation = false;
     // relate expression to expression as statement
     relate eas to expr across R476.''executes as statement'';
     // create left operand
@@ -2693,8 +2703,62 @@ if ( not_empty v_tvl )
   relate var_ref to expr across R776;
 
 else
+select one v_irf related by v_val->V_IRF[R801];
+if ( not_empty v_irf )
+  // if this is the first location, create a new variable
+  select one v_var related by v_irf->V_VAR[R808];
+  select any existing_var related by smt->CodeBlock[R450.''is contained by'']->Variable[R458.''has in scope''] where ( selected.name == v_var.Name );
+  if ( empty existing_var ) // cannot declare two variables of the same name in the same scope
+    ::transformVariable( v_var:v_var, smt:smt );
+  end if;
+
+  // create variable reference
+  select any var related by smt->CodeBlock[R450.''is contained by'']->Variable[R458.''has in scope''] where ( selected.name == v_var.Name );
+  create object instance var_ref of VariableReference;
+  relate var to var_ref across R782.''referenced through'';
+  relate var_ref to expr across R776;
+
+else
+select one v_isr related by v_val->V_ISR[R801];
+if ( not_empty v_isr )
+  // if this is the first location, create a new variable
+  select one v_var related by v_isr->V_VAR[R809];
+  select any existing_var related by smt->CodeBlock[R450.''is contained by'']->Variable[R458.''has in scope''] where ( selected.name == v_var.Name );
+  if ( empty existing_var ) // cannot declare two variables of the same name in the same scope
+    ::transformVariable( v_var:v_var, smt:smt );
+  end if;
+
+  // create variable reference
+  select any var related by smt->CodeBlock[R450.''is contained by'']->Variable[R458.''has in scope''] where ( selected.name == v_var.Name );
+  create object instance var_ref of VariableReference;
+  relate var to var_ref across R782.''referenced through'';
+  relate var_ref to expr across R776;
+  
+else
+select one v_avl related by v_val->V_AVL[R801];
+if ( not_empty v_avl )
+  if ( not v_val.isLValue )  // do not create an attribute access for lval attribute references
+    create object instance acc of AttributeAccess;
+    relate acc to expr across R776;
+    select one root_val related by v_avl->V_VAL[R807];
+    ::transformExpression( v_val:root_val, expr_number:expr.expression_number + ".1", smt:smt );
+    select any root_expr related by smt->Expression[R775.''may contain''] where ( selected.expression_number == expr.expression_number + ".1" );
+    relate root_expr to acc across R785.''is used as basis for'';
+    select one attr related by v_avl->O_ATTR[R806]->Attribute[R414];
+    relate attr to acc across R788.''is referenced by'';
+  else
+    // dispose the expression
+    unrelate type from expr across R795.''defines type of'';
+    unrelate expr from smt across R775.''expressed within'';
+    delete object instance expr;
+    // transform the root expression
+    select one root_val related by v_avl->V_VAL[R807];
+    ::transformExpression( v_val:root_val, expr_number:param.expr_number, smt:smt );
+  end if;
+
+else
   LOG::LogInfo( message:"expression type not yet supported" );
-end if; end if; end if;',
+end if; end if; end if; end if; end if; end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',

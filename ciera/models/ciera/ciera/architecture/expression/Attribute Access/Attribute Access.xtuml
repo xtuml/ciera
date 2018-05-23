@@ -15,10 +15,17 @@ INSERT INTO O_TFR
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'if ( self.validateExpressionType() )
-  // TODO remove this when templates use attributes
-  root_expression_body = self.root_expression_body;
-  attr_name = self.attr_name;
-  T::include( file:"java/expression/t.attributereference.java" );
+  old_body = T::body(); // TODO
+  T::clear();
+  select one expression related by self->Expression[R785.''refers to attribute of instance expressed by''];
+  expression.render();
+  root_expression_body = T::body();
+  T::clear();
+  T::b( s:old_body ); // TODO
+  select any attribute_accessor related by self->Attribute[R788.''refers to'']->AttributeAccessor[R4510.''value accessed through'']
+    where ( selected.accessor_type == AttributeAccessor::GETTER );
+  accessor = attribute_accessor.getName();
+  T::include( file:"java/expression/t.attributeaccess.java" );
 end if;',
 	1,
 	'',
@@ -31,7 +38,7 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000001",
 	1,
-	'return false;',
+	'return true; // TODO',
 	1,
 	'',
 	"72148e9c-9199-409b-84ff-83a4a0e5b3f2",
@@ -521,7 +528,7 @@ INSERT INTO O_BATTR_PROXY
 INSERT INTO O_ATTR
 	VALUES ("d3c3c2e4-d151-4b6d-918a-60a4632d0de2",
 	"6913bc18-a54f-4cc4-8a28-bb0f5ee9b7b4",
-	"eae65f00-c2fb-4dff-b0a0-4eb8d979bc55",
+	"cd7eb62b-2b0f-4dbf-bbdf-ca005d7a6048",
 	'attr_class_name',
 	'',
 	'attr_class_',
@@ -620,30 +627,6 @@ INSERT INTO O_ATTR
 	'class_name',
 	1,
 	"ba5eda7a-def5-0000-0000-000000000007",
-	'',
-	'');
-INSERT INTO O_DBATTR
-	VALUES ("eae65f00-c2fb-4dff-b0a0-4eb8d979bc55",
-	"6913bc18-a54f-4cc4-8a28-bb0f5ee9b7b4",
-	'select one root_expression related by self->Expression[R785];
-root_expression.render();
-self.root_expression_body = T::body();
-T::clear();',
-	1,
-	0);
-INSERT INTO O_BATTR
-	VALUES ("eae65f00-c2fb-4dff-b0a0-4eb8d979bc55",
-	"6913bc18-a54f-4cc4-8a28-bb0f5ee9b7b4");
-INSERT INTO O_ATTR
-	VALUES ("eae65f00-c2fb-4dff-b0a0-4eb8d979bc55",
-	"6913bc18-a54f-4cc4-8a28-bb0f5ee9b7b4",
-	"cd7eb62b-2b0f-4dbf-bbdf-ca005d7a6048",
-	'root_expression_body',
-	'',
-	'',
-	'root_expression_body',
-	0,
-	"ba5eda7a-def5-0000-0000-000000000004",
 	'',
 	'');
 INSERT INTO O_ID

@@ -1,6 +1,7 @@
 package io.ciera.cairn.classes;
 
 import io.ciera.cairn.types.UniqueId;
+import io.ciera.summit.classes.IEmptyInstance;
 import io.ciera.summit.classes.IInstanceIdentifier;
 import io.ciera.summit.classes.IModelInstance;
 import io.ciera.summit.components.IComponent;
@@ -33,13 +34,13 @@ public abstract class ModelInstance<T extends IModelInstance<T,C>,C extends ICom
     @Override
     public void delete() throws XtumlException {
         checkLiving();
-        instanceId.nullify();
-        if ( !population().removeInstance( this ) ) throw new InstancePopulationException( "Instance does not exist within this population." );
+        if ( population().removeInstance( this ) ) instanceId.nullify();
+        else throw new InstancePopulationException( "Instance does not exist within this population." );
     }
 
     @Override
     public boolean equals( Object obj ) {
-        if ( null != obj && obj instanceof IModelInstance<?,?> ) {
+        if ( null != obj && obj instanceof IModelInstance<?,?> && !( obj instanceof IEmptyInstance ) ) {
             return getKeyLetters().equals( ((IModelInstance<?,?>)obj).getKeyLetters() ) &&
                    getInstanceId().equals( ((IModelInstance<?,?>)obj).getInstanceId() ) &&
                    ( null == getId1() || getId1().equals( ((IModelInstance<?,?>)obj).getId1() ) ) &&

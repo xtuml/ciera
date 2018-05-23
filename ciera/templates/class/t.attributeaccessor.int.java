@@ -1,5 +1,5 @@
 .if ( is_getter )
-    public ${type_name} get${capital_name}() throws XtumlException;
+    public ${type_name} ${name}() throws XtumlException;
 .else
-    public void set${capital_name}( ${type_name} ${self.attribute_name} ) throws XtumlException;
+    public void ${name}( ${type_name} ${self.attribute_name} ) throws XtumlException;
 .end if

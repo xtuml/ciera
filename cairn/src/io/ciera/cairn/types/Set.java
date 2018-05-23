@@ -112,7 +112,7 @@ public abstract class Set<S extends ISet<S,E>,E> implements ISet<S,E> {
     }
 
     @Override
-    public boolean remove(Object o) {
+    public boolean remove( Object o ) {
         if ( immutable || null == o || o.equals( nullElement() ) ) return false;
         else return internalSet.remove( o );
     }
