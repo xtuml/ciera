@@ -2537,10 +2537,18 @@ if ( not_empty act_smt and not_empty block )
     relate cr to obj across R780.''creates'';
     select one class_file related by obj->File[R401];
     ::addStringToImports( file: ::getFileForStatement( smt:smt ), s: ::pathToPackage( path:class_file.path ) + ".impl." + class_file.name + "Impl", type:ImportType::IMPL );
+    
+  else
+  select one act_ctl related by act_smt->ACT_CTL[R603];
+  if ( not_empty act_ctl )
+    // create halt statement
+    create object instance halt_smt of Halt;
+    relate halt_smt to smt across R451;
+    ::addStringToImports( file: ::getFileForStatement( smt:smt ), s:"io.ciera.cairn.application.tasks.HaltExecutionTask", type:ImportType::IMPL );
 
   else
     LOG::LogInfo( message:"statement type not yet supported" );
-  end if; end if; end if; end if; end if; end if; end if; end if; end if; end if;
+  end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if;
 
 else
   // TODO bad
