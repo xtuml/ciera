@@ -1,18 +1,19 @@
 package io.ciera.cairn.classes;
 
+import io.ciera.cairn.types.UniqueId;
 import io.ciera.summit.classes.IInstanceIdentifier;
 import io.ciera.summit.classes.IModelInstance;
-import io.ciera.summit.classes.UniqueId;
 import io.ciera.summit.components.IComponent;
 import io.ciera.summit.exceptions.DeletedInstanceException;
 import io.ciera.summit.exceptions.InstancePopulationException;
 import io.ciera.summit.exceptions.XtumlException;
 import io.ciera.summit.types.IXtumlType;
+import io.ciera.summit.types.IUniqueId;
 
 public abstract class ModelInstance<T extends IModelInstance<T,C>,C extends IComponent<C>> implements IModelInstance<T,C> {
     
 
-    private UniqueId instanceId;
+    private IUniqueId instanceId;
 
     // constructors
     public ModelInstance() {
@@ -20,7 +21,7 @@ public abstract class ModelInstance<T extends IModelInstance<T,C>,C extends ICom
     }
     
     @Override
-    public UniqueId getInstanceId() {
+    public IUniqueId getInstanceId() {
         return instanceId;
     }
     

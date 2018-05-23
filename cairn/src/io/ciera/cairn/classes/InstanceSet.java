@@ -4,13 +4,13 @@ import io.ciera.cairn.types.Set;
 import io.ciera.summit.classes.IInstanceIdentifier;
 import io.ciera.summit.classes.IInstanceSet;
 import io.ciera.summit.classes.IModelInstance;
-import io.ciera.summit.classes.UniqueId;
 import io.ciera.summit.exceptions.XtumlException;
+import io.ciera.summit.types.IUniqueId;
 
 public abstract class InstanceSet<S extends IInstanceSet<S,E>,E extends IModelInstance<E,?>> extends Set<S,E> implements IInstanceSet<S,E> {
 
 	@Override
-	public E getByInstanceId( UniqueId instanceId ) throws XtumlException {
+	public E getByInstanceId( IUniqueId instanceId ) throws XtumlException {
 		return where( selected -> selected.getInstanceId().equals( instanceId ) ).any();
 	}
 

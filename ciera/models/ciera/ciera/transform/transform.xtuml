@@ -148,6 +148,7 @@ file.exclude = false;
 create object instance comp_def of ComponentDefinition;
 relate comp_def to file across R401;
 comp_def.extends = "Component<" + comp_def.name + ">";
+relate c_c to comp_def across R4573.''is basis for'';
 
 // transform ports
 select many c_pos related by c_c->C_PO[R4010];
@@ -407,8 +408,9 @@ while ( not_empty s_sparm )
 end while;
 
 // see if this is an initializer function
+select one c_c related by comp_def->C_C[R4573.''is transformed from'']->PE_PE[R8001];
 select any init_function_mark from instances of Mark where ( selected.markable_name == "Component" and
-                                                             selected.path == ::packageToMarkingPath( package:comp_def.package ) + "::" + comp_def.name and
+                                                             selected.path == ::containerMarkingPath( pe:c_c ) + "::" + comp_def.name and
                                                              selected.feature_name == "InitFunction" );
 if ( not_empty init_function_mark and func.name == init_function_mark.value )
   select any s_sparm related by s_sync->S_SPARM[R24];
@@ -517,7 +519,7 @@ for each s_dt in s_dts
       type_package = "io.ciera.summit.time";
       type_default_value = "null";
     elif ( "unique_id" == s_dt.Name )
-      type_name = "UniqueId";
+      type_name = "IUniqueId";
       type_package = "io.ciera.summit.classes";
       type_unique = true;
       type_default_value = "new UniqueId()";
