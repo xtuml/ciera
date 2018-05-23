@@ -82,6 +82,15 @@ public abstract class Set<S extends ISet<S,E>,E> implements ISet<S,E> {
 		}
 		return resultSet.toImmutableSet();
 	}
+
+    @Override
+	public E anyWhere( IWhere<E> condition ) throws XtumlException {
+		if ( null == condition ) throw new BadArgumentException( "Null condition passed to selection." );
+	    for ( E selected : this ) {
+			if ( condition.evaluate( selected ) ) return selected;
+		}
+	    return nullElement();
+	}
 	
 	@Override
 	public void setImmutable() {

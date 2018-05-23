@@ -13,6 +13,7 @@ public interface ISet<S extends ISet<S,E>, E> extends Set<E>, IXtumlType<S> {
 	
 	public E any();
 	public S where( IWhere<E> condition ) throws XtumlException;
+	public E anyWhere( IWhere<E> condition ) throws XtumlException;
 	
 	public void setImmutable();
 	public S toImmutableSet();

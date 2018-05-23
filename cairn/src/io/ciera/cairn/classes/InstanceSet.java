@@ -11,22 +11,22 @@ public abstract class InstanceSet<S extends IInstanceSet<S,E>,E extends IModelIn
 
 	@Override
 	public E getByInstanceId( IUniqueId instanceId ) throws XtumlException {
-		return where( selected -> selected.getInstanceId().equals( instanceId ) ).any();
+		return anyWhere( selected -> selected.getInstanceId().equals( instanceId ) );
 	}
 
 	@Override
 	public E getById1( IInstanceIdentifier id1 ) throws XtumlException {
-		return where( selected -> selected.getId1().equals( id1 ) ).any();
+		return anyWhere( selected -> selected.getId1().equals( id1 ) );
 	}
 
 	@Override
 	public E getById2( IInstanceIdentifier id2 ) throws XtumlException {
-		return where( selected -> selected.getId2().equals( id2 ) ).any();
+		return anyWhere( selected -> selected.getId2().equals( id2 ) );
 	}
 
 	@Override
 	public E getById3( IInstanceIdentifier id3 ) throws XtumlException {
-		return where( selected -> selected.getId3().equals( id3 ) ).any();
+		return anyWhere( selected -> selected.getId3().equals( id3 ) );
 	}
 	
 }
