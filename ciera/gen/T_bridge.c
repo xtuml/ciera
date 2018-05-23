@@ -5,7 +5,7 @@
  * Methods for bridging to an external entity.
  *
  * External Entity:  template (T)
- * 
+ *
  * your copyright statement can go here (from te_copyright.body)
  *--------------------------------------------------------------------------*/
 

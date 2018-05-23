@@ -3,7 +3,7 @@ package ${self.package};
 ${imports}
 
 public class ${self.name} extends ${self.extends} {
-    
+
     public ${self.name}( IRunContext runContext ) {
         super( runContext );
 ${instance_extent_initializers}
@@ -16,7 +16,7 @@ ${functions}
 
     // relates and unrelates
 ${relationship_modifiers}
-    
+
     // instance selections
 ${instance_selectors}
 

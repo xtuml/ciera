@@ -5,14 +5,14 @@
  * Methods for bridging to an external entity.
  *
  * External Entity:  template (T)
- * 
+ *
  * your copyright statement can go here (from te_copyright.body)
  *--------------------------------------------------------------------------*/
 
 #ifndef T_BRIDGE_H
 #define T_BRIDGE_H
-#ifdef	__cplusplus
-extern	"C"	{
+#ifdef  __cplusplus
+extern  "C"  {
 #endif
 
 #include "ciera_sys_types.h"
@@ -36,7 +36,7 @@ c_t * T_t( c_t * );
 void T_copyfile( c_t *, c_t * );
 i_t T_idtoi( Escher_UniqueID_t );
 
-#ifdef	__cplusplus
+#ifdef  __cplusplus
 }
 #endif
 #endif   /* T_BRIDGE_H */

@@ -65,9 +65,9 @@ end while;
 // create the import block
 ::addStringToImports( file:file, s:"io.ciera.cairn.application.ApplicationExecutor", type:ImportType::IMPL );
 ::addStringToImports( file:file, s:"io.ciera.cairn.application.tasks.GenericExecutionTask", type:ImportType::IMPL );
-::addStringToImports( file:file, s:"io.ciera.summit.application.IApplication", type:ImportType::IMPL );      
-::addStringToImports( file:file, s:"io.ciera.summit.application.IRunContext", type:ImportType::IMPL );       
-::addStringToImports( file:file, s:"io.ciera.summit.components.IComponent", type:ImportType::IMPL );         
+::addStringToImports( file:file, s:"io.ciera.summit.application.IApplication", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.summit.application.IRunContext", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.summit.components.IComponent", type:ImportType::IMPL );
 ::addStringToImports( file:file, s:"io.ciera.summit.exceptions.XtumlException", type:ImportType::IMPL );
 
 // translate components definitions
@@ -179,7 +179,7 @@ end for;
 
 // transform relationship population selectors
 select many rels related by comp_def->Relationship[R448.''maintains instances of''];
-for each rel in rels 
+for each rel in rels
   create object instance rel_pop_selector of RelationshipPopulationSelector;
   rel_pop_selector.name = rel.name + "s";
   relate rel_pop_selector to comp_def across R4571.''selects relationships out of population of'';
@@ -552,7 +552,7 @@ for each s_dt in s_dts
       builtin.inst = type_inst;
       builtin.instset = type_instset;
     end if;
-  
+
   end if;
 
 end for;',
@@ -791,7 +791,7 @@ for each unresolved_type in unresolved_types
     select many builtin_types from instances of BuiltInType;
     select any new_type related by builtin_types->Type[R407] where ( selected.DT_ID == s_dt.DT_ID );
   else
-  
+
   // resolve class reference types
   select one s_irdt related by s_dt->S_IRDT[R17];
   if ( not_empty s_irdt )
@@ -813,7 +813,7 @@ for each unresolved_type in unresolved_types
   end if;
   end if;
   end if;
-  
+
   // unrelate old types and hook up the new types
   if ( not_empty new_type )
     select one old_type related by unresolved_type->Type[R407];
@@ -946,7 +946,7 @@ for each o_obj in o_objs
   // Make sure the IRDTs don''t already exist before creating new ones.  Check
   // the single and set version and create whatever does not exist.
   select any existing_irdt related by o_obj->S_IRDT[R123] where selected.isSet == false;
-  if (empty existing_irdt) 
+  if (empty existing_irdt)
     create object instance pe of PE_PE;
     relate pe to package across R8000;
     pe.Visibility = Visibility::Public;
@@ -961,7 +961,7 @@ for each o_obj in o_objs
   end if;
 
   select any existing_irdt_set related by o_obj->S_IRDT[R123] where selected.isSet == true;
-  if (empty existing_irdt_set) 
+  if (empty existing_irdt_set)
     create object instance pe of PE_PE;
     relate pe to package across R8000;
     pe.Visibility = Visibility::Public;
@@ -1525,7 +1525,7 @@ if ( not_empty r_simp )
 else
 select one r_subsup related by r_rel->R_SUBSUP[R206];
 if ( not_empty r_subsup )
-  
+
   select one part_class related by r_subsup->R_SUPER[R212]->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->Class[R409.''is basis for''];
   select many sub_classes related by r_subsup->R_SUB[R213]->R_RGO[R205]->R_OIR[R203]->O_OBJ[R201]->Class[R409.''is basis for''];
   if ( not_empty part_class and not_empty sub_classes )
@@ -1561,8 +1561,8 @@ if ( not_empty r_subsup )
 else
 select one r_assoc related by r_rel->R_ASSOC[R206];
 if ( not_empty r_assoc )
-  
-  
+
+
   select one r_assr related by r_assoc->R_ASSR[R211];
   select one r_aone related by r_assoc->R_AONE[R209];
   select one r_aoth related by r_assoc->R_AOTH[R210];
@@ -1581,7 +1581,7 @@ if ( not_empty r_assoc )
   else
     // TODO bad
   end if;
-  
+
   select one part_class related by r_aoth->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->Class[R409.''is basis for''];
   if ( not_empty form_class and not_empty part_class and not_empty r_aone )
     form_phrase = r_aone.Txt_Phrs;
@@ -1652,7 +1652,7 @@ INSERT INTO S_SYNC
 	'obj = param.obj;
 
 // transform selectors for associations
-// form to part 
+// form to part
 select many form_to_part_rels related by obj->Relationship[R435.''formalizes''];
 for each rel in form_to_part_rels
   select one part_obj related by rel->Class[R434.''has participating''];
@@ -1756,7 +1756,7 @@ if ( Mult::ONE == param.mult )
   relate type to sel across R446.''shapes return of'';
 
 else
-  
+
   // create ''many'' selector
   create object instance sel of Selector;
   sel.parent_name = obj.name;
@@ -2216,7 +2216,7 @@ if ( not_empty act_smt and not_empty block )
   end if;
   select one body related by block->InvocableObject[R4000.''is invoked in''];
   smt.oal = ::getOalStatement( body:body.oal, line_num:act_smt.LineNumber );
-  
+
   // create subtype
 
   // bridge invocation
@@ -2265,7 +2265,7 @@ if ( not_empty act_smt and not_empty block )
     else
       // TODO bad
     end if;
-    
+
   else
   select one act_if related by act_smt->ACT_IF[R603];
   if ( not_empty act_if )
@@ -2323,7 +2323,7 @@ if ( not_empty act_smt and not_empty block )
       select any else_block related by block->InvocableObject[R4000.''is invoked in'']->CodeBlock[R4000.''has''] where ( selected.block_number == else_block_number );
       relate else_block to if_smt across R454.''controls else for'';
     end if;
-  
+
   else
   select one act_whl related by act_smt->ACT_WHL[R603];
   if ( not_empty act_whl )
@@ -2563,7 +2563,7 @@ if ( not_empty v_lst )
   create object instance lit of Literal;
   relate lit to expr across R776;
   lit.value = STR::quote() + v_lst.Value + STR::quote();
-  
+
 else
 select one v_lbo related by v_val->V_LBO[R801];
 if ( not_empty v_lbo )
@@ -2585,7 +2585,7 @@ if ( not_empty v_tvl )
   if ( empty existing_var ) // cannot declare two variables of the same name in the same scope
     ::transformVariable( v_var:v_var, smt:smt );
   end if;
-  
+
   // create variable reference
   select any var related by smt->CodeBlock[R450.''is contained by'']->Variable[R458.''has in scope''] where ( selected.name == v_var.Name );
   create object instance var_ref of VariableReference;
@@ -2810,7 +2810,7 @@ INSERT INTO S_SYNC
 	'upper_block = param.upper_block;
 act_blk = param.act_blk;
 if ( not_empty act_blk )
-  
+
   invocable = param.invocable;
 
   // create code block
@@ -2824,17 +2824,17 @@ if ( not_empty act_blk )
   end if;
   relate block to invocable across R4000.''is invoked in'';
   block.block_number = param.block_number;
-  
+
   // copy visibile variables from upper block
   select many vars related by upper_block->Variable[R458.''has in scope''];
   for each var in vars
     create object instance var_in_scope of VariableInScope;
     relate var to block across R458.''is in scope for'' using var_in_scope;
   end for;
-  
+
   // transform all statements
   ::transformStatements( act_blk:act_blk, block:block );
-  
+
 else
   // TODO bad
 end if;',
@@ -3111,7 +3111,7 @@ INSERT INTO S_SYNC
 	'upper_block = param.upper_block;
 act_blk = param.act_blk;
 iter_var = param.iter_var;
-  
+
 // create code block
 create object instance block of CodeBlock;
 select one invocable related by upper_block->InvocableObject[R4000.''is invoked in''];

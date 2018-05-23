@@ -5,7 +5,7 @@
  * Methods for bridging to an external entity.
  *
  * External Entity:  Logging (LOG)
- * 
+ *
  *--------------------------------------------------------------------------*/
 
 // This implementation is using the LogSuccess and LogFailure bridges to toggle

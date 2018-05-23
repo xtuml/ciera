@@ -5,7 +5,7 @@
  * Methods for bridging to an external entity.
  *
  * External Entity:  utilities (C_UTIL)
- * 
+ *
  * your copyright statement can go here (from te_copyright.body)
  *--------------------------------------------------------------------------*/
 

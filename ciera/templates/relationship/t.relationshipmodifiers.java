@@ -7,7 +7,7 @@ ${attribute_propagations}
         }
         else new ModelIntegrityException( "Instances could not be related." );
     }
-    
+
     public void unrelate_${self.name}( ${self.form_name} form, ${self.part_name} part ) throws XtumlException {
         if ( null == form || null == part ) throw new BadArgumentException( "Null instances passed." );
         if ( form instanceof IEmptyInstance || part instanceof IEmptyInstance ) throw new EmptyInstanceException( "Cannot unrelate empty instances." );

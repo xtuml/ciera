@@ -11,27 +11,27 @@ import io.ciera.summit.exceptions.XtumlException;
 import io.ciera.summit.statemachine.Event;
 
 public class SimulatedTimeKeeper implements TimeKeeper {
-    
+
     // singleton instance
     private static SimulatedTimeKeeper timeKeeper = new SimulatedTimeKeeper();
-    
+
     private AtomicLong currentTime;
     private AtomicBoolean taskInQueue;
 
     private SortedSet<Timer> runningTimers;
-    
+
     // constructor
     private SimulatedTimeKeeper() {
         currentTime = new AtomicLong( 0 );
         runningTimers = new ConcurrentSkipListSet<Timer>();
         taskInQueue = new AtomicBoolean( false );
     }
-    
+
     public static SimulatedTimeKeeper getInstance() {
         return timeKeeper;
     }
 
-    // public methods
+    // public method
     public synchronized void addTime( Timer t, int microseconds ) {
         if ( null != t && runningTimers.remove( t ) ) {
             t.addToWakeUpTime( microseconds );
@@ -54,7 +54,7 @@ public class SimulatedTimeKeeper implements TimeKeeper {
     public synchronized void cancel( Timer t ) {
         if ( null != t ) runningTimers.remove( t );
     }
-    
+
     public synchronized Timer newTimer( Event e, int microseconds, boolean recurring ) {
         Timer timer = null;
         if ( null != e ) {
@@ -63,7 +63,7 @@ public class SimulatedTimeKeeper implements TimeKeeper {
         }
         return timer;
     }
-    
+
     private void addTimer( Timer timer ) {
         if ( timer != null ) runningTimers.add( timer );
         if ( !taskInQueue.get() ) {
@@ -71,7 +71,7 @@ public class SimulatedTimeKeeper implements TimeKeeper {
             taskInQueue.set( true );
         }
     }
-    
+
     private class PopTimerTask extends ApplicationTask {
         @Override
         public void init() throws XtumlException {
@@ -98,16 +98,16 @@ public class SimulatedTimeKeeper implements TimeKeeper {
             }
         }
     }
-    
-    // utility methods
+
+    // utility method
     public long currentTimeMicro() {
         return currentTime.get();
     }
-    
+
     static long microToMillis( long microseconds ) {
         long millis = microseconds / 1000;
         if ( microseconds % 1000 != 0 ) millis++;  // if there are any remaining microseconds, round up
         return millis;
     }
-    
+
 }

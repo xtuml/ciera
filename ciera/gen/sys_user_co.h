@@ -8,8 +8,8 @@
 
 #ifndef SYS_USER_CO_H
 #define SYS_USER_CO_H
-#ifdef	__cplusplus
-extern	"C"	{
+#ifdef  __cplusplus
+extern  "C"  {
 #endif
 
 /*
@@ -61,7 +61,7 @@ void UserPreOoaInitializationCalloutf( void );
 void UserPostOoaInitializationCalloutf( int, char ** );
 /* The following empty definition renders the callout hook invisible.
    Delete or comment out the following define to activate the in line
-   hook for this callout.  
+   hook for this callout.
 #define UserPostOoaInitializationCallout()
    */
 
@@ -287,7 +287,7 @@ void UserPersistenceErrorCalloutf( i_t );
 #define UserPersistenceErrorCallout( i1 ) UserPersistenceErrorCalloutf( i1 )
 #endif
 
-#ifdef	__cplusplus
+#ifdef  __cplusplus
 }
 #endif
 #endif  /* SYS_USER_CO_H */

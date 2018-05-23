@@ -10,27 +10,27 @@ import io.ciera.summit.exceptions.XtumlException;
 import io.ciera.summit.statemachine.Event;
 
 public class DefaultTimeKeeper implements TimeKeeper {
-    
+
     // singleton instance
     private static DefaultTimeKeeper timeKeeper = new DefaultTimeKeeper();
-    
+
     private long startTime;     // time the timekeeper was initialized in microseconds from the epoch
 
     private SortedSet<Timer> runningTimers;
     private java.util.Timer internalTimer;
-    
+
     // constructor
     private DefaultTimeKeeper() {
         startTime = System.currentTimeMillis() * 1000;
         runningTimers = new ConcurrentSkipListSet<Timer>();
         internalTimer = new java.util.Timer( "Xtuml Timer" );
     }
-    
+
     public static DefaultTimeKeeper getInstance() {
         return timeKeeper;
     }
 
-    // public methods
+    // public method
     public synchronized void addTime( Timer t, int microseconds ) {
         if ( null != t && runningTimers.remove( t ) ) {
             t.addToWakeUpTime( microseconds );
@@ -57,7 +57,7 @@ public class DefaultTimeKeeper implements TimeKeeper {
             reschedule();
         }
     }
-    
+
     public synchronized Timer newTimer( Event e, int microseconds, boolean recurring ) {
         Timer timer = null;
         if ( null != e ) {
@@ -67,11 +67,11 @@ public class DefaultTimeKeeper implements TimeKeeper {
         }
         return timer;
     }
-    
+
     private void addTimer( Timer timer ) {
         if ( timer != null ) runningTimers.add( timer );
     }
-    
+
     private void reschedule() {
         internalTimer.cancel();
         if ( !runningTimers.isEmpty() ) {
@@ -79,11 +79,11 @@ public class DefaultTimeKeeper implements TimeKeeper {
             internalTimer.schedule( new GenerateTask(), new java.util.Date( microToMillis( convertToRealTime( runningTimers.first().getWakeUpTime() ) ) ) );
         }
     }
-    
+
     private long convertToRealTime( long time ) {
         return time + startTime;
     }
-    
+
     private class GenerateTask extends TimerTask {
         @Override
         public void run() {
@@ -109,16 +109,16 @@ public class DefaultTimeKeeper implements TimeKeeper {
             }
         }
     }
-    
-    // utility methods
+
+    // utility method
     public long currentTimeMicro() {
         return ( System.currentTimeMillis() * 1000 ) - startTime;
     }
-    
+
     static long microToMillis( long microseconds ) {
         long millis = microseconds / 1000;
         if ( microseconds % 1000 != 0 ) millis++;  // if there are any remaining microseconds, round up
         return millis;
     }
-    
+
 }

@@ -3,7 +3,7 @@ package ${self.package}.impl;
 ${imports}
 
 public class ${self.name}Impl extends ${self.extends} implements ${self.name} {
-    
+
     public static final String KEY_LETTERS = "${self.key_letters}";
     public static final ${self.name} EMPTY_$u_{self.name} = new Empty${self.name}();
 
@@ -20,13 +20,13 @@ ${attribute_initializers}
         if ( context.addInstance( new${self.name} ) ) return new${self.name};
         else throw new InstancePopulationException( "Instance already exists within this population." );
     }
-    
+
     // attributes
 ${attributes}
 
     // operations
 ${operations}
-    
+
     // selections
 ${selectors}
 
@@ -53,7 +53,7 @@ ${selectors}
 }
 
 class Empty${self.name} extends ${self.name}Impl implements IEmptyInstance {
-    
+
     public Empty${self.name}() {
         super( null );
     }

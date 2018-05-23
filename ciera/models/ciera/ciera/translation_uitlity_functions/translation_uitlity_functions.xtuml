@@ -348,28 +348,28 @@ INSERT INTO S_SYNC
 	'r_rel_is_formal',
 	'',
 	'r_rel = param.r_rel;
-select one simp related by r_rel->R_SIMP[R206];                                                                                                    
+select one simp related by r_rel->R_SIMP[R206];
 if ( not_empty simp )
-  select one form related by simp->R_FORM[R208];                                                                                                    
-  if ( not_empty form )                                                                                                                                
+  select one form related by simp->R_FORM[R208];
+  if ( not_empty form )
     return true;
   end if;
-else 
-  select one assoc related by r_rel->R_ASSOC[R206];                                                                                                   
-  if ( not_empty assoc )                                                                                                                             
+else
+  select one assoc related by r_rel->R_ASSOC[R206];
+  if ( not_empty assoc )
     select one rto1 related by assoc->R_AONE[R209]->R_RTO[R204];
     select any rtida1 related by rto1->O_RTIDA[R110];
     select one rto2 related by assoc->R_AOTH[R210]->R_RTO[R204];
     select any rtida2 related by rto2->O_RTIDA[R110];
     return not_empty rtida1 and not_empty rtida2;
   else
-    select one subsup related by r_rel->R_SUBSUP[R206];                                                                                               
+    select one subsup related by r_rel->R_SUBSUP[R206];
     if ( not_empty subsup )
       select one rto related by subsup->R_SUPER[R212]->R_RTO[R204];
       select any rtida related by rto->O_RTIDA[R110];
       return not_empty rtida;
-    end if;                                                                                                                                          
-  end if;                                                                                                                                            
+    end if;
+  end if;
 end if;
 return false;',
 	"ba5eda7a-def5-0000-0000-000000000001",
@@ -407,9 +407,9 @@ INSERT INTO S_SYNC
 select one srel related by r_rel->R_SIMP[R206];
 if ( not_empty srel )
   select many part_set related by srel->R_PART[R207];
-  if ( cardinality part_set > 1 ) 
+  if ( cardinality part_set > 1 )
     select any part1 related by srel->R_PART[R207];
-    select any part2 related by srel->R_PART[R207] 
+    select any part2 related by srel->R_PART[R207]
       where selected.OIR_ID != part1.OIR_ID;
     if ( part1.Obj_ID == part2.Obj_ID )
       return true;
@@ -424,7 +424,7 @@ if ( not_empty srel )
     end if;
   end if;
 else
-  select one arel related by r_rel->R_ASSOC[R206]; 
+  select one arel related by r_rel->R_ASSOC[R206];
   if ( not_empty arel )
     select one aone related by arel->R_AONE[R209];
     select one aoth related by arel->R_AOTH[R210];

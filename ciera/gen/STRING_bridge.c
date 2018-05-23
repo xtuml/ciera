@@ -5,7 +5,7 @@
  * Methods for bridging to an external entity.
  *
  * External Entity:  string (STRING)
- * 
+ *
  * your copyright statement can go here (from te_copyright.body)
  *--------------------------------------------------------------------------*/
 
@@ -244,7 +244,7 @@ STRING_getword( const i_t p_i, const i_t p_j, c_t * p_s )
         *dst = '\0';  /* Ensure delimiter.  */
       }
     }
-    
+
   }
 
   return result;

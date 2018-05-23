@@ -5,12 +5,12 @@ import io.ciera.cairn.application.TaskPriority;
 import io.ciera.summit.interfaces.IMessage;
 
 public abstract class ReceivedMessageTask extends ApplicationTask {
-	
-	public abstract IMessage getMessage();
 
-	@Override
-	public int getPriority() {
-		return TaskPriority.RECEIVED_MESSAGE_PRIORITY;
-	}
+    public abstract IMessage getMessage();
+
+    @Override
+    public int getPriority() {
+        return TaskPriority.RECEIVED_MESSAGE_PRIORITY;
+    }
 
 }

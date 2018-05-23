@@ -7,11 +7,11 @@ import io.ciera.cairn.application.TaskPriority;
 
 public abstract class PoppedTimerTask extends ApplicationTask {
 
-	//public abstract Timer getTimer();
+    //public abstract Timer getTimer();
 
-	@Override
-	public int getPriority() {
-		return TaskPriority.POPPED_TIMER_PRIORITY;
-	}
+    @Override
+    public int getPriority() {
+        return TaskPriority.POPPED_TIMER_PRIORITY;
+    }
 
 }

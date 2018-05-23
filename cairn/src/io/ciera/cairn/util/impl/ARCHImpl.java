@@ -8,12 +8,12 @@ import io.ciera.summit.components.IComponent;
 public class ARCHImpl<C extends IComponent<C>> extends Utility<C> implements ARCH {
 
     public ARCHImpl( C population ) {
-		super( population );
-	}
+        super( population );
+    }
 
-	@Override
-	public void shutdown() {
-    	getRunContext().execute( new HaltExecutionTask() );
-	}
+    @Override
+    public void shutdown() {
+        getRunContext().execute( new HaltExecutionTask() );
+    }
 
 }
