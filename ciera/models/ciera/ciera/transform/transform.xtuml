@@ -2547,8 +2547,34 @@ if ( not_empty act_smt and not_empty block )
     ::addStringToImports( file: ::getFileForStatement( smt:smt ), s:"io.ciera.cairn.application.tasks.HaltExecutionTask", type:ImportType::IMPL );
 
   else
+  select one act_del related by act_smt->ACT_DEL[R603];
+  if ( not_empty act_del )
+    // create delete statement
+    create object instance del of DeleteSmt;
+    relate del to smt across R451;
+    // create variable reference expression
+    create object instance expr of Expression;
+    relate expr to smt across R775.''expressed within'';
+    expr.expression_number = "1";
+    relate del to expr across R462.''deletes instance specified by'';
+    select one del_v_var related by act_del->V_VAR[R634];
+    select one del_s_dt related by del_v_var->S_DT[R848];
+    select one del_obj related by del_v_var->V_INT[R814]->O_OBJ[R818];
+    del_s_dt = ::getInstRefTypeForClass( s_dt:del_s_dt, o_obj:del_obj );
+    del_type = UnresolvedType::getInstance( s_dt:del_s_dt );
+    relate del_type to expr across R795.''defines type of'';
+    select any del_var related by smt->CodeBlock[R450.''is contained by'']->Variable[R458.''has in scope''] where ( selected.name == del_v_var.Name );
+    if ( not_empty del_var ) // cannot declare two variables of the same name in the same scope
+      create object instance var_ref of VariableReference;
+      relate del_var to var_ref across R782.''referenced through'';
+      relate var_ref to expr across R776;
+    else
+      // TODO bad
+    end if;
+
+  else
     LOG::LogInfo( message:"statement type not yet supported" );
-  end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if;
+  end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if;
 
 else
   // TODO bad

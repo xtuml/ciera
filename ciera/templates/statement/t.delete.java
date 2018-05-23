@@ -1,1 +1,2 @@
-context().deleteObjectInstance( ${deleted_var_name} );
+${indent}// ${oal}
+${indent}${inst_expr}.delete();
