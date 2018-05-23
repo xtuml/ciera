@@ -398,7 +398,7 @@ end while;
 while ( not_empty s_sparm )
   // create parameter
   create object instance parm of FormalParameter;
-  parm.name = s_sparm.Name;
+  parm.name = "p_" + s_sparm.Name;
   parm.by_ref = ( 1 == s_sparm.By_Ref );
   select one parm_dt related by s_sparm->S_DT[R26];
   parm_type = UnresolvedType::getInstance( s_dt:parm_dt );
@@ -1137,7 +1137,7 @@ end while;
 while ( not_empty o_tparm )
   // create parameter
   create object instance parm of FormalParameter;
-  parm.name = o_tparm.Name;
+  parm.name = "p_" + o_tparm.Name;
   parm.by_ref = ( 1 == o_tparm.By_Ref );
   select one parm_dt related by o_tparm->S_DT[R118];
   parm_type = UnresolvedType::getInstance( s_dt:parm_dt );
@@ -1289,7 +1289,7 @@ end while;
 while ( not_empty c_pp )
   // create parameter
   create object instance parm of FormalParameter;
-  parm.name = c_pp.Name;
+  parm.name = "p_" + c_pp.Name;
   parm.by_ref = ( 1 == c_pp.By_Ref );
   select one parm_dt related by c_pp->S_DT[R4007];
   parm_type = UnresolvedType::getInstance( s_dt:parm_dt );
@@ -2029,7 +2029,7 @@ end while;
 while ( not_empty s_bparm )
   // create parameter
   create object instance parm of FormalParameter;
-  parm.name = s_bparm.Name;
+  parm.name = "p_" + s_bparm.Name;
   parm.by_ref = ( 1 == s_bparm.By_Ref );
   select one parm_dt related by s_bparm->S_DT[R22];
   parm_type = UnresolvedType::getInstance( s_dt:parm_dt );
@@ -2699,7 +2699,6 @@ select one s_dt related by v_val->S_DT[R820];
 type = UnresolvedType::getInstance( s_dt:s_dt );
 relate type to expr across R795.''defines type of'';
 
-// create subtype
 select one v_lst related by v_val->V_LST[R801];
 if ( not_empty v_lst )
   // create literal
@@ -2790,8 +2789,37 @@ if ( not_empty v_avl )
   end if;
 
 else
+select one v_pvl related by v_val->V_PVL[R801];
+if ( not_empty v_pvl )
+  if ( not v_val.isLValue )
+    create object instance ref of ParameterReference;
+    relate ref to expr across R776;
+    param_name = "";
+    select one brg_param related by v_pvl->S_BPARM[R831];
+    if ( not_empty brg_param ) param_name = brg_param.Name; else
+    select one fnc_param related by v_pvl->S_SPARM[R832];
+    if ( not_empty fnc_param ) param_name = fnc_param.Name; else
+    select one op_param related by v_pvl->O_TPARM[R833];
+    if ( not_empty op_param ) param_name = op_param.Name; else
+    select one ep_param related by v_pvl->C_PP[R843];
+    if ( not_empty ep_param ) param_name = ep_param.Name;
+    else
+      // TODO bad
+    end if; end if; end if; end if;
+    select any formal_param related by smt->CodeBlock[R450.''is contained by'']->InvocableObject[R4000.''is invoked in'']->FormalParameter[R429.''declares signature with'']
+      where ( selected.name == "p_" + param_name );
+    if ( not_empty formal_param )
+      relate formal_param to ref across R781;
+    else
+      // TODO bad
+    end if;
+    
+  else // TODO by ref parameters
+  end if;
+
+else
   LOG::LogInfo( message:"expression type not yet supported" );
-end if; end if; end if; end if; end if; end if;',
+end if; end if; end if; end if; end if; end if; end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -2955,7 +2983,7 @@ num = 2;
 select any v_par from instances of V_PAR where false;
 while ( not_empty parm )
   for each par in v_pars
-    if ( par.Name == parm.name )
+    if ( "p_" + par.Name == parm.name )
       v_par = par;
       break;
     end if;
