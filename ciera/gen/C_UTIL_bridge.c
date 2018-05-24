@@ -81,6 +81,21 @@ C_UTIL_organizeImports( c_t * p_s )
   }
 
   return p_s;
+}
 
+/*
+ * Bridge:  stripTics
+ */
+c_t *
+C_UTIL_stripTics( c_t * p_s )
+{
+  // set a pointer to the end of the string
+  c_t * p = p_s + strlen(p_s) - 1;
+  while ( *p == '\'' ) p--;
+  *(p+1) = '\0'; // place null terminator
+  // set a pointer to the beginning of the string
+  p = p_s;
+  while ( *p == '\'' ) p++;
+  return p; // return at the first non tic character
 }
 
