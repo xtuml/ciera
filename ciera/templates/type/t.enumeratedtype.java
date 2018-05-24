@@ -1,8 +1,17 @@
 package ${self.package};
 
-public class ${self.name} {
+public enum ${self.name} {
 
-    public static final int UNINITIALIZED_ENUM = -1;
-${enumerators}
+    UNINITIALIZED_ENUM( -1 )${enumerators}
+
+    private final int value;
+
+    ${self.name}( int value ) {
+        this.value = value;
+    }
+
+    public int getValue() {
+        return value;
+    }
 
 }

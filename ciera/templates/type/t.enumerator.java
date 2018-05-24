@@ -1,1 +1,1 @@
-    public static final int ${self.name} = $t{self.value};
+    ${self.name}( $t{self.value} )\
