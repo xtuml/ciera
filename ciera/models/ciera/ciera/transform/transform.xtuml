@@ -2616,12 +2616,20 @@ if ( not_empty act_smt and not_empty block )
     create object instance r_op of Expression;
     relate r_op to smt across R775.''expressed within'';
     r_op.expression_number = "1.2";
+    relate r_op to binop across R778.''is right operand for'';
+    if ( "any" == act_fio.cardinality ) // create another expression for the ''any''. Note that this is a little tricky because the local var ''r_op'' is being reused
+      create object instance any_expr of AnyExpr;
+      relate any_expr to r_op across R776;
+      create object instance r_op of Expression;
+      relate r_op to smt across R775.''expressed within'';
+      r_op.expression_number = "1.2.1";
+      relate r_op to any_expr across R783.''is basis for'';
+    end if;
     create object instance sel of Select;
     relate sel to r_op across R776;
     create object instance sel_fi of SelectFromInstances;
     relate sel_fi to sel across R789;
     relate selector to sel_fi across R799.''invoked by'';
-    relate r_op to binop across R778.''is right operand for'';
 
   else
   select one act_cr related by act_smt->ACT_CR[R603];

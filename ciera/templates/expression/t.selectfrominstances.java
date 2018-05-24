@@ -1,1 +1,1 @@
-${self.selector_name}()\
+context().${self.selector_name}()\
