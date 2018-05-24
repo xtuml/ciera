@@ -2616,8 +2616,22 @@ if ( not_empty act_smt and not_empty block )
     end if;
 
   else
+  select one act_ret related by act_smt->ACT_RET[R603];
+  if ( not_empty act_ret )
+    // create delete statement
+    create object instance ret of ReturnSmt;
+    relate ret to smt across R451;
+    // create return expression
+    select one ret_val related by act_ret->V_VAL[R668];
+    if ( not_empty ret_val )
+      ::transformExpression( v_val:ret_val, expr_number:"1", smt:smt );
+      select any ret_expr related by smt->Expression[R775.''may contain''] where ( selected.expression_number == "1" );
+      relate ret_expr to ret across R473.''defines return value for'';
+    end if;
+  
+  else
     LOG::LogInfo( message:"statement type not yet supported" );
-  end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if;
+  end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if;
 
 else
   // TODO bad
