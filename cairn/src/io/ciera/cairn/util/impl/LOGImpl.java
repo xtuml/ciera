@@ -6,8 +6,8 @@ import io.ciera.summit.components.IComponent;
 
 public class LOGImpl<C extends IComponent<C>> extends Utility<C> implements LOG {
 
-    public LOGImpl( C population ) {
-        super( population );
+    public LOGImpl( C context ) {
+        super( context );
     }
 
     @Override

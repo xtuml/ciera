@@ -7,8 +7,8 @@ import io.ciera.summit.components.IComponent;
 
 public class ARCHImpl<C extends IComponent<C>> extends Utility<C> implements ARCH {
 
-    public ARCHImpl( C population ) {
-        super( population );
+    public ARCHImpl( C context ) {
+        super( context );
     }
 
     @Override

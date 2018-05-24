@@ -123,7 +123,7 @@ T_b("\n");
 T_b("    ");
 T_b("public ");
 T_b(self->name);
-T_b(" population() {");
+T_b(" context() {");
 T_b("\n");
 T_b("        ");
 T_b("return this;");

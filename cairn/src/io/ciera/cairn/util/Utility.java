@@ -6,20 +6,20 @@ import io.ciera.summit.components.IComponent;
 
 public class Utility<C extends IComponent<C>> implements IActionHome<C> {
 
-    C population;
+    C context;
 
-    public Utility( C population ) {
-        this.population = population;
+    public Utility( C context ) {
+        this.context = context;
     }
 
     @Override
     public IRunContext getRunContext() {
-        return population().getRunContext();
+        return context().getRunContext();
     }
 
     @Override
-    public C population() {
-        return population;
+    public C context() {
+        return context;
     }
 
 }

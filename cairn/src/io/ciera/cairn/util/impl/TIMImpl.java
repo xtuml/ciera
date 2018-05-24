@@ -6,8 +6,8 @@ import io.ciera.summit.components.IComponent;
 
 public class TIMImpl<C extends IComponent<C>> extends Utility<C> implements TIM {
 
-    public TIMImpl( C population ) {
-        super( population );
+    public TIMImpl( C context ) {
+        super( context );
     }
 
 }

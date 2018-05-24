@@ -32,11 +32,11 @@ ${selectors}
 
     @Override
     public IRunContext getRunContext() {
-        return population().getRunContext();
+        return context().getRunContext();
     }
 
     @Override
-    public ${self.comp_name} population() {
+    public ${self.comp_name} context() {
         return context;
     }
 

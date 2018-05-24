@@ -5,7 +5,7 @@ T_b(oal);
 T_b("\n");
 }
 T_b(indent);
-T_b("population().relate_");
+T_b("context().relate_");
 T_b(self->rel_name);
 T_b("( ");
 T_b(form_expr);

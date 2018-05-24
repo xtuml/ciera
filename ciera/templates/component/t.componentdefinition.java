@@ -54,7 +54,7 @@ ${instance_removes}
     }
 
     @Override
-    public ${self.name} population() {
+    public ${self.name} context() {
         return this;
     }
 

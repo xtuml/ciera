@@ -34,7 +34,7 @@ public abstract class ModelInstance<T extends IModelInstance<T,C>,C extends ICom
     @Override
     public void delete() throws XtumlException {
         checkLiving();
-        if ( population().removeInstance( this ) ) instanceId.nullify();
+        if ( context().removeInstance( this ) ) instanceId.nullify();
         else throw new InstancePopulationException( "Instance does not exist within this population." );
     }
 

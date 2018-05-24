@@ -1,1 +1,1 @@
-${self.class_name}Impl.create( population() )\
+${self.class_name}Impl.create( context() )\
