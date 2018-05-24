@@ -3095,10 +3095,150 @@ if ( not_empty act_smt and not_empty block )
     else
       // TODO bad
     end if;
+
+  else
+  select one act_uru related by act_smt->ACT_URU[R603];
+  if ( not_empty act_uru )
+    // select the relationship
+    select one r_rel related by act_uru->R_REL[R656];
+    select one one_v_var related by act_uru->V_VAR[R622];
+    select one one_o_obj related by one_v_var->V_INT[R814]->O_OBJ[R818];
+    select one one_class related by one_o_obj->Class[R409.''is basis for''];
+    one_phrase = "";
+    select one other_v_var related by act_uru->V_VAR[R623];
+    select one other_o_obj related by other_v_var->V_INT[R814]->O_OBJ[R818];
+    select one other_class related by other_o_obj->Class[R409.''is basis for''];
+    other_phrase = "";
+    select one link_v_var related by act_uru->V_VAR[R624];
+    select one link_o_obj related by link_v_var->V_INT[R814]->O_OBJ[R818];
+    select one link_class related by link_o_obj->Class[R409.''is basis for''];
+    select one simp related by r_rel->R_SIMP[R206];
+    if ( one_o_obj.Obj_ID == other_o_obj.Obj_ID ) // reflexive linked association
+      other_phrase = C_UTIL::stripTics( s:act_uru.relationship_phrase );
+      select many oirs related by r_rel->R_OIR[R201] where ( C_UTIL::stripTics( s:act_uru.relationship_phrase ) != ::oirGetPhrase( r_oir_id:selected.OIR_ID ) );
+      select any link related by oirs->R_RGO[R203]->R_ASSR[R205];
+      select any one_oir from instances of R_OIR where false;
+      for each oir in oirs
+        if ( not_empty link and oir.OIR_ID != link.OIR_ID )
+          one_oir = oir;
+          one_phrase = ::oirGetPhrase( r_oir_id:oir.OIR_ID );
+          break;
+        end if;
+      end for;
+      if ( empty one_oir )
+        // TODO bad
+      end if;
+    else // non-reflexive linked association
+      select any one_oir related by r_rel->R_OIR[R201] where ( selected.Obj_ID == one_o_obj.Obj_ID );
+      select any other_oir related by r_rel->R_OIR[R201] where ( selected.Obj_ID == other_o_obj.Obj_ID );
+      if ( not_empty one_oir and not_empty other_oir )
+        one_phrase = ::oirGetPhrase( r_oir_id:one_oir.OIR_ID );
+        other_phrase = ::oirGetPhrase( r_oir_id:other_oir.OIR_ID );
+      else
+        // TODO bad
+      end if;
+    end if;
+    select any rel1 from instances of Relationship where false;
+    select any rel2 from instances of Relationship where false;
+    containing_comp_def = ::getCompDefForStatement( smt:smt );
+    if ( not_empty containing_comp_def and not_empty one_class and not_empty other_class and not_empty link_class )
+      select any rel1 related by containing_comp_def->Relationship[R448.''maintains instances of'']
+        where ( selected.num == r_rel.Numb and
+          ( selected.form_name == link_class.name and selected.form_phrase == other_phrase and selected.part_name == one_class.name and selected.part_phrase == one_phrase ) );
+      select any rel2 related by containing_comp_def->Relationship[R448.''maintains instances of'']
+        where ( selected.num == r_rel.Numb and
+          ( selected.form_name == link_class.name and selected.form_phrase == one_phrase and selected.part_name == other_class.name and selected.part_phrase == other_phrase ) );
+    else
+      // TODO bad
+    end if;
+    select many levi_rels related by containing_comp_def->Relationship[R448.''maintains instances of'']
+        where ( selected.num == r_rel.Numb );
+    if ( not_empty rel1 and not_empty rel2 )
+      // create first unrelate statement (one to link)
+      create object instance unrelsmt1 of UnrelateSmt;
+      relate unrelsmt1 to smt across R451;
+      relate rel1 to unrelsmt1 across R484.''deleted by'';
+      // create variable reference expression for formalizer for the first unrelate
+      create object instance form_expr1 of Expression;
+      relate form_expr1 to smt across R775.''expressed within'';
+      form_expr1.expression_number = "1";
+      relate unrelsmt1 to form_expr1 across R483.''unrelates formalizing'';
+      select one form_s_dt related by link_v_var->S_DT[R848];
+      form_s_dt = ::getInstRefTypeForClass( s_dt:form_s_dt, o_obj:link_o_obj );
+      form_type = UnresolvedType::getInstance( s_dt:form_s_dt );
+      relate form_type to form_expr1 across R795.''defines type of'';
+      select any form_var related by smt->CodeBlock[R450.''is contained by'']->Variable[R458.''has in scope''] where ( selected.name == link_v_var.Name );
+      if ( not_empty form_var ) // cannot declare two variables of the same name in the same scope
+        create object instance var_ref of VariableReference;
+        relate form_var to var_ref across R782.''referenced through'';
+        relate var_ref to form_expr1 across R776;
+      else
+        // TODO bad
+      end if;
+      // create variable reference expression for participant for the first relate
+      create object instance part_expr1 of Expression;
+      relate part_expr1 to smt across R775.''expressed within'';
+      part_expr1.expression_number = "2";
+      relate unrelsmt1 to part_expr1 across R482.''unrelates participating'';
+      select one part_s_dt related by one_v_var->S_DT[R848];
+      part_s_dt = ::getInstRefTypeForClass( s_dt:part_s_dt, o_obj:one_o_obj );
+      part_type = UnresolvedType::getInstance( s_dt:part_s_dt );
+      relate part_type to part_expr1 across R795.''defines type of'';
+      select any part_var related by smt->CodeBlock[R450.''is contained by'']->Variable[R458.''has in scope''] where ( selected.name == one_v_var.Name );
+      if ( not_empty part_var ) // cannot declare two variables of the same name in the same scope
+        create object instance var_ref of VariableReference;
+        relate part_var to var_ref across R782.''referenced through'';
+        relate var_ref to part_expr1 across R776;
+      else
+        // TODO bad
+      end if;
+      // create second relate statement (other to link)
+      create object instance smt2 of Statement;
+      relate smt2 to block across R450.''is contained by'';
+      smt2.statement_number = STR::itoa( i:STR::atoi( s:smt.statement_number ) + 1 );
+      relate smt2 to smt across R477.''executes after'';
+      smt2.oal = "";
+      create object instance unrelsmt2 of UnrelateSmt;
+      relate unrelsmt2 to smt2 across R451;
+      relate rel2 to unrelsmt2 across R484.''deleted by'';
+      // create variable reference expression for formalizer for the second relate
+      create object instance form_expr2 of Expression;
+      relate form_expr2 to smt2 across R775.''expressed within'';
+      form_expr2.expression_number = "1";
+      relate unrelsmt2 to form_expr2 across R483.''unrelates formalizing'';
+      relate form_type to form_expr2 across R795.''defines type of'';
+      select any form_var related by smt->CodeBlock[R450.''is contained by'']->Variable[R458.''has in scope''] where ( selected.name == link_v_var.Name );
+      if ( not_empty form_var ) // cannot declare two variables of the same name in the same scope
+        create object instance var_ref of VariableReference;
+        relate form_var to var_ref across R782.''referenced through'';
+        relate var_ref to form_expr2 across R776;
+      else
+        // TODO bad
+      end if;
+      // create variable reference expression for participant for the second relate
+      create object instance part_expr2 of Expression;
+      relate part_expr2 to smt2 across R775.''expressed within'';
+      part_expr2.expression_number = "2";
+      relate unrelsmt2 to part_expr2 across R482.''unrelates participating'';
+      select one part_s_dt related by other_v_var->S_DT[R848];
+      part_s_dt = ::getInstRefTypeForClass( s_dt:part_s_dt, o_obj:other_o_obj );
+      part_type = UnresolvedType::getInstance( s_dt:part_s_dt );
+      relate part_type to part_expr2 across R795.''defines type of'';
+      select any part_var related by smt->CodeBlock[R450.''is contained by'']->Variable[R458.''has in scope''] where ( selected.name == other_v_var.Name );
+      if ( not_empty part_var ) // cannot declare two variables of the same name in the same scope
+        create object instance var_ref of VariableReference;
+        relate part_var to var_ref across R782.''referenced through'';
+        relate var_ref to part_expr2 across R776;
+      else
+        // TODO bad
+      end if;
+    else
+      // TODO bad
+    end if;
  
   else
     LOG::LogInfo( message:"statement type not yet supported" );
-  end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if;
+  end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if;
 
 else
   // TODO bad
