@@ -22,5 +22,21 @@ public class Relationship implements IRelationship {
     public IUniqueId getPart() {
         return part;
     }
+    
+    @Override
+    public boolean equals( Object obj ) {
+        if ( null != obj && obj instanceof IRelationship ) {
+            return getForm().equals( ((IRelationship)obj).getForm() ) &&
+                   getPart().equals( ((IRelationship)obj).getPart() );
+        }
+        else return false;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = getForm().hashCode();
+        hash = hash * 31 + getPart().hashCode();
+        return hash;
+    }
 
 }
