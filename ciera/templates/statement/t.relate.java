@@ -1,1 +1,4 @@
-${one_var_name}.relateTo( ${other_var_name} );
+.if ( "" != oal )
+${indent}// ${oal}
+.end if
+${indent}population().relate_${self.rel_name}( ${form_expr}, ${part_expr} );
