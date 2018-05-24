@@ -1144,7 +1144,13 @@ while ( not_empty o_tparm )
   relate parm_type to parm across R431;
   ::linkParameter( invocable:invocable, parameter:parm );
   select one o_tparm related by o_tparm->O_TPARM[R124.''precedes''];
-end while;',
+end while;
+
+// relate the body
+select one act_act related by o_tfr->ACT_OPB[R696]->ACT_ACT[R698];
+if ( not_empty act_act )
+  relate act_act to invocable across R432.''actions transformed from'';
+end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -2300,6 +2306,67 @@ if ( not_empty act_smt and not_empty block )
     end if;
 
   else
+  select one act_tfm related by act_smt->ACT_TFM[R603];
+  if ( not_empty act_tfm )
+    select one o_tfr related by act_tfm->O_TFR[R673];
+    containing_comp_def = ::getCompDefForStatement( smt:smt );
+    select any invocable related by containing_comp_def->Class[R408.''maintains instances of'']->Operation[R416.''provides'']->InvocableObject[R427] where ( selected.name == o_tfr.Name );
+    if ( not_empty invocable )
+      // create expression as statement
+      create object instance eas of ExpressionAsStatement;
+      relate eas to smt across R451;
+      // create main expression
+      create object instance expr of Expression;
+      relate expr to smt across R775.''expressed within'';
+      expr.expression_number = "1";
+      relate eas to expr across R476.''executes as statement'';
+      // create invocation
+      create object instance invoc of Invocation;
+      relate invoc to expr across R776;
+      relate invoc to invocable across R792;
+      // relate expression to expression as statement
+      select one op_v_var related by act_tfm->V_VAR[R667];
+      if ( empty op_v_var ) // class based operation
+        // create named reference expression
+        create object instance expr2 of Expression;
+        relate expr2 to smt across R775.''expressed within'';
+        expr2.expression_number = "1.1";
+        relate expr2 to invoc across R798.''is used as basis for'';
+        // create named reference
+        create object instance named_ref of NamedReference;
+        relate named_ref to expr2 across R776;
+        select one target_class related by invocable->Operation[R427]->Class[R416.''provided by''];
+        named_ref.name = target_class.name + "Impl";
+        select one class_file related by target_class->File[R401];
+        ::addStringToImports( file: ::getFileForStatement( smt:smt ), s: ::pathToPackage( path:class_file.path ) + ".impl." + class_file.name + "Impl", type:ImportType::IMPL );
+      else // instance based operation
+        // create variable reference expression
+        create object instance expr2 of Expression;
+        relate expr2 to smt across R775.''expressed within'';
+        expr2.expression_number = "1.1";
+        relate expr2 to invoc across R798.''is used as basis for'';
+        select one op_s_dt related by op_v_var->S_DT[R848];
+        select one op_obj related by o_tfr->O_OBJ[R115];
+        op_s_dt = ::getInstRefTypeForClass( s_dt:op_s_dt, o_obj:op_obj );
+        op_type = UnresolvedType::getInstance( s_dt:op_s_dt );
+        relate op_type to expr2 across R795.''defines type of'';
+        select any op_var related by smt->CodeBlock[R450.''is contained by'']->Variable[R458.''has in scope''] where ( selected.name == op_v_var.Name );
+        if ( not_empty op_var ) // cannot declare two variables of the same name in the same scope
+          create object instance var_ref of VariableReference;
+          relate op_var to var_ref across R782.''referenced through'';
+          relate var_ref to expr2 across R776;
+        else
+          // TODO bad
+        end if;
+      end if;
+      // transform actual parameters
+      select many v_pars related by act_tfm->V_PAR[R627];
+      ::transformActualParameters( invocation:invoc, v_pars:v_pars );
+    else
+      // TODO bad
+    end if;
+
+  else
   select one act_if related by act_smt->ACT_IF[R603];
   if ( not_empty act_if )
     select any empty_invocable from instances of InvocableObject where false;
@@ -2630,67 +2697,6 @@ if ( not_empty act_smt and not_empty block )
     end if;
   
   else
-  select one act_tfm related by act_smt->ACT_TFM[R603];
-  if ( not_empty act_tfm )
-    select one o_tfr related by act_tfm->O_TFR[R673];
-    containing_comp_def = ::getCompDefForStatement( smt:smt );
-    select any invocable related by containing_comp_def->Class[R408.''maintains instances of'']->Operation[R416.''provides'']->InvocableObject[R427] where ( selected.name == o_tfr.Name );
-    if ( not_empty invocable )
-      // create expression as statement
-      create object instance eas of ExpressionAsStatement;
-      relate eas to smt across R451;
-      // create main expression
-      create object instance expr of Expression;
-      relate expr to smt across R775.''expressed within'';
-      expr.expression_number = "1";
-      relate eas to expr across R476.''executes as statement'';
-      // create invocation
-      create object instance invoc of Invocation;
-      relate invoc to expr across R776;
-      relate invoc to invocable across R792;
-      // relate expression to expression as statement
-      select one op_v_var related by act_tfm->V_VAR[R667];
-      if ( empty op_v_var ) // class based operation
-        // create named reference expression
-        create object instance expr2 of Expression;
-        relate expr2 to smt across R775.''expressed within'';
-        expr2.expression_number = "1.1";
-        relate expr2 to invoc across R798.''is used as basis for'';
-        // create named reference
-        create object instance named_ref of NamedReference;
-        relate named_ref to expr2 across R776;
-        select one target_class related by invocable->Operation[R427]->Class[R416.''provided by''];
-        named_ref.name = target_class.name + "Impl";
-        select one class_file related by target_class->File[R401];
-        ::addStringToImports( file: ::getFileForStatement( smt:smt ), s: ::pathToPackage( path:class_file.path ) + ".impl." + class_file.name + "Impl", type:ImportType::IMPL );
-      else // instance based operation
-        // create variable reference expression
-        create object instance expr2 of Expression;
-        relate expr2 to smt across R775.''expressed within'';
-        expr2.expression_number = "1.1";
-        relate expr2 to invoc across R798.''is used as basis for'';
-        select one op_s_dt related by op_v_var->S_DT[R848];
-        select one op_obj related by o_tfr->O_OBJ[R115];
-        op_s_dt = ::getInstRefTypeForClass( s_dt:op_s_dt, o_obj:op_obj );
-        op_type = UnresolvedType::getInstance( s_dt:op_s_dt );
-        relate op_type to expr2 across R795.''defines type of'';
-        select any op_var related by smt->CodeBlock[R450.''is contained by'']->Variable[R458.''has in scope''] where ( selected.name == op_v_var.Name );
-        if ( not_empty op_var ) // cannot declare two variables of the same name in the same scope
-          create object instance var_ref of VariableReference;
-          relate op_var to var_ref across R782.''referenced through'';
-          relate var_ref to expr2 across R776;
-        else
-          // TODO bad
-        end if;
-      end if;
-      // transform actual parameters
-      select many v_pars related by act_tfm->V_PAR[R627];
-      ::transformActualParameters( invocation:invoc, v_pars:v_pars );
-    else
-      // TODO bad
-    end if;
-
-  else
     LOG::LogInfo( message:"statement type not yet supported" );
   end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if;
 
@@ -2773,6 +2779,7 @@ expr.expression_number = param.expr_number;
 select one s_dt related by v_val->S_DT[R820];
 type = UnresolvedType::getInstance( s_dt:s_dt );
 relate type to expr across R795.''defines type of'';
+
 select one v_lst related by v_val->V_LST[R801];
 if ( not_empty v_lst )
   // create literal
@@ -2924,8 +2931,126 @@ if ( not_empty v_pvl )
   end if;
 
 else
+select one v_brv related by v_val->V_BRV[R801];
+if ( not_empty v_brv )
+  select one util_func related by v_brv->S_BRG[R828]->UtilityFunction[R4570.''is basis for''];
+  select one invocable related by util_func->InvocableObject[R427];
+  select one utility related by util_func->Utility[R4559.''provided by''];
+  select one utility_file related by utility->File[R401];
+  ::addFileToImports( file: ::getFileForStatement( smt:smt ), file_to_import:utility_file, type:ImportType::IMPL );
+  ::addStringToImports( file: ::getFileForStatement( smt:smt ), s: ::pathToPackage( path:utility_file.path ) + ".impl." + utility_file.name + "Impl", type:ImportType::IMPL );
+  containing_comp_def = ::getCompDefForStatement( smt:smt );
+  if ( not_empty containing_comp_def )
+    select any util_ref related by utility->UtilityReference[R4558] where ( selected.comp_name == containing_comp_def.name and selected.comp_package == containing_comp_def.package );
+    if ( empty util_ref )
+      create object instance util_ref of UtilityReference;
+      relate utility to containing_comp_def across R4558.''used within context of'' using util_ref;
+    end if;
+  end if;
+  if ( not_empty invocable )
+    // create invocation
+    create object instance invoc of Invocation;
+    relate invoc to expr across R776;
+    relate invoc to invocable across R792;
+    // create named reference expression
+    create object instance expr2 of Expression;
+    relate expr2 to smt across R775.''expressed within'';
+    expr2.expression_number = "1.1";
+    // create named reference
+    create object instance named_ref of NamedReference;
+    relate named_ref to expr2 across R776;
+    relate expr2 to invoc across R798.''is used as basis for'';
+    named_ref.name = "population()." + utility.name + "()";
+    // transform actual parameters
+    select many v_pars related by v_brv->V_PAR[R810];
+    ::transformActualParameters( invocation:invoc, v_pars:v_pars );
+  else
+    // TODO bad
+  end if;
+
+else
+select one v_fnv related by v_val->V_FNV[R801];
+if ( not_empty v_fnv )
+  select one s_sync related by v_fnv->S_SYNC[R827];
+  containing_comp_def = ::getCompDefForStatement( smt:smt );
+  select any invocable related by containing_comp_def->Function[R405.''provides synchronous'']->InvocableObject[R427] where ( selected.name == s_sync.Name );
+  if ( not_empty invocable )
+    // create invocation
+    create object instance invoc of Invocation;
+    relate invoc to expr across R776;
+    relate invoc to invocable across R792;
+    // create named reference expression
+    create object instance expr2 of Expression;
+    relate expr2 to smt across R775.''expressed within'';
+    expr2.expression_number = "1.1";
+    // create named reference
+    create object instance named_ref of NamedReference;
+    relate named_ref to expr2 across R776;
+    relate expr2 to invoc across R798.''is used as basis for'';
+    named_ref.name = "population()";
+    // transform actual parameters
+    select many v_pars related by v_fnv->V_PAR[R817];
+    ::transformActualParameters( invocation:invoc, v_pars:v_pars );
+  else
+    // TODO bad
+  end if;
+
+else
+select one v_trv related by v_val->V_TRV[R801];
+if ( not_empty v_trv )
+  select one o_tfr related by v_trv->O_TFR[R829];
+  containing_comp_def = ::getCompDefForStatement( smt:smt );
+  select any invocable related by containing_comp_def->Class[R408.''maintains instances of'']->Operation[R416.''provides'']->InvocableObject[R427] where ( selected.name == o_tfr.Name );
+  if ( not_empty invocable )
+    // create invocation
+    create object instance invoc of Invocation;
+    relate invoc to expr across R776;
+    relate invoc to invocable across R792;
+    // relate expression to expression as statement
+    select one op_v_var related by v_trv->V_VAR[R830];
+    if ( empty op_v_var ) // class based operation
+      // create named reference expression
+      create object instance expr2 of Expression;
+      relate expr2 to smt across R775.''expressed within'';
+      expr2.expression_number = "1.1";
+      relate expr2 to invoc across R798.''is used as basis for'';
+      // create named reference
+      create object instance named_ref of NamedReference;
+      relate named_ref to expr2 across R776;
+      select one target_class related by invocable->Operation[R427]->Class[R416.''provided by''];
+      named_ref.name = target_class.name + "Impl";
+      select one class_file related by target_class->File[R401];
+      ::addStringToImports( file: ::getFileForStatement( smt:smt ), s: ::pathToPackage( path:class_file.path ) + ".impl." + class_file.name + "Impl", type:ImportType::IMPL );
+    else // instance based operation
+      // create variable reference expression
+      create object instance expr2 of Expression;
+      relate expr2 to smt across R775.''expressed within'';
+      expr2.expression_number = "1.1";
+      relate expr2 to invoc across R798.''is used as basis for'';
+      select one op_s_dt related by op_v_var->S_DT[R848];
+      select one op_obj related by o_tfr->O_OBJ[R115];
+      op_s_dt = ::getInstRefTypeForClass( s_dt:op_s_dt, o_obj:op_obj );
+      op_type = UnresolvedType::getInstance( s_dt:op_s_dt );
+      relate op_type to expr2 across R795.''defines type of'';
+      select any op_var related by smt->CodeBlock[R450.''is contained by'']->Variable[R458.''has in scope''] where ( selected.name == op_v_var.Name );
+      if ( not_empty op_var ) // cannot declare two variables of the same name in the same scope
+        create object instance var_ref of VariableReference;
+        relate op_var to var_ref across R782.''referenced through'';
+        relate var_ref to expr2 across R776;
+      else
+        // TODO bad
+      end if;
+    end if;
+    // transform actual parameters
+    select many v_pars related by v_trv->V_PAR[R811];
+    ::transformActualParameters( invocation:invoc, v_pars:v_pars );
+  else
+    // TODO bad
+  end if;
+
+else
   LOG::LogInfo( message:"expression type not yet supported" );
-end if; end if; end if; end if; end if; end if; end if; end if; end if; end if;',
+end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',

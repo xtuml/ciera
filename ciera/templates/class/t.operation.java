@@ -1,3 +1,1 @@
-    public ${modifiers}${type_name} ${self.name}(${parameter_list}) {
-${body}
-    }
+    public ${modifiers}${type_name} ${self.name}(${parameter_list}) ${body}
