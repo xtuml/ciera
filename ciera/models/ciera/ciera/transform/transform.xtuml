@@ -2632,6 +2632,69 @@ if ( not_empty act_smt and not_empty block )
     relate selector to sel_fi across R799.''invoked by'';
 
   else
+  select one act_fiw related by act_smt->ACT_FIW[R603];
+  if ( not_empty act_fiw )
+    // create expression as statement
+    create object instance eas of ExpressionAsStatement;
+    relate eas to smt across R451;
+    // create main expression
+    create object instance expr of Expression;
+    relate expr to smt across R775.''expressed within'';
+    expr.expression_number = "1";
+    // create binary operation and assignment expression
+    create object instance binop of BinaryOperation;
+    relate binop to expr across R776;
+    binop.operator = "=";
+    binop.invocation = false;
+    // relate expression to expression as statement
+    relate eas to expr across R476.''executes as statement'';
+    // create left operand
+    select one select_v_var related by act_fiw->V_VAR[R665];
+    create object instance l_op of Expression;
+    relate l_op to smt across R775.''expressed within'';
+    l_op.expression_number = "1.1";
+    select one select_s_dt related by select_v_var->S_DT[R848];
+    select one select_obj related by act_fiw->O_OBJ[R676];
+    select_s_dt = ::getInstRefTypeForClass( s_dt:select_s_dt, o_obj:select_obj );
+    select_type = UnresolvedType::getInstance( s_dt:select_s_dt );
+    relate select_type to l_op across R795.''defines type of'';
+    select any existing_var related by smt->CodeBlock[R450.''is contained by'']->Variable[R458.''has in scope''] where ( selected.name == select_v_var.Name );
+    if ( empty existing_var ) // cannot declare two variables of the same name in the same scope
+      ::transformVariable( v_var:select_v_var, smt:smt );
+    end if;
+    select any select_var related by smt->CodeBlock[R450.''is contained by'']->Variable[R458.''has in scope''] where ( selected.name == select_v_var.Name );
+    create object instance var_ref of VariableReference;
+    relate select_var to var_ref across R782.''referenced through'';
+    relate var_ref to l_op across R776;
+    relate l_op to binop across R779.''is left operand for'';
+    // create right operand
+    // TODO relate all invocables to containing components
+    select one containing_component related by block->InvocableObject[R4000.''is invoked in'']->Function[R427]->ComponentDefinition[R405.''can execute synchronously within''];
+    select one selector related by select_obj->Class[R409.''is basis for'']->InstancePopulationSelector[R449.''extent accessed by''];
+    create object instance r_op of Expression;
+    relate r_op to smt across R775.''expressed within'';
+    r_op.expression_number = "1.2";
+    relate r_op to binop across R778.''is right operand for'';
+    create object instance where_expr of WhereExpr;
+    relate where_expr to r_op across R776;
+    where_expr.multiplicity_many = "many" ==  act_fiw.cardinality;
+    // create selection expr
+    create object instance sel_expr of Expression;
+    relate sel_expr to smt across R775.''expressed within'';
+    sel_expr.expression_number = "1.2.1";
+    relate sel_expr to where_expr across R790.''filtered by'';
+    create object instance sel of Select;
+    relate sel to sel_expr across R776;
+    create object instance sel_fi of SelectFromInstances;
+    relate sel_fi to sel across R789;
+    relate selector to sel_fi across R799.''invoked by'';
+    // transform the where clause condition
+    select one where_clause_val related by act_fiw->V_VAL[R610];
+    ::transformExpression( v_val:where_clause_val, expr_number:"1.2.2", smt:smt );
+    select any where_clause_expr related by smt->Expression[R775.''may contain''] where ( selected.expression_number == "1.2.2" );
+    relate where_clause_expr to where_expr across R796.''defines condtion for'';
+
+  else 
   select one act_cr related by act_smt->ACT_CR[R603];
   if ( not_empty act_cr )
     // create expression as statement
@@ -3246,7 +3309,7 @@ if ( not_empty act_smt and not_empty block )
  
   else
     LOG::LogInfo( message:"statement type not yet supported" );
-  end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if;
+  end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if;
 
 else
   // TODO bad
