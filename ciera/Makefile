@@ -1,8 +1,8 @@
 CC=gcc
 CFLAGS=-Wno-pointer-to-int-cast -g
-SOURCES := $(shell ls *.c)
+SOURCES := $(shell ls src/*.c)
 OBJECTS=$(SOURCES:.c=.o)
-OUTDIR=../bin
+OUTDIR=bin
 EXECUTABLE=$(OUTDIR)/ciera
 
 all:  $(SOURCES) $(EXECUTABLE)

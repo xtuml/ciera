@@ -2670,7 +2670,7 @@ if ( not_empty act_smt and not_empty block )
     // create right operand
     select one where_clause_val related by act_fiw->V_VAL[R610];
     select one where_clause_lbo related by where_clause_val->V_LBO[R801];
-    if ( not_empty where_clause_lbo and ( "FALSE" == where_clause_lbo.Value or "false" == where_clause_lbo.Value ) ) // special case where the where clause is ''false''
+    if ( not_empty where_clause_lbo and ( "false" == T::l( s:where_clause_lbo.Value ) ) ) // special case where the where clause is ''false''
       create object instance r_op of Expression;
       relate r_op to smt across R775.''expressed within'';
       r_op.expression_number = "1.2";
@@ -3415,7 +3415,7 @@ if ( not_empty v_lbo )
   // create literal
   create object instance lit of Literal;
   relate lit to expr across R776;
-  if ( "TRUE" == v_lbo.Value or "true" == v_lbo.Value )
+  if ( "true" == T::l( s:v_lbo.Value ) )
     lit.value = "true";
   else
     lit.value = "false";
@@ -3474,16 +3474,22 @@ select one v_irf related by v_val->V_IRF[R801];
 if ( not_empty v_irf )
   // if this is the first location, create a new variable
   select one v_var related by v_irf->V_VAR[R808];
-  select any existing_var related by smt->CodeBlock[R450.''is contained by'']->Variable[R458.''has in scope''] where ( selected.name == v_var.Name );
-  if ( empty existing_var ) // cannot declare two variables of the same name in the same scope
-    ::transformVariable( v_var:v_var, smt:smt );
+  if ( "self" == T::l( s:v_var.Name ) ) // reference to self
+    // create named reference
+    create object instance self_ref of NamedReference;
+    relate self_ref to expr across R776;
+    self_ref.name = "this";
+  else
+    select any existing_var related by smt->CodeBlock[R450.''is contained by'']->Variable[R458.''has in scope''] where ( selected.name == v_var.Name );
+    if ( empty existing_var ) // cannot declare two variables of the same name in the same scope
+      ::transformVariable( v_var:v_var, smt:smt );
+    end if;
+    // create variable reference
+    select any var related by smt->CodeBlock[R450.''is contained by'']->Variable[R458.''has in scope''] where ( selected.name == v_var.Name );
+    create object instance var_ref of VariableReference;
+    relate var to var_ref across R782.''referenced through'';
+    relate var_ref to expr across R776;
   end if;
-
-  // create variable reference
-  select any var related by smt->CodeBlock[R450.''is contained by'']->Variable[R458.''has in scope''] where ( selected.name == v_var.Name );
-  create object instance var_ref of VariableReference;
-  relate var to var_ref across R782.''referenced through'';
-  relate var_ref to expr across R776;
 
 else
 select one v_isr related by v_val->V_ISR[R801];
