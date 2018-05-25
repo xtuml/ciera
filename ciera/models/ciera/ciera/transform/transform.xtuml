@@ -603,7 +603,7 @@ if ( not_empty s_dt )
 else
   // TODO bad
 end if;
-type.default_value = "EMPTY_" + T::u( s:T::underscore( s:obj.name ) );
+type.default_value = obj.name + "Impl.EMPTY_" + T::u( s:T::underscore( s:obj.name ) );
 relate type to obj across R407;
 
 // relate to the OOA class
@@ -721,7 +721,7 @@ if ( not_empty s_dt )
 else
   // TODO bad
 end if;
-type.default_value = "("  + objset.name + ")(new " + objset.name + "()).toImmutableSet()";
+type.default_value = "new " + objset.name + "Impl().toImmutableSet()";
 relate type to objset across R407;
 
 // create the import block
@@ -2668,31 +2668,42 @@ if ( not_empty act_smt and not_empty block )
     relate var_ref to l_op across R776;
     relate l_op to binop across R779.''is left operand for'';
     // create right operand
-    // TODO relate all invocables to containing components
-    select one containing_component related by block->InvocableObject[R4000.''is invoked in'']->Function[R427]->ComponentDefinition[R405.''can execute synchronously within''];
-    select one selector related by select_obj->Class[R409.''is basis for'']->InstancePopulationSelector[R449.''extent accessed by''];
-    create object instance r_op of Expression;
-    relate r_op to smt across R775.''expressed within'';
-    r_op.expression_number = "1.2";
-    relate r_op to binop across R778.''is right operand for'';
-    create object instance where_expr of WhereExpr;
-    relate where_expr to r_op across R776;
-    where_expr.multiplicity_many = "many" ==  act_fiw.cardinality;
-    // create selection expr
-    create object instance sel_expr of Expression;
-    relate sel_expr to smt across R775.''expressed within'';
-    sel_expr.expression_number = "1.2.1";
-    relate sel_expr to where_expr across R790.''filtered by'';
-    create object instance sel of Select;
-    relate sel to sel_expr across R776;
-    create object instance sel_fi of SelectFromInstances;
-    relate sel_fi to sel across R789;
-    relate selector to sel_fi across R799.''invoked by'';
-    // transform the where clause condition
     select one where_clause_val related by act_fiw->V_VAL[R610];
-    ::transformExpression( v_val:where_clause_val, expr_number:"1.2.2", smt:smt );
-    select any where_clause_expr related by smt->Expression[R775.''may contain''] where ( selected.expression_number == "1.2.2" );
-    relate where_clause_expr to where_expr across R796.''defines condtion for'';
+    select one where_clause_lbo related by where_clause_val->V_LBO[R801];
+    if ( not_empty where_clause_lbo and ( "FALSE" == where_clause_lbo.Value or "false" == where_clause_lbo.Value ) ) // special case where the where clause is ''false''
+      create object instance r_op of Expression;
+      relate r_op to smt across R775.''expressed within'';
+      r_op.expression_number = "1.2";
+      relate r_op to binop across R778.''is right operand for'';
+      create object instance named_expr of NamedReference;
+      relate named_expr to r_op across R776;
+      named_expr.name = select_type.default_value;
+    else
+      // TODO relate all invocables to containing components
+      select one containing_component related by block->InvocableObject[R4000.''is invoked in'']->Function[R427]->ComponentDefinition[R405.''can execute synchronously within''];
+      select one selector related by select_obj->Class[R409.''is basis for'']->InstancePopulationSelector[R449.''extent accessed by''];
+      create object instance r_op of Expression;
+      relate r_op to smt across R775.''expressed within'';
+      r_op.expression_number = "1.2";
+      relate r_op to binop across R778.''is right operand for'';
+      create object instance where_expr of WhereExpr;
+      relate where_expr to r_op across R776;
+      where_expr.multiplicity_many = "many" ==  act_fiw.cardinality;
+      // create selection expr
+      create object instance sel_expr of Expression;
+      relate sel_expr to smt across R775.''expressed within'';
+      sel_expr.expression_number = "1.2.1";
+      relate sel_expr to where_expr across R790.''filtered by'';
+      create object instance sel of Select;
+      relate sel to sel_expr across R776;
+      create object instance sel_fi of SelectFromInstances;
+      relate sel_fi to sel across R789;
+      relate selector to sel_fi across R799.''invoked by'';
+      // transform the where clause condition
+      ::transformExpression( v_val:where_clause_val, expr_number:"1.2.2", smt:smt );
+      select any where_clause_expr related by smt->Expression[R775.''may contain''] where ( selected.expression_number == "1.2.2" );
+      relate where_clause_expr to where_expr across R796.''defines condtion for'';
+    end if;
 
   else 
   select one act_cr related by act_smt->ACT_CR[R603];
