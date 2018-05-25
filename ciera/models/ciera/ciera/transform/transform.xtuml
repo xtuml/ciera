@@ -3629,8 +3629,38 @@ if ( not_empty v_trv )
     relate invoc to expr across R776;
     relate invoc to invocable across R792;
     // relate expression to expression as statement
-    select one op_v_var related by v_trv->V_VAR[R830];
-    if ( empty op_v_var ) // class based operation
+    if ( Scope::Instance == o_tfr.Instance_Based )
+      select one op_v_var related by v_trv->V_VAR[R830];
+      if ( not_empty op_v_var ) // class based operation
+        // create variable reference expression
+        create object instance expr2 of Expression;
+        relate expr2 to smt across R775.''expressed within'';
+        expr2.expression_number = "1.1";
+        relate expr2 to invoc across R798.''is used as basis for'';
+        select one op_s_dt related by op_v_var->S_DT[R848];
+        select one op_obj related by o_tfr->O_OBJ[R115];
+        op_s_dt = ::getInstRefTypeForClass( s_dt:op_s_dt, o_obj:op_obj );
+        op_type = UnresolvedType::getInstance( s_dt:op_s_dt );
+        relate op_type to expr2 across R795.''defines type of'';
+        select any op_var related by smt->CodeBlock[R450.''is contained by'']->Variable[R458.''has in scope''] where ( selected.name == op_v_var.Name );
+        if ( not_empty op_var ) // cannot declare two variables of the same name in the same scope
+          create object instance var_ref of VariableReference;
+          relate op_var to var_ref across R782.''referenced through'';
+          relate var_ref to expr2 across R776;
+        else
+          // TODO bad
+        end if;
+      else // must be a selected reference
+        // create named reference expression
+        create object instance expr2 of Expression;
+        relate expr2 to smt across R775.''expressed within'';
+        expr2.expression_number = "1.1";
+        relate expr2 to invoc across R798.''is used as basis for'';
+        // create named reference
+        create object instance sel of SelectedExpr;
+        relate sel to expr2 across R776;
+      end if;
+    else // instance based operation
       // create named reference expression
       create object instance expr2 of Expression;
       relate expr2 to smt across R775.''expressed within'';
@@ -3643,25 +3673,6 @@ if ( not_empty v_trv )
       named_ref.name = target_class.name + "Impl";
       select one class_file related by target_class->File[R401];
       ::addStringToImports( file: ::getFileForStatement( smt:smt ), s: ::pathToPackage( path:class_file.path ) + ".impl." + class_file.name + "Impl", type:ImportType::IMPL );
-    else // instance based operation
-      // create variable reference expression
-      create object instance expr2 of Expression;
-      relate expr2 to smt across R775.''expressed within'';
-      expr2.expression_number = "1.1";
-      relate expr2 to invoc across R798.''is used as basis for'';
-      select one op_s_dt related by op_v_var->S_DT[R848];
-      select one op_obj related by o_tfr->O_OBJ[R115];
-      op_s_dt = ::getInstRefTypeForClass( s_dt:op_s_dt, o_obj:op_obj );
-      op_type = UnresolvedType::getInstance( s_dt:op_s_dt );
-      relate op_type to expr2 across R795.''defines type of'';
-      select any op_var related by smt->CodeBlock[R450.''is contained by'']->Variable[R458.''has in scope''] where ( selected.name == op_v_var.Name );
-      if ( not_empty op_var ) // cannot declare two variables of the same name in the same scope
-        create object instance var_ref of VariableReference;
-        relate op_var to var_ref across R782.''referenced through'';
-        relate var_ref to expr2 across R776;
-      else
-        // TODO bad
-      end if;
     end if;
     // transform actual parameters
     select many v_pars related by v_trv->V_PAR[R811];
@@ -3671,8 +3682,15 @@ if ( not_empty v_trv )
   end if;
 
 else
+select one v_slr related by v_val->V_SLR[R801];
+if ( not_empty v_slr )
+  // create selected reference
+  create object instance sel of SelectedExpr;
+  relate sel to expr across R776;
+
+else
   LOG::LogInfo( message:"expression type not yet supported" );
-end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if;',
+end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
