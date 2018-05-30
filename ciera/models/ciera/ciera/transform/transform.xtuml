@@ -1704,14 +1704,14 @@ INSERT INTO S_SYNC
 select many form_to_part_rels related by obj->Relationship[R435.''formalizes''];
 for each rel in form_to_part_rels
   select one part_obj related by rel->Class[R434.''has participating''];
-  ::transformSelector( obj:obj, rel:rel, phrase:rel.form_phrase, cond:rel.part_cond,
+  ::transformSelector( obj:obj, rel:rel, phrase:rel.part_phrase, cond:rel.part_cond,
                        mult:Mult::ONE, formalizer:true, other_obj:part_obj );
 end for;
 // part to form
 select many part_to_form_rels related by obj->Relationship[R434.''participates in''];
 for each rel in part_to_form_rels
   select one form_obj related by rel->Class[R435.''has formalizing''];
-  ::transformSelector( obj:obj, rel:rel, phrase:rel.part_phrase, cond:rel.form_cond,
+  ::transformSelector( obj:obj, rel:rel, phrase:rel.form_phrase, cond:rel.form_cond,
                        mult:rel.form_mult, formalizer:false, other_obj:form_obj );
 end for;',
 	"ba5eda7a-def5-0000-0000-000000000000",
@@ -2625,7 +2625,7 @@ if ( not_empty act_smt and not_empty block )
       r_op.expression_number = "1.2.1";
       relate r_op to any_expr across R783.''is basis for'';
     end if;
-    create object instance sel of Select;
+    create object instance sel of SelectExpr;
     relate sel to r_op across R776;
     create object instance sel_fi of SelectFromInstances;
     relate sel_fi to sel across R789;
@@ -2694,7 +2694,7 @@ if ( not_empty act_smt and not_empty block )
       relate sel_expr to smt across R775.''expressed within'';
       sel_expr.expression_number = "1.2.1";
       relate sel_expr to where_expr across R790.''filtered by'';
-      create object instance sel of Select;
+      create object instance sel of SelectExpr;
       relate sel to sel_expr across R776;
       create object instance sel_fi of SelectFromInstances;
       relate sel_fi to sel across R789;
@@ -2705,6 +2705,95 @@ if ( not_empty act_smt and not_empty block )
       relate where_clause_expr to where_expr across R796.''defines condtion for'';
     end if;
 
+  else
+  select one act_sel related by act_smt->ACT_SEL[R603];
+  if ( not_empty act_sel )
+    // create expression as statement
+    create object instance eas of ExpressionAsStatement;
+    relate eas to smt across R451;
+    // create main expression
+    create object instance expr of Expression;
+    relate expr to smt across R775.''expressed within'';
+    expr.expression_number = "1";
+    // create binary operation and assignment expression
+    create object instance binop of BinaryOperation;
+    relate binop to expr across R776;
+    binop.operator = "=";
+    binop.invocation = false;
+    // relate expression to expression as statement
+    relate eas to expr across R476.''executes as statement'';
+    // create left operand
+    select one select_v_var related by act_sel->V_VAR[R638];
+    create object instance l_op of Expression;
+    relate l_op to smt across R775.''expressed within'';
+    l_op.expression_number = "1.1";
+    select one select_s_dt related by select_v_var->S_DT[R848];
+    select one select_obj related by act_sel->ACT_LNK[R637]->O_OBJ[R678];
+    select_s_dt = ::getInstRefTypeForClass( s_dt:select_s_dt, o_obj:select_obj );
+    select_type = UnresolvedType::getInstance( s_dt:select_s_dt );
+    relate select_type to l_op across R795.''defines type of'';
+    select any existing_var related by smt->CodeBlock[R450.''is contained by'']->Variable[R458.''has in scope''] where ( selected.name == select_v_var.Name );
+    if ( empty existing_var ) // cannot declare two variables of the same name in the same scope
+      ::transformVariable( v_var:select_v_var, smt:smt );
+    end if;
+    select any select_var related by smt->CodeBlock[R450.''is contained by'']->Variable[R458.''has in scope''] where ( selected.name == select_v_var.Name );
+    create object instance var_ref of VariableReference;
+    relate select_var to var_ref across R782.''referenced through'';
+    relate var_ref to l_op across R776;
+    relate l_op to binop across R779.''is left operand for'';
+    // create right operand
+    select one where_clause_val related by act_sel->ACT_SRW[R664]->V_VAL[R611];
+    select one where_clause_lbo related by where_clause_val->V_LBO[R801];
+    if ( not_empty where_clause_lbo and ( "false" == T::l( s:where_clause_lbo.Value ) ) ) // special case where the where clause is ''false''
+      create object instance r_op of Expression;
+      relate r_op to smt across R775.''expressed within'';
+      r_op.expression_number = "1.2";
+      relate r_op to binop across R778.''is right operand for'';
+      create object instance named_expr of NamedReference;
+      relate named_expr to r_op across R776;
+      named_expr.name = select_type.default_value;
+    else
+      // get the final selection chain link
+      select one lnk related by act_sel->ACT_LNK[R637];
+      select one next_lnk related by lnk->ACT_LNK[R604.''precedes''];
+      while ( not_empty next_lnk )
+        lnk = next_lnk;
+        select one next_lnk related by lnk->ACT_LNK[R604.''precedes''];
+      end while;
+      if ( not_empty where_clause_val or "any" == act_sel.cardinality )
+        create object instance r_op of Expression;
+        relate r_op to smt across R775.''expressed within'';
+        r_op.expression_number = "1.2";
+        relate r_op to binop across R778.''is right operand for'';
+        // create expression for last chain link
+        ::transformSelectionLink( act_lnk:lnk, expr_number:"1.2.1", smt:smt );
+        if ( not_empty where_clause_val )
+          create object instance where_expr of WhereExpr;
+          relate where_expr to r_op across R776;
+          where_expr.multiplicity_many = "many" ==  act_sel.cardinality;
+          // select the transformed link, relate it to the where clause
+          select any select_expr related by smt->Expression[R775.''may contain''] where ( selected.expression_number == "1.2.1" );
+          relate select_expr to where_expr across R790;
+          // transform the where clause condition
+          ::transformExpression( v_val:where_clause_val, expr_number:"1.2.2", smt:smt );
+          select any where_clause_expr related by smt->Expression[R775.''may contain''] where ( selected.expression_number == "1.2.2" );
+          relate where_clause_expr to where_expr across R796.''defines condtion for'';
+        else
+          create object instance any_expr of AnyExpr;
+          relate any_expr to r_op across R776;
+          // select the transformed link, relate it to the any expression
+          select any select_expr related by smt->Expression[R775.''may contain''] where ( selected.expression_number == "1.2.1" );
+          relate select_expr to any_expr across R783.''is basis for'';
+        end if;
+      else
+        // create expression for last chain link
+        ::transformSelectionLink( act_lnk:lnk, expr_number:"1.2", smt:smt );
+        // select the transformed link, relate it to the
+        select any select_expr related by smt->Expression[R775.''may contain''] where ( selected.expression_number == "1.2" );
+        relate select_expr to binop across R778.''is right operand for'';
+      end if;
+    end if;
+ 
   else 
   select one act_cr related by act_smt->ACT_CR[R603];
   if ( not_empty act_cr )
@@ -3320,7 +3409,7 @@ if ( not_empty act_smt and not_empty block )
  
   else
     LOG::LogInfo( message:"statement type not yet supported" );
-  end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if;
+  end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if;
 
 else
   // TODO bad
@@ -4288,6 +4377,117 @@ INSERT INTO S_DT_PROXY
 	'../architecture/statement/statement.xtuml');
 INSERT INTO PE_PE
 	VALUES ("59879fac-8e6b-40b0-a208-84d17e37f54c",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("3a7666da-ad54-4a28-b871-b4c9382cbb4d",
+	"00000000-0000-0000-0000-000000000000",
+	'transformSelectionLink',
+	'',
+	'// TODO this does not consider direct links from one to other for linked associations
+
+act_lnk = param.act_lnk;
+smt = param.smt;
+
+// create expression
+create object instance expr of Expression;
+relate expr to smt across R775.''expressed within'';
+expr.expression_number = param.expr_number;
+
+// link type
+select one o_obj related by act_lnk->O_OBJ[R678];
+select any irdt related by o_obj->S_IRDT[R123] where ( ( selected.isSet and act_lnk.Mult == Multiplicity::Many ) or ( not selected.isSet and act_lnk.Mult == Multiplicity::One ) );
+select one s_dt related by irdt->S_DT[R17];
+if ( empty s_dt )
+  // TODO bad
+end if;
+type = UnresolvedType::getInstance( s_dt:s_dt );
+relate type to expr across R795.''defines type of'';
+
+// create select expression
+create object instance sel of SelectExpr;
+relate sel to expr across R776;
+create object instance sel_rel of SelectRelated;
+relate sel_rel to sel across R789;
+
+// transform the previous link
+select one prev_lnk related by act_lnk->ACT_LNK[R604.''succeeds''];
+select any base_class from instances of Class where false;
+if ( not_empty prev_lnk )
+  ::transformSelectionLink( act_lnk:prev_lnk, expr_number:param.expr_number + ".1", smt:smt );
+  select any prev_lnk_expr related by smt->Expression[R775.''may contain''] where ( selected.expression_number == param.expr_number + ".1" );
+  relate prev_lnk_expr to sel_rel across R791.''is basis for'';
+  select one base_class related by prev_lnk->O_OBJ[R678]->Class[R409.''is basis for''];
+else
+  select one base_val related by act_lnk->ACT_SEL[R637]->V_VAL[R613];
+  ::transformExpression( v_val:base_val, expr_number:param.expr_number + ".1", smt:smt );
+  select any base_expr related by smt->Expression[R775.''may contain''] where ( selected.expression_number == param.expr_number + ".1" );
+  relate base_expr to sel_rel across R791.''is basis for'';
+  select one base_class related by base_val->V_IRF[R801]->V_VAR[R808]->V_INT[R814]->O_OBJ[R818]->Class[R409.''is basis for''];
+  if ( empty base_class )
+    select one base_class related by base_val->V_ISR[R801]->V_VAR[R809]->V_INS[R814]->O_OBJ[R819]->Class[R409.''is basis for''];
+  end if;
+end if;
+
+// get the selector
+select one r_rel related by act_lnk->R_REL[R681];
+select one target_class related by o_obj->Class[R409.''is basis for''];
+selector_name = "R" + STR::itoa( i:r_rel.Numb ) + "_";
+if ( "" != C_UTIL::stripTics( s:act_lnk.Rel_Phrase ) )
+  selector_name = selector_name + T::underscore( s:C_UTIL::stripTics( s:act_lnk.Rel_Phrase ) ) + "_";
+end if;
+selector_name = selector_name + target_class.name;
+select any selector related by base_class->InstanceSelector[R442.''selects instances through'']->Selector[R445] where ( selected.name == selector_name );
+if ( empty selector )
+  select any selector related by base_class->ClassSet[R406.''is type of single element in'']->SetSelector[R444.''selects instances through'']->Selector[R445] where ( selected.name == selector_name );
+end if;
+if ( not_empty selector )
+  relate selector to sel_rel across R797.''invoked by'';
+else
+  // TODO bad
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("dc943ede-fbbb-439f-9b31-91af53e787ce",
+	"3a7666da-ad54-4a28-b871-b4c9382cbb4d",
+	'act_lnk',
+	"bcbe8755-e8ea-4d2b-9f81-529c5437c084",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("bcbe8755-e8ea-4d2b-9f81-529c5437c084",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Chain Link>',
+	'',
+	'',
+	'../../../../../mcooa/models/mcooa/ooaofooa/Selection/Selection.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("74376552-7626-47f4-a819-3d944ba954bc",
+	"3a7666da-ad54-4a28-b871-b4c9382cbb4d",
+	'expr_number',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"dc943ede-fbbb-439f-9b31-91af53e787ce",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("5f872682-6a50-47f0-bd8e-0c8ae30b6e31",
+	"3a7666da-ad54-4a28-b871-b4c9382cbb4d",
+	'smt',
+	"056a9b55-7c4c-45a4-a684-ea45fce8fa86",
+	0,
+	'',
+	"74376552-7626-47f4-a819-3d944ba954bc",
+	'');
+INSERT INTO PE_PE
+	VALUES ("3a7666da-ad54-4a28-b871-b4c9382cbb4d",
 	1,
 	"06787f13-1c16-4275-879c-00bbeee7cb88",
 	"00000000-0000-0000-0000-000000000000",
