@@ -1,5 +1,8 @@
 if ( is_getter ) {
 T_b("    ");
+T_b("@Override");
+T_b("\n");
+T_b("    ");
 T_b("public ");
 T_b(type_name);
 T_b(" ");
@@ -8,9 +11,6 @@ T_b("() throws XtumlException {");
 T_b("\n");
 T_b("        ");
 T_b("checkLiving();");
-T_b("\n");
-T_b("        ");
-T_b("if ( this instanceof IEmptyInstance ) throw new EmptyInstanceException( \"Cannot get attribute of empty instance.\" );");
 T_b("\n");
 T_b(attribute_derivation);
 T_b("\n");
@@ -24,6 +24,9 @@ T_b("}");
 T_b("\n");
 } else {
 T_b("    ");
+T_b("@Override");
+T_b("\n");
+T_b("    ");
 T_b("public void ");
 T_b(name);
 T_b("( ");
@@ -34,9 +37,6 @@ T_b(" ) throws XtumlException {");
 T_b("\n");
 T_b("        ");
 T_b("checkLiving();");
-T_b("\n");
-T_b("        ");
-T_b("if ( this instanceof IEmptyInstance ) throw new EmptyInstanceException( \"Cannot set attribute of empty instance.\" );");
 T_b("\n");
 if ( primitive ) {
 T_b("        ");

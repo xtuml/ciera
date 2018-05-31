@@ -51,6 +51,21 @@ T::clear();
 select one set related by self->ClassSet[R406.''is type of single element in''];
 class_set_name = set.name;
 
+for each attribute in attrs
+  select many accessors related by attribute->AttributeAccessor[R4510.''value accessed through''];
+  for each accessor in accessors
+    accessor.render_empty();
+  end for;
+end for;
+empty_attributes = T::body();
+T::clear();
+
+for each operation in ops
+  operation.render_empty();
+end for;
+empty_operations = T::body();
+T::clear();
+
 for each selector in selects
   selector.render_empty();
 end for;
@@ -72,11 +87,8 @@ end for;
 attributes = T::body();
 T::clear();
 
-select many ops related by self->Operation[R416.''provides''];
 for each operation in ops
-  if ( not operation.is_class_based )
-    operation.render_interface();
-  end if;
+  operation.render_interface();
 end for;
 operations = T::body();
 T::clear();

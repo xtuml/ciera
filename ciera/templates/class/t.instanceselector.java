@@ -1,3 +1,4 @@
+    @Override
     public ${type_name} ${self.name}() throws XtumlException {
 .if ( multiplicity_many )
         ${type_name} $l{type_name} = new ${type_name}Impl();

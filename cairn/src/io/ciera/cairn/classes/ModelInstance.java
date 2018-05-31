@@ -1,7 +1,7 @@
 package io.ciera.cairn.classes;
 
 import io.ciera.cairn.types.UniqueId;
-import io.ciera.summit.classes.IEmptyInstance;
+import io.ciera.summit.application.IRunContext;
 import io.ciera.summit.classes.IInstanceIdentifier;
 import io.ciera.summit.classes.IModelInstance;
 import io.ciera.summit.components.IComponent;
@@ -40,7 +40,7 @@ public abstract class ModelInstance<T extends IModelInstance<T,C>,C extends ICom
 
     @Override
     public boolean equals( Object obj ) {
-        if ( null != obj && obj instanceof IModelInstance<?,?> && !( obj instanceof IEmptyInstance ) ) {
+        if ( null != obj && obj instanceof IModelInstance<?,?> && !((IModelInstance<?,?>)obj).isEmpty() ) {
             return getKeyLetters().equals( ((IModelInstance<?,?>)obj).getKeyLetters() ) &&
                    getInstanceId().equals( ((IModelInstance<?,?>)obj).getInstanceId() ) &&
                    ( null == getId1() || getId1().equals( ((IModelInstance<?,?>)obj).getId1() ) ) &&
@@ -72,6 +72,16 @@ public abstract class ModelInstance<T extends IModelInstance<T,C>,C extends ICom
 
     @Override
     public IInstanceIdentifier getId3() {
+        return null;
+    }
+
+    @Override
+    public IRunContext getRunContext() {
+        return null;
+    }
+
+    @Override
+    public C context() {
         return null;
     }
 

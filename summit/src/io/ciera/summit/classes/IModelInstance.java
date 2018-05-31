@@ -16,4 +16,8 @@ public interface IModelInstance<T extends IModelInstance<T,C>,C extends ICompone
     public void checkLiving() throws XtumlException;
     public void delete() throws XtumlException;
 
+    default public boolean isEmpty() {
+        return false;
+    }
+
 }

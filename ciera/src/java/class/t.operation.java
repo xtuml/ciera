@@ -1,3 +1,8 @@
+if ( ! self->is_class_based ) {
+T_b("    ");
+T_b("@Override");
+T_b("\n");
+}
 T_b("    ");
 T_b("public ");
 T_b(modifiers);

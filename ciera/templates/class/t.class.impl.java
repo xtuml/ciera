@@ -10,7 +10,7 @@ public class ${self.name}Impl extends ${self.extends} implements ${self.name} {
     private ${self.comp_name} context;
 
     // constructor
-    public ${self.name}Impl( ${self.comp_name} context ) {
+    private ${self.name}Impl( ${self.comp_name} context ) {
         this.context = context;
 ${attribute_initializers}
     }
@@ -52,13 +52,30 @@ ${selectors}
 
 }
 
-class Empty${self.name} extends ${self.name}Impl implements IEmptyInstance {
+class Empty${self.name} extends ${self.extends} implements ${self.name} {
 
-    public Empty${self.name}() {
-        super( null );
-    }
+    // attributes
+${empty_attributes}
+
+    // operations
+${empty_operations}
 
     // selections
 ${empty_selectors}
+
+    @Override
+    public String getKeyLetters() {
+        return ${self.name}Impl.KEY_LETTERS;
+    }
+
+    @Override
+    public ${self.name} defaultValue() {
+        return ${self.name}Impl.EMPTY_$u_{self.name};
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return true;
+    }
 
 }

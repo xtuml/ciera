@@ -1,3 +1,4 @@
+    @Override
     public ${type_name} ${self.name}() throws XtumlException {
         ${type_name} $l{type_name} = new ${type_name}Impl();
         for ( ${self.selector_class_name} $l{self.selector_class_name} : this ) $l{type_name}.add\
