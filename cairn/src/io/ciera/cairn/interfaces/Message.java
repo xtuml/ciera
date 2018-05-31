@@ -4,28 +4,21 @@ import io.ciera.summit.interfaces.IMessage;
 
 public class Message implements IMessage {
 
-    private int id;
-    private Object returnValue;
+    private String name;
     private Object[] parameterData;
 
-    public Message( int id, Object returnValue, Object ... parameterData ) {
-        this.id = id;
-        this.returnValue = returnValue;
+    public Message( String name, Object ... parameterData ) {
+        this.name = name;
         this.parameterData = parameterData;
     }
 
     @Override
-    public int getId() {
-        return id;
+    public String getName() {
+        return name;
     }
 
     @Override
-    public Object getReturnValue() {
-        return returnValue;
-    }
-
-    @Override
-    public Object[] getParameterData() {
+    public Object[] getParameterValues() {
         return parameterData;
     }
 

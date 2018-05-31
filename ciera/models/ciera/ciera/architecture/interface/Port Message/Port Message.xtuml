@@ -16,47 +16,58 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'location = "definition";
-message_name = self.msg_name;
-
-select one port related by self->Port[R420];
+	'select one port related by self->Port[R420];
 select one message related by self->Message[R420];
-select one file related by port->File[R401];
 
-parameter_list = "";
+select one invocable related by self->InvocableObject[R427];
+parameter_list = invocable.parameter_list;
+body = invocable.body;
+
 invocation_parameter_list = "";
-select any parm related by message->InvocableObject[R427]->FormalParameter[R429];
+select any parm related by self->InvocableObject[R427]->FormalParameter[R429];
 select one prev_parm related by parm->FormalParameter[R404.''follows''];
 while ( not_empty prev_parm )
   parm = prev_parm;
   select one prev_parm related by parm->FormalParameter[R404.''follows''];
 end while;
 sep = " ";
-has_parms = not_empty parm;
 while ( not_empty parm )
   select one parm_type related by parm->Type[R431];
-  parameter_list = parameter_list + sep + parm_type.name + " "  + parm.name;
   invocation_parameter_list = invocation_parameter_list + ", " + parm.name;
   select one parm related by parm->FormalParameter[R404.''precedes''];
   sep = ", ";
 end while;
-if ( has_parms )
-  parameter_list = parameter_list + " ";
-end if;
 
 inbound = ( port.provider and message.to_provider ) or ( not port.provider and not message.to_provider );
 
-// TODO get this from a mark
-message_class = "Message";
-::addStringToImports( file:file, s:"io.ciera.cairn.interfaces.Message", type:ImportType::IMPL );
-
-// TODO remove this eventually after templates allow it
-message_parameter_list = "";
-
-T::include( file:"java/interface/t.message.java" );',
+T::include( file:"java/interface/t.portmessage.java" );',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",
+	0);
+INSERT INTO O_TFR
+	VALUES ("e714c65e-26f5-49e6-8d8f-20e081cf405a",
+	"4249cb50-5415-4bf9-b921-24f5ed76bca5",
+	'render_deliver',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'message_parameter_list = "";
+select many msg_parms related by self->InvocableObject[R427]->FormalParameter[R429];
+if ( not_empty msg_parms )
+  sep = " ";
+  i = 0;
+  for each msg_parm in msg_parms
+    select one parm_dt related by msg_parm->Type[R431];
+    message_parameter_list = message_parameter_list + sep + "(" + parm_dt.name + ")message.getParameterValues(" + STR::itoa( i:i ) + ")";
+    sep = ", ";
+    i = i + 1;
+  end for;
+end if;
+T::include( file:"java/interface/t.message.deliver.java" );',
+	1,
+	'',
+	"5c906653-7556-44d9-b6aa-d3631814bb7d",
 	0);
 INSERT INTO O_REF
 	VALUES ("4249cb50-5415-4bf9-b921-24f5ed76bca5",
@@ -86,6 +97,34 @@ INSERT INTO O_RTIDA_PROXY
 	"295a9e26-0f10-4459-a19c-a98f0360532c",
 	"5959b15a-86f9-4c41-a8a9-a8f7670ef852",
 	'../interface.xtuml');
+INSERT INTO O_REF
+	VALUES ("4249cb50-5415-4bf9-b921-24f5ed76bca5",
+	"3011a585-aede-400f-bae7-b1116cd67c87",
+	0,
+	"957d19dc-5beb-4e6e-b0f6-531758763d81",
+	"95b89755-8367-4e9f-9983-492da98bca55",
+	"c0142105-eec1-4f56-b868-b09b2ae86464",
+	"165a67a9-4e61-4d7d-b84d-5f9b0f70acee",
+	"42b7bbc4-ab66-4f76-ac13-410329d3a1bb",
+	"3466a963-26d7-4870-8b0d-da474c9e84ff",
+	"859ec4eb-32cf-46a5-ba4b-51565c8dcf18",
+	0,
+	'',
+	'Invocable Object',
+	'parent_name',
+	'R427');
+INSERT INTO R_RGO_PROXY
+	VALUES ("4249cb50-5415-4bf9-b921-24f5ed76bca5",
+	"95b89755-8367-4e9f-9983-492da98bca55",
+	"c0142105-eec1-4f56-b868-b09b2ae86464",
+	'../../invocable/invocable.xtuml');
+INSERT INTO O_RTIDA_PROXY
+	VALUES ("957d19dc-5beb-4e6e-b0f6-531758763d81",
+	"3011a585-aede-400f-bae7-b1116cd67c87",
+	0,
+	"95b89755-8367-4e9f-9983-492da98bca55",
+	"165a67a9-4e61-4d7d-b84d-5f9b0f70acee",
+	'../../invocable/invocable.xtuml');
 INSERT INTO O_RATTR
 	VALUES ("42b7bbc4-ab66-4f76-ac13-410329d3a1bb",
 	"4249cb50-5415-4bf9-b921-24f5ed76bca5",
@@ -102,7 +141,9 @@ INSERT INTO O_ATTR
 	"4249cb50-5415-4bf9-b921-24f5ed76bca5",
 	"00000000-0000-0000-0000-000000000000",
 	'port_name',
-	'',
+	'
+
+',
 	'port_',
 	'name',
 	1,
@@ -132,6 +173,29 @@ INSERT INTO O_RTIDA_PROXY
 	"295a9e26-0f10-4459-a19c-a98f0360532c",
 	"5959b15a-86f9-4c41-a8a9-a8f7670ef852",
 	'../interface.xtuml');
+INSERT INTO O_REF
+	VALUES ("4249cb50-5415-4bf9-b921-24f5ed76bca5",
+	"3011a585-aede-400f-bae7-b1116cd67c87",
+	0,
+	"f4bf34ce-c959-41f0-9fbc-0ee777c67db8",
+	"95b89755-8367-4e9f-9983-492da98bca55",
+	"c0142105-eec1-4f56-b868-b09b2ae86464",
+	"165a67a9-4e61-4d7d-b84d-5f9b0f70acee",
+	"3522a188-4e93-46f5-93ce-ed0aa233e61a",
+	"045918b8-fdf2-4ec7-9946-a6b374296586",
+	"ff05cf72-d2b5-4581-af7e-11fe02a4b2d4",
+	0,
+	'',
+	'Invocable Object',
+	'parent_package',
+	'R427');
+INSERT INTO O_RTIDA_PROXY
+	VALUES ("f4bf34ce-c959-41f0-9fbc-0ee777c67db8",
+	"3011a585-aede-400f-bae7-b1116cd67c87",
+	0,
+	"95b89755-8367-4e9f-9983-492da98bca55",
+	"165a67a9-4e61-4d7d-b84d-5f9b0f70acee",
+	'../../invocable/invocable.xtuml');
 INSERT INTO O_RATTR
 	VALUES ("3522a188-4e93-46f5-93ce-ed0aa233e61a",
 	"4249cb50-5415-4bf9-b921-24f5ed76bca5",
@@ -148,7 +212,9 @@ INSERT INTO O_ATTR
 	"4249cb50-5415-4bf9-b921-24f5ed76bca5",
 	"42b7bbc4-ab66-4f76-ac13-410329d3a1bb",
 	'port_package',
-	'',
+	'
+
+',
 	'port_',
 	'package',
 	1,
@@ -262,23 +328,48 @@ INSERT INTO O_RTIDA_PROXY
 	"295a9e26-0f10-4459-a19c-a98f0360532c",
 	"fe378eda-ea28-4099-a969-16b50da8ec62",
 	'../interface.xtuml');
+INSERT INTO O_REF
+	VALUES ("4249cb50-5415-4bf9-b921-24f5ed76bca5",
+	"3011a585-aede-400f-bae7-b1116cd67c87",
+	0,
+	"92cbbcb2-99b9-4aed-ba33-40c22d783296",
+	"95b89755-8367-4e9f-9983-492da98bca55",
+	"c0142105-eec1-4f56-b868-b09b2ae86464",
+	"165a67a9-4e61-4d7d-b84d-5f9b0f70acee",
+	"b44d797c-a1ce-4656-8fa7-0c3beaf05384",
+	"ad4c012e-1df3-452b-bd59-f5b8812b6863",
+	"55ba3433-663e-48d3-92bd-45fef6d90736",
+	0,
+	'',
+	'Invocable Object',
+	'name',
+	'R427');
+INSERT INTO O_RTIDA_PROXY
+	VALUES ("92cbbcb2-99b9-4aed-ba33-40c22d783296",
+	"3011a585-aede-400f-bae7-b1116cd67c87",
+	0,
+	"95b89755-8367-4e9f-9983-492da98bca55",
+	"165a67a9-4e61-4d7d-b84d-5f9b0f70acee",
+	'../../invocable/invocable.xtuml');
 INSERT INTO O_RATTR
 	VALUES ("b44d797c-a1ce-4656-8fa7-0c3beaf05384",
 	"4249cb50-5415-4bf9-b921-24f5ed76bca5",
-	"92cbbcb2-99b9-4aed-ba33-40c22d783296",
-	"3011a585-aede-400f-bae7-b1116cd67c87",
+	"af091391-482b-4512-9c65-b4c287ceef85",
+	"ac03bc66-d8fd-4d78-9740-ae4c41e90b5b",
 	1,
 	'name');
 INSERT INTO O_BATTR_PROXY
-	VALUES ("92cbbcb2-99b9-4aed-ba33-40c22d783296",
-	"3011a585-aede-400f-bae7-b1116cd67c87",
-	'../../invocable/Invocable Object/Invocable Object.xtuml');
+	VALUES ("af091391-482b-4512-9c65-b4c287ceef85",
+	"ac03bc66-d8fd-4d78-9740-ae4c41e90b5b",
+	'../Message/Message.xtuml');
 INSERT INTO O_ATTR
 	VALUES ("b44d797c-a1ce-4656-8fa7-0c3beaf05384",
 	"4249cb50-5415-4bf9-b921-24f5ed76bca5",
 	"33816880-e1fd-4c64-9fab-f95963618207",
 	'msg_name',
-	'',
+	'
+
+',
 	'msg_',
 	'name',
 	1,

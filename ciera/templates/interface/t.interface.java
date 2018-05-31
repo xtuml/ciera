@@ -1,8 +1,8 @@
-package ${package_name};
+package ${self.package};
 
-${import_block}
+${imports}
 
-public interface ${interface_name} {
+public interface ${self.name} {
 
     // to provider messages
 ${to_provider_message_block}

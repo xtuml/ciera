@@ -1,13 +1,11 @@
 package io.ciera.summit.interfaces;
 
-import java.util.Set;
+import io.ciera.summit.application.IActionHome;
+import io.ciera.summit.components.IComponent;
+import io.ciera.summit.exceptions.XtumlException;
 
-public interface IPort {
+public interface IPort<C extends IComponent<C>> extends IActionHome<C> {
 
-    public void addPeer( IPort peer );
-    public Set<IPort> getPeers();
-    public void post( IMessage message );
-    public IMessage postSync( IMessage message );
-    public void deliver( IMessage message );
+    public void deliver( IMessage message ) throws XtumlException;
 
 }

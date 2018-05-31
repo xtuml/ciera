@@ -24,9 +24,7 @@ ${instance_selectors}
 ${relationship_selectors}
 
     // ports
-    /*
 ${ports}
-    */
 
     // utilities
 ${utilities}

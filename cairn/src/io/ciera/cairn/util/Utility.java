@@ -6,7 +6,7 @@ import io.ciera.summit.components.IComponent;
 
 public class Utility<C extends IComponent<C>> implements IActionHome<C> {
 
-    C context;
+    private C context;
 
     public Utility( C context ) {
         this.context = context;

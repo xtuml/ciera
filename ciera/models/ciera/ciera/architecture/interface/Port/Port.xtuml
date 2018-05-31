@@ -15,19 +15,7 @@ INSERT INTO O_TFR
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'select one file related by self->File[R401];
-package_name = self.package;
-
-port_name = self.name;
-
-// TODO get this from a mark
-extends_class = "Port";
-::addStringToImports( file:file, s:"io.ciera.cairn.interfaces.Port", type:ImportType::IMPL );
-
-interface_name = "";
-select one iface related by self->Interface[R418];
-if ( not_empty iface )
-  interface_name = iface.name;
-end if;
+imports = file.getFormattedImports( type:ImportType::IMPL );
 
 // render inbound messages
 select many inbound_msgs related by self->Interface[R418]->Message[R419] where ( ( not selected.to_provider and not self.provider ) or
@@ -50,53 +38,18 @@ outbound_message_block = T::body();
 T::clear();
 
 // render switch block
-for each msg in inbound_msgs
-  message_name = msg.name;
-  message_parameter_list = "";
-  select many msg_parms related by msg->InvocableObject[R427]->FormalParameter[R429];
-  if ( not_empty msg_parms )
-    sep = " ";
-    i = 0;
-    for each msg_parm in msg_parms
-      select one parm_dt related by msg_parm->Type[R431];
-      message_parameter_list = message_parameter_list + sep + "(" + parm_dt.name + ")message.getData( " + STR::itoa( i:i ) + " )";
-      sep = ", ";
-      i = i + 1;
-    end for;
-  end if;
-  location = "switch";
-  // TODO remove these eventually after templates allow it
-  parameter_list = "";
-  inbound = true;
-  invocation_parameter_list = "";
-  message_class = "";
-  T::include( file:"java/interface/t.message.java" );
+for each msg in inbound_port_msgs
+  msg.render_deliver();
 end for;
 message_switch_block = T::body();
 T::clear();
 
-import_block = file.getFormattedImports( type:ImportType::IMPL );
-
 T::include( file:"java/interface/t.port.java" );
-
 T::emit( file:"src-gen/" + file.path + "/" + self.name + file.extension );
 T::clear();',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",
-	0);
-INSERT INTO O_TFR
-	VALUES ("2b65e476-46b2-4d3a-b511-76dc5de5d1ff",
-	"dae9f6d1-cef8-40e7-9c0a-fcbdf6289596",
-	'render_initializer',
-	'',
-	"ba5eda7a-def5-0000-0000-000000000000",
-	1,
-	'name = self.name;
-T::include( file:"java/interface/t.portinitializer.java" );',
-	1,
-	'',
-	"8715738f-ec55-47ca-bfad-af816187cd8b",
 	0);
 INSERT INTO O_TFR
 	VALUES ("132d7860-871a-4b92-a94d-ea65bac88de5",
@@ -105,11 +58,10 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'name = self.name;
-T::include( file:"java/interface/t.portaccessor.java" );',
+	'T::include( file:"java/interface/t.portaccessor.java" );',
 	1,
 	'',
-	"2b65e476-46b2-4d3a-b511-76dc5de5d1ff",
+	"8715738f-ec55-47ca-bfad-af816187cd8b",
 	0);
 INSERT INTO O_NBATTR
 	VALUES ("e8714e50-672e-4106-ad86-603ba955baa4",

@@ -1,8 +1,12 @@
-package ${package_name};
+package ${self.package};
 
-${import_block}
+${imports}
 
-public class ${port_name} extends ${extends_class} implements ${interface_name} {
+public class ${self.name} extends Port<${self.comp_name}> implements ${self.iface_name} {
+
+    public ${self.name}( ${self.comp_name} context ) {
+        super( context );
+    }
 
     // inbound messages
 ${inbound_message_block}
@@ -11,13 +15,12 @@ ${inbound_message_block}
 ${outbound_message_block}
 
     @Override
-    public void receive( IMessage message ) {
-        if ( null != message ) {
-            switch ( message.getName() ) {
-${message_switch_block}
-                default:
-                    break;
-            }
+    public void deliver( IMessage message ) throws XtumlException {
+        if ( null == message ) throw new BadArgumentException( "Cannot deliver null message." );
+        switch ( message.getName() ) {
+${message_switch_block}\
+            default:
+                throw new BadArgumentException( "Message not implemented by this port." );
         }
     }
 

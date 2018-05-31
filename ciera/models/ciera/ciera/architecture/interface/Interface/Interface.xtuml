@@ -15,9 +15,7 @@ INSERT INTO O_TFR
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'select one file related by self->File[R401];
-package_name = self.package;
-
-interface_name = self.name;
+imports = file.getFormattedImports( type:ImportType::IMPL );
 
 select many to_provider_msgs related by self->Message[R419] where ( selected.to_provider );
 for each msg in to_provider_msgs
@@ -33,10 +31,7 @@ end for;
 from_provider_message_block = T::body();
 T::clear();
 
-import_block = file.getFormattedImports( type:ImportType::IMPL );
-
 T::include( file:"java/interface/t.interface.java" );
-
 T::emit( file:"src-gen/" + file.path + "/" + self.name + file.extension );
 T::clear();',
 	1,

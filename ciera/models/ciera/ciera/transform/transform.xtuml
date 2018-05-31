@@ -266,12 +266,6 @@ end for;
 
 // transform constants
 
-// transform interfaces
-select many c_is related by pe_pes->C_I[R8001];
-for each c_i in c_is
-  ::transformInterface( c_i:c_i, path:path + "/" + T::l( s:ep_pkg.Name ) );
-end for;
-
 // transform datatypes
 select many edts related by pe_pes->S_DT[R8001]->S_EDT[R17]->S_DT[R17];
 for each edt in edts
@@ -1067,17 +1061,17 @@ for each type in types
   files = files | more_files;
   select many more_files related by type->FormalParameter[R431]->InvocableObject[R429]->Operation[R427]->Class[R416]->File[R401];
   files = files | more_files;
-  select many more_files related by type->FormalParameter[R431]->InvocableObject[R429]->Message[R427]->Interface[R419]->File[R401];
+  select many more_files related by type->FormalParameter[R431]->InvocableObject[R429]->PortMessage[R427]->Message[R420.''provides implementation for'']->Interface[R419]->File[R401];
   files = files | more_files;
-  select many more_files related by type->FormalParameter[R431]->InvocableObject[R429]->Message[R427]->Port[R420]->File[R401];
+  select many more_files related by type->FormalParameter[R431]->InvocableObject[R429]->PortMessage[R427]->Port[R420]->File[R401];
   files = files | more_files;
   select many more_files related by type->FormalParameter[R431]->InvocableObject[R429.''shapes data for'']->UtilityFunction[R427]->Utility[R4559.''provided by'']->File[R401];
   files = files | more_files;
   select many more_files related by type->InvocableObject[R428]->Operation[R427]->Class[R416]->File[R401];
   files = files | more_files;
-  select many more_files related by type->InvocableObject[R428]->Message[R427]->Interface[R419]->File[R401];
+  select many more_files related by type->InvocableObject[R428]->PortMessage[R427]->Message[R420.''provides implementation for'']->Interface[R419]->File[R401];
   files = files | more_files;
-  select many more_files related by type->InvocableObject[R428]->Message[R427]->Port[R420]->File[R401];
+  select many more_files related by type->InvocableObject[R428]->PortMessage[R427]->Port[R420]->File[R401];
   files = files | more_files;
   select many more_files related by type->InvocableObject[R428.''defines return type for'']->UtilityFunction[R427]->Utility[R4559.''provided by'']->File[R401];
   files = files | more_files;
@@ -1192,27 +1186,31 @@ INSERT INTO S_SYNC
 	'',
 	'c_i = param.c_i;
 select one ep_pkg related by c_i->PE_PE[R8001]->EP_PKG[R8000];
+select one iface related by c_i->Interface[R421.''is basis for''];
+if ( empty iface )
 
-// create the file
-create object instance file of File;
-file.name = ::camelCaseName( name:c_i.Name, start_lower:false );
-file.path = param.path;
-file.package = ::pathToPackage( path:file.path );
-file.extension = ".java";
-file.exclude = false;
+  // create the file
+  create object instance file of File;
+  file.name = ::camelCaseName( name:c_i.Name, start_lower:false );
+  file.path = param.path;
+  file.package = ::pathToPackage( path:file.path );
+  file.extension = ".java";
+  file.exclude = false;
 
-// create the interface package object
-create object instance iface of Interface;
-relate iface to file across R401;
+  // create the interface package object
+  create object instance iface of Interface;
+  relate iface to file across R401;
 
-// relate to the c_i
-relate iface to c_i across R421;
+  // relate to the c_i
+  relate iface to c_i across R421;
 
-// transform messages
-select many c_eps related by c_i->C_EP[R4003];
-for each c_ep in c_eps
-  ::transformMessage( c_ep:c_ep, iface:iface );
-end for;',
+  // transform messages
+  select many c_eps related by c_i->C_EP[R4003];
+  for each c_ep in c_eps
+    ::transformMessage( c_ep:c_ep, iface:iface );
+  end for;
+
+end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -1262,6 +1260,7 @@ if ( not_empty c_as )  // TODO currently only support signals
 
 // create message object
 create object instance msg of Message;
+msg.name = c_ep.Name;
 msg.to_provider = true;
 if ( not_empty c_as )
   msg.to_provider = ( c_as.Direction == IFDirectionType::ClientServer );
@@ -1270,40 +1269,10 @@ elif ( not_empty c_io )
 end if;
 relate msg to iface across R419;
 
-// create invocable
-create object instance invocable of InvocableObject;
-invocable.name = c_ep.Name;
-invocable.parent_name = msg.iface_name;
-invocable.parent_package = msg.iface_package;
-relate msg to invocable across R427;
-// invocable.oal = s_brg.Action_Semantics_internal; TODO what to do here?
+end if;
 
-// link type
-select any s_dt from instances of S_DT where ( "void" == selected.Name );
-type = UnresolvedType::getInstance( s_dt:s_dt );
-relate type to invocable across R428;
-
-// create parameters
-select any c_pp related by c_ep->C_PP[R4006];
-prev_c_pp = c_pp;
-// select first parameter
-while ( not_empty prev_c_pp )
-  c_pp = prev_c_pp;
-  select one prev_c_pp related by c_pp->C_PP[R4021.''succeeds''];
-end while;
-while ( not_empty c_pp )
-  // create parameter
-  create object instance parm of FormalParameter;
-  parm.name = "p_" + c_pp.Name;
-  parm.by_ref = ( 1 == c_pp.By_Ref );
-  select one parm_dt related by c_pp->S_DT[R4007];
-  parm_type = UnresolvedType::getInstance( s_dt:parm_dt );
-  relate parm_type to parm across R431;
-  ::linkParameter( invocable:invocable, parameter:parm );
-  select one c_pp related by c_pp->C_PP[R4021.''precedes''];
-end while;
-
-end if;',
+select one file related by iface->File[R401];
+::addStringToImports( file:file, s:"io.ciera.summit.exceptions.XtumlException", type:ImportType::IMPL );',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -1361,12 +1330,16 @@ file.name = ::camelCaseName( name:c_po.Name, start_lower:false );
 file.path = param.path;
 file.package = ::pathToPackage( path:file.path );
 file.extension = ".java";
-file.exclude = true; // TODO
+file.exclude = false;
 
 // create the interface package object
 create object instance port of Port;
 relate port to file across R401;
 relate port to c_po across R422;
+
+// set port as provider or requirer
+select any c_p related by c_po->C_IR[R4016]->C_P[R4009];
+port.provider = not_empty c_p;
 
 // relate to other component
 relate port to comp_def across R417;
@@ -1375,26 +1348,36 @@ relate port to comp_def across R417;
 select any c_i related by c_po->C_IR[R4016]->C_I[R4012];
 select one iface related by c_i->Interface[R421];
 if ( empty iface and not_empty c_i )
-  // ::transformInterface( c_i:c_i ); TODO
+  select one ep_pkg related by c_i->PE_PE[R8001]->EP_PKG[R8000];
+  if ( not_empty ep_pkg )
+    ::transformInterface( c_i:c_i, path: ::ep_pkgToPath( ep_pkg:ep_pkg ) );
+  end if;
   select one iface related by c_i->Interface[R421];
 end if;
 if ( not_empty iface )
   relate port to iface across R418;
   select many msgs related by iface->Message[R419];
   for each msg in msgs
-    create object instance port_msg of PortMessage;
-    relate port to msg across R420 using port_msg;
+    ::transformPortMessage( port:port, msg:msg );
   end for;
   select one iface_file related by iface->File[R401];
   ::addFileToImports( file:file, file_to_import:iface_file, type:ImportType::IMPL );
+else
+  // TODO bad
 end if;
-
-// add imports
-::addStringToImports( file:file, s:"io.ciera.summit.interfaces.IMessage", type:ImportType::IMPL );
 
 // add to component file
 select one component_file related by comp_def->File[R401];
-//::addFileToImports( file:component_file, file_to_import:file );',
+::addFileToImports( file:component_file, file_to_import:file, type:ImportType::IMPL );
+
+// add imports
+::addStringToImports( file:file, s:"io.ciera.cairn.interfaces.Port", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.summit.exceptions.BadArgumentException", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.summit.exceptions.XtumlException", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.summit.interfaces.IMessage", type:ImportType::IMPL );
+::addFileToImports( file:file, file_to_import:component_file, type:ImportType::IMPL );
+select one iface_file related by iface->File[R401];
+::addFileToImports( file:file, file_to_import:iface_file, type:ImportType::IMPL );',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -4711,6 +4694,132 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("3a7666da-ad54-4a28-b871-b4c9382cbb4d",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("14b78b78-1e96-4ddc-b225-5609683f4072",
+	"00000000-0000-0000-0000-000000000000",
+	'transformPortMessage',
+	'',
+	'port = param.port;
+msg = param.msg;
+
+select any c_ep related by msg->Interface[R419.''defines message format for'']->C_I[R421.''is transformed from'']->C_EP[R4003] where ( selected.Name == msg.name );
+select one c_po related by port->C_PO[R422.''is transformed from''];
+
+// create port message
+create object instance port_msg of PortMessage;
+relate port to msg across R420 using port_msg;
+
+// create invocable
+create object instance invocable of InvocableObject;
+invocable.name = msg.name;
+invocable.parent_name = port.name;
+invocable.parent_package = port.package;
+relate port_msg to invocable across R427;
+
+// populate the OAL
+invocable.oal = "";
+select any act_act from instances of ACT_ACT where false;
+select any spr_ro related by c_po->C_IR[R4016]->C_R[R4009]->SPR_REP[R4500]->SPR_RO[R4502];
+if ( not_empty spr_ro )
+  invocable.oal = spr_ro.Action_Semantics_internal;
+  select one act_act related by spr_ro->ACT_ROB[R685]->ACT_ACT[R698];
+else
+  select any spr_rs related by c_po->C_IR[R4016]->C_R[R4009]->SPR_REP[R4500]->SPR_RS[R4502];
+  if ( not_empty spr_rs )
+    invocable.oal = spr_rs.Action_Semantics_internal;
+    select one act_act related by spr_rs->ACT_RSB[R684]->ACT_ACT[R698];
+  else
+    select any spr_po related by c_po->C_IR[R4016]->C_P[R4009]->SPR_PEP[R4501]->SPR_PO[R4503];
+    if ( not_empty spr_po )
+      invocable.oal = spr_po.Action_Semantics_internal;
+      select one act_act related by spr_po->ACT_POB[R687]->ACT_ACT[R698];
+    else
+      select any spr_ps related by c_po->C_IR[R4016]->C_P[R4009]->SPR_PEP[R4501]->SPR_PS[R4503];
+      if ( not_empty spr_ps )
+        invocable.oal = spr_ps.Action_Semantics_internal;
+        select one act_act related by spr_ps->ACT_PSB[R686]->ACT_ACT[R698];
+      end if;
+    end if;
+  end if;
+end if;
+
+// link type
+select any s_dt from instances of S_DT where ( "void" == selected.Name );
+type = UnresolvedType::getInstance( s_dt:s_dt );
+relate type to invocable across R428;
+
+// create parameters
+select any c_pp related by c_ep->C_PP[R4006];
+prev_c_pp = c_pp;
+// select first parameter
+while ( not_empty prev_c_pp )
+  c_pp = prev_c_pp;
+  select one prev_c_pp related by c_pp->C_PP[R4021.''succeeds''];
+end while;
+while ( not_empty c_pp )
+  // create parameter
+  create object instance parm of FormalParameter;
+  parm.name = "p_" + c_pp.Name;
+  parm.by_ref = ( 1 == c_pp.By_Ref );
+  select one parm_dt related by c_pp->S_DT[R4007];
+  parm_type = UnresolvedType::getInstance( s_dt:parm_dt );
+  relate parm_type to parm across R431;
+  ::linkParameter( invocable:invocable, parameter:parm );
+  select one c_pp related by c_pp->C_PP[R4021.''precedes''];
+end while;
+
+// add to import block
+select one file related by port->File[R401];
+::addStringToImports( file:file, s:"io.ciera.cairn.interfaces.Message", type:ImportType::IMPL );
+
+// relate the body
+if ( not_empty act_act )
+  relate act_act to invocable across R432.''actions transformed from'';
+else
+  // TODO bad
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("05f0167e-78b2-44e5-a8e6-5e1e211b14c8",
+	"14b78b78-1e96-4ddc-b225-5609683f4072",
+	'port',
+	"fd525a31-5f7e-4b86-ab4f-d7ad8b09281d",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("fd525a31-5f7e-4b86-ab4f-d7ad8b09281d",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Port>',
+	'',
+	'',
+	'../architecture/interface/interface.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("ff9c2b40-e48a-4e3c-b344-c7afa715de9c",
+	"14b78b78-1e96-4ddc-b225-5609683f4072",
+	'msg',
+	"ad08b5ef-5316-4ff4-a266-1fe49249c53f",
+	0,
+	'',
+	"05f0167e-78b2-44e5-a8e6-5e1e211b14c8",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("ad08b5ef-5316-4ff4-a266-1fe49249c53f",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Message>',
+	'',
+	'',
+	'../architecture/interface/interface.xtuml');
+INSERT INTO PE_PE
+	VALUES ("14b78b78-1e96-4ddc-b225-5609683f4072",
 	1,
 	"06787f13-1c16-4275-879c-00bbeee7cb88",
 	"00000000-0000-0000-0000-000000000000",
