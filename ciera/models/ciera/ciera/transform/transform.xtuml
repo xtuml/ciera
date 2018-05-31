@@ -3787,6 +3787,7 @@ if ( not_empty v_uny )
   // create the unary expression
   create object instance unary of UnaryOperation;
   relate unary to expr across R776;
+  select one op_val related by v_uny->V_VAL[R804];
   if ( "not_empty" == T::l( s:v_uny.Operator ) ) // create an additional ''not'' expression before transforming an ''empty'' expression
     unary.operator = "!";
     unary.invocation = false;
@@ -3803,7 +3804,6 @@ if ( not_empty v_uny )
     unary2.operator = "isEmpty";
     unary2.invocation = true;
     // transform the operatnd expression
-    select one op_val related by v_uny->V_VAL[R804];
     ::transformExpression( v_val:op_val, expr_number:expr2.expression_number + ".1", smt:smt );
     select any op_expr related by smt->Expression[R775.''may contain''] where ( selected.expression_number == expr2.expression_number + ".1" );
     relate op_expr to unary2 across R777.''is single operand for'';
@@ -3824,15 +3824,191 @@ if ( not_empty v_uny )
       // TODO bad
     end if;
     // transform the operatnd expression
-    select one op_val related by v_uny->V_VAL[R804];
     ::transformExpression( v_val:op_val, expr_number:expr.expression_number + ".1", smt:smt );
     select any op_expr related by smt->Expression[R775.''may contain''] where ( selected.expression_number == expr.expression_number + ".1" );
     relate op_expr to unary across R777.''is single operand for'';
   end if;
 
 else
+select one v_bin related by v_val->V_BIN[R801];
+if ( not_empty v_bin )
+  // create the binary expression
+  create object instance binary of BinaryOperation;
+  relate binary to expr across R776;
+  select one l_val related by v_bin->V_VAL[R802];
+  select one r_val related by v_bin->V_VAL[R803];
+  select one l_s_dt related by l_val->S_DT[R820];
+  select one l_type related by l_s_dt->Type[R423.''is basis of''];
+  select one l_set related by l_type->ClassSet[R407];
+  // translate the operator
+  if ( "and" == T::l( s:v_bin.Operator ) )
+    if ( l_type.primitive )
+      binary.operator = "&&";
+      binary.invocation = false;
+    else
+      binary.operator = "and";
+      binary.invocation = true;
+    end if;
+  elif ( "or" == T::l( s:v_bin.Operator ) )
+    if ( l_type.primitive )
+      binary.operator = "||";
+      binary.invocation = false;
+    else
+      binary.operator = "or";
+      binary.invocation = true;
+    end if;
+  elif ( "==" == T::l( s:v_bin.Operator ) )
+    if ( l_type.primitive )
+      binary.operator = "==";
+      binary.invocation = false;
+    else
+      binary.operator = "equality";
+      binary.invocation = true;
+    end if;
+  elif ( "!=" == T::l( s:v_bin.Operator ) )
+    if ( l_type.primitive )
+      binary.operator = "!=";
+      binary.invocation = false;
+    else
+      binary.operator = "inequality";
+      binary.invocation = true;
+    end if;
+  elif ( "<" == T::l( s:v_bin.Operator ) )
+    if ( l_type.primitive )
+      binary.operator = "<";
+      binary.invocation = false;
+    else
+      binary.operator = "lessThan";
+      binary.invocation = true;
+    end if;
+  elif ( "<=" == T::l( s:v_bin.Operator ) )
+    if ( l_type.primitive )
+      binary.operator = "<=";
+      binary.invocation = false;
+    else
+      binary.operator = "lessThanOrEqual";
+      binary.invocation = true;
+    end if;
+  elif ( ">" == T::l( s:v_bin.Operator ) )
+    if ( l_type.primitive )
+      binary.operator = ">";
+      binary.invocation = false;
+    else
+      binary.operator = "greaterThan";
+      binary.invocation = true;
+    end if;
+  elif ( ">=" == T::l( s:v_bin.Operator ) )
+    if ( l_type.primitive )
+      binary.operator = ">=";
+      binary.invocation = false;
+    else
+      binary.operator = "greaterThanOrEqual";
+      binary.invocation = true;
+    end if;
+  elif ( "+" == T::l( s:v_bin.Operator ) )
+    if ( l_type.primitive )
+      binary.operator = "+";
+      binary.invocation = false;
+    else
+      // TODO handle concatenation for UDTs based on string
+      if ( not_empty l_set ) // set type
+        binary.operator = "union";
+      else
+        binary.operator = "add";
+      end if;
+      binary.invocation = true;
+    end if;
+  elif ( "-" == T::l( s:v_bin.Operator ) )
+    if ( l_type.primitive )
+      binary.operator = "-";
+      binary.invocation = false;
+    else
+      if ( not_empty l_set ) // set type
+        binary.operator = "difference";
+      else
+        binary.operator = "subtract";
+      end if;
+      binary.invocation = true;
+    end if;
+  elif ( "*" == T::l( s:v_bin.Operator ) )
+    if ( l_type.primitive )
+      binary.operator = "*";
+      binary.invocation = false;
+    else
+      binary.operator = "multiply";
+      binary.invocation = true;
+    end if;
+  elif ( "/" == T::l( s:v_bin.Operator ) )
+    if ( l_type.primitive )
+      binary.operator = "/";
+      binary.invocation = false;
+    else
+      binary.operator = "divide";
+      binary.invocation = true;
+    end if;
+  elif ( "%" == T::l( s:v_bin.Operator ) )
+    if ( l_type.primitive )
+      binary.operator = "%";
+      binary.invocation = false;
+    else
+      binary.operator = "remainder";
+      binary.invocation = true;
+    end if;
+  elif ( "|" == T::l( s:v_bin.Operator ) )
+    binary.operator = "union";
+    binary.invocation = true;
+  elif ( "&" == T::l( s:v_bin.Operator ) )
+    binary.operator = "intersection";
+    binary.invocation = true;
+  elif ( "^" == T::l( s:v_bin.Operator ) )
+    binary.operator = "disunion";
+    binary.invocation = true;
+  end if;
+  // translate the left operand
+  if ( ::precedenceCheck( val1:l_val, val2:v_val ) < 0 ) // if the left operand is lower precedence than the current operator, force it to be evaluated first with parentheses
+    create object instance l_expr of Expression;
+    relate l_expr to smt across R775.''expressed within'';
+    l_expr.expression_number = expr.expression_number + ".1";
+    l_type = UnresolvedType::getInstance( s_dt:l_s_dt );
+    relate l_type to l_expr across R795.''defines type of'';
+    create object instance l_paren of ParenthesizedExpression;
+    relate l_paren to l_expr across R776;
+    relate l_expr to binary across R779.''is left operand for'';
+    // transform the left hand expression
+    ::transformExpression( v_val:l_val, expr_number:l_expr.expression_number + ".1", smt:smt );
+    select any paren_expr related by smt->Expression[R775.''may contain''] where ( selected.expression_number == l_expr.expression_number + ".1" );
+    relate paren_expr to l_paren across R784.''is wrapped in parentheses by'';
+  else
+    // transform the left hand expression
+    ::transformExpression( v_val:l_val, expr_number:expr.expression_number + ".1", smt:smt );
+    select any l_expr related by smt->Expression[R775.''may contain''] where ( selected.expression_number == expr.expression_number + ".1" );
+    relate l_expr to binary across R779.''is left operand for'';
+  end if;
+  // translate the right operand
+  if ( ::precedenceCheck( val1:r_val, val2:v_val ) < 0 ) // if the right operand is lower precedence than the current operator, force it to be evaluated first with parentheses
+    create object instance r_expr of Expression;
+    relate r_expr to smt across R775.''expressed within'';
+    r_expr.expression_number = expr.expression_number + ".2";
+    select one r_s_dt related by r_val->S_DT[R820];
+    r_type = UnresolvedType::getInstance( s_dt:r_s_dt );
+    relate r_type to r_expr across R795.''defines type of'';
+    create object instance r_paren of ParenthesizedExpression;
+    relate r_paren to r_expr across R776;
+    relate r_expr to binary across R778.''is right operand for'';
+    // transform the right hand expression
+    ::transformExpression( v_val:r_val, expr_number:r_expr.expression_number + ".1", smt:smt );
+    select any paren_expr related by smt->Expression[R775.''may contain''] where ( selected.expression_number == r_expr.expression_number + ".1" );
+    relate paren_expr to r_paren across R784.''is wrapped in parentheses by'';
+  else
+    // transform the right hand expression
+    ::transformExpression( v_val:r_val, expr_number:expr.expression_number + ".2", smt:smt );
+    select any r_expr related by smt->Expression[R775.''may contain''] where ( selected.expression_number == expr.expression_number + ".2" );
+    relate r_expr to binary across R778.''is right operand for'';
+  end if;
+
+else
   LOG::LogInfo( message:"expression type not yet supported" );
-end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if;',
+end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',

@@ -937,6 +937,108 @@ INSERT INTO S_DT_PROXY
 	'',
 	'',
 	'../architecture/component/component.xtuml');
+INSERT INTO S_SYNC
+	VALUES ("41d15215-c287-4164-8ef3-f8a7d2867b18",
+	"00000000-0000-0000-0000-000000000000",
+	'precedenceCheck',
+	'',
+	'// returns < 0 if op1 is lower precedence than op2
+// returns > 0 if op1 is greater precedence than op2
+// returns 0 if op1 is the same precedence than op2
+
+// | Operator Precedence                                              |        |
+// | Operator(s)                   | Description                      | Number |
+// |-------------------------------|----------------------------------|--------|
+// | primary expression            | atomic value                     | 7      |
+// | cardinality, empty, not_empty | instance reference and set tests | 6      |
+// | not , -                       | negation                         | 5      |
+// | * , / , % , & , ^             | multiplicative operation         | 4      |
+// | + , - , |                     | additive operation               | 3      |
+// | == , != , < , > , <= , >=     | comparison operation             | 2      |
+// | and                           | logical conjunction              | 1      |
+// | or                            | logical disjunction              | 0      |
+
+
+val1 = param.val1;
+val2 = param.val2;
+
+prec1 = 7;
+prec2 = 7;
+
+i = 0;
+while i < 2
+  prec = 7;
+  val = val1;
+  if ( i != 0 )
+    val = val2;
+  end if;
+  select one v_uny related by val->V_UNY[R801];
+  if ( not_empty v_uny )
+    if ( ( "cardinality" == T::l( s:v_uny.Operator ) ) or ( "empty" == T::l( s:v_uny.Operator ) ) or ( "not_empty" == T::l( s:v_uny.Operator ) ) )
+      prec = 6;
+    elif ( ( "not" == T::l( s:v_uny.Operator ) ) or ( "-" == v_uny.Operator ) or ( "+" == v_uny.Operator ) )
+      prec = 5;
+    end if;
+  else
+    select one v_bin related by val->V_BIN[R801];
+    if ( not_empty v_bin )
+      if ( ( "*" == v_bin.Operator ) or ( "/" == v_bin.Operator ) or ( "%" == v_bin.Operator ) or ( "&" == v_bin.Operator ) or ( "^" == v_bin.Operator ) )
+        prec = 4;
+      elif ( ( "+" == v_bin.Operator ) or ( "-" == v_bin.Operator ) or ( "|" == v_bin.Operator ) )
+        prec = 3;
+      elif ( ( "==" == v_bin.Operator ) or ( "!=" == v_bin.Operator ) or ( "<" == v_bin.Operator ) or ( ">" == v_bin.Operator ) or ( "<=" == v_bin.Operator ) or ( ">=" == v_bin.Operator ) )
+        prec = 2;
+      elif ( "and" == T::l( s:v_bin.Operator ) )
+        prec = 1;
+      elif ( "or" == T::l( s:v_bin.Operator ) )
+        prec = 0;
+      end if;
+    end if;
+  end if;
+  if ( i == 0 )
+    prec1 = prec;
+  else
+    prec2 = prec;
+  end if;
+  i = i + 1;
+end while;
+
+return prec1 - prec2;',
+	"ba5eda7a-def5-0000-0000-000000000002",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("2b0d7524-0958-47dc-9174-13806fa20cf5",
+	"41d15215-c287-4164-8ef3-f8a7d2867b18",
+	'val1',
+	"5400d269-ee31-4742-ac70-8532512a854c",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("5400d269-ee31-4742-ac70-8532512a854c",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Value>',
+	'',
+	'',
+	'../../../../../mcooa/models/mcooa/ooaofooa/Value/Value.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("5c8dff4c-d91e-4604-8872-320acfa6fa7d",
+	"41d15215-c287-4164-8ef3-f8a7d2867b18",
+	'val2',
+	"5400d269-ee31-4742-ac70-8532512a854c",
+	0,
+	'',
+	"2b0d7524-0958-47dc-9174-13806fa20cf5",
+	'');
+INSERT INTO PE_PE
+	VALUES ("41d15215-c287-4164-8ef3-f8a7d2867b18",
+	1,
+	"65dec46c-ec8b-4464-b227-a7853cadd3b4",
+	"00000000-0000-0000-0000-000000000000",
+	1);
 INSERT INTO PE_PE
 	VALUES ("65dec46c-ec8b-4464-b227-a7853cadd3b4",
 	1,
