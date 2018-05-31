@@ -3784,8 +3784,57 @@ if ( not_empty v_slr )
   relate sel to expr across R776;
 
 else
+select one v_uny related by v_val->V_UNY[R801];
+if ( not_empty v_uny )
+  // create the unary expression
+  create object instance unary of UnaryOperation;
+  relate unary to expr across R776;
+  if ( "not_empty" == T::l( s:v_uny.Operator ) ) // create an additional ''not'' expression before transforming an ''empty'' expression
+    unary.operator = "!";
+    unary.invocation = false;
+    // create ''empty'' expression
+    create object instance expr2 of Expression;
+    relate expr2 to smt across R775.''expressed within'';
+    expr2.expression_number = expr.expression_number + ".1";
+    relate expr2 to unary across R777.''is single operand for'';
+    select any boolean_builtin from instances of BuiltInType where ( "" == selected.package and "boolean" == selected.name );
+    select one boolean_type related by boolean_builtin->Type[R407];
+    relate boolean_type to expr2 across R795.''defines type of'';
+    create object instance unary2 of UnaryOperation;
+    relate unary2 to expr2 across R776;
+    unary2.operator = "isEmpty";
+    unary2.invocation = true;
+    // transform the operatnd expression
+    select one op_val related by v_uny->V_VAL[R804];
+    ::transformExpression( v_val:op_val, expr_number:expr2.expression_number + ".1", smt:smt );
+    select any op_expr related by smt->Expression[R775.''may contain''] where ( selected.expression_number == expr2.expression_number + ".1" );
+    relate op_expr to unary2 across R777.''is single operand for'';
+  else
+    if ( "not" == T::l( s:v_uny.Operator ) )
+      unary.operator = "!";
+      unary.invocation = false;
+    elif ( "empty" == T::l( s:v_uny.Operator ) )
+      unary.operator = "isEmpty";
+      unary.invocation = true;
+    elif ( "cardinality" == T::l( s:v_uny.Operator ) )
+      unary.operator = "size";
+      unary.invocation = true;
+    elif ( ( "+" == T::l( s:v_uny.Operator ) ) or ( "-" == T::l( s:v_uny.Operator ) ) )
+      unary.operator = v_uny.Operator;
+      unary.invocation = false;
+    else
+      // TODO bad
+    end if;
+    // transform the operatnd expression
+    select one op_val related by v_uny->V_VAL[R804];
+    ::transformExpression( v_val:op_val, expr_number:expr.expression_number + ".1", smt:smt );
+    select any op_expr related by smt->Expression[R775.''may contain''] where ( selected.expression_number == expr.expression_number + ".1" );
+    relate op_expr to unary across R777.''is single operand for'';
+  end if;
+
+else
   LOG::LogInfo( message:"expression type not yet supported" );
-end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if;',
+end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
