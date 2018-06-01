@@ -3,6 +3,7 @@
 ${body}
 .else
 {
-        send( null, new Message( "${self.msg_name}"${invocation_parameter_list} ) );
+        if ( satisfied() ) send( new Message( "${self.msg_name}"${invocation_parameter_list} ) );
+        else ${body}\
     }
 .end if

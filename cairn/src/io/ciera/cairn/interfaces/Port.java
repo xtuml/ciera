@@ -10,18 +10,32 @@ import io.ciera.summit.interfaces.IPort;
 public abstract class Port<C extends IComponent<C>> implements IPort<C> {
 
     private C context;
+    private IPort<?> peer;
 
-    public Port( C context ) {
+    public Port( C context, IPort<?> peer ) {
         this.context = context;
+        this.peer = peer;
     }
     
-    public void send( IPort<?> target, IMessage message ) {
-        target.getRunContext().execute( new ReceivedMessageTask() {
-            @Override
-            public void run() throws XtumlException {
-                target.deliver( message );
-            }
-        });
+    public void send( IMessage message ) {
+        if ( null != peer ) {
+            peer.getRunContext().execute( new ReceivedMessageTask() {
+                @Override
+                public void run() throws XtumlException {
+                    peer.deliver( message );
+                }
+            });
+        }
+    }
+    
+    @Override
+    public void satisfy( IPort<?> peer ) {
+        this.peer = peer;
+    }
+    
+    @Override
+    public boolean satisfied() {
+        return null != peer;
     }
 
     @Override

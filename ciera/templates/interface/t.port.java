@@ -4,8 +4,8 @@ ${imports}
 
 public class ${self.name} extends Port<${self.comp_name}> implements ${self.iface_name} {
 
-    public ${self.name}( ${self.comp_name} context ) {
-        super( context );
+    public ${self.name}( ${self.comp_name} context, IPort<?> peer ) {
+        super( context, peer );
     }
 
     // inbound messages

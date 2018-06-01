@@ -19,7 +19,7 @@ T_b(" ) ");
 T_b(self->name);
 T_b(" = new ");
 T_b(self->name);
-T_b("( this );");
+T_b("( this, null );");
 T_b("\n");
 T_b("        ");
 T_b("return ");

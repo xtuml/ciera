@@ -7,5 +7,7 @@ import io.ciera.summit.exceptions.XtumlException;
 public interface IPort<C extends IComponent<C>> extends IActionHome<C> {
 
     public void deliver( IMessage message ) throws XtumlException;
+    public void satisfy( IPort<?> peer );
+    public boolean satisfied();
 
 }

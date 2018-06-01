@@ -1375,6 +1375,7 @@ select one component_file related by comp_def->File[R401];
 ::addStringToImports( file:file, s:"io.ciera.summit.exceptions.BadArgumentException", type:ImportType::IMPL );
 ::addStringToImports( file:file, s:"io.ciera.summit.exceptions.XtumlException", type:ImportType::IMPL );
 ::addStringToImports( file:file, s:"io.ciera.summit.interfaces.IMessage", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.summit.interfaces.IPort", type:ImportType::IMPL );
 ::addFileToImports( file:file, file_to_import:component_file, type:ImportType::IMPL );
 select one iface_file related by iface->File[R401];
 ::addFileToImports( file:file, file_to_import:iface_file, type:ImportType::IMPL );',
@@ -2252,9 +2253,10 @@ if ( not_empty act_smt and not_empty block )
     select one invocable related by util_func->InvocableObject[R427];
     select one utility related by util_func->Utility[R4559.''provided by''];
     select one utility_file related by utility->File[R401];
-    ::addFileToImports( file: ::getFileForStatement( smt:smt ), file_to_import:utility_file, type:ImportType::IMPL );
-    ::addStringToImports( file: ::getFileForStatement( smt:smt ), s: ::pathToPackage( path:utility_file.path ) + ".impl." + utility_file.name + "Impl", type:ImportType::IMPL );
     containing_comp_def = ::getCompDefForStatement( smt:smt );
+    select one containing_comp_file related by containing_comp_def->File[R401];
+    ::addFileToImports( file:containing_comp_file, file_to_import:utility_file, type:ImportType::IMPL );
+    ::addStringToImports( file:containing_comp_file, s: ::pathToPackage( path:utility_file.path ) + ".impl." + utility_file.name + "Impl", type:ImportType::IMPL );
     if ( not_empty containing_comp_def )
       select any util_ref related by utility->UtilityReference[R4558] where ( selected.comp_name == containing_comp_def.name and selected.comp_package == containing_comp_def.package );
       if ( empty util_ref )
@@ -3682,9 +3684,10 @@ if ( not_empty v_brv )
   select one invocable related by util_func->InvocableObject[R427];
   select one utility related by util_func->Utility[R4559.''provided by''];
   select one utility_file related by utility->File[R401];
-  ::addFileToImports( file: ::getFileForStatement( smt:smt ), file_to_import:utility_file, type:ImportType::IMPL );
-  ::addStringToImports( file: ::getFileForStatement( smt:smt ), s: ::pathToPackage( path:utility_file.path ) + ".impl." + utility_file.name + "Impl", type:ImportType::IMPL );
   containing_comp_def = ::getCompDefForStatement( smt:smt );
+  select one containing_comp_file related by containing_comp_def->File[R401];
+  ::addFileToImports( file:containing_comp_file, file_to_import:utility_file, type:ImportType::IMPL );
+  ::addStringToImports( file:containing_comp_file, s: ::pathToPackage( path:utility_file.path ) + ".impl." + utility_file.name + "Impl", type:ImportType::IMPL );
   if ( not_empty containing_comp_def )
     select any util_ref related by utility->UtilityReference[R4558] where ( selected.comp_name == containing_comp_def.name and selected.comp_package == containing_comp_def.package );
     if ( empty util_ref )
@@ -4261,7 +4264,15 @@ if ( not_empty act_blk )
   create object instance block of CodeBlock;
   if ( empty upper_block )
     relate block to invocable across R430.''is invoked first for'';
-    block.tab_depth = 1; // TODO
+    block.tab_depth = 1;
+    select one port_msg related by invocable->PortMessage[R427];
+    if ( not_empty port_msg )
+      select one port related by port_msg->Port[R420.''is implemented within''];
+      select one msg related by port_msg->Message[R420.''provides implementation for''];
+      if ( ( msg.to_provider and not port.provider ) or ( not msg.to_provider and port.provider ) )
+        block.tab_depth = 2; // increase the tab depth by one for bodies which belong to outbound port messages
+      end if;
+    end if;
   else
     select one invocable related by upper_block->InvocableObject[R4000.''is invoked in''];
     block.tab_depth = upper_block.tab_depth + 1;
@@ -4770,22 +4781,24 @@ relate port_msg to invocable across R427;
 // populate the OAL
 invocable.oal = "";
 select any act_act from instances of ACT_ACT where false;
-select any spr_ro related by c_po->C_IR[R4016]->C_R[R4009]->SPR_REP[R4500]->SPR_RO[R4502];
+select any spr_rep related by c_po->C_IR[R4016]->C_R[R4009]->SPR_REP[R4500] where ( selected.ExecutableProperty_Id == c_ep.Id );
+select one spr_ro related by spr_rep->SPR_RO[R4502];
 if ( not_empty spr_ro )
   invocable.oal = spr_ro.Action_Semantics_internal;
   select one act_act related by spr_ro->ACT_ROB[R685]->ACT_ACT[R698];
 else
-  select any spr_rs related by c_po->C_IR[R4016]->C_R[R4009]->SPR_REP[R4500]->SPR_RS[R4502];
+  select one spr_rs related by spr_rep->SPR_RS[R4502];
   if ( not_empty spr_rs )
     invocable.oal = spr_rs.Action_Semantics_internal;
     select one act_act related by spr_rs->ACT_RSB[R684]->ACT_ACT[R698];
   else
-    select any spr_po related by c_po->C_IR[R4016]->C_P[R4009]->SPR_PEP[R4501]->SPR_PO[R4503];
+    select any spr_pep related by c_po->C_IR[R4016]->C_P[R4009]->SPR_PEP[R4501] where ( selected.ExecutableProperty_Id == c_ep.Id );
+    select one spr_po related by spr_pep->SPR_PO[R4503];
     if ( not_empty spr_po )
       invocable.oal = spr_po.Action_Semantics_internal;
       select one act_act related by spr_po->ACT_POB[R687]->ACT_ACT[R698];
     else
-      select any spr_ps related by c_po->C_IR[R4016]->C_P[R4009]->SPR_PEP[R4501]->SPR_PS[R4503];
+      select one spr_ps related by spr_pep->SPR_PS[R4503];
       if ( not_empty spr_ps )
         invocable.oal = spr_ps.Action_Semantics_internal;
         select one act_act related by spr_ps->ACT_PSB[R686]->ACT_ACT[R698];
