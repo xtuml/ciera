@@ -2,5 +2,5 @@
 ${statements}\
 .else
 {
-${statements}${indent}}
+${self.prefix}${statements}${self.suffix}${indent}}
 .end if

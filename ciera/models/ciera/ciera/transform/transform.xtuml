@@ -2548,13 +2548,6 @@ if ( not_empty act_smt and not_empty block )
     relate eas to expr across R476.''executes as statement'';
     // create left operand
     select one l_val related by act_ai->V_VAL[R689];
-    select one l_avl related by l_val->V_AVL[R801];
-    if ( not_empty l_avl )  // invocation operator for setting attribute values
-      select any accessor related by l_avl->O_ATTR[R806]->Attribute[R414.''is basis for'']->AttributeAccessor[R4510.''value accessed through'']
-        where ( selected.accessor_type == AttributeAccessor::SETTER );
-      binop.operator = accessor.getName();
-      binop.invocation = true;
-    end if;
     ::transformExpression( v_val:l_val, expr_number:"1.1", smt:smt );
     select any l_op related by smt->Expression[R775.''may contain''] where ( selected.expression_number == "1.1" );
     relate l_op to binop across R779.''is left operand for'';
@@ -2599,9 +2592,10 @@ if ( not_empty act_smt and not_empty block )
     // create control block
     control_block_number = ::getNextBlockNumber( upper_block:block );
     select one control_blk related by act_for->ACT_BLK[R605];
-    ::transformBlockForFor( upper_block:block, act_blk:control_blk, block_number:control_block_number, iter_var:iter_var );
+    ::transformBlockForFor( upper_block:block, act_blk:control_blk, block_number:control_block_number, iter_var:iter_var, for_smt:for_smt );
     select any control_block related by block->InvocableObject[R4000.''is invoked in'']->CodeBlock[R4000.''has''] where ( selected.block_number == control_block_number );
     relate control_block to for_smt across R455.''controls'';
+    ::addStringToImports( file: ::getFileForStatement( smt:smt ), s:"java.util.Iterator", type:ImportType::IMPL );
 
   else
   select one act_fio related by act_smt->ACT_FIO[R603];
@@ -3629,24 +3623,14 @@ if ( not_empty v_isr )
 else
 select one v_avl related by v_val->V_AVL[R801];
 if ( not_empty v_avl )
-  if ( not v_val.isLValue )  // do not create an attribute access for lval attribute references
-    create object instance acc of AttributeAccess;
-    relate acc to expr across R776;
-    select one root_val related by v_avl->V_VAL[R807];
-    ::transformExpression( v_val:root_val, expr_number:expr.expression_number + ".1", smt:smt );
-    select any root_expr related by smt->Expression[R775.''may contain''] where ( selected.expression_number == expr.expression_number + ".1" );
-    relate root_expr to acc across R785.''is used as basis for'';
-    select one attr related by v_avl->O_ATTR[R806]->Attribute[R414];
-    relate attr to acc across R788.''is referenced by'';
-  else
-    // dispose the expression
-    unrelate type from expr across R795.''defines type of'';
-    unrelate expr from smt across R775.''expressed within'';
-    delete object instance expr;
-    // transform the root expression
-    select one root_val related by v_avl->V_VAL[R807];
-    ::transformExpression( v_val:root_val, expr_number:param.expr_number, smt:smt );
-  end if;
+  create object instance acc of AttributeAccess;
+  relate acc to expr across R776;
+  select one root_val related by v_avl->V_VAL[R807];
+  ::transformExpression( v_val:root_val, expr_number:expr.expression_number + ".1", smt:smt );
+  select any root_expr related by smt->Expression[R775.''may contain''] where ( selected.expression_number == expr.expression_number + ".1" );
+  relate root_expr to acc across R785.''is used as basis for'';
+  select one attr related by v_avl->O_ATTR[R806]->Attribute[R414];
+  relate attr to acc across R788.''is referenced by'';
 
 else
 select one v_pvl related by v_val->V_PVL[R801];
@@ -4289,6 +4273,26 @@ if ( not_empty act_blk )
 
   // transform all statements
   ::transformStatements( act_blk:act_blk, block:block );
+  // handle symbol table manipulation for top level blocks
+  if ( empty upper_block )
+    select any var_ref related by block->Statement[R450.''is scope for'']->Expression[R775.''may contain'']->VariableReference[R776];
+    if ( not_empty var_ref )
+      // push a new symbol table at the beginning of the body
+      indent = ::getIndent( tab_depth:block.tab_depth + 1 );
+      block.prefix = indent + "pushSymbolTable();\n";
+      // for void activities, pop the symbol table at the very end
+      select one return_type related by invocable->Type[R428.''return value is typed by''];
+      if ( "void" == return_type.name )
+        block.suffix = indent + "popSymbolTable();\n";
+      end if;
+      // if any return expression has a variable reference, create a temporary variable for the return value
+      select any return_var_ref related by block->Statement[R450.''is scope for'']->ReturnSmt[R451]->Statement[R451]->Expression[R775.''may contain'']->VariableReference[R776];
+      if ( not_empty return_var_ref )
+        block.prefix = indent + "final " + return_type.name + " _return_value;\n" + block.prefix;
+      end if;
+    end if;
+
+  end if;
 
 else
   // TODO bad
@@ -4571,6 +4575,7 @@ INSERT INTO S_SYNC
 	'upper_block = param.upper_block;
 act_blk = param.act_blk;
 iter_var = param.iter_var;
+for_smt = param.for_smt;
 
 // create code block
 create object instance block of CodeBlock;
@@ -4636,6 +4641,22 @@ INSERT INTO S_DT_PROXY
 	VALUES ("896e75b4-b433-4661-b842-63b5ed57b2ae",
 	"00000000-0000-0000-0000-000000000000",
 	'inst_ref<Variable>',
+	'',
+	'',
+	'../architecture/statement/statement.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("e0e22dce-2ee2-4211-89d1-d69f7ffcbec4",
+	"59879fac-8e6b-40b0-a208-84d17e37f54c",
+	'for_smt',
+	"092f9398-5f46-4c15-9a64-2d35cc9bb5e9",
+	0,
+	'',
+	"4de857b8-5133-41f0-963d-e031c3ae7e57",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("092f9398-5f46-4c15-9a64-2d35cc9bb5e9",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<For>',
 	'',
 	'',
 	'../architecture/statement/statement.xtuml');

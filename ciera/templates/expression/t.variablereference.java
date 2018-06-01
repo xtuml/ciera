@@ -1,4 +1,1 @@
-.if ( declare )
-${type_name} \
-.end if
-${self.var_name}\
+((${type_name})getSymbol( "${self.var_name}" ))\

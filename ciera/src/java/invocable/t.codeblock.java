@@ -4,7 +4,9 @@ T_b("");
 } else {
 T_b("{");
 T_b("\n");
+T_b(self->prefix);
 T_b(statements);
+T_b(self->suffix);
 T_b(indent);
 T_b("}");
 T_b("\n");

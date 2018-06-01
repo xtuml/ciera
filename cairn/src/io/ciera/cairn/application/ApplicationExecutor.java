@@ -1,5 +1,8 @@
 package io.ciera.cairn.application;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Stack;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.PriorityBlockingQueue;
 
@@ -7,6 +10,7 @@ import io.ciera.cairn.application.tasks.HaltExecutionTask;
 import io.ciera.summit.application.IApplicationTask;
 import io.ciera.summit.application.IExceptionHandler;
 import io.ciera.summit.application.IRunContext;
+import io.ciera.summit.exceptions.BadArgumentException;
 import io.ciera.summit.exceptions.XtumlException;
 
 public class ApplicationExecutor extends Thread implements IRunContext {
@@ -14,12 +18,15 @@ public class ApplicationExecutor extends Thread implements IRunContext {
     private IExceptionHandler handler;
     private BlockingQueue<IApplicationTask> tasks;
     private boolean running;
+    
+    private Stack<Map<String, Object>> symbols;
 
     public ApplicationExecutor( String name ) {
         super( name );
         handler = new DefaultExceptionHandler();
         tasks = new PriorityBlockingQueue<>();
         running = false;
+        symbols = new Stack<>();
     }
 
     @Override
@@ -57,6 +64,29 @@ public class ApplicationExecutor extends Thread implements IRunContext {
     @Override
     public void setExceptionHandler( IExceptionHandler h ) {
         if ( null != h ) handler = h;
+    }
+
+    @Override
+    public void setSymbol( String name, Object value ) {
+        Map<String,Object> symbolTable = symbols.peek();
+        symbolTable.put( name, value );
+    }
+
+    @Override
+    public Object getSymbol( String name ) throws XtumlException {
+        Map<String,Object> symbolTable = symbols.peek();
+        if ( symbolTable.containsKey( name ) ) return symbolTable.get( name );
+        else throw new BadArgumentException( "Access of undeclared variable." );
+    }
+
+    @Override
+    public void pushSymbolTable() {
+        symbols.push( new HashMap<>() );
+    }
+
+    @Override
+    public void popSymbolTable() {
+        symbols.pop();
     }
 
 }
