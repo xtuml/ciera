@@ -26,4 +26,9 @@ public class LOGImpl<C extends IComponent<C>> extends Utility<C> implements LOG 
         System.out.printf( "SUCCESS: %s\n", message );
     }
 
+    @Override
+    public void LogInteger( int message ) {
+        System.out.printf( "INTEGER: %d\n", message );
+    }
+
 }

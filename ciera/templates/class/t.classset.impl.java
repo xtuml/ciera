@@ -4,6 +4,9 @@ ${imports}
 
 public class ${self.name}Impl extends ${self.extends} implements ${self.name} {
 
+    // attributes
+${attributes}
+
     // selections
 ${selectors}
 

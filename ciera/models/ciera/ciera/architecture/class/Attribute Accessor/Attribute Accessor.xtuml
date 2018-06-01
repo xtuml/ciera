@@ -21,6 +21,7 @@ name = self.getName();
 
 body_save = T::body(); // TODO this is weird
 T::clear();
+
 attribute_derivation = "";
 select one attr_deriv related by self->AttributeDerivation[R441];
 if ( not_empty attr_deriv )
@@ -28,12 +29,32 @@ if ( not_empty attr_deriv )
   attribute_derivation = T::body();
   T::clear();
 end if;
-T::b( s:body_save );
 
 select one type related by self->Attribute[R4510.''gets and sets'']->Type[R424.''is typed by''];
 primitive = type.primitive;
 
 is_getter = self.accessor_type == AttributeAccessor::GETTER;
+
+propagations = "";
+if ( not is_getter )
+  select many refs related by self->Attribute[R4510.''gets and sets'']->AttributeReference[R4506.''provides value for''];
+  for each ref in refs
+    attribute_name = ref.referred_to_attribute_name;
+    select any accessor related by ref->Attribute[R4506.''has value provided by'']->AttributeAccessor[R4510.''value accessed through'']
+      where ( selected.accessor_type == AttributeAccessor::SETTER );
+    accessor_name = accessor.getName();
+    selector_name = "R" + STR::itoa( i:ref.rel_num ) + "_";
+    if ( "" != ref.phrase )
+      selector_name = selector_name + T::underscore( s:ref.phrase ) + "_";
+    end if;
+    selector_name = selector_name + ref.referring_attribute_class_name;
+    T::include( file:"java/class/t.attributepropagation.java" );
+  end for;
+  propagations = T::body();
+  T::clear();
+end if;
+
+T::b( s:body_save );
 
 T::include( file:"java/class/t.attributeaccessor.java" );',
 	1,
@@ -97,6 +118,22 @@ T::include( file:"java/class/t.attributeaccessor.empty.java" );',
 	1,
 	'',
 	"4ad699cd-3242-4cef-9efb-c79abefca238",
+	0);
+INSERT INTO O_TFR
+	VALUES ("734317a1-db4a-4f6c-a6c6-464c001b919a",
+	"d453c081-2796-49f4-aa9f-5aaa45b571f4",
+	'render_set',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'select one attribute related by self->Attribute[R4510.''gets and sets''];
+type_name = attribute.type_name;
+name = self.getName();
+is_getter = self.accessor_type == AttributeAccessor::GETTER;
+T::include( file:"java/class/t.attributeaccessor.set.java" );',
+	1,
+	'',
+	"a107e677-bbc7-43d8-a920-9b3b53c84fd1",
 	0);
 INSERT INTO O_REF
 	VALUES ("d453c081-2796-49f4-aa9f-5aaa45b571f4",

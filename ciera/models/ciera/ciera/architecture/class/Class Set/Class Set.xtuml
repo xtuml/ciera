@@ -17,6 +17,14 @@ INSERT INTO O_TFR
 	'select one file related by self->File[R401];
 imports = file.getFormattedImports( type:ImportType::IMPL );
 
+select many accessors related by self->Class[R406.''defines set with elements of type'']->Attribute[R410.''data abstracted by'']->AttributeAccessor[R4510.''value accessed through'']
+  where ( selected.accessor_type == AttributeAccessor::SETTER );
+for each accessor in accessors
+  accessor.render_set();
+end for;
+attributes = T::body();
+T::clear();
+
 select many selects related by self->SetSelector[R444.''selects instances through''];
 for each selector in selects
   selector.render();
@@ -29,6 +37,12 @@ T::emit( file:"src-gen/" + file.path + "/impl/" + self.name + "Impl" + file.exte
 T::clear();
 
 imports = file.getFormattedImports( type:ImportType::INT );
+
+for each accessor in accessors
+  accessor.render_interface();
+end for;
+attributes = T::body();
+T::clear();
 
 for each selector in selects
   selector.render_interface();

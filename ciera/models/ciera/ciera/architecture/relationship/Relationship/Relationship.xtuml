@@ -14,8 +14,25 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'cardinality_check = "        // TODO cardinality check";
-attribute_propagations = "            // TODO attribute propagations";
+	'cardinality_check = "        // TODO cardinality check\n";
+
+body_save = T::body(); // TODO this is weird
+T::clear();
+attribute_propagations = "";
+  select many refs related by self->Class[R434.''has participating'']->Attribute[R410.''data abstracted by'']->AttributeReference[R4506.''provides value for''];
+  for each ref in refs
+    select any form_accessor related by ref->Attribute[R4506.''has value provided by'']->AttributeAccessor[R4510.''value accessed through'']
+      where ( selected.accessor_type == AttributeAccessor::SETTER );
+    form_accessor_name = form_accessor.getName();
+    select any part_accessor related by ref->Attribute[R4506.''has value provided by'']->AttributeAccessor[R4510.''value accessed through'']
+      where ( selected.accessor_type == AttributeAccessor::GETTER );
+    part_accessor_name = part_accessor.getName();
+    T::include( file:"java/relationship/t.referentialattributeinitialization.java" );
+  end for;
+  attribute_propagations = T::body();
+  T::clear();
+T::b( s:body_save );
+
 T::include( file:"java/relationship/t.relationshipmodifiers.java" );',
 	1,
 	'',

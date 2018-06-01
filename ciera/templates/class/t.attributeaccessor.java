@@ -2,8 +2,7 @@
     @Override
     public ${type_name} ${name}() throws XtumlException {
         checkLiving();
-${attribute_derivation}
-        return ${self.attribute_name};
+${attribute_derivation}        return ${self.attribute_name};
     }
 .else
     @Override
@@ -12,9 +11,9 @@ ${attribute_derivation}
   .if ( primitive )
         if ( ${self.attribute_name} != this.${self.attribute_name} ) {
   .else
-        if ( !${self.attribute_name}.equals( this.${self.attribute_name} ) ) {
+        if ( !${self.attribute_name}.equality( this.${self.attribute_name} ) ) {
   .end if
             this.${self.attribute_name} = ${self.attribute_name};
-        }
+${propagations}        }
     }
 .end if
