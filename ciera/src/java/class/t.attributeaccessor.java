@@ -12,6 +12,7 @@ T_b("\n");
 T_b("        ");
 T_b("checkLiving();");
 T_b("\n");
+T_b("        ");
 T_b(attribute_derivation);
 T_b("        return ");
 T_b(self->attribute_name);

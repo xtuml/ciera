@@ -2,7 +2,7 @@
     @Override
     public ${type_name} ${name}() throws XtumlException {
         checkLiving();
-${attribute_derivation}        return ${self.attribute_name};
+        ${attribute_derivation}        return ${self.attribute_name};
     }
 .else
     @Override
