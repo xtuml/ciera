@@ -4,7 +4,6 @@ import java.util.UUID;
 
 import io.ciera.summit.exceptions.XtumlException;
 import io.ciera.summit.types.IUniqueId;
-import io.ciera.summit.types.IXtumlType;
 
 public class UniqueId implements IUniqueId {
 
@@ -31,7 +30,7 @@ public class UniqueId implements IUniqueId {
     }
 
     @Override
-    public boolean equality( IXtumlType<IUniqueId> value ) throws XtumlException {
+    public boolean equality( IUniqueId value ) throws XtumlException {
         return equals( value );
     }
 
@@ -50,7 +49,7 @@ public class UniqueId implements IUniqueId {
         return id.hashCode();
     }
 
-    protected UUID getId() {
+    private UUID getId() {
         return id;
     }
 

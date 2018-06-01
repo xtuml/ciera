@@ -8,7 +8,6 @@ import io.ciera.summit.components.IComponent;
 import io.ciera.summit.exceptions.DeletedInstanceException;
 import io.ciera.summit.exceptions.InstancePopulationException;
 import io.ciera.summit.exceptions.XtumlException;
-import io.ciera.summit.types.IXtumlType;
 import io.ciera.summit.types.IUniqueId;
 
 public abstract class ModelInstance<T extends IModelInstance<T,C>,C extends IComponent<C>> implements IModelInstance<T,C> {
@@ -86,7 +85,7 @@ public abstract class ModelInstance<T extends IModelInstance<T,C>,C extends ICom
     }
 
     @Override
-    public boolean equality( IXtumlType<T> value) throws XtumlException {
+    public boolean equality( T value) throws XtumlException {
         return equals( value );
     }
 

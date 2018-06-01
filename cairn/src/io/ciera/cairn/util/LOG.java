@@ -1,9 +1,11 @@
 package io.ciera.cairn.util;
 
+import io.ciera.cairn.types.XtumlString;
+
 public interface LOG {
 
-    public void LogFailure( String message );
-    public void LogInfo( String message );
-    public void LogSuccess( String message );
+    public void LogFailure( XtumlString message );
+    public void LogInfo( XtumlString message );
+    public void LogSuccess( XtumlString message );
 
 }

@@ -506,8 +506,9 @@ for each s_dt in s_dts
       type_primitive = true;
       type_default_value = "0d";
     elif ( "string" == s_dt.Name )
-      type_name = "String";
-      type_default_value = STR::quote() + STR::quote();
+      type_name = "XtumlString";
+      type_package = "io.ciera.cairn.types";
+      type_default_value = "new XtumlString( " + STR::quote() + STR::quote() + " )";
     elif ( "timestamp" == s_dt.Name )
       type_name = "TimeStamp";
       type_package = "io.ciera.summit.time";
@@ -3520,7 +3521,8 @@ if ( not_empty v_lst )
   // create literal
   create object instance lit of Literal;
   relate lit to expr across R776;
-  lit.value = STR::quote() + v_lst.Value + STR::quote();
+  lit.value = "new XtumlString( " + STR::quote() + v_lst.Value + STR::quote() + " )";
+  ::addStringToImports( file: ::getFileForStatement( smt:smt ), s:"io.ciera.cairn.types.XtumlString", type:ImportType::IMPL );
 
 else
 select one v_lbo related by v_val->V_LBO[R801];

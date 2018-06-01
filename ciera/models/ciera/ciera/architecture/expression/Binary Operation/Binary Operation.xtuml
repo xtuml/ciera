@@ -22,19 +22,25 @@ variable_assignment = false;
 select one left_operand related by self->Expression[R779];
 left_operand_body = "";
 
-select one var_ref related by left_operand->VariableReference[R776];
-if ( not_empty var_ref ) // for variable references on the left hand side, the body is the name of the variable
-  variable_assignment = true;
-  left_operand_body = var_ref.var_name;
-else
-  select one attr_access related by left_operand->AttributeAccess[R776];
-  if ( not_empty attr_access ) // for attribute accesses on the left hand side, the operator is the name of the setter
-    select any accessor related by attr_access->Attribute[R788.''refers to'']->AttributeAccessor[R4510.''value accessed through'']
-      where ( selected.accessor_type == AttributeAccessor::SETTER );
-    self.operator = accessor.getName();
-    self.invocation = true;
-    select one left_operand related by attr_access->Expression[R785.''refers to attribute of instance expressed by''];
+if ( "=" == self.operator ) // special rules for assignments
+  select one var_ref related by left_operand->VariableReference[R776];
+  if ( not_empty var_ref ) // for variable references on the left hand side, the body is the name of the variable
+    variable_assignment = true;
+    left_operand_body = var_ref.var_name;
+  else
+    select one attr_access related by left_operand->AttributeAccess[R776];
+    if ( not_empty attr_access ) // for attribute accesses on the left hand side, the operator is the name of the setter
+      select any accessor related by attr_access->Attribute[R788.''refers to'']->AttributeAccessor[R4510.''value accessed through'']
+        where ( selected.accessor_type == AttributeAccessor::SETTER );
+      self.operator = accessor.getName();
+      self.invocation = true;
+      select one left_operand related by attr_access->Expression[R785.''refers to attribute of instance expressed by''];
+    end if;
+    left_operand.render();
+    left_operand_body = T::body();
+    T::clear();
   end if;
+else
   left_operand.render();
   left_operand_body = T::body();
   T::clear();

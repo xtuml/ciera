@@ -8,7 +8,6 @@ import io.ciera.summit.exceptions.BadArgumentException;
 import io.ciera.summit.exceptions.XtumlException;
 import io.ciera.summit.types.ISet;
 import io.ciera.summit.types.IWhere;
-import io.ciera.summit.types.IXtumlType;
 
 public abstract class Set<S extends ISet<S,E>,E> implements ISet<S,E> {
 
@@ -188,7 +187,7 @@ public abstract class Set<S extends ISet<S,E>,E> implements ISet<S,E> {
     }
 
     @Override
-    public boolean equality( IXtumlType<S> value ) throws XtumlException {
+    public boolean equality( S value ) throws XtumlException {
         return equals( value );
     }
 
