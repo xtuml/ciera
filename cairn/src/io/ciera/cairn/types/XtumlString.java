@@ -13,7 +13,12 @@ public class XtumlString implements IXtumlType<XtumlString> {
 
     @Override
     public boolean equality( XtumlString value ) throws XtumlException {
-        return null != str && null != value && str.equals( value.getString() );
+        return null != str && null != value && str.equals( value.toString() );
+    }
+    
+    public XtumlString concat( XtumlString value ) {
+        if ( str == null ) return new XtumlString( value.toString() );
+        else return new XtumlString( str + value.toString() );
     }
 
     @Override
@@ -21,10 +26,6 @@ public class XtumlString implements IXtumlType<XtumlString> {
         return new XtumlString( "" );
     }
 
-    private String getString() {
-        return str;
-    }
-    
     @Override
     public String toString() {
         return str;

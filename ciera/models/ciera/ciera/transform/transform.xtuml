@@ -2658,8 +2658,6 @@ if ( not_empty act_smt and not_empty block )
     relate var_ref to l_op across R776;
     relate l_op to binop across R779.''is left operand for'';
     // create right operand
-    // TODO relate all invocables to containing components
-    select one containing_component related by block->InvocableObject[R4000.''is invoked in'']->Function[R427]->ComponentDefinition[R405.''can execute synchronously within''];
     select one selector related by select_obj->Class[R409.''is basis for'']->InstancePopulationSelector[R449.''extent accessed by''];
     create object instance r_op of Expression;
     relate r_op to smt across R775.''expressed within'';
@@ -2727,8 +2725,6 @@ if ( not_empty act_smt and not_empty block )
       relate named_expr to r_op across R776;
       named_expr.name = select_type.default_value;
     else
-      // TODO relate all invocables to containing components
-      select one containing_component related by block->InvocableObject[R4000.''is invoked in'']->Function[R427]->ComponentDefinition[R405.''can execute synchronously within''];
       select one selector related by select_obj->Class[R409.''is basis for'']->InstancePopulationSelector[R449.''extent accessed by''];
       create object instance r_op of Expression;
       relate r_op to smt across R775.''expressed within'';
@@ -3952,9 +3948,11 @@ if ( not_empty v_bin )
       binary.operator = "+";
       binary.invocation = false;
     else
-      // TODO handle concatenation for UDTs based on string
       if ( not_empty l_set ) // set type
         binary.operator = "union";
+      elif ( "XtumlString" == l_type.name and "io.ciera.cairn.types" == l_type.package )
+        // TODO handle concatenation for UDTs based on string
+        binary.operator = "concat";
       else
         binary.operator = "add";
       end if;
