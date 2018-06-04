@@ -1,7 +1,6 @@
-package io.ciera.cairn.types;
+package io.ciera.summit.types;
 
 import io.ciera.summit.exceptions.XtumlException;
-import io.ciera.summit.types.IXtumlType;
 
 public class XtumlString implements IXtumlType<XtumlString> {
     

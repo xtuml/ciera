@@ -1,9 +1,9 @@
 package io.ciera.cairn.util.impl;
 
-import io.ciera.cairn.types.XtumlString;
 import io.ciera.cairn.util.LOG;
 import io.ciera.cairn.util.Utility;
 import io.ciera.summit.components.IComponent;
+import io.ciera.summit.types.XtumlString;
 
 public class LOGImpl<C extends IComponent<C>> extends Utility<C> implements LOG {
 

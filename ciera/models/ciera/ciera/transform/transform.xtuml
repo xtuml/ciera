@@ -402,9 +402,10 @@ while ( not_empty s_sparm )
 end while;
 
 // see if this is an initializer function
-select one c_c related by comp_def->C_C[R4573.''is transformed from'']->PE_PE[R8001];
+select one c_c related by comp_def->C_C[R4573.''is transformed from''];
+select one c_c_pe related by c_c->PE_PE[R8001];
 select any init_function_mark from instances of Mark where ( selected.markable_name == "Component" and
-                                                             selected.path == ::containerMarkingPath( pe:c_c ) + "::" + comp_def.name and
+                                                             selected.path == ::containerMarkingPath( pe:c_c_pe ) + "::" + c_c.Name and
                                                              selected.feature_name == "InitFunction" );
 if ( not_empty init_function_mark and func.name == init_function_mark.value )
   select any s_sparm related by s_sync->S_SPARM[R24];
@@ -507,15 +508,15 @@ for each s_dt in s_dts
       type_default_value = "0d";
     elif ( "string" == s_dt.Name )
       type_name = "XtumlString";
-      type_package = "io.ciera.cairn.types";
+      type_package = "io.ciera.summit.types";
       type_default_value = "new XtumlString( " + STR::quote() + STR::quote() + " )";
     elif ( "timestamp" == s_dt.Name )
       type_name = "TimeStamp";
       type_package = "io.ciera.summit.time";
       type_default_value = "null";
     elif ( "unique_id" == s_dt.Name )
-      type_name = "IUniqueId";
-      type_package = "io.ciera.summit.classes";
+      type_name = "UniqueId";
+      type_package = "io.ciera.summit.types";
       type_unique = true;
       type_default_value = "new UniqueId()";
     elif ( "void" == s_dt.Name )
@@ -1591,7 +1592,7 @@ if ( not_empty r_assoc )
   if ( not_empty form_class and not_empty part_class and not_empty r_aoth )
     form_phrase = r_aoth.Txt_Phrs;
     part_phrase = r_aone.Txt_Phrs;
-    if ( 0 != r_assr.Mult )
+    if ( 0 != r_assr.Mult or 0 != r_aoth.Mult )
       form_mult = Mult::MANY;
     end if;
     if ( 0 != r_aoth.Cond )
@@ -1629,7 +1630,7 @@ if ( not_empty r_assoc )
   if ( not_empty form_class and not_empty part_class and not_empty r_aone )
     form_phrase = r_aone.Txt_Phrs;
     part_phrase = r_aoth.Txt_Phrs;
-    if ( 0 != r_assr.Mult )
+    if ( 0 != r_assr.Mult or 0 != r_aone.Mult )
       form_mult = Mult::MANY;
     end if;
     if ( 0 != r_aone.Cond )
@@ -2185,13 +2186,19 @@ for each attr in attrs
   for each o_ref in o_refs
     select one r_rel related by o_ref->O_RTIDA[R111]->R_RTO[R110]->R_OIR[R203]->R_REL[R201];
     select one referred_to_attr related by o_ref->O_RTIDA[R111]->O_OIDA[R110]->O_ATTR[R105]->Attribute[R414.''is basis for''];
-    select any relationship from instances of Relationship where ( selected.num == r_rel.Numb );
+    select one referred_to_obj related by referred_to_attr->Class[R410.''abstracts data for''];
+    referred_to_phrase = ::oirGetPhrase( r_oir_id:o_ref.ROIR_ID );
+    phrase = ::oirGetPhrase( r_oir_id:o_ref.OIR_ID );
+    select any relationship from instances of Relationship where ( selected.num == r_rel.Numb and
+                                                                   selected.form_name == obj.name and
+                                                                   selected.part_name == referred_to_obj.name and
+                                                                   ( selected.form_phrase == phrase or selected.part_phrase == referred_to_phrase ) );
 
     // create attribute reference
     create object instance attr_ref of AttributeReference;
     relate attr to referred_to_attr across R4506.''has value provided by'' using attr_ref;
     relate relationship to attr_ref across R4511.''provides link for'';
-    attr_ref.phrase = ::oirGetPhrase( r_oir_id:o_ref.OIR_ID );
+    attr_ref.phrase = relationship.form_phrase;
   end for;
 end for;',
 	"ba5eda7a-def5-0000-0000-000000000000",
@@ -3547,7 +3554,7 @@ if ( not_empty v_lst )
   create object instance lit of Literal;
   relate lit to expr across R776;
   lit.value = "new XtumlString( " + STR::quote() + v_lst.Value + STR::quote() + " )";
-  ::addStringToImports( file: ::getFileForStatement( smt:smt ), s:"io.ciera.cairn.types.XtumlString", type:ImportType::IMPL );
+  ::addStringToImports( file: ::getFileForStatement( smt:smt ), s:"io.ciera.summit.types.XtumlString", type:ImportType::IMPL );
 
 else
 select one v_lbo related by v_val->V_LBO[R801];
@@ -3956,7 +3963,7 @@ if ( not_empty v_bin )
     else
       if ( not_empty l_set ) // set type
         binary.operator = "union";
-      elif ( "XtumlString" == l_type.name and "io.ciera.cairn.types" == l_type.package )
+      elif ( "XtumlString" == l_type.name and "io.ciera.summit.types" == l_type.package )
         // TODO handle concatenation for UDTs based on string
         binary.operator = "concat";
       else
@@ -4754,9 +4761,25 @@ end if;
 // get the selector
 select one r_rel related by act_lnk->R_REL[R681];
 select one target_class related by o_obj->Class[R409.''is basis for''];
+phrase = C_UTIL::stripTics( s:act_lnk.Rel_Phrase );
+if ( "" == phrase ) // if the phrase is not included, may need to get the phrase for getting the selector
+  select any relationship from instances of Relationship where ( selected.num == r_rel.Numb and
+                                                                 selected.form_name == target_class.name and
+                                                                 selected.part_name == base_class.name ); // if no phrase was included, the target and base class must be different
+  if ( not_empty relationship )
+    phrase = relationship.form_phrase;
+  else
+    select any relationship from instances of Relationship where ( selected.num == r_rel.Numb and
+                                                                   selected.form_name == base_class.name and
+                                                                   selected.part_name == target_class.name );
+    if ( not_empty relationship )
+      phrase = relationship.part_phrase;
+    end if;
+  end if;
+end if;
 selector_name = "R" + STR::itoa( i:r_rel.Numb ) + "_";
-if ( "" != C_UTIL::stripTics( s:act_lnk.Rel_Phrase ) )
-  selector_name = selector_name + T::underscore( s:C_UTIL::stripTics( s:act_lnk.Rel_Phrase ) ) + "_";
+if ( "" != phrase )
+  selector_name = selector_name + T::underscore( s:phrase ) + "_";
 end if;
 selector_name = selector_name + target_class.name;
 select any selector related by base_class->InstanceSelector[R442.''selects instances through'']->Selector[R445] where ( selected.name == selector_name );
@@ -4889,8 +4912,10 @@ while ( not_empty c_pp )
 end while;
 
 // add to import block
-select one file related by port->File[R401];
-::addStringToImports( file:file, s:"io.ciera.cairn.interfaces.Message", type:ImportType::IMPL );
+if ( port.provider and not msg.to_provider or not port.provider and msg.to_provider )
+  select one file related by port->File[R401];
+  ::addStringToImports( file:file, s:"io.ciera.cairn.interfaces.Message", type:ImportType::IMPL );
+end if;
 
 // relate the body
 if ( not_empty act_act )
@@ -4936,6 +4961,119 @@ INSERT INTO S_DT_PROXY
 	'../architecture/interface/interface.xtuml');
 INSERT INTO PE_PE
 	VALUES ("14b78b78-1e96-4ddc-b225-5609683f4072",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("04acdb19-1dbe-4c28-a736-ff73e44b1dbe",
+	"00000000-0000-0000-0000-000000000000",
+	'resolveAssociativeSelections',
+	'',
+	'// This function selects all ACT_LNK instances which select directly from one to
+// other or other to one on an associative relationship and turns it into two 
+// links.
+
+select many act_lnks from instances of ACT_LNK;
+for each act_lnk in act_lnks
+  
+  select one r_rel related by act_lnk->R_REL[R681];
+  select one r_aone related by r_rel->R_ASSOC[R206]->R_AONE[R209];
+  select one r_aoth related by r_rel->R_ASSOC[R206]->R_AOTH[R210];
+  select one r_assr related by r_rel->R_ASSOC[R206]->R_ASSR[R211];
+  select one assr_obj related by r_assr->R_RGO[R205]->R_OIR[R203]->O_OBJ[R201];
+  
+  select one target_obj related by act_lnk->O_OBJ[R678];
+  select any prev_lnk from instances of ACT_LNK where false;
+  select any v_int from instances of V_INT where false;
+  select any v_ins from instances of V_INS where false;
+  select one prev_lnk related by act_lnk->ACT_LNK[R604.''succeeds'']; // previous link
+  select one base_obj related by prev_lnk->O_OBJ[R678];
+  if ( empty base_obj )
+    select one v_int related by act_lnk->ACT_SEL[R637]->V_VAL[R613]->V_IRF[R801]->V_VAR[R808]->V_INT[R814]; // instance reference
+    select one base_obj related by v_int->O_OBJ[R818];
+    if ( empty base_obj )
+      select one v_ins related by act_lnk->ACT_SEL[R637]->V_VAL[R613]->V_ISR[R801]->V_VAR[R809]->V_INS[R814]; // instance reference set
+      select one base_obj related by v_ins->O_OBJ[R819];
+    end if;
+  end if;
+  
+  // if this is an associative selection in which the link class is _not_ involved, it must be split up
+  if ( not_empty r_assr and target_obj.Obj_ID != r_assr.Obj_ID and base_obj.Obj_ID != r_assr.Obj_ID )
+  
+    // create the first intermediate link
+    create object instance act_lnk1 of ACT_LNK;
+    act_lnk1.modelClassKeyLettersLineNumber = act_lnk.modelClassKeyLettersLineNumber;
+    act_lnk1.modelClassKeyLettersColumn = act_lnk.modelClassKeyLettersColumn;
+    act_lnk1.associationNumberLineNumber = act_lnk.associationNumberLineNumber;
+    act_lnk1.associationNumberColumn = act_lnk.associationNumberColumn;
+    act_lnk1.phraseLineNumber = act_lnk.phraseLineNumber;
+    act_lnk1.phraseColumn = act_lnk.phraseColumn;
+    act_lnk1.Rel_Phrase = act_lnk.Rel_Phrase; // use the same rel phrase
+    relate r_rel to act_lnk1 across R681;
+    relate act_lnk1 to assr_obj across R678;
+    if ( 1 == r_assr.Mult or ( not_empty prev_lnk and Multiplicity::Many == prev_lnk.Mult ) or not_empty v_ins )
+      act_lnk1.Mult = Multiplicity::Many; // always many if the associative object has multiplicity many, or the starting point is multiplicity many
+    else
+      if ( target_obj.Obj_ID != base_obj.Obj_ID and r_aoth.Obj_ID == target_obj.Obj_ID ) or 
+         ( target_obj.Obj_ID == base_obj.Obj_ID and r_aoth.Txt_Phrs == C_UTIL::stripTics( s:act_lnk.Rel_Phrase ) )  // one to other
+        if ( 1 == r_aoth.Mult )
+          act_lnk1.Mult = Multiplicity::Many;
+        else
+          act_lnk1.Mult = Multiplicity::One;
+        end if;
+      else // other to one
+        if ( 1 == r_aone.Mult )
+          act_lnk1.Mult = Multiplicity::Many;
+        else
+          act_lnk1.Mult = Multiplicity::One;
+        end if;
+      end if;
+    end if;
+
+    // create the second intermediate link
+    create object instance act_lnk2 of ACT_LNK;
+    act_lnk2.modelClassKeyLettersLineNumber = act_lnk.modelClassKeyLettersLineNumber;
+    act_lnk2.modelClassKeyLettersColumn = act_lnk.modelClassKeyLettersColumn;
+    act_lnk2.associationNumberLineNumber = act_lnk.associationNumberLineNumber;
+    act_lnk2.associationNumberColumn = act_lnk.associationNumberColumn;
+    act_lnk2.phraseLineNumber = act_lnk.phraseLineNumber;
+    act_lnk2.phraseColumn = act_lnk.phraseColumn;
+    act_lnk2.Rel_Phrase = act_lnk.Rel_Phrase; // use the same rel phrase
+    act_lnk2.Mult = act_lnk.Mult; // the second link always gets the same multiplicity as the original link
+    relate r_rel to act_lnk2 across R681;
+    relate act_lnk2 to target_obj across R678;
+    
+    // link the two together and insert into the order
+    relate act_lnk1 to act_lnk2 across R604.''precedes'';
+    select one next_lnk related by act_lnk->ACT_LNK[R604.''precedes''];
+    if ( not_empty next_lnk )
+      unrelate act_lnk from next_lnk across R604.''precedes'';
+      relate act_lnk2 to next_lnk across R604.''precedes'';
+    end if;
+    if ( not_empty prev_lnk )
+      unrelate act_lnk from prev_lnk across R604.''succeeds'';
+      relate act_lnk1 to prev_lnk across R604.''succeeds'';
+    else // this is the starting point
+      select one act_sel related by act_lnk->ACT_SEL[R637];
+      unrelate act_lnk from act_sel across R637;
+      relate act_lnk1 to act_sel across R637;
+    end if;
+    
+    // dispose old link
+    unrelate target_obj from act_lnk across R678;
+    unrelate r_rel from act_lnk across R681;
+    delete object instance act_lnk;
+    
+  end if;
+  
+end for;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO PE_PE
+	VALUES ("04acdb19-1dbe-4c28-a736-ff73e44b1dbe",
 	1,
 	"06787f13-1c16-4275-879c-00bbeee7cb88",
 	"00000000-0000-0000-0000-000000000000",

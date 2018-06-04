@@ -115,18 +115,34 @@ INSERT INTO S_SYNC
 	'',
 	'start_time = TIM::current_clock();
 
-TRACE::log( id:78, flavor:"info", message:"Translating..." );
+LOG::LogInfo( message:"Translating..." );
 
 // translate builtin types
+LOG::LogInfo( message:"  Translating buitlin types..." );
 ::transformBuiltinTypes();
+LOG::LogInfo( message:"  done." );
+LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
 
 // translate builtin EEs
+LOG::LogInfo( message:"  Translating buitlin EEs..." );
 ::transformBuiltinUtilities();
+LOG::LogInfo( message:"  done." );
+LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
 
 // assure all classes have IRDTs
+LOG::LogInfo( message:"  Publishing IRDTs..." );
 ::transformInstanceReferenceTypes();
+LOG::LogInfo( message:"  done." );
+LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
+
+LOG::LogInfo( message:"  Resolving associative selections..." );
+// resolve direct selections across associative relationships
+::resolveAssociativeSelections();
+LOG::LogInfo( message:"  done." );
+LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
 
 // translate root package
+LOG::LogInfo( message:"  Translating application package..." );
 select any root_package_mark from instances of Mark where ( selected.markable_name == "*"
                                                             and selected.path == "*"
                                                             and selected.feature_name == "RootPackage" );
@@ -135,31 +151,43 @@ if ( not_empty root_package_mark )
   if ( not_empty root_package )
     ::transformApplication( root_package:root_package, path: ::ep_pkgToPath( ep_pkg:root_package ) );
   else
-    TRACE::log( id:79, flavor:"failure", message:"No root package found" );
+    LOG::LogInfo( message:"No root package found" );
   end if;
 else
-  TRACE::log( id:80, flavor:"failure", message:"No root package specified" );
+  LOG::LogInfo( message:"No root package specified" );
 end if;
+LOG::LogInfo( message:"  done." );
+LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
 
 // resolve types
+LOG::LogInfo( message:"  Resolving type references..." );
 ::resolveTypes();
 ::resolveTypeImports();
+LOG::LogInfo( message:"  done." );
+LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
 
 // translate bodies
+LOG::LogInfo( message:"  Translating OAL bodies..." );
 select many invocables from instances of InvocableObject;
 for each invocable in invocables
   ::transformBody( invocable:invocable );
 end for;
+LOG::LogInfo( message:"  done." );
+LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
 
 // render all files
+LOG::LogInfo( message:"  Rendering application..." );
 select many files from instances of File;
 for each file in files
   if ( not file.exclude )
+    LOG::LogInfo( message:"  " + file.package + "." + file.name + file.extension + " CREATED" );
     file.render();
   end if;
 end for;
+LOG::LogInfo( message:"  done." );
+LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
 
-TRACE::log( id:81, flavor:"info", message:"Done." );
+LOG::LogInfo( message:"Done." );
 
 elapsed_time = TIM::current_clock() - start_time;
 LOG::LogTime( message:"Elapsed time:", t:elapsed_time );',

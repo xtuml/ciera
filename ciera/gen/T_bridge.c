@@ -16,10 +16,10 @@
 
 extern bool Escher_run_flag;
 #define T_number_of_bufs 4
-#define T_tbuf_size 64000
+#define T_tbuf_size 256000
 static i_t current_tbuf = 0;
 static i_t buffer_index = 0;
-static char buffer[ 256000 ];
+static char buffer[ T_tbuf_size ];
 static char tbuf[ T_number_of_bufs ][ T_tbuf_size ];
 
 
@@ -109,6 +109,7 @@ T_b( c_t * p_s )
   while ( ( i < T_tbuf_size ) && ( 0 != p_s[ i ] ) ) {
     buffer[ buffer_index++ ] = p_s[ i++ ];
   }
+  if ( i >= T_tbuf_size ) fprintf( stderr, "Template buffer maximum reached.\n" );
   buffer[ buffer_index ] = 0;
 }
 

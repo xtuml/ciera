@@ -34,7 +34,7 @@ T_b("        ");
 T_b("return ");
 T_b(self->class_name);
 T_b("Impl.EMPTY_");
-T_b(self->class_name);
+T_b(T_underscore(T_u(self->class_name)));
 T_b(";");
 T_b("\n");
 T_b("    ");

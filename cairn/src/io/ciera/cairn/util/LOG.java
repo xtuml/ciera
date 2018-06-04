@@ -1,6 +1,6 @@
 package io.ciera.cairn.util;
 
-import io.ciera.cairn.types.XtumlString;
+import io.ciera.summit.types.XtumlString;
 
 public interface LOG {
 

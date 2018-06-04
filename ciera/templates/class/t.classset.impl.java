@@ -12,7 +12,7 @@ ${selectors}
 
     @Override
     public ${self.class_name} nullElement() {
-        return ${self.class_name}Impl.EMPTY_${self.class_name};
+        return ${self.class_name}Impl.EMPTY_$u_{self.class_name};
     }
 
     @Override

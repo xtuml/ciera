@@ -1,25 +1,25 @@
 package io.ciera.cairn.classes;
 
 import io.ciera.summit.classes.IRelationship;
-import io.ciera.summit.types.IUniqueId;
+import io.ciera.summit.types.UniqueId;
 
 public class Relationship implements IRelationship {
 
-    private IUniqueId form;
-    private IUniqueId part;
+    private UniqueId form;
+    private UniqueId part;
 
-    public Relationship( IUniqueId form, IUniqueId part ) {
+    public Relationship( UniqueId form, UniqueId part ) {
         this.form = form;
         this.part = part;
     }
 
     @Override
-    public IUniqueId getForm() {
+    public UniqueId getForm() {
         return form;
     }
 
     @Override
-    public IUniqueId getPart() {
+    public UniqueId getPart() {
         return part;
     }
     

@@ -1,11 +1,10 @@
-package io.ciera.cairn.types;
+package io.ciera.summit.types;
 
 import java.util.UUID;
 
 import io.ciera.summit.exceptions.XtumlException;
-import io.ciera.summit.types.IUniqueId;
 
-public class UniqueId implements IUniqueId {
+public class UniqueId implements IXtumlType<UniqueId>, Comparable<UniqueId> {
 
     UUID id;
 
@@ -14,28 +13,25 @@ public class UniqueId implements IUniqueId {
     }
 
     @Override
-    public int compareTo( IUniqueId o ) {
-        if ( o instanceof UniqueId ) return id.compareTo( ((UniqueId)o).getId() );
-        else return 0;
+    public int compareTo( UniqueId o ) {
+        return id.compareTo( o.getId() );
     }
 
-    @Override
     public void nullify() {
         id = null;
     }
 
-    @Override
     public boolean isNull() {
         return id == null;
     }
 
     @Override
-    public boolean equality( IUniqueId value ) throws XtumlException {
+    public boolean equality( UniqueId value ) throws XtumlException {
         return equals( value );
     }
 
     @Override
-    public IUniqueId defaultValue() {
+    public UniqueId defaultValue() {
         return new UniqueId();
     }
 

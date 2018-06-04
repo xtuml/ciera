@@ -1,10 +1,10 @@
 package io.ciera.summit.classes;
 
-import io.ciera.summit.types.IUniqueId;
+import io.ciera.summit.types.UniqueId;
 
 public interface IRelationship {
 
-    public IUniqueId getForm();
-    public IUniqueId getPart();
+    public UniqueId getForm();
+    public UniqueId getPart();
 
 }
