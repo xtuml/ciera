@@ -33,7 +33,7 @@ T_b("( getInstanceId() );");
 T_b("\n");
 if ( unconditional ) {
 T_b("        ");
-T_b("if ( R");
+T_b("// TODO if ( R");
 T_b(T_s(self->rel_num));
 T_b("set.isEmpty() ) throw new ModelIntegrityException( \"Unconditional association has no related instances.\" );");
 T_b("\n");

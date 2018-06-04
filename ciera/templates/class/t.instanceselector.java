@@ -11,7 +11,7 @@ Formalizing\
 .end if
 ( getInstanceId() );
 .if ( unconditional )
-        if ( R$t{self.rel_num}set.isEmpty() ) throw new ModelIntegrityException( "Unconditional association has no related instances." );
+        // TODO if ( R$t{self.rel_num}set.isEmpty() ) throw new ModelIntegrityException( "Unconditional association has no related instances." );
 .else
   .if ( not multiplicity_many )
         if ( R$t{self.rel_num}set.isEmpty() ) return ${type_name}Impl.EMPTY_$u_{type_name};
