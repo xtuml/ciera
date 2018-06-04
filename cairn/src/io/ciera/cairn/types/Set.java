@@ -188,7 +188,7 @@ public abstract class Set<S extends ISet<S,E>,E> implements ISet<S,E> {
 
     @Override
     public boolean equality( S value ) throws XtumlException {
-        return equals( value );
+        return containsAll( value ) && value.containsAll( this );
     }
 
     @Override
