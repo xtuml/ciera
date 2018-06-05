@@ -4,13 +4,32 @@ grammar SQL;
 package io.ciera.sql.parser;
 }
 
-insert_statement: 'insert' 'into' table_name 'values' LPAREN values RPAREN;
+sql_file:          ( comment )* ( insert_statement )+;
 
-table_name: ID;
+insert_statement:  'INSERT' 'INTO' table_name 'VALUES' LPAREN values RPAREN SEMI;
 
-values: ID;
+table_name:        ID;
 
-ID :         [a-z]+;
-WS :         [ \t\r\n]+ -> skip;
-LPAREN :     '(';
-RPAREN :     ')';
+values:            value |
+                   value COMMA values
+                   ;
+
+value:             STRING | REAL | INTEGER | UUID;
+
+comment:           COMMENT;
+
+ID:                [a-zA-Z][a-zA-Z0-9_]*;
+INTEGER:           '-'? [0-9]+;
+REAL:              '-'? [0-9]+ '.' [0-9]+;
+fragment HB:       [0-9a-f][0-9a-f];  // single hex byte
+UUID:              '"' HB HB HB HB '-' HB HB '-' HB HB '-' HB HB '-' HB HB HB HB HB HB '"';
+fragment TICK:     '\'';
+STRING:            TICK ( TICK TICK | [^TICK] )* TICK;
+COMMENT:           '--' [^\n]* '\n';
+
+LPAREN:            '(';
+RPAREN:            ')';
+SEMI:              ';';
+COMMA:             ',';
+
+WS:                [ \t\r\n]+ -> skip;
