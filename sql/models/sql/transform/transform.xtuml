@@ -36,11 +36,20 @@ INSERT INTO DIM_DIA
 INSERT INTO S_SYNC
 	VALUES ("fb8df96b-00c2-482d-a6b5-a34b86afa384",
 	"00000000-0000-0000-0000-000000000000",
-	'transformInstanceLoader',
+	'transformInstanceLoaders',
 	'',
-	'',
+	'root_package = param.root_package;
+select one s_sys related by root_package->S_SYS[R1405];
+
+// translate components definitions
+select many c_cs related by root_package->PE_PE[R8000]->C_C[R8001];
+select many cl_ics related by root_package->PE_PE[R8000]->CL_IC[R8001]->C_C[R4201];
+c_cs = c_cs | cl_ics;
+for each c_c in c_cs
+  ::transformInstanceLoader( c_c:c_c, path:param.path );
+end for;',
 	"ba5eda7a-def5-0000-0000-000000000000",
-	3,
+	1,
 	'',
 	0);
 INSERT INTO S_SPARM
@@ -70,6 +79,56 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("fb8df96b-00c2-482d-a6b5-a34b86afa384",
+	1,
+	"0691cd09-3358-4aae-b91b-dbe4dc0353bc",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("93bd40fe-7da0-4849-be47-fd3b21db1581",
+	"00000000-0000-0000-0000-000000000000",
+	'transformInstanceLoader',
+	'',
+	'c_c = param.c_c;
+
+// create the instance inst_loader
+create object instance inst_loader of InstanceLoader;
+inst_loader.comp_name = ::camelCaseName( name:c_c.Name, start_lower:false );
+inst_loader.name = inst_loader.comp_name + "InstanceLoader";
+inst_loader.package = ::pathToPackage( path:param.path );
+inst_loader.path = param.path;
+
+// transform all contained classes',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("ea492a3f-4689-406a-b36d-0eec11bdcee9",
+	"93bd40fe-7da0-4849-be47-fd3b21db1581",
+	'c_c',
+	"67f93d18-1045-4c6c-b0d5-a692023c471c",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("67f93d18-1045-4c6c-b0d5-a692023c471c",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Component>',
+	'',
+	'',
+	'../../../../mcooa/models/mcooa/ooaofooa/Component/Component.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("b93fe8f2-1595-4bda-8944-29eeac4e3959",
+	"93bd40fe-7da0-4849-be47-fd3b21db1581",
+	'path',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"ea492a3f-4689-406a-b36d-0eec11bdcee9",
+	'');
+INSERT INTO PE_PE
+	VALUES ("93bd40fe-7da0-4849-be47-fd3b21db1581",
 	1,
 	"0691cd09-3358-4aae-b91b-dbe4dc0353bc",
 	"00000000-0000-0000-0000-000000000000",
