@@ -14,7 +14,16 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'T::include( file:"java/loader/t.instanceloader.java" );
+	'imports = "";
+select many inst_serializers related by self->InstanceSerializer[R3001];
+for each inst_serializer in inst_serializers
+  imports = imports + "import " + inst_serializer.class_package + "." + inst_serializer.class_name + ";\n";
+  inst_serializer.render();
+end for;
+instance_serializers = T::body();
+T::clear();
+
+T::include( file:"java/loader/t.instanceloader.java" );
 T::emit( file:"src-gen/" + self.path + "/" + self.name + ".java" );
 T::clear();',
 	1,

@@ -1,6 +1,7 @@
 package io.ciera.sql.util.impl;
 
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -11,6 +12,7 @@ import io.ciera.sql.parser.SQLLexer;
 import io.ciera.sql.parser.SQLParser;
 import io.ciera.sql.parser.SQLParser.Sql_fileContext;
 import io.ciera.sql.parser.XtumlSQLListener;
+import io.ciera.sql.util.IInstanceLoader;
 import io.ciera.sql.util.SQL;
 import io.ciera.summit.components.IComponent;
 import io.ciera.summit.exceptions.InstancePopulationException;
@@ -18,9 +20,19 @@ import io.ciera.summit.exceptions.XtumlException;
 import io.ciera.summit.types.XtumlString;
 
 public class SQLImpl<C extends IComponent<C>> extends Utility<C> implements SQL {
+    
+    IInstanceLoader loader;
 
     public SQLImpl( C context ) {
         super( context );
+        try {
+            Class<?> componentClass = context.getClass();
+            Class<?> instanceLoaderClass = Class.forName( componentClass.getName() + "InstanceLoader" );
+            Constructor<?> instanceLoaderConstructor = instanceLoaderClass.getConstructor( componentClass );
+            loader = (IInstanceLoader)instanceLoaderConstructor.newInstance( context );
+        } catch ( Exception e ) {
+            loader = null;
+        }
     }
 
     @Override
@@ -46,7 +58,7 @@ public class SQLImpl<C extends IComponent<C>> extends Utility<C> implements SQL 
 
     @Override
     public void serialize() throws XtumlException {
-        // TODO
+        if ( null != loader ) loader.serialize( System.out );
     }
 
     @Override

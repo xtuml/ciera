@@ -97,7 +97,12 @@ inst_loader.name = inst_loader.comp_name + "InstanceLoader";
 inst_loader.package = ::pathToPackage( path:param.path );
 inst_loader.path = param.path;
 
-// transform all contained classes',
+// collect all contained classes
+select many o_objs from instances of O_OBJ where false;
+select many ep_pkgs related by c_c->PE_PE[R8003]->EP_PKG[R8001];
+for each ep_pkg in ep_pkgs
+  ::transformPackageForLoader( ep_pkg:ep_pkg, inst_loader:inst_loader, path:inst_loader.path + "/" + T::l( s:c_c.Name ) );
+end for;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -129,6 +134,203 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("93bd40fe-7da0-4849-be47-fd3b21db1581",
+	1,
+	"0691cd09-3358-4aae-b91b-dbe4dc0353bc",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("509de666-d828-4779-80f2-acd363b116e6",
+	"00000000-0000-0000-0000-000000000000",
+	'transformInstanceSerializer',
+	'',
+	'o_obj = param.o_obj;
+inst_loader = param.inst_loader;
+
+// create the serializer
+create object instance inst_serializer of InstanceSerializer;
+relate inst_loader to inst_serializer across R3001;
+inst_serializer.class_name = ::camelCaseName( name:o_obj.Name, start_lower:false );
+inst_serializer.class_package = ::pathToPackage( path:param.path );
+inst_serializer.class_key_letters = o_obj.Key_Lett;
+
+// create attribute serializers
+select any o_attr related by o_obj->O_ATTR[R102];
+select one prev_attr related by o_attr->O_ATTR[R103.''succeeds''];
+while ( not_empty prev_attr )
+  o_attr = prev_attr;
+  select one prev_attr related by o_attr->O_ATTR[R103.''succeeds''];
+end while;
+while ( not_empty o_attr )
+  ::transformAttributeSerializer( o_attr:o_attr, inst_serializer:inst_serializer );
+  select one o_attr related by o_attr->O_ATTR[R103.''precedes''];
+end while;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("090e12b8-e348-4b96-a12a-f13e8a0e1914",
+	"509de666-d828-4779-80f2-acd363b116e6",
+	'o_obj',
+	"63f4ff99-f127-443b-a678-30ace41da702",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("63f4ff99-f127-443b-a678-30ace41da702",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Model Class>',
+	'',
+	'',
+	'../../../../mcooa/models/mcooa/ooaofooa/Subsystem/Subsystem.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("2f62c177-942e-460a-b8fd-abafb7156e20",
+	"509de666-d828-4779-80f2-acd363b116e6",
+	'inst_loader',
+	"7146da9e-097c-429e-bbb0-0ab189b52d6c",
+	0,
+	'',
+	"090e12b8-e348-4b96-a12a-f13e8a0e1914",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("7146da9e-097c-429e-bbb0-0ab189b52d6c",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Instance Loader>',
+	'',
+	'',
+	'../loader/loader.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("4f7abbe7-28fa-4c3d-882e-6b16037b364f",
+	"509de666-d828-4779-80f2-acd363b116e6",
+	'path',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"2f62c177-942e-460a-b8fd-abafb7156e20",
+	'');
+INSERT INTO PE_PE
+	VALUES ("509de666-d828-4779-80f2-acd363b116e6",
+	1,
+	"0691cd09-3358-4aae-b91b-dbe4dc0353bc",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("c2ab8db1-8ef9-49d8-a0f2-8771d71d5f86",
+	"00000000-0000-0000-0000-000000000000",
+	'transformAttributeSerializer',
+	'',
+	'o_attr = param.o_attr;
+inst_serializer = param.inst_serializer;
+
+// create the serializer
+create object instance attr_serializer of AttributeSerializer;
+relate inst_serializer to attr_serializer across R3002;
+attr_serializer.attr_name = o_attr.Name;
+
+// relate the data type
+select one s_dt related by o_attr->S_DT[R114];
+relate s_dt to attr_serializer across R3003;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("403df268-ea3e-4bd3-88f8-7a267b87d12f",
+	"c2ab8db1-8ef9-49d8-a0f2-8771d71d5f86",
+	'o_attr',
+	"579b8247-e153-481d-8926-384cdc722464",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("579b8247-e153-481d-8926-384cdc722464",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Attribute>',
+	'',
+	'',
+	'../../../../mcooa/models/mcooa/ooaofooa/Subsystem/Subsystem.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("b9b65190-074d-459d-835e-e52c3737f31c",
+	"c2ab8db1-8ef9-49d8-a0f2-8771d71d5f86",
+	'inst_serializer',
+	"52179bad-cd38-4775-902e-a349151acd5c",
+	0,
+	'',
+	"403df268-ea3e-4bd3-88f8-7a267b87d12f",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("52179bad-cd38-4775-902e-a349151acd5c",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Instance Serializer>',
+	'',
+	'',
+	'../loader/loader.xtuml');
+INSERT INTO PE_PE
+	VALUES ("c2ab8db1-8ef9-49d8-a0f2-8771d71d5f86",
+	1,
+	"0691cd09-3358-4aae-b91b-dbe4dc0353bc",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("6c4fe0fe-112f-497b-9a83-030e534acee1",
+	"00000000-0000-0000-0000-000000000000",
+	'transformPackageForLoader',
+	'',
+	'ep_pkg = param.ep_pkg;
+inst_loader = param.inst_loader;
+
+// resolve package reference
+select one referred_ep_pkg related by ep_pkg->EP_PKG[R1402.''refers to''];
+if ( not_empty referred_ep_pkg )
+  ep_pkg = referred_ep_pkg;
+end if;
+
+// transform objects
+select many o_objs related by ep_pkg->PE_PE[R8000]->O_OBJ[R8001];
+for each o_obj in o_objs
+  ::transformInstanceSerializer( o_obj:o_obj, inst_loader:inst_loader, path:param.path + "/" + T::l( s:ep_pkg.Name ) );
+end for;
+
+// transform contained packages
+select many contained_pkgs related by ep_pkg->PE_PE[R8000]->EP_PKG[R8001];
+for each contained_pkg in contained_pkgs
+  ::transformPackageForLoader( ep_pkg:contained_pkg, inst_loader:inst_loader, path:param.path + "/" + T::l( s:ep_pkg.Name )  );
+end for;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("5cf011e2-ebe4-4eb1-a290-87030b54ee5e",
+	"6c4fe0fe-112f-497b-9a83-030e534acee1",
+	'ep_pkg',
+	"9939c670-a721-4742-a824-ed4b0df4acd6",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("384a2d47-5d17-46da-9482-860ff4c384fe",
+	"6c4fe0fe-112f-497b-9a83-030e534acee1",
+	'path',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"d4f9d0fa-5e14-4ce5-9c75-a34f3b9bfd56",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("d4f9d0fa-5e14-4ce5-9c75-a34f3b9bfd56",
+	"6c4fe0fe-112f-497b-9a83-030e534acee1",
+	'inst_loader',
+	"7146da9e-097c-429e-bbb0-0ab189b52d6c",
+	0,
+	'',
+	"5cf011e2-ebe4-4eb1-a290-87030b54ee5e",
+	'');
+INSERT INTO PE_PE
+	VALUES ("6c4fe0fe-112f-497b-9a83-030e534acee1",
 	1,
 	"0691cd09-3358-4aae-b91b-dbe4dc0353bc",
 	"00000000-0000-0000-0000-000000000000",

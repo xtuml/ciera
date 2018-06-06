@@ -2144,37 +2144,6 @@ INSERT INTO PE_PE
 	"00000000-0000-0000-0000-000000000000",
 	1);
 INSERT INTO S_SYNC
-	VALUES ("95dbd48c-d367-4051-91dd-946f605e8a0b",
-	"00000000-0000-0000-0000-000000000000",
-	'transformBuiltinUtilities',
-	'',
-	'// transform only utilities that are referenced
-select many bridge_statements from instances of ACT_BRG;
-select many bridge_values from instances of V_BRV;
-
-select many s_ees related by bridge_statements->S_BRG[R674]->S_EE[R19];
-select many expr_s_ees related by bridge_values->S_BRG[R828]->S_EE[R19];
-s_ees = s_ees | expr_s_ees;
-
-for each s_ee in s_ees
-  select one pkg related by s_ee->PE_PE[R8001]->EP_PKG[R8000];
-  select one s_sys related by pkg->S_SYS[R1405];
-  if ( s_sys.Name == "cairn" and pkg.Name == "io.ciera.cairn.util" )
-    select any empty_comp_def from instances of ComponentDefinition where false;
-    ::transformUtility( s_ee:s_ee, ep_pkg:pkg, containing_comp_def: empty_comp_def, exclude:true, path:"io/ciera/cairn/util" );
-  end if;
-end for;',
-	"ba5eda7a-def5-0000-0000-000000000000",
-	1,
-	'',
-	0);
-INSERT INTO PE_PE
-	VALUES ("95dbd48c-d367-4051-91dd-946f605e8a0b",
-	1,
-	"06787f13-1c16-4275-879c-00bbeee7cb88",
-	"00000000-0000-0000-0000-000000000000",
-	1);
-INSERT INTO S_SYNC
 	VALUES ("b36bee85-a614-4d69-9feb-cda336242c18",
 	"00000000-0000-0000-0000-000000000000",
 	'transformAttributeReferences',
@@ -2287,6 +2256,13 @@ if ( not_empty act_smt and not_empty block )
   select one act_brg related by act_smt->ACT_BRG[R603];
   if ( not_empty act_brg )
     select one util_func related by act_brg->S_BRG[R674]->UtilityFunction[R4570.''is basis for''];
+    if ( empty util_func )
+      select one s_ee related by act_brg->S_BRG[R674]->S_EE[R19];
+      select one s_ee_pkg related by s_ee->PE_PE[R8001]->EP_PKG[R8000];
+      select any empty_comp_def from instances of ComponentDefinition where false;
+      ::transformUtility( s_ee:s_ee, ep_pkg:s_ee_pkg, containing_comp_def:empty_comp_def, exclude:true, path: ::ep_pkgToPath( ep_pkg:s_ee_pkg ) );
+      select one util_func related by act_brg->S_BRG[R674]->UtilityFunction[R4570.''is basis for''];
+    end if;
     select one invocable related by util_func->InvocableObject[R427];
     select one utility related by util_func->Utility[R4559.''provided by''];
     select one utility_file related by utility->File[R401];
@@ -3699,6 +3675,13 @@ else
 select one v_brv related by v_val->V_BRV[R801];
 if ( not_empty v_brv )
   select one util_func related by v_brv->S_BRG[R828]->UtilityFunction[R4570.''is basis for''];
+  if ( empty util_func )
+    select one s_ee related by v_brv->S_BRG[R828]->S_EE[R19];
+    select one s_ee_pkg related by s_ee->PE_PE[R8001]->EP_PKG[R8000];
+    select any empty_comp_def from instances of ComponentDefinition where false;
+    ::transformUtility( s_ee:s_ee, ep_pkg:s_ee_pkg, containing_comp_def:empty_comp_def, exclude:true, path: ::ep_pkgToPath( ep_pkg:s_ee_pkg ) );
+    select one util_func related by v_brv->S_BRG[R828]->UtilityFunction[R4570.''is basis for''];
+  end if;
   select one invocable related by util_func->InvocableObject[R427];
   select one utility related by util_func->Utility[R4559.''provided by''];
   select one utility_file related by utility->File[R401];
