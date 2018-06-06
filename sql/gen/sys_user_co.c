@@ -82,7 +82,7 @@ UserPostOoaInitializationCalloutf( int argc, char ** argv )
       switch ( c ) {
         case 'i':
           if ( !optarg ) abort();
-          else sql_gen_preprocess( optarg );
+          else loader_gen_preprocess( optarg );
           break;
         case 't':
           // enable tracing from the very beginning (even before marks are loaded)
@@ -95,7 +95,7 @@ UserPostOoaInitializationCalloutf( int argc, char ** argv )
   }
 
   // translate the model
-  sql_gen_translate();
+  loader_gen_translate();
 }
 
 /*

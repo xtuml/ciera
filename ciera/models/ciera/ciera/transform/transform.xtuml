@@ -5078,6 +5078,324 @@ INSERT INTO PE_PE
 	"06787f13-1c16-4275-879c-00bbeee7cb88",
 	"00000000-0000-0000-0000-000000000000",
 	1);
+INSERT INTO S_SYNC
+	VALUES ("452542ff-22f8-4a6e-ab5a-0528a70bb1ec",
+	"00000000-0000-0000-0000-000000000000",
+	'addFileToImports',
+	'',
+	'file_to_import = param.file_to_import;
+import_string = ::pathToPackage( path:file_to_import.path ) + "." + file_to_import.name;
+::addStringToImports( file:param.file, s:import_string, type:param.type );',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("5ea1f6ea-e91b-40e0-a580-ae29c3131b28",
+	"452542ff-22f8-4a6e-ab5a-0528a70bb1ec",
+	'file',
+	"7f1815c6-b9da-4371-acbc-8297d9eaecf4",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("7f1815c6-b9da-4371-acbc-8297d9eaecf4",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<File>',
+	'',
+	'',
+	'../architecture/file/file.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("f382cd3f-4d26-4a36-ba40-d98c26a70bfb",
+	"452542ff-22f8-4a6e-ab5a-0528a70bb1ec",
+	'file_to_import',
+	"7f1815c6-b9da-4371-acbc-8297d9eaecf4",
+	0,
+	'',
+	"5ea1f6ea-e91b-40e0-a580-ae29c3131b28",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("21fe0077-ef2a-4a95-82fc-e9601f68c9fd",
+	"452542ff-22f8-4a6e-ab5a-0528a70bb1ec",
+	'type',
+	"a65c34a3-dd47-4b91-a991-7859d23a011d",
+	0,
+	'',
+	"f382cd3f-4d26-4a36-ba40-d98c26a70bfb",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("a65c34a3-dd47-4b91-a991-7859d23a011d",
+	"00000000-0000-0000-0000-000000000000",
+	'ImportType',
+	'',
+	'',
+	'../types/types.xtuml');
+INSERT INTO PE_PE
+	VALUES ("452542ff-22f8-4a6e-ab5a-0528a70bb1ec",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("8063fe3c-7ff2-4fad-9957-2a140a414498",
+	"00000000-0000-0000-0000-000000000000",
+	'addStringToImports',
+	'',
+	'file = param.file;
+if ( "" != param.s )
+  select any import_ref related by file->TypeImportReference[R402] where ( selected.fully_qualified_name == param.s and selected.type == param.type );
+  if ( empty import_ref )
+    import = TypeImport::get_import( import:param.s );
+    create object instance import_ref of TypeImportReference;
+    import_ref.type = param.type;
+    relate import to file across R402 using import_ref;
+  end if;
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("239307b7-b238-4ef8-8f46-26fc89abf0cd",
+	"8063fe3c-7ff2-4fad-9957-2a140a414498",
+	'file',
+	"7f1815c6-b9da-4371-acbc-8297d9eaecf4",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("6a5d6923-884b-4ab9-ac19-6f3d6ba7bd13",
+	"8063fe3c-7ff2-4fad-9957-2a140a414498",
+	's',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"239307b7-b238-4ef8-8f46-26fc89abf0cd",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("56485d87-0ee6-41f9-9342-180fe431bd20",
+	"8063fe3c-7ff2-4fad-9957-2a140a414498",
+	'type',
+	"a65c34a3-dd47-4b91-a991-7859d23a011d",
+	0,
+	'',
+	"6a5d6923-884b-4ab9-ac19-6f3d6ba7bd13",
+	'');
+INSERT INTO PE_PE
+	VALUES ("8063fe3c-7ff2-4fad-9957-2a140a414498",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("6ea429a3-849e-4560-8daa-d650e2021aae",
+	"00000000-0000-0000-0000-000000000000",
+	'getCompDefForStatement',
+	'',
+	'smt = param.smt;
+select one invocable related by smt->CodeBlock[R450.''is contained by'']->InvocableObject[R4000.''is invoked in''];
+select one comp_def related by invocable->Function[R427]->ComponentDefinition[R405.''can execute synchronously within''];
+if ( empty comp_def )
+  select one comp_def related by invocable->PortMessage[R427]->Port[R420.''is implemented within'']->ComponentDefinition[R417.''passes messages for''];
+  if ( empty comp_def )
+    select one comp_def related by invocable->Operation[R427]->Class[R416.''provided by'']->ComponentDefinition[R408.''forms instance population of''];
+    if ( empty comp_def )
+      select one comp_def related by invocable->AttributeDerivation[R427]->AttributeAccessor[R441.''calculates value for'']->Attribute[R4510.''gets and sets'']->Class[R410.''abstracts data for'']->ComponentDefinition[R408.''forms instance population of''];
+      // TODO utility will return empty
+    end if;
+  end if;
+end if;
+return comp_def;',
+	"1fef1559-c5b6-4eb7-a9c4-8b126b9b51a0",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("2402572a-83c5-4285-ace8-b01b9bb21688",
+	"6ea429a3-849e-4560-8daa-d650e2021aae",
+	'smt',
+	"056a9b55-7c4c-45a4-a684-ea45fce8fa86",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO PE_PE
+	VALUES ("6ea429a3-849e-4560-8daa-d650e2021aae",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("d4a3eeb1-e927-44c8-bdea-acdcb96ba927",
+	"00000000-0000-0000-0000-000000000000",
+	'getFileForStatement',
+	'',
+	'smt = param.smt;
+select one invocable related by smt->CodeBlock[R450.''is contained by'']->InvocableObject[R4000.''is invoked in''];
+select one file related by invocable->Function[R427]->ComponentDefinition[R405.''can execute synchronously within'']->File[R401];
+if ( empty file )
+  select one file related by invocable->PortMessage[R427]->Port[R420.''is implemented within'']->File[R401];
+  if ( empty file )
+    select one file related by invocable->Operation[R427]->Class[R416.''provided by'']->File[R401];
+    if ( empty file )
+      select one file related by invocable->AttributeDerivation[R427]->AttributeAccessor[R441.''calculates value for'']->Attribute[R4510.''gets and sets'']->Class[R410.''abstracts data for'']->File[R401];
+      if ( empty file )
+        select one file related by invocable->UtilityFunction[R427]->Utility[R4559.''provided by'']->File[R401];
+      end if;
+    end if;
+  end if;
+end if;
+return file;',
+	"7f1815c6-b9da-4371-acbc-8297d9eaecf4",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("f4443363-2af4-4dab-ab1b-a60d98fd8cf4",
+	"d4a3eeb1-e927-44c8-bdea-acdcb96ba927",
+	'smt',
+	"056a9b55-7c4c-45a4-a684-ea45fce8fa86",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO PE_PE
+	VALUES ("d4a3eeb1-e927-44c8-bdea-acdcb96ba927",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("1902006f-da85-4c2d-8a7d-5f78d06d6f4e",
+	"00000000-0000-0000-0000-000000000000",
+	'getNextBlockNumber',
+	'',
+	'upper_block = param.upper_block;
+
+select many then_blocks related by upper_block->Statement[R450.''is scope for'']->IfSmt[R451]->CodeBlock[R453.''has then''];
+select many else_blocks related by upper_block->Statement[R450.''is scope for'']->IfSmt[R451]->CodeBlock[R454.''has else''];
+select many while_blocks related by upper_block->Statement[R450.''is scope for'']->WhileSmt[R451]->CodeBlock[R456.''has control''];
+select many for_blocks related by upper_block->Statement[R450.''is scope for'']->ForSmt[R451]->CodeBlock[R455.''has control''];
+
+child_blocks = then_blocks + else_blocks + while_blocks + for_blocks;
+
+// find the most recent child block
+block_number = "0";
+for each child_block in child_blocks
+  if ( child_block.block_number > block_number )
+    block_number = child_block.block_number;
+  end if;
+end for;
+
+// increment
+block_number = upper_block.block_number + "." + STR::itoa( i:STR::atoi( s:STR::substr( s:block_number, begin:STR::strlen( s:upper_block.block_number ) + 1, end:-1 ) ) + 1 );
+
+return block_number;',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("7d04c229-aead-4692-b596-ce1e9b176a33",
+	"1902006f-da85-4c2d-8a7d-5f78d06d6f4e",
+	'upper_block',
+	"e2eb4f67-ca2b-42ab-accf-5a2b475f8933",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO PE_PE
+	VALUES ("1902006f-da85-4c2d-8a7d-5f78d06d6f4e",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("b12433f2-8d27-497d-90cb-994dc5f0525e",
+	"00000000-0000-0000-0000-000000000000",
+	'is_primitive_type',
+	'',
+	'type = param.type;
+select one builtin related by type->BuiltInType[R407];
+if ( not_empty builtin )
+  return builtin.primitive;
+else
+  return false;
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000001",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("c824ddfb-29d7-4e3b-ba45-2435ef02c589",
+	"b12433f2-8d27-497d-90cb-994dc5f0525e",
+	'type',
+	"be784cfe-3f8b-4e25-b183-484885b71173",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("be784cfe-3f8b-4e25-b183-484885b71173",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Type>',
+	'',
+	'',
+	'../architecture/type/type.xtuml');
+INSERT INTO PE_PE
+	VALUES ("b12433f2-8d27-497d-90cb-994dc5f0525e",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("c0d8df16-ca3e-4dfe-afd3-3b67c4953da0",
+	"00000000-0000-0000-0000-000000000000",
+	'linkParameter',
+	'',
+	'invocable = param.invocable;
+parm = param.parameter;
+// link parameter
+select any last_parm related by invocable->FormalParameter[R429];
+select one next_parm related by last_parm->FormalParameter[R404.''precedes''];
+while ( not_empty next_parm )
+  last_parm = next_parm;
+  select one next_parm related by last_parm->FormalParameter[R404.''precedes''];
+end while;
+if ( not_empty last_parm )
+  relate parm to last_parm across R404.''follows'';
+end if;
+relate parm to invocable across R429;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("0ace3d4c-3db1-4306-af9e-603a1d4f8ad7",
+	"c0d8df16-ca3e-4dfe-afd3-3b67c4953da0",
+	'invocable',
+	"30c7a5ba-c6d9-44fd-8e61-f22cde8fdc41",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("a432e006-434b-4b8d-9b6c-e3e3e240deb5",
+	"c0d8df16-ca3e-4dfe-afd3-3b67c4953da0",
+	'parameter',
+	"a4048d05-d8f6-4f96-b1fc-79a73158a744",
+	0,
+	'',
+	"0ace3d4c-3db1-4306-af9e-603a1d4f8ad7",
+	'');
+INSERT INTO PE_PE
+	VALUES ("c0d8df16-ca3e-4dfe-afd3-3b67c4953da0",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
 INSERT INTO PE_PE
 	VALUES ("06787f13-1c16-4275-879c-00bbeee7cb88",
 	1,
