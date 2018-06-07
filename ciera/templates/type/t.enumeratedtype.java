@@ -1,6 +1,8 @@
 package ${self.package};
 
-public enum ${self.name} {
+${imports}
+
+public enum ${self.name} implements IXtumlType<${self.name}> {
 
     UNINITIALIZED_ENUM( -1 )${enumerators}
 
@@ -12,6 +14,16 @@ public enum ${self.name} {
 
     public int getValue() {
         return value;
+    }
+
+    @Override
+    public boolean equality( ${self.name} value ) throws XtumlException {
+        return null != value && this.value == value.getValue();
+    }
+
+    @Override
+    public ${self.name} defaultValue() {
+        return UNINITIALIZED_ENUM;
     }
 
 }
