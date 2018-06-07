@@ -160,8 +160,10 @@ while ( not_empty prev_attr )
   o_attr = prev_attr;
   select one prev_attr related by o_attr->O_ATTR[R103.''succeeds''];
 end while;
+select any prev_attr_serializer from instances of AttributeSerializer where false;
 while ( not_empty o_attr )
-  ::transformAttributeSerializer( o_attr:o_attr, inst_serializer:inst_serializer );
+  ::transformAttributeSerializer( o_attr:o_attr, inst_serializer:inst_serializer, prev_attr_serializer:prev_attr_serializer );
+  select any prev_attr_serializer related by inst_serializer->AttributeSerializer[R3002] where ( selected.attr_name == o_attr.Name );
   select one o_attr related by o_attr->O_ATTR[R103.''precedes''];
 end while;',
 	"ba5eda7a-def5-0000-0000-000000000000",
@@ -222,15 +224,63 @@ INSERT INTO S_SYNC
 	'',
 	'o_attr = param.o_attr;
 inst_serializer = param.inst_serializer;
+prev_attr_serializer = param.prev_attr_serializer;
 
 // create the serializer
 create object instance attr_serializer of AttributeSerializer;
 relate inst_serializer to attr_serializer across R3002;
 attr_serializer.attr_name = o_attr.Name;
+if ( not_empty prev_attr_serializer )
+  relate prev_attr_serializer to attr_serializer across R3003.''precedes'';
+end if;
 
-// relate the data type
+// get the accessor name
+first_letter = T::c( s:STR::substr( s:attr_serializer.attr_name, begin:0, end:1 ) );
+the_rest = STR::substr( s:attr_serializer.attr_name, begin:1, end:-1 );
+accessor_name = "get" + first_letter + the_rest + "()";
+
+// create the subtype
 select one s_dt related by o_attr->S_DT[R114];
-relate s_dt to attr_serializer across R3003;',
+select one s_udt related by s_dt->S_UDT[R17];
+if ( not_empty s_udt )
+  s_dt = ::getUDTCoreType( s_udt:s_udt );
+end if;
+
+select one s_cdt related by s_dt->S_CDT[R17];
+if ( not_empty s_cdt )
+  if ( "boolean" == s_dt.Name )
+    create object instance int_serializer of IntegerSerializer;
+    relate int_serializer to attr_serializer across R3004;
+    int_serializer.value = accessor_name + " ? 1 : 0";
+  elif ( "integer" == s_dt.Name )
+    create object instance int_serializer of IntegerSerializer;
+    relate int_serializer to attr_serializer across R3004;
+    int_serializer.value = accessor_name;
+  elif ( "real" == s_dt.Name )
+    create object instance real_serializer of RealSerializer;
+    relate real_serializer to attr_serializer across R3004;
+    real_serializer.value = accessor_name;
+  elif ( "string" == s_dt.Name )
+    create object instance string_serializer of StringSerializer;
+    relate string_serializer to attr_serializer across R3004;
+    string_serializer.value = accessor_name;
+  elif ( "unique_id" == s_dt.Name )
+    create object instance uuid_serializer of UUIDSerializer;
+    relate uuid_serializer to attr_serializer across R3004;
+    uuid_serializer.value = accessor_name;
+  else
+    // TODO bad unsupported core type
+  end if;
+else
+  select one s_edt related by s_dt->S_EDT[R17];
+  if ( not_empty s_edt )
+    create object instance int_serializer of IntegerSerializer;
+    relate int_serializer to attr_serializer across R3004;
+    int_serializer.value = accessor_name + ".getValue()";
+  else
+    // TODO bad cannot serialize instance or structured types
+  end if;
+end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -264,6 +314,22 @@ INSERT INTO S_DT_PROXY
 	VALUES ("52179bad-cd38-4775-902e-a349151acd5c",
 	"00000000-0000-0000-0000-000000000000",
 	'inst_ref<Instance Serializer>',
+	'',
+	'',
+	'../loader/loader.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("0d2b6381-82f3-40e0-b771-7d8c7c88cf08",
+	"c2ab8db1-8ef9-49d8-a0f2-8771d71d5f86",
+	'prev_attr_serializer',
+	"7718fe07-2ad4-41a1-b048-87507864b2fb",
+	0,
+	'',
+	"b9b65190-074d-459d-835e-e52c3737f31c",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("7718fe07-2ad4-41a1-b048-87507864b2fb",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Attribute Serializer>',
 	'',
 	'',
 	'../loader/loader.xtuml');
