@@ -17,7 +17,10 @@ public class ${self.name} implements IInstanceLoader {
         this.population = population;
     }
 
-    public void insert( String tableName, List<Object> values ) {}
+    public void insert( String tableName, List<Object> values ) {
+        System.out.println( tableName );
+        for ( Object val : values ) System.out.println( "  " + val.toString() + ": " + val.getClass().getName() );
+    }
     public void finish() {}
 
     public void serialize( OutputStream stream ) throws XtumlException {

@@ -1,7 +1,9 @@
 package io.ciera.instanceloading.sql.util.impl;
 
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Constructor;
 
 import org.antlr.v4.runtime.CharStreams;
@@ -38,23 +40,34 @@ public class SQLImpl<C extends IComponent<C>> extends Utility<C> implements SQL 
 
     @Override
     public void load() throws XtumlException {
-        // TODO
+        load( System.in );
     }
 
     @Override
     public void load_file( XtumlString file ) throws XtumlException {
-        SQLLexer lexer;
-        try {
-            lexer = new SQLLexer( CharStreams.fromFileName( file.toString() ) );
-        } catch ( IOException e ) {
-            throw new InstancePopulationException( "Could not read file." );
+        if ( null != file ) {
+            try {
+                load( new FileInputStream( file.toString() ) );
+            } catch ( IOException e ) {
+                throw new InstancePopulationException( "Could not read input file." );
+            }
         }
-        CommonTokenStream tokens = new CommonTokenStream( lexer );
-        SQLParser parser = new SQLParser( tokens );
-        Sql_fileContext ctx = parser.sql_file();
-        ParseTreeWalker walker = new ParseTreeWalker();
-        XtumlSQLListener listener = new XtumlSQLListener( null ); // TODO
-        walker.walk( listener, ctx );
+    }
+    
+    private void load( InputStream in ) throws XtumlException {
+        if ( null != loader && null != in ) {
+            try {
+                SQLLexer lexer = new SQLLexer( CharStreams.fromStream( in ) );
+                CommonTokenStream tokens = new CommonTokenStream( lexer );
+                SQLParser parser = new SQLParser( tokens );
+                Sql_fileContext ctx = parser.sql_file();
+                ParseTreeWalker walker = new ParseTreeWalker();
+                XtumlSQLListener listener = new XtumlSQLListener( loader );
+                walker.walk( listener, ctx );
+            } catch ( IOException e ) {
+                throw new InstancePopulationException( "Could not read input file." );
+            }
+        }
     }
 
     @Override
@@ -70,7 +83,7 @@ public class SQLImpl<C extends IComponent<C>> extends Utility<C> implements SQL 
                 loader.serialize( outFile );
                 outFile.close();
             } catch ( IOException e ) {
-                throw new XtumlException( "Could not open output file." );
+                throw new XtumlException( "Could not write output file." );
             }
         }
     }

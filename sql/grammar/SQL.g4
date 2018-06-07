@@ -23,8 +23,7 @@ INTEGER:           '-'? [0-9]+;
 REAL:              '-'? [0-9]+ '.' [0-9]+;
 fragment HB:       [0-9a-f][0-9a-f];  // single hex byte
 UUID:              '"' HB HB HB HB '-' HB HB '-' HB HB '-' HB HB '-' HB HB HB HB HB HB '"';
-fragment TICK:     '\'';
-STRING:            TICK ( TICK TICK | [^TICK] )* TICK;
+STRING:            '\'' ( ~( '\'' ) | '\'' '\'' )* '\'';
 COMMENT:           '--' [^\n]* '\n';
 
 LPAREN:            '(';
