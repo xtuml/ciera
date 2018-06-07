@@ -36,7 +36,7 @@ INSERT INTO DIM_DIA
 INSERT INTO S_SYNC
 	VALUES ("fb8df96b-00c2-482d-a6b5-a34b86afa384",
 	"00000000-0000-0000-0000-000000000000",
-	'transformInstanceLoaders',
+	'transformPopulationLoaders',
 	'',
 	'root_package = param.root_package;
 path = param.path;
@@ -47,7 +47,7 @@ select many c_cs related by root_package->PE_PE[R8000]->C_C[R8001];
 select many cl_ics related by root_package->PE_PE[R8000]->CL_IC[R8001]->C_C[R4201];
 c_cs = c_cs | cl_ics;
 for each c_c in c_cs
-  ::transformInstanceLoader( c_c:c_c, path:path );
+  ::transformPopulationLoader( c_c:c_c, path:path );
 end for;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -87,23 +87,23 @@ INSERT INTO PE_PE
 INSERT INTO S_SYNC
 	VALUES ("93bd40fe-7da0-4849-be47-fd3b21db1581",
 	"00000000-0000-0000-0000-000000000000",
-	'transformInstanceLoader',
+	'transformPopulationLoader',
 	'',
 	'c_c = param.c_c;
 path = param.path;
 
-// create the instance inst_loader
-create object instance inst_loader of InstanceLoader;
-inst_loader.comp_name = ::camelCaseName( name:c_c.Name, start_lower:false );
-inst_loader.name = inst_loader.comp_name + "InstanceLoader";
-inst_loader.package = ::pathToPackage( path:path );
-inst_loader.path = path;
+// create the instance population loader
+create object instance pop_loader of PopulationLoader;
+pop_loader.comp_name = ::camelCaseName( name:c_c.Name, start_lower:false );
+pop_loader.name = pop_loader.comp_name + "PopulationLoader";
+pop_loader.package = ::pathToPackage( path:path );
+pop_loader.path = path;
 
 // collect all contained classes
 select many o_objs from instances of O_OBJ where false;
 select many ep_pkgs related by c_c->PE_PE[R8003]->EP_PKG[R8001];
 for each ep_pkg in ep_pkgs
-  ::transformPackageForLoader( ep_pkg:ep_pkg, inst_loader:inst_loader, path:inst_loader.path + "/" + T::l( s:c_c.Name ) );
+  ::transformPackageForLoader( ep_pkg:ep_pkg, pop_loader:pop_loader, path:pop_loader.path + "/" + T::l( s:c_c.Name ) );
 end for;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -146,12 +146,12 @@ INSERT INTO S_SYNC
 	'transformInstanceSerializer',
 	'',
 	'o_obj = param.o_obj;
-inst_loader = param.inst_loader;
+pop_loader = param.pop_loader;
 path = param.path;
 
 // create the serializer
 create object instance inst_serializer of InstanceSerializer;
-relate inst_loader to inst_serializer across R3001;
+relate pop_loader to inst_serializer across R3001;
 inst_serializer.class_name = ::camelCaseName( name:o_obj.Name, start_lower:false );
 inst_serializer.class_package = ::pathToPackage( path:path );
 inst_serializer.class_key_letters = o_obj.Key_Lett;
@@ -192,7 +192,7 @@ INSERT INTO S_DT_PROXY
 INSERT INTO S_SPARM
 	VALUES ("2f62c177-942e-460a-b8fd-abafb7156e20",
 	"509de666-d828-4779-80f2-acd363b116e6",
-	'inst_loader',
+	'pop_loader',
 	"7146da9e-097c-429e-bbb0-0ab189b52d6c",
 	0,
 	'',
@@ -201,7 +201,7 @@ INSERT INTO S_SPARM
 INSERT INTO S_DT_PROXY
 	VALUES ("7146da9e-097c-429e-bbb0-0ab189b52d6c",
 	"00000000-0000-0000-0000-000000000000",
-	'inst_ref<Instance Loader>',
+	'inst_ref<Population Loader>',
 	'',
 	'',
 	'../loader/loader.xtuml');
@@ -355,7 +355,7 @@ INSERT INTO S_SYNC
 	'transformPackageForLoader',
 	'',
 	'ep_pkg = param.ep_pkg;
-inst_loader = param.inst_loader;
+pop_loader = param.pop_loader;
 path = param.path;
 
 // resolve package reference
@@ -367,13 +367,13 @@ end if;
 // transform objects
 select many o_objs related by ep_pkg->PE_PE[R8000]->O_OBJ[R8001];
 for each o_obj in o_objs
-  ::transformInstanceSerializer( o_obj:o_obj, inst_loader:inst_loader, path:path + "/" + T::l( s:ep_pkg.Name ) );
+  ::transformInstanceSerializer( o_obj:o_obj, pop_loader:pop_loader, path:path + "/" + T::l( s:ep_pkg.Name ) );
 end for;
 
 // transform contained packages
 select many contained_pkgs related by ep_pkg->PE_PE[R8000]->EP_PKG[R8001];
 for each contained_pkg in contained_pkgs
-  ::transformPackageForLoader( ep_pkg:contained_pkg, inst_loader:inst_loader, path:path + "/" + T::l( s:ep_pkg.Name )  );
+  ::transformPackageForLoader( ep_pkg:contained_pkg, pop_loader:pop_loader, path:path + "/" + T::l( s:ep_pkg.Name )  );
 end for;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -400,7 +400,7 @@ INSERT INTO S_SPARM
 INSERT INTO S_SPARM
 	VALUES ("d4f9d0fa-5e14-4ce5-9c75-a34f3b9bfd56",
 	"6c4fe0fe-112f-497b-9a83-030e534acee1",
-	'inst_loader',
+	'pop_loader',
 	"7146da9e-097c-429e-bbb0-0ab189b52d6c",
 	0,
 	'',

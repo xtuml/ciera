@@ -50,7 +50,7 @@ select any root_package_mark from instances of Mark where ( selected.markable_na
 if ( not_empty root_package_mark )
   select any root_package from instances of EP_PKG where ( selected.Name == root_package_mark.value );
   if ( not_empty root_package )
-    ::transformInstanceLoaders( root_package:root_package, path: ::ep_pkgToPath( ep_pkg:root_package ) );
+    ::transformPopulationLoaders( root_package:root_package, path: ::ep_pkgToPath( ep_pkg:root_package ) );
   else
     LOG::LogInfo( message:"No root package found" );
   end if;
@@ -60,12 +60,12 @@ end if;
 LOG::LogInfo( message:"  done." );
 LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
 
-// render all instance inst_loaders
-LOG::LogInfo( message:"  Rendering instance inst_loaders..." );
-select many inst_loaders from instances of InstanceLoader;
-for each inst_loader in inst_loaders
-  inst_loader.render();
-  LOG::LogInfo( message:"  " + inst_loader.package + "." + inst_loader.name + ".java CREATED" );
+// render all instance pop_loaders
+LOG::LogInfo( message:"  Rendering instance population loaders..." );
+select many pop_loaders from instances of PopulationLoader;
+for each pop_loader in pop_loaders
+  pop_loader.render();
+  LOG::LogInfo( message:"  " + pop_loader.package + "." + pop_loader.name + ".java CREATED" );
 end for;
 LOG::LogInfo( message:"  done." );
 LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );

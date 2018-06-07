@@ -12,7 +12,7 @@ import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
 import io.ciera.cairn.util.Utility;
 import io.ciera.instanceloading.sql.parser.XtumlSQLListener;
-import io.ciera.instanceloading.IInstanceLoader;
+import io.ciera.instanceloading.IPopulationLoader;
 import io.ciera.instanceloading.sql.util.SQL;
 import io.ciera.sql.parser.SQLLexer;
 import io.ciera.sql.parser.SQLParser;
@@ -24,15 +24,15 @@ import io.ciera.summit.types.XtumlString;
 
 public class SQLImpl<C extends IComponent<C>> extends Utility<C> implements SQL {
     
-    IInstanceLoader loader;
+    IPopulationLoader loader;
 
     public SQLImpl( C context ) {
         super( context );
         try {
             Class<?> componentClass = context.getClass();
-            Class<?> instanceLoaderClass = Class.forName( componentClass.getName() + "InstanceLoader" );
+            Class<?> instanceLoaderClass = Class.forName( componentClass.getName() + "PopulationLoader" );
             Constructor<?> instanceLoaderConstructor = instanceLoaderClass.getConstructor( componentClass );
-            loader = (IInstanceLoader)instanceLoaderConstructor.newInstance( context );
+            loader = (IPopulationLoader)instanceLoaderConstructor.newInstance( context );
         } catch ( Exception e ) {
             loader = null;
         }

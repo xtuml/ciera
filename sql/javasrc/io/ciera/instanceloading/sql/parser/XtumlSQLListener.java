@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import io.ciera.instanceloading.IInstanceLoader;
+import io.ciera.instanceloading.IPopulationLoader;
 import io.ciera.sql.parser.SQLBaseListener;
 import io.ciera.sql.parser.SQLParser.Insert_statementContext;
 import io.ciera.sql.parser.SQLParser.Sql_fileContext;
@@ -13,11 +13,11 @@ import io.ciera.sql.parser.SQLParser.ValueContext;
 
 public class XtumlSQLListener extends SQLBaseListener {
     
-    private IInstanceLoader loader;
+    private IPopulationLoader loader;
     private String tableName;
     private List<Object> values;
     
-    public XtumlSQLListener( IInstanceLoader loader ) {
+    public XtumlSQLListener( IPopulationLoader loader ) {
         this.loader = loader;
         tableName = null;
         values = null;

@@ -5,7 +5,7 @@ import java.util.List;
 
 import io.ciera.summit.exceptions.XtumlException;
 
-public interface IInstanceLoader {
+public interface IPopulationLoader {
     
     public void insert( String tableName, List<Object> values );
     public void finish();

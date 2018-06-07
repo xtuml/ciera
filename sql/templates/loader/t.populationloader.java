@@ -2,14 +2,14 @@ package ${self.package};
 
 ${imports}
 
-import io.ciera.instanceloading.IInstanceLoader;
+import io.ciera.instanceloading.IPopulationLoader;
 import io.ciera.summit.exceptions.XtumlException;
 
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.List;
 
-public class ${self.name} implements IInstanceLoader {
+public class ${self.name} implements IPopulationLoader {
 
     private ${self.comp_name} population;
 
