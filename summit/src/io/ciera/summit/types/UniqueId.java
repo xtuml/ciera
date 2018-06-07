@@ -44,6 +44,12 @@ public class UniqueId implements IXtumlType<UniqueId>, Comparable<UniqueId> {
     public int hashCode() {
         return id.hashCode();
     }
+    
+    @Override
+    public String toString() {
+        if ( null == id ) return "null";
+        else return id.toString();
+    }
 
     private UUID getId() {
         return id;
