@@ -2,7 +2,7 @@ package ${self.package};
 
 ${imports}
 
-import io.ciera.sql.util.IInstanceLoader;
+import io.ciera.instanceloading.IInstanceLoader;
 import io.ciera.summit.exceptions.XtumlException;
 
 import java.io.OutputStream;

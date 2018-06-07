@@ -39,6 +39,7 @@ INSERT INTO S_SYNC
 	'transformInstanceLoaders',
 	'',
 	'root_package = param.root_package;
+path = param.path;
 select one s_sys related by root_package->S_SYS[R1405];
 
 // translate components definitions
@@ -46,7 +47,7 @@ select many c_cs related by root_package->PE_PE[R8000]->C_C[R8001];
 select many cl_ics related by root_package->PE_PE[R8000]->CL_IC[R8001]->C_C[R4201];
 c_cs = c_cs | cl_ics;
 for each c_c in c_cs
-  ::transformInstanceLoader( c_c:c_c, path:param.path );
+  ::transformInstanceLoader( c_c:c_c, path:path );
 end for;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -89,13 +90,14 @@ INSERT INTO S_SYNC
 	'transformInstanceLoader',
 	'',
 	'c_c = param.c_c;
+path = param.path;
 
 // create the instance inst_loader
 create object instance inst_loader of InstanceLoader;
 inst_loader.comp_name = ::camelCaseName( name:c_c.Name, start_lower:false );
 inst_loader.name = inst_loader.comp_name + "InstanceLoader";
-inst_loader.package = ::pathToPackage( path:param.path );
-inst_loader.path = param.path;
+inst_loader.package = ::pathToPackage( path:path );
+inst_loader.path = path;
 
 // collect all contained classes
 select many o_objs from instances of O_OBJ where false;
@@ -145,12 +147,13 @@ INSERT INTO S_SYNC
 	'',
 	'o_obj = param.o_obj;
 inst_loader = param.inst_loader;
+path = param.path;
 
 // create the serializer
 create object instance inst_serializer of InstanceSerializer;
 relate inst_loader to inst_serializer across R3001;
 inst_serializer.class_name = ::camelCaseName( name:o_obj.Name, start_lower:false );
-inst_serializer.class_package = ::pathToPackage( path:param.path );
+inst_serializer.class_package = ::pathToPackage( path:path );
 inst_serializer.class_key_letters = o_obj.Key_Lett;
 
 // create attribute serializers
@@ -239,8 +242,15 @@ first_letter = T::c( s:STR::substr( s:attr_serializer.attr_name, begin:0, end:1 
 the_rest = STR::substr( s:attr_serializer.attr_name, begin:1, end:-1 );
 accessor_name = "get" + first_letter + the_rest + "()";
 
-// create the subtype
 select one s_dt related by o_attr->S_DT[R114];
+
+// if the attribute is referential, get the type from the base attribute
+select one base_dt related by o_attr->O_RATTR[R106]->O_BATTR[R113]->O_ATTR[R106]->S_DT[R114];
+if ( not_empty base_dt )
+  s_dt = base_dt;
+end if;
+
+// navigate to the core type for UDTs
 select one s_udt related by s_dt->S_UDT[R17];
 if ( not_empty s_udt )
   s_dt = ::getUDTCoreType( s_udt:s_udt );
@@ -346,6 +356,7 @@ INSERT INTO S_SYNC
 	'',
 	'ep_pkg = param.ep_pkg;
 inst_loader = param.inst_loader;
+path = param.path;
 
 // resolve package reference
 select one referred_ep_pkg related by ep_pkg->EP_PKG[R1402.''refers to''];
@@ -356,13 +367,13 @@ end if;
 // transform objects
 select many o_objs related by ep_pkg->PE_PE[R8000]->O_OBJ[R8001];
 for each o_obj in o_objs
-  ::transformInstanceSerializer( o_obj:o_obj, inst_loader:inst_loader, path:param.path + "/" + T::l( s:ep_pkg.Name ) );
+  ::transformInstanceSerializer( o_obj:o_obj, inst_loader:inst_loader, path:path + "/" + T::l( s:ep_pkg.Name ) );
 end for;
 
 // transform contained packages
 select many contained_pkgs related by ep_pkg->PE_PE[R8000]->EP_PKG[R8001];
 for each contained_pkg in contained_pkgs
-  ::transformPackageForLoader( ep_pkg:contained_pkg, inst_loader:inst_loader, path:param.path + "/" + T::l( s:ep_pkg.Name )  );
+  ::transformPackageForLoader( ep_pkg:contained_pkg, inst_loader:inst_loader, path:path + "/" + T::l( s:ep_pkg.Name )  );
 end for;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,

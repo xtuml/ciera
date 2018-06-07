@@ -4,7 +4,7 @@ T_b(";");
 T_b("\n");
 T_b(imports);
 T_b("\n");
-T_b("import io.ciera.sql.util.IInstanceLoader;");
+T_b("import io.ciera.instanceloading.IInstanceLoader;");
 T_b("\n");
 T_b("import io.ciera.summit.exceptions.XtumlException;");
 T_b("\n");
