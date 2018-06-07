@@ -17,20 +17,41 @@ INSERT INTO O_TFR
 	'select one file related by self->File[R401];
 imports = file.getFormattedImports( type:ImportType::IMPL );
 
-select many attrs related by self->Attribute[R410.''data abstracted by''];
-for each attribute in attrs
+// TODO select ordered by
+index = 0;
+select any attribute related by self->Attribute[R410.''data abstracted by''] where ( index == selected.order);
+while ( not_empty attribute ) 
   attribute.render_initializer();
-end for;
+  index = index + 1;
+  select any attribute related by self->Attribute[R410.''data abstracted by''] where ( index == selected.order);
+end while;
 attribute_initializers = T::body();
 T::clear();
 
-for each attribute in attrs
+attribute_list = "";
+attribute_invocation_list = "";
+attribute_initializers2 = "";
+index = 0;
+select any attribute related by self->Attribute[R410.''data abstracted by''] where ( index == selected.order);
+while ( not_empty attribute ) 
+  attribute_list = attribute_list + ", " + attribute.type_name + " " + attribute.name;
+  attribute_invocation_list = attribute_invocation_list + ", " + attribute.name;
+  attribute_initializers2 = attribute_initializers2 + "        this." + attribute.name + " = " + attribute.name + ";\n";
+  index = index + 1;
+  select any attribute related by self->Attribute[R410.''data abstracted by''] where ( index == selected.order);
+end while;
+
+index = 0;
+select any attribute related by self->Attribute[R410.''data abstracted by''] where ( index == selected.order);
+while ( not_empty attribute ) 
   attribute.render();
   select many accessors related by attribute->AttributeAccessor[R4510.''value accessed through''];
   for each accessor in accessors
     accessor.render();
   end for;
-end for;
+  index = index + 1;
+  select any attribute related by self->Attribute[R410.''data abstracted by''] where ( index == selected.order);
+end while;
 attributes = T::body();
 T::clear();
 
@@ -51,12 +72,16 @@ T::clear();
 select one set related by self->ClassSet[R406.''is type of single element in''];
 class_set_name = set.name;
 
-for each attribute in attrs
+index = 0;
+select any attribute related by self->Attribute[R410.''data abstracted by''] where ( index == selected.order);
+while ( not_empty attribute ) 
   select many accessors related by attribute->AttributeAccessor[R4510.''value accessed through''];
   for each accessor in accessors
     accessor.render_empty();
   end for;
-end for;
+  index = index + 1;
+  select any attribute related by self->Attribute[R410.''data abstracted by''] where ( index == selected.order);
+end while;
 empty_attributes = T::body();
 T::clear();
 
@@ -78,12 +103,16 @@ T::clear();
 
 imports = file.getFormattedImports( type:ImportType::INT );
 
-for each attribute in attrs
+index = 0;
+select any attribute related by self->Attribute[R410.''data abstracted by''] where ( index == selected.order);
+while ( not_empty attribute ) 
   select many accessors related by attribute->AttributeAccessor[R4510.''value accessed through''];
   for each accessor in accessors
     accessor.render_interface();
   end for;
-end for;
+  index = index + 1;
+  select any attribute related by self->Attribute[R410.''data abstracted by''] where ( index == selected.order);
+end while;
 attributes = T::body();
 T::clear();
 

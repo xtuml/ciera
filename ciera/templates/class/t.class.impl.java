@@ -9,17 +9,29 @@ public class ${self.name}Impl extends ${self.extends} implements ${self.name} {
 
     private ${self.comp_name} context;
 
-    // constructor
+    // constructors
     private ${self.name}Impl( ${self.comp_name} context ) {
         this.context = context;
-${attribute_initializers}
-    }
+${attribute_initializers}    }
+.if ( "" != attribute_list )
+    private ${self.name}Impl( ${self.comp_name} context${attribute_list} ) {
+        this.context = context;
+${attribute_initializers2}    }
+.end if
 
     public static ${self.name} create( ${self.comp_name} context ) throws XtumlException {
         ${self.name} new${self.name} = new ${self.name}Impl( context );
         if ( context.addInstance( new${self.name} ) ) return new${self.name};
         else throw new InstancePopulationException( "Instance already exists within this population." );
     }
+.if ( "" != attribute_list )
+
+    public static ${self.name} create( ${self.comp_name} context${attribute_list} ) throws XtumlException {
+        ${self.name} new${self.name} = new ${self.name}Impl( context${attribute_invocation_list} );
+        if ( context.addInstance( new${self.name} ) ) return new${self.name};
+        else throw new InstancePopulationException( "Instance already exists within this population." );
+    }
+.end if
 
     // attributes
 ${attributes}

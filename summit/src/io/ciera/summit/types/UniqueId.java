@@ -11,6 +11,10 @@ public class UniqueId implements IXtumlType<UniqueId>, Comparable<UniqueId> {
     public UniqueId() {
         id = UUID.randomUUID();
     }
+    
+    public UniqueId( UUID id ) {
+        this.id = id;
+    }
 
     @Override
     public int compareTo( UniqueId o ) {

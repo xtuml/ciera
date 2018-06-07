@@ -248,7 +248,7 @@ INSERT INTO S_SYNC
 	'transformPackage',
 	'',
 	'ep_pkg = param.ep_pkg;
-  path = param.path;
+path = param.path;
 
 // see if this is a package reference
 select one referred_ep_pkg related by ep_pkg->EP_PKG[R1402.''refers to''];
@@ -269,7 +269,7 @@ end for;
 // transform datatypes
 select many edts related by pe_pes->S_DT[R8001]->S_EDT[R17]->S_DT[R17];
 for each edt in edts
-  ::transformEnumeratedType( s_dt:edt, path:path + "/" + T::l( s:ep_pkg.Name ) );
+  ::transformEnumeratedType( s_dt:edt );
 end for;
 
 // transform EEs
@@ -606,12 +606,20 @@ relate type to obj across R407;
 relate obj to o_obj across R409;
 
 // transform attributes
-select many o_attrs related by o_obj->O_ATTR[R102];
-for each o_attr in o_attrs
+select any o_attr related by o_obj->O_ATTR[R102];
+select one prev_attr related by o_attr->O_ATTR[R103.''succeeds''];
+while ( not_empty prev_attr )
+  o_attr = prev_attr;
+  select one prev_attr related by o_attr->O_ATTR[R103.''succeeds''];
+end while;
+index = 0;
+while ( not_empty o_attr )
   if ( "current_state" != o_attr.Name )
-    ::transformAttribute( o_attr:o_attr, obj:obj );
+    ::transformAttribute( o_attr:o_attr, obj:obj, index:index );
   end if;
-end for;
+  select one o_attr related by o_attr->O_ATTR[R103.''precedes''];
+  index = index + 1;
+end while;
 
 // transform operations
 select many o_tfrs related by o_obj->O_TFR[R115];
@@ -869,6 +877,7 @@ else
   attr.name = "m_" + o_attr.Name;
 end if;
 attr.base_name = o_attr.Name;
+attr.order = param.index;
 relate attr to obj across R410;
 
 // set the type
@@ -947,6 +956,15 @@ INSERT INTO S_SPARM
 	'',
 	"7b1297b8-b278-4ae8-a571-70b7bf262f38",
 	'');
+INSERT INTO S_SPARM
+	VALUES ("f7a15049-5fc1-480a-984f-23bce39894eb",
+	"19215085-ca84-43cb-bb81-6ffd50262136",
+	'index',
+	"ba5eda7a-def5-0000-0000-000000000002",
+	0,
+	'',
+	"7a7146b3-82c0-458a-bf9d-b99938b7d7c7",
+	'');
 INSERT INTO PE_PE
 	VALUES ("19215085-ca84-43cb-bb81-6ffd50262136",
 	1,
@@ -1018,7 +1036,7 @@ select one ep_pkg related by s_dt->PE_PE[R8001]->EP_PKG[R8000];
 // create the file
 create object instance file of File;
 file.name = ::camelCaseName( name:s_dt.Name, start_lower:false );
-file.path = param.path;
+file.path = ::ep_pkgToPath( ep_pkg:ep_pkg );
 file.package = ::pathToPackage( path:file.path );
 file.extension = ".java";
 file.exclude = false;
@@ -1067,15 +1085,6 @@ INSERT INTO S_DT_PROXY
 	'',
 	'',
 	'../../../../../mcooa/models/mcooa/ooaofooa/Domain/Domain.xtuml');
-INSERT INTO S_SPARM
-	VALUES ("1bf95c36-64e1-49e4-9cda-4f9f732d840e",
-	"eb2d19db-99fd-443a-891e-1510a4224c8a",
-	'path',
-	"ba5eda7a-def5-0000-0000-000000000004",
-	0,
-	'',
-	"39ff61e1-b925-497a-8d8a-1ea86381dec4",
-	'');
 INSERT INTO PE_PE
 	VALUES ("eb2d19db-99fd-443a-891e-1510a4224c8a",
 	1,

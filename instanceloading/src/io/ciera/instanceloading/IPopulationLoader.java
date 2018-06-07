@@ -7,8 +7,8 @@ import io.ciera.summit.exceptions.XtumlException;
 
 public interface IPopulationLoader {
     
-    public void insert( String tableName, List<Object> values );
-    public void finish();
+    public void insert( String tableName, List<Object> values ) throws XtumlException;
+    public void finish() throws XtumlException;
     
     public void serialize( OutputStream out ) throws XtumlException;
 

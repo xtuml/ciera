@@ -10,6 +10,7 @@ import io.ciera.sql.parser.SQLParser.Insert_statementContext;
 import io.ciera.sql.parser.SQLParser.Sql_fileContext;
 import io.ciera.sql.parser.SQLParser.Table_nameContext;
 import io.ciera.sql.parser.SQLParser.ValueContext;
+import io.ciera.summit.exceptions.XtumlException;
 
 public class XtumlSQLListener extends SQLBaseListener {
     
@@ -25,7 +26,11 @@ public class XtumlSQLListener extends SQLBaseListener {
     
     @Override
     public void exitSql_file( Sql_fileContext ctx ) {
-        loader.finish();
+        try {
+            loader.finish();
+        } catch ( XtumlException e ) {
+            // TODO
+        }
     }
 
     @Override
@@ -35,7 +40,11 @@ public class XtumlSQLListener extends SQLBaseListener {
     
     @Override
     public void exitInsert_statement( Insert_statementContext ctx ) {
-        loader.insert( tableName, values );
+        try {
+            loader.insert( tableName, values );
+        } catch ( XtumlException e ) {
+            // TODO
+        }
     }
 
     @Override

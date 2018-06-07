@@ -23,6 +23,39 @@ end for;
 instance_serializers = T::body();
 T::clear();
 
+select many inst_loaders related by self->InstanceLoader[R3005];
+for each inst_loader in inst_loaders
+  imports = imports + "import " + inst_loader.class_package + ".impl." + inst_loader.class_name + "Impl;\n";
+  inst_loader.render();
+end for;
+instance_loaders = T::body();
+T::clear();
+
+// include UniqueId and XtumlString if necessary
+select any string_loader related by self->InstanceLoader[R3005]->AttributeLoader[R3006]->StringLoader[R3008];
+if ( not_empty string_loader )
+  imports = imports + "import io.ciera.summit.types.XtumlString;\n";
+end if;
+select any unique_id_loader related by self->InstanceLoader[R3005]->AttributeLoader[R3006]->UniqueIdLoader[R3008];
+if ( not_empty unique_id_loader )
+  imports = imports + "import io.ciera.summit.types.UniqueId;\n";
+  imports = imports + "import java.util.UUID;\n";
+end if;
+
+// include imports for enumeration types
+select many enumerator_loaders related by self->InstanceLoader[R3005]->AttributeLoader[R3006]->EnumeratorLoader[R3008];
+for each enumerator_loader in enumerator_loaders
+  imports = imports + "import " + enumerator_loader.type_package + "." + enumerator_loader.type_name + ";\n";
+end for;
+
+// include imports that are always needed
+imports = imports + "import io.ciera.instanceloading.IPopulationLoader;\n" +
+                    "import io.ciera.summit.exceptions.XtumlException;\n" +
+                    "import java.io.OutputStream;\n" +
+                    "import java.io.PrintStream;\n" +
+                    "import java.util.List;\n";
+imports = C_UTIL::organizeImports( s:imports );
+
 T::include( file:"java/loader/t.populationloader.java" );
 T::emit( file:"src-gen/" + self.path + "/" + self.name + ".java" );
 T::clear();',

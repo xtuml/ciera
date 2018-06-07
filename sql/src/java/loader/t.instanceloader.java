@@ -1,0 +1,14 @@
+T_b("        ");
+T_b("case \"");
+T_b(self->class_key_letters);
+T_b("\":");
+T_b("\n");
+T_b("            ");
+T_b(self->class_name);
+T_b("Impl.create( population");
+T_b(attribute_loaders);
+T_b(" );");
+T_b("\n");
+T_b("            ");
+T_b("break;");
+T_b("\n");

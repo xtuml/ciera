@@ -143,11 +143,18 @@ INSERT INTO PE_PE
 INSERT INTO S_SYNC
 	VALUES ("509de666-d828-4779-80f2-acd363b116e6",
 	"00000000-0000-0000-0000-000000000000",
-	'transformInstanceSerializer',
+	'transformInstanceLoaderSerializer',
 	'',
 	'o_obj = param.o_obj;
 pop_loader = param.pop_loader;
 path = param.path;
+
+// create the loader
+create object instance inst_loader of InstanceLoader;
+relate pop_loader to inst_loader across R3005;
+inst_loader.class_name = ::camelCaseName( name:o_obj.Name, start_lower:false );
+inst_loader.class_package = ::pathToPackage( path:path );
+inst_loader.class_key_letters = o_obj.Key_Lett;
 
 // create the serializer
 create object instance inst_serializer of InstanceSerializer;
@@ -156,18 +163,23 @@ inst_serializer.class_name = ::camelCaseName( name:o_obj.Name, start_lower:false
 inst_serializer.class_package = ::pathToPackage( path:path );
 inst_serializer.class_key_letters = o_obj.Key_Lett;
 
-// create attribute serializers
+// create attribute loaders and serializers
 select any o_attr related by o_obj->O_ATTR[R102];
 select one prev_attr related by o_attr->O_ATTR[R103.''succeeds''];
 while ( not_empty prev_attr )
   o_attr = prev_attr;
   select one prev_attr related by o_attr->O_ATTR[R103.''succeeds''];
 end while;
+select any prev_attr_loader from instances of AttributeLoader where false;
 select any prev_attr_serializer from instances of AttributeSerializer where false;
+index = 0;
 while ( not_empty o_attr )
+  ::transformAttributeLoader( o_attr:o_attr, inst_loader:inst_loader, prev_attr_loader:prev_attr_loader );
   ::transformAttributeSerializer( o_attr:o_attr, inst_serializer:inst_serializer, prev_attr_serializer:prev_attr_serializer );
+  select any prev_attr_loader related by inst_loader->AttributeLoader[R3006] where ( selected.index == index );
   select any prev_attr_serializer related by inst_serializer->AttributeSerializer[R3002] where ( selected.attr_name == o_attr.Name );
   select one o_attr related by o_attr->O_ATTR[R103.''precedes''];
+  index = index + 1;
 end while;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -367,7 +379,7 @@ end if;
 // transform objects
 select many o_objs related by ep_pkg->PE_PE[R8000]->O_OBJ[R8001];
 for each o_obj in o_objs
-  ::transformInstanceSerializer( o_obj:o_obj, pop_loader:pop_loader, path:path + "/" + T::l( s:ep_pkg.Name ) );
+  ::transformInstanceLoaderSerializer( o_obj:o_obj, pop_loader:pop_loader, path:path + "/" + T::l( s:ep_pkg.Name ) );
 end for;
 
 // transform contained packages
@@ -408,6 +420,123 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("6c4fe0fe-112f-497b-9a83-030e534acee1",
+	1,
+	"0691cd09-3358-4aae-b91b-dbe4dc0353bc",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("18397da8-60ab-4ff3-bfb7-a83e811c121d",
+	"00000000-0000-0000-0000-000000000000",
+	'transformAttributeLoader',
+	'',
+	'o_attr = param.o_attr;
+inst_loader = param.inst_loader;
+prev_attr_loader = param.prev_attr_loader;
+
+// create the loader
+create object instance attr_loader of AttributeLoader;
+relate inst_loader to attr_loader across R3006;
+if (empty prev_attr_loader )
+  attr_loader.index = 0;
+else
+  relate prev_attr_loader to attr_loader across R3007.''precedes'';
+  attr_loader.index = prev_attr_loader.index + 1;
+end if;
+
+// get the attribute type
+select one s_dt related by o_attr->S_DT[R114];
+
+// if the attribute is referential, get the type from the base attribute
+select one base_dt related by o_attr->O_RATTR[R106]->O_BATTR[R113]->O_ATTR[R106]->S_DT[R114];
+if ( not_empty base_dt )
+  s_dt = base_dt;
+end if;
+
+// navigate to the core type for UDTs
+select one s_udt related by s_dt->S_UDT[R17];
+if ( not_empty s_udt )
+  s_dt = ::getUDTCoreType( s_udt:s_udt );
+end if;
+
+select one s_cdt related by s_dt->S_CDT[R17];
+if ( not_empty s_cdt )
+  if ( "boolean" == s_dt.Name )
+    create object instance boolean_loader of BooleanLoader;
+    relate boolean_loader to attr_loader across R3008;
+  elif ( "integer" == s_dt.Name )
+    create object instance int_loader of IntegerLoader;
+    relate int_loader to attr_loader across R3008;
+  elif ( "real" == s_dt.Name )
+    create object instance real_loader of RealLoader;
+    relate real_loader to attr_loader across R3008;
+  elif ( "string" == s_dt.Name )
+    create object instance string_loader of StringLoader;
+    relate string_loader to attr_loader across R3008;
+  elif ( "unique_id" == s_dt.Name )
+    create object instance unique_id_loader of UniqueIdLoader;
+    relate unique_id_loader to attr_loader across R3008;
+  else
+    // TODO bad unsupported core type
+  end if;
+else
+  select one s_edt related by s_dt->S_EDT[R17];
+  if ( not_empty s_edt )
+    create object instance enumerator_loader of EnumeratorLoader;
+    relate enumerator_loader to attr_loader across R3008;
+    enumerator_loader.type_name = ::camelCaseName( name:s_dt.Name, start_lower:false );
+    select one ep_pkg related by s_dt->PE_PE[R8001]->EP_PKG[R8000];
+    enumerator_loader.type_package = ::pathToPackage( path: ::ep_pkgToPath( ep_pkg:ep_pkg ) );
+  else
+    // TODO bad cannot serialize instance or structured types
+  end if;
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("6cc5e354-fb5a-4ba7-83af-dc5cc41e742a",
+	"18397da8-60ab-4ff3-bfb7-a83e811c121d",
+	'o_attr',
+	"579b8247-e153-481d-8926-384cdc722464",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("f50b8435-cc43-4d75-909b-0c430cd3b5f6",
+	"18397da8-60ab-4ff3-bfb7-a83e811c121d",
+	'inst_loader',
+	"9fc10757-382c-4b7f-974d-d21227525482",
+	0,
+	'',
+	"6cc5e354-fb5a-4ba7-83af-dc5cc41e742a",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("9fc10757-382c-4b7f-974d-d21227525482",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Instance Loader>',
+	'',
+	'',
+	'../loader/loader.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("97bc0976-48a2-4a3f-9744-1b27c2848193",
+	"18397da8-60ab-4ff3-bfb7-a83e811c121d",
+	'prev_attr_loader',
+	"9793c37e-f5c7-4a6f-aaad-024ab647039a",
+	0,
+	'',
+	"f50b8435-cc43-4d75-909b-0c430cd3b5f6",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("9793c37e-f5c7-4a6f-aaad-024ab647039a",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Attribute Loader>',
+	'',
+	'',
+	'../loader/loader.xtuml');
+INSERT INTO PE_PE
+	VALUES ("18397da8-60ab-4ff3-bfb7-a83e811c121d",
 	1,
 	"0691cd09-3358-4aae-b91b-dbe4dc0353bc",
 	"00000000-0000-0000-0000-000000000000",
