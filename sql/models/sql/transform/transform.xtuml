@@ -93,7 +93,7 @@ INSERT INTO S_SYNC
 path = param.path;
 
 // create the instance population loader
-create object instance pop_loader of PopulationLoader;
+create object instance pop_loader of Z_PopulationLoader;
 pop_loader.comp_name = ::camelCaseName( name:c_c.Name, start_lower:false );
 pop_loader.name = pop_loader.comp_name + "PopulationLoader";
 pop_loader.package = ::pathToPackage( path:path );
@@ -150,14 +150,14 @@ pop_loader = param.pop_loader;
 path = param.path;
 
 // create the loader
-create object instance inst_loader of InstanceLoader;
+create object instance inst_loader of Z_InstanceLoader;
 relate pop_loader to inst_loader across R3005;
 inst_loader.class_name = ::camelCaseName( name:o_obj.Name, start_lower:false );
 inst_loader.class_package = ::pathToPackage( path:path );
 inst_loader.class_key_letters = o_obj.Key_Lett;
 
 // create the serializer
-create object instance inst_serializer of InstanceSerializer;
+create object instance inst_serializer of Z_InstanceSerializer;
 relate pop_loader to inst_serializer across R3001;
 inst_serializer.class_name = ::camelCaseName( name:o_obj.Name, start_lower:false );
 inst_serializer.class_package = ::pathToPackage( path:path );
@@ -170,14 +170,14 @@ while ( not_empty prev_attr )
   o_attr = prev_attr;
   select one prev_attr related by o_attr->O_ATTR[R103.''succeeds''];
 end while;
-select any prev_attr_loader from instances of AttributeLoader where false;
-select any prev_attr_serializer from instances of AttributeSerializer where false;
+select any prev_attr_loader from instances of Z_AttributeLoader where false;
+select any prev_attr_serializer from instances of Z_AttributeSerializer where false;
 index = 0;
 while ( not_empty o_attr )
   ::transformAttributeLoader( o_attr:o_attr, inst_loader:inst_loader, prev_attr_loader:prev_attr_loader );
   ::transformAttributeSerializer( o_attr:o_attr, inst_serializer:inst_serializer, prev_attr_serializer:prev_attr_serializer );
-  select any prev_attr_loader related by inst_loader->AttributeLoader[R3006] where ( selected.index == index );
-  select any prev_attr_serializer related by inst_serializer->AttributeSerializer[R3002] where ( selected.attr_name == o_attr.Name );
+  select any prev_attr_loader related by inst_loader->Z_AttributeLoader[R3006] where ( selected.index == index );
+  select any prev_attr_serializer related by inst_serializer->Z_AttributeSerializer[R3002] where ( selected.attr_name == o_attr.Name );
   select one o_attr related by o_attr->O_ATTR[R103.''precedes''];
   index = index + 1;
 end while;',
@@ -242,7 +242,7 @@ inst_serializer = param.inst_serializer;
 prev_attr_serializer = param.prev_attr_serializer;
 
 // create the serializer
-create object instance attr_serializer of AttributeSerializer;
+create object instance attr_serializer of Z_AttributeSerializer;
 relate inst_serializer to attr_serializer across R3002;
 attr_serializer.attr_name = o_attr.Name;
 if ( not_empty prev_attr_serializer )
@@ -271,23 +271,23 @@ end if;
 select one s_cdt related by s_dt->S_CDT[R17];
 if ( not_empty s_cdt )
   if ( "boolean" == s_dt.Name )
-    create object instance int_serializer of IntegerSerializer;
+    create object instance int_serializer of Z_IntegerSerializer;
     relate int_serializer to attr_serializer across R3004;
     int_serializer.value = accessor_name + " ? 1 : 0";
   elif ( "integer" == s_dt.Name )
-    create object instance int_serializer of IntegerSerializer;
+    create object instance int_serializer of Z_IntegerSerializer;
     relate int_serializer to attr_serializer across R3004;
     int_serializer.value = accessor_name;
   elif ( "real" == s_dt.Name )
-    create object instance real_serializer of RealSerializer;
+    create object instance real_serializer of Z_RealSerializer;
     relate real_serializer to attr_serializer across R3004;
     real_serializer.value = accessor_name;
   elif ( "string" == s_dt.Name )
-    create object instance string_serializer of StringSerializer;
+    create object instance string_serializer of Z_StringSerializer;
     relate string_serializer to attr_serializer across R3004;
     string_serializer.value = accessor_name;
   elif ( "unique_id" == s_dt.Name )
-    create object instance uuid_serializer of UUIDSerializer;
+    create object instance uuid_serializer of Z_UUIDSerializer;
     relate uuid_serializer to attr_serializer across R3004;
     uuid_serializer.value = accessor_name;
   else
@@ -296,7 +296,7 @@ if ( not_empty s_cdt )
 else
   select one s_edt related by s_dt->S_EDT[R17];
   if ( not_empty s_edt )
-    create object instance int_serializer of IntegerSerializer;
+    create object instance int_serializer of Z_IntegerSerializer;
     relate int_serializer to attr_serializer across R3004;
     int_serializer.value = accessor_name + ".getValue()";
   else
@@ -434,7 +434,7 @@ inst_loader = param.inst_loader;
 prev_attr_loader = param.prev_attr_loader;
 
 // create the loader
-create object instance attr_loader of AttributeLoader;
+create object instance attr_loader of Z_AttributeLoader;
 relate inst_loader to attr_loader across R3006;
 if (empty prev_attr_loader )
   attr_loader.index = 0;
@@ -461,19 +461,19 @@ end if;
 select one s_cdt related by s_dt->S_CDT[R17];
 if ( not_empty s_cdt )
   if ( "boolean" == s_dt.Name )
-    create object instance boolean_loader of BooleanLoader;
+    create object instance boolean_loader of Z_BooleanLoader;
     relate boolean_loader to attr_loader across R3008;
   elif ( "integer" == s_dt.Name )
-    create object instance int_loader of IntegerLoader;
+    create object instance int_loader of Z_IntegerLoader;
     relate int_loader to attr_loader across R3008;
   elif ( "real" == s_dt.Name )
-    create object instance real_loader of RealLoader;
+    create object instance real_loader of Z_RealLoader;
     relate real_loader to attr_loader across R3008;
   elif ( "string" == s_dt.Name )
-    create object instance string_loader of StringLoader;
+    create object instance string_loader of Z_StringLoader;
     relate string_loader to attr_loader across R3008;
   elif ( "unique_id" == s_dt.Name )
-    create object instance unique_id_loader of UniqueIdLoader;
+    create object instance unique_id_loader of Z_UniqueIdLoader;
     relate unique_id_loader to attr_loader across R3008;
   else
     // TODO bad unsupported core type
@@ -481,7 +481,7 @@ if ( not_empty s_cdt )
 else
   select one s_edt related by s_dt->S_EDT[R17];
   if ( not_empty s_edt )
-    create object instance enumerator_loader of EnumeratorLoader;
+    create object instance enumerator_loader of Z_EnumeratorLoader;
     relate enumerator_loader to attr_loader across R3008;
     enumerator_loader.type_name = ::camelCaseName( name:s_dt.Name, start_lower:false );
     select one ep_pkg related by s_dt->PE_PE[R8001]->EP_PKG[R8000];

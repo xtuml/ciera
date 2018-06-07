@@ -42,7 +42,7 @@ LOG_LogFailure( c_t * p_message )
 void
 LOG_LogInfo( c_t * p_message )
 {
-  if ( LOG_EnableTracing) fprintf( stderr, "%s\n", p_message );
+  if ( LOG_EnableTracing) fprintf( stderr, "-- %s\n", p_message );
 }
 
 /*
@@ -51,5 +51,5 @@ LOG_LogInfo( c_t * p_message )
 void
 LOG_LogTime( c_t * p_message, Escher_TimeStamp_t p_t )
 {
-  if ( LOG_EnableTracing ) fprintf( stderr, "%s %lu.%03lus\n", p_message, p_t / 1000, p_t % 1000 );
+  if ( LOG_EnableTracing ) fprintf( stderr, "-- %s %lu.%03lus\n", p_message, p_t / 1000, p_t % 1000 );
 }

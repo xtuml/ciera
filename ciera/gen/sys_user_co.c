@@ -96,6 +96,14 @@ UserPostOoaInitializationCalloutf( int argc, char ** argv )
 
   // translate the model
   ciera_gen_translate();
+
+  // dump instances
+  for ( int i = 0; i < ciera_MAX_CLASS_NUMBERS; i++ ) {
+    if ( ! ( ( ciera_V_VAL_CLASS_NUMBER <= i ) && ( i <= ciera_V_SCV_CLASS_NUMBER ) ) &&        // ignore V_ subsystem
+         ! ( ( ciera_ACT_BLK_CLASS_NUMBER <= i ) && ( i <= ciera_ACT_BIE_CLASS_NUMBER ) ) )     // ignore ACT_ subsystem
+    Escher_dump_instances( 0, i );
+  }
+
 }
 
 /*

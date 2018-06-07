@@ -4,7 +4,7 @@ INSERT INTO O_OBJ
 	VALUES ("026108d7-9d26-400a-a83c-fa878881e901",
 	'Population Loader',
 	3000,
-	'PopulationLoader',
+	'Z_PopulationLoader',
 	'',
 	"00000000-0000-0000-0000-000000000000");
 INSERT INTO O_TFR
@@ -15,7 +15,7 @@ INSERT INTO O_TFR
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'imports = "";
-select many inst_serializers related by self->InstanceSerializer[R3001];
+select many inst_serializers related by self->Z_InstanceSerializer[R3001];
 for each inst_serializer in inst_serializers
   imports = imports + "import " + inst_serializer.class_package + "." + inst_serializer.class_name + ";\n";
   inst_serializer.render();
@@ -23,7 +23,7 @@ end for;
 instance_serializers = T::body();
 T::clear();
 
-select many inst_loaders related by self->InstanceLoader[R3005];
+select many inst_loaders related by self->Z_InstanceLoader[R3005];
 for each inst_loader in inst_loaders
   imports = imports + "import " + inst_loader.class_package + ".impl." + inst_loader.class_name + "Impl;\n";
   inst_loader.render();
@@ -32,18 +32,18 @@ instance_loaders = T::body();
 T::clear();
 
 // include UniqueId and XtumlString if necessary
-select any string_loader related by self->InstanceLoader[R3005]->AttributeLoader[R3006]->StringLoader[R3008];
+select any string_loader related by self->Z_InstanceLoader[R3005]->Z_AttributeLoader[R3006]->Z_StringLoader[R3008];
 if ( not_empty string_loader )
   imports = imports + "import io.ciera.summit.types.XtumlString;\n";
 end if;
-select any unique_id_loader related by self->InstanceLoader[R3005]->AttributeLoader[R3006]->UniqueIdLoader[R3008];
+select any unique_id_loader related by self->Z_InstanceLoader[R3005]->Z_AttributeLoader[R3006]->Z_UniqueIdLoader[R3008];
 if ( not_empty unique_id_loader )
   imports = imports + "import io.ciera.summit.types.UniqueId;\n";
   imports = imports + "import java.util.UUID;\n";
 end if;
 
 // include imports for enumeration types
-select many enumerator_loaders related by self->InstanceLoader[R3005]->AttributeLoader[R3006]->EnumeratorLoader[R3008];
+select many enumerator_loaders related by self->Z_InstanceLoader[R3005]->Z_AttributeLoader[R3006]->Z_EnumeratorLoader[R3008];
 for each enumerator_loader in enumerator_loaders
   imports = imports + "import " + enumerator_loader.type_package + "." + enumerator_loader.type_name + ";\n";
 end for;
