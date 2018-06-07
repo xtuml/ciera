@@ -1,5 +1,6 @@
 package io.ciera.instanceloading.sql.util.impl;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 
@@ -63,7 +64,15 @@ public class SQLImpl<C extends IComponent<C>> extends Utility<C> implements SQL 
 
     @Override
     public void serialize_file( XtumlString file ) throws XtumlException {
-        // TODO
+        if ( null != loader && null != file ) {
+            try {
+                FileOutputStream outFile = new FileOutputStream( file.toString() );
+                loader.serialize( outFile );
+                outFile.close();
+            } catch ( IOException e ) {
+                throw new XtumlException( "Could not open output file." );
+            }
+        }
     }
 
 }
