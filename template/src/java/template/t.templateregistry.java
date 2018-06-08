@@ -30,7 +30,7 @@ T_b("    ");
 T_b("@Override");
 T_b("\n");
 T_b("    ");
-T_b("public ITemplate<?> getTemplate( String filename ) {");
+T_b("public ITemplate getTemplate( String filename ) {");
 T_b("\n");
 T_b("        ");
 T_b("switch ( filename ) {");

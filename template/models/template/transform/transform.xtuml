@@ -58,6 +58,7 @@ INSERT INTO S_SYNC
 	'transformTemplate',
 	'',
 	'registry = param.registry;
+comp_def = param.comp_def;
 select one registry_file related by registry->GeneralFile[R3051]->File[R401];
 
 // create the file
@@ -75,9 +76,19 @@ relate general_file to file across R401;
 // create the template instance
 create object instance temp of Z_Template;
 relate temp to general_file across R3050;
+relate temp to registry across R3052;
 temp.filename = "t.helloworld.java";
 temp.comp_name = registry.comp_name;
-temp.blob = "Hello, World!\n";',
+temp.blob = "        System.out.println( " + STR::quote() + "Hello, World!" + STR::quote() + " );\n";
+
+// create import block
+select one comp_file related by comp_def->File[R401];
+::addFileToImports( file:file, file_to_import:comp_file, type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.summit.exceptions.XtumlException", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.template.util.Template", type:ImportType::IMPL );
+
+// add template file to registry imports
+::addFileToImports( file:registry_file, file_to_import:file, type:ImportType::IMPL );',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -98,6 +109,22 @@ INSERT INTO S_DT_PROXY
 	'',
 	'',
 	'../templating/templating.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("e31ecbd5-dd55-48eb-82c0-74e0b950fc46",
+	"84b152bf-ae5a-4d05-ba55-2482f90eeebe",
+	'comp_def',
+	"1fef1559-c5b6-4eb7-a9c4-8b126b9b51a0",
+	0,
+	'',
+	"c4e9070f-fa44-4b8d-8e82-e01ab932200f",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("1fef1559-c5b6-4eb7-a9c4-8b126b9b51a0",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Component Definition>',
+	'',
+	'',
+	'../../../../ciera/models/ciera/ciera/architecture/component/component.xtuml');
 INSERT INTO PE_PE
 	VALUES ("84b152bf-ae5a-4d05-ba55-2482f90eeebe",
 	1,
@@ -130,7 +157,12 @@ relate registry to general_file across R3051;
 registry.comp_name = comp_def.name;
 
 // TODO
-::transformTemplate( registry:registry );',
+::transformTemplate( registry:registry, comp_def:comp_def );
+
+// create import block
+::addFileToImports( file:file, file_to_import:comp_def_file, type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.template.util.ITemplate", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.template.util.ITemplateRegistry", type:ImportType::IMPL );',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -144,13 +176,6 @@ INSERT INTO S_SPARM
 	'',
 	"00000000-0000-0000-0000-000000000000",
 	'');
-INSERT INTO S_DT_PROXY
-	VALUES ("1fef1559-c5b6-4eb7-a9c4-8b126b9b51a0",
-	"00000000-0000-0000-0000-000000000000",
-	'inst_ref<Component Definition>',
-	'',
-	'',
-	'../../../../ciera/models/ciera/ciera/architecture/component/component.xtuml');
 INSERT INTO PE_PE
 	VALUES ("ef09830e-f240-454f-9a09-c54ae1f5ee5b",
 	1,

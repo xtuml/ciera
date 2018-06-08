@@ -11,7 +11,7 @@ public class ${self.name} implements ITemplateRegistry {
     }
 
     @Override
-    public ITemplate<?> getTemplate( String filename ) {
+    public ITemplate getTemplate( String filename ) {
         switch ( filename ) {
 ${template_initializers}        default:
             return () -> {};

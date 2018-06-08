@@ -1,2 +1,2 @@
         case "${self.filename}":
-            return new ${self.name}<>( population );
+            return new ${self.name}( population );
