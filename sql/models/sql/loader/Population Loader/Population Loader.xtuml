@@ -14,10 +14,8 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'imports = "";
-select many inst_serializers related by self->Z_InstanceSerializer[R3001];
+	'select many inst_serializers related by self->Z_InstanceSerializer[R3001];
 for each inst_serializer in inst_serializers
-  imports = imports + "import " + inst_serializer.class_package + "." + inst_serializer.class_name + ";\n";
   inst_serializer.render();
 end for;
 instance_serializers = T::body();
@@ -25,129 +23,151 @@ T::clear();
 
 select many inst_loaders related by self->Z_InstanceLoader[R3005];
 for each inst_loader in inst_loaders
-  imports = imports + "import " + inst_loader.class_package + ".impl." + inst_loader.class_name + "Impl;\n";
   inst_loader.render();
 end for;
 instance_loaders = T::body();
 T::clear();
 
-// include UniqueId and XtumlString if necessary
-select any string_loader related by self->Z_InstanceLoader[R3005]->Z_AttributeLoader[R3006]->Z_StringLoader[R3008];
-if ( not_empty string_loader )
-  imports = imports + "import io.ciera.summit.types.XtumlString;\n";
-end if;
-select any unique_id_loader related by self->Z_InstanceLoader[R3005]->Z_AttributeLoader[R3006]->Z_UniqueIdLoader[R3008];
-if ( not_empty unique_id_loader )
-  imports = imports + "import io.ciera.summit.types.UniqueId;\n";
-  imports = imports + "import java.util.UUID;\n";
-end if;
-
-// include imports for enumeration types
-select many enumerator_loaders related by self->Z_InstanceLoader[R3005]->Z_AttributeLoader[R3006]->Z_EnumeratorLoader[R3008];
-for each enumerator_loader in enumerator_loaders
-  imports = imports + "import " + enumerator_loader.type_package + "." + enumerator_loader.type_name + ";\n";
-end for;
-
-// include imports that are always needed
-imports = imports + "import io.ciera.instanceloading.IPopulationLoader;\n" +
-                    "import io.ciera.summit.exceptions.XtumlException;\n" +
-                    "import java.io.OutputStream;\n" +
-                    "import java.io.PrintStream;\n" +
-                    "import java.util.List;\n";
-imports = C_UTIL::organizeImports( s:imports );
+select one general_file related by self->GeneralFile[R3009];
+select one file related by general_file->File[R401];
+imports = file.getFormattedImports( type:ImportType::IMPL );
 
 T::include( file:"java/loader/t.populationloader.java" );
-T::emit( file:"src-gen/" + self.path + "/" + self.name + ".java" );
-T::clear();',
+general_file.contents = T::body();
+T::clear();
+file.render();',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",
 	0);
 INSERT INTO O_NBATTR
-	VALUES ("765546f5-fcb0-4b28-8486-b05f97a01a94",
+	VALUES ("c1aa3ba9-062f-4d1b-9813-92c89d46566f",
 	"026108d7-9d26-400a-a83c-fa878881e901");
 INSERT INTO O_BATTR
-	VALUES ("765546f5-fcb0-4b28-8486-b05f97a01a94",
+	VALUES ("c1aa3ba9-062f-4d1b-9813-92c89d46566f",
 	"026108d7-9d26-400a-a83c-fa878881e901");
 INSERT INTO O_ATTR
-	VALUES ("765546f5-fcb0-4b28-8486-b05f97a01a94",
+	VALUES ("c1aa3ba9-062f-4d1b-9813-92c89d46566f",
+	"026108d7-9d26-400a-a83c-fa878881e901",
+	"dc5db65a-5be5-4c7a-8938-cec8c3180007",
+	'comp_name',
+	'',
+	'',
+	'comp_name',
+	0,
+	"ba5eda7a-def5-0000-0000-000000000004",
+	'',
+	'');
+INSERT INTO O_REF
+	VALUES ("026108d7-9d26-400a-a83c-fa878881e901",
+	"75830685-90d6-4d1f-abcb-75e2266e87ef",
+	0,
+	"15153eed-3b23-4c02-944c-7c04d41ad630",
+	"8bdf48ed-7597-48bb-8141-01aa094d0b02",
+	"7b7563fa-bf27-4ecf-a1f8-a21a09d4efd4",
+	"d0e83095-8ef3-4a35-a8d4-8ce202b0ac94",
+	"4ce7f9af-631f-43eb-993d-a1c6b392d26f",
+	"276e253a-6cd9-41f6-9324-59c0713004ec",
+	"00000000-0000-0000-0000-000000000000",
+	0,
+	'',
+	'General File',
+	'name',
+	'R3009.''is a''');
+INSERT INTO R_RGO_PROXY
+	VALUES ("026108d7-9d26-400a-a83c-fa878881e901",
+	"8bdf48ed-7597-48bb-8141-01aa094d0b02",
+	"7b7563fa-bf27-4ecf-a1f8-a21a09d4efd4",
+	'../loader.xtuml');
+INSERT INTO O_RTIDA_PROXY
+	VALUES ("15153eed-3b23-4c02-944c-7c04d41ad630",
+	"75830685-90d6-4d1f-abcb-75e2266e87ef",
+	0,
+	"8bdf48ed-7597-48bb-8141-01aa094d0b02",
+	"d0e83095-8ef3-4a35-a8d4-8ce202b0ac94",
+	'../loader.xtuml');
+INSERT INTO O_RATTR
+	VALUES ("4ce7f9af-631f-43eb-993d-a1c6b392d26f",
+	"026108d7-9d26-400a-a83c-fa878881e901",
+	"84875bfc-0aa6-4032-ab0e-b2162c106b46",
+	"cf3f6a66-3c80-4818-a5ad-6b491a84e448",
+	1,
+	'name');
+INSERT INTO O_BATTR_PROXY
+	VALUES ("84875bfc-0aa6-4032-ab0e-b2162c106b46",
+	"cf3f6a66-3c80-4818-a5ad-6b491a84e448",
+	'../../../../../ciera/models/ciera/ciera/architecture/file/File/File.xtuml');
+INSERT INTO O_ATTR
+	VALUES ("4ce7f9af-631f-43eb-993d-a1c6b392d26f",
 	"026108d7-9d26-400a-a83c-fa878881e901",
 	"00000000-0000-0000-0000-000000000000",
-	'package',
-	'',
-	'',
-	'package',
-	0,
-	"ba5eda7a-def5-0000-0000-000000000004",
-	'',
-	'');
-INSERT INTO O_NBATTR
-	VALUES ("c508827c-f693-48be-9cb1-254bca0c6660",
-	"026108d7-9d26-400a-a83c-fa878881e901");
-INSERT INTO O_BATTR
-	VALUES ("c508827c-f693-48be-9cb1-254bca0c6660",
-	"026108d7-9d26-400a-a83c-fa878881e901");
-INSERT INTO O_ATTR
-	VALUES ("c508827c-f693-48be-9cb1-254bca0c6660",
-	"026108d7-9d26-400a-a83c-fa878881e901",
-	"765546f5-fcb0-4b28-8486-b05f97a01a94",
 	'name',
 	'',
 	'',
 	'name',
 	0,
-	"ba5eda7a-def5-0000-0000-000000000004",
+	"ba5eda7a-def5-0000-0000-000000000007",
 	'',
 	'');
-INSERT INTO O_NBATTR
-	VALUES ("c1aa3ba9-062f-4d1b-9813-92c89d46566f",
-	"026108d7-9d26-400a-a83c-fa878881e901");
-INSERT INTO O_BATTR
-	VALUES ("c1aa3ba9-062f-4d1b-9813-92c89d46566f",
-	"026108d7-9d26-400a-a83c-fa878881e901");
-INSERT INTO O_ATTR
-	VALUES ("c1aa3ba9-062f-4d1b-9813-92c89d46566f",
-	"026108d7-9d26-400a-a83c-fa878881e901",
-	"c508827c-f693-48be-9cb1-254bca0c6660",
-	'comp_name',
-	'',
-	'',
-	'comp_name',
+INSERT INTO O_REF
+	VALUES ("026108d7-9d26-400a-a83c-fa878881e901",
+	"75830685-90d6-4d1f-abcb-75e2266e87ef",
 	0,
-	"ba5eda7a-def5-0000-0000-000000000004",
-	'',
-	'');
-INSERT INTO O_NBATTR
-	VALUES ("6213b801-3cae-43f0-b13e-8cc21e55d9d1",
-	"026108d7-9d26-400a-a83c-fa878881e901");
-INSERT INTO O_BATTR
-	VALUES ("6213b801-3cae-43f0-b13e-8cc21e55d9d1",
-	"026108d7-9d26-400a-a83c-fa878881e901");
-INSERT INTO O_ATTR
-	VALUES ("6213b801-3cae-43f0-b13e-8cc21e55d9d1",
-	"026108d7-9d26-400a-a83c-fa878881e901",
-	"c1aa3ba9-062f-4d1b-9813-92c89d46566f",
-	'path',
-	'',
-	'',
-	'path',
+	"0854bbda-1a8d-4b79-b7e5-eb571429d509",
+	"8bdf48ed-7597-48bb-8141-01aa094d0b02",
+	"7b7563fa-bf27-4ecf-a1f8-a21a09d4efd4",
+	"d0e83095-8ef3-4a35-a8d4-8ce202b0ac94",
+	"dc5db65a-5be5-4c7a-8938-cec8c3180007",
+	"83d092b0-8ee8-4cf7-891b-236e505ab956",
+	"00000000-0000-0000-0000-000000000000",
 	0,
-	"ba5eda7a-def5-0000-0000-000000000004",
+	'',
+	'General File',
+	'package',
+	'R3009.''is a''');
+INSERT INTO O_RTIDA_PROXY
+	VALUES ("0854bbda-1a8d-4b79-b7e5-eb571429d509",
+	"75830685-90d6-4d1f-abcb-75e2266e87ef",
+	0,
+	"8bdf48ed-7597-48bb-8141-01aa094d0b02",
+	"d0e83095-8ef3-4a35-a8d4-8ce202b0ac94",
+	'../loader.xtuml');
+INSERT INTO O_RATTR
+	VALUES ("dc5db65a-5be5-4c7a-8938-cec8c3180007",
+	"026108d7-9d26-400a-a83c-fa878881e901",
+	"8fb8cbbf-8af1-4206-a2b0-a53023b8b11a",
+	"cf3f6a66-3c80-4818-a5ad-6b491a84e448",
+	1,
+	'package');
+INSERT INTO O_BATTR_PROXY
+	VALUES ("8fb8cbbf-8af1-4206-a2b0-a53023b8b11a",
+	"cf3f6a66-3c80-4818-a5ad-6b491a84e448",
+	'../../../../../ciera/models/ciera/ciera/architecture/file/File/File.xtuml');
+INSERT INTO O_ATTR
+	VALUES ("dc5db65a-5be5-4c7a-8938-cec8c3180007",
+	"026108d7-9d26-400a-a83c-fa878881e901",
+	"4ce7f9af-631f-43eb-993d-a1c6b392d26f",
+	'package',
+	'',
+	'',
+	'package',
+	0,
+	"ba5eda7a-def5-0000-0000-000000000007",
 	'',
 	'');
 INSERT INTO O_ID
 	VALUES (0,
 	"026108d7-9d26-400a-a83c-fa878881e901");
 INSERT INTO O_OIDA
-	VALUES ("765546f5-fcb0-4b28-8486-b05f97a01a94",
-	"026108d7-9d26-400a-a83c-fa878881e901",
-	0,
-	'package');
-INSERT INTO O_OIDA
-	VALUES ("c508827c-f693-48be-9cb1-254bca0c6660",
+	VALUES ("4ce7f9af-631f-43eb-993d-a1c6b392d26f",
 	"026108d7-9d26-400a-a83c-fa878881e901",
 	0,
 	'name');
+INSERT INTO O_OIDA
+	VALUES ("dc5db65a-5be5-4c7a-8938-cec8c3180007",
+	"026108d7-9d26-400a-a83c-fa878881e901",
+	0,
+	'package');
 INSERT INTO O_ID
 	VALUES (1,
 	"026108d7-9d26-400a-a83c-fa878881e901");
