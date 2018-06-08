@@ -77,10 +77,16 @@ create object instance pop_loader of Z_PopulationLoader;
 relate pop_loader to general_file across R3009;
 pop_loader.comp_name = comp_def.name;
 
-// collect all contained classes
+// create loaders and serializers for classes
 select many objs related by comp_def->Class[R408];
 for each obj in objs
   ::transformInstanceLoaderSerializer( obj:obj, pop_loader:pop_loader );
+end for;
+
+// create batch relators for relationships
+select many rels related by comp_def->Relationship[R448];
+for each rel in rels
+  ::transformBatchRelator( rel:rel, pop_loader:pop_loader );
 end for;
 
 // create import block
@@ -418,6 +424,125 @@ INSERT INTO S_DT_PROXY
 	'../loader/loader.xtuml');
 INSERT INTO PE_PE
 	VALUES ("18397da8-60ab-4ff3-bfb7-a83e811c121d",
+	1,
+	"0691cd09-3358-4aae-b91b-dbe4dc0353bc",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("1caabdbc-f1aa-4027-8bd1-01e1ba3918c7",
+	"00000000-0000-0000-0000-000000000000",
+	'transformBatchRelator',
+	'',
+	'rel = param.rel;
+pop_loader = param.pop_loader;
+
+// create batch relator
+create object instance batch_relator of Z_BatchRelator;
+relate batch_relator to pop_loader across R3011;
+batch_relator.rel_name = rel.name;
+batch_relator.form_name = rel.form_name;
+batch_relator.part_name = rel.part_name;
+batch_relator.unconditional = Cond::UNCONDITIONAL == rel.part_cond;
+
+// create attribute comparison for each identifying attribute
+select many attr_refs related by rel->AttributeReference[R4511];
+for each attr_ref in attr_refs
+  ::transformAttributeComparison( attr_ref:attr_ref, batch_relator:batch_relator );
+end for;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("fdb6ba13-e983-45e9-ad06-288b4039d47e",
+	"1caabdbc-f1aa-4027-8bd1-01e1ba3918c7",
+	'rel',
+	"acea8715-3cc0-489c-a9e9-9521870ce9ab",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("acea8715-3cc0-489c-a9e9-9521870ce9ab",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Relationship>',
+	'',
+	'',
+	'../../../../ciera/models/ciera/ciera/architecture/relationship/relationship.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("9bd36707-dd92-49e3-9b58-3dfe842b5ae2",
+	"1caabdbc-f1aa-4027-8bd1-01e1ba3918c7",
+	'pop_loader',
+	"7146da9e-097c-429e-bbb0-0ab189b52d6c",
+	0,
+	'',
+	"fdb6ba13-e983-45e9-ad06-288b4039d47e",
+	'');
+INSERT INTO PE_PE
+	VALUES ("1caabdbc-f1aa-4027-8bd1-01e1ba3918c7",
+	1,
+	"0691cd09-3358-4aae-b91b-dbe4dc0353bc",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("af92b7f9-8a99-4382-8277-3f9403de55c0",
+	"00000000-0000-0000-0000-000000000000",
+	'transformAttributeComparison',
+	'',
+	'attr_ref = param.attr_ref;
+batch_relator = param.batch_relator;
+
+// create attribute comparison
+create object instance attr_comp of Z_AttributeComparison;
+relate attr_comp to batch_relator across R3012;
+attr_comp.part_attr_name = attr_ref.referred_to_attribute_name;
+
+select any form_accessor related by attr_ref->Attribute[R4506.''provides value for'']->AttributeAccessor[R4510] where ( selected.accessor_type == AttributeAccessor::GETTER );
+attr_comp.form_accessor = form_accessor.getName() + "()";
+
+select any part_accessor related by attr_ref->Attribute[R4506.''has value provided by'']->AttributeAccessor[R4510] where ( selected.accessor_type == AttributeAccessor::GETTER );
+attr_comp.part_accessor = part_accessor.getName() + "()";
+
+select one type related by attr_ref->Attribute[R4506.''has value provided by'']->Type[R424];
+attr_comp.primitive = type.primitive;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("27eb898f-9f0b-45a9-882b-654638102bd7",
+	"af92b7f9-8a99-4382-8277-3f9403de55c0",
+	'attr_ref',
+	"ea6708cd-38de-42cf-bb82-347a7e6cd81d",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("ea6708cd-38de-42cf-bb82-347a7e6cd81d",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Attribute Reference>',
+	'',
+	'',
+	'../../../../ciera/models/ciera/ciera/architecture/class/class.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("c8b4aec4-b572-4eaf-81fa-86a567ab0518",
+	"af92b7f9-8a99-4382-8277-3f9403de55c0",
+	'batch_relator',
+	"089b9849-22e9-40f7-b8e3-77442ae979e1",
+	0,
+	'',
+	"27eb898f-9f0b-45a9-882b-654638102bd7",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("089b9849-22e9-40f7-b8e3-77442ae979e1",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Batch Relator>',
+	'',
+	'',
+	'../loader/loader.xtuml');
+INSERT INTO PE_PE
+	VALUES ("af92b7f9-8a99-4382-8277-3f9403de55c0",
 	1,
 	"0691cd09-3358-4aae-b91b-dbe4dc0353bc",
 	"00000000-0000-0000-0000-000000000000",

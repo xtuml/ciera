@@ -16,7 +16,8 @@ ${instance_loaders}        default:
             throw new XtumlException( "Class not supported by this population." );
         }
     }
-    public void finish() throws XtumlException {}
+    public void finish() throws XtumlException {
+${batch_relators}    }
 
     public void serialize( OutputStream stream ) throws XtumlException {
         PrintStream out = new PrintStream( stream );
