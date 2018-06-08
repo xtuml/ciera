@@ -1,0 +1,118 @@
+-- BP 7.1.6 content: Package syschar: 3 persistence-version: 7.1.6
+
+INSERT INTO EP_PKG
+	VALUES ("0c08c5c2-ab02-4cee-9166-b361a58dcf0a",
+	"00000000-0000-0000-0000-000000000000",
+	"9bad5865-c62d-406a-afba-4ffdfa887a1d",
+	'translate',
+	'',
+	0);
+INSERT INTO GD_MD
+	VALUES ("63352232-2ee7-46b9-a64a-8990b026fecd",
+	112,
+	"0c08c5c2-ab02-4cee-9166-b361a58dcf0a",
+	108,
+	0,
+	0,
+	1,
+	1,
+	1,
+	12,
+	1,
+	0,
+	0,
+	0,
+	0,
+	0,
+	'4.1.17',
+	'template::io.ciera.template::RSL::translate');
+INSERT INTO DIM_DIA
+	VALUES ("63352232-2ee7-46b9-a64a-8990b026fecd",
+	'',
+	1.000000,
+	0.000000,
+	0.000000,
+	"00000000-0000-0000-0000-000000000000");
+INSERT INTO S_SYNC
+	VALUES ("13c8f115-927c-4410-bc27-7b816ad80616",
+	"00000000-0000-0000-0000-000000000000",
+	'translate',
+	'',
+	'start_time = TIM::current_clock();
+
+LOG::LogInfo( message:"Translating..." );
+
+// translate root package
+LOG::LogInfo( message:"  Translating application package..." );
+select any root_package_mark from instances of Mark where ( selected.markable_name == "*"
+                                                            and selected.path == "*"
+                                                            and selected.feature_name == "RootPackage" );
+if ( not_empty root_package_mark )
+  select any root_package from instances of EP_PKG where ( selected.Name == root_package_mark.value );
+  if ( not_empty root_package )
+    ::transformTemplateRegistries();
+  else
+    LOG::LogInfo( message:"No root package found" );
+  end if;
+else
+  LOG::LogInfo( message:"No root package specified" );
+end if;
+LOG::LogInfo( message:"  done." );
+LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
+
+// render all templates
+LOG::LogInfo( message:"  Rendering templates..." );
+select many templates from instances of Z_Template;
+for each template in templates
+  template.render();
+  LOG::LogInfo( message:"  " + template.package + "." + template.name + ".java CREATED" );
+end for;
+LOG::LogInfo( message:"  done." );
+LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
+
+// render all template registries
+LOG::LogInfo( message:"  Rendering template registries..." );
+select many registries from instances of Z_TemplateRegistry;
+for each registry in registries
+  registry.render();
+  LOG::LogInfo( message:"  " + registry.package + "." + registry.name + ".java CREATED" );
+end for;
+LOG::LogInfo( message:"  done." );
+LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
+
+LOG::LogInfo( message:"Done." );
+
+elapsed_time = TIM::current_clock() - start_time;
+LOG::LogTime( message:"Elapsed time:", t:elapsed_time );',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO PE_PE
+	VALUES ("13c8f115-927c-4410-bc27-7b816ad80616",
+	1,
+	"0c08c5c2-ab02-4cee-9166-b361a58dcf0a",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO PE_PE
+	VALUES ("0c08c5c2-ab02-4cee-9166-b361a58dcf0a",
+	1,
+	"00000000-0000-0000-0000-000000000000",
+	"5b0b7e14-f4f4-4456-8aed-9eb6bdd4d837",
+	7);
+INSERT INTO C_C_PROXY
+	VALUES ("5b0b7e14-f4f4-4456-8aed-9eb6bdd4d837",
+	"00000000-0000-0000-0000-000000000000",
+	"00000000-0000-0000-0000-000000000000",
+	'RSL',
+	'',
+	0,
+	"00000000-0000-0000-0000-000000000000",
+	0,
+	'',
+	'../RSL.xtuml');
+INSERT INTO S_SYS_PROXY
+	VALUES ("9bad5865-c62d-406a-afba-4ffdfa887a1d",
+	'template',
+	1,
+	'../../../template.xtuml');

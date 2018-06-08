@@ -1,7 +1,7 @@
-grammar SQL;
+grammar RSL;
 
 @header {
-package io.ciera.sql.parser;
+package io.ciera.template.rsl.parser;
 }
 
 sql_file:          ( comment )* ( insert_statement )+;

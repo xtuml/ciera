@@ -1,0 +1,170 @@
+-- BP 7.1.6 content: Package syschar: 3 persistence-version: 7.1.6
+
+INSERT INTO EP_PKG
+	VALUES ("0f65277e-71ba-472a-ad12-048000976d40",
+	"9bad5865-c62d-406a-afba-4ffdfa887a1d",
+	"9bad5865-c62d-406a-afba-4ffdfa887a1d",
+	'transform',
+	'',
+	0);
+INSERT INTO GD_MD
+	VALUES ("a286abed-8056-4e9b-8cf7-c15ab19d2f84",
+	112,
+	"0f65277e-71ba-472a-ad12-048000976d40",
+	108,
+	0,
+	0,
+	1,
+	1,
+	1,
+	12,
+	1,
+	0,
+	0,
+	0,
+	0,
+	0,
+	'',
+	'template::transform');
+INSERT INTO DIM_DIA
+	VALUES ("a286abed-8056-4e9b-8cf7-c15ab19d2f84",
+	'',
+	1.000000,
+	0.000000,
+	0.000000,
+	"00000000-0000-0000-0000-000000000000");
+INSERT INTO S_SYNC
+	VALUES ("ed99ed22-7ecf-40c1-9e95-aab5538ae4f4",
+	"00000000-0000-0000-0000-000000000000",
+	'transformTemplateRegistries',
+	'',
+	'select many comp_defs from instances of ComponentDefinition;
+for each comp_def in comp_defs
+  ::transformTemplateRegistry( comp_def:comp_def );
+end for;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO PE_PE
+	VALUES ("ed99ed22-7ecf-40c1-9e95-aab5538ae4f4",
+	1,
+	"0f65277e-71ba-472a-ad12-048000976d40",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("84b152bf-ae5a-4d05-ba55-2482f90eeebe",
+	"00000000-0000-0000-0000-000000000000",
+	'transformTemplate',
+	'',
+	'registry = param.registry;
+select one registry_file related by registry->GeneralFile[R3051]->File[R401];
+
+// create the file
+create object instance file of File;
+file.name = "Template1";
+file.path = registry_file.path;
+file.package = ::pathToPackage( path:file.path );
+file.extension = ".java";
+file.exclude = false;
+
+// create the general file
+create object instance general_file of GeneralFile;
+relate general_file to file across R401;
+
+// create the template instance
+create object instance temp of Z_Template;
+relate temp to general_file across R3050;
+temp.filename = "t.helloworld.java";
+temp.comp_name = registry.comp_name;
+temp.blob = "Hello, World!\n";',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("c4e9070f-fa44-4b8d-8e82-e01ab932200f",
+	"84b152bf-ae5a-4d05-ba55-2482f90eeebe",
+	'registry',
+	"c578e2f3-3a0f-4b18-8c5e-321105a85089",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("c578e2f3-3a0f-4b18-8c5e-321105a85089",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Template Registry>',
+	'',
+	'',
+	'../templating/templating.xtuml');
+INSERT INTO PE_PE
+	VALUES ("84b152bf-ae5a-4d05-ba55-2482f90eeebe",
+	1,
+	"0f65277e-71ba-472a-ad12-048000976d40",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("ef09830e-f240-454f-9a09-c54ae1f5ee5b",
+	"00000000-0000-0000-0000-000000000000",
+	'transformTemplateRegistry',
+	'',
+	'comp_def = param.comp_def;
+select one comp_def_file related by comp_def->File[R401];
+
+// create the file
+create object instance file of File;
+file.name = comp_def.name + "TemplateRegistry";
+file.path = comp_def_file.path + "/templates";
+file.package = ::pathToPackage( path:file.path );
+file.extension = ".java";
+file.exclude = false;
+
+// create the general file
+create object instance general_file of GeneralFile;
+relate general_file to file across R401;
+
+// create the template registry instance
+create object instance registry of Z_TemplateRegistry;
+relate registry to general_file across R3051;
+registry.comp_name = comp_def.name;
+
+// TODO
+::transformTemplate( registry:registry );',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("2079a875-53b2-4adb-97b9-61aa2457d33e",
+	"ef09830e-f240-454f-9a09-c54ae1f5ee5b",
+	'comp_def',
+	"1fef1559-c5b6-4eb7-a9c4-8b126b9b51a0",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("1fef1559-c5b6-4eb7-a9c4-8b126b9b51a0",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Component Definition>',
+	'',
+	'',
+	'../../../../ciera/models/ciera/ciera/architecture/component/component.xtuml');
+INSERT INTO PE_PE
+	VALUES ("ef09830e-f240-454f-9a09-c54ae1f5ee5b",
+	1,
+	"0f65277e-71ba-472a-ad12-048000976d40",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO PE_PE
+	VALUES ("0f65277e-71ba-472a-ad12-048000976d40",
+	1,
+	"00000000-0000-0000-0000-000000000000",
+	"00000000-0000-0000-0000-000000000000",
+	7);
+INSERT INTO S_SYS_PROXY
+	VALUES ("9bad5865-c62d-406a-afba-4ffdfa887a1d",
+	'template',
+	1,
+	'../template.xtuml');

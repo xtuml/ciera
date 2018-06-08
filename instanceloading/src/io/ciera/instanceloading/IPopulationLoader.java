@@ -9,7 +9,6 @@ public interface IPopulationLoader {
     
     public void insert( String tableName, List<Object> values ) throws XtumlException;
     public void finish() throws XtumlException;
-    
     public void serialize( OutputStream out ) throws XtumlException;
 
 }
