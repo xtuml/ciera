@@ -61,34 +61,18 @@ INSERT INTO S_SYNC
 comp_def = param.comp_def;
 select one registry_file related by registry->GeneralFile[R3051]->File[R401];
 
-// create the file
-create object instance file of File;
-file.name = "Template1";
-file.path = registry_file.path;
-file.package = ::pathToPackage( path:file.path );
-file.extension = ".java";
-file.exclude = false;
-
-// create the general file
-create object instance general_file of GeneralFile;
-relate general_file to file across R401;
-
 // create the template instance
 create object instance temp of Z_Template;
-relate temp to general_file across R3050;
 relate temp to registry across R3052;
-temp.filename = "t.helloworld.java";
+temp.name = "t.helloworld.java";
 temp.comp_name = registry.comp_name;
-temp.blob = "        System.out.println( " + STR::quote() + "Hello, World!" + STR::quote() + " );\n";
+temp.body = "{\n                    System.out.println( " + STR::quote() + "Hello, World!" + STR::quote() + " );\n                }";
 
 // create import block
 select one comp_file related by comp_def->File[R401];
-::addFileToImports( file:file, file_to_import:comp_file, type:ImportType::IMPL );
-::addStringToImports( file:file, s:"io.ciera.summit.exceptions.XtumlException", type:ImportType::IMPL );
-::addStringToImports( file:file, s:"io.ciera.template.util.Template", type:ImportType::IMPL );
-
-// add template file to registry imports
-::addFileToImports( file:registry_file, file_to_import:file, type:ImportType::IMPL );',
+::addFileToImports( file:registry_file, file_to_import:comp_file, type:ImportType::IMPL );
+::addStringToImports( file:registry_file, s:"io.ciera.summit.exceptions.XtumlException", type:ImportType::IMPL );
+::addStringToImports( file:registry_file, s:"io.ciera.template.util.Template", type:ImportType::IMPL );',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -142,7 +126,7 @@ select one comp_def_file related by comp_def->File[R401];
 // create the file
 create object instance file of File;
 file.name = comp_def.name + "TemplateRegistry";
-file.path = comp_def_file.path + "/templates";
+file.path = comp_def_file.path;
 file.package = ::pathToPackage( path:file.path );
 file.extension = ".java";
 file.exclude = false;
