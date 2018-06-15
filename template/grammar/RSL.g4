@@ -4,31 +4,29 @@ grammar RSL;
 package io.ciera.template.rsl.parser;
 }
 
-sql_file:          ( comment )* ( insert_statement )+;
+options { tokenVocab=RSLLexer; }
 
-insert_statement:  'INSERT' 'INTO' table_name 'VALUES' LPAREN values RPAREN SEMI;
+body:              ( line )*;
 
-table_name:        ID;
+line:              buffer NEWLINE |
+                   if_statement |
+                   elif_statement |
+                   endif_statement;
+                   
+buffer:            /* nothing */ |
+                   BLOB buffer |
+                   substitution_var buffer;
+                   
+substitution_var:  DOLLAR format_chars LCURLY ID RCURLY;
 
-values:            value |
-                   value COMMA values
-                   ;
+format_chars:      /* nothing */ |
+                   FORMAT;
 
-value:             STRING | REAL | INTEGER | UUID;
+if_statement:      INITIAL_DOT 'if' expression NEWLINE;
 
-comment:           COMMENT;
+elif_statement:    INITIAL_DOT 'elif' expression NEWLINE;
 
-ID:                [a-zA-Z][a-zA-Z0-9_]*;
-INTEGER:           '-'? [0-9]+;
-REAL:              '-'? [0-9]+ '.' [0-9]+;
-fragment HB:       [0-9a-f][0-9a-f];  // single hex byte
-UUID:              '"' HB HB HB HB '-' HB HB '-' HB HB '-' HB HB '-' HB HB HB HB HB HB '"';
-STRING:            '\'' ( ~( '\'' ) | '\'' '\'' )* '\'';
-COMMENT:           '--' [^\n]* '\n';
+endif_statement:   INITIAL_DOT 'end' 'if';
 
-LPAREN:            '(';
-RPAREN:            ')';
-SEMI:              ';';
-COMMA:             ',';
 
-WS:                [ \t\r\n]+ -> skip;
+expression:        ID;
