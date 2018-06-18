@@ -1,20 +1,21 @@
 package io.ciera.template.rsl.parser;
+import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.Stack;
 import org.antlr.v4.runtime.ParserRuleContext;
 
 public class XtumlRSLListener extends RSLBaseListener {
 
-    private int current_id;
+    private static int current_id = 1000;
+
     private Stack<Integer> parent_ids;
     private String filename;
     private PrintStream out;
-    
-    public XtumlRSLListener( String fn ) {
-        current_id = 1000;
+
+    public XtumlRSLListener( String fn, OutputStream os ) {
         parent_ids = new Stack<>();
         filename = fn;
-        out = System.out;
+        out = new PrintStream( os );
     }
     
     @Override public void enterEveryRule( ParserRuleContext ctx ) {
