@@ -57,16 +57,38 @@ INSERT INTO S_SYNC
 	"00000000-0000-0000-0000-000000000000",
 	'transformTemplate',
 	'',
-	'registry = param.registry;
+	'filename = param.filename;
+registry = param.registry;
 comp_def = param.comp_def;
 select one registry_file related by registry->GeneralFile[R3051]->File[R401];
 
 // create the template instance
 create object instance temp of Z_Template;
 relate temp to registry across R3052;
-temp.name = "t.helloworld.java";
+
+// create the invocable instance
+create object instance invocable of InvocableObject;
+invocable.name = filename;
+invocable.parent_name = registry.name;
+invocable.parent_package = registry.package;
+create object instance generic_invocable of GenericInvocable;
+relate generic_invocable to invocable across R427;
+invocable.oal = "";
+
+relate temp to generic_invocable across R3053;
 temp.comp_name = registry.comp_name;
-temp.body = "{\n                    System.out.println( " + STR::quote() + "Hello, World!" + STR::quote() + " );\n                }";
+
+// link void type
+select any void_type from instances of Type where ( selected.name == "void" and selected.package == "" );
+relate void_type to invocable across R428;
+
+// transform the body
+select any body from instances of Y_Body where ( selected.filename == temp.name );
+if ( not_empty body )
+  ::transformRSLBody( body:body, invocable:invocable );
+else
+  // TODO bad
+end if;
 
 // create import block
 select one comp_file related by comp_def->File[R401];
@@ -84,7 +106,7 @@ INSERT INTO S_SPARM
 	"c578e2f3-3a0f-4b18-8c5e-321105a85089",
 	0,
 	'',
-	"00000000-0000-0000-0000-000000000000",
+	"130ffd23-f5be-439c-805b-568a65cc8b95",
 	'');
 INSERT INTO S_DT_PROXY
 	VALUES ("c578e2f3-3a0f-4b18-8c5e-321105a85089",
@@ -109,6 +131,15 @@ INSERT INTO S_DT_PROXY
 	'',
 	'',
 	'../../../../ciera/models/ciera/ciera/architecture/component/component.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("130ffd23-f5be-439c-805b-568a65cc8b95",
+	"84b152bf-ae5a-4d05-ba55-2482f90eeebe",
+	'filename',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
 INSERT INTO PE_PE
 	VALUES ("84b152bf-ae5a-4d05-ba55-2482f90eeebe",
 	1,
@@ -140,8 +171,30 @@ create object instance registry of Z_TemplateRegistry;
 relate registry to general_file across R3051;
 registry.comp_name = comp_def.name;
 
-// TODO
-::transformTemplate( registry:registry, comp_def:comp_def );
+// create a template for each reference in the component
+select many invocs from instances of InvocableObject where false;
+select many func_invocs related by comp_def->Function[R405]->InvocableObject[R427];
+select many msg_invocs related by comp_def->Port[R417]->PortMessage[R420]->InvocableObject[R427];
+invocs = func_invocs | msg_invocs;
+select many op_invocs related by comp_def->Class[R408]->Operation[R416]->InvocableObject[R427];
+invocs = invocs | op_invocs;
+select many attr_invocs related by comp_def->Class[R408]->Attribute[R410]->AttributeAccessor[R4510]->AttributeDerivation[R441]->InvocableObject[R427];
+invocs = invocs | attr_invocs;
+select many util_invocs related by comp_def->Utility[R4558]->UtilityFunction[R4559]->InvocableObject[R427];
+invocs = invocs | util_invocs;
+select many template_includes related by invocs->CodeBlock[R4000]->Statement[R450]->ExpressionAsStatement[R451]->Expression[R476]->Invocation[R776]
+  where ( selected.invoked_name == "include" and selected.invoked_parent_name == "TEMP" and selected.invoked_parent_package == "io.ciera.template.util" );
+for each template_include in template_includes
+  select any filename_string related by template_include->ActualParameter[R793]->Expression[R794]->Literal[R776];
+  if ( not_empty filename_string )
+    select any existing_template related by registry->Z_Template[R3052] where ( selected.name == filename_string.value );
+    if ( empty existing_template )
+      ::transformTemplate( registry:registry, comp_def:comp_def, filename:filename_string.value );
+    end if;
+  else
+    // TODO bad
+  end if;
+end for;
 
 // create import block
 ::addFileToImports( file:file, file_to_import:comp_def_file, type:ImportType::IMPL );
@@ -162,6 +215,57 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("ef09830e-f240-454f-9a09-c54ae1f5ee5b",
+	1,
+	"0f65277e-71ba-472a-ad12-048000976d40",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("25eaf350-9fa7-4771-b222-f8cabc32148c",
+	"00000000-0000-0000-0000-000000000000",
+	'transformRSLBody',
+	'',
+	'body = param.body;
+invocable = param.invocable;
+
+LOG::LogInfo( message:"translating RSL body: " + body.filename );',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("b33835a5-eaa5-4192-97b8-15e8ed8667dc",
+	"25eaf350-9fa7-4771-b222-f8cabc32148c",
+	'body',
+	"0566c21d-6680-412f-b8e1-d74f3509f680",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("0566c21d-6680-412f-b8e1-d74f3509f680",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Body>',
+	'',
+	'',
+	'../RSL/RSL.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("aff8aa34-7d0e-459b-a66e-d993aaf61ced",
+	"25eaf350-9fa7-4771-b222-f8cabc32148c",
+	'invocable',
+	"30c7a5ba-c6d9-44fd-8e61-f22cde8fdc41",
+	0,
+	'',
+	"b33835a5-eaa5-4192-97b8-15e8ed8667dc",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("30c7a5ba-c6d9-44fd-8e61-f22cde8fdc41",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Invocable Object>',
+	'',
+	'',
+	'../../../../ciera/models/ciera/ciera/architecture/invocable/invocable.xtuml');
+INSERT INTO PE_PE
+	VALUES ("25eaf350-9fa7-4771-b222-f8cabc32148c",
 	1,
 	"0f65277e-71ba-472a-ad12-048000976d40",
 	"00000000-0000-0000-0000-000000000000",
