@@ -17,7 +17,7 @@ ELSE:                      WS* '.else' -> pushMode(CONTROL);
 END:                       WS* '.end' -> pushMode(CONTROL);
 
 INITIAL_BLOB:              WS* ( ~( [$\r\n.] ) | '$$' | '..' ) ( ~( [$\r\n] ) | WS | '$$' )*  -> type(BLOB), pushMode(BUFFER);
-INITIAL_DOLLAR:            DOLLAR -> type(DOLLAR), pushMode(BUFFER);
+INITIAL_DOLLAR:            DOLLAR -> type(DOLLAR), pushMode(BUFFER), pushMode(SUBVAR);
 INITIAL_NEWLINE:           ( ESC ESC ESC NL | ESC ESC NL | ESC NL | NL ) -> type(NEWLINE);
 
 // THE 'BUFFER' MODE IS FOR MATCHING LITERAL TEXT WITHIN A LINE
@@ -43,12 +43,16 @@ LCURLY:                    '{' -> pushMode(CONTROL);
 // THE 'CONTROL' MODE IS FOR MATCHING RSL CONTROL STRUCTURES
 mode CONTROL;
 
+// literals
 BOOLEAN_LITERAL:           'true' | 'false';
 INTEGER_LITERAL:           '0' | '-'? [1-9][0-9]*;
 REAL_LITERAL:              '-'? ( '0' | [1-9][0-9]* ) '.' [0-9]+;  // allows -0.0 but oh well
 
+// other keyword
+CONTROL_IF:                'if' -> type(IF);
+
+// symbols
 DOT:                       '.';
-NEWLINE:                   NL -> popMode;
 RCURLY:                    '}' -> popMode, popMode;
 QUOTE:                     '"' -> pushMode(STRING);
 NOT:                       'not';
@@ -67,6 +71,7 @@ EQ:                        '==';
 NE:                        '!=';
 LPAREN:                    '(';
 RPAREN:                    ')';
+NEWLINE:                   NL -> popMode;
 
 ID:                        [a-zA-Z][a-zA-Z0-9_]* ;
 
