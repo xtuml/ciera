@@ -227,7 +227,33 @@ INSERT INTO S_SYNC
 	'body = param.body;
 invocable = param.invocable;
 
-LOG::LogInfo( message:"translating RSL body: " + body.filename );',
+// create code block
+create object instance block of CodeBlock;
+relate block to invocable across R430;
+block.tab_depth = 4;
+relate block to invocable across R4000;
+block.block_number = "1";
+
+// transform each line
+current_id = -1;
+done = false;
+select many lines related by body->Y_Line[R3054];
+while not done
+  // select next line to process
+  select any current_line from instances of Y_Line where false;
+  for each line in lines
+    if ( ( empty current_line or line.node_id < current_line.node_id ) and ( line.node_id > current_id ) )
+      current_line = line;
+    end if;
+  end for;
+  // process current line
+  if ( not_empty current_line )
+    block = ::transformRSLLine( line:current_line, block:block );
+    current_id = current_line.node_id;
+  else
+    done = true;
+  end if;
+end while;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -266,6 +292,226 @@ INSERT INTO S_DT_PROXY
 	'../../../../ciera/models/ciera/ciera/architecture/invocable/invocable.xtuml');
 INSERT INTO PE_PE
 	VALUES ("25eaf350-9fa7-4771-b222-f8cabc32148c",
+	1,
+	"0f65277e-71ba-472a-ad12-048000976d40",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("839b40bd-7fa6-489c-abca-aa0d5fd2bf8a",
+	"00000000-0000-0000-0000-000000000000",
+	'transformRSLLine',
+	'',
+	'line = param.line;
+block = param.block;
+
+select one buffer related by line->Y_Buffer[R3055];
+if ( not_empty buffer )
+  // transform each buffer element
+  current_id = -1;
+  done = false;
+  select many buffer_elements related by buffer->Y_BufferElement[R3056];
+  while not done
+    // select next buffer element to process
+    select any current_buffer_element from instances of Y_BufferElement where false;
+    for each buffer_element in buffer_elements
+      if ( ( empty current_buffer_element or buffer_element.node_id < current_buffer_element.node_id ) and ( buffer_element.node_id > current_id ) )
+        current_buffer_element = buffer_element;
+      end if;
+    end for;
+    // process current buffer element
+    if ( not_empty current_buffer_element )
+      select one blob related by current_buffer_element->Y_Blob[R3057];
+      if ( not_empty blob )
+        ::transformRSLBlob( blob:blob, block:block );
+      else
+      select one sub_var related by current_buffer_element->Y_SubstitutionVar[R3057];
+      if ( not_empty sub_var )
+        // TODO
+      end if; end if;
+      current_id = current_buffer_element.node_id;
+    else
+      done = true;
+    end if;
+  end while;
+  
+else
+select one if_smt related by line->Y_IfStatement[R3055];
+if ( not_empty if_smt )
+  // TODO
+  
+else
+select one elif_smt related by line->Y_ElifStatement[R3055];
+if ( not_empty elif_smt )
+  // TODO
+  
+else
+select one else_smt related by line->Y_ElseStatement[R3055];
+if ( not_empty else_smt )
+  // TODO
+  
+else
+select one endif_smt related by line->Y_EndIfStatement[R3055];
+if ( not_empty endif_smt )
+  // TODO
+
+end if; end if; end if; end if; end if;
+
+return block;',
+	"e2eb4f67-ca2b-42ab-accf-5a2b475f8933",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("a292877f-686d-4fe6-8a85-fab5dd86a10f",
+	"839b40bd-7fa6-489c-abca-aa0d5fd2bf8a",
+	'line',
+	"ddad7e06-add4-41df-bf00-ef51cfb2f6de",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("ddad7e06-add4-41df-bf00-ef51cfb2f6de",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Line>',
+	'',
+	'',
+	'../RSL/RSL.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("3220da9d-0552-4bf7-93dd-7f8b9ee056a3",
+	"839b40bd-7fa6-489c-abca-aa0d5fd2bf8a",
+	'block',
+	"e2eb4f67-ca2b-42ab-accf-5a2b475f8933",
+	0,
+	'',
+	"a292877f-686d-4fe6-8a85-fab5dd86a10f",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("e2eb4f67-ca2b-42ab-accf-5a2b475f8933",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Code Block>',
+	'',
+	'',
+	'../../../../ciera/models/ciera/ciera/architecture/invocable/invocable.xtuml');
+INSERT INTO PE_PE
+	VALUES ("839b40bd-7fa6-489c-abca-aa0d5fd2bf8a",
+	1,
+	"0f65277e-71ba-472a-ad12-048000976d40",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("92e809f7-0212-4287-9baa-502033e823ab",
+	"00000000-0000-0000-0000-000000000000",
+	'transformRSLBlob',
+	'',
+	'blob = param.blob;
+block = param.block;
+
+// get last statement in block
+select any prev_smt related by block->Statement[R450];
+select one next_smt related by prev_smt->Statement[R477.''executes before''];
+while ( not_empty next_smt )
+  prev_smt = next_smt;
+  select one next_smt related by prev_smt->Statement[R477.''executes before''];
+end while;
+
+// create a statement
+create object instance smt of Statement;
+relate smt to block across R450;
+if ( not_empty prev_smt )
+  smt.statement_number = STR::itoa( i:STR::atoi( s:prev_smt.statement_number ) + 1 );
+  relate smt to prev_smt across R477.''executes after'';
+else
+  smt.statement_number = "1";
+end if;
+smt.oal = "";
+
+// add XtumlString to the imports
+select one registry_file related by block->InvocableObject[R430]->GenericInvocable[R427]->Z_Template[R3053]->Z_TemplateRegistry[R3052]->GeneralFile[R3051]->File[R401];
+::addStringToImports( file:registry_file, s:"io.ciera.summit.types.XtumlString", type:ImportType::IMPL );
+
+// create an invocation to TEMP::append
+select any utility from instances of Utility where ( "TEMP" == selected.name and "io.ciera.template.util" == selected.package );
+if ( not_empty utility )
+  select any util_func related by utility->UtilityFunction[R4559] where ( selected.name == "append" );
+  select one invocable related by util_func->InvocableObject[R427];
+  if ( not_empty invocable )
+    // create expression as statement
+    create object instance eas of ExpressionAsStatement;
+    relate eas to smt across R451;
+    // create main expression
+    create object instance expr of Expression;
+    relate expr to smt across R775;
+    expr.expression_number = "1";
+    // create invocation
+    create object instance invoc of Invocation;
+    relate invoc to expr across R776;
+    relate invoc to invocable across R792;
+    // relate expression to expression as statement
+    relate eas to expr across R476;
+    // create named reference expression
+    create object instance expr2 of Expression;
+    relate expr2 to smt across R775;
+    expr2.expression_number = "1.1";
+    // create named reference
+    create object instance named_ref of NamedReference;
+    relate named_ref to expr2 across R776;
+    relate expr2 to invoc across R798;
+    named_ref.name = "context()." + utility.name + "()";
+    // transform actual parameter
+    create object instance expr3 of Expression;
+    relate expr3 to smt across R775;
+    expr3.expression_number = "1.2";
+    select any string_type from instances of Type where ( "XtumlString" == selected.name and "io.ciera.summit.types" == selected.package );
+    if ( not_empty string_type )
+      relate string_type to expr3 across R795;
+    else
+      // TODO bad
+    end if;
+    create object instance lit of Literal;
+    relate lit to expr3 across R776;
+    lit.value = blob.BLOB;
+    create object instance act_parm of ActualParameter;
+    relate act_parm to expr3 across R794;
+    select any parm related by invocable->FormalParameter[R429];
+    relate invoc to parm across R793 using act_parm;
+  else
+    // TODO bad
+  end if;
+else
+  // TODO bad
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("a591445f-f6e0-4f03-a464-0530e2070dd1",
+	"92e809f7-0212-4287-9baa-502033e823ab",
+	'blob',
+	"5a531544-516a-4913-ae40-89d67fe28827",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("5a531544-516a-4913-ae40-89d67fe28827",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Blob>',
+	'',
+	'',
+	'../RSL/RSL.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("e12c560b-41f3-45da-986c-f206fa34e7fd",
+	"92e809f7-0212-4287-9baa-502033e823ab",
+	'block',
+	"e2eb4f67-ca2b-42ab-accf-5a2b475f8933",
+	0,
+	'',
+	"a591445f-f6e0-4f03-a464-0530e2070dd1",
+	'');
+INSERT INTO PE_PE
+	VALUES ("92e809f7-0212-4287-9baa-502033e823ab",
 	1,
 	"0f65277e-71ba-472a-ad12-048000976d40",
 	"00000000-0000-0000-0000-000000000000",

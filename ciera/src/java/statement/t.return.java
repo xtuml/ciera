@@ -1,7 +1,9 @@
+if ( 0!=strcmp("",oal) ) {
 T_b(indent);
 T_b("// ");
 T_b(oal);
 T_b("\n");
+}
 if ( 0==strcmp("",ret_expression_body) ) {
 if ( handle_locals ) {
 T_b(indent);

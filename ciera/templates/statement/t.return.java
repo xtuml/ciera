@@ -1,4 +1,6 @@
+.if ( "" != oal )
 ${indent}// ${oal}
+.end if
 .if ( "" == ret_expression_body )
   .if ( handle_locals )
 ${indent}popSymbolTable();
