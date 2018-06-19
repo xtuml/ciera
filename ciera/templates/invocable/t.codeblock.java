@@ -2,5 +2,9 @@
 ${statements}\
 .else
 {
-${self.prefix}${statements}${self.suffix}${indent}}
+${self.prefix}${statements}\
+  .if ( include_suffix )
+${self.suffix}\
+  .end if
+${indent}}
 .end if

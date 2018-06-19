@@ -4317,15 +4317,12 @@ if ( not_empty act_blk )
       // push a new symbol table at the beginning of the body
       indent = ::getIndent( tab_depth:block.tab_depth + 1 );
       block.prefix = indent + "pushSymbolTable();\n";
-      // for void activities, pop the symbol table at the very end
-      select one return_type related by invocable->Type[R428.''return value is typed by''];
-      select one deriv related by invocable->AttributeDerivation[R427];
-      if ( "void" == return_type.name or not_empty deriv )
-        block.suffix = indent + "popSymbolTable();\n";
-      end if;
+      // pop the symbol table at the very end
+      block.suffix = indent + "popSymbolTable();\n";
       // if any return expression has a variable reference, create a temporary variable for the return value
       select any return_var_ref related by block->Statement[R450.''is scope for'']->ReturnSmt[R451]->Statement[R451]->Expression[R775.''may contain'']->VariableReference[R776];
       if ( not_empty return_var_ref )
+        select one return_type related by invocable->Type[R428.''return value is typed by''];
         block.prefix = indent + "final " + return_type.name + " _return_value;\n" + block.prefix;
       end if;
     end if;
