@@ -11,5 +11,8 @@ public interface TEMP {
     public void emit( XtumlString file ) throws XtumlException;
     public void include( XtumlString file ) throws XtumlException;
     public XtumlString sub( XtumlString format, XtumlString s ) throws XtumlException;
+    
+    public void pushBufferStack();
+    public void popBufferStack();
 
 }

@@ -516,6 +516,52 @@ INSERT INTO PE_PE
 	"0f65277e-71ba-472a-ad12-048000976d40",
 	"00000000-0000-0000-0000-000000000000",
 	1);
+INSERT INTO S_SYNC
+	VALUES ("d9b12366-1a10-402c-971a-9370b6b2599f",
+	"00000000-0000-0000-0000-000000000000",
+	'resolveTemplateHooks',
+	'',
+	'select many affected_files from instances of File where false;
+select many invocables from instances of InvocableObject;
+for each invocable in invocables
+  select one generic_invoc related by invocable->GenericInvocable[R427];
+  if ( empty generic_invoc )
+    select any template_invocation related by invocable->CodeBlock[R4000]->Statement[R450]->Expression[R775]->Invocation[R776] where
+      ( "TEMP" == selected.invoked_parent_name and "io.ciera.template.util" == selected.invoked_parent_package and
+      ( "append" == selected.invoked_name or
+        "body" == selected.invoked_name or
+        "clear" == selected.invoked_name or
+        "emit" == selected.invoked_name or
+        "include" == selected.invoked_name ) );
+    if ( not_empty template_invocation ) // for bodies which invoke the template utility, add statements to handle the buffer stack
+      select one top_block related by invocable->CodeBlock[R430];
+      indent = ::getIndent( tab_depth:top_block.tab_depth + 1 );
+      top_block.prefix = top_block.prefix + indent + "pushBufferStack();\n";
+      top_block.suffix = top_block.suffix + indent + "popBufferStack();\n";
+      // add to the affected files list
+      file = ::getFileForInvocable( invocable:invocable );
+      affected_files = affected_files | file;
+    end if;
+  end if;
+end for;
+
+// re-render affected files
+for each file in affected_files
+  if ( not file.exclude )
+    LOG::LogInfo( message:"  " + file.package + "." + file.name + file.extension + " REPLACED" );
+    file.render();
+  end if;
+end for;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO PE_PE
+	VALUES ("d9b12366-1a10-402c-971a-9370b6b2599f",
+	1,
+	"0f65277e-71ba-472a-ad12-048000976d40",
+	"00000000-0000-0000-0000-000000000000",
+	1);
 INSERT INTO PE_PE
 	VALUES ("0f65277e-71ba-472a-ad12-048000976d40",
 	1,

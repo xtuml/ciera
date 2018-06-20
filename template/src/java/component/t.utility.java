@@ -1,0 +1,14 @@
+T_b("package ");
+T_b(self->package);
+T_b(";");
+T_b("\n");
+T_b(imports);
+T_b("\n");
+T_b("public interface ");
+T_b(self->name);
+T_b(" {");
+T_b("\n");
+T_b(utility_functions);
+T_b("\n");
+T_b("}");
+T_b("\n");

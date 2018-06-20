@@ -32,6 +32,16 @@ public class TEMPImpl<C extends IComponent<C>> extends Utility<C> implements TEM
     }
 
     @Override
+    public void pushBufferStack() {
+        bufferStack.push( new XtumlString( "" ) );
+    }
+
+    @Override
+    public void popBufferStack() {
+        bufferStack.pop();
+    }
+
+    @Override
     public void append( XtumlString s ) throws XtumlException {
         bufferStack.peek().concat( s );
     }
