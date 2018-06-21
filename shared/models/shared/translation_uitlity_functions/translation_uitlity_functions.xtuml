@@ -897,6 +897,92 @@ INSERT INTO PE_PE
 	"65dec46c-ec8b-4464-b227-a7853cadd3b4",
 	"00000000-0000-0000-0000-000000000000",
 	1);
+INSERT INTO S_SYNC
+	VALUES ("d9e03f09-96ed-4d5c-a8db-df853da1f124",
+	"00000000-0000-0000-0000-000000000000",
+	'act_lnkGetMult',
+	'',
+	'act_lnk = param.act_lnk;
+mult = Mult::ONE;
+
+if ( Multiplicity::Many == act_lnk.Mult )
+  mult = Mult::MANY;
+elif ( Multiplicity::Unknown == act_lnk.Mult )
+  select one r_simp related by act_lnk->R_REL[R681]->R_SIMP[R206];
+  select one r_assoc related by act_lnk->R_REL[R681]->R_ASSOC[R206];
+  if ( not_empty r_simp or not_empty r_assoc )
+    // get base object
+    select one base_o_obj related by act_lnk->ACT_LNK[R604.''succeeds'']->O_OBJ[R678];
+    if ( empty base_o_obj )
+      select one base_o_obj related by act_lnk->ACT_SEL[R637]->V_VAL[R613]->V_IRF[R801]->V_VAR[R808]->V_INT[R814]->O_OBJ[R818];
+      if ( empty base_o_obj )
+        select one base_o_obj related by act_lnk->ACT_SEL[R637]->V_VAL[R613]->V_ISR[R801]->V_VAR[R809]->V_INS[R814]->O_OBJ[R819];
+      end if;
+    end if;
+    // get target object
+    select one target_o_obj related by act_lnk->O_OBJ[R678];
+    not_reflexive = target_o_obj.Obj_ID != base_o_obj.Obj_ID;
+    phrase = C_UTIL::stripTics( s:act_lnk.Rel_Phrase );
+    if ( not_empty r_simp )
+      select one r_form related by r_simp->R_FORM[R208];
+      if ( r_form.Mult == 1 and r_form.Obj_ID == target_o_obj.Obj_ID and ( not_reflexive or phrase == r_form.Txt_Phrs ) ) // target is simple formalizer and is many
+        mult = Mult::MANY;
+      else
+        select any r_part related by r_simp->R_PART[R207] where
+          ( selected.Mult == 1 and selected.Obj_ID == target_o_obj.Obj_ID and ( not_reflexive or phrase == selected.Txt_Phrs ) ); // target is simple participant and is many
+        if ( not_empty r_part )
+          mult = Mult::MANY;
+        end if;
+      end if;
+    else
+      select one r_aone related by r_assoc->R_AONE[R209];
+      select one r_aoth related by r_assoc->R_AOTH[R210];
+      select one r_assr related by r_assoc->R_ASSR[R211];
+      if ( r_aone.Mult == 1 and r_aone.Obj_ID == target_o_obj.Obj_ID and ( not_reflexive or phrase == r_aone.Txt_Phrs ) ) or                                          // target is associative one and is many
+         ( r_aoth.Mult == 1 and r_aoth.Obj_ID == target_o_obj.Obj_ID and ( not_reflexive or phrase == r_aoth.Txt_Phrs ) ) or                                          // target is associative other and is many
+         ( r_assr.Mult == 1 and r_assr.Obj_ID == target_o_obj.Obj_ID ) or                                                                                             // target is associative link and is many
+         ( r_aoth.Mult == 1 and r_assr.Obj_ID == target_o_obj.Obj_ID and r_aone.Obj_ID == base_o_obj.Obj_ID and ( not_reflexive or phrase == r_aoth.Txt_Phrs ) ) or   // target is associative link in the direction of other and other is many
+         ( r_aone.Mult == 1 and r_assr.Obj_ID == target_o_obj.Obj_ID and r_aoth.Obj_ID == base_o_obj.Obj_ID and ( not_reflexive or phrase == r_aone.Txt_Phrs ) )      // target is associative link in the direction of one and one is many
+        mult = Mult::MANY;
+      end if;
+    end if;
+  end if;
+end if;
+
+return mult;',
+	"8774ba5f-d952-424f-a26a-4815240d9ec8",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("d66803cd-4339-4475-90a9-0b9d9a84cb42",
+	"d9e03f09-96ed-4d5c-a8db-df853da1f124",
+	'act_lnk',
+	"bcbe8755-e8ea-4d2b-9f81-529c5437c084",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("bcbe8755-e8ea-4d2b-9f81-529c5437c084",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Chain Link>',
+	'',
+	'',
+	'../../../../mcooa/models/mcooa/ooaofooa/Selection/Selection.xtuml');
+INSERT INTO PE_PE
+	VALUES ("d9e03f09-96ed-4d5c-a8db-df853da1f124",
+	1,
+	"65dec46c-ec8b-4464-b227-a7853cadd3b4",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_DT_PROXY
+	VALUES ("8774ba5f-d952-424f-a26a-4815240d9ec8",
+	"00000000-0000-0000-0000-000000000000",
+	'Mult',
+	'',
+	'',
+	'../../../../ciera/models/ciera/ciera/types/types.xtuml');
 INSERT INTO PE_PE
 	VALUES ("65dec46c-ec8b-4464-b227-a7853cadd3b4",
 	1,

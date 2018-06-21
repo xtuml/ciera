@@ -784,8 +784,8 @@ INSERT INTO S_SYNC
 	'',
 	'select many unresolved_types from instances of UnresolvedType;
 for each unresolved_type in unresolved_types
-  select one type related by unresolved_type->Type[R407];
-  select one s_dt related by type->S_DT[R423];
+  select one old_type related by unresolved_type->Type[R407];
+  select one s_dt related by old_type->S_DT[R423];
   
   // TODO navigate to base type for UDTs
   select one s_udt related by s_dt->S_UDT[R17];
@@ -825,7 +825,6 @@ for each unresolved_type in unresolved_types
 
   // unrelate old types and hook up the new types
   if ( not_empty new_type )
-    select one old_type related by unresolved_type->Type[R407];
     select many attrs related by old_type->Attribute[R424];
     for each attr in attrs
       unrelate old_type from attr across R424;
@@ -845,6 +844,11 @@ for each unresolved_type in unresolved_types
     for each selector in selectors
       unrelate old_type from selector across R446.''shapes return of'';
       relate new_type to selector across R446.''shapes return of'';
+    end for;
+    select many expressions related by old_type->Expression[R795.''defines type of''];
+    for each expression in expressions
+      unrelate old_type from expression across R795.''defines type of'';
+      relate new_type to expression across R795.''defines type of'';
     end for;
     old_type.dispose();
   end if;
@@ -2298,6 +2302,12 @@ if ( not_empty act_smt and not_empty block )
       create object instance expr of Expression;
       relate expr to smt across R775.''expressed within'';
       expr.expression_number = "1";
+      select any void_type from instances of Type where ( "void" == selected.name and "" == selected.package );
+      if ( not_empty void_type )
+        relate void_type to expr across R795;
+      else
+        // TODO bad
+      end if;
       // create invocation
       create object instance invoc of Invocation;
       relate invoc to expr across R776;
@@ -2308,6 +2318,12 @@ if ( not_empty act_smt and not_empty block )
       create object instance expr2 of Expression;
       relate expr2 to smt across R775.''expressed within'';
       expr2.expression_number = "1.1";
+      select any void_type from instances of Type where ( "void" == selected.name and "" == selected.package );
+      if ( not_empty void_type )
+        relate void_type to expr2 across R795;
+      else
+        // TODO bad
+      end if;
       // create named reference
       create object instance named_ref of NamedReference;
       relate named_ref to expr2 across R776;
@@ -2334,6 +2350,12 @@ if ( not_empty act_smt and not_empty block )
       create object instance expr of Expression;
       relate expr to smt across R775.''expressed within'';
       expr.expression_number = "1";
+      select any void_type from instances of Type where ( "void" == selected.name and "" == selected.package );
+      if ( not_empty void_type )
+        relate void_type to expr across R795;
+      else
+        // TODO bad
+      end if;
       // create invocation
       create object instance invoc of Invocation;
       relate invoc to expr across R776;
@@ -2344,6 +2366,12 @@ if ( not_empty act_smt and not_empty block )
       create object instance expr2 of Expression;
       relate expr2 to smt across R775.''expressed within'';
       expr2.expression_number = "1.1";
+      select any void_type from instances of Type where ( "void" == selected.name and "" == selected.package );
+      if ( not_empty void_type )
+        relate void_type to expr2 across R795;
+      else
+        // TODO bad
+      end if;
       // create named reference
       create object instance named_ref of NamedReference;
       relate named_ref to expr2 across R776;
@@ -2371,6 +2399,12 @@ if ( not_empty act_smt and not_empty block )
       relate expr to smt across R775.''expressed within'';
       expr.expression_number = "1";
       relate eas to expr across R476.''executes as statement'';
+      select any void_type from instances of Type where ( "void" == selected.name and "" == selected.package );
+      if ( not_empty void_type )
+        relate void_type to expr across R795;
+      else
+        // TODO bad
+      end if;
       // create invocation
       create object instance invoc of Invocation;
       relate invoc to expr across R776;
@@ -2383,6 +2417,12 @@ if ( not_empty act_smt and not_empty block )
         relate expr2 to smt across R775.''expressed within'';
         expr2.expression_number = "1.1";
         relate expr2 to invoc across R798.''is used as basis for'';
+      select any void_type from instances of Type where ( "void" == selected.name and "" == selected.package );
+      if ( not_empty void_type )
+        relate void_type to expr2 across R795;
+      else
+        // TODO bad
+      end if;
         // create named reference
         create object instance named_ref of NamedReference;
         relate named_ref to expr2 across R776;
@@ -2442,6 +2482,12 @@ if ( not_empty act_smt and not_empty block )
       relate expr to smt across R775.''expressed within'';
       expr.expression_number = "1";
       relate eas to expr across R476.''executes as statement'';
+      select any void_type from instances of Type where ( "void" == selected.name and "" == selected.package );
+      if ( not_empty void_type )
+        relate void_type to expr across R795;
+      else
+        // TODO bad
+      end if;
       // create invocation
       create object instance invoc of Invocation;
       relate invoc to expr across R776;
@@ -2451,6 +2497,12 @@ if ( not_empty act_smt and not_empty block )
       relate expr2 to smt across R775.''expressed within'';
       expr2.expression_number = "1.1";
       relate expr2 to invoc across R798.''is used as basis for'';
+      select any void_type from instances of Type where ( "void" == selected.name and "" == selected.package );
+      if ( not_empty void_type )
+        relate void_type to expr2 across R795;
+      else
+        // TODO bad
+      end if;
       // create named reference
       create object instance named_ref of NamedReference;
       relate named_ref to expr2 across R776;
@@ -2582,6 +2634,10 @@ if ( not_empty act_smt and not_empty block )
     ::transformExpression( v_val:r_val, expr_number:"1.2", smt:smt );
     select any r_op related by smt->Expression[R775.''may contain''] where ( selected.expression_number == "1.2" );
     relate r_op to binop across R778.''is right operand for'';
+    // link r_val type to the main expression
+    select one s_dt related by r_val->S_DT[R820];
+    type = UnresolvedType::getInstance( s_dt:s_dt );
+    relate type to expr across R795.''defines type of'';
 
   else
   select one act_for related by act_smt->ACT_FOR[R603];
@@ -2606,14 +2662,11 @@ if ( not_empty act_smt and not_empty block )
     relate expr to for_smt across R478.''is iterated by'';
     // create iterator variable
     select one iter_v_var related by act_for->V_VAR[R614];
-    select one iter_o_obj related by iter_v_var->V_INT[R814]->O_OBJ[R818];
-    create object instance iter_var of Variable;
-    relate iter_var to smt across R457.''is declared by'';
-    iter_var.name = iter_v_var.Name;
-    select one var_dt related by iter_v_var->S_DT[R848];
-    var_dt = ::getInstRefTypeForClass( s_dt:var_dt, o_obj:iter_o_obj );
-    var_type = UnresolvedType::getInstance( s_dt:var_dt );
-    relate var_type to iter_var across R461.''defines declared type of'';
+    select any existing_var related by smt->CodeBlock[R450.''is contained by'']->Variable[R458.''has in scope''] where ( selected.name == iter_v_var.Name );
+    if ( empty existing_var ) // cannot declare two variables of the same name in the same scope
+      ::transformVariable( v_var:iter_v_var, smt:smt );
+    end if;
+    select any iter_var related by smt->CodeBlock[R450.''is contained by'']->Variable[R458.''has in scope''] where ( selected.name == iter_v_var.Name );
     relate iter_var to for_smt across R459.''is iterator for'';
     // create control block
     control_block_number = ::getNextBlockNumber( upper_block:block );
@@ -2671,6 +2724,7 @@ if ( not_empty act_smt and not_empty block )
       create object instance r_op of Expression;
       relate r_op to smt across R775.''expressed within'';
       r_op.expression_number = "1.2.1";
+      relate select_type to expr across R795.''defines type of'';
       relate r_op to any_expr across R783.''is basis for'';
     end if;
     create object instance sel of SelectExpr;
@@ -2678,6 +2732,12 @@ if ( not_empty act_smt and not_empty block )
     create object instance sel_fi of SelectFromInstances;
     relate sel_fi to sel across R789;
     relate selector to sel_fi across R799.''invoked by'';
+    select any s_irdt related by act_fio->O_OBJ[R677]->S_IRDT[R123] where ( selected.isSet );
+    select one s_dt related by s_irdt->S_DT[R17];
+    fio_type = UnresolvedType::getInstance( s_dt:s_dt );
+    relate fio_type to r_op across R795.''defines type of'';
+    // link select type to the main expression
+    relate select_type to expr across R795.''defines type of'';
 
   else
   select one act_fiw related by act_smt->ACT_FIW[R603];
@@ -2723,6 +2783,12 @@ if ( not_empty act_smt and not_empty block )
       relate r_op to smt across R775.''expressed within'';
       r_op.expression_number = "1.2";
       relate r_op to binop across R778.''is right operand for'';
+      select any void_type from instances of Type where ( "void" == selected.name and "" == selected.package );
+      if ( not_empty void_type )
+        relate void_type to r_op across R795;
+      else
+        // TODO bad
+      end if;
       create object instance named_expr of NamedReference;
       relate named_expr to r_op across R776;
       named_expr.name = select_type.default_value;
@@ -2731,6 +2797,7 @@ if ( not_empty act_smt and not_empty block )
       create object instance r_op of Expression;
       relate r_op to smt across R775.''expressed within'';
       r_op.expression_number = "1.2";
+      relate select_type to r_op across R795.''defines type of'';
       relate r_op to binop across R778.''is right operand for'';
       create object instance where_expr of WhereExpr;
       relate where_expr to r_op across R776;
@@ -2739,6 +2806,10 @@ if ( not_empty act_smt and not_empty block )
       create object instance sel_expr of Expression;
       relate sel_expr to smt across R775.''expressed within'';
       sel_expr.expression_number = "1.2.1";
+      select any s_irdt related by act_fiw->O_OBJ[R676]->S_IRDT[R123] where ( selected.isSet );
+      select one s_dt related by s_irdt->S_DT[R17];
+      fiw_type = UnresolvedType::getInstance( s_dt:s_dt );
+      relate fiw_type to sel_expr across R795.''defines type of'';
       relate sel_expr to where_expr across R790.''filtered by'';
       create object instance sel of SelectExpr;
       relate sel to sel_expr across R776;
@@ -2750,6 +2821,8 @@ if ( not_empty act_smt and not_empty block )
       select any where_clause_expr related by smt->Expression[R775.''may contain''] where ( selected.expression_number == "1.2.2" );
       relate where_clause_expr to where_expr across R796.''defines condtion for'';
     end if;
+    // link select type to the main expression
+    relate select_type to expr across R795.''defines type of'';
 
   else
   select one act_sel related by act_smt->ACT_SEL[R603];
@@ -2795,6 +2868,12 @@ if ( not_empty act_smt and not_empty block )
       relate r_op to smt across R775.''expressed within'';
       r_op.expression_number = "1.2";
       relate r_op to binop across R778.''is right operand for'';
+      select any void_type from instances of Type where ( "void" == selected.name and "" == selected.package );
+      if ( not_empty void_type )
+        relate void_type to r_op across R795;
+      else
+        // TODO bad
+      end if;
       create object instance named_expr of NamedReference;
       relate named_expr to r_op across R776;
       named_expr.name = select_type.default_value;
@@ -2810,7 +2889,9 @@ if ( not_empty act_smt and not_empty block )
         create object instance r_op of Expression;
         relate r_op to smt across R775.''expressed within'';
         r_op.expression_number = "1.2";
+        relate select_type to r_op across R795.''defines type of'';
         relate r_op to binop across R778.''is right operand for'';
+        relate select_type to r_op across R795.''defines type of'';
         // create expression for last chain link
         ::transformSelectionLink( act_lnk:lnk, expr_number:"1.2.1", smt:smt );
         if ( not_empty where_clause_val )
@@ -2839,6 +2920,8 @@ if ( not_empty act_smt and not_empty block )
         relate select_expr to binop across R778.''is right operand for'';
       end if;
     end if;
+    // link select type to the main expression
+    relate select_type to expr across R795.''defines type of'';
  
   else 
   select one act_cr related by act_smt->ACT_CR[R603];
@@ -2880,6 +2963,7 @@ if ( not_empty act_smt and not_empty block )
     create object instance r_op of Expression;
     relate r_op to smt across R775.''expressed within'';
     r_op.expression_number = "1.2";
+    relate cr_type to r_op across R795.''defines type of'';
     create object instance cr of Creation;
     relate cr to r_op across R776;
     select one obj related by cr_obj->Class[R409.''is basis for''];
@@ -2887,6 +2971,8 @@ if ( not_empty act_smt and not_empty block )
     relate r_op to binop across R778.''is right operand for'';
     select one class_file related by obj->File[R401];
     ::addStringToImports( file: ::getFileForStatement( smt:smt ), s: ::pathToPackage( path:class_file.path ) + ".impl." + class_file.name + "Impl", type:ImportType::IMPL );
+    // link create type to the main expression
+    relate cr_type to expr across R795.''defines type of'';
 
   else
   select one act_cnv related by act_smt->ACT_CNV[R603];
@@ -2899,6 +2985,10 @@ if ( not_empty act_smt and not_empty block )
     relate expr to smt across R775.''expressed within'';
     expr.expression_number = "1";
     relate eas to expr across R476.''executes as statement'';
+    select any s_irdt related by act_cnv->O_OBJ[R672]->S_IRDT[R123] where ( not selected.isSet );
+    select one s_dt related by s_irdt->S_DT[R17];
+    cr_type = UnresolvedType::getInstance( s_dt:s_dt );
+    relate cr_type to expr across R795.''defines type of'';
     // create creation
     create object instance cr of Creation;
     relate cr to expr across R776;
@@ -3717,7 +3807,13 @@ if ( not_empty v_brv )
     // create named reference expression
     create object instance expr2 of Expression;
     relate expr2 to smt across R775.''expressed within'';
-    expr2.expression_number = "1.1";
+    expr2.expression_number = expr.expression_number + ".1";
+    select any void_type from instances of Type where ( "void" == selected.name and "" == selected.package );
+    if ( not_empty void_type )
+      relate void_type to expr2 across R795;
+    else
+      // TODO bad
+    end if;
     // create named reference
     create object instance named_ref of NamedReference;
     relate named_ref to expr2 across R776;
@@ -3744,7 +3840,13 @@ if ( not_empty v_fnv )
     // create named reference expression
     create object instance expr2 of Expression;
     relate expr2 to smt across R775.''expressed within'';
-    expr2.expression_number = "1.1";
+    expr2.expression_number = expr.expression_number + ".1";
+    select any void_type from instances of Type where ( "void" == selected.name and "" == selected.package );
+    if ( not_empty void_type )
+      relate void_type to expr2 across R795;
+    else
+      // TODO bad
+    end if;
     // create named reference
     create object instance named_ref of NamedReference;
     relate named_ref to expr2 across R776;
@@ -3775,7 +3877,7 @@ if ( not_empty v_trv )
         // create variable reference expression
         create object instance expr2 of Expression;
         relate expr2 to smt across R775.''expressed within'';
-        expr2.expression_number = "1.1";
+        expr2.expression_number = expr.expression_number + ".1";
         relate expr2 to invoc across R798.''is used as basis for'';
         select one op_s_dt related by op_v_var->S_DT[R848];
         select one op_obj related by o_tfr->O_OBJ[R115];
@@ -3794,9 +3896,13 @@ if ( not_empty v_trv )
         // create named reference expression
         create object instance expr2 of Expression;
         relate expr2 to smt across R775.''expressed within'';
-        expr2.expression_number = "1.1";
+        expr2.expression_number = expr.expression_number + ".1";
         relate expr2 to invoc across R798.''is used as basis for'';
-        // create named reference
+        select any s_irdt related by o_tfr->O_OBJ[R115]->S_IRDT[R123] where ( not selected.isSet );
+        select one s_dt related by s_irdt->S_DT[R17];
+        op_type = UnresolvedType::getInstance( s_dt:s_dt );
+        relate op_type to expr2 across R795.''defines type of'';
+        // create selected reference
         create object instance sel of SelectedExpr;
         relate sel to expr2 across R776;
       end if;
@@ -3804,8 +3910,14 @@ if ( not_empty v_trv )
       // create named reference expression
       create object instance expr2 of Expression;
       relate expr2 to smt across R775.''expressed within'';
-      expr2.expression_number = "1.1";
+      expr2.expression_number = expr.expression_number + ".1";
       relate expr2 to invoc across R798.''is used as basis for'';
+      select any void_type from instances of Type where ( "void" == selected.name and "" == selected.package );
+      if ( not_empty void_type )
+        relate void_type to expr2 across R795;
+      else
+        // TODO bad
+      end if;
       // create named reference
       create object instance named_ref of NamedReference;
       relate named_ref to expr2 across R776;
@@ -4486,6 +4598,7 @@ new_var.name = v_var.Name;
 select one scope related by smt->CodeBlock[R450.''is contained by''];
 select any existing_var_in_scope related by scope->VariableInScope[R458] where ( selected.var_name == new_var.name );
 if ( not_empty existing_var_in_scope )  // shadow variable of same name
+  LOG::LogInfo( message:"warning: shadowing variable" );
   select one existing_var related by existing_var_in_scope->Variable[R458.''has in scope''];
   unrelate existing_var from scope across R458.''is in scope for'' using existing_var_in_scope;
 end if;
@@ -4626,10 +4739,6 @@ for each var in vars
   relate var to block across R458.''is in scope for'' using var_in_scope;
 end for;
 
-// link iterator variable to new block
-create object instance var_in_scope of VariableInScope;
-relate iter_var to block across R458.''is in scope for'' using var_in_scope;
-
 // transform all statements
 ::transformStatements( act_blk:act_blk, block:block );',
 	"ba5eda7a-def5-0000-0000-000000000000",
@@ -4718,7 +4827,7 @@ expr.expression_number = param.expr_number;
 
 // link type
 select one o_obj related by act_lnk->O_OBJ[R678];
-select any irdt related by o_obj->S_IRDT[R123] where ( ( selected.isSet and act_lnk.Mult == Multiplicity::Many ) or ( not selected.isSet and act_lnk.Mult == Multiplicity::One ) );
+select any irdt related by o_obj->S_IRDT[R123] where ( ( selected.isSet and ::act_lnkGetMult( act_lnk:act_lnk ) == Mult::MANY ) or ( not selected.isSet and ::act_lnkGetMult( act_lnk:act_lnk ) == Mult::ONE ) );
 select one s_dt related by irdt->S_DT[R17];
 if ( empty s_dt )
   // TODO bad
