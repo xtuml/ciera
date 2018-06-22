@@ -2,7 +2,7 @@ package io.ciera.summit.types;
 
 import io.ciera.summit.exceptions.XtumlException;
 
-public class XtumlString implements IXtumlType<XtumlString> {
+public class XtumlString implements IXtumlType<XtumlString>, CharSequence {
     
     private String str;
     
@@ -28,6 +28,24 @@ public class XtumlString implements IXtumlType<XtumlString> {
     @Override
     public String toString() {
         return str;
+    }
+
+    @Override
+    public int length() {
+        if ( null != str ) return str.length();
+        else return 0;
+    }
+
+    @Override
+    public char charAt( int index ) {
+        if ( null != str ) return str.charAt( index );
+        else return 0;
+    }
+
+    @Override
+    public CharSequence subSequence( int start, int end ) {
+        if ( null != str ) return new XtumlString( str.substring( start, end ) );
+        else return null;
     }
 
 }
