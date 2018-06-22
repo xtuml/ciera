@@ -12,7 +12,7 @@ public interface TEMP {
     public void include( XtumlString file ) throws XtumlException;
     public XtumlString sub( XtumlString format, XtumlString s ) throws XtumlException;
     
-    public void pushBufferStack();
-    public void popBufferStack();
+    public void pushBuffer();
+    public void popBuffer();
 
 }

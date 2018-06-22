@@ -8,5 +8,6 @@ public interface LOG {
     public void LogInfo( XtumlString message );
     public void LogSuccess( XtumlString message );
     public void LogInteger( int message );
+    public void LogReal( XtumlString message, double r );
 
 }

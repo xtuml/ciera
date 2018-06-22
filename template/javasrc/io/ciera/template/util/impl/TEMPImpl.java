@@ -15,12 +15,12 @@ import io.ciera.template.util.TEMP;
 
 public class TEMPImpl<C extends IComponent<C>> extends Utility<C> implements TEMP {
     
-    private Stack<XtumlString> bufferStack;
+    private Stack<XtumlString> buffers;
     private ITemplateRegistry registry;
 
     public TEMPImpl( C context ) {
         super( context );
-        bufferStack = new Stack<>();
+        buffers = new Stack<>();
         try {
             Class<?> componentClass = context.getClass();
             Class<?> registryClass = Class.forName( componentClass.getName() + "TemplateRegistry" );
@@ -32,29 +32,29 @@ public class TEMPImpl<C extends IComponent<C>> extends Utility<C> implements TEM
     }
 
     @Override
-    public void pushBufferStack() {
-        bufferStack.push( new XtumlString( "" ) );
+    public void pushBuffer() {
+        buffers.push( new XtumlString( "" ) );
     }
 
     @Override
-    public void popBufferStack() {
-        bufferStack.pop();
+    public void popBuffer() {
+        buffers.pop();
     }
 
     @Override
     public void append( XtumlString s ) throws XtumlException {
-        bufferStack.peek().concat( s );
+        buffers.push( buffers.pop().concat( s ) );
     }
 
     @Override
     public XtumlString body() throws XtumlException {
-        return bufferStack.peek();
+        return buffers.peek();
     }
 
     @Override
     public void clear() throws XtumlException {
-        bufferStack.pop();
-        bufferStack.push( new XtumlString( "" ) );
+        buffers.pop();
+        buffers.push( new XtumlString( "" ) );
     }
 
     @Override
@@ -64,7 +64,7 @@ public class TEMPImpl<C extends IComponent<C>> extends Utility<C> implements TEM
                 File outputFile = new File( file.toString() );
                 boolean preExists = outputFile.exists();
                 PrintStream out = new PrintStream( outputFile );
-                out.print( bufferStack.peek() );
+                out.print( buffers.peek() );
                 out.flush();
                 out.close();
                 if ( preExists ) System.out.printf( "File '%s' REPLACED.\n", file.toString() );

@@ -30,5 +30,10 @@ public class LOGImpl<C extends IComponent<C>> extends Utility<C> implements LOG 
     public void LogInteger( int message ) {
         System.out.printf( "INTEGER: %d\n", message );
     }
+    
+    @Override
+    public void LogReal( XtumlString message, double r ) {
+        System.out.printf( "REAL: %s %f\n", message, r );
+    }
 
 }
