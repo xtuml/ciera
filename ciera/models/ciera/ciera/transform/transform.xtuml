@@ -90,6 +90,9 @@ for each c_c in c_cs
   relate executor to comp_inst across R4028.''provides execution context for'';
   if ( not_empty current_comp_inst )
     relate comp_inst to current_comp_inst across R4029.''follows'';
+    comp_inst.index = current_comp_inst.index + 1;
+  else
+    comp_inst.index = 0;
   end if;
   current_comp_inst = comp_inst;
 end for;',
@@ -2674,6 +2677,7 @@ if ( not_empty act_smt and not_empty block )
     ::transformBlockForFor( upper_block:block, act_blk:control_blk, block_number:control_block_number, iter_var:iter_var, for_smt:for_smt );
     select any control_block related by block->InvocableObject[R4000.''is invoked in'']->CodeBlock[R4000.''has''] where ( selected.block_number == control_block_number );
     relate control_block to for_smt across R455.''controls'';
+    for_smt.initializeIterator();
     ::addStringToImports( file: ::getFileForStatement( smt:smt ), s:"java.util.Iterator", type:ImportType::IMPL );
 
   else
@@ -4001,7 +4005,7 @@ if ( not_empty v_bin )
   select one l_set related by l_type->ClassSet[R407];
   // translate the operator
   if ( "and" == T::l( s:v_bin.Operator ) )
-    if ( l_type.primitive )
+    if ( l_type.primitive() )
       binary.operator = "&&";
       binary.invocation = false;
     else
@@ -4009,7 +4013,7 @@ if ( not_empty v_bin )
       binary.invocation = true;
     end if;
   elif ( "or" == T::l( s:v_bin.Operator ) )
-    if ( l_type.primitive )
+    if ( l_type.primitive() )
       binary.operator = "||";
       binary.invocation = false;
     else
@@ -4017,7 +4021,7 @@ if ( not_empty v_bin )
       binary.invocation = true;
     end if;
   elif ( "==" == T::l( s:v_bin.Operator ) )
-    if ( l_type.primitive )
+    if ( l_type.primitive() )
       binary.operator = "==";
       binary.invocation = false;
     else
@@ -4025,7 +4029,7 @@ if ( not_empty v_bin )
       binary.invocation = true;
     end if;
   elif ( "!=" == T::l( s:v_bin.Operator ) )
-    if ( l_type.primitive )
+    if ( l_type.primitive() )
       binary.operator = "!=";
       binary.invocation = false;
     else
@@ -4033,7 +4037,7 @@ if ( not_empty v_bin )
       binary.invocation = true;
     end if;
   elif ( "<" == T::l( s:v_bin.Operator ) )
-    if ( l_type.primitive )
+    if ( l_type.primitive() )
       binary.operator = "<";
       binary.invocation = false;
     else
@@ -4041,7 +4045,7 @@ if ( not_empty v_bin )
       binary.invocation = true;
     end if;
   elif ( "<=" == T::l( s:v_bin.Operator ) )
-    if ( l_type.primitive )
+    if ( l_type.primitive() )
       binary.operator = "<=";
       binary.invocation = false;
     else
@@ -4049,7 +4053,7 @@ if ( not_empty v_bin )
       binary.invocation = true;
     end if;
   elif ( ">" == T::l( s:v_bin.Operator ) )
-    if ( l_type.primitive )
+    if ( l_type.primitive() )
       binary.operator = ">";
       binary.invocation = false;
     else
@@ -4057,7 +4061,7 @@ if ( not_empty v_bin )
       binary.invocation = true;
     end if;
   elif ( ">=" == T::l( s:v_bin.Operator ) )
-    if ( l_type.primitive )
+    if ( l_type.primitive() )
       binary.operator = ">=";
       binary.invocation = false;
     else
@@ -4065,7 +4069,7 @@ if ( not_empty v_bin )
       binary.invocation = true;
     end if;
   elif ( "+" == T::l( s:v_bin.Operator ) )
-    if ( l_type.primitive )
+    if ( l_type.primitive() )
       binary.operator = "+";
       binary.invocation = false;
     else
@@ -4080,7 +4084,7 @@ if ( not_empty v_bin )
       binary.invocation = true;
     end if;
   elif ( "-" == T::l( s:v_bin.Operator ) )
-    if ( l_type.primitive )
+    if ( l_type.primitive() )
       binary.operator = "-";
       binary.invocation = false;
     else
@@ -4092,7 +4096,7 @@ if ( not_empty v_bin )
       binary.invocation = true;
     end if;
   elif ( "*" == T::l( s:v_bin.Operator ) )
-    if ( l_type.primitive )
+    if ( l_type.primitive() )
       binary.operator = "*";
       binary.invocation = false;
     else
@@ -4100,7 +4104,7 @@ if ( not_empty v_bin )
       binary.invocation = true;
     end if;
   elif ( "/" == T::l( s:v_bin.Operator ) )
-    if ( l_type.primitive )
+    if ( l_type.primitive() )
       binary.operator = "/";
       binary.invocation = false;
     else
@@ -4108,7 +4112,7 @@ if ( not_empty v_bin )
       binary.invocation = true;
     end if;
   elif ( "%" == T::l( s:v_bin.Operator ) )
-    if ( l_type.primitive )
+    if ( l_type.primitive() )
       binary.operator = "%";
       binary.invocation = false;
     else
@@ -4391,7 +4395,7 @@ if ( not_empty act_blk )
   // create code block
   create object instance block of CodeBlock;
   if ( empty upper_block )
-    relate block to invocable across R430.''is invoked first for'';
+    block.top_level = true;
     block.tab_depth = 1;
     select one port_msg related by invocable->PortMessage[R427];
     if ( not_empty port_msg )
@@ -4407,6 +4411,7 @@ if ( not_empty act_blk )
     end if;
   else
     select one invocable related by upper_block->InvocableObject[R4000.''is invoked in''];
+    block.top_level = false;
     block.tab_depth = upper_block.tab_depth + 1;
   end if;
   relate block to invocable across R4000.''is invoked in'';

@@ -229,7 +229,7 @@ invocable = param.invocable;
 
 // create code block
 create object instance block of CodeBlock;
-relate block to invocable across R430;
+block.top_level = true;
 block.tab_depth = 4;
 relate block to invocable across R4000;
 block.block_number = "1";
@@ -427,7 +427,7 @@ end if;
 smt.oal = "";
 
 // add XtumlString to the imports
-select one registry_file related by block->InvocableObject[R430]->GenericInvocable[R427]->Z_Template[R3053]->Z_TemplateRegistry[R3052]->GeneralFile[R3051]->File[R401];
+select one registry_file related by block->InvocableObject[R4000]->GenericInvocable[R427]->Z_Template[R3053]->Z_TemplateRegistry[R3052]->GeneralFile[R3051]->File[R401];
 ::addStringToImports( file:registry_file, s:"io.ciera.summit.types.XtumlString", type:ImportType::IMPL );
 
 // create an invocation to TEMP::append
@@ -540,7 +540,7 @@ for each invocable in invocables
         "emit" == selected.invoked_name or
         "include" == selected.invoked_name ) );
     if ( not_empty template_invocation ) // for bodies which invoke the template utility, add statements to handle the buffer stack
-      select one top_block related by invocable->CodeBlock[R430];
+      select any top_block related by invocable->CodeBlock[R4000] where ( selected.top_level );
       indent = ::getIndent( tab_depth:top_block.tab_depth + 1 );
       top_block.prefix = top_block.prefix + indent + "pushBufferStack();\n";
       top_block.suffix = top_block.suffix + indent + "popBufferStack();\n";
