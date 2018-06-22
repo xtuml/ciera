@@ -34,6 +34,6 @@ RSL_TU_process_templates( c_t * p_root_folder )
   system( cmdline );
 
   // load the newly created instances
-  static char * a[2] = { "RSL_TU_process_templates", "gen/code_generation/c.xtuml" };
+  static char * a[2] = { "RSL_TU_process_templates", "gen/code_generation/d.xtuml" };
   Escher_xtUML_load( 2, a );
 }

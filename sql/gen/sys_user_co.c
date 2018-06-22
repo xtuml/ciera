@@ -96,6 +96,15 @@ UserPostOoaInitializationCalloutf( int argc, char ** argv )
 
   // translate the model
   loader_gen_translate();
+
+  // dump instances
+  for ( int i = 0; i < loader_MAX_CLASS_NUMBERS; i++ ) {
+    if ( ! ( ( loader_V_VAL_CLASS_NUMBER <= i ) && ( i <= loader_V_SCV_CLASS_NUMBER ) ) &&        // ignore V_ subsystem
+         ! ( ( loader_ACT_BLK_CLASS_NUMBER <= i ) && ( i <= loader_ACT_BIE_CLASS_NUMBER ) ) &&    // ignore ACT_ subsystem
+         ! ( ( i == loader_Mark_CLASS_NUMBER ) || ( i == loader_Markable_CLASS_NUMBER ) || ( i == loader_Feature_CLASS_NUMBER ) ) )     // ignore ooaofmarking
+    Escher_dump_instances( 0, i );
+  }
+
 }
 
 /*

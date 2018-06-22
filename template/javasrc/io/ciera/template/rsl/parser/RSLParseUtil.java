@@ -11,7 +11,7 @@ import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
 public class RSLParseUtil {
     
-    private static final String OUT_FILE = "gen/code_generation/c.xtuml";
+    private static final String OUT_FILE = "gen/code_generation/d.xtuml";
     private static PrintStream out;
 
     public static void main( String[] args ) {

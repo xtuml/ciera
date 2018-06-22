@@ -100,7 +100,8 @@ UserPostOoaInitializationCalloutf( int argc, char ** argv )
   // dump instances
   for ( int i = 0; i < RSL_MAX_CLASS_NUMBERS; i++ ) {
     if ( ! ( ( RSL_V_VAL_CLASS_NUMBER <= i ) && ( i <= RSL_V_SCV_CLASS_NUMBER ) ) &&        // ignore V_ subsystem
-         ! ( ( RSL_ACT_BLK_CLASS_NUMBER <= i ) && ( i <= RSL_ACT_BIE_CLASS_NUMBER ) ) )     // ignore ACT_ subsystem
+         ! ( ( RSL_ACT_BLK_CLASS_NUMBER <= i ) && ( i <= RSL_ACT_BIE_CLASS_NUMBER ) ) &&    // ignore ACT_ subsystem
+         ! ( ( i == RSL_Mark_CLASS_NUMBER ) || ( i == RSL_Markable_CLASS_NUMBER ) || ( i == RSL_Feature_CLASS_NUMBER ) ) )     // ignore ooaofmarking
     Escher_dump_instances( 0, i );
   }
 

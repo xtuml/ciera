@@ -100,7 +100,8 @@ UserPostOoaInitializationCalloutf( int argc, char ** argv )
   // dump instances
   for ( int i = 0; i < ciera_MAX_CLASS_NUMBERS; i++ ) {
     if ( ! ( ( ciera_V_VAL_CLASS_NUMBER <= i ) && ( i <= ciera_V_SCV_CLASS_NUMBER ) ) &&        // ignore V_ subsystem
-         ! ( ( ciera_ACT_BLK_CLASS_NUMBER <= i ) && ( i <= ciera_ACT_BIE_CLASS_NUMBER ) ) )     // ignore ACT_ subsystem
+         ! ( ( ciera_ACT_BLK_CLASS_NUMBER <= i ) && ( i <= ciera_ACT_BIE_CLASS_NUMBER ) ) &&    // ignore ACT_ subsystem
+         ! ( ( i == ciera_Mark_CLASS_NUMBER ) || ( i == ciera_Markable_CLASS_NUMBER ) || ( i == ciera_Feature_CLASS_NUMBER ) ) )     // ignore ooaofmarking
     Escher_dump_instances( 0, i );
   }
 
