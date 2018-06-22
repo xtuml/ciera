@@ -96,6 +96,14 @@ UserPostOoaInitializationCalloutf( int argc, char ** argv )
 
   // translate the model
   RSL_gen_translate();
+
+  // dump instances
+  for ( int i = 0; i < RSL_MAX_CLASS_NUMBERS; i++ ) {
+    if ( ! ( ( RSL_V_VAL_CLASS_NUMBER <= i ) && ( i <= RSL_V_SCV_CLASS_NUMBER ) ) &&        // ignore V_ subsystem
+         ! ( ( RSL_ACT_BLK_CLASS_NUMBER <= i ) && ( i <= RSL_ACT_BIE_CLASS_NUMBER ) ) )     // ignore ACT_ subsystem
+    Escher_dump_instances( 0, i );
+  }
+
 }
 
 /*
