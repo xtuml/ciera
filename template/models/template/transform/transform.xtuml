@@ -322,7 +322,20 @@ if ( not_empty buffer )
     if ( not_empty current_buffer_element )
       select one blob related by current_buffer_element->Y_Blob[R3057];
       if ( not_empty blob )
-        ::transformRSLBlob( blob:blob, block:block );
+        blob_string = blob.BLOB;
+        select any next_buffer_element related by buffer->Y_BufferElement[R3056] where ( selected.node_id > current_buffer_element.node_id );
+        if ( empty next_buffer_element )  // if this blob is the last element in the buffer line, handle line break special cases
+          if ( "\\\\\\" == STR::substr( s:blob_string, begin:STR::strlen( s:blob_string ) - 3, end:-1 ) )  // three slashes = literal slash, no newline
+            blob_string = STR::substr( s:blob_string, begin:0, end:STR::strlen( s:blob_string ) - 3 ) + "\\\\";
+          elif ( "\\\\" == STR::substr( s:blob_string, begin:STR::strlen( s:blob_string ) - 2, end:-1 ) )  // two slashes = literal slash, with newline
+            blob_string = STR::substr( s:blob_string, begin:0, end:STR::strlen( s:blob_string ) - 2 ) + "\\\\\\" + "n";
+          elif ( "\\" == STR::substr( s:blob_string, begin:STR::strlen( s:blob_string ) - 1, end:-1 ) )    // one slash = no literal slash, no newline
+            blob_string = STR::substr( s:blob_string, begin:0, end:STR::strlen( s:blob_string ) - 1 );
+          else                                                                                             // no slashes = no literal slash, with newline
+            blob_string = blob_string + "\\" + "n";
+          end if;
+        end if;
+        ::templateAppendString( block:block, str:blob_string );
       else
       select one sub_var related by current_buffer_element->Y_SubstitutionVar[R3057];
       if ( not_empty sub_var )
@@ -400,12 +413,57 @@ INSERT INTO PE_PE
 	"00000000-0000-0000-0000-000000000000",
 	1);
 INSERT INTO S_SYNC
-	VALUES ("92e809f7-0212-4287-9baa-502033e823ab",
+	VALUES ("d9b12366-1a10-402c-971a-9370b6b2599f",
 	"00000000-0000-0000-0000-000000000000",
-	'transformRSLBlob',
+	'resolveTemplateHooks',
 	'',
-	'blob = param.blob;
-block = param.block;
+	'select many affected_files from instances of File where false;
+select many invocables from instances of InvocableObject;
+for each invocable in invocables
+  select one generic_invoc related by invocable->GenericInvocable[R427];
+  if ( empty generic_invoc )
+    select any template_invocation related by invocable->CodeBlock[R4000]->Statement[R450]->Expression[R775]->Invocation[R776] where
+      ( "TEMP" == selected.invoked_parent_name and "io.ciera.template.util" == selected.invoked_parent_package and
+      ( "append" == selected.invoked_name or
+        "body" == selected.invoked_name or
+        "clear" == selected.invoked_name or
+        "emit" == selected.invoked_name or
+        "include" == selected.invoked_name ) );
+    if ( not_empty template_invocation ) // for bodies which invoke the template utility, add statements to handle the buffer stack
+      select any top_block related by invocable->CodeBlock[R4000] where ( selected.top_level );
+      indent = ::getIndent( tab_depth:top_block.tab_depth + 1 );
+      top_block.prefix = top_block.prefix + indent + "context().TEMP().pushBuffer();\n";
+      top_block.suffix = top_block.suffix + indent + "context().TEMP().popBuffer();\n";
+      // add to the affected files list
+      file = ::getFileForInvocable( invocable:invocable );
+      affected_files = affected_files | file;
+    end if;
+  end if;
+end for;
+
+// re-render affected files
+for each file in affected_files
+  if ( not file.exclude )
+    LOG::LogInfo( message:"  " + file.package + "." + file.name + file.extension + " REPLACED" );
+    file.render();
+  end if;
+end for;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO PE_PE
+	VALUES ("d9b12366-1a10-402c-971a-9370b6b2599f",
+	1,
+	"0f65277e-71ba-472a-ad12-048000976d40",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("44750a9b-7eff-4709-8e36-a05f7ccb49c5",
+	"00000000-0000-0000-0000-000000000000",
+	'templateAppendString',
+	'',
+	'block = param.block;
 
 // get last statement in block
 select any prev_smt related by block->Statement[R450];
@@ -482,7 +540,7 @@ if ( not_empty utility )
     end if;
     create object instance lit of Literal;
     relate lit to expr3 across R776;
-    lit.value = blob.BLOB;
+    lit.value = param.str;
     create object instance act_parm of ActualParameter;
     relate act_parm to expr3 across R794;
     select any parm related by invocable->FormalParameter[R429];
@@ -498,78 +556,25 @@ end if;',
 	'',
 	0);
 INSERT INTO S_SPARM
-	VALUES ("a591445f-f6e0-4f03-a464-0530e2070dd1",
-	"92e809f7-0212-4287-9baa-502033e823ab",
-	'blob',
-	"5a531544-516a-4913-ae40-89d67fe28827",
-	0,
-	'',
-	"00000000-0000-0000-0000-000000000000",
-	'');
-INSERT INTO S_DT_PROXY
-	VALUES ("5a531544-516a-4913-ae40-89d67fe28827",
-	"00000000-0000-0000-0000-000000000000",
-	'inst_ref<Blob>',
-	'',
-	'',
-	'../RSL/RSL.xtuml');
-INSERT INTO S_SPARM
-	VALUES ("e12c560b-41f3-45da-986c-f206fa34e7fd",
-	"92e809f7-0212-4287-9baa-502033e823ab",
+	VALUES ("b57fba2a-3c39-4ade-bd7a-772605067f5c",
+	"44750a9b-7eff-4709-8e36-a05f7ccb49c5",
 	'block',
 	"e2eb4f67-ca2b-42ab-accf-5a2b475f8933",
 	0,
 	'',
-	"a591445f-f6e0-4f03-a464-0530e2070dd1",
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("3b3d7f37-6700-43e8-be85-92ed03df24a1",
+	"44750a9b-7eff-4709-8e36-a05f7ccb49c5",
+	'str',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"b57fba2a-3c39-4ade-bd7a-772605067f5c",
 	'');
 INSERT INTO PE_PE
-	VALUES ("92e809f7-0212-4287-9baa-502033e823ab",
-	1,
-	"0f65277e-71ba-472a-ad12-048000976d40",
-	"00000000-0000-0000-0000-000000000000",
-	1);
-INSERT INTO S_SYNC
-	VALUES ("d9b12366-1a10-402c-971a-9370b6b2599f",
-	"00000000-0000-0000-0000-000000000000",
-	'resolveTemplateHooks',
-	'',
-	'select many affected_files from instances of File where false;
-select many invocables from instances of InvocableObject;
-for each invocable in invocables
-  select one generic_invoc related by invocable->GenericInvocable[R427];
-  if ( empty generic_invoc )
-    select any template_invocation related by invocable->CodeBlock[R4000]->Statement[R450]->Expression[R775]->Invocation[R776] where
-      ( "TEMP" == selected.invoked_parent_name and "io.ciera.template.util" == selected.invoked_parent_package and
-      ( "append" == selected.invoked_name or
-        "body" == selected.invoked_name or
-        "clear" == selected.invoked_name or
-        "emit" == selected.invoked_name or
-        "include" == selected.invoked_name ) );
-    if ( not_empty template_invocation ) // for bodies which invoke the template utility, add statements to handle the buffer stack
-      select any top_block related by invocable->CodeBlock[R4000] where ( selected.top_level );
-      indent = ::getIndent( tab_depth:top_block.tab_depth + 1 );
-      top_block.prefix = top_block.prefix + indent + "context().TEMP().pushBuffer();\n";
-      top_block.suffix = top_block.suffix + indent + "context().TEMP().popBuffer();\n";
-      // add to the affected files list
-      file = ::getFileForInvocable( invocable:invocable );
-      affected_files = affected_files | file;
-    end if;
-  end if;
-end for;
-
-// re-render affected files
-for each file in affected_files
-  if ( not file.exclude )
-    LOG::LogInfo( message:"  " + file.package + "." + file.name + file.extension + " REPLACED" );
-    file.render();
-  end if;
-end for;',
-	"ba5eda7a-def5-0000-0000-000000000000",
-	1,
-	'',
-	0);
-INSERT INTO PE_PE
-	VALUES ("d9b12366-1a10-402c-971a-9370b6b2599f",
+	VALUES ("44750a9b-7eff-4709-8e36-a05f7ccb49c5",
 	1,
 	"0f65277e-71ba-472a-ad12-048000976d40",
 	"00000000-0000-0000-0000-000000000000",

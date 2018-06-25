@@ -5,8 +5,6 @@ package io.ciera.template.rsl.parser;
 }
 
 fragment WS:               [ \t];
-fragment NL:               ( '\r\n' | '\n' );
-fragment ESC:              '\\';
 
 // THE 'INITIAL' MODE IS FOR MATCHING SEQUENCES AT THE BEGINNING OF A LINE
 
@@ -18,14 +16,14 @@ END:                       WS* '.end' -> pushMode(CONTROL);
 
 INITIAL_BLOB:              WS* ( ~( [$\r\n.] ) | '$$' | '..' ) ( ~( [$\r\n] ) | WS | '$$' )*  -> type(BLOB), pushMode(BUFFER);
 INITIAL_DOLLAR:            DOLLAR -> type(DOLLAR), pushMode(BUFFER), pushMode(SUBVAR);
-INITIAL_NEWLINE:           ( ESC ESC ESC NL | ESC ESC NL | ESC NL | NL ) -> type(NEWLINE);
+INITIAL_NEWLINE:           NEWLINE -> type(NEWLINE);
 
 // THE 'BUFFER' MODE IS FOR MATCHING LITERAL TEXT WITHIN A LINE
 mode BUFFER;
 
 DOLLAR:                    '$' -> pushMode(SUBVAR);
 BLOB:                      ( ~( [$\r\n] ) | WS | '$$' )+;
-BUFFER_NEWLINE:            INITIAL_NEWLINE -> popMode, type(NEWLINE);
+BUFFER_NEWLINE:            NEWLINE -> popMode, type(NEWLINE);
 
 // THE 'STRING' MODE IS FOR MATCHING LITERAL TEXT WITHIN QUOTATION MARKS
 mode STRING;
@@ -71,7 +69,7 @@ EQ:                        '==';
 NE:                        '!=';
 LPAREN:                    '(';
 RPAREN:                    ')';
-NEWLINE:                   NL -> popMode;
+NEWLINE:                   ( '\r\n' | '\n' ) -> popMode;
 
 ID:                        [a-zA-Z][a-zA-Z0-9_]* ;
 
