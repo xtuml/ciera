@@ -322,24 +322,11 @@ if ( not_empty buffer )
     if ( not_empty current_buffer_element )
       select one blob related by current_buffer_element->Y_Blob[R3057];
       if ( not_empty blob )
-        blob_string = blob.BLOB;
-        select any next_buffer_element related by buffer->Y_BufferElement[R3056] where ( selected.node_id > current_buffer_element.node_id );
-        if ( empty next_buffer_element )  // if this blob is the last element in the buffer line, handle line break special cases
-          if ( "\\\\\\" == STR::substr( s:blob_string, begin:STR::strlen( s:blob_string ) - 3, end:-1 ) )  // three slashes = literal slash, no newline
-            blob_string = STR::substr( s:blob_string, begin:0, end:STR::strlen( s:blob_string ) - 3 ) + "\\\\";
-          elif ( "\\\\" == STR::substr( s:blob_string, begin:STR::strlen( s:blob_string ) - 2, end:-1 ) )  // two slashes = literal slash, with newline
-            blob_string = STR::substr( s:blob_string, begin:0, end:STR::strlen( s:blob_string ) - 2 ) + "\\\\\\" + "n";
-          elif ( "\\" == STR::substr( s:blob_string, begin:STR::strlen( s:blob_string ) - 1, end:-1 ) )    // one slash = no literal slash, no newline
-            blob_string = STR::substr( s:blob_string, begin:0, end:STR::strlen( s:blob_string ) - 1 );
-          else                                                                                             // no slashes = no literal slash, with newline
-            blob_string = blob_string + "\\" + "n";
-          end if;
-        end if;
-        ::templateAppendString( block:block, str:blob_string );
+        ::transformRSLBlob( blob:blob, block:block );
       else
       select one sub_var related by current_buffer_element->Y_SubstitutionVar[R3057];
       if ( not_empty sub_var )
-        // TODO
+        ::transformRSLSubstitutionVar( sub_var:sub_var, block:block );
       end if; end if;
       current_id = current_buffer_element.node_id;
     else
@@ -488,6 +475,162 @@ smt.oal = "";
 select one registry_file related by block->InvocableObject[R4000]->GenericInvocable[R427]->Z_Template[R3053]->Z_TemplateRegistry[R3052]->GeneralFile[R3051]->File[R401];
 ::addStringToImports( file:registry_file, s:"io.ciera.summit.types.XtumlString", type:ImportType::IMPL );
 
+// transform argument expression
+create object instance expr_arg of Expression;
+relate expr_arg to smt across R775;
+expr_arg.expression_number = "1.2";
+select any string_type from instances of Type where ( "XtumlString" == selected.name and "io.ciera.summit.types" == selected.package );
+if ( not_empty string_type )
+  relate string_type to expr_arg across R795;
+else
+  // TODO bad
+end if;
+create object instance lit of Literal;
+relate lit to expr_arg across R776;
+lit.value = param.str;
+::templateAppend( smt:smt, expr:expr_arg );',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("b57fba2a-3c39-4ade-bd7a-772605067f5c",
+	"44750a9b-7eff-4709-8e36-a05f7ccb49c5",
+	'block',
+	"e2eb4f67-ca2b-42ab-accf-5a2b475f8933",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("3b3d7f37-6700-43e8-be85-92ed03df24a1",
+	"44750a9b-7eff-4709-8e36-a05f7ccb49c5",
+	'str',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"b57fba2a-3c39-4ade-bd7a-772605067f5c",
+	'');
+INSERT INTO PE_PE
+	VALUES ("44750a9b-7eff-4709-8e36-a05f7ccb49c5",
+	1,
+	"0f65277e-71ba-472a-ad12-048000976d40",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("8bb45b69-2502-4858-9b42-1868a1a7be69",
+	"00000000-0000-0000-0000-000000000000",
+	'transformRSLBlob',
+	'',
+	'blob = param.blob;
+block = param.block;
+
+blob_string = blob.BLOB;
+select any next_buffer_element related by blob->Y_BufferElement[R3057]->Y_Buffer[R3056]->Y_BufferElement[R3056] where ( selected.node_id > blob.node_id );
+if ( empty next_buffer_element )  // if this blob is the last element in the buffer line, handle line break special cases
+  if ( "\\\\\\" == STR::substr( s:blob_string, begin:STR::strlen( s:blob_string ) - 3, end:-1 ) )  // three slashes = literal slash, no newline
+    blob_string = STR::substr( s:blob_string, begin:0, end:STR::strlen( s:blob_string ) - 3 ) + "\\\\";
+  elif ( "\\\\" == STR::substr( s:blob_string, begin:STR::strlen( s:blob_string ) - 2, end:-1 ) )  // two slashes = literal slash, with newline
+    blob_string = STR::substr( s:blob_string, begin:0, end:STR::strlen( s:blob_string ) - 2 ) + "\\\\\\" + "n";
+  elif ( "\\" == STR::substr( s:blob_string, begin:STR::strlen( s:blob_string ) - 1, end:-1 ) )    // one slash = no literal slash, no newline
+    blob_string = STR::substr( s:blob_string, begin:0, end:STR::strlen( s:blob_string ) - 1 );
+  else                                                                                             // no slashes = no literal slash, with newline
+    blob_string = blob_string + "\\" + "n";
+  end if;
+end if;
+
+// create statement and expression
+::templateAppendString( block:block, str:blob_string );',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("8b35003c-f044-485e-afec-ba998b6c1cd0",
+	"8bb45b69-2502-4858-9b42-1868a1a7be69",
+	'blob',
+	"5a531544-516a-4913-ae40-89d67fe28827",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("5a531544-516a-4913-ae40-89d67fe28827",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Blob>',
+	'',
+	'',
+	'../RSL/RSL.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("7d577a45-fcf0-4b98-86b0-e3c1c000bed8",
+	"8bb45b69-2502-4858-9b42-1868a1a7be69",
+	'block',
+	"e2eb4f67-ca2b-42ab-accf-5a2b475f8933",
+	0,
+	'',
+	"8b35003c-f044-485e-afec-ba998b6c1cd0",
+	'');
+INSERT INTO PE_PE
+	VALUES ("8bb45b69-2502-4858-9b42-1868a1a7be69",
+	1,
+	"0f65277e-71ba-472a-ad12-048000976d40",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("3e5e1880-d131-47e6-95ee-a2c31042f2ca",
+	"00000000-0000-0000-0000-000000000000",
+	'transformRSLSubstitutionVar',
+	'',
+	'sub_var = param.sub_var;
+block = param.block;
+
+select any next_buffer_element related by sub_var->Y_BufferElement[R3057]->Y_Buffer[R3056]->Y_BufferElement[R3056] where ( selected.node_id > sub_var.node_id );
+if ( empty next_buffer_element )  // if this substitution is the last element in the buffer line, add a newline
+  ::templateAppendString( block:block, str:"\\" + "n" );
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("c2a66cd8-b8ed-412e-97e8-f2f29ed032e8",
+	"3e5e1880-d131-47e6-95ee-a2c31042f2ca",
+	'sub_var',
+	"1429624d-48db-4d79-bcc0-5ad815e7a79e",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("1429624d-48db-4d79-bcc0-5ad815e7a79e",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Substitution Var>',
+	'',
+	'',
+	'../RSL/RSL.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("924a668f-37c7-45ec-a480-f479d80ef499",
+	"3e5e1880-d131-47e6-95ee-a2c31042f2ca",
+	'block',
+	"e2eb4f67-ca2b-42ab-accf-5a2b475f8933",
+	0,
+	'',
+	"c2a66cd8-b8ed-412e-97e8-f2f29ed032e8",
+	'');
+INSERT INTO PE_PE
+	VALUES ("3e5e1880-d131-47e6-95ee-a2c31042f2ca",
+	1,
+	"0f65277e-71ba-472a-ad12-048000976d40",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("d84b7e51-8766-4ee6-b050-05cd8bc03eb7",
+	"00000000-0000-0000-0000-000000000000",
+	'templateAppend',
+	'',
+	'smt = param.smt;
+expr_arg = param.expr;
+
 // create an invocation to TEMP::append
 select any utility from instances of Utility where ( "TEMP" == selected.name and "io.ciera.template.util" == selected.package );
 if ( not_empty utility )
@@ -529,20 +672,8 @@ if ( not_empty utility )
     relate expr2 to invoc across R798;
     named_ref.name = "context()." + utility.name + "()";
     // transform actual parameter
-    create object instance expr3 of Expression;
-    relate expr3 to smt across R775;
-    expr3.expression_number = "1.2";
-    select any string_type from instances of Type where ( "XtumlString" == selected.name and "io.ciera.summit.types" == selected.package );
-    if ( not_empty string_type )
-      relate string_type to expr3 across R795;
-    else
-      // TODO bad
-    end if;
-    create object instance lit of Literal;
-    relate lit to expr3 across R776;
-    lit.value = param.str;
     create object instance act_parm of ActualParameter;
-    relate act_parm to expr3 across R794;
+    relate act_parm to expr_arg across R794;
     select any parm related by invocable->FormalParameter[R429];
     relate invoc to parm across R793 using act_parm;
   else
@@ -556,25 +687,39 @@ end if;',
 	'',
 	0);
 INSERT INTO S_SPARM
-	VALUES ("b57fba2a-3c39-4ade-bd7a-772605067f5c",
-	"44750a9b-7eff-4709-8e36-a05f7ccb49c5",
-	'block',
-	"e2eb4f67-ca2b-42ab-accf-5a2b475f8933",
+	VALUES ("f4017050-8d4d-49b4-83c2-931db099f66e",
+	"d84b7e51-8766-4ee6-b050-05cd8bc03eb7",
+	'smt',
+	"056a9b55-7c4c-45a4-a684-ea45fce8fa86",
 	0,
 	'',
 	"00000000-0000-0000-0000-000000000000",
 	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("056a9b55-7c4c-45a4-a684-ea45fce8fa86",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Statement>',
+	'',
+	'',
+	'../../../../ciera/models/ciera/ciera/architecture/statement/statement.xtuml');
 INSERT INTO S_SPARM
-	VALUES ("3b3d7f37-6700-43e8-be85-92ed03df24a1",
-	"44750a9b-7eff-4709-8e36-a05f7ccb49c5",
-	'str',
-	"ba5eda7a-def5-0000-0000-000000000004",
+	VALUES ("b148164c-8079-4653-9887-7ff905da5316",
+	"d84b7e51-8766-4ee6-b050-05cd8bc03eb7",
+	'expr',
+	"f82d9f89-dd1e-4520-85df-cef79a550939",
 	0,
 	'',
-	"b57fba2a-3c39-4ade-bd7a-772605067f5c",
+	"f4017050-8d4d-49b4-83c2-931db099f66e",
 	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("f82d9f89-dd1e-4520-85df-cef79a550939",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Expression>',
+	'',
+	'',
+	'../../../../ciera/models/ciera/ciera/architecture/expression/expression.xtuml');
 INSERT INTO PE_PE
-	VALUES ("44750a9b-7eff-4709-8e36-a05f7ccb49c5",
+	VALUES ("d84b7e51-8766-4ee6-b050-05cd8bc03eb7",
 	1,
 	"0f65277e-71ba-472a-ad12-048000976d40",
 	"00000000-0000-0000-0000-000000000000",
