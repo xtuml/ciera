@@ -25,9 +25,9 @@ substitution_var:            DOLLAR format_chars LCURLY named_access RCURLY;
 format_chars:                /* nothing */ |
                              FORMAT;
 
-if_statement:                IF expression NEWLINE;
+if_statement:                IF ( LPAREN expression RPAREN | expression ) NEWLINE;
 
-elif_statement:              ELIF expression NEWLINE;
+elif_statement:              ELIF ( LPAREN expression RPAREN | expression ) NEWLINE;
 
 else_statement:              ELSE NEWLINE;
 

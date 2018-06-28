@@ -1117,18 +1117,9 @@ smt.oal = "";
 create object instance if_smt of IfSmt;
 relate if_smt to smt across R451;
 if_smt.is_else_if = is_else_if;
-// translate if expression TODO
-create object instance if_expr of Expression;
-relate if_expr to smt across R775;
-if_expr.expression_number = "1";
-select any boolean_type from instances of Type where ( "boolean" == selected.name and "" == selected.package );
-if ( empty boolean_type )
-  // TODO bad
-end if;
-relate boolean_type to if_expr across R795;
-create object instance lit of Literal;
-relate lit to if_expr across R776;
-lit.value = "true";
+// translate if expression
+::transformRSLExpression( expr:expr, smt:smt, expr_number:"1" );
+select any if_expr related by smt->Expression[R775] where ( selected.expression_number == "1" );
 relate if_expr to if_smt across R471;
 // create then block
 create object instance then_block of CodeBlock;
@@ -1247,6 +1238,477 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("57e875ad-32cb-4aeb-ab57-0f86612c02f7",
+	1,
+	"0f65277e-71ba-472a-ad12-048000976d40",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("19da2125-c562-4835-88c4-dd41a3ebfad4",
+	"00000000-0000-0000-0000-000000000000",
+	'transformRSLExpression',
+	'',
+	'expr = param.expr;
+smt = param.smt;
+expr_number = param.expr_number;
+
+select one disj related by expr->Y_Disjunction[R3061];
+::transformRSLDisjunction( disj:disj, smt:smt, expr_number:expr_number );',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("7fb44ff8-b1f8-4c63-b36a-fbaf7d4b1bbd",
+	"19da2125-c562-4835-88c4-dd41a3ebfad4",
+	'expr',
+	"e375419c-cbcb-4fa4-8b63-df91e6d60c8a",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("519763ed-040d-4247-aeac-846736cbd683",
+	"19da2125-c562-4835-88c4-dd41a3ebfad4",
+	'smt',
+	"056a9b55-7c4c-45a4-a684-ea45fce8fa86",
+	0,
+	'',
+	"7fb44ff8-b1f8-4c63-b36a-fbaf7d4b1bbd",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("9a47813d-3bab-4f87-8f55-28e9abf22a5c",
+	"19da2125-c562-4835-88c4-dd41a3ebfad4",
+	'expr_number',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"519763ed-040d-4247-aeac-846736cbd683",
+	'');
+INSERT INTO PE_PE
+	VALUES ("19da2125-c562-4835-88c4-dd41a3ebfad4",
+	1,
+	"0f65277e-71ba-472a-ad12-048000976d40",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("15d80acb-95d9-412f-a9b6-3c3804c75321",
+	"00000000-0000-0000-0000-000000000000",
+	'transformRSLDisjunction',
+	'',
+	'disj = param.disj;
+smt = param.smt;
+expr_number = param.expr_number;
+
+select one l_conj related by disj->Y_Conjunction[R3062];
+select many disj_ops related by disj->Y_DisjunctionOperation[R3068];
+if ( not_empty disj_ops )
+  // TODO
+else
+  ::transformRSLConjunction( conj:l_conj, smt:smt, expr_number:expr_number );
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("193bdbb2-ce99-4e5e-80fc-4c304fd908af",
+	"15d80acb-95d9-412f-a9b6-3c3804c75321",
+	'disj',
+	"b8813669-8d98-4b0e-a20d-bb2b44b2bedc",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("b8813669-8d98-4b0e-a20d-bb2b44b2bedc",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Disjunction>',
+	'',
+	'',
+	'../RSL/RSL.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("e6b16d82-9fc5-41be-80bf-69d5651ba77e",
+	"15d80acb-95d9-412f-a9b6-3c3804c75321",
+	'smt',
+	"056a9b55-7c4c-45a4-a684-ea45fce8fa86",
+	0,
+	'',
+	"193bdbb2-ce99-4e5e-80fc-4c304fd908af",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("6c81cf80-17b0-4951-8b56-debaca5a9918",
+	"15d80acb-95d9-412f-a9b6-3c3804c75321",
+	'expr_number',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"e6b16d82-9fc5-41be-80bf-69d5651ba77e",
+	'');
+INSERT INTO PE_PE
+	VALUES ("15d80acb-95d9-412f-a9b6-3c3804c75321",
+	1,
+	"0f65277e-71ba-472a-ad12-048000976d40",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("260613ea-24a0-4d11-b633-08e73020e551",
+	"00000000-0000-0000-0000-000000000000",
+	'transformRSLConjunction',
+	'',
+	'conj = param.conj;
+smt = param.smt;
+expr_number = param.expr_number;
+
+select one l_comp related by conj->Y_Comparison[R3063];
+select many conj_ops related by conj->Y_ConjunctionOperation[R3070];
+if ( not_empty conj_ops )
+  // TODO
+else
+  ::transformRSLComparison( comp:l_comp, smt:smt, expr_number:expr_number );
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("087a089c-72cc-47f6-b5e8-6e8f03f0f76c",
+	"260613ea-24a0-4d11-b633-08e73020e551",
+	'conj',
+	"2648e24a-c8c8-4114-8439-f321fdad3dd9",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("2648e24a-c8c8-4114-8439-f321fdad3dd9",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Conjunction>',
+	'',
+	'',
+	'../RSL/RSL.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("341ed73c-7c3a-40a8-b344-c4236b0403d4",
+	"260613ea-24a0-4d11-b633-08e73020e551",
+	'smt',
+	"056a9b55-7c4c-45a4-a684-ea45fce8fa86",
+	0,
+	'',
+	"087a089c-72cc-47f6-b5e8-6e8f03f0f76c",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("1173321e-18ee-4080-98cb-abbc86691765",
+	"260613ea-24a0-4d11-b633-08e73020e551",
+	'expr_number',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"341ed73c-7c3a-40a8-b344-c4236b0403d4",
+	'');
+INSERT INTO PE_PE
+	VALUES ("260613ea-24a0-4d11-b633-08e73020e551",
+	1,
+	"0f65277e-71ba-472a-ad12-048000976d40",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("93304b8a-34fd-4432-a203-4de6bf6c1091",
+	"00000000-0000-0000-0000-000000000000",
+	'transformRSLComparison',
+	'',
+	'comp = param.comp;
+smt = param.smt;
+expr_number = param.expr_number;
+
+select one l_addition related by comp->Y_Addition[R3064];
+select many comp_ops related by comp->Y_ComparisonOperation[R3072];
+if ( not_empty comp_ops )
+  // TODO
+else
+  ::transformRSLAddition( addition:l_addition, smt:smt, expr_number:expr_number );
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("d56659f5-c0b5-4350-a0f6-4bf114af857b",
+	"93304b8a-34fd-4432-a203-4de6bf6c1091",
+	'comp',
+	"5f08ed1f-66af-46d1-b08f-7b65ed5da4f2",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("5f08ed1f-66af-46d1-b08f-7b65ed5da4f2",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Comparison>',
+	'',
+	'',
+	'../RSL/RSL.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("c1fc4b04-57de-4e35-a48d-be0325c68da5",
+	"93304b8a-34fd-4432-a203-4de6bf6c1091",
+	'smt',
+	"056a9b55-7c4c-45a4-a684-ea45fce8fa86",
+	0,
+	'',
+	"d56659f5-c0b5-4350-a0f6-4bf114af857b",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("0f393f89-a190-4f10-9597-c41dbdf7a14e",
+	"93304b8a-34fd-4432-a203-4de6bf6c1091",
+	'expr_number',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"c1fc4b04-57de-4e35-a48d-be0325c68da5",
+	'');
+INSERT INTO PE_PE
+	VALUES ("93304b8a-34fd-4432-a203-4de6bf6c1091",
+	1,
+	"0f65277e-71ba-472a-ad12-048000976d40",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("f6b2ea32-8007-4151-b4e8-509db2b9ebc5",
+	"00000000-0000-0000-0000-000000000000",
+	'transformRSLAddition',
+	'',
+	'addition = param.addition;
+smt = param.smt;
+expr_number = param.expr_number;
+
+select one l_mult related by addition->Y_Multiplication[R3065];
+select many addition_ops related by addition->Y_AdditionOperation[R3074];
+if ( not_empty addition_ops )
+  // TODO
+else
+  ::transformRSLMultiplication( mult:l_mult, smt:smt, expr_number:expr_number );
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("76137524-69db-4efe-8c88-fd93052544f6",
+	"f6b2ea32-8007-4151-b4e8-509db2b9ebc5",
+	'addition',
+	"3e83d89f-3d2f-41f9-b0de-3fef92e93436",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("3e83d89f-3d2f-41f9-b0de-3fef92e93436",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Addition>',
+	'',
+	'',
+	'../RSL/RSL.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("767fe8e1-1d23-47c1-9677-3c9cbadc9ce4",
+	"f6b2ea32-8007-4151-b4e8-509db2b9ebc5",
+	'smt',
+	"056a9b55-7c4c-45a4-a684-ea45fce8fa86",
+	0,
+	'',
+	"76137524-69db-4efe-8c88-fd93052544f6",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("6ff28f8a-0269-4b86-9309-3a717a3a83a0",
+	"f6b2ea32-8007-4151-b4e8-509db2b9ebc5",
+	'expr_number',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"767fe8e1-1d23-47c1-9677-3c9cbadc9ce4",
+	'');
+INSERT INTO PE_PE
+	VALUES ("f6b2ea32-8007-4151-b4e8-509db2b9ebc5",
+	1,
+	"0f65277e-71ba-472a-ad12-048000976d40",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("5a0b51d8-a28c-4cbe-9738-2d5f1663c1bc",
+	"00000000-0000-0000-0000-000000000000",
+	'transformRSLMultiplication',
+	'',
+	'mult = param.mult;
+smt = param.smt;
+expr_number = param.expr_number;
+
+select one l_neg related by mult->Y_Negation[R3066];
+select many mult_ops related by mult->Y_MultiplicationOperation[R3076];
+if ( not_empty mult_ops )
+  // TODO
+else
+  ::transformRSLNegation( neg:l_neg, smt:smt, expr_number:expr_number );
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("e2583b97-b158-4eb2-8429-a0bcbc30e66b",
+	"5a0b51d8-a28c-4cbe-9738-2d5f1663c1bc",
+	'mult',
+	"6c4cbaef-e02e-468d-aa11-adb3b1f353fa",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("6c4cbaef-e02e-468d-aa11-adb3b1f353fa",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Multiplication>',
+	'',
+	'',
+	'../RSL/RSL.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("e751264d-bda4-40e0-94d2-8023c1ebc931",
+	"5a0b51d8-a28c-4cbe-9738-2d5f1663c1bc",
+	'smt',
+	"056a9b55-7c4c-45a4-a684-ea45fce8fa86",
+	0,
+	'',
+	"e2583b97-b158-4eb2-8429-a0bcbc30e66b",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("59491167-6fd1-4cc9-9558-b7681a6b6f83",
+	"5a0b51d8-a28c-4cbe-9738-2d5f1663c1bc",
+	'expr_number',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"e751264d-bda4-40e0-94d2-8023c1ebc931",
+	'');
+INSERT INTO PE_PE
+	VALUES ("5a0b51d8-a28c-4cbe-9738-2d5f1663c1bc",
+	1,
+	"0f65277e-71ba-472a-ad12-048000976d40",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("25d54353-cddf-4c55-817e-e773a6e4148d",
+	"00000000-0000-0000-0000-000000000000",
+	'transformRSLNegation',
+	'',
+	'neg = param.neg;
+smt = param.smt;
+expr_number = param.expr_number;
+
+select one term related by neg->Y_Term[R3067];
+select one neg_op related by neg->Y_NegationOperation[R3078];
+if ( not_empty neg_op )
+  // TODO
+else
+  ::transformRSLTerm( term:term, smt:smt, expr_number:expr_number );
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("782be782-3c4a-4033-8935-587485ec3b1a",
+	"25d54353-cddf-4c55-817e-e773a6e4148d",
+	'neg',
+	"70bf7ece-36f6-413d-b0c4-ff7d1e28dacb",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("70bf7ece-36f6-413d-b0c4-ff7d1e28dacb",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Negation>',
+	'',
+	'',
+	'../RSL/RSL.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("5fd5f1b6-ecf8-4789-814f-c2bbcab20018",
+	"25d54353-cddf-4c55-817e-e773a6e4148d",
+	'smt',
+	"056a9b55-7c4c-45a4-a684-ea45fce8fa86",
+	0,
+	'',
+	"782be782-3c4a-4033-8935-587485ec3b1a",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("7af1caa0-4963-4a4d-8314-6488e386ebcb",
+	"25d54353-cddf-4c55-817e-e773a6e4148d",
+	'expr_number',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"5fd5f1b6-ecf8-4789-814f-c2bbcab20018",
+	'');
+INSERT INTO PE_PE
+	VALUES ("25d54353-cddf-4c55-817e-e773a6e4148d",
+	1,
+	"0f65277e-71ba-472a-ad12-048000976d40",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("4bdf60d5-0b11-455a-ada3-21a0c425ad36",
+	"00000000-0000-0000-0000-000000000000",
+	'transformRSLTerm',
+	'',
+	'term = param.term;
+smt = param.smt;
+expr_number = param.expr_number;
+
+select one named_access related by term->Y_NamedAccess[R3081];
+if ( not_empty named_access )
+  ::transformRSLNamedAccess( named_access:named_access, smt:smt, expr_number:expr_number );
+
+else
+select one paren related by term->Y_Parenthesis[R3079];
+if ( not_empty paren )
+  // TODO
+
+end if; end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("bb023bfb-7780-46f8-9232-b24735e15a34",
+	"4bdf60d5-0b11-455a-ada3-21a0c425ad36",
+	'term',
+	"d3e34609-d37f-44de-a06e-dda7498ab948",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("d3e34609-d37f-44de-a06e-dda7498ab948",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Term>',
+	'',
+	'',
+	'../RSL/RSL.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("58233c14-f15e-47d3-8eb4-d96471c3d864",
+	"4bdf60d5-0b11-455a-ada3-21a0c425ad36",
+	'smt',
+	"056a9b55-7c4c-45a4-a684-ea45fce8fa86",
+	0,
+	'',
+	"bb023bfb-7780-46f8-9232-b24735e15a34",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("012b45fc-f56f-49d7-984c-b47c7a22a7ec",
+	"4bdf60d5-0b11-455a-ada3-21a0c425ad36",
+	'expr_number',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"58233c14-f15e-47d3-8eb4-d96471c3d864",
+	'');
+INSERT INTO PE_PE
+	VALUES ("4bdf60d5-0b11-455a-ada3-21a0c425ad36",
 	1,
 	"0f65277e-71ba-472a-ad12-048000976d40",
 	"00000000-0000-0000-0000-000000000000",
