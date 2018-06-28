@@ -92,7 +92,7 @@ public class XtumlRSLListener extends RSLBaseListener {
     }
 
     @Override public void exitIf_statement( RSLParser.If_statementContext ctx ) {
-        out.print( "INSERT INTO IfStatement VALUES ( ");
+        out.print( "INSERT INTO Y_IfStatement VALUES ( ");
         out.printf( "%d", parent_ids.pop() );
         out.print( ", " );
         out.printf( "%d", parent_ids.peek() );
@@ -280,6 +280,18 @@ public class XtumlRSLListener extends RSLBaseListener {
         out.printf( "%d", parent_ids.pop() );
         out.print( ", " );
         out.printf( "%d", parent_ids.peek() );
+        out.println( " );" );
+    }
+
+    @Override public void exitParenthesis( RSLParser.ParenthesisContext ctx ) {
+        out.print( "INSERT INTO Y_Parenthesis VALUES ( ");
+        out.printf( "%d", parent_ids.pop() );
+        out.print( ", " );
+        out.printf( "%d", parent_ids.peek() );
+        out.print( ", " );
+        out.printf( "'%s'", null == ctx.LPAREN() ? "" : ctx.LPAREN().getText().replaceAll( "'", "''" ) );
+        out.print( ", " );
+        out.printf( "'%s'", null == ctx.RPAREN() ? "" : ctx.RPAREN().getText().replaceAll( "'", "''" ) );
         out.println( " );" );
     }
 

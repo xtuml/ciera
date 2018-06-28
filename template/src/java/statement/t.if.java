@@ -4,7 +4,7 @@ T_b("// ");
 T_b(if_oal);
 T_b("\n");
 }
-if ( ! is_else_if ) {
+if ( ! self->is_else_if ) {
 T_b(indent);
 T_b("");
 }

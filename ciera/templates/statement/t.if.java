@@ -1,7 +1,7 @@
 .if ( "" != if_oal )
 ${indent}// ${if_oal}
 .end if
-.if ( not is_else_if )
+.if ( not self->is_else_if )
 ${indent}\
 .end if
 if ( ${cond_expr} ) ${then_block}\

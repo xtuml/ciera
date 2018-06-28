@@ -2526,6 +2526,7 @@ if ( not_empty act_smt and not_empty block )
     // create if statement
     create object instance if_smt of IfSmt;
     relate if_smt to smt across R451;
+    if_smt.is_else_if = false;
     // translate if expression
     select one if_val related by act_if->V_VAL[R625];
     ::transformExpression( v_val:if_val, expr_number:"1", smt:smt );
@@ -4528,6 +4529,7 @@ smt.oal = ::getOalStatement( body:body.oal, line_num:act_smt.LineNumber );
 // create if statement
 create object instance if_smt of IfSmt;
 relate if_smt to smt across R451;
+if_smt.is_else_if = true;
 
 // translate if expression
 select one if_val related by act_el->V_VAL[R659];
@@ -5219,51 +5221,6 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("6ea429a3-849e-4560-8daa-d650e2021aae",
-	1,
-	"06787f13-1c16-4275-879c-00bbeee7cb88",
-	"00000000-0000-0000-0000-000000000000",
-	1);
-INSERT INTO S_SYNC
-	VALUES ("1902006f-da85-4c2d-8a7d-5f78d06d6f4e",
-	"00000000-0000-0000-0000-000000000000",
-	'getNextBlockNumber',
-	'',
-	'upper_block = param.upper_block;
-
-select many then_blocks related by upper_block->Statement[R450.''is scope for'']->IfSmt[R451]->CodeBlock[R453.''has then''];
-select many else_blocks related by upper_block->Statement[R450.''is scope for'']->IfSmt[R451]->CodeBlock[R454.''has else''];
-select many while_blocks related by upper_block->Statement[R450.''is scope for'']->WhileSmt[R451]->CodeBlock[R456.''has control''];
-select many for_blocks related by upper_block->Statement[R450.''is scope for'']->ForSmt[R451]->CodeBlock[R455.''has control''];
-
-child_blocks = then_blocks + else_blocks + while_blocks + for_blocks;
-
-// find the most recent child block
-block_number = "0";
-for each child_block in child_blocks
-  if ( child_block.block_number > block_number )
-    block_number = child_block.block_number;
-  end if;
-end for;
-
-// increment
-block_number = upper_block.block_number + "." + STR::itoa( i:STR::atoi( s:STR::substr( s:block_number, begin:STR::strlen( s:upper_block.block_number ) + 1, end:-1 ) ) + 1 );
-
-return block_number;',
-	"ba5eda7a-def5-0000-0000-000000000004",
-	1,
-	'',
-	0);
-INSERT INTO S_SPARM
-	VALUES ("7d04c229-aead-4692-b596-ce1e9b176a33",
-	"1902006f-da85-4c2d-8a7d-5f78d06d6f4e",
-	'upper_block',
-	"e2eb4f67-ca2b-42ab-accf-5a2b475f8933",
-	0,
-	'',
-	"00000000-0000-0000-0000-000000000000",
-	'');
-INSERT INTO PE_PE
-	VALUES ("1902006f-da85-4c2d-8a7d-5f78d06d6f4e",
 	1,
 	"06787f13-1c16-4275-879c-00bbeee7cb88",
 	"00000000-0000-0000-0000-000000000000",

@@ -238,7 +238,6 @@ block.block_number = "1";
 // the variables that are copied is the intersection set of all the contexts where
 // this particular template is included
 // create a statement
-LOG::LogInfo( message:"working on: " + body.filename );
 create object instance smt of Statement;
 relate smt to block across R450;
 smt.statement_number = "1";
@@ -248,7 +247,6 @@ relate nullsmt to smt across R451;
 select many includes from instances of Invocation where ( "TEMP" == selected.invoked_parent_name and "io.ciera.template.util" == selected.invoked_parent_package and "include" == selected.invoked_name );
 select many act_params related by includes->ActualParameter[R793]->Expression[R794]->Literal[R776] where ( body.filename == selected.value );
 select many includes related by act_params->Expression[R776]->ActualParameter[R794]->Invocation[R793];
-LOG::LogInfo( message:"num places included: " + STR::itoa( i:cardinality includes ) );
 select many incl_vars related by includes->Expression[R776]->Statement[R775]->CodeBlock[R450]->Variable[R458];
 for each incl_var in incl_vars
   select many matching_vars related by includes->Expression[R776]->Statement[R775]->CodeBlock[R450]->Variable[R458]
@@ -374,22 +372,36 @@ if ( not_empty buffer )
 else
 select one if_smt related by line->Y_IfStatement[R3055];
 if ( not_empty if_smt )
-  // TODO
+  select one if_expr related by if_smt->Y_Expression[R3059];
+  block = ::transformRSLIfStatement( block:block, expr:if_expr, is_else_if:false );
   
 else
 select one elif_smt related by line->Y_ElifStatement[R3055];
 if ( not_empty elif_smt )
-  // TODO
+  select one elif_expr related by elif_smt->Y_Expression[R3060];
+  block = ::transformRSLElseStatement( block:block, is_else_if:true );
+  block = ::transformRSLIfStatement( block:block, expr:elif_expr, is_else_if:true );
   
 else
 select one else_smt related by line->Y_ElseStatement[R3055];
 if ( not_empty else_smt )
-  // TODO
+  block = ::transformRSLElseStatement( block:block, is_else_if:false );
   
 else
 select one endif_smt related by line->Y_EndIfStatement[R3055];
 if ( not_empty endif_smt )
-  // TODO
+  // pop up to the parent block
+  select one ifsmt related by block->IfSmt[R453];
+  if ( empty ifsmt )
+    select one ifsmt related by block->IfSmt[R454];
+  end if;
+  while ( ifsmt.is_else_if )
+    select one ifsmt related by ifsmt->Statement[R451]->CodeBlock[R450]->IfSmt[R454]; // elif must be within an ''else'' block
+    if ( empty ifsmt )
+      // TODO bad
+    end if;
+  end while;
+  select one block related by ifsmt->Statement[R451]->CodeBlock[R450];
 
 end if; end if; end if; end if; end if;
 
@@ -1071,6 +1083,170 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("275144d6-f10d-44eb-be5e-b929d82bcc7a",
+	1,
+	"0f65277e-71ba-472a-ad12-048000976d40",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("7d9024b5-7655-4bba-973a-da3b2a9f2d92",
+	"00000000-0000-0000-0000-000000000000",
+	'transformRSLIfStatement',
+	'',
+	'block = param.block;
+expr = param.expr;
+is_else_if = param.is_else_if;
+
+// get last statement in block
+select any prev_smt related by block->Statement[R450];
+select one next_smt related by prev_smt->Statement[R477.''executes before''];
+while ( not_empty next_smt )
+  prev_smt = next_smt;
+  select one next_smt related by prev_smt->Statement[R477.''executes before''];
+end while;
+// create a statement
+create object instance smt of Statement;
+relate smt to block across R450;
+if ( not_empty prev_smt )
+  smt.statement_number = STR::itoa( i:STR::atoi( s:prev_smt.statement_number ) + 1 );
+  relate smt to prev_smt across R477.''executes after'';
+else
+  smt.statement_number = "1";
+end if;
+smt.oal = "";
+// create if statement
+create object instance if_smt of IfSmt;
+relate if_smt to smt across R451;
+if_smt.is_else_if = is_else_if;
+// translate if expression TODO
+create object instance if_expr of Expression;
+relate if_expr to smt across R775;
+if_expr.expression_number = "1";
+select any boolean_type from instances of Type where ( "boolean" == selected.name and "" == selected.package );
+if ( empty boolean_type )
+  // TODO bad
+end if;
+relate boolean_type to if_expr across R795;
+create object instance lit of Literal;
+relate lit to if_expr across R776;
+lit.value = "true";
+relate if_expr to if_smt across R471;
+// create then block
+create object instance then_block of CodeBlock;
+select one invocable related by block->InvocableObject[R4000];
+then_block.top_level = false;
+then_block.tab_depth = block.tab_depth + 1;
+relate then_block to invocable across R4000;
+then_block.block_number = ::getNextBlockNumber( upper_block:block );
+// copy visibile variables from upper block
+select many vars related by block->Variable[R458];
+for each var in vars
+  create object instance var_in_scope of VariableInScope;
+  relate var to then_block across R458 using var_in_scope;
+end for;
+relate then_block to if_smt across R453;
+  
+return then_block;',
+	"e2eb4f67-ca2b-42ab-accf-5a2b475f8933",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("8355a4c0-06dd-42b4-87ef-a858e91e3417",
+	"7d9024b5-7655-4bba-973a-da3b2a9f2d92",
+	'block',
+	"e2eb4f67-ca2b-42ab-accf-5a2b475f8933",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("08b884ed-efff-44fb-88d6-995f36d86f58",
+	"7d9024b5-7655-4bba-973a-da3b2a9f2d92",
+	'expr',
+	"e375419c-cbcb-4fa4-8b63-df91e6d60c8a",
+	0,
+	'',
+	"8355a4c0-06dd-42b4-87ef-a858e91e3417",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("e375419c-cbcb-4fa4-8b63-df91e6d60c8a",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Expression>',
+	'',
+	'',
+	'../RSL/RSL.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("4f82844e-c16a-4401-b7d7-2a3c7dc43d29",
+	"7d9024b5-7655-4bba-973a-da3b2a9f2d92",
+	'is_else_if',
+	"ba5eda7a-def5-0000-0000-000000000001",
+	0,
+	'',
+	"08b884ed-efff-44fb-88d6-995f36d86f58",
+	'');
+INSERT INTO PE_PE
+	VALUES ("7d9024b5-7655-4bba-973a-da3b2a9f2d92",
+	1,
+	"0f65277e-71ba-472a-ad12-048000976d40",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("57e875ad-32cb-4aeb-ab57-0f86612c02f7",
+	"00000000-0000-0000-0000-000000000000",
+	'transformRSLElseStatement',
+	'',
+	'block = param.block;
+is_else_if = param.is_else_if;
+
+select one if_smt related by block->IfSmt[R453]; // else always comes from the context of a ''then'' block
+if ( empty if_smt )
+  // TODO bad
+end if;
+select one block related by if_smt->Statement[R451]->CodeBlock[R450];
+// create else block
+create object instance else_block of CodeBlock;
+select one invocable related by block->InvocableObject[R4000];
+else_block.top_level = false;
+if ( is_else_if )
+  else_block.tab_depth = block.tab_depth;
+else
+  else_block.tab_depth = block.tab_depth + 1;
+end if;
+relate else_block to invocable across R4000;
+else_block.block_number = ::getNextBlockNumber( upper_block:block );
+// copy visibile variables from upper block
+select many vars related by block->Variable[R458];
+for each var in vars
+  create object instance var_in_scope of VariableInScope;
+  relate var to else_block across R458 using var_in_scope;
+end for;
+relate else_block to if_smt across R454;
+ 
+return else_block;',
+	"e2eb4f67-ca2b-42ab-accf-5a2b475f8933",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("d1e49e67-3f63-43fe-919d-d657c05c771f",
+	"57e875ad-32cb-4aeb-ab57-0f86612c02f7",
+	'block',
+	"e2eb4f67-ca2b-42ab-accf-5a2b475f8933",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("cbf70d9c-dc79-4239-af1e-28b92a69c9dd",
+	"57e875ad-32cb-4aeb-ab57-0f86612c02f7",
+	'is_else_if',
+	"ba5eda7a-def5-0000-0000-000000000001",
+	0,
+	'',
+	"d1e49e67-3f63-43fe-919d-d657c05c771f",
+	'');
+INSERT INTO PE_PE
+	VALUES ("57e875ad-32cb-4aeb-ab57-0f86612c02f7",
 	1,
 	"0f65277e-71ba-472a-ad12-048000976d40",
 	"00000000-0000-0000-0000-000000000000",
