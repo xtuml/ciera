@@ -26,7 +26,7 @@ public class RSLParseUtil {
     
     private static void processFile( File f, String path ) {
         if ( null != f && f.exists() && null != path ) {
-            System.err.printf( "  Processing file: %s\n", f.getName() );
+            System.err.printf( "--   Processing file: %s\n", f.getName() );
             if ( f.isDirectory() ) {
                 for ( File contained_file : f.listFiles() ) processFile( contained_file, "".equals( path ) ? f.getName() : path + "/" + f.getName() );
             }
