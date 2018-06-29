@@ -1422,7 +1422,14 @@ expr_number = param.expr_number;
 select one l_addition related by comp->Y_Addition[R3064];
 select many comp_ops related by comp->Y_ComparisonOperation[R3072];
 if ( not_empty comp_ops )
-  // TODO
+  // transform last comparison operation in the chain
+  select any comp_op related by comp->Y_ComparisonOperation[R3072];
+  for each current_comp_op in comp_ops
+    if ( current_comp_op.node_id > comp_op.node_id )
+      comp_op = current_comp_op;
+    end if;
+  end for;
+  ::transformRSLComparisonOperation( comp_op:comp_op, smt:smt, expr_number:expr_number );
 else
   ::transformRSLAddition( addition:l_addition, smt:smt, expr_number:expr_number );
 end if;',
@@ -1709,6 +1716,148 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("4bdf60d5-0b11-455a-ada3-21a0c425ad36",
+	1,
+	"0f65277e-71ba-472a-ad12-048000976d40",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("3fe2b492-8970-4b9c-bca8-57519046e1ee",
+	"00000000-0000-0000-0000-000000000000",
+	'transformRSLComparisonOperation',
+	'',
+	'comp_op = param.comp_op;
+smt = param.smt;
+expr_number = param.expr_number;
+
+// transform the left operand
+select any l_comp_op from instances of Y_ComparisonOperation where false;
+select many comp_ops related by comp_op->Y_Comparison[R3072]->Y_ComparisonOperation[R3072] where ( selected.node_id != comp_op.node_id );
+for each current_comp_op in comp_ops
+  if ( ( empty l_comp_op or current_comp_op.node_id > l_comp_op.node_id ) and current_comp_op.node_id < comp_op.node_id )
+    l_comp_op = current_comp_op;
+  end if;
+end for;
+if ( not_empty l_comp_op )
+  ::transformRSLComparisonOperation( comp_op:l_comp_op, smt:smt, expr_number:expr_number + ".1" );
+else
+  select one l_addition related by comp_op->Y_Comparison[R3072]->Y_Addition[R3064];
+  ::transformRSLAddition( addition:l_addition, smt:smt, expr_number:expr_number + ".1" );
+end if;
+select any l_op related by smt->Expression[R775] where ( selected.expression_number == expr_number + ".1" );
+
+// transform the right operand
+select one r_addition related by comp_op->Y_Addition[R3073];
+::transformRSLAddition( addition:r_addition, smt:smt, expr_number:expr_number + ".2" );
+select any r_op related by smt->Expression[R775] where ( selected.expression_number == expr_number + ".2" );
+
+// create binary operation
+create object instance expr of Expression;
+relate expr to smt across R775;
+expr.expression_number = expr_number;
+create object instance binary of BinaryOperation;
+relate binary to expr across R776;
+relate l_op to binary across R779;
+relate r_op to binary across R778;
+select one l_type related by l_op->Type[R795];
+select one l_set related by l_type->ClassSet[R407];
+
+// link type
+select any boolean_type from instances of Type where ( "" == selected.package and "boolean" == selected.name );
+if ( empty boolean_type )
+  // TODO bad
+end if;
+relate boolean_type to expr across R795;
+
+// translate the operator
+if ( "" != comp_op.EQ )
+  if ( l_type.primitive() )
+    binary.operator = "==";
+    binary.invocation = false;
+  else
+    binary.operator = "equality";
+    binary.invocation = true;
+  end if;
+elif ( "" != comp_op.NE )
+  if ( l_type.primitive() )
+    binary.operator = "!=";
+    binary.invocation = false;
+  else
+    binary.operator = "inequality";
+    binary.invocation = true;
+  end if;
+elif ( "" != comp_op.LT )
+  if ( l_type.primitive() )
+    binary.operator = "<";
+    binary.invocation = false;
+  else
+    binary.operator = "lessThan";
+    binary.invocation = true;
+  end if;
+elif ( "" != comp_op.LTE )
+  if ( l_type.primitive() )
+    binary.operator = "<=";
+    binary.invocation = false;
+  else
+    binary.operator = "lessThanOrEqual";
+    binary.invocation = true;
+  end if;
+elif ( "" != comp_op.GT )
+  if ( l_type.primitive() )
+    binary.operator = ">";
+    binary.invocation = false;
+  else
+    binary.operator = "greaterThan";
+    binary.invocation = true;
+  end if;
+elif ( "" != comp_op.GTE )
+  if ( l_type.primitive() )
+    binary.operator = ">=";
+    binary.invocation = false;
+  else
+    binary.operator = "greaterThanOrEqual";
+    binary.invocation = true;
+  end if;
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("d31ceb0b-2a20-4cf7-ba61-5643d41d4fd2",
+	"3fe2b492-8970-4b9c-bca8-57519046e1ee",
+	'comp_op',
+	"6eeac7ec-03cb-4967-bb34-9eeee4e6494e",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("6eeac7ec-03cb-4967-bb34-9eeee4e6494e",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Comparison Operation>',
+	'',
+	'',
+	'../RSL/RSL.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("88ce5034-2335-45b1-b2f3-2af2e3d8328e",
+	"3fe2b492-8970-4b9c-bca8-57519046e1ee",
+	'smt',
+	"056a9b55-7c4c-45a4-a684-ea45fce8fa86",
+	0,
+	'',
+	"d31ceb0b-2a20-4cf7-ba61-5643d41d4fd2",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("d8320a5c-0175-477c-9a97-9b0aefdbd482",
+	"3fe2b492-8970-4b9c-bca8-57519046e1ee",
+	'expr_number',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"88ce5034-2335-45b1-b2f3-2af2e3d8328e",
+	'');
+INSERT INTO PE_PE
+	VALUES ("3fe2b492-8970-4b9c-bca8-57519046e1ee",
 	1,
 	"0f65277e-71ba-472a-ad12-048000976d40",
 	"00000000-0000-0000-0000-000000000000",
