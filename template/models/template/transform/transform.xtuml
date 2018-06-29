@@ -1489,7 +1489,14 @@ expr_number = param.expr_number;
 select one l_mult related by addition->Y_Multiplication[R3065];
 select many addition_ops related by addition->Y_AdditionOperation[R3074];
 if ( not_empty addition_ops )
-  // TODO
+  // transform last addition operation in the chain
+  select any addition_op related by addition->Y_AdditionOperation[R3074];
+  for each current_addition_op in addition_ops
+    if ( current_addition_op.node_id > addition_op.node_id )
+      addition_op = current_addition_op;
+    end if;
+  end for;
+  ::transformRSLAdditionOperation( addition_op:addition_op, smt:smt, expr_number:expr_number );
 else
   ::transformRSLMultiplication( mult:l_mult, smt:smt, expr_number:expr_number );
 end if;',
@@ -1549,7 +1556,14 @@ expr_number = param.expr_number;
 select one l_neg related by mult->Y_Negation[R3066];
 select many mult_ops related by mult->Y_MultiplicationOperation[R3076];
 if ( not_empty mult_ops )
-  // TODO
+  // transform last mult operation in the chain
+  select any mult_op related by mult->Y_MultiplicationOperation[R3076];
+  for each current_mult_op in mult_ops
+    if ( current_mult_op.node_id > mult_op.node_id )
+      mult_op = current_mult_op;
+    end if;
+  end for;
+  ::transformRSLMultiplicationOperation( mult_op:mult_op, smt:smt, expr_number:expr_number );
 else
   ::transformRSLNegation( neg:l_neg, smt:smt, expr_number:expr_number );
 end if;',
@@ -1759,7 +1773,6 @@ relate binary to expr across R776;
 relate l_op to binary across R779;
 relate r_op to binary across R778;
 select one l_type related by l_op->Type[R795];
-select one l_set related by l_type->ClassSet[R407];
 
 // link type
 select any boolean_type from instances of Type where ( "" == selected.package and "boolean" == selected.name );
@@ -1858,6 +1871,240 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("3fe2b492-8970-4b9c-bca8-57519046e1ee",
+	1,
+	"0f65277e-71ba-472a-ad12-048000976d40",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("338bb646-7391-4c1c-a17b-0a9222aab043",
+	"00000000-0000-0000-0000-000000000000",
+	'transformRSLAdditionOperation',
+	'',
+	'addition_op = param.addition_op;
+smt = param.smt;
+expr_number = param.expr_number;
+
+// transform the left operand
+select any l_addition_op from instances of Y_AdditionOperation where false;
+select many addition_ops related by addition_op->Y_Addition[R3074]->Y_AdditionOperation[R3074] where ( selected.node_id != addition_op.node_id );
+for each current_addition_op in addition_ops
+  if ( ( empty l_addition_op or current_addition_op.node_id > l_addition_op.node_id ) and current_addition_op.node_id < addition_op.node_id )
+    l_addition_op = current_addition_op;
+  end if;
+end for;
+if ( not_empty l_addition_op )
+  ::transformRSLAdditionOperation( addition_op:l_addition_op, smt:smt, expr_number:expr_number + ".1" );
+else
+  select one l_mult related by addition_op->Y_Addition[R3074]->Y_Multiplication[R3065];
+  ::transformRSLMultiplication( mult:l_mult, smt:smt, expr_number:expr_number + ".1" );
+end if;
+select any l_op related by smt->Expression[R775] where ( selected.expression_number == expr_number + ".1" );
+
+// transform the right operand
+select one r_mult related by addition_op->Y_Multiplication[R3075];
+::transformRSLMultiplication( mult:r_mult, smt:smt, expr_number:expr_number + ".2" );
+select any r_op related by smt->Expression[R775] where ( selected.expression_number == expr_number + ".2" );
+
+// create binary operation
+create object instance expr of Expression;
+relate expr to smt across R775;
+expr.expression_number = expr_number;
+create object instance binary of BinaryOperation;
+relate binary to expr across R776;
+relate l_op to binary across R779;
+relate r_op to binary across R778;
+select one l_type related by l_op->Type[R795];
+select one r_type related by r_op->Type[R795];
+
+// link type
+if ( r_type.name == "double" and r_type.package == "" )
+  relate r_type to expr across R795; // promote to real
+else
+  relate r_type to expr across R795;
+end if;
+
+// translate the operator
+if ( "" != addition_op.PLUS )
+  if ( l_type.primitive() )
+    binary.operator = "+";
+    binary.invocation = false;
+  else
+    if ( "XtumlString" == l_type.name and "io.ciera.summit.types" == l_type.package )
+      // TODO handle concatenation for UDTs based on string
+      binary.operator = "concat";
+    else
+      binary.operator = "add";
+    end if;
+    binary.invocation = true;
+  end if;
+elif ( "" != addition_op.MINUS )
+  if ( l_type.primitive() )
+    binary.operator = "-";
+    binary.invocation = false;
+  else
+    binary.operator = "subtract";
+    binary.invocation = true;
+  end if;
+end if;
+ ',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("ee021de2-516e-4272-9108-7a8a0cf3cebd",
+	"338bb646-7391-4c1c-a17b-0a9222aab043",
+	'addition_op',
+	"ac1513a8-f676-4018-8dea-245f0ef8eb9f",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("ac1513a8-f676-4018-8dea-245f0ef8eb9f",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Addition Operation>',
+	'',
+	'',
+	'../RSL/RSL.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("ca48fc6e-204f-4471-b233-f7ca98d0b9bf",
+	"338bb646-7391-4c1c-a17b-0a9222aab043",
+	'smt',
+	"056a9b55-7c4c-45a4-a684-ea45fce8fa86",
+	0,
+	'',
+	"ee021de2-516e-4272-9108-7a8a0cf3cebd",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("0deccce7-7fc0-4e4a-b652-0cb1049102e4",
+	"338bb646-7391-4c1c-a17b-0a9222aab043",
+	'expr_number',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"ca48fc6e-204f-4471-b233-f7ca98d0b9bf",
+	'');
+INSERT INTO PE_PE
+	VALUES ("338bb646-7391-4c1c-a17b-0a9222aab043",
+	1,
+	"0f65277e-71ba-472a-ad12-048000976d40",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("06ae2440-6564-49fd-a5e0-2fd464ccacbc",
+	"00000000-0000-0000-0000-000000000000",
+	'transformRSLMultiplicationOperation',
+	'',
+	'mult_op = param.mult_op;
+smt = param.smt;
+expr_number = param.expr_number;
+
+// transform the left operand
+select any l_mult_op from instances of Y_MultiplicationOperation where false;
+select many mult_ops related by mult_op->Y_Multiplication[R3076]->Y_MultiplicationOperation[R3076] where ( selected.node_id != mult_op.node_id );
+for each current_mult_op in mult_ops
+  if ( ( empty l_mult_op or current_mult_op.node_id > l_mult_op.node_id ) and current_mult_op.node_id < mult_op.node_id )
+    l_mult_op = current_mult_op;
+  end if;
+end for;
+if ( not_empty l_mult_op )
+  ::transformRSLMultiplicationOperation( mult_op:l_mult_op, smt:smt, expr_number:expr_number + ".1" );
+else
+  select one l_neg related by mult_op->Y_Multiplication[R3076]->Y_Negation[R3066];
+  ::transformRSLNegation( neg:l_neg, smt:smt, expr_number:expr_number + ".1" );
+end if;
+select any l_op related by smt->Expression[R775] where ( selected.expression_number == expr_number + ".1" );
+
+// transform the right operand
+select one r_neg related by mult_op->Y_Negation[R3077];
+::transformRSLNegation( neg:r_neg, smt:smt, expr_number:expr_number + ".2" );
+select any r_op related by smt->Expression[R775] where ( selected.expression_number == expr_number + ".2" );
+
+// create binary operation
+create object instance expr of Expression;
+relate expr to smt across R775;
+expr.expression_number = expr_number;
+create object instance binary of BinaryOperation;
+relate binary to expr across R776;
+relate l_op to binary across R779;
+relate r_op to binary across R778;
+select one l_type related by l_op->Type[R795];
+select one r_type related by r_op->Type[R795];
+
+// link type
+if ( r_type.name == "double" and r_type.package == "" )
+  relate r_type to expr across R795; // promote to real
+else
+  relate r_type to expr across R795;
+end if;
+
+// translate the operator
+if ( "" != mult_op.TIMES )
+  if ( l_type.primitive() )
+    binary.operator = "*";
+    binary.invocation = false;
+  else
+    binary.operator = "multiply";
+    binary.invocation = true;
+  end if;
+elif ( "" != mult_op.DIVIDE )
+  if ( l_type.primitive() )
+    binary.operator = "/";
+    binary.invocation = false;
+  else
+    binary.operator = "divide";
+    binary.invocation = true;
+  end if;
+elif ( "" != mult_op.REM )
+  if ( l_type.primitive() )
+    binary.operator = "%";
+    binary.invocation = false;
+  else
+    binary.operator = "remainder";
+    binary.invocation = true;
+  end if;
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("266bb257-9dea-496a-bf7a-582e4990e085",
+	"06ae2440-6564-49fd-a5e0-2fd464ccacbc",
+	'mult_op',
+	"d0b6237c-429d-4646-bb35-bfc422543320",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("d0b6237c-429d-4646-bb35-bfc422543320",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Multiplication Operation>',
+	'',
+	'',
+	'../RSL/RSL.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("f0f810f4-f2cf-4a3e-8f0a-fa9380e7c088",
+	"06ae2440-6564-49fd-a5e0-2fd464ccacbc",
+	'smt',
+	"056a9b55-7c4c-45a4-a684-ea45fce8fa86",
+	0,
+	'',
+	"266bb257-9dea-496a-bf7a-582e4990e085",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("40452545-f4d8-432d-8c2d-6ff636d8cb25",
+	"06ae2440-6564-49fd-a5e0-2fd464ccacbc",
+	'expr_number',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"f0f810f4-f2cf-4a3e-8f0a-fa9380e7c088",
+	'');
+INSERT INTO PE_PE
+	VALUES ("06ae2440-6564-49fd-a5e0-2fd464ccacbc",
 	1,
 	"0f65277e-71ba-472a-ad12-048000976d40",
 	"00000000-0000-0000-0000-000000000000",
