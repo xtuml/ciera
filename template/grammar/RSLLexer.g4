@@ -4,17 +4,10 @@ lexer grammar RSLLexer;
 package io.ciera.template.rsl.parser;
 }
 
-fragment WS:               [ \t];
-
 // THE 'INITIAL' MODE IS FOR MATCHING SEQUENCES AT THE BEGINNING OF A LINE
 
-// keywords that occur at the beginning of a line
-IF:                        WS* '.if' -> pushMode(CONTROL);
-ELIF:                      WS* '.elif' -> pushMode(CONTROL);
-ELSE:                      WS* '.else' -> pushMode(CONTROL);
-END:                       WS* '.end' -> pushMode(CONTROL);
-
-INITIAL_BLOB:              WS* ( ~( [$\r\n.] ) | '$$' | '..' ) ( ~( [$\r\n] ) | WS | '$$' )*  -> type(BLOB), pushMode(BUFFER);
+INITIAL_DOT:               [ \t]* '.' -> skip, pushMode(CONTROL);
+INITIAL_BLOB:              [ \t]* ( ~( [$ \t\r\n.] ) | '$$' | '..' ) ( ~( [$\r\n] ) | [ \t] | '$$' )*  -> type(BLOB), pushMode(BUFFER);
 INITIAL_DOLLAR:            DOLLAR -> type(DOLLAR), pushMode(BUFFER), pushMode(SUBVAR);
 INITIAL_NEWLINE:           NEWLINE -> type(NEWLINE);
 
@@ -22,14 +15,14 @@ INITIAL_NEWLINE:           NEWLINE -> type(NEWLINE);
 mode BUFFER;
 
 DOLLAR:                    '$' -> pushMode(SUBVAR);
-BLOB:                      ( ~( [$\r\n] ) | WS | '$$' )+;
+BLOB:                      ( ~( [$\r\n] ) | [ \t] | '$$' )+;
 BUFFER_NEWLINE:            NEWLINE -> popMode, type(NEWLINE);
 
 // THE 'STRING' MODE IS FOR MATCHING LITERAL TEXT WITHIN QUOTATION MARKS
 mode STRING;
 
 STRING_DOLLAR:             DOLLAR -> type(DOLLAR), pushMode(SUBVAR);
-STRING_BLOB:               ( ~( [$\r\n"] ) | WS | '$$' | '""' )+ -> type(BLOB);
+STRING_BLOB:               ( ~( [$\r\n"] ) | [ \t] | '$$' | '""' )+ -> type(BLOB);
 STRING_QUOTE:              QUOTE -> type(QUOTE), popMode;
 
 // THE 'SUBVAR' MODE IS FOR MATCHING FORMAT CHARACTERS IN A SUBSTITUTION
@@ -46,8 +39,11 @@ BOOLEAN_LITERAL:           'true' | 'false';
 INTEGER_LITERAL:           '0' | '-'? [1-9][0-9]*;
 REAL_LITERAL:              '-'? ( '0' | [1-9][0-9]* ) '.' [0-9]+;  // allows -0.0 but oh well
 
-// other keyword
-CONTROL_IF:                'if' -> type(IF);
+// keywords
+IF:                        'if';
+ELIF:                      'elif';
+ELSE:                      'else';
+END:                       'end';
 
 // symbols
 DOT:                       '.';
@@ -73,4 +69,4 @@ NEWLINE:                   ( '\r\n' | '\n' ) -> popMode;
 
 ID:                        [a-zA-Z][a-zA-Z0-9_]* ;
 
-CONTROL_WS:                WS -> skip;
+WS:                        [ \t] -> skip;
