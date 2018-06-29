@@ -1302,7 +1302,14 @@ expr_number = param.expr_number;
 select one l_conj related by disj->Y_Conjunction[R3062];
 select many disj_ops related by disj->Y_DisjunctionOperation[R3068];
 if ( not_empty disj_ops )
-  // TODO
+  // transform last disjunction operation in the chain
+  select any disj_op related by disj->Y_DisjunctionOperation[R3068];
+  for each current_disj_op in disj_ops
+    if ( current_disj_op.node_id > disj_op.node_id )
+      disj_op = current_disj_op;
+    end if;
+  end for;
+  ::transformRSLDisjunctionOperation( disj_op:disj_op, smt:smt, expr_number:expr_number );
 else
   ::transformRSLConjunction( conj:l_conj, smt:smt, expr_number:expr_number );
 end if;',
@@ -1362,7 +1369,14 @@ expr_number = param.expr_number;
 select one l_comp related by conj->Y_Comparison[R3063];
 select many conj_ops related by conj->Y_ConjunctionOperation[R3070];
 if ( not_empty conj_ops )
-  // TODO
+  // transform last conjunction operation in the chain
+  select any conj_op related by conj->Y_ConjunctionOperation[R3070];
+  for each current_conj_op in conj_ops
+    if ( current_conj_op.node_id > conj_op.node_id )
+      conj_op = current_conj_op;
+    end if;
+  end for;
+  ::transformRSLConjunctionOperation( conj_op:conj_op, smt:smt, expr_number:expr_number );
 else
   ::transformRSLComparison( comp:l_comp, smt:smt, expr_number:expr_number );
 end if;',
@@ -1623,7 +1637,8 @@ expr_number = param.expr_number;
 select one term related by neg->Y_Term[R3067];
 select one neg_op related by neg->Y_NegationOperation[R3078];
 if ( not_empty neg_op )
-  // TODO
+  // transform negation operation if it exists
+  ::transformRSLNegationOperation( neg_op:neg_op, smt:smt, expr_number:expr_number );
 else
   ::transformRSLTerm( term:term, smt:smt, expr_number:expr_number );
 end if;',
@@ -1687,7 +1702,20 @@ if ( not_empty named_access )
 else
 select one paren related by term->Y_Parenthesis[R3079];
 if ( not_empty paren )
-  // TODO
+  // transform inner expression
+  select one sub_expr related by paren->Y_Expression[R3080];
+  ::transformRSLExpression( expr:sub_expr, smt:smt, expr_number:expr_number + ".1" );
+  select any inner_expr related by smt->Expression[R775] where ( selected.expression_number == expr_number + ".1" );
+  // create expression
+  create object instance expr of Expression;
+  relate expr to smt across R775;
+  expr.expression_number = expr_number;
+  select one inner_type related by inner_expr->Type[R795];
+  relate inner_type to expr across R795;
+  // create parenthesized expression
+  create object instance paren_expr of ParenthesizedExpression;
+  relate paren_expr to expr across R776;
+  relate inner_expr to paren_expr across R784;
 
 else
 select one literal related by term->Y_Literal[R3086];
@@ -2141,6 +2169,282 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("06ae2440-6564-49fd-a5e0-2fd464ccacbc",
+	1,
+	"0f65277e-71ba-472a-ad12-048000976d40",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("3b8bccb4-1e2d-4790-b053-16b2bd10cf17",
+	"00000000-0000-0000-0000-000000000000",
+	'transformRSLDisjunctionOperation',
+	'',
+	'disj_op = param.disj_op;
+smt = param.smt;
+expr_number = param.expr_number;
+
+// transform the left operand
+select any l_disj_op from instances of Y_DisjunctionOperation where false;
+select many disj_ops related by disj_op->Y_Disjunction[R3068]->Y_DisjunctionOperation[R3068] where ( selected.node_id != disj_op.node_id );
+for each current_disj_op in disj_ops
+  if ( ( empty l_disj_op or current_disj_op.node_id > l_disj_op.node_id ) and current_disj_op.node_id < disj_op.node_id )
+    l_disj_op = current_disj_op;
+  end if;
+end for;
+if ( not_empty l_disj_op )
+  ::transformRSLDisjunctionOperation( disj_op:l_disj_op, smt:smt, expr_number:expr_number + ".1" );
+else
+  select one l_conj related by disj_op->Y_Disjunction[R3068]->Y_Conjunction[R3062];
+  ::transformRSLConjunction( conj:l_conj, smt:smt, expr_number:expr_number + ".1" );
+end if;
+select any l_op related by smt->Expression[R775] where ( selected.expression_number == expr_number + ".1" );
+
+// transform the right operand
+select one r_conj related by disj_op->Y_Conjunction[R3069];
+::transformRSLConjunction( conj:r_conj, smt:smt, expr_number:expr_number + ".2" );
+select any r_op related by smt->Expression[R775] where ( selected.expression_number == expr_number + ".2" );
+
+// create binary operation
+create object instance expr of Expression;
+relate expr to smt across R775;
+expr.expression_number = expr_number;
+create object instance binary of BinaryOperation;
+relate binary to expr across R776;
+relate l_op to binary across R779;
+relate r_op to binary across R778;
+select one l_type related by l_op->Type[R795];
+
+// link type
+select any boolean_type from instances of Type where ( "" == selected.package and "boolean" == selected.name );
+if ( empty boolean_type )
+  // TODO bad
+end if;
+relate boolean_type to expr across R795;
+
+// translate the operator
+if ( l_type.primitive() )
+  binary.operator = "||";
+  binary.invocation = false;
+else
+  binary.operator = "or";
+  binary.invocation = true;
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("fce56b0c-fe80-4186-aad7-f77d4f47b5c4",
+	"3b8bccb4-1e2d-4790-b053-16b2bd10cf17",
+	'disj_op',
+	"63a1e863-123a-48f3-a9a9-5832c187ff79",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("63a1e863-123a-48f3-a9a9-5832c187ff79",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Disjunction Operation>',
+	'',
+	'',
+	'../RSL/RSL.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("69ea01ed-5334-4b35-b33d-00a33689d250",
+	"3b8bccb4-1e2d-4790-b053-16b2bd10cf17",
+	'smt',
+	"056a9b55-7c4c-45a4-a684-ea45fce8fa86",
+	0,
+	'',
+	"fce56b0c-fe80-4186-aad7-f77d4f47b5c4",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("0bdc7952-e8f2-4388-9953-ca4bf58716f2",
+	"3b8bccb4-1e2d-4790-b053-16b2bd10cf17",
+	'expr_number',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"69ea01ed-5334-4b35-b33d-00a33689d250",
+	'');
+INSERT INTO PE_PE
+	VALUES ("3b8bccb4-1e2d-4790-b053-16b2bd10cf17",
+	1,
+	"0f65277e-71ba-472a-ad12-048000976d40",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("247e01c7-cb18-4d24-8023-00ca39f179df",
+	"00000000-0000-0000-0000-000000000000",
+	'transformRSLConjunctionOperation',
+	'',
+	'conj_op = param.conj_op;
+smt = param.smt;
+expr_number = param.expr_number;
+
+// transform the left operand
+select any l_conj_op from instances of Y_ConjunctionOperation where false;
+select many conj_ops related by conj_op->Y_Conjunction[R3070]->Y_ConjunctionOperation[R3070] where ( selected.node_id != conj_op.node_id );
+for each current_conj_op in conj_ops
+  if ( ( empty l_conj_op or current_conj_op.node_id > l_conj_op.node_id ) and current_conj_op.node_id < conj_op.node_id )
+    l_conj_op = current_conj_op;
+  end if;
+end for;
+if ( not_empty l_conj_op )
+  ::transformRSLConjunctionOperation( conj_op:l_conj_op, smt:smt, expr_number:expr_number + ".1" );
+else
+  select one l_comp related by conj_op->Y_Conjunction[R3070]->Y_Comparison[R3063];
+  ::transformRSLComparison( comp:l_comp, smt:smt, expr_number:expr_number + ".1" );
+end if;
+select any l_op related by smt->Expression[R775] where ( selected.expression_number == expr_number + ".1" );
+
+// transform the right operand
+select one r_comp related by conj_op->Y_Comparison[R3071];
+::transformRSLComparison( comp:r_comp, smt:smt, expr_number:expr_number + ".2" );
+select any r_op related by smt->Expression[R775] where ( selected.expression_number == expr_number + ".2" );
+
+// create binary operation
+create object instance expr of Expression;
+relate expr to smt across R775;
+expr.expression_number = expr_number;
+create object instance binary of BinaryOperation;
+relate binary to expr across R776;
+relate l_op to binary across R779;
+relate r_op to binary across R778;
+select one l_type related by l_op->Type[R795];
+
+// link type
+select any boolean_type from instances of Type where ( "" == selected.package and "boolean" == selected.name );
+if ( empty boolean_type )
+  // TODO bad
+end if;
+relate boolean_type to expr across R795;
+
+// translate the operator
+if ( l_type.primitive() )
+  binary.operator = "&&";
+  binary.invocation = false;
+else
+  binary.operator = "and";
+  binary.invocation = true;
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("900f903c-2eff-4061-8278-b6887e8f9c18",
+	"247e01c7-cb18-4d24-8023-00ca39f179df",
+	'conj_op',
+	"9886b30f-8098-46a4-abed-4ffdee9a158b",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("9886b30f-8098-46a4-abed-4ffdee9a158b",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Conjunction Operation>',
+	'',
+	'',
+	'../RSL/RSL.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("c61b0394-691a-43c0-9878-501807d71e59",
+	"247e01c7-cb18-4d24-8023-00ca39f179df",
+	'smt',
+	"056a9b55-7c4c-45a4-a684-ea45fce8fa86",
+	0,
+	'',
+	"900f903c-2eff-4061-8278-b6887e8f9c18",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("e7d9a401-70bb-48d6-ba55-09c04c242cb6",
+	"247e01c7-cb18-4d24-8023-00ca39f179df",
+	'expr_number',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"c61b0394-691a-43c0-9878-501807d71e59",
+	'');
+INSERT INTO PE_PE
+	VALUES ("247e01c7-cb18-4d24-8023-00ca39f179df",
+	1,
+	"0f65277e-71ba-472a-ad12-048000976d40",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("5ba9db58-d617-49c3-9c99-2a6023ea0ccd",
+	"00000000-0000-0000-0000-000000000000",
+	'transformRSLNegationOperation',
+	'',
+	'neg_op = param.neg_op;
+smt = param.smt;
+expr_number = param.expr_number;
+
+// transform the operand
+select one term related by neg_op->Y_Negation[R3078]->Y_Term[R3067];
+::transformRSLTerm( term:term, smt:smt, expr_number:expr_number + ".1" );
+select any op related by smt->Expression[R775] where ( selected.expression_number == expr_number + ".1" );
+
+// create unary operation
+create object instance expr of Expression;
+relate expr to smt across R775;
+expr.expression_number = expr_number;
+create object instance unary of UnaryOperation;
+relate unary to expr across R776;
+relate op to unary across R777;
+select one type related by op->Type[R795];
+
+// link type
+relate type to expr across R795;
+
+// translate the operator
+if ( "" != neg_op.NOT )
+  unary.operator = "!";
+  unary.invocation = false;
+elif ( "" != neg_op.MINUS )
+  unary.operator = "-";
+  unary.invocation = false;
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("fa3feb52-e070-4297-99c0-ebff2a336121",
+	"5ba9db58-d617-49c3-9c99-2a6023ea0ccd",
+	'neg_op',
+	"e10edaa6-d81f-4dbf-97c7-ba1706247679",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("e10edaa6-d81f-4dbf-97c7-ba1706247679",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Negation Operation>',
+	'',
+	'',
+	'../RSL/RSL.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("e6fb0ac4-c68d-46a4-b7de-feb9decca7a6",
+	"5ba9db58-d617-49c3-9c99-2a6023ea0ccd",
+	'smt',
+	"056a9b55-7c4c-45a4-a684-ea45fce8fa86",
+	0,
+	'',
+	"fa3feb52-e070-4297-99c0-ebff2a336121",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("ce00ef28-3ed3-440c-9aaa-69e92439eb34",
+	"5ba9db58-d617-49c3-9c99-2a6023ea0ccd",
+	'expr_number',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"e6fb0ac4-c68d-46a4-b7de-feb9decca7a6",
+	'');
+INSERT INTO PE_PE
+	VALUES ("5ba9db58-d617-49c3-9c99-2a6023ea0ccd",
 	1,
 	"0f65277e-71ba-472a-ad12-048000976d40",
 	"00000000-0000-0000-0000-000000000000",
