@@ -2723,13 +2723,17 @@ if ( not_empty act_smt and not_empty block )
     relate r_op to smt across R775.''expressed within'';
     r_op.expression_number = "1.2";
     relate r_op to binop across R778.''is right operand for'';
+    select any s_irdt related by act_fio->O_OBJ[R677]->S_IRDT[R123] where ( selected.isSet );
+    select one s_dt related by s_irdt->S_DT[R17];
+    fio_type = UnresolvedType::getInstance( s_dt:s_dt );
+    relate fio_type to r_op across R795.''defines type of'';
     if ( "any" == act_fio.cardinality ) // create another expression for the ''any''. Note that this is a little tricky because the local var ''r_op'' is being reused
       create object instance any_expr of AnyExpr;
       relate any_expr to r_op across R776;
       create object instance r_op of Expression;
       relate r_op to smt across R775.''expressed within'';
       r_op.expression_number = "1.2.1";
-      relate select_type to expr across R795.''defines type of'';
+      relate select_type to r_op across R795.''defines type of'';
       relate r_op to any_expr across R783.''is basis for'';
     end if;
     create object instance sel of SelectExpr;
@@ -2737,10 +2741,6 @@ if ( not_empty act_smt and not_empty block )
     create object instance sel_fi of SelectFromInstances;
     relate sel_fi to sel across R789;
     relate selector to sel_fi across R799.''invoked by'';
-    select any s_irdt related by act_fio->O_OBJ[R677]->S_IRDT[R123] where ( selected.isSet );
-    select one s_dt related by s_irdt->S_DT[R17];
-    fio_type = UnresolvedType::getInstance( s_dt:s_dt );
-    relate fio_type to r_op across R795.''defines type of'';
     // link select type to the main expression
     relate select_type to expr across R795.''defines type of'';
 

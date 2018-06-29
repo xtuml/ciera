@@ -17,6 +17,7 @@ public class RSLParseUtil {
     public static void main( String[] args ) {
         try {
             out = new PrintStream( new File(OUT_FILE) );
+            out.println( "-- RSL data" );
             if ( args.length > 0 ) {
                 File template_dir = new File( args[0] );
                 processFile( template_dir, "" );
