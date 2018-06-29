@@ -30,7 +30,7 @@ mode STRING;
 
 STRING_DOLLAR:             DOLLAR -> type(DOLLAR), pushMode(SUBVAR);
 STRING_BLOB:               ( ~( [$\r\n"] ) | WS | '$$' | '""' )+ -> type(BLOB);
-STRING_QUOTE:              QUOTE -> type(QUOTE), pushMode(STRING);
+STRING_QUOTE:              QUOTE -> type(QUOTE), popMode;
 
 // THE 'SUBVAR' MODE IS FOR MATCHING FORMAT CHARACTERS IN A SUBSTITUTION
 mode SUBVAR;

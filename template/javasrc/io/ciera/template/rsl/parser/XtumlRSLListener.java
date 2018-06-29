@@ -325,4 +325,32 @@ public class XtumlRSLListener extends RSLBaseListener {
         out.println( " );" );
     }
 
+    @Override public void exitLiteral( RSLParser.LiteralContext ctx ) {
+        out.print( "INSERT INTO Y_Literal VALUES ( ");
+        out.printf( "%d", parent_ids.pop() );
+        out.print( ", " );
+        out.printf( "%d", parent_ids.peek() );
+        out.print( ", " );
+        out.printf( "'%s'", null == ctx.BOOLEAN_LITERAL() ? "" : ctx.BOOLEAN_LITERAL().getText().replaceAll( "'", "''" ) );
+        out.print( ", " );
+        out.printf( "'%s'", null == ctx.INTEGER_LITERAL() ? "" : ctx.INTEGER_LITERAL().getText().replaceAll( "'", "''" ) );
+        out.print( ", " );
+        out.printf( "'%s'", null == ctx.REAL_LITERAL() ? "" : ctx.REAL_LITERAL().getText().replaceAll( "'", "''" ) );
+        out.println( " );" );
+    }
+
+    @Override public void exitString_literal( RSLParser.String_literalContext ctx ) {
+        out.print( "INSERT INTO Y_StringLiteral VALUES ( ");
+        out.printf( "%d", parent_ids.pop() );
+        out.print( ", " );
+        out.printf( "%d", parent_ids.peek() );
+        out.print( ", " );
+        out.printf( "'%s'", null == ctx.QUOTE(0) ? "" : ctx.QUOTE(0).getText().replaceAll( "'", "''" ) );
+        out.print( ", " );
+        out.printf( "'%s'", null == ctx.BLOB() ? "" : ctx.BLOB().getText().replaceAll( "'", "''" ) );
+        out.print( ", " );
+        out.printf( "'%s'", null == ctx.QUOTE(1) ? "" : ctx.QUOTE(1).getText().replaceAll( "'", "''" ) );
+        out.println( " );" );
+    }
+
 }

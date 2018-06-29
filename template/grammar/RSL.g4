@@ -60,7 +60,8 @@ negation:                    ( negation_operation )? term;
 negation_operation:          NOT | MINUS;
 
 term:                        parenthesis |
-                             named_access;
+                             named_access |
+                             literal;
                    
 parenthesis:                 LPAREN expression RPAREN;
 
@@ -69,3 +70,10 @@ named_access:                variable_access ( attribute_access )?;
 variable_access:             ID;
 
 attribute_access:            DOT ID ( attribute_access )?;
+
+literal:                     BOOLEAN_LITERAL |
+                             INTEGER_LITERAL |
+                             REAL_LITERAL |
+                             string_literal;
+                             
+string_literal:              QUOTE BLOB QUOTE;

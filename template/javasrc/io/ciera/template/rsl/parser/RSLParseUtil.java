@@ -22,6 +22,7 @@ public class RSLParseUtil {
                 File template_dir = new File( args[0] );
                 processFile( template_dir, "" );
             }
+            out.close();
         } catch ( IOException e ) { /* do nothing */ }
     }
     
@@ -34,6 +35,11 @@ public class RSLParseUtil {
             else {
                 try {
                     RSLLexer lexer = new RSLLexer( CharStreams.fromStream( new FileInputStream( path + "/" + f.getName() ) ) );
+                    /* lexer debug
+                    for ( Token token = lexer.nextToken(); token.getType() != Token.EOF; token = lexer.nextToken() ) {
+                        System.err.println( lexer.getVocabulary().getSymbolicName(token.getType()));
+                    }
+                    */
                     CommonTokenStream tokens = new CommonTokenStream( lexer );
                     RSLParser parser = new RSLParser( tokens );
                     RSLParser.BodyContext ctx = parser.body();

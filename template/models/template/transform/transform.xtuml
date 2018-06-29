@@ -1689,7 +1689,43 @@ select one paren related by term->Y_Parenthesis[R3079];
 if ( not_empty paren )
   // TODO
 
-end if; end if;',
+else
+select one literal related by term->Y_Literal[R3086];
+if ( not_empty literal )
+  // create expression
+  create object instance expr of Expression;
+  relate expr to smt across R775;
+  expr.expression_number = expr_number;
+  // create literal
+  create object instance lit of Literal;
+  relate lit to expr across R776;
+
+  select one string_literal related by literal->Y_StringLiteral[R3087];
+  if ( not_empty string_literal )
+    lit.value = string_literal.BLOB; // TODO unescape stuff
+    select any string_type from instances of Type where ( "XtumlString" == selected.name and "io.ciera.summit.types" == selected.package );
+    relate string_type to expr across R795;
+    select one registry_file related by smt->CodeBlock[R450]->InvocableObject[R4000]->GenericInvocable[R427]->Z_Template[R3053]->Z_TemplateRegistry[R3052]->GeneralFile[R3051]->File[R401];
+    ::addTypeToImports( file: registry_file, type_to_import:string_type, type:ImportType::IMPL );
+  elif ( "" != literal.BOOLEAN_LITERAL )
+    if ( "true" == T::l( s:literal.BOOLEAN_LITERAL ) )
+      lit.value = "true";
+    else
+      lit.value = "false";
+    end if;
+    select any boolean_type from instances of Type where ( "boolean" == selected.name and "" == selected.package );
+    relate boolean_type to expr across R795;
+  elif ( "" != literal.INTEGER_LITERAL )
+    lit.value = literal.INTEGER_LITERAL;
+    select any integer_type from instances of Type where ( "int" == selected.name and "" == selected.package );
+    relate integer_type to expr across R795;
+  elif ( "" != literal.REAL_LITERAL )
+    lit.value = literal.REAL_LITERAL;
+    select any real_type from instances of Type where ( "double" == selected.name and "" == selected.package );
+    relate real_type to expr across R795;
+  end if;
+
+end if; end if; end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
