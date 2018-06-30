@@ -2334,7 +2334,7 @@ if ( not_empty act_smt and not_empty block )
       named_ref.name = "context()." + utility.name + "()";
       // transform actual parameters
       select many v_pars related by act_brg->V_PAR[R628];
-      ::transformActualParameters( invocation:invoc, v_pars:v_pars );
+      ::transformActualParameters( invocation:invoc, v_pars:v_pars, expr_number:"1", base_num:2 );
     else
       // TODO bad
     end if;
@@ -2382,7 +2382,7 @@ if ( not_empty act_smt and not_empty block )
       named_ref.name = "context()";
       // transform actual parameters
       select many v_pars related by act_fnc->V_PAR[R669];
-      ::transformActualParameters( invocation:invoc, v_pars:v_pars );
+      ::transformActualParameters( invocation:invoc, v_pars:v_pars, expr_number:"1", base_num:2 );
     else
       // TODO bad
     end if;
@@ -2455,7 +2455,7 @@ if ( not_empty act_smt and not_empty block )
       end if;
       // transform actual parameters
       select many v_pars related by act_tfm->V_PAR[R627];
-      ::transformActualParameters( invocation:invoc, v_pars:v_pars );
+      ::transformActualParameters( invocation:invoc, v_pars:v_pars, expr_number:"1", base_num:2 );
     else
       // TODO bad
     end if;
@@ -2514,7 +2514,7 @@ if ( not_empty act_smt and not_empty block )
       ::addFileToImports( file: ::getFileForStatement( smt:smt ), file_to_import:port_file, type:ImportType::IMPL );
       // transform actual parameters
       select many v_pars related by act_sgn->V_PAR[R662];
-      ::transformActualParameters( invocation:invoc, v_pars:v_pars );
+      ::transformActualParameters( invocation:invoc, v_pars:v_pars, expr_number:"1", base_num:2 );
     else
       // TODO bad
     end if;
@@ -3826,7 +3826,7 @@ if ( not_empty v_brv )
     named_ref.name = "context()." + utility.name + "()";
     // transform actual parameters
     select many v_pars related by v_brv->V_PAR[R810];
-    ::transformActualParameters( invocation:invoc, v_pars:v_pars );
+    ::transformActualParameters( invocation:invoc, v_pars:v_pars, expr_number:expr.expression_number, base_num:2 );
   else
     // TODO bad
   end if;
@@ -3859,7 +3859,7 @@ if ( not_empty v_fnv )
     named_ref.name = "context()";
     // transform actual parameters
     select many v_pars related by v_fnv->V_PAR[R817];
-    ::transformActualParameters( invocation:invoc, v_pars:v_pars );
+    ::transformActualParameters( invocation:invoc, v_pars:v_pars, expr_number:expr.expression_number, base_num:2 );
   else
     // TODO bad
   end if;
@@ -3933,7 +3933,7 @@ if ( not_empty v_trv )
     end if;
     // transform actual parameters
     select many v_pars related by v_trv->V_PAR[R811];
-    ::transformActualParameters( invocation:invoc, v_pars:v_pars );
+    ::transformActualParameters( invocation:invoc, v_pars:v_pars, expr_number:expr.expression_number, base_num:2 );
   else
     // TODO bad
   end if;
@@ -4324,6 +4324,8 @@ INSERT INTO S_SYNC
 	'',
 	'invocation = param.invocation;
 v_pars = param.v_pars;
+expr_number = param.expr_number;
+base_num = param.base_num;
 
 // get first formal parameter
 select any parm related by invocation->InvocableObject[R792]->FormalParameter[R429.''declares signature with''];
@@ -4334,7 +4336,7 @@ while ( not_empty prev_parm )
 end while;
 
 // transform each parameter
-num = 2;
+num = base_num;
 select any v_par from instances of V_PAR where false;
 while ( not_empty parm )
   for each par in v_pars
@@ -4343,7 +4345,7 @@ while ( not_empty parm )
       break;
     end if;
   end for;
-  ::transformActualParameter( invocation:invocation, parm:parm, expression_num:"1." + STR::itoa( i:num ), v_par:v_par );
+  ::transformActualParameter( invocation:invocation, parm:parm, expression_num:expr_number + "." + STR::itoa( i:num ), v_par:v_par );
   select one parm related by parm->FormalParameter[R404.''precedes''];
   num = num + 1;
 end while;',
@@ -4376,6 +4378,24 @@ INSERT INTO S_DT_PROXY
 	'',
 	'',
 	'../../../../../mcooa/models/mcooa/ooaofooa/Value/Value.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("6ebfdc3a-59e4-4cdc-941f-d10dd63c2b63",
+	"f646e3fa-6e55-4420-b552-196b12458e30",
+	'expr_number',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"9f8418eb-510e-42ca-b1b6-15044048de73",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("e5a3d96f-e659-4f34-b152-5405c0b160e3",
+	"f646e3fa-6e55-4420-b552-196b12458e30",
+	'base_num',
+	"ba5eda7a-def5-0000-0000-000000000002",
+	0,
+	'',
+	"6ebfdc3a-59e4-4cdc-941f-d10dd63c2b63",
+	'');
 INSERT INTO PE_PE
 	VALUES ("f646e3fa-6e55-4420-b552-196b12458e30",
 	1,

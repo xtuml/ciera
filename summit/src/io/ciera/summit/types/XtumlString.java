@@ -9,10 +9,20 @@ public class XtumlString implements IXtumlType<XtumlString>, CharSequence {
     public XtumlString( String str ) {
         this.str = str;
     }
+    
+    @Override
+    public boolean equals( Object o ) {
+        return null != o && o instanceof XtumlString && null != str && str.equals( o.toString() );
+    }
+    
+    @Override
+    public int hashCode() {
+        return null == str ? 0 : str.hashCode();
+    }
 
     @Override
     public boolean equality( XtumlString value ) throws XtumlException {
-        return null != str && null != value && str.equals( value.toString() );
+        return equals( value );
     }
     
     public XtumlString concat( XtumlString value ) {

@@ -8,6 +8,8 @@ public interface IRunContext {
     public void execute( IApplicationTask task );
     public IExceptionHandler getExceptionHandler();
     public void setExceptionHandler( IExceptionHandler h );
+    
+    public String[] args();
 
     public void setSymbol( String name, Object value );
     public Object getSymbol( String name ) throws XtumlException;

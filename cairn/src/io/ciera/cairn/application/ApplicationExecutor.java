@@ -19,14 +19,21 @@ public class ApplicationExecutor extends Thread implements IRunContext {
     private BlockingQueue<IApplicationTask> tasks;
     private boolean running;
     
+    private String[] args;
+    
     private Stack<Map<String, Object>> symbols;
 
     public ApplicationExecutor( String name ) {
+        this( name, new String[0] );
+    }
+
+    public ApplicationExecutor( String name, String[] args ) {
         super( name );
         handler = new DefaultExceptionHandler();
         tasks = new PriorityBlockingQueue<>();
         running = false;
         symbols = new Stack<>();
+        this.args = args;
     }
 
     @Override
@@ -87,6 +94,11 @@ public class ApplicationExecutor extends Thread implements IRunContext {
     @Override
     public void popSymbolTable() {
         symbols.pop();
+    }
+
+    @Override
+    public String[] args() {
+        return args;
     }
 
 }

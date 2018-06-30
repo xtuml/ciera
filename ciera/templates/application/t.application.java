@@ -13,9 +13,9 @@ public class ${self.name} implements IApplication {
     }
 
     @Override
-    public void setup() {
+    public void setup( String[] args ) {
         for ( int i = 0; i < executors.length; i++ )
-            executors[i] = new ApplicationExecutor( "${self.name}Executor" + i );
+            executors[i] = new ApplicationExecutor( "${self.name}Executor" + i, args );
 ${component_instantiations}
     }
 
@@ -40,7 +40,7 @@ ${component_instantiations}
 
     public static void main( String[] args ) {
         IApplication app = new ${self.name}();
-        app.setup();
+        app.setup( args );
         app.initialize();
         app.start();
     }
