@@ -19,24 +19,24 @@ imports = file.getFormattedImports( type:ImportType::IMPL );
 
 select many enums related by self->Enumerator[R415];
 for each enumerator in enums
-  T::b( s:",\n" );
+  TEMP::append( s:",\n" );
   enumerator.render();
 end for;
-T::b( s:";" );
-enumerators = T::body();
-T::clear();
+TEMP::append( s:";" );
+enumerators = TEMP::body();
+TEMP::clear();
 
 for each enumerator in enums
   enumerator.render_accessor();
 end for;
-enumerator_accessors = T::body();
-T::clear();
+enumerator_accessors = TEMP::body();
+TEMP::clear();
 
-T::include( file:"java/type/t.enumeratedtype.java" );
+TEMP::include( file:"type/t.enumeratedtype.java", symbol_table:NULL_SYMBOL_TABLE );
 
 select one file related by self->File[R401];
-T::emit( file:"src-gen/" + file.path + "/" + self.name + file.extension );
-T::clear();',
+TEMP::emit( file:"src-gen/" + file.path + "/" + self.name + file.extension );
+TEMP::clear();',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",

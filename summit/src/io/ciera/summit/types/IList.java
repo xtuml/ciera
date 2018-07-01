@@ -9,8 +9,6 @@ public interface IList<L extends IList<L,E>, E> extends List<E>, IXtumlType<L> {
     public L where( IWhere<E> condition ) throws XtumlException;
     public E anyWhere( IWhere<E> condition ) throws XtumlException;
 
-    public void setImmutable();
-    public L toImmutableList();
     public E nullElement();
     public L emptyList();
 

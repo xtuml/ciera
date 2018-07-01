@@ -14,8 +14,8 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'body_save = T::body(); // TODO
-T::clear();
+	'body_save = TEMP::body(); // TODO
+TEMP::clear();
 
 select any attr_serializer related by self->Z_AttributeSerializer[R3002];
 select one prev_attr_serializer related by attr_serializer->Z_AttributeSerializer[R3003.''follows''];
@@ -27,14 +27,14 @@ while ( not_empty attr_serializer )
   attr_serializer.render();
   select one attr_serializer related by attr_serializer->Z_AttributeSerializer[R3003.''precedes''];
   if ( not_empty attr_serializer )
-    T::b( s:"        out.print( " + STR::quote() + "," + STR::quote() + " );\n" );
+    TEMP::append( s:"        out.print( " + STR::quote() + "," + STR::quote() + " );\n" );
   end if;
 end while;
-attribute_serializers = T::body();
-T::clear();
+attribute_serializers = TEMP::body();
+TEMP::clear();
 
-T::b( s:body_save );
-T::include( file:"java/loader/t.instanceserializer.def.java" );',
+TEMP::append( s:body_save );
+TEMP::include( file:"loader/t.instanceserializer.def.java", symbol_table:NULL_SYMBOL_TABLE );',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",
@@ -46,7 +46,7 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'T::include( file:"java/loader/t.instanceserializer.java" );',
+	'TEMP::include( file:"loader/t.instanceserializer.java", symbol_table:NULL_SYMBOL_TABLE );',
 	1,
 	'',
 	"f9b6f59e-0028-461c-b8ed-5452d247cdf1",

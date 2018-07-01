@@ -47,35 +47,35 @@ select many funcs related by self->Function[R405.''provides synchronous''];
 for each function in funcs
   function.render();
 end for;
-functions = T::body();
-T::clear();
+functions = TEMP::body();
+TEMP::clear();
 
 for each rel in relationships
   rel.render_modifiers();
 end for;
-relationship_modifiers = T::body();
-T::clear();
+relationship_modifiers = TEMP::body();
+TEMP::clear();
 
 select many instance_selects related by self->InstancePopulationSelector[R447.''selects instances through''];
 for each instance_selector in instance_selects
   instance_selector.render();
 end for;
-instance_selectors = T::body();
-T::clear();
+instance_selectors = TEMP::body();
+TEMP::clear();
 
 select many relationship_selects related by self->RelationshipPopulationSelector[R4571.''selects relationships through''];
 for each relationship_selector in relationship_selects
   relationship_selector.render();
 end for;
-relationship_selectors = T::body();
-T::clear();
+relationship_selectors = TEMP::body();
+TEMP::clear();
 
 select many comp_ports related by self->Port[R417];
 for each port in comp_ports
   port.render_acccessor();
 end for;
-ports = T::body();
-T::clear();
+ports = TEMP::body();
+TEMP::clear();
 
 utility_initializers = "";
 separator = "";
@@ -85,8 +85,8 @@ for each util_ref in util_refs
   utility_initializers = utility_initializers + separator + "        " + util_ref.utility_name + " = null;";
   separator = "\n";
 end for;
-utilities = T::body();
-T::clear();
+utilities = TEMP::body();
+TEMP::clear();
 
 init = "";
 select one init_function related by self->Function[R4561.''initialized by''];
@@ -94,10 +94,10 @@ if ( not_empty init_function )
   init = "        " + init_function.name + "();";
 end if;
 
-T::include( file:"java/component/t.componentdefinition.java" );
+TEMP::include( file:"component/t.componentdefinition.java", symbol_table:NULL_SYMBOL_TABLE );
 
-T::emit( file:"src-gen/" + file.path + "/" + self.name + file.extension );
-T::clear();',
+TEMP::emit( file:"src-gen/" + file.path + "/" + self.name + file.extension );
+TEMP::clear();',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",

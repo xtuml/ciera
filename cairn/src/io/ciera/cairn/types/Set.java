@@ -1,8 +1,8 @@
 package io.ciera.cairn.types;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Iterator;
+import java.util.TreeSet;
 
 import io.ciera.summit.exceptions.BadArgumentException;
 import io.ciera.summit.exceptions.XtumlException;
@@ -12,27 +12,10 @@ import io.ciera.summit.types.IWhere;
 public abstract class Set<S extends ISet<S,E>,E> implements ISet<S,E> {
 
 
-    private boolean immutable;
-    private HashSet<E> internalSet;
+    private java.util.Set<E> internalSet;
 
     public Set() {
-        internalSet = new HashSet<>();
-        immutable = false;
-    }
-
-    public Set( Collection<? extends E> c ) {
-        internalSet = new HashSet<>( c );
-        immutable = false;
-    }
-
-    public Set( int initialCapacity ) {
-        internalSet = new HashSet<>( initialCapacity );
-        immutable = false;
-    }
-
-    public Set( int initialCapacity, float loadFactor ) {
-        internalSet = new HashSet<>( initialCapacity, loadFactor );
-        immutable = false;
+        internalSet = new TreeSet<>();
     }
 
     @Override
@@ -40,7 +23,7 @@ public abstract class Set<S extends ISet<S,E>,E> implements ISet<S,E> {
         S returnSet = emptySet();
         returnSet.addAll( this );
         returnSet.addAll( set );
-        return returnSet.toImmutableSet();
+        return returnSet;
     }
 
     @Override
@@ -48,7 +31,7 @@ public abstract class Set<S extends ISet<S,E>,E> implements ISet<S,E> {
         S returnSet = emptySet();
         returnSet.addAll( this );
         returnSet.add( element );
-        return returnSet.toImmutableSet();
+        return returnSet;
     }
 
     @Override
@@ -56,14 +39,14 @@ public abstract class Set<S extends ISet<S,E>,E> implements ISet<S,E> {
         S returnSet = emptySet();
         returnSet.addAll( this );
         returnSet.retainAll( set );
-        return returnSet.toImmutableSet();
+        return returnSet;
     }
 
     @Override
     public S intersection( E element ) {
         S returnSet = emptySet();
         if ( this.contains( element ) ) returnSet.add( element );
-        return returnSet.toImmutableSet();
+        return returnSet;
     }
 
     @Override
@@ -71,7 +54,7 @@ public abstract class Set<S extends ISet<S,E>,E> implements ISet<S,E> {
         S returnSet = emptySet();
         returnSet.addAll( this );
         returnSet.removeAll( set );
-        return returnSet.toImmutableSet();
+        return returnSet;
     }
 
     @Override
@@ -79,7 +62,7 @@ public abstract class Set<S extends ISet<S,E>,E> implements ISet<S,E> {
         S returnSet = emptySet();
         returnSet.addAll( this );
         returnSet.remove( element );
-        return returnSet.toImmutableSet();
+        return returnSet;
     }
 
     @Override
@@ -91,7 +74,7 @@ public abstract class Set<S extends ISet<S,E>,E> implements ISet<S,E> {
         returnSet2.addAll( this );
         returnSet2.retainAll( set );
         returnSet.removeAll( returnSet2 );
-        return returnSet.toImmutableSet();
+        return returnSet;
     }
 
     @Override
@@ -100,7 +83,7 @@ public abstract class Set<S extends ISet<S,E>,E> implements ISet<S,E> {
         returnSet.addAll( this );
         returnSet.add( element );
         if ( this.contains( element ) ) returnSet.remove( element );
-        return returnSet.toImmutableSet();
+        return returnSet;
     }
 
     @Override
@@ -116,7 +99,7 @@ public abstract class Set<S extends ISet<S,E>,E> implements ISet<S,E> {
         for ( E selected : this ) {
             if ( condition.evaluate( selected ) ) resultSet.add( selected );
         }
-        return resultSet.toImmutableSet();
+        return resultSet;
     }
 
     @Override
@@ -129,27 +112,14 @@ public abstract class Set<S extends ISet<S,E>,E> implements ISet<S,E> {
     }
 
     @Override
-    public void setImmutable() {
-        immutable = true;
-    }
-
-    @Override
-    public S toImmutableSet() {
-        S returnSet = emptySet();
-        returnSet.addAll( this );
-        returnSet.setImmutable();
-        return returnSet;
-    }
-
-    @Override
     public boolean add( E e ) {
-        if ( immutable || null == e || e.equals( nullElement() ) ) return false;
+        if ( null == e || e.equals( nullElement() ) ) return false;
         else return internalSet.add( e );
     }
 
     @Override
     public boolean remove( Object o ) {
-        if ( immutable || null == o || o.equals( nullElement() ) ) return false;
+        if ( null == o || o.equals( nullElement() ) ) return false;
         else return internalSet.remove( o );
     }
 
@@ -227,5 +197,5 @@ public abstract class Set<S extends ISet<S,E>,E> implements ISet<S,E> {
     public boolean equality( S value ) throws XtumlException {
         return containsAll( value ) && value.containsAll( this );
     }
-
+    
 }

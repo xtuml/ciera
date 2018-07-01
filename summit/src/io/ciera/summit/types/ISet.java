@@ -1,5 +1,6 @@
 package io.ciera.summit.types;
 
+import java.util.List;
 import java.util.Set;
 
 import io.ciera.summit.exceptions.XtumlException;
@@ -19,9 +20,8 @@ public interface ISet<S extends ISet<S,E>, E> extends Set<E>, IXtumlType<S> {
     public S where( IWhere<E> condition ) throws XtumlException;
     public E anyWhere( IWhere<E> condition ) throws XtumlException;
 
-    public void setImmutable();
-    public S toImmutableSet();
     public E nullElement();
     public S emptySet();
+    public List<E> elements();
 
 }

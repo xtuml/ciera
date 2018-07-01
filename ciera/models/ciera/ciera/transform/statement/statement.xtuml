@@ -1246,7 +1246,7 @@ select one type related by l_op->TypeReference[R795]->Type[R3800];
 // create right operand
 select one where_clause_val related by act_fiw->V_VAL[R610];
 select one where_clause_lbo related by where_clause_val->V_LBO[R801];
-if ( not_empty where_clause_lbo and ( "false" == T::l( s:where_clause_lbo.Value ) ) ) // special case where the where clause is ''false''
+if ( not_empty where_clause_lbo and ( "false" == TEMP::sub( format:"l", s:where_clause_lbo.Value ) ) ) // special case where the where clause is ''false''
   create object instance r_op of Expression;
   relate r_op to smt across R775.''expressed within'';
   r_op.expression_number = "1.2";
@@ -1400,7 +1400,7 @@ select one type related by l_op->TypeReference[R795]->Type[R3800];
 // create right operand
 select one where_clause_val related by act_sel->ACT_SRW[R664]->V_VAL[R611];
 select one where_clause_lbo related by where_clause_val->V_LBO[R801];
-if ( not_empty where_clause_lbo and ( "false" == T::l( s:where_clause_lbo.Value ) ) ) // special case where the where clause is ''false''
+if ( not_empty where_clause_lbo and ( "false" == TEMP::sub( format:"l", s:where_clause_lbo.Value ) ) ) // special case where the where clause is ''false''
   create object instance r_op of Expression;
   relate r_op to smt across R775.''expressed within'';
   r_op.expression_number = "1.2";
@@ -1423,7 +1423,6 @@ else
     create object instance r_op of Expression;
     relate r_op to smt across R775.''expressed within'';
     r_op.expression_number = "1.2";
-    relate select_type to r_op across R795.''defines type of'';
     relate r_op to binop across R778.''is right operand for'';
     relate select_type to r_op across R795.''defines type of'';
     // create expression for last chain link
@@ -3543,7 +3542,7 @@ for each smt in act_smts
   if ( empty act_smt )
     act_smt = smt;
   else
-    if ( smt.LineNumber < act_smt.LineNumber or smt.LineNumber == act_smt.LineNumber and smt.StartPosition == act_smt.StartPosition )
+    if ( smt.LineNumber < act_smt.LineNumber or smt.LineNumber == act_smt.LineNumber and smt.StartPosition < act_smt.StartPosition )
       act_smt = smt;
     end if;
   end if;
@@ -3734,7 +3733,7 @@ if ( "" == phrase ) // if the phrase is not included, may need to get the phrase
 end if;
 selector_name = "R" + STR::itoa( i:r_rel.Numb ) + "_";
 if ( "" != phrase )
-  selector_name = selector_name + T::underscore( s:phrase ) + "_";
+  selector_name = selector_name + TEMP::sub( format:"_", s:phrase ) + "_";
 end if;
 selector_name = selector_name + target_class.name;
 select any selector related by base_class->InstanceSelector[R442.''selects instances through'']->Selector[R445] where ( selected.name == selector_name );
@@ -3886,12 +3885,12 @@ for each array_var in array_vars
     end for;
     select one var_type related by array_var->TypeReference[R461];
     select one array_index related by earliest_array_ref->Expression[R3901];;
-    old_body = T::body();
-    T::clear();
+    old_body = TEMP::body();
+    TEMP::clear();
     array_index.render();
-    smt.prefix = smt.prefix + indent + var_type.type_reference_name + " " + array_var.name + " = new " + var_type.type_name + "[" + T::body() + "+1];\n";
-    T::clear();
-    T::b( s:old_body );
+    smt.prefix = smt.prefix + indent + var_type.type_reference_name + " " + array_var.name + " = new " + var_type.type_name + "[" + TEMP::body() + "+1];\n";
+    TEMP::clear();
+    TEMP::append( s:old_body );
     // no longer need to mark the first reference as a declaration
     select many var_refs related by array_var->VariableReference[R782] where ( selected.block_number == smt.block_number and selected.statement_number == smt.statement_number );
     for each var_ref in var_refs

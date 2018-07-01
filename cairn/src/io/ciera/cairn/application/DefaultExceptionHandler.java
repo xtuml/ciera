@@ -1,5 +1,6 @@
 package io.ciera.cairn.application;
 
+import io.ciera.cairn.util.PerformanceUtil;
 import io.ciera.summit.application.IExceptionHandler;
 import io.ciera.summit.exceptions.XtumlException;
 import io.ciera.summit.exceptions.XtumlInterruptedException;
@@ -13,6 +14,7 @@ public class DefaultExceptionHandler implements IExceptionHandler {
         }
         else {
             e.printStackTrace( System.err );
+            PerformanceUtil.generateReport();
             System.exit( 1 );
         }
     }

@@ -1,5 +1,7 @@
 package io.ciera.summit.types;
 
+import java.time.Duration;
+
 import io.ciera.summit.exceptions.XtumlException;
 
 public class TimeStamp implements IXtumlType<TimeStamp>, Comparable<TimeStamp> {
@@ -42,7 +44,7 @@ public class TimeStamp implements IXtumlType<TimeStamp>, Comparable<TimeStamp> {
     
     @Override
     public String toString() {
-        return Long.toString( timestamp );
+        return Duration.ofMillis(timestamp).toString();
     }
     
     @Override

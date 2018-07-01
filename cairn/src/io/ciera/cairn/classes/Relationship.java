@@ -3,7 +3,7 @@ package io.ciera.cairn.classes;
 import io.ciera.summit.classes.IRelationship;
 import io.ciera.summit.types.UniqueId;
 
-public class Relationship implements IRelationship {
+public class Relationship implements IRelationship, Comparable<IRelationship> {
 
     private UniqueId form;
     private UniqueId part;
@@ -37,6 +37,16 @@ public class Relationship implements IRelationship {
         int hash = getForm().hashCode();
         hash = hash * 31 + getPart().hashCode();
         return hash;
+    }
+    
+    @Override
+    public int compareTo( IRelationship r ) {
+        if ( null == r ) return 1;
+        else {
+            int comp1 = form.compareTo(r.getForm());
+            if ( 0 == comp1 ) return part.compareTo(r.getPart());
+            else return comp1;
+        }
     }
 
 }

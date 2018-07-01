@@ -221,10 +221,10 @@ INSERT INTO S_SPARM
 INSERT INTO S_DT_PROXY
 	VALUES ("ac93823e-2644-440b-977c-1f4e8480ec59",
 	"00000000-0000-0000-0000-000000000000",
-	'inst_ref<Class>',
+	'inst_ref<Model Inst>',
 	'',
 	'',
-	'../../../../ciera/models/ciera/ciera/architecture/class/class.xtuml');
+	'../../../../ciera/models/ciera/ciera/architecture/classes/classes.xtuml');
 INSERT INTO S_SPARM
 	VALUES ("2f62c177-942e-460a-b8fd-abafb7156e20",
 	"509de666-d828-4779-80f2-acd363b116e6",
@@ -265,7 +265,7 @@ if ( not_empty prev_attr_serializer )
 end if;
 
 // get the accessor name
-select any accessor related by attr->AttributeAccessor[R4510] where ( selected.accessor_type == AttributeAccessor::GETTER );
+select any accessor related by attr->AttributeAccessor[R4510] where ( selected.accessor_type == AttributeAccessorType::GETTER );
 accessor_name = accessor.getName() + "()";
 
 select one type related by attr->TypeReference[R424]->Type[R3800];
@@ -301,7 +301,15 @@ else
     relate int_serializer to attr_serializer across R3004;
     int_serializer.value = accessor_name + ".getValue()";
   else
-    // TODO bad cannot serialize instance or structured types
+    select one udt related by type->UserDefinedType[R407];
+    if ( not_empty udt )
+      create object instance general_serializer of Z_GeneralSerializer;
+      relate general_serializer to attr_serializer across R3004;
+      general_serializer.value = accessor_name;
+      relate type to general_serializer across R3014;
+    else
+      // TODO bad cannot serialize instance or structured types
+    end if;
   end if;
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
@@ -323,7 +331,7 @@ INSERT INTO S_DT_PROXY
 	'inst_ref<Attribute>',
 	'',
 	'',
-	'../../../../ciera/models/ciera/ciera/architecture/class/class.xtuml');
+	'../../../../ciera/models/ciera/ciera/architecture/classes/classes.xtuml');
 INSERT INTO S_SPARM
 	VALUES ("b9b65190-074d-459d-835e-e52c3737f31c",
 	"c2ab8db1-8ef9-49d8-a0f2-8771d71d5f86",
@@ -388,12 +396,12 @@ attr_loader.value_index = value_index;
 
 if ( not_empty non_persistent )
 
-  create object instance non_persistent_loader of Z_NonPersistentLoader;
-  relate non_persistent_loader to attr_loader across R3008;
+  create object instance general_loader of Z_GeneralLoader;
+  relate general_loader to attr_loader across R3008;
   select one type related by attr->TypeReference[R424]->Type[R3800];
-  relate type to non_persistent_loader across R3013;
+  relate type to general_loader across R3013;
   ::addTypeToImports( file:file, type_to_import:type, type:ImportType::IMPL );
-  non_persistent_loader.load_value = (non_persistent.value == "load_only");
+  general_loader.load_value = (non_persistent.value == "load_only");
 
 else
 
@@ -429,7 +437,16 @@ else
       select one edt_file related by edt->File[R401];
       ::addFileToImports( file:file, file_to_import:edt_file, type: ImportType::IMPL );
     else
-      // TODO bad cannot load instance or structured types
+      select one udt related by type->UserDefinedType[R407];
+      if ( not_empty udt )
+        create object instance general_loader of Z_GeneralLoader;
+        relate general_loader to attr_loader across R3008;
+        relate type to general_loader across R3013;
+        ::addTypeToImports( file:file, type_to_import:type, type:ImportType::IMPL );
+        general_loader.load_value = true;
+      else
+        // TODO bad cannot load instance or structured types
+      end if;
     end if;
   end if;
 
@@ -560,7 +577,7 @@ INSERT INTO S_SPARM
 INSERT INTO S_DT_PROXY
 	VALUES ("acea8715-3cc0-489c-a9e9-9521870ce9ab",
 	"00000000-0000-0000-0000-000000000000",
-	'inst_ref<Relationship>',
+	'inst_ref<Class Relationship>',
 	'',
 	'',
 	'../../../../ciera/models/ciera/ciera/architecture/relationship/relationship.xtuml');
@@ -592,10 +609,10 @@ create object instance attr_comp of Z_AttributeComparison;
 relate attr_comp to batch_relator across R3012;
 attr_comp.part_attr_name = attr_ref.referred_to_attribute_name;
 
-select any form_accessor related by attr_ref->Attribute[R4506.''provides value for'']->AttributeAccessor[R4510] where ( selected.accessor_type == AttributeAccessor::GETTER );
+select any form_accessor related by attr_ref->Attribute[R4506.''provides value for'']->AttributeAccessor[R4510] where ( selected.accessor_type == AttributeAccessorType::GETTER );
 attr_comp.form_accessor = form_accessor.getName() + "()";
 
-select any part_accessor related by attr_ref->Attribute[R4506.''has value provided by'']->AttributeAccessor[R4510] where ( selected.accessor_type == AttributeAccessor::GETTER );
+select any part_accessor related by attr_ref->Attribute[R4506.''has value provided by'']->AttributeAccessor[R4510] where ( selected.accessor_type == AttributeAccessorType::GETTER );
 attr_comp.part_accessor = part_accessor.getName() + "()";
 
 select one type_ref related by attr_ref->Attribute[R4506.''has value provided by'']->TypeReference[R424];
@@ -626,7 +643,7 @@ INSERT INTO S_DT_PROXY
 	'inst_ref<Attribute Reference>',
 	'',
 	'',
-	'../../../../ciera/models/ciera/ciera/architecture/class/class.xtuml');
+	'../../../../ciera/models/ciera/ciera/architecture/classes/classes.xtuml');
 INSERT INTO S_SPARM
 	VALUES ("c8b4aec4-b572-4eaf-81fa-86a567ab0518",
 	"af92b7f9-8a99-4382-8277-3f9403de55c0",

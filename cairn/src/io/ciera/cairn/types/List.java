@@ -13,22 +13,18 @@ import io.ciera.summit.types.IWhere;
 public abstract class List<L extends IList<L,E>,E> implements IList<L,E> {
 
 
-    private boolean immutable;
     private ArrayList<E> internalList;
 
     public List() {
         internalList = new ArrayList<>();
-        immutable = false;
     }
 
     public List( Collection<? extends E> c ) {
         internalList = new ArrayList<>( c );
-        immutable = false;
     }
 
     public List( int initialCapacity ) {
         internalList = new ArrayList<>( initialCapacity );
-        immutable = false;
     }
 
     @Override
@@ -44,7 +40,7 @@ public abstract class List<L extends IList<L,E>,E> implements IList<L,E> {
         for ( E selected : this ) {
             if ( condition.evaluate( selected ) ) resultList.add( selected );
         }
-        return resultList.toImmutableList();
+        return resultList;
     }
 
     @Override
@@ -57,19 +53,6 @@ public abstract class List<L extends IList<L,E>,E> implements IList<L,E> {
     }
 
     @Override
-    public void setImmutable() {
-        immutable = true;
-    }
-
-    @Override
-    public L toImmutableList() {
-        L returnList = emptyList();
-        returnList.addAll( this );
-        returnList.setImmutable();
-        return returnList;
-    }
-
-    @Override
     public E get( int index ) {
         internalList.ensureCapacity( index + 1 );
         return internalList.get( index );
@@ -77,38 +60,31 @@ public abstract class List<L extends IList<L,E>,E> implements IList<L,E> {
 
     @Override
     public E set( int index, E element ) {
-        if ( immutable ) return nullElement();
-        else {
-            internalList.ensureCapacity( index + 1 );
-            return internalList.set( index, element );
-        }
+        internalList.ensureCapacity( index + 1 );
+        return internalList.set( index, element );
     }
 
     @Override
     public boolean add( E e ) {
-        if ( immutable || null == e || e.equals( nullElement() ) ) return false;
+        if ( null == e || e.equals( nullElement() ) ) return false;
         else return internalList.add( e );
     }
 
     @Override
     public void add( int index, E element ) {
-        if ( immutable ) return;
-        else {
-            internalList.ensureCapacity( index + 1 );
-            internalList.add( index, element );
-        }
+        internalList.ensureCapacity( index + 1 );
+        internalList.add( index, element );
     }
 
     @Override
     public boolean remove( Object o ) {
-        if ( immutable || null == o || o.equals( nullElement() ) ) return false;
+        if ( null == o || o.equals( nullElement() ) ) return false;
         else return internalList.remove( o );
     }
 
     @Override
     public E remove( int index ) {
-        if ( immutable ) return nullElement();
-        else return internalList.remove( index );
+        return internalList.remove( index );
     }
 
     @Override

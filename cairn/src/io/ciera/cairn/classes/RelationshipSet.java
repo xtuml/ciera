@@ -1,5 +1,8 @@
 package io.ciera.cairn.classes;
 
+import java.util.Arrays;
+import java.util.List;
+
 import io.ciera.cairn.types.Set;
 import io.ciera.summit.classes.IRelationship;
 import io.ciera.summit.classes.IRelationshipSet;
@@ -7,7 +10,7 @@ import io.ciera.summit.exceptions.XtumlException;
 import io.ciera.summit.types.UniqueId;
 
 public class RelationshipSet extends Set<IRelationshipSet,IRelationship> implements IRelationshipSet {
-
+    
     @Override
     public IRelationshipSet getFormalizing( UniqueId part ) throws XtumlException {
         return where( selected -> selected.getPart().equals( part ) );
@@ -37,5 +40,10 @@ public class RelationshipSet extends Set<IRelationshipSet,IRelationship> impleme
     public RelationshipSet value() {
         return this;
     }
-
+    
+    @Override
+    public List<IRelationship> elements() {
+        return Arrays.asList(toArray(new IRelationship[0]));
+    }
+    
 }

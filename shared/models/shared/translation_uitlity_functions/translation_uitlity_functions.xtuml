@@ -20,7 +20,7 @@ while ( -1 != underscore_index )
   name = left + "  " + right;
   underscore_index = STR::indexof( haystack:name, needle:"_" );
 end while;
-name = T::c( s:name );
+name = TEMP::sub( format:"c", s:name );
 dblspc_index = STR::indexof( haystack:name, needle:"  " );
 while ( -1 != dblspc_index )
   left = STR::substr( s:name, begin:0, end:dblspc_index );
@@ -28,7 +28,7 @@ while ( -1 != dblspc_index )
   name = left + "_" + right;
   dblspc_index = STR::indexof( haystack:name, needle:"  " );
 end while;
-return T::r( s:name );
+return TEMP::sub( format:"r", s:name );
 // TODO make sure already camel cased does not get destroyed',
 	"ba5eda7a-def5-0000-0000-000000000004",
 	1,
@@ -97,7 +97,7 @@ INSERT INTO S_SYNC
 	'ep_pkgToPath',
 	'',
 	'ep_pkg = param.ep_pkg;
-path = T::l( s:T::r( s:ep_pkg.Name ) );
+path = ::formatPath( path:TEMP::sub( format:"l", s:TEMP::sub( format:"r", s:ep_pkg.Name ) ) );
 select one containing_ep_pkg related by ep_pkg->PE_PE[R8001]->EP_PKG[R8000];
 if ( not_empty containing_ep_pkg )
   path = ::ep_pkgToPath( ep_pkg:containing_ep_pkg ) + "/" + path;
@@ -140,7 +140,7 @@ INSERT INTO S_SYNC
 	'c_cToPath',
 	'',
 	'c_c = param.c_c;
-path = T::l( s:T::r( s:c_c.Name ) );
+path = ::formatPath( path:TEMP::sub( format:"l", s:TEMP::sub( format:"r", s:c_c.Name ) ) );
 select one containing_ep_pkg related by c_c->PE_PE[R8001]->EP_PKG[R8000];
 if ( not_empty containing_ep_pkg )
   path = ::ep_pkgToPath( ep_pkg:containing_ep_pkg ) + "/" + path;
@@ -608,9 +608,9 @@ while i < 2
   end if;
   select one v_uny related by val->V_UNY[R801];
   if ( not_empty v_uny )
-    if ( ( "cardinality" == T::l( s:v_uny.Operator ) ) or ( "empty" == T::l( s:v_uny.Operator ) ) or ( "not_empty" == T::l( s:v_uny.Operator ) ) )
+    if ( ( "cardinality" == TEMP::sub( format:"l", s:v_uny.Operator ) ) or ( "empty" == TEMP::sub( format:"l", s:v_uny.Operator ) ) or ( "not_empty" == TEMP::sub( format:"l", s:v_uny.Operator ) ) )
       prec = 6;
-    elif ( ( "not" == T::l( s:v_uny.Operator ) ) or ( "-" == v_uny.Operator ) or ( "+" == v_uny.Operator ) )
+    elif ( ( "not" == TEMP::sub( format:"l", s:v_uny.Operator ) ) or ( "-" == v_uny.Operator ) or ( "+" == v_uny.Operator ) )
       prec = 5;
     end if;
   else
@@ -622,9 +622,9 @@ while i < 2
         prec = 3;
       elif ( ( "==" == v_bin.Operator ) or ( "!=" == v_bin.Operator ) or ( "<" == v_bin.Operator ) or ( ">" == v_bin.Operator ) or ( "<=" == v_bin.Operator ) or ( ">=" == v_bin.Operator ) )
         prec = 2;
-      elif ( "and" == T::l( s:v_bin.Operator ) )
+      elif ( "and" == TEMP::sub( format:"l", s:v_bin.Operator ) )
         prec = 1;
-      elif ( "or" == T::l( s:v_bin.Operator ) )
+      elif ( "or" == TEMP::sub( format:"l", s:v_bin.Operator ) )
         prec = 0;
       end if;
     end if;
@@ -782,10 +782,10 @@ INSERT INTO S_SYNC
 if ( "" != param.s )
   select any import_ref related by file->TypeImportReference[R402] where ( selected.fully_qualified_name == param.s and selected.type == param.type );
   if ( empty import_ref )
-    import = TypeImport::get_import( import:param.s );
+    type_import = TypeImport::get_import( import:param.s );
     create object instance import_ref of TypeImportReference;
     import_ref.type = param.type;
-    relate import to file across R402 using import_ref;
+    relate type_import to file across R402 using import_ref;
   end if;
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
@@ -1097,6 +1097,39 @@ INSERT INTO S_DT_PROXY
 	'../../../../ciera/models/ciera/ciera/architecture/invocable/invocable.xtuml');
 INSERT INTO PE_PE
 	VALUES ("f4648591-3962-4408-96d2-7f9b5e844820",
+	1,
+	"65dec46c-ec8b-4464-b227-a7853cadd3b4",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("5947dd79-d889-4add-a226-0553914a8912",
+	"00000000-0000-0000-0000-000000000000",
+	'formatPath',
+	'',
+	's = param.path;
+dot_index = STR::indexof( haystack:s, needle:"." );
+while ( -1 != dot_index )
+  left = STR::substr( s:s, begin:0, end:dot_index );
+  right = STR::substr( s:s, begin:dot_index + 1, end:-1 );
+  s = left + "/" + right;
+  dot_index = STR::indexof( haystack:s, needle:"." );
+end while;
+return s;',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("4ceb6b28-6d23-466d-a58c-d57ca2724c4f",
+	"5947dd79-d889-4add-a226-0553914a8912",
+	'path',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO PE_PE
+	VALUES ("5947dd79-d889-4add-a226-0553914a8912",
 	1,
 	"65dec46c-ec8b-4464-b227-a7853cadd3b4",
 	"00000000-0000-0000-0000-000000000000",

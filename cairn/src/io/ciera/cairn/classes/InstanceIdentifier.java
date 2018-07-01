@@ -1,12 +1,23 @@
 package io.ciera.cairn.classes;
 
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
 import io.ciera.summit.classes.IInstanceIdentifier;
-import io.ciera.summit.exceptions.XtumlException;
 
-public abstract class InstanceIdentifier implements IInstanceIdentifier {
+public class InstanceIdentifier implements IInstanceIdentifier {
+    
+    List<Object> elements;
+    
+    public InstanceIdentifier( Object ... elements ) {
+        this.elements = Arrays.asList(elements);
+    }
+
+    @Override
+    public List<Object> getElements() {
+        return elements;
+    }
     
     @Override
     public boolean equals( Object o ) {
@@ -29,24 +40,4 @@ public abstract class InstanceIdentifier implements IInstanceIdentifier {
         return hash;
     }
     
-    public static IInstanceIdentifier getIdentifier( ElementList list ) {
-        return new InstanceIdentifier() {
-            @Override
-            public List<Object> getElements() {
-                try {
-                    return list.elementList();
-                }
-                catch ( XtumlException e ) {
-                    e.printStackTrace();
-                    System.exit(1);
-                    return null;
-                }
-            }
-        };
-    }
-    
-    public static interface ElementList {
-        public List<Object> elementList() throws XtumlException;
-    }
-
 }

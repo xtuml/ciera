@@ -12,14 +12,14 @@ import io.ciera.summit.exceptions.InstancePopulationException;
 import io.ciera.summit.exceptions.XtumlException;
 import io.ciera.summit.types.UniqueId;
 
-public abstract class ModelInstance<T extends IModelInstance<T,C>,C extends IComponent<C>> implements IModelInstance<T,C> {
+public abstract class ModelInstance<T extends IModelInstance<T,C>,C extends IComponent<C>> implements IModelInstance<T,C>, Comparable<T> {
 
 
     private UniqueId instanceId;
 
     // constructors
     public ModelInstance() {
-        instanceId = new UniqueId();
+        instanceId = UniqueId.random();
     }
 
     @Override
@@ -41,7 +41,7 @@ public abstract class ModelInstance<T extends IModelInstance<T,C>,C extends ICom
 
     @Override
     public boolean equals( Object obj ) {
-        if ( null != obj && obj instanceof IModelInstance<?,?> && !((IModelInstance<?,?>)obj).isEmpty() ) {
+        if ( null != obj && obj instanceof IModelInstance<?,?> ) {
             return getInstanceId().equals( ((IModelInstance<?,?>)obj).getInstanceId() );
         }
         else return false;
@@ -95,6 +95,11 @@ public abstract class ModelInstance<T extends IModelInstance<T,C>,C extends ICom
     @Override
     public boolean equality( T value) throws XtumlException {
         return equals( value );
+    }
+    
+    @Override
+    public int compareTo( T o ) {
+        return instanceId.compareTo(o.getInstanceId());
     }
     
 }
