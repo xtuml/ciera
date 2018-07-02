@@ -79,7 +79,9 @@ select any current_comp_inst from instances of ComponentInstantiation where fals
 for each c_c in c_cs
   select any comp_def from instances of ComponentDefinition where ( selected.name == ::camelCaseName( name:c_c.Name, start_lower:false ) );
   if ( empty comp_def )
-    ::transformComponentDefinition( c_c:c_c, containing_comp_def:empty_comp_def, path:param.path );
+    ::transformComponentDefinition( c_c:c_c, containing_comp_def:empty_comp_def, path:param.path, pass:1 );
+    ::transformComponentDefinition( c_c:c_c, containing_comp_def:empty_comp_def, path:param.path, pass:2 );
+    ::transformComponentDefinition( c_c:c_c, containing_comp_def:empty_comp_def, path:param.path, pass:3 );
     select any comp_def from instances of ComponentDefinition where ( selected.name == ::camelCaseName( name:c_c.Name, start_lower:false ) );
   end if;
   create object instance comp_inst of ComponentInstantiation;
@@ -139,61 +141,78 @@ INSERT INTO S_SYNC
 	'c_c = param.c_c;
 containing_comp_def = param.containing_comp_def;
 
-// create the file
-create object instance file of File;
-file.name = ::camelCaseName( name:c_c.Name, start_lower:false );
-file.path = param.path;
-file.package = ::pathToPackage( path:file.path );
-file.extension = ".java";
-file.exclude = false;
+if ( 1 == param.pass )
 
-// create the component definition object
-create object instance comp_def of ComponentDefinition;
-relate comp_def to file across R401;
-comp_def.extends = "Component<" + comp_def.name + ">";
-relate c_c to comp_def across R4573.''is basis for'';
+  // create the file
+  create object instance file of File;
+  file.name = ::camelCaseName( name:c_c.Name, start_lower:false );
+  file.path = param.path;
+  file.package = ::pathToPackage( path:file.path );
+  file.extension = ".java";
+  file.exclude = false;
 
-// transform ports
-select many c_pos related by c_c->C_PO[R4010];
-for each c_po in c_pos
-  ::transformPort( c_po:c_po, comp_def:comp_def, path:file.path + "/" + T::l( s:c_c.Name ) );
-end for;
+  // create the component definition object
+  create object instance comp_def of ComponentDefinition;
+  relate comp_def to file across R401;
+  comp_def.extends = "Component<" + comp_def.name + ">";
+  relate c_c to comp_def across R4573.''is basis for'';
 
-// transform inner packages
-select many ep_pkgs related by c_c->PE_PE[R8003]->EP_PKG[R8001];
-for each ep_pkg in ep_pkgs
-  ::transformPackage( ep_pkg:ep_pkg, containing_comp_def:comp_def, path:file.path + "/" + T::l( s:c_c.Name ) );
-end for;
+  // transform ports
+  select many c_pos related by c_c->C_PO[R4010];
+  for each c_po in c_pos
+    ::transformPort( c_po:c_po, comp_def:comp_def, path:file.path + "/" + T::l( s:c_c.Name ) );
+  end for;
 
-// transform inner components
-select many inner_c_cs related by c_c->PE_PE[R8003]->C_C[R8001];
-for each inner_c_c in inner_c_cs
-  ::transformComponentDefinition( c_c:inner_c_c, containing_comp_def:comp_def, path:file.path + "/" + T::l( s:c_c.Name ) );
-end for;
+  // transform inner packages
+  select many ep_pkgs related by c_c->PE_PE[R8003]->EP_PKG[R8001];
+  for each ep_pkg in ep_pkgs
+    ::transformPackage( ep_pkg:ep_pkg, containing_comp_def:comp_def, path:file.path + "/" + T::l( s:c_c.Name ), pass:param.pass );
+  end for;
 
-// transform instance population selectors
-select many objs related by comp_def->Class[R408.''maintains instances of''];
-for each obj in objs
-  create object instance inst_pop_selector of InstancePopulationSelector;
-  inst_pop_selector.name = obj.name + "_instances";
-  relate inst_pop_selector to comp_def across R447.''selects instances out of population of'';
-  relate inst_pop_selector to obj across R449.''selects instances of'';
-end for;
+  // transform inner components
+  select many inner_c_cs related by c_c->PE_PE[R8003]->C_C[R8001];
+  for each inner_c_c in inner_c_cs
+    ::transformComponentDefinition( c_c:inner_c_c, containing_comp_def:comp_def, path:file.path + "/" + T::l( s:c_c.Name ), pass:1 );
+    ::transformComponentDefinition( c_c:inner_c_c, containing_comp_def:comp_def, path:file.path + "/" + T::l( s:c_c.Name ), pass:2 );
+    ::transformComponentDefinition( c_c:inner_c_c, containing_comp_def:comp_def, path:file.path + "/" + T::l( s:c_c.Name ), pass:3 );
+  end for;
 
-// transform relationship population selectors
-select many rels related by comp_def->Relationship[R448.''maintains instances of''];
-for each rel in rels
-  create object instance rel_pop_selector of RelationshipPopulationSelector;
-  rel_pop_selector.name = rel.name + "s";
-  relate rel_pop_selector to comp_def across R4571.''selects relationships out of population of'';
-  relate rel_pop_selector to rel across R4572.''selects instances of'';
-end for;
+  // transform instance population selectors
+  select many objs related by comp_def->Class[R408.''maintains instances of''];
+  for each obj in objs
+    create object instance inst_pop_selector of InstancePopulationSelector;
+    inst_pop_selector.name = obj.name + "_instances";
+    relate inst_pop_selector to comp_def across R447.''selects instances out of population of'';
+    relate inst_pop_selector to obj across R449.''selects instances of'';
+  end for;
 
-// create import block
-::addStringToImports( file:file, s:"io.ciera.cairn.components.Component", type:ImportType::IMPL );
-::addStringToImports( file:file, s:"io.ciera.summit.application.IRunContext", type:ImportType::IMPL );
-::addStringToImports( file:file, s:"io.ciera.summit.classes.IModelInstance", type:ImportType::IMPL );
-::addStringToImports( file:file, s:"io.ciera.summit.exceptions.XtumlException", type:ImportType::IMPL );',
+  // transform relationship population selectors
+  select many rels related by comp_def->Relationship[R448.''maintains instances of''];
+  for each rel in rels
+    create object instance rel_pop_selector of RelationshipPopulationSelector;
+    rel_pop_selector.name = rel.name + "s";
+    relate rel_pop_selector to comp_def across R4571.''selects relationships out of population of'';
+    relate rel_pop_selector to rel across R4572.''selects instances of'';
+  end for;
+
+  // create import block
+  ::addStringToImports( file:file, s:"io.ciera.cairn.components.Component", type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"io.ciera.summit.application.IRunContext", type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"io.ciera.summit.classes.IModelInstance", type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"io.ciera.summit.exceptions.XtumlException", type:ImportType::IMPL );
+
+else
+
+  select any file from instances of File where ( selected.name == ::camelCaseName( name:c_c.Name, start_lower:false ) and selected.package == ::pathToPackage( path:param.path ) );
+  select one comp_def related by file->ComponentDefinition[R401];
+
+  // transform inner packages
+  select many ep_pkgs related by c_c->PE_PE[R8003]->EP_PKG[R8001];
+  for each ep_pkg in ep_pkgs
+    ::transformPackage( ep_pkg:ep_pkg, containing_comp_def:comp_def, path:file.path + "/" + T::l( s:c_c.Name ), pass:param.pass );
+  end for;
+  
+end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -239,6 +258,15 @@ INSERT INTO S_SPARM
 	'',
 	"35145c47-5490-4738-a0b2-7e513f9ed71c",
 	'');
+INSERT INTO S_SPARM
+	VALUES ("066e5021-8977-4091-b68e-2a3948e3cf46",
+	"a77051bc-22a5-45fc-a0ba-6e4ceeaa7802",
+	'pass',
+	"ba5eda7a-def5-0000-0000-000000000002",
+	0,
+	'',
+	"339de843-5314-4e62-a1ea-25f8e95de699",
+	'');
 INSERT INTO PE_PE
 	VALUES ("a77051bc-22a5-45fc-a0ba-6e4ceeaa7802",
 	1,
@@ -253,75 +281,109 @@ INSERT INTO S_SYNC
 	'ep_pkg = param.ep_pkg;
 path = param.path;
 
-// see if this is a package reference
-select one referred_ep_pkg related by ep_pkg->EP_PKG[R1402.''refers to''];
-if ( not_empty referred_ep_pkg )
-  ep_pkg = referred_ep_pkg;
-end if;
-containing_comp_def = param.containing_comp_def;
-select many pe_pes related by ep_pkg->PE_PE[R8000];
+if ( 1 == param.pass )
 
-// transform functions
-select many s_syncs related by pe_pes->S_SYNC[R8001];
-for each s_sync in s_syncs
-  ::transformFunction( s_sync:s_sync, comp_def:containing_comp_def );
-end for;
+  // see if this is a package reference
+  select one referred_ep_pkg related by ep_pkg->EP_PKG[R1402.''refers to''];
+  if ( not_empty referred_ep_pkg )
+    ep_pkg = referred_ep_pkg;
+  end if;
+  containing_comp_def = param.containing_comp_def;
+  select many pe_pes related by ep_pkg->PE_PE[R8000];
 
-// transform constants
+  // transform functions
+  select many s_syncs related by pe_pes->S_SYNC[R8001];
+  for each s_sync in s_syncs
+    ::transformFunction( s_sync:s_sync, comp_def:containing_comp_def );
+  end for;
 
-// transform datatypes
-select many edts related by pe_pes->S_DT[R8001]->S_EDT[R17]->S_DT[R17];
-for each edt in edts
-  ::transformEnumeratedType( s_dt:edt );
-end for;
+  // transform constants
 
-// transform EEs
-select many s_ees related by pe_pes->S_EE[R8001];
-for each s_ee in s_ees
-  ::transformUtility( s_ee:s_ee, ep_pkg:ep_pkg, containing_comp_def:containing_comp_def, exclude:false, path:path + "/" + T::l( s:ep_pkg.Name ) );
-end for;
+  // transform datatypes
+  select many edts related by pe_pes->S_DT[R8001]->S_EDT[R17]->S_DT[R17];
+  for each edt in edts
+    ::transformEnumeratedType( s_dt:edt );
+  end for;
 
-// transform classes
-select many o_objs related by pe_pes->O_OBJ[R8001];
-for each o_obj in o_objs
-  ::transformClass( o_obj:o_obj, containing_comp_def:containing_comp_def, path:path + "/" + T::l( s:ep_pkg.Name ) );
-end for;
+  // transform EEs
+  select many s_ees related by pe_pes->S_EE[R8001];
+  for each s_ee in s_ees
+    ::transformUtility( s_ee:s_ee, ep_pkg:ep_pkg, containing_comp_def:containing_comp_def, exclude:false, path:path + "/" + T::l( s:ep_pkg.Name ) );
+  end for;
 
-// transform imported classes (must be done before associations are transformed)
-select many o_iobjs related by pe_pes->O_IOBJ[R8001];
-for each o_iobj in o_iobjs
-  select one o_obj related by o_iobj->O_OBJ[R101];
-  ::transformClass( o_obj:o_obj, containing_comp_def:containing_comp_def, path:path + "/" + T::l( s:ep_pkg.Name ) );
-end for;
+  // transform classes
+  select many o_objs related by pe_pes->O_OBJ[R8001];
+  for each o_obj in o_objs
+    ::transformClass( o_obj:o_obj, containing_comp_def:containing_comp_def, path:path + "/" + T::l( s:ep_pkg.Name ) );
+  end for;
 
-// transform associations
-select many r_rels related by pe_pes->R_REL[R8001];
-for each r_rel in r_rels
-  ::transformAssociation( r_rel:r_rel, containing_comp_def:containing_comp_def );
-end for;
+  // transform components
+  select many c_cs related by pe_pes->C_C[R8001];
+  for each c_c in c_cs
+    ::transformComponentDefinition( c_c:c_c, containing_comp_def:containing_comp_def, path:path + "/" + T::l( s:ep_pkg.Name ), pass:1 );
+    ::transformComponentDefinition( c_c:c_c, containing_comp_def:containing_comp_def, path:path + "/" + T::l( s:ep_pkg.Name ), pass:2 );
+    ::transformComponentDefinition( c_c:c_c, containing_comp_def:containing_comp_def, path:path + "/" + T::l( s:ep_pkg.Name ), pass:3 );
+  end for;
 
-// transform selectors
-select many objs related by o_objs->Class[R409.''is basis for''];
-for each obj in objs
-  ::transformSelectors( obj:obj );
-end for;
+  // transform packages
+  select many inner_ep_pkgs related by pe_pes->EP_PKG[R8001];
+  for each inner_ep_pkg in inner_ep_pkgs
+    ::transformPackage( ep_pkg:inner_ep_pkg, containing_comp_def:containing_comp_def, path:path + "/" + T::l( s:ep_pkg.Name ), pass:param.pass );
+  end for;
 
-// transform attribute references
-for each obj in objs
-  ::transformAttributeReferences( obj:obj );
-end for;
+elif ( 2 == param.pass )
 
-// transform components
-select many c_cs related by pe_pes->C_C[R8001];
-for each c_c in c_cs
-  ::transformComponentDefinition( c_c:c_c, containing_comp_def:containing_comp_def, path:path + "/" + T::l( s:ep_pkg.Name ) );
-end for;
+  // see if this is a package reference
+  select one referred_ep_pkg related by ep_pkg->EP_PKG[R1402.''refers to''];
+  if ( not_empty referred_ep_pkg )
+    ep_pkg = referred_ep_pkg;
+  end if;
+  containing_comp_def = param.containing_comp_def;
+  select many pe_pes related by ep_pkg->PE_PE[R8000];
 
-// transform packages
-select many inner_ep_pkgs related by pe_pes->EP_PKG[R8001];
-for each inner_ep_pkg in inner_ep_pkgs
-  ::transformPackage( ep_pkg:inner_ep_pkg, containing_comp_def:containing_comp_def, path:path + "/" + T::l( s:ep_pkg.Name ) );
-end for;',
+  // transform associations
+  select many r_rels related by pe_pes->R_REL[R8001];
+  for each r_rel in r_rels
+    ::transformAssociation( r_rel:r_rel, containing_comp_def:containing_comp_def );
+  end for;
+
+  // transform selectors
+  select many o_objs related by pe_pes->O_OBJ[R8001];
+  select many objs related by o_objs->Class[R409.''is basis for''];
+  for each obj in objs
+    ::transformSelectors( obj:obj );
+  end for;
+
+  // transform packages
+  select many inner_ep_pkgs related by pe_pes->EP_PKG[R8001];
+  for each inner_ep_pkg in inner_ep_pkgs
+    ::transformPackage( ep_pkg:inner_ep_pkg, containing_comp_def:containing_comp_def, path:path + "/" + T::l( s:ep_pkg.Name ), pass:param.pass );
+  end for;
+  
+else
+
+  // see if this is a package reference
+  select one referred_ep_pkg related by ep_pkg->EP_PKG[R1402.''refers to''];
+  if ( not_empty referred_ep_pkg )
+    ep_pkg = referred_ep_pkg;
+  end if;
+  containing_comp_def = param.containing_comp_def;
+  select many pe_pes related by ep_pkg->PE_PE[R8000];
+
+  // transform attribute references
+  select many o_objs related by pe_pes->O_OBJ[R8001];
+  select many objs related by o_objs->Class[R409.''is basis for''];
+  for each obj in objs
+    ::transformAttributeReferences( obj:obj );
+  end for;
+
+  // transform packages
+  select many inner_ep_pkgs related by pe_pes->EP_PKG[R8001];
+  for each inner_ep_pkg in inner_ep_pkgs
+    ::transformPackage( ep_pkg:inner_ep_pkg, containing_comp_def:containing_comp_def, path:path + "/" + T::l( s:ep_pkg.Name ), pass:param.pass );
+  end for;
+
+end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -352,6 +414,15 @@ INSERT INTO S_SPARM
 	0,
 	'',
 	"0ca0ea7b-7e27-4164-8c8f-51956eba948a",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("62e875fa-2c95-46e0-a336-810edead7d02",
+	"1c26da85-1e78-4183-88ca-60811dc084db",
+	'pass',
+	"ba5eda7a-def5-0000-0000-000000000002",
+	0,
+	'',
+	"4787f035-98e2-4c37-bf7d-99b5f69be179",
 	'');
 INSERT INTO PE_PE
 	VALUES ("1c26da85-1e78-4183-88ca-60811dc084db",
