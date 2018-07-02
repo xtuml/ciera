@@ -5400,6 +5400,138 @@ INSERT INTO PE_PE
 	"06787f13-1c16-4275-879c-00bbeee7cb88",
 	"00000000-0000-0000-0000-000000000000",
 	1);
+INSERT INTO S_SYNC
+	VALUES ("b783a404-98ad-476f-924e-34532ff404da",
+	"00000000-0000-0000-0000-000000000000",
+	'resolveManyToManyAssociatives',
+	'',
+	'// This function selects all R_SIMP instances which represent many to many unformalized
+// associations and converts them to associative relationships with a new generated link
+// class
+
+select many r_simps from instances of R_SIMP;
+for each r_simp in r_simps
+  select many r_parts related by r_simp->R_PART[R207] where ( 1 == selected.Mult );
+  if ( 2 == cardinality r_parts )
+    select one r_rel related by r_simp->R_REL[R206];
+    select one ep_pkg related by r_rel->PE_PE[R8001]->EP_PKG[R8000];
+    select any obj1 from instances of O_OBJ where false;
+    select any obj2 from instances of O_OBJ where false;
+    first = true;
+    for each r_part in r_parts
+      if ( first )
+        select one obj1 related by r_part->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201];
+        first = false;
+      else
+        select one obj2 related by r_part->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201];
+      end if;
+    end for;
+    
+    // create associative class
+    create object instance link_o_obj of O_OBJ;
+    create object instance pe of PE_PE;
+    relate link_o_obj to pe across R8001;
+    pe.type = ElementTypeConstants::CLASS;
+    pe.Visibility = Visibility::Public;
+    relate ep_pkg to pe across R8000;
+    select many classes related by ep_pkg->PE_PE[R8000]->O_OBJ[R8001];
+    if ( ep_pkg.Num_Rng == 0 )
+      link_o_obj.Numb = 1;
+    else
+      link_o_obj.Numb = ep_pkg.Num_Rng;
+    end if;
+    for each clazz in classes
+      if (clazz.Obj_ID == link_o_obj.Obj_ID) continue; end if;
+      if (clazz.Numb >= link_o_obj.Numb)
+        link_o_obj.Numb = clazz.Numb + 1;
+      end if;
+    end for;
+    link_o_obj.Key_Lett = obj1.Key_Lett + obj2.Key_Lett;
+    link_o_obj.Name = obj1.Name + " " + obj2.Name;
+    select any oid1 related by link_o_obj->O_ID[R104] where ( selected.Oid_ID == 0 );
+    if ( empty oid1 )
+      create object instance oid1 of O_ID;
+      oid1.Oid_ID = 0;
+      relate oid1 to link_o_obj across R104;
+    end if;
+    select any oid2 related by link_o_obj->O_ID[R104] where ( selected.Oid_ID == 1 );
+    if ( empty oid2 )
+      create object instance oid2 of O_ID;
+      oid2.Oid_ID = 1;
+      relate oid2 to link_o_obj across R104;
+    end if;
+    select any oid3 related by link_o_obj->O_ID[R104] where ( selected.Oid_ID == 2 );
+    if ( empty oid3 )
+      create object instance oid3 of O_ID;
+      oid3.Oid_ID = 2;
+      relate oid3 to link_o_obj across R104;
+    end if;
+
+    // create the class as link
+    create object instance assr of R_ASSR;
+
+    // migrate the simple association to a linked association
+    create object instance assoc of R_ASSOC;
+    unrelate r_simp from r_rel across R206;
+    relate assoc to r_rel across R206;
+    doingOneSide = true;
+    for each r_part in r_parts
+      if (doingOneSide)
+        // migrate from participant to one side
+        select one rto related by r_part->R_RTO[R204];
+        unrelate r_part from rto across R204;
+        unrelate r_simp from r_part across R207;
+        create object instance aone of R_AONE;
+        aone.Mult = r_part.Mult;
+        aone.Cond = r_part.Cond;
+        aone.Txt_Phrs = r_part.Txt_Phrs;
+        delete object instance r_part;
+        relate rto to aone across R204;
+        // link the one side to the new linked association
+        relate aone to assoc across R209;
+        doingOneSide = false;
+      else
+        // migrate from participant to other side
+        select one rto related by r_part->R_RTO[R204];
+        unrelate r_part from rto across R204;
+        unrelate r_simp from r_part across R207;
+        create object instance aoth of R_AOTH;
+        aoth.Mult = r_part.Mult;
+        aoth.Cond = r_part.Cond;
+        aoth.Txt_Phrs = r_part.Txt_Phrs;
+        delete object instance r_part;
+        relate rto to aoth across R204;
+        // link the other side to the new linked association
+        relate aoth to assoc across R210;
+      end if;
+    end for;
+
+    // link the link_o_obj to the association
+    create object instance oir of R_OIR;
+    relate link_o_obj to r_rel across R201 using oir;
+
+    // create the referring class in association
+    create object instance rgo of R_RGO;
+    relate rgo to oir across R203;
+    relate rgo to assr across R205;
+
+    // link it with the linked association
+    relate assr to assoc across R211;
+
+    delete object instance r_simp;
+    
+  end if;
+end for;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO PE_PE
+	VALUES ("b783a404-98ad-476f-924e-34532ff404da",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
 INSERT INTO PE_PE
 	VALUES ("06787f13-1c16-4275-879c-00bbeee7cb88",
 	1,
