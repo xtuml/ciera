@@ -186,15 +186,6 @@ if ( 1 == param.pass )
     relate inst_pop_selector to obj across R449.''selects instances of'';
   end for;
 
-  // transform relationship population selectors
-  select many rels related by comp_def->Relationship[R448.''maintains instances of''];
-  for each rel in rels
-    create object instance rel_pop_selector of RelationshipPopulationSelector;
-    rel_pop_selector.name = rel.name + "s";
-    relate rel_pop_selector to comp_def across R4571.''selects relationships out of population of'';
-    relate rel_pop_selector to rel across R4572.''selects instances of'';
-  end for;
-
   // create import block
   ::addStringToImports( file:file, s:"io.ciera.cairn.components.Component", type:ImportType::IMPL );
   ::addStringToImports( file:file, s:"io.ciera.summit.application.IRunContext", type:ImportType::IMPL );
@@ -210,6 +201,15 @@ else
   select many ep_pkgs related by c_c->PE_PE[R8003]->EP_PKG[R8001];
   for each ep_pkg in ep_pkgs
     ::transformPackage( ep_pkg:ep_pkg, containing_comp_def:comp_def, path:file.path + "/" + T::l( s:c_c.Name ), pass:param.pass );
+  end for;
+
+  // transform relationship population selectors
+  select many rels related by comp_def->Relationship[R448.''maintains instances of''];
+  for each rel in rels
+    create object instance rel_pop_selector of RelationshipPopulationSelector;
+    rel_pop_selector.name = rel.name + "s";
+    relate rel_pop_selector to comp_def across R4571.''selects relationships out of population of'';
+    relate rel_pop_selector to rel across R4572.''selects instances of'';
   end for;
   
 end if;',
@@ -308,27 +308,27 @@ if ( 1 == param.pass )
   // transform EEs
   select many s_ees related by pe_pes->S_EE[R8001];
   for each s_ee in s_ees
-    ::transformUtility( s_ee:s_ee, ep_pkg:ep_pkg, containing_comp_def:containing_comp_def, exclude:false, path:path + "/" + T::l( s:ep_pkg.Name ) );
+    ::transformUtility( s_ee:s_ee, ep_pkg:ep_pkg, containing_comp_def:containing_comp_def, exclude:false, path:path + "/" + T::l( s:T::r( s:ep_pkg.Name ) ) );
   end for;
 
   // transform classes
   select many o_objs related by pe_pes->O_OBJ[R8001];
   for each o_obj in o_objs
-    ::transformClass( o_obj:o_obj, containing_comp_def:containing_comp_def, path:path + "/" + T::l( s:ep_pkg.Name ) );
+    ::transformClass( o_obj:o_obj, containing_comp_def:containing_comp_def, path:path + "/" + T::l( s:T::r( s:ep_pkg.Name ) ) );
   end for;
 
   // transform components
   select many c_cs related by pe_pes->C_C[R8001];
   for each c_c in c_cs
-    ::transformComponentDefinition( c_c:c_c, containing_comp_def:containing_comp_def, path:path + "/" + T::l( s:ep_pkg.Name ), pass:1 );
-    ::transformComponentDefinition( c_c:c_c, containing_comp_def:containing_comp_def, path:path + "/" + T::l( s:ep_pkg.Name ), pass:2 );
-    ::transformComponentDefinition( c_c:c_c, containing_comp_def:containing_comp_def, path:path + "/" + T::l( s:ep_pkg.Name ), pass:3 );
+    ::transformComponentDefinition( c_c:c_c, containing_comp_def:containing_comp_def, path:path + "/" + T::l( s:T::r( s:ep_pkg.Name ) ), pass:1 );
+    ::transformComponentDefinition( c_c:c_c, containing_comp_def:containing_comp_def, path:path + "/" + T::l( s:T::r( s:ep_pkg.Name ) ), pass:2 );
+    ::transformComponentDefinition( c_c:c_c, containing_comp_def:containing_comp_def, path:path + "/" + T::l( s:T::r( s:ep_pkg.Name ) ), pass:3 );
   end for;
 
   // transform packages
   select many inner_ep_pkgs related by pe_pes->EP_PKG[R8001];
   for each inner_ep_pkg in inner_ep_pkgs
-    ::transformPackage( ep_pkg:inner_ep_pkg, containing_comp_def:containing_comp_def, path:path + "/" + T::l( s:ep_pkg.Name ), pass:param.pass );
+    ::transformPackage( ep_pkg:inner_ep_pkg, containing_comp_def:containing_comp_def, path:path + "/" + T::l( s:T::r( s:ep_pkg.Name ) ), pass:param.pass );
   end for;
 
 elif ( 2 == param.pass )
@@ -357,7 +357,7 @@ elif ( 2 == param.pass )
   // transform packages
   select many inner_ep_pkgs related by pe_pes->EP_PKG[R8001];
   for each inner_ep_pkg in inner_ep_pkgs
-    ::transformPackage( ep_pkg:inner_ep_pkg, containing_comp_def:containing_comp_def, path:path + "/" + T::l( s:ep_pkg.Name ), pass:param.pass );
+    ::transformPackage( ep_pkg:inner_ep_pkg, containing_comp_def:containing_comp_def, path:path + "/" + T::l( s:T::r( s:ep_pkg.Name ) ), pass:param.pass );
   end for;
   
 else
@@ -380,7 +380,7 @@ else
   // transform packages
   select many inner_ep_pkgs related by pe_pes->EP_PKG[R8001];
   for each inner_ep_pkg in inner_ep_pkgs
-    ::transformPackage( ep_pkg:inner_ep_pkg, containing_comp_def:containing_comp_def, path:path + "/" + T::l( s:ep_pkg.Name ), pass:param.pass );
+    ::transformPackage( ep_pkg:inner_ep_pkg, containing_comp_def:containing_comp_def, path:path + "/" + T::l( s:T::r( s:ep_pkg.Name ) ), pass:param.pass );
   end for;
 
 end if;',
@@ -4917,11 +4917,12 @@ INSERT INTO S_SYNC
 
 act_lnk = param.act_lnk;
 smt = param.smt;
+expr_number = param.expr_number;
 
 // create expression
 create object instance expr of Expression;
 relate expr to smt across R775.''expressed within'';
-expr.expression_number = param.expr_number;
+expr.expression_number = expr_number;
 
 // link type
 select one o_obj related by act_lnk->O_OBJ[R678];
@@ -4943,14 +4944,14 @@ relate sel_rel to sel across R789;
 select one prev_lnk related by act_lnk->ACT_LNK[R604.''succeeds''];
 select any base_class from instances of Class where false;
 if ( not_empty prev_lnk )
-  ::transformSelectionLink( act_lnk:prev_lnk, expr_number:param.expr_number + ".1", smt:smt );
-  select any prev_lnk_expr related by smt->Expression[R775.''may contain''] where ( selected.expression_number == param.expr_number + ".1" );
+  ::transformSelectionLink( act_lnk:prev_lnk, expr_number:expr_number + ".1", smt:smt );
+  select any prev_lnk_expr related by smt->Expression[R775.''may contain''] where ( selected.expression_number == expr_number + ".1" );
   relate prev_lnk_expr to sel_rel across R791.''is basis for'';
   select one base_class related by prev_lnk->O_OBJ[R678]->Class[R409.''is basis for''];
 else
   select one base_val related by act_lnk->ACT_SEL[R637]->V_VAL[R613];
-  ::transformExpression( v_val:base_val, expr_number:param.expr_number + ".1", smt:smt );
-  select any base_expr related by smt->Expression[R775.''may contain''] where ( selected.expression_number == param.expr_number + ".1" );
+  ::transformExpression( v_val:base_val, expr_number:expr_number + ".1", smt:smt );
+  select any base_expr related by smt->Expression[R775.''may contain''] where ( selected.expression_number == expr_number + ".1" );
   relate base_expr to sel_rel across R791.''is basis for'';
   select one base_class related by base_val->V_IRF[R801]->V_VAR[R808]->V_INT[R814]->O_OBJ[R818]->Class[R409.''is basis for''];
   if ( empty base_class )
