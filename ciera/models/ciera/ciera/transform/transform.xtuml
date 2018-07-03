@@ -347,13 +347,6 @@ elif ( 2 == param.pass )
     ::transformAssociation( r_rel:r_rel, containing_comp_def:containing_comp_def );
   end for;
 
-  // transform selectors
-  select many o_objs related by pe_pes->O_OBJ[R8001];
-  select many objs related by o_objs->Class[R409.''is basis for''];
-  for each obj in objs
-    ::transformSelectors( obj:obj );
-  end for;
-
   // transform packages
   select many inner_ep_pkgs related by pe_pes->EP_PKG[R8001];
   for each inner_ep_pkg in inner_ep_pkgs
@@ -369,6 +362,13 @@ else
   end if;
   containing_comp_def = param.containing_comp_def;
   select many pe_pes related by ep_pkg->PE_PE[R8000];
+
+  // transform selectors
+  select many o_objs related by pe_pes->O_OBJ[R8001];
+  select many objs related by o_objs->Class[R409.''is basis for''];
+  for each obj in objs
+    ::transformSelectors( obj:obj );
+  end for;
 
   // transform attribute references
   select many o_objs related by pe_pes->O_OBJ[R8001];
@@ -643,12 +643,22 @@ INSERT INTO S_SYNC
 	'',
 	'o_obj = param.o_obj;
 containing_comp_def = param.containing_comp_def;
+path = param.path;
 select one ep_pkg related by o_obj->PE_PE[R8001]->EP_PKG[R8000];
+select one pe related by ep_pkg->PE_PE[R8001];
 
 // create the object file
+marking_path = ::containerMarkingPath( pe:pe ) + "::" + ep_pkg.Name + "::" + o_obj.Name;
+select any class_name_mark from instances of Mark where ( selected.markable_name == "Model Class" and
+                                                          selected.path == marking_path and
+                                                          selected.feature_name == "UseKeyLettersForName" );
 create object instance file of File;
-file.name = ::camelCaseName( name:o_obj.Name, start_lower:false );
-file.path = param.path;
+if ( empty class_name_mark )
+  file.name = ::camelCaseName( name:o_obj.Name, start_lower:false );
+else
+  file.name = ::camelCaseName( name:o_obj.Key_Lett, start_lower:false );
+end if;
+file.path = path;
 file.package = ::pathToPackage( path:file.path );
 file.extension = ".java";
 file.exclude = false;
@@ -702,7 +712,7 @@ for each o_tfr in o_tfrs
 end for;
 
 // transform the set object
-::transformClassSet( obj:obj, ep_pkg:ep_pkg, path:param.path );
+::transformClassSet( obj:obj, ep_pkg:ep_pkg, path:path );
 
 // add to the containing component imports
 select one component_file related by containing_comp_def->File[R401];
@@ -1872,13 +1882,20 @@ relate set_sel to sel across R445;
 relate set_sel to obj_set across R444.''navigates from'';
 
 // link up type
-select any s_irdt related by other_obj->O_OBJ[R409.''is transformed from'']->S_IRDT[R123] where ( selected.isSet );
+select any set_irdt related by other_obj->O_OBJ[R409.''is transformed from'']->S_IRDT[R123] where ( selected.isSet );
+select one set_dt related by set_irdt->S_DT[R17];
+if ( empty set_dt )
+  // TODO bad
+end if;
+set_type = UnresolvedType::getInstance( s_dt:set_dt );
+relate set_type to sel across R446.''shapes return of'';
+
+select any s_irdt related by other_obj->O_OBJ[R409.''is transformed from'']->S_IRDT[R123] where ( not selected.isSet );
 select one s_dt related by s_irdt->S_DT[R17];
 if ( empty s_dt )
   // TODO bad
 end if;
-type = UnresolvedType::getInstance( s_dt:s_dt );
-relate type to sel across R446.''shapes return of'';
+class_type = UnresolvedType::getInstance( s_dt:s_dt );
 
 // create the instance selectors
 if ( Mult::ONE == param.mult )
@@ -1899,13 +1916,7 @@ if ( Mult::ONE == param.mult )
   relate inst_sel to set_sel across R4505.''invoked by'';
 
   // link up type
-  select any s_irdt related by other_obj->O_OBJ[R409.''is transformed from'']->S_IRDT[R123] where ( not selected.isSet );
-  select one s_dt related by s_irdt->S_DT[R17];
-  if ( empty s_dt )
-    // TODO bad
-  end if;
-  type = UnresolvedType::getInstance( s_dt:s_dt );
-  relate type to sel across R446.''shapes return of'';
+  relate class_type to sel across R446.''shapes return of'';
 
 else
 
@@ -1925,13 +1936,7 @@ else
   relate inst_sel to set_sel across R4505.''invoked by'';
 
   // link up type
-  select any s_irdt related by other_obj->O_OBJ[R409.''is transformed from'']->S_IRDT[R123] where ( selected.isSet );
-  select one s_dt related by s_irdt->S_DT[R17];
-  if ( empty s_dt )
-    // TODO bad
-  end if;
-  type = UnresolvedType::getInstance( s_dt:s_dt );
-  relate type to sel across R446.''shapes return of'';
+  relate set_type to sel across R446.''shapes return of'';
 
 end if;
 
@@ -1944,11 +1949,15 @@ if ( Cond::UNCONDITIONAL == param.cond or Mult::ONE == param.mult )
 end if;
 if ( Mult::MANY == param.mult )
   ::addStringToImports( file:file, s:"io.ciera.summit.classes.IRelationship", type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:set_type.package + ".impl." + set_type.name + "Impl", type:ImportType::IMPL );
+else
+  ::addStringToImports( file:file, s:class_type.package + ".impl." + class_type.name + "Impl", type:ImportType::IMPL );
 end if;
 
 // add imports to object set file
 select one set_file related by obj_set->File[R401];
-::addStringToImports( file:set_file, s:"io.ciera.summit.exceptions.XtumlException", type:ImportType::BOTH );',
+::addStringToImports( file:set_file, s:"io.ciera.summit.exceptions.XtumlException", type:ImportType::BOTH );
+::addStringToImports( file:set_file, s:set_type.package + ".impl." + set_type.name + "Impl", type:ImportType::IMPL );',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -2743,6 +2752,9 @@ if ( not_empty act_smt and not_empty block )
     end if;
     select any iter_var related by smt->CodeBlock[R450.''is contained by'']->Variable[R458.''has in scope''] where ( selected.name == iter_v_var.Name );
     relate iter_var to for_smt across R459.''is iterator for'';
+    // link iterator variable type
+    select one iter_type related by iter_var->Type[R461];
+    ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:iter_type, type:ImportType::IMPL );
     // create control block
     control_block_number = ::getNextBlockNumber( upper_block:block );
     select one control_blk related by act_for->ACT_BLK[R605];
@@ -3770,6 +3782,9 @@ if ( not_empty v_tvl )
   create object instance var_ref of VariableReference;
   relate var to var_ref across R782.''referenced through'';
   relate var_ref to expr across R776;
+  // add type reference to file
+  select one type related by expr->Type[R795];
+  ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:type, type:ImportType::IMPL );
 
 else
 select one v_irf related by v_val->V_IRF[R801];
@@ -3791,6 +3806,9 @@ if ( not_empty v_irf )
     create object instance var_ref of VariableReference;
     relate var to var_ref across R782.''referenced through'';
     relate var_ref to expr across R776;
+    // add type reference to file
+    select one type related by expr->Type[R795];
+    ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:type, type:ImportType::IMPL );
   end if;
 
 else
@@ -3808,6 +3826,9 @@ if ( not_empty v_isr )
   create object instance var_ref of VariableReference;
   relate var to var_ref across R782.''referenced through'';
   relate var_ref to expr across R776;
+  // add type reference to file
+  select one type related by expr->Type[R795];
+  ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:type, type:ImportType::IMPL );
   
 else
 select one v_avl related by v_val->V_AVL[R801];
@@ -3965,6 +3986,9 @@ if ( not_empty v_trv )
           create object instance var_ref of VariableReference;
           relate op_var to var_ref across R782.''referenced through'';
           relate var_ref to expr2 across R776;
+          // add type reference to file
+          select one type related by expr->Type[R795];
+          ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:type, type:ImportType::IMPL );
         else
           // TODO bad
         end if;
