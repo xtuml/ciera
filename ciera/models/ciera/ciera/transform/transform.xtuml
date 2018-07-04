@@ -192,6 +192,17 @@ if ( 1 == param.pass )
   ::addStringToImports( file:file, s:"io.ciera.summit.classes.IModelInstance", type:ImportType::IMPL );
   ::addStringToImports( file:file, s:"io.ciera.summit.exceptions.XtumlException", type:ImportType::IMPL );
 
+elif ( 2 == param.pass )
+
+  select any file from instances of File where ( selected.name == ::camelCaseName( name:c_c.Name, start_lower:false ) and selected.package == ::pathToPackage( path:param.path ) );
+  select one comp_def related by file->ComponentDefinition[R401];
+
+  // transform inner packages
+  select many ep_pkgs related by c_c->PE_PE[R8003]->EP_PKG[R8001];
+  for each ep_pkg in ep_pkgs
+    ::transformPackage( ep_pkg:ep_pkg, containing_comp_def:comp_def, path:file.path + "/" + T::l( s:c_c.Name ), pass:param.pass );
+  end for;
+
 else
 
   select any file from instances of File where ( selected.name == ::camelCaseName( name:c_c.Name, start_lower:false ) and selected.package == ::pathToPackage( path:param.path ) );
@@ -586,7 +597,7 @@ for each s_dt in s_dts
       type_default_value = "new XtumlString( " + STR::quote() + STR::quote() + " )";
     elif ( "timestamp" == s_dt.Name )
       type_name = "TimeStamp";
-      type_package = "io.ciera.summit.time";
+      type_package = "io.ciera.summit.types";
       type_default_value = "null";
     elif ( "unique_id" == s_dt.Name )
       type_name = "UniqueId";
@@ -645,13 +656,13 @@ INSERT INTO S_SYNC
 containing_comp_def = param.containing_comp_def;
 path = param.path;
 select one ep_pkg related by o_obj->PE_PE[R8001]->EP_PKG[R8000];
-select one pe related by ep_pkg->PE_PE[R8001];
 
-// create the object file
-marking_path = ::containerMarkingPath( pe:pe ) + "::" + ep_pkg.Name + "::" + o_obj.Name;
+// get mark for naming
+select one pe related by o_obj->PE_PE[R8001];
 select any class_name_mark from instances of Mark where ( selected.markable_name == "Model Class" and
-                                                          selected.path == marking_path and
+                                                          selected.path == ::containerMarkingPath( pe:pe ) + "::" + o_obj.Name and
                                                           selected.feature_name == "UseKeyLettersForName" );
+// create the object file
 create object instance file of File;
 if ( empty class_name_mark )
   file.name = ::camelCaseName( name:o_obj.Name, start_lower:false );
@@ -2529,6 +2540,13 @@ if ( not_empty act_smt and not_empty block )
           create object instance var_ref of VariableReference;
           relate op_var to var_ref across R782.''referenced through'';
           relate var_ref to expr2 across R776;
+          select one type related by expr2->Type[R795];
+          ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:type, type:ImportType::IMPL );
+        elif ( "self" == op_v_var.Name )
+          // create named reference
+          create object instance self_ref of NamedReference;
+          relate self_ref to expr2 across R776;
+          self_ref.name = "this";
         else
           // TODO bad
         end if;
@@ -2744,6 +2762,8 @@ if ( not_empty act_smt and not_empty block )
     relate iterable_var to var_ref across R782.''referenced through'';
     relate var_ref to expr across R776;
     relate expr to for_smt across R478.''is iterated by'';
+    select one type related by expr->Type[R795];
+    ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:type, type:ImportType::IMPL );
     // create iterator variable
     select one iter_v_var related by act_for->V_VAR[R614];
     select any existing_var related by smt->CodeBlock[R450.''is contained by'']->Variable[R458.''has in scope''] where ( selected.name == iter_v_var.Name );
@@ -2800,6 +2820,8 @@ if ( not_empty act_smt and not_empty block )
     relate select_var to var_ref across R782.''referenced through'';
     relate var_ref to l_op across R776;
     relate l_op to binop across R779.''is left operand for'';
+    select one type related by l_op->Type[R795];
+    ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:type, type:ImportType::IMPL );
     // create right operand
     select one selector related by select_obj->Class[R409.''is basis for'']->InstancePopulationSelector[R449.''extent accessed by''];
     create object instance r_op of Expression;
@@ -2863,6 +2885,8 @@ if ( not_empty act_smt and not_empty block )
     relate select_var to var_ref across R782.''referenced through'';
     relate var_ref to l_op across R776;
     relate l_op to binop across R779.''is left operand for'';
+    select one type related by l_op->Type[R795];
+    ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:type, type:ImportType::IMPL );
     // create right operand
     select one where_clause_val related by act_fiw->V_VAL[R610];
     select one where_clause_lbo related by where_clause_val->V_LBO[R801];
@@ -2871,15 +2895,11 @@ if ( not_empty act_smt and not_empty block )
       relate r_op to smt across R775.''expressed within'';
       r_op.expression_number = "1.2";
       relate r_op to binop across R778.''is right operand for'';
-      select any void_type from instances of Type where ( "void" == selected.name and "" == selected.package );
-      if ( not_empty void_type )
-        relate void_type to r_op across R795;
-      else
-        // TODO bad
-      end if;
+      relate select_type to r_op across R795;
       create object instance named_expr of NamedReference;
       relate named_expr to r_op across R776;
       named_expr.name = select_type.default_value;
+      ::addStringToImports( file: ::getFileForStatement( smt:smt ), s:select_type.package + ".impl." + select_type.name + "Impl", type:ImportType::IMPL );
     else
       select one selector related by select_obj->Class[R409.''is basis for'']->InstancePopulationSelector[R449.''extent accessed by''];
       create object instance r_op of Expression;
@@ -2948,6 +2968,8 @@ if ( not_empty act_smt and not_empty block )
     relate select_var to var_ref across R782.''referenced through'';
     relate var_ref to l_op across R776;
     relate l_op to binop across R779.''is left operand for'';
+    select one type related by l_op->Type[R795];
+    ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:type, type:ImportType::IMPL );
     // create right operand
     select one where_clause_val related by act_sel->ACT_SRW[R664]->V_VAL[R611];
     select one where_clause_lbo related by where_clause_val->V_LBO[R801];
@@ -2956,15 +2978,11 @@ if ( not_empty act_smt and not_empty block )
       relate r_op to smt across R775.''expressed within'';
       r_op.expression_number = "1.2";
       relate r_op to binop across R778.''is right operand for'';
-      select any void_type from instances of Type where ( "void" == selected.name and "" == selected.package );
-      if ( not_empty void_type )
-        relate void_type to r_op across R795;
-      else
-        // TODO bad
-      end if;
+      relate select_type to r_op across R795;
       create object instance named_expr of NamedReference;
       relate named_expr to r_op across R776;
       named_expr.name = select_type.default_value;
+      ::addStringToImports( file: ::getFileForStatement( smt:smt ), s:select_type.package + ".impl." + select_type.name + "Impl", type:ImportType::IMPL );
     else
       // get the final selection chain link
       select one lnk related by act_sel->ACT_LNK[R637];
@@ -3047,6 +3065,8 @@ if ( not_empty act_smt and not_empty block )
     relate cr_var to var_ref across R782.''referenced through'';
     relate var_ref to l_op across R776;
     relate l_op to binop across R779.''is left operand for'';
+    select one type related by l_op->Type[R795];
+    ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:type, type:ImportType::IMPL );
     // create right operand
     create object instance r_op of Expression;
     relate r_op to smt across R775.''expressed within'';
@@ -3115,6 +3135,8 @@ if ( not_empty act_smt and not_empty block )
       create object instance var_ref of VariableReference;
       relate del_var to var_ref across R782.''referenced through'';
       relate var_ref to expr across R776;
+      select one type related by expr->Type[R795];
+      ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:type, type:ImportType::IMPL );
     else
       // TODO bad
     end if;
@@ -3221,6 +3243,8 @@ if ( not_empty act_smt and not_empty block )
       create object instance var_ref of VariableReference;
       relate form_var to var_ref across R782.''referenced through'';
       relate var_ref to form_expr across R776;
+      select one type related by form_expr->Type[R795];
+      ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:type, type:ImportType::IMPL );
     else
       // TODO bad
     end if;
@@ -3238,6 +3262,8 @@ if ( not_empty act_smt and not_empty block )
       create object instance var_ref of VariableReference;
       relate part_var to var_ref across R782.''referenced through'';
       relate var_ref to part_expr across R776;
+      select one type related by part_expr->Type[R795];
+      ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:type, type:ImportType::IMPL );
     else
       // TODO bad
     end if;
@@ -3318,6 +3344,8 @@ if ( not_empty act_smt and not_empty block )
         create object instance var_ref of VariableReference;
         relate form_var to var_ref across R782.''referenced through'';
         relate var_ref to form_expr1 across R776;
+        select one type related by form_expr1->Type[R795];
+        ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:type, type:ImportType::IMPL );
       else
         // TODO bad
       end if;
@@ -3335,6 +3363,8 @@ if ( not_empty act_smt and not_empty block )
         create object instance var_ref of VariableReference;
         relate part_var to var_ref across R782.''referenced through'';
         relate var_ref to part_expr1 across R776;
+        select one type related by part_expr1->Type[R795];
+        ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:type, type:ImportType::IMPL );
       else
         // TODO bad
       end if;
@@ -3358,6 +3388,8 @@ if ( not_empty act_smt and not_empty block )
         create object instance var_ref of VariableReference;
         relate form_var to var_ref across R782.''referenced through'';
         relate var_ref to form_expr2 across R776;
+        select one type related by form_expr2->Type[R795];
+        ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:type, type:ImportType::IMPL );
       else
         // TODO bad
       end if;
@@ -3375,6 +3407,8 @@ if ( not_empty act_smt and not_empty block )
         create object instance var_ref of VariableReference;
         relate part_var to var_ref across R782.''referenced through'';
         relate var_ref to part_expr2 across R776;
+        select one type related by part_expr2->Type[R795];
+        ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:type, type:ImportType::IMPL );
       else
         // TODO bad
       end if;
@@ -3470,6 +3504,8 @@ if ( not_empty act_smt and not_empty block )
       create object instance var_ref of VariableReference;
       relate form_var to var_ref across R782.''referenced through'';
       relate var_ref to form_expr across R776;
+      select one type related by form_expr->Type[R795];
+      ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:type, type:ImportType::IMPL );
     else
       // TODO bad
     end if;
@@ -3487,6 +3523,8 @@ if ( not_empty act_smt and not_empty block )
       create object instance var_ref of VariableReference;
       relate part_var to var_ref across R782.''referenced through'';
       relate var_ref to part_expr across R776;
+      select one type related by part_expr->Type[R795];
+      ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:type, type:ImportType::IMPL );
     else
       // TODO bad
     end if;
@@ -3567,6 +3605,8 @@ if ( not_empty act_smt and not_empty block )
         create object instance var_ref of VariableReference;
         relate form_var to var_ref across R782.''referenced through'';
         relate var_ref to form_expr1 across R776;
+        select one type related by form_expr1->Type[R795];
+        ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:type, type:ImportType::IMPL );
       else
         // TODO bad
       end if;
@@ -3584,6 +3624,8 @@ if ( not_empty act_smt and not_empty block )
         create object instance var_ref of VariableReference;
         relate part_var to var_ref across R782.''referenced through'';
         relate var_ref to part_expr1 across R776;
+        select one type related by part_expr1->Type[R795];
+        ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:type, type:ImportType::IMPL );
       else
         // TODO bad
       end if;
@@ -3607,6 +3649,8 @@ if ( not_empty act_smt and not_empty block )
         create object instance var_ref of VariableReference;
         relate form_var to var_ref across R782.''referenced through'';
         relate var_ref to form_expr2 across R776;
+        select one type related by form_expr2->Type[R795];
+        ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:type, type:ImportType::IMPL );
       else
         // TODO bad
       end if;
@@ -3624,6 +3668,8 @@ if ( not_empty act_smt and not_empty block )
         create object instance var_ref of VariableReference;
         relate part_var to var_ref across R782.''referenced through'';
         relate var_ref to part_expr2 across R776;
+        select one type related by part_expr2->Type[R795];
+        ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:type, type:ImportType::IMPL );
       else
         // TODO bad
       end if;
@@ -3987,8 +4033,13 @@ if ( not_empty v_trv )
           relate op_var to var_ref across R782.''referenced through'';
           relate var_ref to expr2 across R776;
           // add type reference to file
-          select one type related by expr->Type[R795];
+          select one type related by expr2->Type[R795];
           ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:type, type:ImportType::IMPL );
+        elif ( "self" == op_v_var.Name )
+          // create named reference
+          create object instance self_ref of NamedReference;
+          relate self_ref to expr2 across R776;
+          self_ref.name = "this";
         else
           // TODO bad
         end if;
@@ -4322,6 +4373,7 @@ INSERT INTO S_SYNC
 	'invocation = param.invocation;
 parm = param.parm;
 v_par = param.v_par;
+expr_number = param.expression_num;
 
 select one smt related by invocation->Expression[R776]->Statement[R775.''expressed within''];
 
@@ -4329,8 +4381,8 @@ select any expr from instances of Expression where false;
 
 select one v_val related by v_par->V_VAL[R800];
 if ( not_empty v_val )
-  ::transformExpression( v_val:v_val, expr_number:param.expression_num, smt:smt );
-  select any expr related by smt->Expression[R775.''may contain''] where ( selected.expression_number == param.expression_num );
+  ::transformExpression( v_val:v_val, expr_number:expr_number, smt:smt );
+  select any expr related by smt->Expression[R775.''may contain''] where ( selected.expression_number == expr_number );
 else
   // TODO bad
 end if;
@@ -4544,22 +4596,22 @@ if ( not_empty act_blk )
   ::transformStatements( act_blk:act_blk, block:block );
 
   // handle symbol table manipulation for top level blocks
-  if ( empty upper_block )
-    select any var_ref related by block->Statement[R450.''is scope for'']->Expression[R775.''may contain'']->VariableReference[R776];
-    if ( not_empty var_ref )
-      // push a new symbol table at the beginning of the body
-      indent = ::getIndent( tab_depth:block.tab_depth + 1 );
-      block.prefix = indent + "pushSymbolTable();\n";
+  select any var_ref related by block->Statement[R450.''is scope for'']->Expression[R775.''may contain'']->VariableReference[R776];
+  if ( not_empty var_ref )
+    select any top_block related by block->InvocableObject[R4000]->CodeBlock[R4000] where ( selected.top_level );
+    // push a new symbol table at the beginning of the body
+    indent = ::getIndent( tab_depth:top_block.tab_depth + 1 );
+    if ( -1 == STR::indexof( haystack:top_block.prefix, needle:"pushSymbolTable" ) )
+      top_block.prefix = indent + "pushSymbolTable();\n";
       // pop the symbol table at the very end
-      block.suffix = indent + "popSymbolTable();\n";
+      top_block.suffix = indent + "popSymbolTable();\n";
       // if any return expression has a variable reference, create a temporary variable for the return value
-      select any return_var_ref related by block->Statement[R450.''is scope for'']->ReturnSmt[R451]->Statement[R451]->Expression[R775.''may contain'']->VariableReference[R776];
-      if ( not_empty return_var_ref )
-        select one return_type related by invocable->Type[R428.''return value is typed by''];
-        block.prefix = indent + "final " + return_type.name + " _return_value;\n" + block.prefix;
-      end if;
     end if;
-
+    select any return_var_ref related by block->Statement[R450.''is scope for'']->ReturnSmt[R451]->Statement[R451]->Expression[R775.''may contain'']->VariableReference[R776];
+    if ( not_empty return_var_ref and -1 == STR::indexof( haystack:top_block.prefix, needle:"_return_value" ) )
+      select one return_type related by invocable->Type[R428.''return value is typed by''];
+      top_block.prefix = indent + "final " + return_type.name + " _return_value;\n" + top_block.prefix;
+    end if;
   end if;
 
 else

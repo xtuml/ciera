@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-Wno-pointer-to-int-cast -g
+CFLAGS=-Wno-pointer-to-int-cast -Wno-parentheses-equality -g
 SOURCES := $(shell ls src/*.c)
 OBJECTS=$(SOURCES:.c=.o)
 OUTDIR=bin

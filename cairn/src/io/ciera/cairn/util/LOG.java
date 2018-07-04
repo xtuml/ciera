@@ -1,5 +1,6 @@
 package io.ciera.cairn.util;
 
+import io.ciera.summit.types.TimeStamp;
 import io.ciera.summit.types.XtumlString;
 
 public interface LOG {
@@ -9,5 +10,6 @@ public interface LOG {
     public void LogSuccess( XtumlString message );
     public void LogInteger( int message );
     public void LogReal( XtumlString message, double r );
+    public void LogTime( XtumlString message, TimeStamp t );
 
 }

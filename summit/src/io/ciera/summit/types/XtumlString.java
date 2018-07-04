@@ -29,6 +29,26 @@ public class XtumlString implements IXtumlType<XtumlString>, CharSequence {
         if ( str == null ) return new XtumlString( value.toString() );
         else return new XtumlString( str + value.toString() );
     }
+    
+    public boolean greaterThan( XtumlString value ) throws XtumlException{
+        if ( null == value ) throw new XtumlException( "Null argument passed." );
+        return str.compareTo( value.str ) > 0;
+    }
+    
+    public boolean lessThan( XtumlString value ) throws XtumlException{
+        if ( null == value ) throw new XtumlException( "Null argument passed." );
+        return str.compareTo( value.str ) < 0;
+    }
+    
+    public boolean greaterThanOrEqual( XtumlString value ) throws XtumlException{
+        if ( null == value ) throw new XtumlException( "Null argument passed." );
+        return str.compareTo( value.str ) >= 0;
+    }
+    
+    public boolean lessThanOrEqual( XtumlString value ) throws XtumlException{
+        if ( null == value ) throw new XtumlException( "Null argument passed." );
+        return str.compareTo( value.str ) <= 0;
+    }
 
     @Override
     public XtumlString defaultValue() {
