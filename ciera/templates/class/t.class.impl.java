@@ -38,6 +38,9 @@ ${attributes}
 
     // operations
 ${operations}
+    
+    // static operations
+${static_operations}
 
     // selections
 ${selectors}

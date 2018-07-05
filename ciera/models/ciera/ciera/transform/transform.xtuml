@@ -1309,7 +1309,14 @@ end while;
 select one act_act related by o_tfr->ACT_OPB[R696]->ACT_ACT[R698];
 if ( not_empty act_act )
   relate act_act to invocable across R432.''actions transformed from'';
-end if;',
+end if;
+
+// add import for class based operations
+if ( op.is_class_based )
+  select one class_file related by obj->File[R401];
+  ::addStringToImports( file:class_file, s:"io.ciera.cairn.application.ActionHome", type:ImportType::IMPL );
+end if;
+',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -2522,7 +2529,7 @@ if ( not_empty act_smt and not_empty block )
         create object instance named_ref of NamedReference;
         relate named_ref to expr2 across R776;
         select one target_class related by invocable->Operation[R427]->Class[R416.''provided by''];
-        named_ref.name = target_class.name + "Impl";
+        named_ref.name = "new " + target_class.name + "Impl.CLASS(context())";
         select one class_file related by target_class->File[R401];
         ::addStringToImports( file: ::getFileForStatement( smt:smt ), s: ::pathToPackage( path:class_file.path ) + ".impl." + class_file.name + "Impl", type:ImportType::IMPL );
       else // instance based operation
@@ -4023,7 +4030,7 @@ if ( not_empty v_trv )
     // relate expression to expression as statement
     if ( Scope::Instance == o_tfr.Instance_Based )
       select one op_v_var related by v_trv->V_VAR[R830];
-      if ( not_empty op_v_var ) // class based operation
+      if ( not_empty op_v_var ) // instance based operation
         // create variable reference expression
         create object instance expr2 of Expression;
         relate expr2 to smt across R775.''expressed within'';
@@ -4066,7 +4073,7 @@ if ( not_empty v_trv )
         create object instance sel of SelectedExpr;
         relate sel to expr2 across R776;
       end if;
-    else // instance based operation
+    else // class based operation
       // create named reference expression
       create object instance expr2 of Expression;
       relate expr2 to smt across R775.''expressed within'';
@@ -4078,7 +4085,7 @@ if ( not_empty v_trv )
       create object instance named_ref of NamedReference;
       relate named_ref to expr2 across R776;
       select one target_class related by invocable->Operation[R427]->Class[R416.''provided by''];
-      named_ref.name = target_class.name + "Impl";
+      named_ref.name = "new " + target_class.name + "Impl.CLASS(context())";
       select one class_file related by target_class->File[R401];
       ::addStringToImports( file: ::getFileForStatement( smt:smt ), s: ::pathToPackage( path:class_file.path ) + ".impl." + class_file.name + "Impl", type:ImportType::IMPL );
     end if;
@@ -4597,8 +4604,9 @@ if ( not_empty act_blk )
       end if;
     end if;
     select one deriv related by invocable->AttributeDerivation[R427];
-    if ( not_empty deriv )
-      block.tab_depth = 2; // increase the tab depth by one for bodies which belong to derived attributes
+    select one class_op related by invocable->Operation[R427] where ( selected.is_class_based );
+    if ( not_empty deriv  or not_empty class_op )
+      block.tab_depth = 2; // increase the tab depth by one for bodies which belong to derived attributes and class based operations
     end if;
   else
     select one invocable related by upper_block->InvocableObject[R4000.''is invoked in''];

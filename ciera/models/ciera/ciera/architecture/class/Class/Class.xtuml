@@ -55,8 +55,20 @@ end while;
 attributes = T::body();
 T::clear();
 
-select many ops related by self->Operation[R416.''provides''];
-for each operation in ops
+select many class_ops related by self->Operation[R416.''provides''] where ( selected.is_class_based );
+if ( not_empty class_ops )
+  for each operation in class_ops
+    operation.render();
+  end for;
+  operations = T::body();
+  T::clear();
+  T::include( file:"java/class/t.operations.static.java" );
+end if;
+static_operations = T::body();
+T::clear();
+
+select many inst_ops related by self->Operation[R416.''provides''] where ( not selected.is_class_based );
+for each operation in inst_ops
   operation.render();
 end for;
 operations = T::body();
@@ -85,7 +97,7 @@ end while;
 empty_attributes = T::body();
 T::clear();
 
-for each operation in ops
+for each operation in inst_ops
   operation.render_empty();
 end for;
 empty_operations = T::body();
@@ -116,7 +128,7 @@ end while;
 attributes = T::body();
 T::clear();
 
-for each operation in ops
+for each operation in inst_ops
   operation.render_interface();
 end for;
 operations = T::body();
