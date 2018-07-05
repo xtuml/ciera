@@ -19,9 +19,13 @@ INSERT INTO O_TFR
 	'select one port related by self->Port[R420];
 select one message related by self->Message[R420];
 
+body_save = T::body(); // TODO this is weird
+T::clear();
 select one invocable related by self->InvocableObject[R427];
 parameter_list = invocable.parameter_list();
 body = invocable.body();
+T::clear();
+T::b( s:body_save );
 
 invocation_parameter_list = "";
 select any parm related by self->InvocableObject[R427]->FormalParameter[R429];
@@ -58,7 +62,7 @@ if ( not_empty msg_parms )
   i = 0;
   for each msg_parm in msg_parms
     select one parm_dt related by msg_parm->TypeReference[R431];
-    message_parameter_list = message_parameter_list + sep + "(" + parm_dt.type_reference_name + ")message.getParameterValues(" + STR::itoa( i:i ) + ")";
+    message_parameter_list = message_parameter_list + sep + "(" + parm_dt.type_reference_name + ")message.getParameterValues()[" + STR::itoa( i:i ) + "]";
     sep = ", ";
     i = i + 1;
   end for;

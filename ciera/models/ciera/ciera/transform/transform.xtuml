@@ -702,6 +702,9 @@ relate type to obj across R407;
 // relate to the OOA class
 relate obj to o_obj across R409;
 
+// transform the set object
+::transformClassSet( obj:obj, ep_pkg:ep_pkg, path:path );
+
 // transform attributes
 select any o_attr related by o_obj->O_ATTR[R102];
 select one prev_attr related by o_attr->O_ATTR[R103.''succeeds''];
@@ -723,9 +726,6 @@ select many o_tfrs related by o_obj->O_TFR[R115];
 for each o_tfr in o_tfrs
   ::transformOperation( o_tfr:o_tfr, obj:obj );
 end for;
-
-// transform the set object
-::transformClassSet( obj:obj, ep_pkg:ep_pkg, path:path );
 
 // add to the containing component imports
 select one component_file related by containing_comp_def->File[R401];
@@ -1042,7 +1042,11 @@ end if;
 // add import to object file
 select one file related by obj->File[R401];
 ::addStringToImports( file:file, s:"io.ciera.summit.exceptions.XtumlException", type:ImportType::BOTH );
-::addStringToImports( file:file, s:"io.ciera.summit.exceptions.EmptyInstanceException", type:ImportType::IMPL );',
+::addStringToImports( file:file, s:"io.ciera.summit.exceptions.EmptyInstanceException", type:ImportType::IMPL );
+
+// add imports to object set file
+select one set_file related by obj->ClassSet[R406]->File[R401];
+::addStringToImports( file:set_file, s:"io.ciera.summit.exceptions.XtumlException", type:ImportType::BOTH );',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -2300,7 +2304,6 @@ for each attr in attrs
     create object instance attr_ref of AttributeReference;
     relate attr to referred_to_attr across R4506.''has value provided by'' using attr_ref;
     relate relationship to attr_ref across R4511.''provides link for'';
-    attr_ref.phrase = relationship.form_phrase;
   end for;
 end for;',
 	"ba5eda7a-def5-0000-0000-000000000000",
@@ -3841,7 +3844,7 @@ if ( not_empty v_tvl )
   relate var to var_ref across R782.''referenced through'';
   relate var_ref to expr across R776;
   // add type reference to file
-  select one expr_type related by expr->TypeReference[R795]->Type[R3800];
+  select one expr_type related by var->TypeReference[R461]->Type[R3800];
   ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:expr_type, type:ImportType::IMPL );
 
 else
@@ -3865,7 +3868,7 @@ if ( not_empty v_irf )
     relate var to var_ref across R782.''referenced through'';
     relate var_ref to expr across R776;
     // add type reference to file
-    select one expr_type related by expr->TypeReference[R795]->Type[R3800];
+    select one expr_type related by var->TypeReference[R461]->Type[R3800];
     ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:expr_type, type:ImportType::IMPL );
   end if;
 
@@ -3885,7 +3888,7 @@ if ( not_empty v_isr )
   relate var to var_ref across R782.''referenced through'';
   relate var_ref to expr across R776;
   // add type reference to file
-  select one expr_type related by expr->TypeReference[R795]->Type[R3800];
+  select one expr_type related by var->TypeReference[R461]->Type[R3800];
   ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:expr_type, type:ImportType::IMPL );
   
 else
