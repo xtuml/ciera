@@ -87,6 +87,22 @@ if ( not_empty builtin )
   unrelate self from builtin across R407;
 end if;
 
+select many type_refs related by self->TypeReference[R3800];
+for each type_ref in type_refs
+  select one basic_ref related by type_ref->BasicTypeReference[R3801];
+  if ( not_empty basic_ref )
+    unrelate type_ref from basic_ref across R3801;
+    delete object instance basic_ref;
+  end if;
+  select one array_ref related by type_ref->ArrayTypeReference[R3801];
+  if ( not_empty array_ref )
+    unrelate type_ref from array_ref across R3801;
+    delete object instance array_ref;
+  end if;
+  unrelate self from type_ref across R3800;
+  delete object instance type_ref;
+end for;
+
 delete object instance self;',
 	1,
 	'',
