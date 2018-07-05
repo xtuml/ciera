@@ -74,9 +74,10 @@ public class ApplicationExecutor extends Thread implements IRunContext {
     }
 
     @Override
-    public void setSymbol( String name, Object value ) {
+    public Object setSymbol( String name, Object value ) {
         Map<String,Object> symbolTable = symbols.peek();
         symbolTable.put( name, value );
+        return value;
     }
 
     @Override

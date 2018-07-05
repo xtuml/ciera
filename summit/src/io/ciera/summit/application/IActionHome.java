@@ -12,8 +12,8 @@ public interface IActionHome<C extends IComponent<C>> {
         getRunContext().getExceptionHandler().warn( message );
     }
 
-    default public void setSymbol( String name, Object value ) {
-        getRunContext().setSymbol( name, value );
+    default public Object setSymbol( String name, Object value ) {
+        return getRunContext().setSymbol( name, value );
     }
 
     default public Object getSymbol( String name ) throws XtumlException {

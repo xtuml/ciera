@@ -3,6 +3,7 @@ package io.ciera.cairn.types;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.ListIterator;
 
 import io.ciera.summit.exceptions.BadArgumentException;
 import io.ciera.summit.exceptions.XtumlException;
@@ -69,15 +70,45 @@ public abstract class List<L extends IList<L,E>,E> implements IList<L,E> {
     }
 
     @Override
+    public E get( int index ) {
+        internalList.ensureCapacity( index + 1 );
+        return internalList.get( index );
+    }
+
+    @Override
+    public E set( int index, E element ) {
+        if ( immutable ) return nullElement();
+        else {
+            internalList.ensureCapacity( index + 1 );
+            return internalList.set( index, element );
+        }
+    }
+
+    @Override
     public boolean add( E e ) {
         if ( immutable || null == e || e.equals( nullElement() ) ) return false;
         else return internalList.add( e );
     }
 
     @Override
+    public void add( int index, E element ) {
+        if ( immutable ) return;
+        else {
+            internalList.ensureCapacity( index + 1 );
+            internalList.add( index, element );
+        }
+    }
+
+    @Override
     public boolean remove( Object o ) {
         if ( immutable || null == o || o.equals( nullElement() ) ) return false;
         else return internalList.remove( o );
+    }
+
+    @Override
+    public E remove( int index ) {
+        if ( immutable ) return nullElement();
+        else return internalList.remove( index );
     }
 
     @Override
@@ -149,7 +180,32 @@ public abstract class List<L extends IList<L,E>,E> implements IList<L,E> {
     public void clear() {
         internalList.clear();
     }
+    @Override
+    public int indexOf( Object o ) {
+        return internalList.indexOf( o );
+    }
 
+    @Override
+    public int lastIndexOf( Object o ) {
+        return internalList.lastIndexOf( o );
+    }
+
+    @Override
+    public ListIterator<E> listIterator() {
+        return internalList.listIterator();
+    }
+
+    @Override
+    public ListIterator<E> listIterator( int index ) {
+        return internalList.listIterator( index );
+    }
+
+    @Override
+    public java.util.List<E> subList( int fromIndex, int toIndex ) {
+        return internalList.subList( fromIndex, toIndex );
+    }
+
+    // XtumlType
     @Override
     public boolean equality( L value ) throws XtumlException {
         return containsAll( value ) && value.containsAll( this );
@@ -159,5 +215,7 @@ public abstract class List<L extends IList<L,E>,E> implements IList<L,E> {
     public L defaultValue() {
         return emptyList();
     }
+
+
 
 }

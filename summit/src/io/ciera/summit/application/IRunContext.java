@@ -11,7 +11,7 @@ public interface IRunContext {
     
     public String[] args();
 
-    public void setSymbol( String name, Object value );
+    public Object setSymbol( String name, Object value );
     public Object getSymbol( String name ) throws XtumlException;
     public void pushSymbolTable();
     public void popSymbolTable();

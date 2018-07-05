@@ -4319,8 +4319,25 @@ if ( not_empty v_bin )
   end if;
 
 else
+select one v_aer related by v_val->V_AER[R801];
+if ( not_empty v_aer )
+  // transform root expression
+  select one root_val related by v_aer->V_VAL[R838];
+  ::transformExpression( v_val:root_val, expr_number:expr.expression_number + ".1", smt:smt );
+  select any root_expr related by smt->Expression[R775.''may contain''] where ( selected.expression_number == expr.expression_number + ".1" );
+  // transform index expression
+  select one index_val related by v_aer->V_VAL[R839];
+  ::transformExpression( v_val:index_val, expr_number:expr.expression_number + ".2", smt:smt );
+  select any index_expr related by smt->Expression[R775.''may contain''] where ( selected.expression_number == expr.expression_number + ".2" );
+  // create array element reference
+  create object instance array_ref of ArrayElementReference;
+  relate array_ref to expr across R776;
+  relate array_ref to root_expr across R3900;
+  relate array_ref to index_expr across R3901;
+
+else
   LOG::LogInfo( message:"expression type not yet supported" );
-end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if;',
+end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
