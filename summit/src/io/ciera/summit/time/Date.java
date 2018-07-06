@@ -1,10 +1,8 @@
 package io.ciera.summit.time;
 
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-
 public class Date {
 
+    /*
     private GregorianCalendar internalCalendar;
 
     public Date( int year, int month, int day, int hour, int minute, int second ) {
@@ -40,5 +38,6 @@ public class Date {
     public int getSecond() {
         return internalCalendar.get( Calendar.SECOND );
     }
+    */
 
 }

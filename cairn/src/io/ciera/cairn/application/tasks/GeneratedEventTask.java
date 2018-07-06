@@ -2,7 +2,7 @@ package io.ciera.cairn.application.tasks;
 
 import io.ciera.cairn.application.ApplicationTask;
 import io.ciera.cairn.application.TaskPriority;
-import io.ciera.summit.statemachines.IEvent;
+import io.ciera.summit.statemachine.IEvent;
 
 public abstract class GeneratedEventTask extends ApplicationTask {
 

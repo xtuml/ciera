@@ -578,7 +578,7 @@ for each s_dt in s_dts
       type_package = "io.ciera.summit.time";
       type_default_value = "null";
     elif ( "inst<Event>" == s_dt.Name )
-      type_name = "Event";
+      type_name = "IEvent";
       type_package = "io.ciera.summit.statemachine";
       type_default_value = "null";
     elif ( "inst_ref<Timer>" == s_dt.Name )
@@ -3148,6 +3148,11 @@ if ( not_empty act_smt and not_empty block )
       relate var_ref to expr across R776;
       select one type related by expr->TypeReference[R795]->Type[R3800];
       ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:type, type:ImportType::IMPL );
+    elif ( "self" == del_v_var.Name )
+      // create named reference
+      create object instance self_ref of NamedReference;
+      relate self_ref to expr across R776;
+      self_ref.name = "this";
     else
       // TODO bad
     end if;
@@ -3257,6 +3262,11 @@ if ( not_empty act_smt and not_empty block )
       relate var_ref to form_expr across R776;
       select one type related by form_expr->TypeReference[R795]->Type[R3800];
       ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:type, type:ImportType::IMPL );
+    elif ( "self" == form_v_var.Name )
+      // create named reference
+      create object instance self_ref of NamedReference;
+      relate self_ref to form_expr across R776;
+      self_ref.name = "this";
     else
       // TODO bad
     end if;
@@ -3277,6 +3287,11 @@ if ( not_empty act_smt and not_empty block )
       relate var_ref to part_expr across R776;
       select one type related by part_expr->TypeReference[R795]->Type[R3800];
       ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:type, type:ImportType::IMPL );
+    elif ( "self" == part_v_var.Name )
+      // create named reference
+      create object instance self_ref of NamedReference;
+      relate self_ref to part_expr across R776;
+      self_ref.name = "this";
     else
       // TODO bad
     end if;
@@ -3336,8 +3351,6 @@ if ( not_empty act_smt and not_empty block )
     else
       // TODO bad
     end if;
-    select many levi_rels related by containing_comp_def->Relationship[R448.''maintains instances of'']
-        where ( selected.num == r_rel.Numb );
     if ( not_empty rel1 and not_empty rel2 )
       // create first relate statement (one to link)
       create object instance relsmt1 of RelateSmt;
@@ -3360,6 +3373,11 @@ if ( not_empty act_smt and not_empty block )
         relate var_ref to form_expr1 across R776;
         select one type related by form_expr1->TypeReference[R795]->Type[R3800];
         ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:type, type:ImportType::IMPL );
+      elif ( "self" == link_v_var.Name )
+        // create named reference
+        create object instance self_ref of NamedReference;
+        relate self_ref to form_expr1 across R776;
+        self_ref.name = "this";
       else
         // TODO bad
       end if;
@@ -3380,6 +3398,11 @@ if ( not_empty act_smt and not_empty block )
         relate var_ref to part_expr1 across R776;
         select one type related by part_expr1->TypeReference[R795]->Type[R3800];
         ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:type, type:ImportType::IMPL );
+      elif ( "self" == one_v_var.Name )
+        // create named reference
+        create object instance self_ref of NamedReference;
+        relate self_ref to part_expr1 across R776;
+        self_ref.name = "this";
       else
         // TODO bad
       end if;
@@ -3405,6 +3428,11 @@ if ( not_empty act_smt and not_empty block )
         relate var_ref to form_expr2 across R776;
         select one type related by form_expr2->TypeReference[R795]->Type[R3800];
         ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:type, type:ImportType::IMPL );
+      elif ( "self" == link_v_var.Name )
+        // create named reference
+        create object instance self_ref of NamedReference;
+        relate self_ref to form_expr2 across R776;
+        self_ref.name = "this";
       else
         // TODO bad
       end if;
@@ -3425,6 +3453,11 @@ if ( not_empty act_smt and not_empty block )
         relate var_ref to part_expr2 across R776;
         select one type related by part_expr2->TypeReference[R795]->Type[R3800];
         ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:type, type:ImportType::IMPL );
+      elif ( "self" == other_v_var.Name )
+        // create named reference
+        create object instance self_ref of NamedReference;
+        relate self_ref to part_expr2 across R776;
+        self_ref.name = "this";
       else
         // TODO bad
       end if;
@@ -3523,6 +3556,11 @@ if ( not_empty act_smt and not_empty block )
       relate var_ref to form_expr across R776;
       select one type related by form_expr->TypeReference[R795]->Type[R3800];
       ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:type, type:ImportType::IMPL );
+    elif ( "self" == form_v_var.Name )
+      // create named reference
+      create object instance self_ref of NamedReference;
+      relate self_ref to form_expr across R776;
+      self_ref.name = "this";
     else
       // TODO bad
     end if;
@@ -3543,6 +3581,11 @@ if ( not_empty act_smt and not_empty block )
       relate var_ref to part_expr across R776;
       select one type related by part_expr->TypeReference[R795]->Type[R3800];
       ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:type, type:ImportType::IMPL );
+    elif ( "self" == part_v_var.Name )
+      // create named reference
+      create object instance self_ref of NamedReference;
+      relate self_ref to part_expr across R776;
+      self_ref.name = "this";
     else
       // TODO bad
     end if;
@@ -3602,8 +3645,6 @@ if ( not_empty act_smt and not_empty block )
     else
       // TODO bad
     end if;
-    select many levi_rels related by containing_comp_def->Relationship[R448.''maintains instances of'']
-        where ( selected.num == r_rel.Numb );
     if ( not_empty rel1 and not_empty rel2 )
       // create first unrelate statement (one to link)
       create object instance unrelsmt1 of UnrelateSmt;
@@ -3626,6 +3667,11 @@ if ( not_empty act_smt and not_empty block )
         relate var_ref to form_expr1 across R776;
         select one type related by form_expr1->TypeReference[R795]->Type[R3800];
         ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:type, type:ImportType::IMPL );
+      elif ( "self" == link_v_var.Name )
+        // create named reference
+        create object instance self_ref of NamedReference;
+        relate self_ref to form_expr1 across R776;
+        self_ref.name = "this";
       else
         // TODO bad
       end if;
@@ -3646,6 +3692,11 @@ if ( not_empty act_smt and not_empty block )
         relate var_ref to part_expr1 across R776;
         select one type related by part_expr1->TypeReference[R795]->Type[R3800];
         ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:type, type:ImportType::IMPL );
+      elif ( "self" == one_v_var.Name )
+        // create named reference
+        create object instance self_ref of NamedReference;
+        relate self_ref to part_expr1 across R776;
+        self_ref.name = "this";
       else
         // TODO bad
       end if;
@@ -3671,6 +3722,11 @@ if ( not_empty act_smt and not_empty block )
         relate var_ref to form_expr2 across R776;
         select one type related by form_expr2->TypeReference[R795]->Type[R3800];
         ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:type, type:ImportType::IMPL );
+      elif ( "self" == link_v_var.Name )
+        // create named reference
+        create object instance self_ref of NamedReference;
+        relate self_ref to form_expr2 across R776;
+        self_ref.name = "this";
       else
         // TODO bad
       end if;
@@ -3691,6 +3747,11 @@ if ( not_empty act_smt and not_empty block )
         relate var_ref to part_expr2 across R776;
         select one type related by part_expr2->TypeReference[R795]->Type[R3800];
         ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:type, type:ImportType::IMPL );
+      elif ( "self" == other_v_var.Name )
+        // create named reference
+        create object instance self_ref of NamedReference;
+        relate self_ref to part_expr2 across R776;
+        self_ref.name = "this";
       else
         // TODO bad
       end if;

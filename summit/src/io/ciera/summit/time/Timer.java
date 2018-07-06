@@ -1,10 +1,8 @@
 package io.ciera.summit.time;
 
-import io.ciera.cairn.application.Application;
-import io.ciera.summit.statemachine.Event;
+public class Timer {
 
-public class Timer implements Comparable<Timer> {
-
+    /*
     private Event eventToGenerate;
     private long wakeUpTime;            // time to wake up in microseconds since the epoch
     private boolean recurring;
@@ -47,5 +45,6 @@ public class Timer implements Comparable<Timer> {
         else if ( getWakeUpTime() > o.getWakeUpTime() ) return 1;
         else return 0;
     }
+    */
 
 }
