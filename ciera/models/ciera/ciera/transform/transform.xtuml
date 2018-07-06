@@ -315,6 +315,11 @@ if ( 1 == param.pass )
   for each edt in edts
     ::transformEnumeratedType( s_dt:edt );
   end for;
+  
+  select many udts related by pe_pes->S_DT[R8001]->S_UDT[R17]->S_DT[R17];
+  for each udt in udts
+    ::transformUserDefinedType( s_dt:udt );
+  end for;
 
   // transform EEs
   select many s_ees related by pe_pes->S_EE[R8001];
@@ -619,6 +624,14 @@ for each s_dt in s_dts
       type_name = "IModelInstance";
       type_package = "io.ciera.summit.classes";
       type_inst = true;
+      type_default_value = "null";
+    elif ( "inst_ref<Mapping>" == s_dt.Name ) // TODO
+      type_name = "Object";
+      type_package = "";
+      type_default_value = "null";
+    elif ( "inst<Mapping>" == s_dt.Name ) // TODO
+      type_name = "Object";
+      type_package = "";
       type_default_value = "null";
     end if;
 
@@ -5699,6 +5712,78 @@ end for;',
 	0);
 INSERT INTO PE_PE
 	VALUES ("b783a404-98ad-476f-924e-34532ff404da",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("64ba7d8b-4444-49d3-87cb-8e5c63278248",
+	"00000000-0000-0000-0000-000000000000",
+	'transformUserDefinedType',
+	'',
+	's_dt = param.s_dt;
+select one ep_pkg related by s_dt->PE_PE[R8001]->EP_PKG[R8000];
+
+// create the file
+create object instance file of File;
+file.name = ::camelCaseName( name:s_dt.Name, start_lower:false );
+file.path = ::ep_pkgToPath( ep_pkg:ep_pkg );
+file.package = ::pathToPackage( path:file.path );
+file.extension = ".java";
+file.exclude = false;
+
+// create the type
+create object instance type of Type;
+type.name = file.name;
+type.package = file.package;
+type.default_value = "";
+relate type to s_dt across R423;
+create object instance udt of UserDefinedType;
+relate type to udt across R407;
+relate udt to file across R401;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("38e5b048-c9f5-427f-8dd4-78c692c104f2",
+	"64ba7d8b-4444-49d3-87cb-8e5c63278248",
+	's_dt',
+	"4a90cd45-ece0-4e72-afe7-44996f9d7e1e",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO PE_PE
+	VALUES ("64ba7d8b-4444-49d3-87cb-8e5c63278248",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("6fab7686-b52d-4e9a-926a-9ee2876b2884",
+	"00000000-0000-0000-0000-000000000000",
+	'resolveUserDefinedTypes',
+	'',
+	'select many udts from instances of UserDefinedType;
+for each udt in udts
+
+  select one type related by udt->Type[R407];
+  select one base_type related by type->S_DT[R423]->S_UDT[R17]->S_DT[R18]->Type[R423];
+  if ( empty base_type )
+    // TODO bad
+  end if;
+  
+  type.default_value = base_type.default_value;
+  relate udt to base_type across R3802;
+
+end for;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO PE_PE
+	VALUES ("6fab7686-b52d-4e9a-926a-9ee2876b2884",
 	1,
 	"06787f13-1c16-4275-879c-00bbeee7cb88",
 	"00000000-0000-0000-0000-000000000000",
