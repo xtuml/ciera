@@ -626,12 +626,12 @@ for each s_dt in s_dts
       type_inst = true;
       type_default_value = "null";
     elif ( "inst_ref<Mapping>" == s_dt.Name ) // TODO
-      type_name = "Object";
-      type_package = "";
+      type_name = "InstRefMapping";
+      type_package = "io.ciera.summit.types";
       type_default_value = "null";
     elif ( "inst<Mapping>" == s_dt.Name ) // TODO
-      type_name = "Object";
-      type_package = "";
+      type_name = "InstMapping";
+      type_package = "io.ciera.summit.types";
       type_default_value = "null";
     end if;
 
@@ -1622,6 +1622,7 @@ select one ep_pkg related by r_rel->PE_PE[R8001]->EP_PKG[R8000];
 form_phrase = "";
 select any form_class from instances of Class where false;
 form_mult = Mult::ONE;
+part_mult = Mult::ONE;
 form_cond = Cond::UNCONDITIONAL;
 part_phrase = "";
 select any part_class from instances of Class where false;
@@ -1632,7 +1633,6 @@ select one r_simp related by r_rel->R_SIMP[R206];
 if ( not_empty r_simp )
 
   // If there is no R_FORM and the multiplicity of both is ONE, one is chosen arbitrarily to be the formalizer
-  // Note, this architecture currently does not handle unformalized many to many binary associations
   select one r_form related by r_simp->R_FORM[R208];
   select one form_class related by r_form->R_RGO[R205]->R_OIR[R203]->O_OBJ[R201]->Class[R409.''is basis for''];
   if ( not_empty form_class )
@@ -1643,6 +1643,9 @@ if ( not_empty r_simp )
       part_phrase = r_part.Txt_Phrs;
       if ( 0 != r_form.Mult )
         form_mult = Mult::MANY;
+      end if;
+      if ( 0 != r_part.Mult )
+        part_mult = Mult::MANY;
       end if;
       if ( 0 != r_form.Cond )
         form_cond = Cond::CONDITIONAL;
@@ -1655,6 +1658,9 @@ if ( not_empty r_simp )
     end if;
   else
     select any r_part1 related by r_simp->R_PART[R207] where ( selected.Mult == 0 );
+    if ( empty r_part1 )
+      select any r_part1 related by r_simp->R_PART[R207]; // for many to many unformalized, select one randomly
+    end if;
     if ( not_empty r_part1 )
       select one part_class related by r_part1->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->Class[R409.''is basis for''];
       select any r_part2 related by r_simp->R_PART[R207] where ( selected.OIR_ID != r_part1.OIR_ID );
@@ -1664,6 +1670,9 @@ if ( not_empty r_simp )
         part_phrase = r_part1.Txt_Phrs;
         if ( 0 != r_part2.Mult )
           form_mult = Mult::MANY;
+        end if;
+        if ( 0 != r_part1.Mult )
+          part_mult = Mult::MANY;
         end if;
         if ( 0 != r_part2.Cond )
           form_cond = Cond::CONDITIONAL;
@@ -1691,6 +1700,7 @@ if ( not_empty r_simp )
   rel.form_phrase = form_phrase;
   rel.part_phrase = part_phrase;
   rel.form_mult = form_mult;
+  rel.part_mult = part_mult;
   rel.form_cond = form_cond;
   rel.part_cond = part_cond;
   relate rel to containing_comp_def across R448.''forms relationship population of'';
@@ -1722,6 +1732,7 @@ if ( not_empty r_subsup )
       rel.form_phrase = form_phrase;
       rel.part_phrase = part_phrase;
       rel.form_mult = form_mult;
+      rel.part_mult = part_mult;
       rel.form_cond = form_cond;
       rel.part_cond = part_cond;
       relate rel to containing_comp_def across R448.''forms relationship population of'';
@@ -1769,6 +1780,7 @@ if ( not_empty r_assoc )
   rel1.form_phrase = form_phrase;
   rel1.part_phrase = part_phrase;
   rel1.form_mult = form_mult;
+  rel1.part_mult = part_mult;
   rel1.form_cond = form_cond;
   rel1.part_cond = part_cond;
   relate rel1 to containing_comp_def across R448.''forms relationship population of'';
@@ -1807,6 +1819,7 @@ if ( not_empty r_assoc )
   rel2.form_phrase = form_phrase;
   rel2.part_phrase = part_phrase;
   rel2.form_mult = form_mult;
+  rel2.part_mult = part_mult;
   rel2.form_cond = form_cond;
   rel2.part_cond = part_cond;
   relate rel2 to containing_comp_def across R448.''forms relationship population of'';
@@ -1873,7 +1886,7 @@ select many form_to_part_rels related by obj->Relationship[R435.''formalizes''];
 for each rel in form_to_part_rels
   select one part_obj related by rel->Class[R434.''has participating''];
   ::transformSelector( obj:obj, rel:rel, phrase:rel.part_phrase, cond:rel.part_cond,
-                       mult:Mult::ONE, formalizer:true, other_obj:part_obj );
+                       mult:rel.part_mult, formalizer:true, other_obj:part_obj );
 end for;
 // part to form
 select many part_to_form_rels related by obj->Relationship[R434.''participates in''];
@@ -2511,8 +2524,7 @@ if ( not_empty act_smt and not_empty block )
   select one act_tfm related by act_smt->ACT_TFM[R603];
   if ( not_empty act_tfm )
     select one o_tfr related by act_tfm->O_TFR[R673];
-    containing_comp_def = ::getCompDefForStatement( smt:smt );
-    select any invocable related by containing_comp_def->Class[R408.''maintains instances of'']->Operation[R416.''provides'']->InvocableObject[R427] where ( selected.name == o_tfr.Name );
+    select any invocable related by o_tfr->O_OBJ[R115]->Class[R409]->Operation[R416.''provides'']->InvocableObject[R427] where ( selected.name == o_tfr.Name );
     if ( not_empty invocable )
       // create expression as statement
       create object instance eas of ExpressionAsStatement;
@@ -3987,30 +3999,26 @@ if ( not_empty v_avl )
 else
 select one v_pvl related by v_val->V_PVL[R801];
 if ( not_empty v_pvl )
-  if ( not v_val.isLValue )
-    create object instance ref of ParameterReference;
-    relate ref to expr across R776;
-    param_name = "";
-    select one brg_param related by v_pvl->S_BPARM[R831];
-    if ( not_empty brg_param ) param_name = brg_param.Name; else
-    select one fnc_param related by v_pvl->S_SPARM[R832];
-    if ( not_empty fnc_param ) param_name = fnc_param.Name; else
-    select one op_param related by v_pvl->O_TPARM[R833];
-    if ( not_empty op_param ) param_name = op_param.Name; else
-    select one ep_param related by v_pvl->C_PP[R843];
-    if ( not_empty ep_param ) param_name = ep_param.Name;
-    else
-      // TODO bad
-    end if; end if; end if; end if;
-    select any formal_param related by smt->CodeBlock[R450.''is contained by'']->InvocableObject[R4000.''is invoked in'']->FormalParameter[R429.''declares signature with'']
-      where ( selected.name == "p_" + param_name );
-    if ( not_empty formal_param )
-      relate formal_param to ref across R781;
-    else
-      // TODO bad
-    end if;
-    
-  else // TODO by ref parameters
+  create object instance ref of ParameterReference;
+  relate ref to expr across R776;
+  param_name = "";
+  select one brg_param related by v_pvl->S_BPARM[R831];
+  if ( not_empty brg_param ) param_name = brg_param.Name; else
+  select one fnc_param related by v_pvl->S_SPARM[R832];
+  if ( not_empty fnc_param ) param_name = fnc_param.Name; else
+  select one op_param related by v_pvl->O_TPARM[R833];
+  if ( not_empty op_param ) param_name = op_param.Name; else
+  select one ep_param related by v_pvl->C_PP[R843];
+  if ( not_empty ep_param ) param_name = ep_param.Name;
+  else
+    // TODO bad
+  end if; end if; end if; end if;
+  select any formal_param related by smt->CodeBlock[R450.''is contained by'']->InvocableObject[R4000.''is invoked in'']->FormalParameter[R429.''declares signature with'']
+    where ( selected.name == "p_" + param_name );
+  if ( not_empty formal_param )
+    relate formal_param to ref across R781;
+  else
+    // TODO bad
   end if;
 
 else
@@ -4094,8 +4102,7 @@ else
 select one v_trv related by v_val->V_TRV[R801];
 if ( not_empty v_trv )
   select one o_tfr related by v_trv->O_TFR[R829];
-  containing_comp_def = ::getCompDefForStatement( smt:smt );
-  select any invocable related by containing_comp_def->Class[R408.''maintains instances of'']->Operation[R416.''provides'']->InvocableObject[R427] where ( selected.name == o_tfr.Name );
+  select any invocable related by o_tfr->O_OBJ[R115]->Class[R409]->Operation[R416.''provides'']->InvocableObject[R427] where ( selected.name == o_tfr.Name );
   if ( not_empty invocable )
     // create invocation
     create object instance invoc of Invocation;
@@ -5585,138 +5592,6 @@ INSERT INTO PE_PE
 	"00000000-0000-0000-0000-000000000000",
 	1);
 INSERT INTO S_SYNC
-	VALUES ("b783a404-98ad-476f-924e-34532ff404da",
-	"00000000-0000-0000-0000-000000000000",
-	'resolveManyToManyAssociatives',
-	'',
-	'// This function selects all R_SIMP instances which represent many to many unformalized
-// associations and converts them to associative relationships with a new generated link
-// class
-
-select many r_simps from instances of R_SIMP;
-for each r_simp in r_simps
-  select many r_parts related by r_simp->R_PART[R207] where ( 1 == selected.Mult );
-  if ( 2 == cardinality r_parts )
-    select one r_rel related by r_simp->R_REL[R206];
-    select one ep_pkg related by r_rel->PE_PE[R8001]->EP_PKG[R8000];
-    select any obj1 from instances of O_OBJ where false;
-    select any obj2 from instances of O_OBJ where false;
-    first = true;
-    for each r_part in r_parts
-      if ( first )
-        select one obj1 related by r_part->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201];
-        first = false;
-      else
-        select one obj2 related by r_part->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201];
-      end if;
-    end for;
-    
-    // create associative class
-    create object instance link_o_obj of O_OBJ;
-    create object instance pe of PE_PE;
-    relate link_o_obj to pe across R8001;
-    pe.type = ElementTypeConstants::CLASS;
-    pe.Visibility = Visibility::Public;
-    relate ep_pkg to pe across R8000;
-    select many classes related by ep_pkg->PE_PE[R8000]->O_OBJ[R8001];
-    if ( ep_pkg.Num_Rng == 0 )
-      link_o_obj.Numb = 1;
-    else
-      link_o_obj.Numb = ep_pkg.Num_Rng;
-    end if;
-    for each clazz in classes
-      if (clazz.Obj_ID == link_o_obj.Obj_ID) continue; end if;
-      if (clazz.Numb >= link_o_obj.Numb)
-        link_o_obj.Numb = clazz.Numb + 1;
-      end if;
-    end for;
-    link_o_obj.Key_Lett = obj1.Key_Lett + obj2.Key_Lett;
-    link_o_obj.Name = obj1.Name + " " + obj2.Name;
-    select any oid1 related by link_o_obj->O_ID[R104] where ( selected.Oid_ID == 0 );
-    if ( empty oid1 )
-      create object instance oid1 of O_ID;
-      oid1.Oid_ID = 0;
-      relate oid1 to link_o_obj across R104;
-    end if;
-    select any oid2 related by link_o_obj->O_ID[R104] where ( selected.Oid_ID == 1 );
-    if ( empty oid2 )
-      create object instance oid2 of O_ID;
-      oid2.Oid_ID = 1;
-      relate oid2 to link_o_obj across R104;
-    end if;
-    select any oid3 related by link_o_obj->O_ID[R104] where ( selected.Oid_ID == 2 );
-    if ( empty oid3 )
-      create object instance oid3 of O_ID;
-      oid3.Oid_ID = 2;
-      relate oid3 to link_o_obj across R104;
-    end if;
-
-    // create the class as link
-    create object instance assr of R_ASSR;
-
-    // migrate the simple association to a linked association
-    create object instance assoc of R_ASSOC;
-    unrelate r_simp from r_rel across R206;
-    relate assoc to r_rel across R206;
-    doingOneSide = true;
-    for each r_part in r_parts
-      if (doingOneSide)
-        // migrate from participant to one side
-        select one rto related by r_part->R_RTO[R204];
-        unrelate r_part from rto across R204;
-        unrelate r_simp from r_part across R207;
-        create object instance aone of R_AONE;
-        aone.Mult = r_part.Mult;
-        aone.Cond = r_part.Cond;
-        aone.Txt_Phrs = r_part.Txt_Phrs;
-        delete object instance r_part;
-        relate rto to aone across R204;
-        // link the one side to the new linked association
-        relate aone to assoc across R209;
-        doingOneSide = false;
-      else
-        // migrate from participant to other side
-        select one rto related by r_part->R_RTO[R204];
-        unrelate r_part from rto across R204;
-        unrelate r_simp from r_part across R207;
-        create object instance aoth of R_AOTH;
-        aoth.Mult = r_part.Mult;
-        aoth.Cond = r_part.Cond;
-        aoth.Txt_Phrs = r_part.Txt_Phrs;
-        delete object instance r_part;
-        relate rto to aoth across R204;
-        // link the other side to the new linked association
-        relate aoth to assoc across R210;
-      end if;
-    end for;
-
-    // link the link_o_obj to the association
-    create object instance oir of R_OIR;
-    relate link_o_obj to r_rel across R201 using oir;
-
-    // create the referring class in association
-    create object instance rgo of R_RGO;
-    relate rgo to oir across R203;
-    relate rgo to assr across R205;
-
-    // link it with the linked association
-    relate assr to assoc across R211;
-
-    delete object instance r_simp;
-    
-  end if;
-end for;',
-	"ba5eda7a-def5-0000-0000-000000000000",
-	1,
-	'',
-	0);
-INSERT INTO PE_PE
-	VALUES ("b783a404-98ad-476f-924e-34532ff404da",
-	1,
-	"06787f13-1c16-4275-879c-00bbeee7cb88",
-	"00000000-0000-0000-0000-000000000000",
-	1);
-INSERT INTO S_SYNC
 	VALUES ("64ba7d8b-4444-49d3-87cb-8e5c63278248",
 	"00000000-0000-0000-0000-000000000000",
 	'transformUserDefinedType',
@@ -5776,6 +5651,10 @@ for each udt in udts
   
   type.default_value = base_type.default_value;
   relate udt to base_type across R3802;
+  
+  // add to imports
+  select one file related by udt->File[R401];
+  ::addTypeToImports( file:file, type_to_import:base_type, type:ImportType::IMPL );
 
 end for;',
 	"ba5eda7a-def5-0000-0000-000000000000",

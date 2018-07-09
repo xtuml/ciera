@@ -4,10 +4,16 @@ import io.ciera.summit.exceptions.XtumlException;
 
 public interface IXtumlType<T extends IXtumlType<T>> {
 
-    public boolean equality( T value ) throws XtumlException;
+    default public boolean equality( T value ) throws XtumlException {
+        return equals( value );
+    }
+
     default public boolean inequality( T value ) throws XtumlException {
         return !equality( value );
     }
-    public T defaultValue();
+
+    default public T defaultValue() {
+        return null;
+    }
 
 }
