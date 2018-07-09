@@ -65,6 +65,11 @@ ${selectors}
         return EMPTY_$u_{self.name};
     }
 
+    @Override
+    public ${self.name} value() {
+        return this;
+    }
+
 }
 
 class Empty${self.name} extends ${self.extends} implements ${self.name} {
@@ -86,6 +91,11 @@ ${empty_selectors}
     @Override
     public ${self.name} defaultValue() {
         return ${self.name}Impl.EMPTY_$u_{self.name};
+    }
+
+    @Override
+    public ${self.name} value() {
+        return this;
     }
 
     @Override

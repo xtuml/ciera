@@ -1,5 +1,5 @@
 package io.ciera.summit.types;
 
-public class InstMapping<T extends InstMapping<T>> implements IXtumlType<T> {
+public abstract class InstMapping<T extends InstMapping<T>> implements IXtumlType<T> {
 
 }

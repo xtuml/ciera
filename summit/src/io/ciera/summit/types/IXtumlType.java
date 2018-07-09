@@ -1,5 +1,6 @@
 package io.ciera.summit.types;
 
+import io.ciera.summit.exceptions.BadArgumentException;
 import io.ciera.summit.exceptions.XtumlException;
 
 public interface IXtumlType<T extends IXtumlType<T>> {
@@ -15,5 +16,13 @@ public interface IXtumlType<T extends IXtumlType<T>> {
     default public T defaultValue() {
         return null;
     }
-
+    
+    public T value();
+    
+    default public T oneWhere( IWhere<T> condition ) throws XtumlException {
+        if ( null == condition ) throw new BadArgumentException( "Null condition passed to selection." );
+        if ( condition.evaluate( value() ) ) return value();
+        else return defaultValue();
+    }
+    
 }

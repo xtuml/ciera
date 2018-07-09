@@ -26,6 +26,11 @@ public enum ${self.name} implements IXtumlType<${self.name}> {
         return UNINITIALIZED_ENUM;
     }
 
+    @Override
+    public ${self.name} value() {
+        return this;
+    }
+
     public static ${self.name} get( int value ) {
         switch( value ) {
 ${enumerator_accessors}        default:

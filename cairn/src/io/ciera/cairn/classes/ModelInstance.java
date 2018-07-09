@@ -4,9 +4,11 @@ import io.ciera.summit.application.IRunContext;
 import io.ciera.summit.classes.IInstanceIdentifier;
 import io.ciera.summit.classes.IModelInstance;
 import io.ciera.summit.components.IComponent;
+import io.ciera.summit.exceptions.BadArgumentException;
 import io.ciera.summit.exceptions.DeletedInstanceException;
 import io.ciera.summit.exceptions.InstancePopulationException;
 import io.ciera.summit.exceptions.XtumlException;
+import io.ciera.summit.types.IWhere;
 import io.ciera.summit.types.UniqueId;
 
 public abstract class ModelInstance<T extends IModelInstance<T,C>,C extends IComponent<C>> implements IModelInstance<T,C> {
@@ -87,5 +89,5 @@ public abstract class ModelInstance<T extends IModelInstance<T,C>,C extends ICom
     public boolean equality( T value) throws XtumlException {
         return equals( value );
     }
-
+    
 }

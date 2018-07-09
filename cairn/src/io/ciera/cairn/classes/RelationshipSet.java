@@ -32,5 +32,10 @@ public class RelationshipSet extends Set<IRelationshipSet,IRelationship> impleme
     public IRelationshipSet emptySet() {
         return new RelationshipSet();
     }
+    
+    @Override
+    public RelationshipSet value() {
+        return this;
+    }
 
 }

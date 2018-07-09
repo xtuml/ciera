@@ -77,5 +77,10 @@ public class XtumlString implements IXtumlType<XtumlString>, CharSequence {
         if ( null != str ) return new XtumlString( str.substring( start, end ) );
         else return null;
     }
+    
+    @Override
+    public XtumlString value() {
+        return this;
+    }
 
 }

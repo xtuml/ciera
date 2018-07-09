@@ -49,5 +49,10 @@ public class TimeStamp implements IXtumlType<TimeStamp>, Comparable<TimeStamp> {
     public String toString() {
         return Long.toString( timestamp );
     }
+    
+    @Override
+    public TimeStamp value() {
+        return this;
+    }
 
 }

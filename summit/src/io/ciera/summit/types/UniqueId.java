@@ -18,7 +18,7 @@ public class UniqueId implements IXtumlType<UniqueId>, Comparable<UniqueId> {
 
     @Override
     public int compareTo( UniqueId o ) {
-        return id.compareTo( o.getId() );
+        return id.compareTo( o.id );
     }
 
     public void nullify() {
@@ -41,7 +41,7 @@ public class UniqueId implements IXtumlType<UniqueId>, Comparable<UniqueId> {
 
     @Override
     public boolean equals( Object o ) {
-        return o instanceof UniqueId && getId().equals( ((UniqueId)o).getId() );
+        return o instanceof UniqueId && id.equals( ((UniqueId)o).id );
     }
 
     @Override
@@ -54,9 +54,10 @@ public class UniqueId implements IXtumlType<UniqueId>, Comparable<UniqueId> {
         if ( null == id ) return "null";
         else return id.toString();
     }
-
-    private UUID getId() {
-        return id;
+    
+    @Override
+    public UniqueId value() {
+        return this;
     }
-
+    
 }

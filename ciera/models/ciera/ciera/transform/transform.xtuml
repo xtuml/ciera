@@ -2939,7 +2939,7 @@ if ( not_empty act_smt and not_empty block )
       relate r_op to binop across R778.''is right operand for'';
       create object instance where_expr of WhereExpr;
       relate where_expr to r_op across R776;
-      where_expr.multiplicity_many = "many" ==  act_fiw.cardinality;
+      where_expr.multiplicity = act_fiw.cardinality;
       // create selection expr
       create object instance sel_expr of Expression;
       relate sel_expr to smt across R775.''expressed within'';
@@ -3036,7 +3036,7 @@ if ( not_empty act_smt and not_empty block )
         if ( not_empty where_clause_val )
           create object instance where_expr of WhereExpr;
           relate where_expr to r_op across R776;
-          where_expr.multiplicity_many = "many" ==  act_sel.cardinality;
+          where_expr.multiplicity = act_sel.cardinality;
           // select the transformed link, relate it to the where clause
           select any select_expr related by smt->Expression[R775.''may contain''] where ( selected.expression_number == "1.2.1" );
           relate select_expr to where_expr across R790;
@@ -5615,7 +5615,10 @@ type.default_value = "";
 relate type to s_dt across R423;
 create object instance udt of UserDefinedType;
 relate type to udt across R407;
-relate udt to file across R401;',
+relate udt to file across R401;
+
+// add import
+::addStringToImports( file:file, s:"io.ciera.summit.types.IXtumlType", type:ImportType::IMPL );',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',

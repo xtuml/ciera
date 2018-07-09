@@ -20,4 +20,9 @@ ${selectors}
       return new ${self.name}Impl();
     }
 
+    @Override
+    public ${self.name} value() {
+        return this;
+    }
+
 }
