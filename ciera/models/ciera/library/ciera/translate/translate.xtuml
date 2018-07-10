@@ -42,6 +42,23 @@ INSERT INTO S_SYNC
 
 LOG::LogInfo( message:"Translating..." );
 
+// static analysis tasks
+
+// resolve direct selections across associative relationships
+LOG::LogInfo( message:"  Resolving associative selections..." );
+::resolveAssociativeSelections();
+LOG::LogInfo( message:"  done." );
+LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
+
+// prune unused classes
+select any prune_classes_mark from instances of Mark where ( selected.markable_name == "*" and selected.path == "*" and selected.feature_name == "PruneClasses" );
+if ( not_empty prune_classes_mark )
+  LOG::LogInfo( message:"  Removing unused classes..." );
+  ::pruneClasses( level:STR::atoi( s:prune_classes_mark.value ) );
+  LOG::LogInfo( message:"  done." );
+  LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
+end if;
+
 // translate builtin types
 LOG::LogInfo( message:"  Translating buitlin types..." );
 ::transformBuiltinTypes();
@@ -51,12 +68,6 @@ LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
 // assure all classes have IRDTs
 LOG::LogInfo( message:"  Publishing IRDTs..." );
 ::transformInstanceReferenceTypes();
-LOG::LogInfo( message:"  done." );
-LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
-
-// resolve direct selections across associative relationships
-LOG::LogInfo( message:"  Resolving associative selections..." );
-::resolveAssociativeSelections();
 LOG::LogInfo( message:"  done." );
 LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
 

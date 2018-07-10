@@ -672,91 +672,98 @@ containing_comp_def = param.containing_comp_def;
 path = param.path;
 select one ep_pkg related by o_obj->PE_PE[R8001]->EP_PKG[R8000];
 
-// get mark for naming
+// get exclude mark
 select one pe related by o_obj->PE_PE[R8001];
-select any class_name_mark from instances of Mark where ( selected.markable_name == "Model Class" and
-                                                          selected.path == ::containerMarkingPath( pe:pe ) + "::" + o_obj.Name and
-                                                          selected.feature_name == "UseKeyLettersForName" );
-// create the object file
-create object instance file of File;
-if ( empty class_name_mark )
-  file.name = ::camelCaseName( name:o_obj.Name, start_lower:false );
-else
-  file.name = ::camelCaseName( name:o_obj.Key_Lett, start_lower:false );
-end if;
-file.path = path;
-file.package = ::pathToPackage( path:file.path );
-file.extension = ".java";
-file.exclude = false;
-
-// create the object
-create object instance obj of Class;
-relate obj to file across R401;
-obj.key_letters = o_obj.Key_Lett;
-obj.extends = "ModelInstance<" + obj.name + "," + containing_comp_def.name + ">";
-
-// add the class to the component
-relate obj to containing_comp_def across R408;
-
-// create the instance type
-create object instance type of Type;
-type.name = obj.name;
-type.package = obj.package;
-select any s_irdt related by o_obj->S_IRDT[R123] where ( not selected.isSet );
-select one s_dt related by s_irdt->S_DT[R17];
-if ( not_empty s_dt )
-  relate s_dt to type across R423.''is basis of'';
-else
-  // TODO bad
-end if;
-type.default_value = obj.name + "Impl.EMPTY_" + T::u( s:T::underscore( s:obj.name ) );
-relate type to obj across R407;
-
-// relate to the OOA class
-relate obj to o_obj across R409;
-
-// transform the set object
-::transformClassSet( obj:obj, ep_pkg:ep_pkg, path:path );
-
-// transform attributes
-select any o_attr related by o_obj->O_ATTR[R102];
-select one prev_attr related by o_attr->O_ATTR[R103.''succeeds''];
-while ( not_empty prev_attr )
-  o_attr = prev_attr;
-  select one prev_attr related by o_attr->O_ATTR[R103.''succeeds''];
-end while;
-index = 0;
-while ( not_empty o_attr )
-  if ( "current_state" != o_attr.Name )
-    ::transformAttribute( o_attr:o_attr, obj:obj, index:index );
+select any class_exclude_mark from instances of Mark where ( selected.markable_name == "Model Class" and
+                                                            selected.path == ::containerMarkingPath( pe:pe ) + "::" + o_obj.Name and
+                                                            selected.feature_name == "Exclude" );
+if ( empty class_exclude_mark )
+  // get mark for naming
+  select any class_name_mark from instances of Mark where ( selected.markable_name == "Model Class" and
+                                                            selected.path == ::containerMarkingPath( pe:pe ) + "::" + o_obj.Name and
+                                                            selected.feature_name == "UseKeyLettersForName" );
+  // create the object file
+  create object instance file of File;
+  if ( empty class_name_mark )
+    file.name = ::camelCaseName( name:o_obj.Name, start_lower:false );
+  else
+    file.name = ::camelCaseName( name:o_obj.Key_Lett, start_lower:false );
   end if;
-  select one o_attr related by o_attr->O_ATTR[R103.''precedes''];
-  index = index + 1;
-end while;
+  file.path = path;
+  file.package = ::pathToPackage( path:file.path );
+  file.extension = ".java";
+  file.exclude = false;
 
-// transform operations
-select many o_tfrs related by o_obj->O_TFR[R115];
-for each o_tfr in o_tfrs
-  ::transformOperation( o_tfr:o_tfr, obj:obj );
-end for;
+  // create the object
+  create object instance obj of Class;
+  relate obj to file across R401;
+  obj.key_letters = o_obj.Key_Lett;
+  obj.extends = "ModelInstance<" + obj.name + "," + containing_comp_def.name + ">";
 
-// add to the containing component imports
-select one component_file related by containing_comp_def->File[R401];
-select one set_file related by obj->ClassSet[R406.''is type of single element in'']->File[R401];
-::addFileToImports( file:component_file, file_to_import:file, type:ImportType::IMPL );
-::addFileToImports( file:component_file, file_to_import:set_file, type:ImportType::IMPL );
-::addStringToImports( file: component_file, s: ::pathToPackage( path:set_file.path ) + ".impl." + set_file.name + "Impl", type:ImportType::IMPL );
-::addStringToImports( file: component_file, s:"io.ciera.summit.exceptions.XtumlException", type:ImportType::IMPL );
+  // add the class to the component
+  relate obj to containing_comp_def across R408;
 
-// create the import block
-::addFileToImports( file:file, file_to_import:component_file, type:ImportType::BOTH );
+  // create the instance type
+  create object instance type of Type;
+  type.name = obj.name;
+  type.package = obj.package;
+  select any s_irdt related by o_obj->S_IRDT[R123] where ( not selected.isSet );
+  select one s_dt related by s_irdt->S_DT[R17];
+  if ( not_empty s_dt )
+    relate s_dt to type across R423.''is basis of'';
+  else
+    // TODO bad
+  end if;
+  type.default_value = obj.name + "Impl.EMPTY_" + T::u( s:T::underscore( s:obj.name ) );
+  relate type to obj across R407;
 
-::addFileToImports( file:file, file_to_import:file, type:ImportType::IMPL );
-::addStringToImports( file:file, s:"io.ciera.summit.application.IRunContext", type:ImportType::IMPL );
-::addStringToImports( file:file, s:"io.ciera.summit.exceptions.InstancePopulationException", type:ImportType::IMPL );
-::addStringToImports( file:file, s:"io.ciera.cairn.classes.ModelInstance", type:ImportType::IMPL );
+  // relate to the OOA class
+  relate obj to o_obj across R409;
 
-::addStringToImports( file:file, s:"io.ciera.summit.classes.IModelInstance", type:ImportType::INT );',
+  // transform the set object
+  ::transformClassSet( obj:obj, ep_pkg:ep_pkg, path:path );
+
+  // transform attributes
+  select any o_attr related by o_obj->O_ATTR[R102];
+  select one prev_attr related by o_attr->O_ATTR[R103.''succeeds''];
+  while ( not_empty prev_attr )
+    o_attr = prev_attr;
+    select one prev_attr related by o_attr->O_ATTR[R103.''succeeds''];
+  end while;
+  index = 0;
+  while ( not_empty o_attr )
+    if ( "current_state" != o_attr.Name )
+      ::transformAttribute( o_attr:o_attr, obj:obj, index:index );
+    end if;
+    select one o_attr related by o_attr->O_ATTR[R103.''precedes''];
+    index = index + 1;
+  end while;
+
+  // transform operations
+  select many o_tfrs related by o_obj->O_TFR[R115];
+  for each o_tfr in o_tfrs
+    ::transformOperation( o_tfr:o_tfr, obj:obj );
+  end for;
+
+  // add to the containing component imports
+  select one component_file related by containing_comp_def->File[R401];
+  select one set_file related by obj->ClassSet[R406.''is type of single element in'']->File[R401];
+  ::addFileToImports( file:component_file, file_to_import:file, type:ImportType::IMPL );
+  ::addFileToImports( file:component_file, file_to_import:set_file, type:ImportType::IMPL );
+  ::addStringToImports( file: component_file, s: ::pathToPackage( path:set_file.path ) + ".impl." + set_file.name + "Impl", type:ImportType::IMPL );
+  ::addStringToImports( file: component_file, s:"io.ciera.summit.exceptions.XtumlException", type:ImportType::IMPL );
+
+  // create the import block
+  ::addFileToImports( file:file, file_to_import:component_file, type:ImportType::BOTH );
+
+  ::addFileToImports( file:file, file_to_import:file, type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"io.ciera.summit.application.IRunContext", type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"io.ciera.summit.exceptions.InstancePopulationException", type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"io.ciera.cairn.classes.ModelInstance", type:ImportType::IMPL );
+
+  ::addStringToImports( file:file, s:"io.ciera.summit.classes.IModelInstance", type:ImportType::INT );
+  
+end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -1619,225 +1626,232 @@ containing_comp_def = param.containing_comp_def;
 select one file related by containing_comp_def->File[R401];
 select one ep_pkg related by r_rel->PE_PE[R8001]->EP_PKG[R8000];
 
-form_phrase = "";
-select any form_class from instances of Class where false;
-form_mult = Mult::ONE;
-part_mult = Mult::ONE;
-form_cond = Cond::UNCONDITIONAL;
-part_phrase = "";
-select any part_class from instances of Class where false;
-part_cond = Cond::UNCONDITIONAL;
+// get exclude mark
+select one pe related by r_rel->PE_PE[R8001];
+select any assoc_exclude_mark from instances of Mark where ( selected.markable_name == "Association" and
+                                                             selected.path == ::containerMarkingPath( pe:pe ) + "::R" + STR::itoa( i:r_rel.Numb ) and
+                                                             selected.feature_name == "Exclude" );
+if ( empty assoc_exclude_mark )
+  form_phrase = "";
+  select any form_class from instances of Class where false;
+  form_mult = Mult::ONE;
+  part_mult = Mult::ONE;
+  form_cond = Cond::UNCONDITIONAL;
+  part_phrase = "";
+  select any part_class from instances of Class where false;
+  part_cond = Cond::UNCONDITIONAL;
 
-// create the relationsip subtype
-select one r_simp related by r_rel->R_SIMP[R206];
-if ( not_empty r_simp )
+  // create the relationsip subtype
+  select one r_simp related by r_rel->R_SIMP[R206];
+  if ( not_empty r_simp )
 
-  // If there is no R_FORM and the multiplicity of both is ONE, one is chosen arbitrarily to be the formalizer
-  select one r_form related by r_simp->R_FORM[R208];
-  select one form_class related by r_form->R_RGO[R205]->R_OIR[R203]->O_OBJ[R201]->Class[R409.''is basis for''];
-  if ( not_empty form_class )
-    select any r_part related by r_simp->R_PART[R207];
-    select one part_class related by r_part->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->Class[R409.''is basis for''];
-    if ( not_empty part_class )
-      form_phrase = r_form.Txt_Phrs;
-      part_phrase = r_part.Txt_Phrs;
-      if ( 0 != r_form.Mult )
-        form_mult = Mult::MANY;
-      end if;
-      if ( 0 != r_part.Mult )
-        part_mult = Mult::MANY;
-      end if;
-      if ( 0 != r_form.Cond )
-        form_cond = Cond::CONDITIONAL;
-      end if;
-      if ( 0 != r_part.Cond )
-        part_cond = Cond::CONDITIONAL;
-      end if;
-    else
-      // TODO bad
-    end if;
-  else
-    select any r_part1 related by r_simp->R_PART[R207] where ( selected.Mult == 0 );
-    if ( empty r_part1 )
-      select any r_part1 related by r_simp->R_PART[R207]; // for many to many unformalized, select one randomly
-    end if;
-    if ( not_empty r_part1 )
-      select one part_class related by r_part1->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->Class[R409.''is basis for''];
-      select any r_part2 related by r_simp->R_PART[R207] where ( selected.OIR_ID != r_part1.OIR_ID );
-      select one form_class related by r_part2->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->Class[R409.''is basis for''];
-      if ( not_empty form_class and not_empty part_class )
-        form_phrase = r_part2.Txt_Phrs;
-        part_phrase = r_part1.Txt_Phrs;
-        if ( 0 != r_part2.Mult )
+    // If there is no R_FORM and the multiplicity of both is ONE, one is chosen arbitrarily to be the formalizer
+    select one r_form related by r_simp->R_FORM[R208];
+    select one form_class related by r_form->R_RGO[R205]->R_OIR[R203]->O_OBJ[R201]->Class[R409.''is basis for''];
+    if ( not_empty form_class )
+      select any r_part related by r_simp->R_PART[R207];
+      select one part_class related by r_part->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->Class[R409.''is basis for''];
+      if ( not_empty part_class )
+        form_phrase = r_form.Txt_Phrs;
+        part_phrase = r_part.Txt_Phrs;
+        if ( 0 != r_form.Mult )
           form_mult = Mult::MANY;
         end if;
-        if ( 0 != r_part1.Mult )
+        if ( 0 != r_part.Mult )
           part_mult = Mult::MANY;
         end if;
-        if ( 0 != r_part2.Cond )
+        if ( 0 != r_form.Cond )
           form_cond = Cond::CONDITIONAL;
         end if;
-        if ( 0 != r_part1.Cond )
+        if ( 0 != r_part.Cond )
           part_cond = Cond::CONDITIONAL;
         end if;
       else
         // TODO bad
       end if;
     else
-      // TODO bad unformalized many to many binary associations not supported
-    end if;
-  end if;
-
-  // create the relationship
-  create object instance rel of Relationship;
-  name = "R" + STR::itoa( i:r_rel.Numb ) + "_" + form_class.name + "_";
-  if ( "" != part_phrase )
-    name = name + T::underscore( s:part_phrase ) + "_";
-  end if;
-  name = name + part_class.name;
-  rel.name = name;
-  rel.num = r_rel.Numb;
-  rel.form_phrase = form_phrase;
-  rel.part_phrase = part_phrase;
-  rel.form_mult = form_mult;
-  rel.part_mult = part_mult;
-  rel.form_cond = form_cond;
-  rel.part_cond = part_cond;
-  relate rel to containing_comp_def across R448.''forms relationship population of'';
-  relate rel to form_class across R435.''has formalizing'';
-  relate rel to part_class across R434.''has participating'';
-
-else
-select one r_subsup related by r_rel->R_SUBSUP[R206];
-if ( not_empty r_subsup )
-
-  select one part_class related by r_subsup->R_SUPER[R212]->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->Class[R409.''is basis for''];
-  select many sub_classes related by r_subsup->R_SUB[R213]->R_RGO[R205]->R_OIR[R203]->O_OBJ[R201]->Class[R409.''is basis for''];
-  if ( not_empty part_class and not_empty sub_classes )
-    part_phrase = "is_a";
-    for each form_class in sub_classes
-
-      form_phrase = "is_a";
-      form_cond = Cond::CONDITIONAL;
-
-      // create the relationship
-      create object instance rel of Relationship;
-      name = "R" + STR::itoa( i:r_rel.Numb ) + "_" + form_class.name + "_";
-      if ( "" != part_phrase )
-        name = name + part_phrase + "_";
+      select any r_part1 related by r_simp->R_PART[R207] where ( selected.Mult == 0 );
+      if ( empty r_part1 )
+        select any r_part1 related by r_simp->R_PART[R207]; // for many to many unformalized, select one randomly
       end if;
-      name = name + part_class.name;
-      rel.name = name;
-      rel.num = r_rel.Numb;
-      rel.form_phrase = form_phrase;
-      rel.part_phrase = part_phrase;
-      rel.form_mult = form_mult;
-      rel.part_mult = part_mult;
-      rel.form_cond = form_cond;
-      rel.part_cond = part_cond;
-      relate rel to containing_comp_def across R448.''forms relationship population of'';
-      relate rel to form_class across R435.''has formalizing'';
-      relate rel to part_class across R434.''has participating'';
+      if ( not_empty r_part1 )
+        select one part_class related by r_part1->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->Class[R409.''is basis for''];
+        select any r_part2 related by r_simp->R_PART[R207] where ( selected.OIR_ID != r_part1.OIR_ID );
+        select one form_class related by r_part2->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->Class[R409.''is basis for''];
+        if ( not_empty form_class and not_empty part_class )
+          form_phrase = r_part2.Txt_Phrs;
+          part_phrase = r_part1.Txt_Phrs;
+          if ( 0 != r_part2.Mult )
+            form_mult = Mult::MANY;
+          end if;
+          if ( 0 != r_part1.Mult )
+            part_mult = Mult::MANY;
+          end if;
+          if ( 0 != r_part2.Cond )
+            form_cond = Cond::CONDITIONAL;
+          end if;
+          if ( 0 != r_part1.Cond )
+            part_cond = Cond::CONDITIONAL;
+          end if;
+        else
+          // TODO bad
+        end if;
+      else
+        // TODO bad unformalized many to many binary associations not supported
+      end if;
+    end if;
 
-    end for;
+    // create the relationship
+    create object instance rel of Relationship;
+    name = "R" + STR::itoa( i:r_rel.Numb ) + "_" + form_class.name + "_";
+    if ( "" != part_phrase )
+      name = name + T::underscore( s:part_phrase ) + "_";
+    end if;
+    name = name + part_class.name;
+    rel.name = name;
+    rel.num = r_rel.Numb;
+    rel.form_phrase = form_phrase;
+    rel.part_phrase = part_phrase;
+    rel.form_mult = form_mult;
+    rel.part_mult = part_mult;
+    rel.form_cond = form_cond;
+    rel.part_cond = part_cond;
+    relate rel to containing_comp_def across R448.''forms relationship population of'';
+    relate rel to form_class across R435.''has formalizing'';
+    relate rel to part_class across R434.''has participating'';
+
+  else
+  select one r_subsup related by r_rel->R_SUBSUP[R206];
+  if ( not_empty r_subsup )
+
+    select one part_class related by r_subsup->R_SUPER[R212]->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->Class[R409.''is basis for''];
+    select many sub_classes related by r_subsup->R_SUB[R213]->R_RGO[R205]->R_OIR[R203]->O_OBJ[R201]->Class[R409.''is basis for''];
+    if ( not_empty part_class and not_empty sub_classes )
+      part_phrase = "is_a";
+      for each form_class in sub_classes
+
+        form_phrase = "is_a";
+        form_cond = Cond::CONDITIONAL;
+
+        // create the relationship
+        create object instance rel of Relationship;
+        name = "R" + STR::itoa( i:r_rel.Numb ) + "_" + form_class.name + "_";
+        if ( "" != part_phrase )
+          name = name + part_phrase + "_";
+        end if;
+        name = name + part_class.name;
+        rel.name = name;
+        rel.num = r_rel.Numb;
+        rel.form_phrase = form_phrase;
+        rel.part_phrase = part_phrase;
+        rel.form_mult = form_mult;
+        rel.part_mult = part_mult;
+        rel.form_cond = form_cond;
+        rel.part_cond = part_cond;
+        relate rel to containing_comp_def across R448.''forms relationship population of'';
+        relate rel to form_class across R435.''has formalizing'';
+        relate rel to part_class across R434.''has participating'';
+
+      end for;
+    else
+      // TODO bad
+    end if;
+
+  else
+  select one r_assoc related by r_rel->R_ASSOC[R206];
+  if ( not_empty r_assoc )
+
+
+    select one r_assr related by r_assoc->R_ASSR[R211];
+    select one r_aone related by r_assoc->R_AONE[R209];
+    select one r_aoth related by r_assoc->R_AOTH[R210];
+
+    select one form_class related by r_assr->R_RGO[R205]->R_OIR[R203]->O_OBJ[R201]->Class[R409.''is basis for''];
+    select one part_class related by r_aone->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->Class[R409.''is basis for''];
+    if ( not_empty form_class and not_empty part_class and not_empty r_aoth )
+      form_phrase = r_aoth.Txt_Phrs;
+      part_phrase = r_aone.Txt_Phrs;
+      if ( 0 != r_assr.Mult or 0 != r_aoth.Mult )
+        form_mult = Mult::MANY;
+      end if;
+      if ( 0 != r_aoth.Cond )
+        form_cond = Cond::CONDITIONAL;
+      end if;
+    else
+      // TODO bad
+    end if;
+
+    // create the first relationship
+    create object instance rel1 of Relationship;
+    name1 = "R" + STR::itoa( i:r_rel.Numb ) + "_" + form_class.name + "_";
+    if ( "" != part_phrase )
+      name1 = name1 + T::underscore( s:part_phrase ) + "_";
+    end if;
+    name1 = name1 + part_class.name;
+    rel1.name = name1;
+    rel1.num = r_rel.Numb;
+    rel1.form_phrase = form_phrase;
+    rel1.part_phrase = part_phrase;
+    rel1.form_mult = form_mult;
+    rel1.part_mult = part_mult;
+    rel1.form_cond = form_cond;
+    rel1.part_cond = part_cond;
+    relate rel1 to containing_comp_def across R448.''forms relationship population of'';
+    relate rel1 to form_class across R435.''has formalizing'';
+    relate rel1 to part_class across R434.''has participating'';
+
+    form_phrase = "";
+    form_mult = Mult::ONE;
+    form_cond = Cond::UNCONDITIONAL;
+    part_phrase = "";
+    part_cond = Cond::UNCONDITIONAL;
+
+    select one part_class related by r_aoth->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->Class[R409.''is basis for''];
+    if ( not_empty form_class and not_empty part_class and not_empty r_aone )
+      form_phrase = r_aone.Txt_Phrs;
+      part_phrase = r_aoth.Txt_Phrs;
+      if ( 0 != r_assr.Mult or 0 != r_aone.Mult )
+        form_mult = Mult::MANY;
+      end if;
+      if ( 0 != r_aone.Cond )
+        form_cond = Cond::CONDITIONAL;
+      end if;
+    else
+      // TODO bad
+    end if;
+
+    // create the second relationship
+    create object instance rel2 of Relationship;
+    name2 = "R" + STR::itoa( i:r_rel.Numb ) + "_" + form_class.name + "_";
+    if ( "" != part_phrase )
+      name2 = name2 + T::underscore( s:part_phrase ) + "_";
+    end if;
+    name2 = name2 + part_class.name;
+    rel2.name = name2;
+    rel2.num = r_rel.Numb;
+    rel2.form_phrase = form_phrase;
+    rel2.part_phrase = part_phrase;
+    rel2.form_mult = form_mult;
+    rel2.part_mult = part_mult;
+    rel2.form_cond = form_cond;
+    rel2.part_cond = part_cond;
+    relate rel2 to containing_comp_def across R448.''forms relationship population of'';
+    relate rel2 to form_class across R435.''has formalizing'';
+    relate rel2 to part_class across R434.''has participating'';
+    
   else
     // TODO bad
-  end if;
+  end if; end if; end if;
 
-else
-select one r_assoc related by r_rel->R_ASSOC[R206];
-if ( not_empty r_assoc )
-
-
-  select one r_assr related by r_assoc->R_ASSR[R211];
-  select one r_aone related by r_assoc->R_AONE[R209];
-  select one r_aoth related by r_assoc->R_AOTH[R210];
-
-  select one form_class related by r_assr->R_RGO[R205]->R_OIR[R203]->O_OBJ[R201]->Class[R409.''is basis for''];
-  select one part_class related by r_aone->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->Class[R409.''is basis for''];
-  if ( not_empty form_class and not_empty part_class and not_empty r_aoth )
-    form_phrase = r_aoth.Txt_Phrs;
-    part_phrase = r_aone.Txt_Phrs;
-    if ( 0 != r_assr.Mult or 0 != r_aoth.Mult )
-      form_mult = Mult::MANY;
-    end if;
-    if ( 0 != r_aoth.Cond )
-      form_cond = Cond::CONDITIONAL;
-    end if;
-  else
-    // TODO bad
-  end if;
-
-  // create the first relationship
-  create object instance rel1 of Relationship;
-  name1 = "R" + STR::itoa( i:r_rel.Numb ) + "_" + form_class.name + "_";
-  if ( "" != part_phrase )
-    name1 = name1 + T::underscore( s:part_phrase ) + "_";
-  end if;
-  name1 = name1 + part_class.name;
-  rel1.name = name1;
-  rel1.num = r_rel.Numb;
-  rel1.form_phrase = form_phrase;
-  rel1.part_phrase = part_phrase;
-  rel1.form_mult = form_mult;
-  rel1.part_mult = part_mult;
-  rel1.form_cond = form_cond;
-  rel1.part_cond = part_cond;
-  relate rel1 to containing_comp_def across R448.''forms relationship population of'';
-  relate rel1 to form_class across R435.''has formalizing'';
-  relate rel1 to part_class across R434.''has participating'';
-
-  form_phrase = "";
-  form_mult = Mult::ONE;
-  form_cond = Cond::UNCONDITIONAL;
-  part_phrase = "";
-  part_cond = Cond::UNCONDITIONAL;
-
-  select one part_class related by r_aoth->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->Class[R409.''is basis for''];
-  if ( not_empty form_class and not_empty part_class and not_empty r_aone )
-    form_phrase = r_aone.Txt_Phrs;
-    part_phrase = r_aoth.Txt_Phrs;
-    if ( 0 != r_assr.Mult or 0 != r_aone.Mult )
-      form_mult = Mult::MANY;
-    end if;
-    if ( 0 != r_aone.Cond )
-      form_cond = Cond::CONDITIONAL;
-    end if;
-  else
-    // TODO bad
-  end if;
-
-  // create the second relationship
-  create object instance rel2 of Relationship;
-  name2 = "R" + STR::itoa( i:r_rel.Numb ) + "_" + form_class.name + "_";
-  if ( "" != part_phrase )
-    name2 = name2 + T::underscore( s:part_phrase ) + "_";
-  end if;
-  name2 = name2 + part_class.name;
-  rel2.name = name2;
-  rel2.num = r_rel.Numb;
-  rel2.form_phrase = form_phrase;
-  rel2.part_phrase = part_phrase;
-  rel2.form_mult = form_mult;
-  rel2.part_mult = part_mult;
-  rel2.form_cond = form_cond;
-  rel2.part_cond = part_cond;
-  relate rel2 to containing_comp_def across R448.''forms relationship population of'';
-  relate rel2 to form_class across R435.''has formalizing'';
-  relate rel2 to part_class across R434.''has participating'';
-  
-else
-  // TODO bad
-end if; end if; end if;
-
-// add necessary imports
-::addStringToImports( file:file, s:"io.ciera.cairn.classes.RelationshipSet", type:ImportType::IMPL );
-::addStringToImports( file:file, s:"io.ciera.cairn.classes.Relationship", type:ImportType::IMPL );
-::addStringToImports( file:file, s:"io.ciera.summit.classes.IRelationshipSet", type:ImportType::IMPL );
-::addStringToImports( file:file, s:"io.ciera.summit.exceptions.BadArgumentException", type:ImportType::IMPL );
-::addStringToImports( file:file, s:"io.ciera.summit.exceptions.EmptyInstanceException", type:ImportType::IMPL );
-::addStringToImports( file:file, s:"io.ciera.summit.exceptions.ModelIntegrityException", type:ImportType::IMPL );
-::addStringToImports( file:file, s:"io.ciera.summit.exceptions.XtumlException", type:ImportType::IMPL );',
+  // add necessary imports
+  ::addStringToImports( file:file, s:"io.ciera.cairn.classes.RelationshipSet", type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"io.ciera.cairn.classes.Relationship", type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"io.ciera.summit.classes.IRelationshipSet", type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"io.ciera.summit.exceptions.BadArgumentException", type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"io.ciera.summit.exceptions.EmptyInstanceException", type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"io.ciera.summit.exceptions.ModelIntegrityException", type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"io.ciera.summit.exceptions.XtumlException", type:ImportType::IMPL );
+end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
