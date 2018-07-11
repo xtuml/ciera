@@ -125,6 +125,88 @@ return primitive;',
 	'',
 	"c66d5140-b716-4601-b114-91a8cdff9576",
 	0);
+INSERT INTO O_TFR
+	VALUES ("8addb477-ae41-49eb-90b5-89a9bede0d95",
+	"c82b12d2-5ff2-4a6a-90e9-f25c15b23917",
+	'resolve',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	's_dt = param.s_dt;
+select one unresolved_type related by s_dt->Type[R423]->UnresolvedType[R407];
+if ( not_empty unresolved_type )
+  select one old_type related by unresolved_type->Type[R407];
+  
+  // unrelate old types and hook up the new types
+  select many old_type_refs related by old_type->TypeReference[R3800];
+  for each old_type_ref in old_type_refs
+    // get the corresponding new type ref
+    select any self_ref related by self->TypeReference[R3800] where false;
+    select one old_basic_ref related by old_type_ref->BasicTypeReference[R3801];
+    if ( not_empty old_basic_ref )
+      self_ref = TypeReference::getInstanceWithDimString( type:self, dims:"" );
+    else
+    select one old_array_ref related by old_type_ref->ArrayTypeReference[R3801];
+    if ( not_empty old_array_ref )
+      self_ref = TypeReference::getInstanceWithDimString( type:self, dims:old_array_ref.dims );
+    end if; end if;
+    // replace types
+    select many attrs related by old_type_ref->Attribute[R424];
+    for each attr in attrs
+      unrelate old_type_ref from attr across R424;
+      relate self_ref to attr across R424;
+    end for;
+    select many invocables related by old_type_ref->InvocableObject[R428];
+    for each invocable in invocables
+      unrelate old_type_ref from invocable across R428;
+      relate self_ref to invocable across R428;
+    end for;
+    select many parms related by old_type_ref->FormalParameter[R431];
+    for each parm in parms
+      unrelate old_type_ref from parm across R431;
+      relate self_ref to parm across R431;
+    end for;
+    select many selectors related by old_type_ref->Selector[R446.''shapes return of''];
+    for each selector in selectors
+      unrelate old_type_ref from selector across R446.''shapes return of'';
+      relate self_ref to selector across R446.''shapes return of'';
+    end for;
+    select many expressions related by old_type_ref->Expression[R795.''defines type of''];
+    for each expression in expressions
+      unrelate old_type_ref from expression across R795.''defines type of'';
+      relate self_ref to expression across R795.''defines type of'';
+    end for;
+  end for;
+
+  unrelate old_type from s_dt across R423;
+  relate self to s_dt across R423;
+  old_type.dispose();
+
+elif ( not_empty s_dt )
+  relate self to s_dt across R423;
+else
+  // TODO bad
+end if;',
+	1,
+	'',
+	"3b82bd7c-74ea-4c0e-9912-888b618e7c12",
+	0);
+INSERT INTO O_TPARM
+	VALUES ("32713b87-814e-455b-877a-a4d3e237830d",
+	"8addb477-ae41-49eb-90b5-89a9bede0d95",
+	's_dt',
+	"4a90cd45-ece0-4e72-afe7-44996f9d7e1e",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("4a90cd45-ece0-4e72-afe7-44996f9d7e1e",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Data Type>',
+	'',
+	'',
+	'../../../../../../../mcooa/models/mcooa/ooaofooa/Domain/Domain.xtuml');
 INSERT INTO O_NBATTR
 	VALUES ("f4d4791a-d893-4daf-bfa4-5b7e21de6028",
 	"c82b12d2-5ff2-4a6a-90e9-f25c15b23917");
