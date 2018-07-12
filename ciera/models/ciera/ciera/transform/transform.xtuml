@@ -4748,6 +4748,13 @@ relate block to invocable across R4000.''is invoked in'';
 block.block_number = param.block_number;
 block.tab_depth = upper_block.tab_depth;  // keep same tab depth
 
+// copy visibile variables from upper block
+select many vars related by upper_block->Variable[R458.''has in scope''];
+for each var in vars
+  create object instance var_in_scope of VariableInScope;
+  relate var to block across R458.''is in scope for'' using var_in_scope;
+end for;
+
 // create single statement in block
 create object instance smt of Statement;
 relate smt to block across R450.''is contained by'';

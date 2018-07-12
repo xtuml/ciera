@@ -44,10 +44,25 @@ public abstract class Set<S extends ISet<S,E>,E> implements ISet<S,E> {
     }
 
     @Override
+    public S union( E element ) {
+        S returnSet = emptySet();
+        returnSet.addAll( this );
+        returnSet.add( element );
+        return returnSet.toImmutableSet();
+    }
+
+    @Override
     public S intersection( S set ) {
         S returnSet = emptySet();
         returnSet.addAll( this );
         returnSet.retainAll( set );
+        return returnSet.toImmutableSet();
+    }
+
+    @Override
+    public S intersection( E element ) {
+        S returnSet = emptySet();
+        if ( this.contains( element ) ) returnSet.add( element );
         return returnSet.toImmutableSet();
     }
 
@@ -60,9 +75,31 @@ public abstract class Set<S extends ISet<S,E>,E> implements ISet<S,E> {
     }
 
     @Override
+    public S difference( E element ) {
+        S returnSet = emptySet();
+        returnSet.addAll( this );
+        returnSet.remove( element );
+        return returnSet.toImmutableSet();
+    }
+
+    @Override
     public S disunion( S set ) {
-        S returnSet = union( set );
-        returnSet.removeAll( intersection( set ) );
+        S returnSet = emptySet();
+        returnSet.addAll( this );
+        returnSet.addAll( set );
+        S returnSet2 = emptySet();
+        returnSet2.addAll( this );
+        returnSet2.retainAll( set );
+        returnSet.removeAll( returnSet2 );
+        return returnSet.toImmutableSet();
+    }
+
+    @Override
+    public S disunion( E element ) {
+        S returnSet = emptySet();
+        returnSet.addAll( this );
+        returnSet.add( element );
+        if ( this.contains( element ) ) returnSet.remove( element );
         return returnSet.toImmutableSet();
     }
 
