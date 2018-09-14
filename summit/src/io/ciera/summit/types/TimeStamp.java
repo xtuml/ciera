@@ -7,7 +7,7 @@ public class TimeStamp implements IXtumlType<TimeStamp>, Comparable<TimeStamp> {
     private long timestamp;
 
     public TimeStamp() {
-        timestamp = System.currentTimeMillis();
+        timestamp = 0;
     }
     
     public TimeStamp( long timestamp ) {
@@ -31,11 +31,6 @@ public class TimeStamp implements IXtumlType<TimeStamp>, Comparable<TimeStamp> {
     }
 
     @Override
-    public TimeStamp defaultValue() {
-        return new TimeStamp( 0 );
-    }
-
-    @Override
     public boolean equals( Object o ) {
         return o instanceof TimeStamp && timestamp == ((TimeStamp)o).timestamp;
     }
@@ -53,6 +48,10 @@ public class TimeStamp implements IXtumlType<TimeStamp>, Comparable<TimeStamp> {
     @Override
     public TimeStamp value() {
         return this;
+    }
+
+    public static TimeStamp now() {
+        return new TimeStamp( System.currentTimeMillis() );
     }
 
 }

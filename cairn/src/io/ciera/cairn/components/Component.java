@@ -8,6 +8,10 @@ public abstract class Component<C extends IComponent<C>> implements IComponent<C
 
     private IRunContext runContext;
 
+    public Component() {
+        runContext = null;
+    }
+
     public Component( IRunContext runContext ) {
         this.runContext = runContext;
     }
@@ -20,11 +24,6 @@ public abstract class Component<C extends IComponent<C>> implements IComponent<C
     @Override
     public boolean equality( C value ) throws XtumlException {
         return equals( value );
-    }
-
-    @Override
-    public C defaultValue() {
-        return null;
     }
 
 }

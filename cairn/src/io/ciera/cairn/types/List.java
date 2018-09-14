@@ -211,11 +211,4 @@ public abstract class List<L extends IList<L,E>,E> implements IList<L,E> {
         return containsAll( value ) && value.containsAll( this );
     }
 
-    @Override
-    public L defaultValue() {
-        return emptyList();
-    }
-
-
-
 }

@@ -6,6 +6,10 @@ public class XtumlString implements IXtumlType<XtumlString>, CharSequence {
     
     private String str;
     
+    public XtumlString() {
+        str = "";
+    }
+
     public XtumlString( String str ) {
         this.str = str;
     }
@@ -48,11 +52,6 @@ public class XtumlString implements IXtumlType<XtumlString>, CharSequence {
     public boolean lessThanOrEqual( XtumlString value ) throws XtumlException{
         if ( null == value ) throw new XtumlException( "Null argument passed." );
         return str.compareTo( value.str ) <= 0;
-    }
-
-    @Override
-    public XtumlString defaultValue() {
-        return new XtumlString( "" );
     }
 
     @Override

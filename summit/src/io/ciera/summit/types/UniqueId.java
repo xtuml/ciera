@@ -9,7 +9,7 @@ public class UniqueId implements IXtumlType<UniqueId>, Comparable<UniqueId> {
     UUID id;
 
     public UniqueId() {
-        id = UUID.randomUUID();
+        id = null;
     }
     
     public UniqueId( UUID id ) {
@@ -35,11 +35,6 @@ public class UniqueId implements IXtumlType<UniqueId>, Comparable<UniqueId> {
     }
 
     @Override
-    public UniqueId defaultValue() {
-        return new UniqueId();
-    }
-
-    @Override
     public boolean equals( Object o ) {
         return o instanceof UniqueId && id.equals( ((UniqueId)o).id );
     }
@@ -58,6 +53,10 @@ public class UniqueId implements IXtumlType<UniqueId>, Comparable<UniqueId> {
     @Override
     public UniqueId value() {
         return this;
+    }
+
+    public static UniqueId random() {
+        return new UniqueId( UUID.randomUUID() );
     }
     
 }

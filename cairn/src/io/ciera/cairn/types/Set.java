@@ -228,9 +228,4 @@ public abstract class Set<S extends ISet<S,E>,E> implements ISet<S,E> {
         return containsAll( value ) && value.containsAll( this );
     }
 
-    @Override
-    public S defaultValue() {
-        return emptySet();
-    }
-
 }

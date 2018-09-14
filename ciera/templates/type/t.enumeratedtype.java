@@ -8,6 +8,10 @@ public enum ${self.name} implements IXtumlType<${self.name}> {
 
     private final int value;
 
+    ${self.name}() {
+        value = -1;
+    }
+
     ${self.name}( int value ) {
         this.value = value;
     }
@@ -19,11 +23,6 @@ public enum ${self.name} implements IXtumlType<${self.name}> {
     @Override
     public boolean equality( ${self.name} value ) throws XtumlException {
         return null != value && this.value == value.getValue();
-    }
-
-    @Override
-    public ${self.name} defaultValue() {
-        return UNINITIALIZED_ENUM;
     }
 
     @Override

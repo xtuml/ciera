@@ -13,16 +13,12 @@ public interface IXtumlType<T extends IXtumlType<T>> {
         return !equality( value );
     }
 
-    default public T defaultValue() {
-        return null;
-    }
-    
     public T value();
     
     default public T oneWhere( IWhere<T> condition ) throws XtumlException {
         if ( null == condition ) throw new BadArgumentException( "Null condition passed to selection." );
         if ( condition.evaluate( value() ) ) return value();
-        else return defaultValue();
+        else return null;
     }
     
 }

@@ -1,0 +1,16 @@
+T_b("    ");
+T_b("public ");
+T_b(modifiers);
+T_b(type_name);
+T_b(" ");
+T_b(self->name);
+T_b("(");
+T_b(parameter_list);
+T_b(") throws XtumlException {");
+T_b("\n");
+T_b("        ");
+T_b("throw new EmptyInstanceException( \"Cannot invoke operation on empty instance.\" );");
+T_b("\n");
+T_b("    ");
+T_b("}");
+T_b("\n");

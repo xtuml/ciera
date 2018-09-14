@@ -61,11 +61,6 @@ ${selectors}
     }
 
     @Override
-    public ${self.name} defaultValue() {
-        return EMPTY_$u_{self.name};
-    }
-
-    @Override
     public ${self.name} value() {
         return this;
     }
@@ -86,11 +81,6 @@ ${empty_selectors}
     @Override
     public String getKeyLetters() {
         return ${self.name}Impl.KEY_LETTERS;
-    }
-
-    @Override
-    public ${self.name} defaultValue() {
-        return ${self.name}Impl.EMPTY_$u_{self.name};
     }
 
     @Override
