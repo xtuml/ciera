@@ -109,7 +109,7 @@ public class CMDImpl<C extends IComponent<C>> extends Utility<C> implements CMD 
             if ( !options.containsKey( value ) || Option.VALUE != options.get( value ).type ) errors = true;
         for ( Option opt : options.values() )
             if ( Option.VALUE == opt.type && opt.required && !values.containsKey( opt.name ) ) errors = true;
-        if ( errors || flags.contains( "h" ) || flags.contains( "help" ) ) {
+        if ( errors || flags.contains( new XtumlString( "h" ) ) || flags.contains( new XtumlString( "help" ) ) ) {
             printUsage();
             getRunContext().execute( new HaltExecutionTask() );
             throw new XtumlInterruptedException();
