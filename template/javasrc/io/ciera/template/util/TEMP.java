@@ -28,7 +28,11 @@ public interface TEMP {
     public void clear() throws XtumlException;
     public void emit( XtumlString file ) throws XtumlException;
     public void include( XtumlString file ) throws XtumlException;
+    public XtumlString sub( XtumlString format, boolean b ) throws XtumlException;
+    public XtumlString sub( XtumlString format, int i ) throws XtumlException;
+    public XtumlString sub( XtumlString format, double d ) throws XtumlException;
     public XtumlString sub( XtumlString format, XtumlString s ) throws XtumlException;
+    public XtumlString sub( XtumlString format, IXtumlType<?> o ) throws XtumlException;
     
     public void pushBuffer();
     public void popBuffer();

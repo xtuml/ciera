@@ -11,6 +11,7 @@ import java.util.regex.Pattern;
 import io.ciera.cairn.util.Utility;
 import io.ciera.summit.components.IComponent;
 import io.ciera.summit.exceptions.XtumlException;
+import io.ciera.summit.types.IXtumlType;
 import io.ciera.summit.types.XtumlString;
 import io.ciera.template.util.ITemplateRegistry;
 import io.ciera.template.util.TEMP;
@@ -93,7 +94,28 @@ public class TEMPImpl<C extends IComponent<C>> extends Utility<C> implements TEM
      * o   cOrba - make the first word all lowercase, make the first
      *     character of each following word capitalized and all other characters
      *     of the words lowercase. Characters other than a-Z a-z 0-9 are ignored.
+     * t   no-op
      */
+    @Override
+    public XtumlString sub( XtumlString format, boolean b ) throws XtumlException {
+        return sub( format, new XtumlString( Boolean.toString(b) ) );
+    }
+
+    @Override
+    public XtumlString sub( XtumlString format, int i ) throws XtumlException {
+        return sub( format, new XtumlString( Integer.toString(i) ) );
+    }
+
+    @Override
+    public XtumlString sub( XtumlString format, double d ) throws XtumlException {
+        return sub( format, new XtumlString( Double.toString(d) ) );
+    }
+
+    @Override
+    public XtumlString sub( XtumlString format, IXtumlType<?> o ) throws XtumlException {
+        return sub( format, new XtumlString( o.toString() ) );
+    }
+
     @Override
     public XtumlString sub( XtumlString format, XtumlString s ) throws XtumlException {
         if ( null != format ) {
@@ -121,6 +143,9 @@ public class TEMPImpl<C extends IComponent<C>> extends Utility<C> implements TEM
                 case 'O':
                 case 'o':
                     s = cobra( s );
+                    break;
+                case 'T':
+                case 't':
                     break;
                 default:
                     throw new XtumlException( "Unrecognized format character '" + format.charAt( i ) + "'" );

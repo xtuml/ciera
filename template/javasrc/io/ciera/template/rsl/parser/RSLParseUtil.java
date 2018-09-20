@@ -20,21 +20,23 @@ public class RSLParseUtil {
             out.println( "-- RSL data" );
             if ( args.length > 0 ) {
                 File template_dir = new File( args[0] );
-                processFile( template_dir, "" );
+                processFile( template_dir.getAbsoluteFile(), "", "" );
             }
             out.close();
         } catch ( IOException e ) { /* do nothing */ }
     }
     
-    private static void processFile( File f, String path ) {
-        if ( null != f && f.exists() && null != path ) {
+    private static void processFile( File f, String basePath, String relativePath ) {
+        if ( null != f && f.exists() && null != basePath && null != relativePath ) {
             System.err.printf( "--   Processing file: %s\n", f.getName() );
             if ( f.isDirectory() ) {
-                for ( File contained_file : f.listFiles() ) processFile( contained_file, "".equals( path ) ? f.getName() : path + "/" + f.getName() );
+                if ( "".equals( basePath ) ) basePath = f.getAbsolutePath();
+                else relativePath = "".equals( relativePath ) ? f.getName() : relativePath + File.separator + f.getName();
+                for ( File contained_file : f.listFiles() ) processFile( contained_file, basePath, relativePath );
             }
             else {
                 try {
-                    RSLLexer lexer = new RSLLexer( CharStreams.fromStream( new FileInputStream( path + "/" + f.getName() ) ) );
+                    RSLLexer lexer = new RSLLexer( CharStreams.fromStream( new FileInputStream( basePath + File.separator + relativePath + File.separator + f.getName() ) ) );
                     /* lexer debug
                     for ( Token token = lexer.nextToken(); token.getType() != Token.EOF; token = lexer.nextToken() ) {
                         System.err.println( lexer.getVocabulary().getSymbolicName(token.getType()));
@@ -44,9 +46,7 @@ public class RSLParseUtil {
                     RSLParser parser = new RSLParser( tokens );
                     RSLParser.BodyContext ctx = parser.body();
                     ParseTreeWalker walker = new ParseTreeWalker();
-                    String fn = path + "/" + f.getName();
-                    fn = fn.substring( fn.indexOf( '/' ) + 1 );
-                    XtumlRSLListener listener = new XtumlRSLListener( fn, out );
+                    XtumlRSLListener listener = new XtumlRSLListener( relativePath + File.separator + f.getName(), out );
                     walker.walk( listener, ctx );
                 } catch ( IOException e ) { /* do nothing */ }
             }

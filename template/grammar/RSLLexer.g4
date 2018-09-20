@@ -7,7 +7,7 @@ package io.ciera.template.rsl.parser;
 // THE 'INITIAL' MODE IS FOR MATCHING SEQUENCES AT THE BEGINNING OF A LINE
 
 INITIAL_DOT:               [ \t]* '.' -> skip, pushMode(CONTROL);
-INITIAL_BLOB:              [ \t]* ( ~( [$ \t\r\n.] ) | '$$' | '..' ) ( ~( [$\r\n] ) | [ \t] | '$$' )*  -> type(BLOB), pushMode(BUFFER);
+INITIAL_BLOB:              ( [ \t]+ | [ \t]* ( ~( [$ \t\r\n.] ) | '$$' | '..' ) ( ~( [$\r\n] ) | '$$' )* ) -> type(BLOB), pushMode(BUFFER);
 INITIAL_DOLLAR:            DOLLAR -> type(DOLLAR), pushMode(BUFFER), pushMode(SUBVAR);
 INITIAL_NEWLINE:           NEWLINE -> type(NEWLINE);
 
@@ -28,7 +28,7 @@ STRING_QUOTE:              QUOTE -> type(QUOTE), popMode;
 // THE 'SUBVAR' MODE IS FOR MATCHING FORMAT CHARACTERS IN A SUBSTITUTION
 mode SUBVAR;
 
-FORMAT:                    ( [ucl_ro] )+ ;
+FORMAT:                    ( [ucl_rot] )+ ;
 LCURLY:                    '{' -> pushMode(CONTROL);
 
 // THE 'CONTROL' MODE IS FOR MATCHING RSL CONTROL STRUCTURES

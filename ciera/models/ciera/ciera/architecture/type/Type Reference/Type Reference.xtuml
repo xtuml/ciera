@@ -39,40 +39,7 @@ if ( empty type ) // Create new Unresolved Type
   relate unresolved_type to type across R407;
   unresolved_type.num = num;
 end if;
-if ( not_empty s_dims )
-  dim_string = "";
-  i = 0;
-  while ( i < cardinality s_dims )
-    for each s_dim in s_dims
-      if ( s_dim.dimensionCount == i )
-        dim_string = dim_string + "[]";
-        break;
-      end if;
-    end for;
-    i = i + 1;
-  end while;
-  select any type_ref related by type->TypeReference[R3800]->ArrayTypeReference[R3801]->TypeReference[R3801] where ( selected.type_reference_name == type.name + dim_string );
-  if ( empty type_ref )
-    create object instance type_ref of TypeReference;
-    type_ref.type_reference_name = type.name + dim_string;
-    create object instance array_type_ref of ArrayTypeReference;
-    array_type_ref.dims = dim_string;
-    relate type_ref to array_type_ref across R3801;
-    relate type_ref to type across R3800;
-  end if;
-  return type_ref;
-else
-  // basic type reference
-  select any type_ref related by type->TypeReference[R3800]->BasicTypeReference[R3801]->TypeReference[R3801];
-  if ( empty type_ref )
-    create object instance type_ref of TypeReference;
-    type_ref.type_reference_name = type.name;
-    create object instance basic_type_ref of BasicTypeReference;
-    relate type_ref to basic_type_ref across R3801;
-    relate type_ref to type across R3800;
-  end if;
-  return type_ref;
-end if;',
+return TypeReference::getInstanceFromType( type:type, s_dims:s_dims );',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",
@@ -212,6 +179,71 @@ INSERT INTO O_TPARM
 	0,
 	'',
 	"fb3ee9a9-4772-439a-a38b-1935f27595b3",
+	'');
+INSERT INTO O_TFR
+	VALUES ("dd77fdd8-7402-485a-be50-df5b18a26ca5",
+	"14448381-6c47-4d9b-9814-b59186f2a53c",
+	'getInstanceFromType',
+	'',
+	"5c1ad645-1a86-425b-93ac-c2d8462bc62a",
+	0,
+	'type = param.type;
+s_dims = param.s_dims;
+if ( not_empty s_dims )
+  dim_string = "";
+  i = 0;
+  while ( i < cardinality s_dims )
+    for each s_dim in s_dims
+      if ( s_dim.dimensionCount == i )
+        dim_string = dim_string + "[]";
+        break;
+      end if;
+    end for;
+    i = i + 1;
+  end while;
+  select any type_ref related by type->TypeReference[R3800]->ArrayTypeReference[R3801]->TypeReference[R3801] where ( selected.type_reference_name == type.name + dim_string );
+  if ( empty type_ref )
+    create object instance type_ref of TypeReference;
+    type_ref.type_reference_name = type.name + dim_string;
+    create object instance array_type_ref of ArrayTypeReference;
+    array_type_ref.dims = dim_string;
+    relate type_ref to array_type_ref across R3801;
+    relate type_ref to type across R3800;
+  end if;
+  return type_ref;
+else
+  // basic type reference
+  select any type_ref related by type->TypeReference[R3800]->BasicTypeReference[R3801]->TypeReference[R3801];
+  if ( empty type_ref )
+    create object instance type_ref of TypeReference;
+    type_ref.type_reference_name = type.name;
+    create object instance basic_type_ref of BasicTypeReference;
+    relate type_ref to basic_type_ref across R3801;
+    relate type_ref to type across R3800;
+  end if;
+  return type_ref;
+end if;',
+	1,
+	'',
+	"0c0513a1-d609-4a23-8202-33c78d7bb745",
+	0);
+INSERT INTO O_TPARM
+	VALUES ("451a246e-aecc-496e-b996-2a42e361d73f",
+	"dd77fdd8-7402-485a-be50-df5b18a26ca5",
+	'type',
+	"be784cfe-3f8b-4e25-b183-484885b71173",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO O_TPARM
+	VALUES ("09426316-a458-454a-8d0b-4934c7617aba",
+	"dd77fdd8-7402-485a-be50-df5b18a26ca5",
+	's_dims',
+	"9e615117-5ec7-43cc-a3c5-fe7cdd626110",
+	0,
+	'',
+	"451a246e-aecc-496e-b996-2a42e361d73f",
 	'');
 INSERT INTO O_REF
 	VALUES ("14448381-6c47-4d9b-9814-b59186f2a53c",

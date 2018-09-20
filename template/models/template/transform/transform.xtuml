@@ -269,6 +269,31 @@ for each incl_var in incl_vars
   end if;
 end for;
 
+// link the class context if it exists
+select many template_invocations from instances of Invocation where ( "TEMP" == selected.invoked_parent_name and "io.ciera.template.util" == selected.invoked_parent_package and "include" == selected.invoked_name );
+select any real_param related by template_invocations->ActualParameter[R793]->Expression[R794]->Literal[R776] where ( selected.value == invocable.name );
+select one template_invocable related by real_param->Expression[R776]->ActualParameter[R794]->Invocation[R793]->Expression[R776]->Statement[R775]->CodeBlock[R450]->InvocableObject[R4000];
+select one operation related by template_invocable->Operation[R427] where ( not selected.is_class_based );
+select one deriv_attr related by template_invocable->AttributeDerivation[R427];
+if ( not_empty operation or not_empty deriv_attr )
+  select one self_class related by operation->Class[R416];
+  if ( empty self_class )
+    select one self_class related by deriv_attr->AttributeAccessor[R441]->Attribute[R4510]->Class[R410];
+  end if;
+  // create new variable
+  create object instance self_var of Variable;
+  relate self_var to smt across R457;
+  self_var.name = "self";
+  // link type
+  select one self_type related by self_class->Type[R407];
+  select many s_dims from instances of S_DIM where false;
+  self_type_ref = TypeReference::getInstanceFromType( type:self_type, s_dims:s_dims );
+  relate self_type_ref to self_var across R461;
+  // create variable in scope
+  create object instance var_in_scope of VariableInScope;
+  relate self_var to block across R458 using var_in_scope;
+end if;
+
 // transform each line
 current_id = -1;
 done = false;
@@ -469,6 +494,15 @@ for each invocable in invocables
       select any top_block related by invocable->CodeBlock[R4000] where ( selected.top_level );
       indent = ::getIndent( tab_depth:top_block.tab_depth + 1 );
       top_block.prefix = top_block.prefix + indent + "context().TEMP().pushBuffer();\n";
+      select one operation related by invocable->Operation[R427] where ( not selected.is_class_based );
+      select one deriv_attr related by invocable->AttributeDerivation[R427];
+      if ( not_empty operation or not_empty deriv_attr )
+        select one self_class related by operation->Class[R416];
+        if ( empty self_class )
+          select one self_class related by deriv_attr->AttributeAccessor[R441]->Attribute[R4510]->Class[R410];
+        end if;
+        top_block.prefix = top_block.prefix + indent + "setSymbol( " + STR::quote() + "self" + STR::quote() + ", this );\n";
+      end if;
       top_block.suffix = top_block.suffix + indent + "context().TEMP().popBuffer();\n";
       // add to the affected files list
       file = ::getFileForInvocable( invocable:invocable );
@@ -524,7 +558,7 @@ smt.oal = "";
 create object instance expr_arg of Expression;
 relate expr_arg to smt across R775;
 expr_arg.expression_number = "1.2";
-string_type_ref = TypeReference::getBuiltinTypeReference( name:"void" );
+string_type_ref = TypeReference::getBuiltinTypeReference( name:"XtumlString" );
 relate string_type_ref to expr_arg across R795;
 create object instance lit of Literal;
 relate lit to expr_arg across R776;
@@ -584,6 +618,21 @@ if ( empty next_buffer_element )  // if this blob is the last element in the buf
     blob_string = blob_string + "\\" + "n";
   end if;
 end if;
+
+// escape single quotes
+search_string = blob_string;
+blob_string = "";
+quote_index = STR::indexof( haystack:search_string, needle:STR::quote() );
+while ( -1 != quote_index )
+  prefix = STR::substr( s:search_string, begin:0, end:quote_index );
+  suffix = STR::substr( s:search_string, begin:quote_index, end:-1 );
+  blob_string = blob_string + prefix + "\\" + STR::quote();
+  search_string = STR::substr( s:search_string, begin:1, end:-1 );
+  quote_index = STR::indexof( haystack:search_string, needle:STR::quote() );
+end while;
+blob_string = blob_string + search_string;
+
+// TODO more escaping rules (e.g. double dot at beginning of line)
 
 // create statement and expression
 ::templateAppendString( block:block, str:blob_string );',
@@ -662,7 +711,7 @@ if ( "" != format_chars.FORMAT )
   create object instance expr of Expression;
   relate expr to smt across R775;
   expr.expression_number = "1.2";
-  string_type_ref = TypeReference::getBuiltinTypeReference( name:"string" );
+  string_type_ref = TypeReference::getBuiltinTypeReference( name:"XtumlString" );
   relate string_type_ref to expr across R795;
   // create invocation
   create object instance invoc of Invocation;
@@ -1001,25 +1050,25 @@ INSERT INTO S_SYNC
 smt = param.smt;
 expr_number = param.expr_number;
 
+// create expression
+create object instance expr of Expression;
+relate expr to smt across R775;
+expr.expression_number = param.expr_number;
+
 // select the referred to variable
 select any var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == var_access.ID );
 if ( empty var )
   // TODO bad
 end if;
 
-// create expression
-create object instance expr of Expression;
-relate expr to smt across R775;
-expr.expression_number = param.expr_number;
-
-// link type
-select one var_type_ref related by var->TypeReference[R461];
-relate var_type_ref to expr across R795;
-
 // create variable reference
 create object instance var_ref of VariableReference;
 relate var to var_ref across R782;
 relate var_ref to expr across R776;
+
+// link type
+select one var_type_ref related by var->TypeReference[R461];
+relate var_type_ref to expr across R795;
 
 // add the type to the file imports
 select one file related by smt->CodeBlock[R450]->InvocableObject[R4000]->GenericInvocable[R427]->Z_Template[R3053]->Z_TemplateRegistry[R3052]->GeneralFile[R3051]->File[R401];
@@ -1713,7 +1762,7 @@ if ( not_empty literal )
   select one string_literal related by literal->Y_StringLiteral[R3087];
   if ( not_empty string_literal )
     lit.value = string_literal.BLOB; // TODO unescape stuff
-    string_type_ref = TypeReference::getBuiltinTypeReference( name:"string" );
+    string_type_ref = TypeReference::getBuiltinTypeReference( name:"XtumlString" );
     relate string_type_ref to expr across R795;
     select one registry_file related by smt->CodeBlock[R450]->InvocableObject[R4000]->GenericInvocable[R427]->Z_Template[R3053]->Z_TemplateRegistry[R3052]->GeneralFile[R3051]->File[R401];
     select one string_type related by string_type_ref->Type[R3800];
@@ -1728,11 +1777,11 @@ if ( not_empty literal )
     relate boolean_type_ref to expr across R795;
   elif ( "" != literal.INTEGER_LITERAL )
     lit.value = literal.INTEGER_LITERAL;
-    integer_type_ref = TypeReference::getBuiltinTypeReference( name:"integer" );
+    integer_type_ref = TypeReference::getBuiltinTypeReference( name:"int" );
     relate integer_type_ref to expr across R795;
   elif ( "" != literal.REAL_LITERAL )
     lit.value = literal.REAL_LITERAL;
-    real_type_ref = TypeReference::getBuiltinTypeReference( name:"real" );
+    real_type_ref = TypeReference::getBuiltinTypeReference( name:"double" );
     relate real_type_ref to expr across R795;
   end if;
 
