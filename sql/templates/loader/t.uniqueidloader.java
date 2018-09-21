@@ -1,1 +1,1 @@
-, new UniqueId( (UUID)values.get($t{self.index}) )\
+, UniqueId.get(values.get($t{self.index}))\

@@ -59,4 +59,14 @@ public class UniqueId implements IXtumlType<UniqueId>, Comparable<UniqueId> {
         return new UniqueId( UUID.randomUUID() );
     }
     
+    public static UniqueId get( Object o ) {
+        if ( o instanceof UUID ) {
+            return new UniqueId((UUID)o);
+        }
+        else if ( o instanceof Integer ) {
+            return new UniqueId( new UUID( 0, ((Integer)o).longValue() ) );
+        }
+        else return null;
+    }
+    
 }
