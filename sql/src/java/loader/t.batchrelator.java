@@ -30,6 +30,9 @@ T_b(self->rel_name);
 T_b("( form, part );");
 T_b("\n");
 }
+T_b("            ");
+T_b("progressBar.step();");
+T_b("\n");
 T_b("        ");
 T_b("}");
 T_b("\n");

@@ -1,1 +1,1 @@
-, new XtumlString( (String)values.get($t{self.index}) )\
+, new XtumlString( (String)values.get($t{value_index}) )\

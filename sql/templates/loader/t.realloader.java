@@ -1,1 +1,1 @@
-, (double)values.get($t{self.index})\
+, (double)values.get($t{value_index})\

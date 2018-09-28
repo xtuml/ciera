@@ -5,4 +5,5 @@
             ${self.part_name} part = population.${self.part_name}_instances().anyWhere( selected -> ${attribute_comparisons} );
             if ( !part.isEmpty() ) population.relate_${self.rel_name}( form, part );
 .end if
+            progressBar.step();
         }

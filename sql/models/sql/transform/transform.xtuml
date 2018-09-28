@@ -111,6 +111,7 @@ for each rel in rels
 end for;
 
 // create import block
+::addStringToImports( file:file, s:"io.ciera.cairn.util.ProgressBar", type:ImportType::IMPL );
 ::addStringToImports( file:file, s:"io.ciera.instanceloading.IPopulationLoader", type:ImportType::IMPL );
 ::addStringToImports( file:file, s:"io.ciera.summit.exceptions.XtumlException", type:ImportType::IMPL );
 ::addStringToImports( file:file, s:"java.io.OutputStream", type:ImportType::IMPL );
@@ -166,6 +167,7 @@ inst_serializer.class_key_letters = obj.key_letters;
 
 // create attribute loaders and serializers
 index = 0;
+value_index = 0; // needed because of non persistent attributes
 select any attribute related by obj->Attribute[R410] where ( index == selected.order);
 select any prev_attr_loader from instances of Z_AttributeLoader where false;
 select any prev_attr_serializer from instances of Z_AttributeSerializer where false;
@@ -182,7 +184,10 @@ while ( not_empty attribute )
     ::transformAttributeSerializer( attr:attribute, inst_serializer:inst_serializer, prev_attr_serializer:prev_attr_serializer );
     select any prev_attr_serializer related by inst_serializer->Z_AttributeSerializer[R3002] where ( selected.attr_name == attribute.name );
   end if;
-  ::transformAttributeLoader( attr:attribute, inst_loader:inst_loader, prev_attr_loader:prev_attr_loader, non_persistent:(not_empty non_persistent_mark) );
+  ::transformAttributeLoader( attr:attribute, inst_loader:inst_loader, prev_attr_loader:prev_attr_loader, non_persistent:non_persistent_mark, value_index:value_index );
+  if ( empty non_persistent_mark or non_persistent_mark.value == "load_only" )
+    value_index = value_index + 1;
+  end if;
   select any prev_attr_loader related by inst_loader->Z_AttributeLoader[R3006] where ( selected.index == index );
   index = index + 1;
   select any attribute related by obj->Attribute[R410] where ( index == selected.order);
@@ -358,7 +363,8 @@ INSERT INTO S_SYNC
 	'attr = param.attr;
 inst_loader = param.inst_loader;
 prev_attr_loader = param.prev_attr_loader;
-
+non_persistent = param.non_persistent;
+value_index = param.value_index;
 
 select one file related by inst_loader->Z_PopulationLoader[R3005]->GeneralFile[R3009]->File[R401];
 
@@ -371,14 +377,16 @@ else
   relate prev_attr_loader to attr_loader across R3007.''precedes'';
   attr_loader.index = prev_attr_loader.index + 1;
 end if;
+attr_loader.value_index = value_index;
 
-if ( param.non_persistent )
+if ( not_empty non_persistent )
 
   create object instance non_persistent_loader of Z_NonPersistentLoader;
   relate non_persistent_loader to attr_loader across R3008;
   select one type related by attr->TypeReference[R424]->Type[R3800];
   relate type to non_persistent_loader across R3013;
   ::addTypeToImports( file:file, type_to_import:type, type:ImportType::IMPL );
+  non_persistent_loader.load_value = (non_persistent.value == "load_only");
 
 else
 
@@ -403,7 +411,6 @@ else
       create object instance unique_id_loader of Z_UniqueIdLoader;
       relate unique_id_loader to attr_loader across R3008;
       ::addStringToImports( file:file, s:"io.ciera.summit.types.UniqueId", type:ImportType::IMPL );
-      ::addStringToImports( file:file, s:"java.util.UUID", type:ImportType::IMPL );
     else
       // TODO bad unsupported builtin type
     end if;
@@ -470,10 +477,26 @@ INSERT INTO S_SPARM
 	VALUES ("a32774bf-e6d1-4714-92aa-3ad53d41c6a2",
 	"18397da8-60ab-4ff3-bfb7-a83e811c121d",
 	'non_persistent',
-	"ba5eda7a-def5-0000-0000-000000000001",
+	"401fe5b0-5de4-43ba-9db0-de05f9b422f7",
 	0,
 	'',
 	"97bc0976-48a2-4a3f-9744-1b27c2848193",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("401fe5b0-5de4-43ba-9db0-de05f9b422f7",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Mark>',
+	'',
+	'',
+	'../../../../org.xtuml.bp.ui.marking/models/org.xtuml.bp.ui.marking/ooaofmarking/ooaofmarking.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("95a4064e-217a-49eb-afcb-11f93cd0aaeb",
+	"18397da8-60ab-4ff3-bfb7-a83e811c121d",
+	'value_index',
+	"ba5eda7a-def5-0000-0000-000000000002",
+	0,
+	'',
+	"a32774bf-e6d1-4714-92aa-3ad53d41c6a2",
 	'');
 INSERT INTO PE_PE
 	VALUES ("18397da8-60ab-4ff3-bfb7-a83e811c121d",
@@ -496,6 +519,12 @@ batch_relator.rel_name = rel.name;
 batch_relator.form_name = rel.form_name;
 batch_relator.part_name = rel.part_name;
 batch_relator.unconditional = Cond::UNCONDITIONAL == rel.part_cond;
+
+// special case for EP_PKG instances... top level packages do not have a PE_PE instance
+if ( 8001 == rel.num and "EP_PKG" == rel.form_name )
+  LOG::LogInfo( message:"  Special casing R8001 EP_PKG to PackageableElement" );
+  batch_relator.unconditional = false;
+end if;
 
 // create attribute comparison for each identifying attribute
 select many attr_refs related by rel->AttributeReference[R4511];

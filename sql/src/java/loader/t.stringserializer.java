@@ -1,4 +1,4 @@
-T_b("            ");
+T_b("        ");
 T_b("out.printf( \"'%s'\", ");
 T_b(T_l(self->class_name));
 T_b("_inst.");

@@ -1,1 +1,1 @@
-, (int)values.get($t{self.index}) == 1 ? true : false\
+, (int)values.get($t{value_index}) == 1 ? true : false\

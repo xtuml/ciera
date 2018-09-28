@@ -1,1 +1,1 @@
-, UniqueId.get(values.get($t{self.index}))\
+, UniqueId.get(values.get($t{value_index}))\

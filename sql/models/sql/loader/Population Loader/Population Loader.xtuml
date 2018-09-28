@@ -21,6 +21,11 @@ end for;
 instance_serializers = T::body();
 T::clear();
 
+for each inst_serializer in inst_serializers
+  inst_serializer.render_def();
+end for;
+instance_serializer_definitions = T::body();
+
 select many inst_loaders related by self->Z_InstanceLoader[R3005];
 for each inst_loader in inst_loaders
   inst_loader.render();
@@ -34,6 +39,13 @@ for each batch_relator in batch_relates
 end for;
 batch_relators = T::body();
 T::clear();
+
+relate_count = "";
+sep = "";
+for each batch_relator in batch_relates
+  relate_count = relate_count + sep +"population." + batch_relator.form_name + "_instances().size()";
+  sep = " + ";
+end for;
 
 select one general_file related by self->GeneralFile[R3009];
 select one file related by general_file->File[R401];
