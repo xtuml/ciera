@@ -4,8 +4,10 @@ T_b("// ");
 T_b(oal);
 T_b("\n");
 }
+T_b(prefix);
+T_b("");
 if ( 0==strcmp("",ret_expression_body) ) {
-T_b(suffix);
+T_b(block_suffix);
 T_b(indent);
 T_b("return;");
 T_b("\n");
@@ -16,12 +18,12 @@ T_b("_return_value = ");
 T_b(ret_expression_body);
 T_b(";");
 T_b("\n");
-T_b(suffix);
+T_b(block_suffix);
 T_b(indent);
 T_b("return _return_value;");
 T_b("\n");
 } else {
-T_b(suffix);
+T_b(block_suffix);
 T_b(indent);
 T_b("return ");
 T_b(ret_expression_body);

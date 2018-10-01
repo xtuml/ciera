@@ -16,18 +16,13 @@ INSERT INTO O_TFR
 	1,
 	'select one var_type related by self->Variable[R782.''refers to local'']->TypeReference[R461.''is typed by''];
 type_name = var_type.type_reference_name;
-type_base_name = var_type.type_name;
-array_init_expression_body = "";
-select one array_ref related by self->Expression[R776]->ArrayElementReference[R3900];
-select one declaration_smt related by self->Variable[R782.''refers to local'']->Statement[R457.''is declared by''];
-if ( not_empty array_ref and declaration_smt.statement_number == self.statement_number )
-  old_body = T::body();
-  T::clear();
-  select one array_index related by self->Expression[R776]->ArrayElementReference[R3900]->Expression[R3901];;
-  array_index.render();
-  array_init_expression_body = T::body();
-  T::clear();
-  T::b( s:old_body );
+var_prefix = "";
+select any finalization related by self->Variable[R782]->Finalization[R485] where ( selected.block_number == self.block_number and selected.statement_number == self.statement_number );
+if ( not_empty finalization )
+  select many previous_finalizations related by self->Variable[R782]->Finalization[R485] where ( selected.block_number < self.block_number or
+                                                                                               ( selected.block_number == self.block_number and selected.statement_number < self.statement_number ) );
+  finalization_num = cardinality previous_finalizations;
+  var_prefix = "_final" + STR::itoa( i:finalization_num ) + "_";
 end if;
 T::include( file:"java/expression/t.variablereference.java" );',
 	1,
@@ -475,6 +470,24 @@ INSERT INTO O_ATTR
 	'name',
 	1,
 	"ba5eda7a-def5-0000-0000-000000000007",
+	'',
+	'');
+INSERT INTO O_NBATTR
+	VALUES ("4f8ef4e5-c16c-4de3-9115-bb08dac64e1e",
+	"c36b0c67-93e8-405d-abe9-c147d892b969");
+INSERT INTO O_BATTR
+	VALUES ("4f8ef4e5-c16c-4de3-9115-bb08dac64e1e",
+	"c36b0c67-93e8-405d-abe9-c147d892b969");
+INSERT INTO O_ATTR
+	VALUES ("4f8ef4e5-c16c-4de3-9115-bb08dac64e1e",
+	"c36b0c67-93e8-405d-abe9-c147d892b969",
+	"b7260ba7-6e63-4a3f-9db6-a07bbebe677b",
+	'declaration',
+	'',
+	'',
+	'declaration',
+	0,
+	"ba5eda7a-def5-0000-0000-000000000001",
 	'',
 	'');
 INSERT INTO O_ID

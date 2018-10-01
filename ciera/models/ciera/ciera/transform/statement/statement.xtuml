@@ -3060,14 +3060,7 @@ if ( not_empty act_blk )
   select any var_ref related by block->Statement[R450.''is scope for'']->Expression[R775.''may contain'']->VariableReference[R776];
   if ( not_empty var_ref )
     select any top_block related by block->InvocableObject[R4000]->CodeBlock[R4000] where ( selected.top_level );
-    // push a new symbol table at the beginning of the body
     indent = ::getIndent( tab_depth:top_block.tab_depth + 1 );
-    if ( -1 == STR::indexof( haystack:top_block.prefix, needle:"pushSymbolTable" ) )
-      top_block.prefix = indent + "pushSymbolTable();\n";
-      // pop the symbol table at the very end
-      top_block.suffix = indent + "popSymbolTable();\n";
-      // if any return expression has a variable reference, create a temporary variable for the return value
-    end if;
     select any return_var_ref related by block->Statement[R450.''is scope for'']->ReturnSmt[R451]->Statement[R451]->Expression[R775.''may contain'']->VariableReference[R776];
     if ( not_empty return_var_ref and -1 == STR::indexof( haystack:top_block.prefix, needle:"_return_value" ) )
       select one return_type related by invocable->TypeReference[R428.''return value is typed by''];
@@ -3337,6 +3330,9 @@ if ( not_empty act_act and not_empty invocable )
   select any upper_block from instances of CodeBlock where false;
   select one act_blk related by act_act->ACT_BLK[R666];
   ::transformBlock( invocable:invocable, upper_block:upper_block, act_blk:act_blk, block_number:"1" );
+  
+  // finalize variables referenced from within a where clause
+  ::resloveVariableFinalizations( invocable:invocable );
 
 else
   // TODO bad
@@ -3565,6 +3561,8 @@ while ( not_empty act_smt )
     smt_num = smt_num + 1;
   end if;
   select one act_smt related by act_smt->ACT_SMT[R661.''succeeds''];
+  // see if array needs to be declared
+  ::resolveArrayDeclaration( smt:prev_smt );
 end while;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -3788,6 +3786,134 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("109fc0f0-0ed3-4be2-8a42-886f8d73d654",
+	1,
+	"28c6aa17-9b54-4321-916c-a20a5290984e",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("f52440b5-4593-410e-9b9a-46e84c687ae7",
+	"00000000-0000-0000-0000-000000000000",
+	'resloveVariableFinalizations',
+	'',
+	'invocable = param.invocable;
+
+select many affected_smts from instances of Statement where false;
+
+select many where_clauses from instances of WhereExpr where ( selected.parent_name == invocable.parent_name and
+                                                              selected.parent_package == invocable.parent_package and
+                                                              selected.body_name == invocable.name );
+for each where_clause in where_clauses
+  select one where_expr related by where_clause->Expression[R796];
+  select many var_refs from instances of VariableReference where ( selected.parent_name == invocable.parent_name and
+                                                                   selected.parent_package == invocable.parent_package and
+                                                                   selected.body_name == invocable.name and
+                                                                   selected.block_number == where_expr.block_number and
+                                                                   selected.statement_number == where_expr.statement_number and
+                                                                   0 == STR::indexof( haystack:selected.expression_number, needle:where_expr.expression_number ) );
+  for each var_ref in var_refs
+    select many var_assignments related by var_ref->Variable[R782]->VariableReference[R782]->Expression[R776]->BinaryOperation[R779] where ( selected.operator == "=" );
+    select one for_smt related by var_ref->Variable[R782]->ForSmt[R459];
+    if ( cardinality var_assignments > 1 or not_empty for_smt ) // the variable needs to be finalized because it is assigned later
+      select one smt related by var_ref->Expression[R776]->Statement[R775];
+      select one var related by var_ref->Variable[R782];
+      select any finalization related by smt->Finalization[R485] where ( selected.var_block_number == var.block_number and selected.var_name == var.name );
+      if ( empty finalization )
+        create object instance finalization of Finalization;
+        relate smt to var across R485 using finalization;
+        affected_smts = affected_smts + smt;
+      end if;
+    end if;
+  end for;
+end for;
+
+for each smt in affected_smts
+  select many finalizations related by smt->Finalization[R485];
+  for each finalization in finalizations
+    finalization.render();
+  end for;
+end for;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("13657547-25f9-46ac-b56e-b5853c2893d2",
+	"f52440b5-4593-410e-9b9a-46e84c687ae7",
+	'invocable',
+	"30c7a5ba-c6d9-44fd-8e61-f22cde8fdc41",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO PE_PE
+	VALUES ("f52440b5-4593-410e-9b9a-46e84c687ae7",
+	1,
+	"28c6aa17-9b54-4321-916c-a20a5290984e",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("957fe8e1-37b4-4e14-9489-6b5a106d34c4",
+	"00000000-0000-0000-0000-000000000000",
+	'resolveArrayDeclaration',
+	'',
+	'smt = param.smt;
+select one block related by smt->CodeBlock[R450];
+indent = ::getIndent( tab_depth:block.tab_depth + 1 );
+
+select many declared_vars related by smt->Variable[R457];
+for each declared_var in declared_vars
+  select many var_refs related by declared_var->VariableReference[R782] where ( selected.block_number == smt.block_number and selected.statement_number == smt.statement_number );
+  select any earliest_var_ref from instances of VariableReference where false;
+  for each var_ref in var_refs
+    if ( empty earliest_var_ref or var_ref.expression_number < earliest_var_ref.expression_number )
+      earliest_var_ref = var_ref;
+    end if;
+  end for;
+  if ( not_empty earliest_var_ref )
+    earliest_var_ref.declaration = true;
+  end if;
+end for;
+
+select many array_vars related by smt->Expression[R775]->ArrayElementReference[R776]->Expression[R3900]->VariableReference[R776]->Variable[R782];
+for each array_var in array_vars
+  if ( smt.block_number == array_var.block_number and smt.statement_number == array_var.statement_number ) // variable was declared in this statement
+    select many array_refs related by array_var->VariableReference[R782]->Expression[R776]->ArrayElementReference[R3900] where ( selected.block_number == smt.block_number and selected.statement_number == smt.statement_number );
+    select any earliest_array_ref from instances of ArrayElementReference where false;
+    for each array_ref in array_refs
+      if ( empty earliest_array_ref or array_ref.expression_number < earliest_array_ref.expression_number )
+        earliest_array_ref = array_ref;
+      end if;
+    end for;
+    select one var_type related by array_var->TypeReference[R461];
+    select one array_index related by earliest_array_ref->Expression[R3901];;
+    old_body = T::body();
+    T::clear();
+    array_index.render();
+    smt.prefix = smt.prefix + indent + var_type.type_reference_name + " " + array_var.name + " = new " + var_type.type_name + "[" + T::body() + "+1];\n";
+    T::clear();
+    T::b( s:old_body );
+    // no longer need to mark the first reference as a declaration
+    select many var_refs related by array_var->VariableReference[R782] where ( selected.block_number == smt.block_number and selected.statement_number == smt.statement_number );
+    for each var_ref in var_refs
+      var_ref.declaration = false;
+    end for;
+  end if;
+end for;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("7c7767a3-873f-4a25-be4c-11f29465c30c",
+	"957fe8e1-37b4-4e14-9489-6b5a106d34c4",
+	'smt',
+	"056a9b55-7c4c-45a4-a684-ea45fce8fa86",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO PE_PE
+	VALUES ("957fe8e1-37b4-4e14-9489-6b5a106d34c4",
 	1,
 	"28c6aa17-9b54-4321-916c-a20a5290984e",
 	"00000000-0000-0000-0000-000000000000",

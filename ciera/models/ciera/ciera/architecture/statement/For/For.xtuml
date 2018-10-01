@@ -19,6 +19,7 @@ T::clear();
 
 select one smt related by self->Statement[R451];
 oal = smt.oal;
+prefix = smt.prefix;
 
 select one iter_type related by self->Variable[R459.''declares as iterator'']->TypeReference[R461.''is typed by''];
 iterator_type = iter_type.type_reference_name;
@@ -35,6 +36,12 @@ T::clear();
 
 select one enclosing_block related by smt->CodeBlock[R450.''is contained by''];
 indent = ::getIndent( tab_depth:enclosing_block.tab_depth + 1 );
+
+select one declaration_smt related by self->Variable[R459]->Statement[R457.''is declared by''];
+if ( declaration_smt.statement_number == self.statement_number and declaration_smt.block_number == self.block_number )
+  select one var_type related by self->Variable[R459]->TypeReference[R461.''is typed by''];
+  prefix = prefix + indent + var_type.type_reference_name + " " + self.iterator_name + ";\n";
+end if;
 
 T::b( s:old_body );
 T::include( file:"java/statement/t.for.java" );',
@@ -548,29 +555,6 @@ INSERT INTO O_RTIDA_PROXY
 	"7f8d4696-e2a5-4016-b3f0-0b5901007178",
 	"825e4554-4986-452d-8c27-78ad4541b861",
 	'../statement.xtuml');
-INSERT INTO O_REF
-	VALUES ("23b203d7-7da0-43b9-bc58-939fd6965f12",
-	"39fe92bc-2fad-45a6-9893-16d2b228dd03",
-	0,
-	"44e5b5ed-5d20-400e-8249-3d3b071e1865",
-	"ce907222-be92-451e-9a03-72ca4b5f48fd",
-	"e68b0968-757d-4e25-84da-cdacd4b87b31",
-	"f7a68d39-7232-49df-b237-03fc0365e502",
-	"536d81e1-31ba-41aa-a9d2-a9331c8bef21",
-	"35ee597e-59e1-49af-98bf-149ee27e63dc",
-	"60863be6-6820-4e10-b427-f8c48f26774a",
-	0,
-	'',
-	'Variable',
-	'block_number',
-	'R459.''declares as iterator''');
-INSERT INTO O_RTIDA_PROXY
-	VALUES ("44e5b5ed-5d20-400e-8249-3d3b071e1865",
-	"39fe92bc-2fad-45a6-9893-16d2b228dd03",
-	0,
-	"ce907222-be92-451e-9a03-72ca4b5f48fd",
-	"f7a68d39-7232-49df-b237-03fc0365e502",
-	'../statement.xtuml');
 INSERT INTO O_RATTR
 	VALUES ("536d81e1-31ba-41aa-a9d2-a9331c8bef21",
 	"23b203d7-7da0-43b9-bc58-939fd6965f12",
@@ -679,7 +663,7 @@ INSERT INTO O_BATTR_PROXY
 INSERT INTO O_ATTR
 	VALUES ("6069e3c5-045b-4a39-ab74-70e3fbe07809",
 	"23b203d7-7da0-43b9-bc58-939fd6965f12",
-	"5d676051-ba0e-4e32-9c87-c060e8a68d46",
+	"3c115b0e-970a-4854-95a1-2eb4d699befb",
 	'iterable_expression_number',
 	'',
 	'iterable_',
@@ -725,6 +709,48 @@ INSERT INTO O_ATTR
 	'control_block_number',
 	'',
 	'control_',
+	'block_number',
+	1,
+	"ba5eda7a-def5-0000-0000-000000000007",
+	'',
+	'');
+INSERT INTO O_REF
+	VALUES ("23b203d7-7da0-43b9-bc58-939fd6965f12",
+	"39fe92bc-2fad-45a6-9893-16d2b228dd03",
+	0,
+	"44e5b5ed-5d20-400e-8249-3d3b071e1865",
+	"ce907222-be92-451e-9a03-72ca4b5f48fd",
+	"e68b0968-757d-4e25-84da-cdacd4b87b31",
+	"f7a68d39-7232-49df-b237-03fc0365e502",
+	"3c115b0e-970a-4854-95a1-2eb4d699befb",
+	"35ee597e-59e1-49af-98bf-149ee27e63dc",
+	"00000000-0000-0000-0000-000000000000",
+	0,
+	'',
+	'Variable',
+	'block_number',
+	'R459.''declares as iterator''');
+INSERT INTO O_RTIDA_PROXY
+	VALUES ("44e5b5ed-5d20-400e-8249-3d3b071e1865",
+	"39fe92bc-2fad-45a6-9893-16d2b228dd03",
+	0,
+	"ce907222-be92-451e-9a03-72ca4b5f48fd",
+	"f7a68d39-7232-49df-b237-03fc0365e502",
+	'../statement.xtuml');
+INSERT INTO O_RATTR
+	VALUES ("3c115b0e-970a-4854-95a1-2eb4d699befb",
+	"23b203d7-7da0-43b9-bc58-939fd6965f12",
+	"59653179-a76c-4efe-8b17-897ea0303d49",
+	"1aaad242-9800-47dc-bd59-7be5652a09c8",
+	1,
+	'block_number');
+INSERT INTO O_ATTR
+	VALUES ("3c115b0e-970a-4854-95a1-2eb4d699befb",
+	"23b203d7-7da0-43b9-bc58-939fd6965f12",
+	"5d676051-ba0e-4e32-9c87-c060e8a68d46",
+	'iterator_block_number',
+	'',
+	'iterator_',
 	'block_number',
 	1,
 	"ba5eda7a-def5-0000-0000-000000000007",

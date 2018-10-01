@@ -1,4 +1,4 @@
 .if ( "" != oal )
 ${indent}// ${oal}
 .end if
-${indent}getRunContext().execute( new HaltExecutionTask() );
+${prefix}${indent}getRunContext().execute( new HaltExecutionTask() );

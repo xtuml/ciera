@@ -1731,6 +1731,12 @@ if ( empty assoc_exclude_mark )
         relate rel to form_class across R435.''has formalizing'';
         relate rel to part_class across R434.''has participating'';
 
+        // special case for EP_PKG instances... top level packages do not have a PE_PE instance
+        if ( 8001 == rel.num and "EP_PKG" == rel.form_name )
+          LOG::LogInfo( message:"  Special casing R8001 EP_PKG to PackageableElement" );
+          rel.part_cond = Cond::CONDITIONAL;
+        end if;
+
       end for;
     else
       // TODO bad

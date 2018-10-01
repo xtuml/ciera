@@ -1,4 +1,4 @@
 .if ( "" != oal )
 ${indent}// ${oal}
 .end if
-${indent}while ( ${cond_expr} ) ${control_block}\
+${prefix}${indent}while ( ${cond_expr} ) ${control_block}\
