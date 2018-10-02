@@ -16,7 +16,7 @@
 
 extern bool Escher_run_flag;
 #define T_number_of_bufs 4
-#define T_tbuf_size 256000
+#define T_tbuf_size 2560000
 static i_t current_tbuf = 0;
 static i_t buffer_index = 0;
 static char buffer[ T_tbuf_size ];
@@ -76,6 +76,10 @@ T_emit( c_t * p_file )
     }
   }
   fprintf( outputfile, "%s", buffer );
+  if ( strcmp( "stdout", p_file ) != 0 ) {
+    // Close file.
+    fclose( outputfile );
+  }
   T_clear();
 }
 

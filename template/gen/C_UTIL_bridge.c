@@ -17,7 +17,7 @@
  * Bridge:  organizeImports
  */
 
-#define MAX_IMPORTS 1024
+#define MAX_IMPORTS 4096
 #define MAX_LINE    256
 
 #include <string.h>
