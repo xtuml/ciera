@@ -56,8 +56,7 @@ relate type to expr across R795.''defines type of'';
 // create literal
 create object instance lit of Literal;
 relate lit to expr across R776;
-lit.value = v_lst.Value;
-::addStringToImports( file: ::getFileForStatement( smt:smt ), s:"io.ciera.summit.types.XtumlString", type:ImportType::IMPL );',
+lit.value = v_lst.Value;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -1312,6 +1311,8 @@ INSERT INTO S_SYNC
 smt = param.smt;
 expr_number = param.expr_number;
 
+file = ::getFileForStatement( smt:smt );
+
 // create expression
 create object instance expr of Expression;
 relate expr to smt across R775.''expressed within'';
@@ -1333,10 +1334,11 @@ select one l_s_dt related by l_val->S_DT[R820];
 select one l_type related by l_s_dt->Type[R423.''is basis of''];
 select one l_set related by l_type->ClassSet[R407];
 // translate the operator
+binary.invocation = false;
+binary.util = false;
 if ( "and" == T::l( s:v_bin.Operator ) )
   if ( l_type.primitive() )
     binary.operator = "&&";
-    binary.invocation = false;
   else
     binary.operator = "and";
     binary.invocation = true;
@@ -1344,7 +1346,6 @@ if ( "and" == T::l( s:v_bin.Operator ) )
 elif ( "or" == T::l( s:v_bin.Operator ) )
   if ( l_type.primitive() )
     binary.operator = "||";
-    binary.invocation = false;
   else
     binary.operator = "or";
     binary.invocation = true;
@@ -1352,70 +1353,105 @@ elif ( "or" == T::l( s:v_bin.Operator ) )
 elif ( "==" == T::l( s:v_bin.Operator ) )
   if ( l_type.primitive() )
     binary.operator = "==";
-    binary.invocation = false;
   else
-    binary.operator = "equality";
-    binary.invocation = true;
+    if ( "String" == l_type.name and "" == l_type.package )
+      binary.operator = "StringUtil.equality";
+      binary.invocation = true;
+      binary.util = true;
+      ::addStringToImports( file:file, s:"io.ciera.summit.types.StringUtil", type:ImportType::IMPL );
+    else
+      binary.operator = "equality";
+      binary.invocation = true;
+    end if;
   end if;
 elif ( "!=" == T::l( s:v_bin.Operator ) )
   if ( l_type.primitive() )
     binary.operator = "!=";
-    binary.invocation = false;
   else
-    binary.operator = "inequality";
-    binary.invocation = true;
+    if ( "String" == l_type.name and "" == l_type.package )
+      binary.operator = "StringUtil.inequality";
+      binary.invocation = true;
+      binary.util = true;
+      ::addStringToImports( file:file, s:"io.ciera.summit.types.StringUtil", type:ImportType::IMPL );
+    else
+      binary.operator = "inequality";
+      binary.invocation = true;
+    end if;
   end if;
 elif ( "<" == T::l( s:v_bin.Operator ) )
   if ( l_type.primitive() )
     binary.operator = "<";
-    binary.invocation = false;
   else
-    binary.operator = "lessThan";
-    binary.invocation = true;
+    if ( "String" == l_type.name and "" == l_type.package )
+      binary.operator = "StringUtil.lessThan";
+      binary.invocation = true;
+      binary.util = true;
+      ::addStringToImports( file:file, s:"io.ciera.summit.types.StringUtil", type:ImportType::IMPL );
+    else
+      binary.operator = "lessThan";
+      binary.invocation = true;
+    end if;
   end if;
 elif ( "<=" == T::l( s:v_bin.Operator ) )
   if ( l_type.primitive() )
     binary.operator = "<=";
-    binary.invocation = false;
   else
-    binary.operator = "lessThanOrEqual";
-    binary.invocation = true;
+    if ( "String" == l_type.name and "" == l_type.package )
+      binary.operator = "StringUtil.lessThanOrEqual";
+      binary.invocation = true;
+      binary.util = true;
+      ::addStringToImports( file:file, s:"io.ciera.summit.types.StringUtil", type:ImportType::IMPL );
+    else
+      binary.operator = "lessThanOrEqual";
+      binary.invocation = true;
+    end if;
   end if;
 elif ( ">" == T::l( s:v_bin.Operator ) )
   if ( l_type.primitive() )
     binary.operator = ">";
-    binary.invocation = false;
   else
-    binary.operator = "greaterThan";
-    binary.invocation = true;
+    if ( "String" == l_type.name and "" == l_type.package )
+      binary.operator = "StringUtil.greaterThan";
+      binary.invocation = true;
+      binary.util = true;
+      ::addStringToImports( file:file, s:"io.ciera.summit.types.StringUtil", type:ImportType::IMPL );
+    else
+      binary.operator = "greaterThan";
+      binary.invocation = true;
+    end if;
   end if;
 elif ( ">=" == T::l( s:v_bin.Operator ) )
   if ( l_type.primitive() )
     binary.operator = ">=";
-    binary.invocation = false;
   else
-    binary.operator = "greaterThanOrEqual";
-    binary.invocation = true;
+    if ( "String" == l_type.name and "" == l_type.package )
+      binary.operator = "StringUtil.greaterThanOrEqual";
+      binary.invocation = true;
+      binary.util = true;
+      ::addStringToImports( file:file, s:"io.ciera.summit.types.StringUtil", type:ImportType::IMPL );
+    else
+      binary.operator = "greaterThanOrEqual";
+      binary.invocation = true;
+    end if;
   end if;
 elif ( "+" == T::l( s:v_bin.Operator ) )
   if ( l_type.primitive() )
     binary.operator = "+";
-    binary.invocation = false;
   else
     if ( not_empty l_set ) // set type
       binary.operator = "union";
-    elif ( "XtumlString" == l_type.name and "io.ciera.summit.types" == l_type.package )
+      binary.invocation = true;
+    elif ( "String" == l_type.name and "" == l_type.package )
       // TODO handle concatenation for UDTs based on string
-      binary.operator = "concat";
+      binary.operator = "+";
     else
       binary.operator = "add";
+      binary.invocation = true;
     end if;
-    binary.invocation = true;
   end if;
 elif ( "-" == T::l( s:v_bin.Operator ) )
   if ( l_type.primitive() )
     binary.operator = "-";
-    binary.invocation = false;
   else
     if ( not_empty l_set ) // set type
       binary.operator = "difference";
@@ -1427,7 +1463,6 @@ elif ( "-" == T::l( s:v_bin.Operator ) )
 elif ( "*" == T::l( s:v_bin.Operator ) )
   if ( l_type.primitive() )
     binary.operator = "*";
-    binary.invocation = false;
   else
     binary.operator = "multiply";
     binary.invocation = true;
@@ -1435,7 +1470,6 @@ elif ( "*" == T::l( s:v_bin.Operator ) )
 elif ( "/" == T::l( s:v_bin.Operator ) )
   if ( l_type.primitive() )
     binary.operator = "/";
-    binary.invocation = false;
   else
     binary.operator = "divide";
     binary.invocation = true;
@@ -1443,7 +1477,6 @@ elif ( "/" == T::l( s:v_bin.Operator ) )
 elif ( "%" == T::l( s:v_bin.Operator ) )
   if ( l_type.primitive() )
     binary.operator = "%";
-    binary.invocation = false;
   else
     binary.operator = "remainder";
     binary.invocation = true;

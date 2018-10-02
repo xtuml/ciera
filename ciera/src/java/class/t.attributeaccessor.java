@@ -46,13 +46,23 @@ T_b(self->attribute_name);
 T_b(" ) {");
 T_b("\n");
 } else {
+if ( is_string ) {
 T_b("        ");
-T_b("if ( !");
+T_b("if ( StringUtil.inequality( ");
 T_b(self->attribute_name);
-T_b(".equality( this.");
+T_b(", this.");
 T_b(self->attribute_name);
 T_b(" ) ) {");
 T_b("\n");
+} else {
+T_b("        ");
+T_b("if ( ");
+T_b(self->attribute_name);
+T_b(".inequality( this.");
+T_b(self->attribute_name);
+T_b(" ) ) {");
+T_b("\n");
+}
 }
 T_b("            ");
 T_b("this.");

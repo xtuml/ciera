@@ -647,9 +647,9 @@ for each s_dt in s_dts
       type_primitive = true;
       type_default_value = "0d";
     elif ( "string" == s_dt.Name )
-      type_name = "XtumlString";
-      type_package = "io.ciera.summit.types";
-      type_default_value = "new XtumlString( " + STR::quote() + STR::quote() + " )";
+      type_name = "String";
+      type_package = "";
+      type_default_value = STR::quote() + STR::quote();
     elif ( "timestamp" == s_dt.Name )
       type_name = "TimeStamp";
       type_package = "io.ciera.summit.types";
@@ -1010,6 +1010,9 @@ end if;
 select one file related by obj->File[R401];
 ::addStringToImports( file:file, s:"io.ciera.summit.exceptions.XtumlException", type:ImportType::BOTH );
 ::addStringToImports( file:file, s:"io.ciera.summit.exceptions.EmptyInstanceException", type:ImportType::IMPL );
+if ( "String" == type.type_name and "" == type.type_package )
+  ::addStringToImports( file:file, s:"io.ciera.summit.types.StringUtil", type:ImportType::IMPL );
+end if;
 
 // add imports to object set file
 select one set_file related by obj->ClassSet[R406]->File[R401];

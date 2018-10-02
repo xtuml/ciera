@@ -1,15 +1,14 @@
 package io.ciera.cairn.util;
 
 import io.ciera.summit.types.TimeStamp;
-import io.ciera.summit.types.XtumlString;
 
 public interface LOG {
 
-    public void LogFailure( XtumlString message );
-    public void LogInfo( XtumlString message );
-    public void LogSuccess( XtumlString message );
+    public void LogFailure( String message );
+    public void LogInfo( String message );
+    public void LogSuccess( String message );
     public void LogInteger( int message );
-    public void LogReal( XtumlString message, double r );
-    public void LogTime( XtumlString message, TimeStamp t );
+    public void LogReal( String message, double r );
+    public void LogTime( String message, TimeStamp t );
 
 }

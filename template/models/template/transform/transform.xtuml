@@ -558,17 +558,12 @@ smt.oal = "";
 create object instance expr_arg of Expression;
 relate expr_arg to smt across R775;
 expr_arg.expression_number = "1.2";
-string_type_ref = TypeReference::getBuiltinTypeReference( name:"XtumlString" );
+string_type_ref = TypeReference::getBuiltinTypeReference( name:"String" );
 relate string_type_ref to expr_arg across R795;
 create object instance lit of Literal;
 relate lit to expr_arg across R776;
 lit.value = param.str;
-::templateAppend( smt:smt, expr:expr_arg );
-
-// add XtumlString to the imports
-select one registry_file related by block->InvocableObject[R4000]->GenericInvocable[R427]->Z_Template[R3053]->Z_TemplateRegistry[R3052]->GeneralFile[R3051]->File[R401];
-select one string_type related by string_type_ref->Type[R3800];
-::addTypeToImports( file:registry_file, type_to_import:string_type, type:ImportType::IMPL );',
+::templateAppend( smt:smt, expr:expr_arg );',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -711,7 +706,7 @@ if ( "" != format_chars.FORMAT )
   create object instance expr of Expression;
   relate expr to smt across R775;
   expr.expression_number = "1.2";
-  string_type_ref = TypeReference::getBuiltinTypeReference( name:"XtumlString" );
+  string_type_ref = TypeReference::getBuiltinTypeReference( name:"String" );
   relate string_type_ref to expr across R795;
   // create invocation
   create object instance invoc of Invocation;
@@ -1762,7 +1757,7 @@ if ( not_empty literal )
   select one string_literal related by literal->Y_StringLiteral[R3087];
   if ( not_empty string_literal )
     lit.value = string_literal.BLOB; // TODO unescape stuff
-    string_type_ref = TypeReference::getBuiltinTypeReference( name:"XtumlString" );
+    string_type_ref = TypeReference::getBuiltinTypeReference( name:"String" );
     relate string_type_ref to expr across R795;
     select one registry_file related by smt->CodeBlock[R450]->InvocableObject[R4000]->GenericInvocable[R427]->Z_Template[R3053]->Z_TemplateRegistry[R3052]->GeneralFile[R3051]->File[R401];
     select one string_type related by string_type_ref->Type[R3800];
@@ -1839,6 +1834,8 @@ INSERT INTO S_SYNC
 smt = param.smt;
 expr_number = param.expr_number;
 
+select one file related by smt->CodeBlock[R450]->InvocableObject[R4000]->GenericInvocable[R427]->Z_Template[R3053]->Z_TemplateRegistry[R3052]->GeneralFile[R3051]->File[R401];
+
 // transform the left operand
 select any l_comp_op from instances of Y_ComparisonOperation where false;
 select many comp_ops related by comp_op->Y_Comparison[R3072]->Y_ComparisonOperation[R3072] where ( selected.node_id != comp_op.node_id );
@@ -1875,53 +1872,90 @@ boolean_type_ref = TypeReference::getBuiltinTypeReference( name:"boolean" );
 relate boolean_type_ref to expr across R795;
 
 // translate the operator
+binary.invocation = false;
 if ( "" != comp_op.EQ )
   if ( l_type.primitive() )
     binary.operator = "==";
-    binary.invocation = false;
   else
-    binary.operator = "equality";
-    binary.invocation = true;
+    if ( "String" == l_type.name and "" == l_type.package )
+      binary.operator = "StringUtil.equality";
+      binary.invocation = true;
+      binary.util = true;
+      ::addStringToImports( file:file, s:"io.ciera.summit.types.StringUtil", type:ImportType::IMPL );
+    else
+      binary.operator = "equality";
+      binary.invocation = true;
+    end if;
   end if;
 elif ( "" != comp_op.NE )
   if ( l_type.primitive() )
     binary.operator = "!=";
-    binary.invocation = false;
   else
-    binary.operator = "inequality";
-    binary.invocation = true;
+    if ( "String" == l_type.name and "" == l_type.package )
+      binary.operator = "StringUtil.inequality";
+      binary.invocation = true;
+      binary.util = true;
+      ::addStringToImports( file:file, s:"io.ciera.summit.types.StringUtil", type:ImportType::IMPL );
+    else
+      binary.operator = "inequality";
+      binary.invocation = true;
+    end if;
   end if;
 elif ( "" != comp_op.LT )
   if ( l_type.primitive() )
     binary.operator = "<";
-    binary.invocation = false;
   else
-    binary.operator = "lessThan";
-    binary.invocation = true;
+    if ( "String" == l_type.name and "" == l_type.package )
+      binary.operator = "StringUtil.lessThan";
+      binary.invocation = true;
+      binary.util = true;
+      ::addStringToImports( file:file, s:"io.ciera.summit.types.StringUtil", type:ImportType::IMPL );
+    else
+      binary.operator = "lessThan";
+      binary.invocation = true;
+    end if;
   end if;
 elif ( "" != comp_op.LTE )
   if ( l_type.primitive() )
     binary.operator = "<=";
-    binary.invocation = false;
   else
-    binary.operator = "lessThanOrEqual";
-    binary.invocation = true;
+    if ( "String" == l_type.name and "" == l_type.package )
+      binary.operator = "StringUtil.lessThanOrEqual";
+      binary.invocation = true;
+      binary.util = true;
+      ::addStringToImports( file:file, s:"io.ciera.summit.types.StringUtil", type:ImportType::IMPL );
+    else
+      binary.operator = "lessThanOrEqual";
+      binary.invocation = true;
+    end if;
   end if;
 elif ( "" != comp_op.GT )
   if ( l_type.primitive() )
     binary.operator = ">";
-    binary.invocation = false;
   else
-    binary.operator = "greaterThan";
-    binary.invocation = true;
+    if ( "String" == l_type.name and "" == l_type.package )
+      binary.operator = "StringUtil.greaterThan";
+      binary.invocation = true;
+      binary.util = true;
+      ::addStringToImports( file:file, s:"io.ciera.summit.types.StringUtil", type:ImportType::IMPL );
+    else
+      binary.operator = "greaterThan";
+      binary.invocation = true;
+    end if;
   end if;
 elif ( "" != comp_op.GTE )
   if ( l_type.primitive() )
     binary.operator = ">=";
-    binary.invocation = false;
   else
-    binary.operator = "greaterThanOrEqual";
-    binary.invocation = true;
+    if ( "String" == l_type.name and "" == l_type.package )
+      binary.operator = "StringUtil.greaterThanOrEqual";
+      binary.invocation = true;
+      binary.util = true;
+      ::addStringToImports( file:file, s:"io.ciera.summit.types.StringUtil", type:ImportType::IMPL );
+    else
+      binary.operator = "greaterThanOrEqual";
+      binary.invocation = true;
+    end if;
   end if;
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
@@ -2024,9 +2058,10 @@ if ( "" != addition_op.PLUS )
     binary.operator = "+";
     binary.invocation = false;
   else
-    if ( "XtumlString" == l_type.name and "io.ciera.summit.types" == l_type.package )
+    if ( "String" == l_type.name and "" == l_type.package )
       // TODO handle concatenation for UDTs based on string
-      binary.operator = "concat";
+      binary.operator = "+";
+      binary.invocation = false;
     else
       binary.operator = "add";
     end if;

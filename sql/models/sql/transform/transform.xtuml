@@ -276,7 +276,7 @@ if ( not_empty builtin )
     create object instance real_serializer of Z_RealSerializer;
     relate real_serializer to attr_serializer across R3004;
     real_serializer.value = accessor_name;
-  elif ( "XtumlString" == builtin.name )
+  elif ( "String" == builtin.name )
     create object instance string_serializer of Z_StringSerializer;
     relate string_serializer to attr_serializer across R3004;
     string_serializer.value = accessor_name;
@@ -403,10 +403,9 @@ else
     elif ( "double" == builtin.name )
       create object instance real_loader of Z_RealLoader;
       relate real_loader to attr_loader across R3008;
-    elif ( "XtumlString" == builtin.name )
+    elif ( "String" == builtin.name )
       create object instance string_loader of Z_StringLoader;
       relate string_loader to attr_loader across R3008;
-      ::addStringToImports( file:file, s:"io.ciera.summit.types.XtumlString", type:ImportType::IMPL );
     elif ( "UniqueId" == builtin.name )
       create object instance unique_id_loader of Z_UniqueIdLoader;
       relate unique_id_loader to attr_loader across R3008;
@@ -579,8 +578,15 @@ attr_comp.form_accessor = form_accessor.getName() + "()";
 select any part_accessor related by attr_ref->Attribute[R4506.''has value provided by'']->AttributeAccessor[R4510] where ( selected.accessor_type == AttributeAccessor::GETTER );
 attr_comp.part_accessor = part_accessor.getName() + "()";
 
-select one type related by attr_ref->Attribute[R4506.''has value provided by'']->TypeReference[R424]->Type[R3800];
-attr_comp.primitive = type.primitive();',
+select one type_ref related by attr_ref->Attribute[R4506.''has value provided by'']->TypeReference[R424];
+select one type related by type_ref->Type[R3800];
+attr_comp.primitive = type.primitive();
+select one basic_ref related by type_ref->BasicTypeReference[R3801];
+attr_comp.is_string = ( not_empty basic_ref and "String" == type.name and "" == type.package );
+if ( attr_comp.is_string )
+  select one file related by batch_relator->Z_PopulationLoader[R3011]->GeneralFile[R3009]->File[R401];
+  ::addStringToImports( file:file, s:"io.ciera.summit.types.StringUtil", type:ImportType::IMPL );
+end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',

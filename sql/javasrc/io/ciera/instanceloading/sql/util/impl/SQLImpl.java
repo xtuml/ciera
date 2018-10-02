@@ -20,7 +20,6 @@ import io.ciera.sql.parser.SQLParser.Sql_fileContext;
 import io.ciera.summit.components.IComponent;
 import io.ciera.summit.exceptions.InstancePopulationException;
 import io.ciera.summit.exceptions.XtumlException;
-import io.ciera.summit.types.XtumlString;
 
 public class SQLImpl<C extends IComponent<C>> extends Utility<C> implements SQL {
     
@@ -44,10 +43,10 @@ public class SQLImpl<C extends IComponent<C>> extends Utility<C> implements SQL 
     }
 
     @Override
-    public void load_file( XtumlString file ) throws XtumlException {
+    public void load_file( String file ) throws XtumlException {
         if ( null != file ) {
             try {
-                load( new FileInputStream( file.toString() ) );
+                load( new FileInputStream( file ) );
             } catch ( IOException e ) {
                 throw new InstancePopulationException( "Could not read input file." );
             }
@@ -76,10 +75,10 @@ public class SQLImpl<C extends IComponent<C>> extends Utility<C> implements SQL 
     }
 
     @Override
-    public void serialize_file( XtumlString file ) throws XtumlException {
+    public void serialize_file( String file ) throws XtumlException {
         if ( null != loader && null != file ) {
             try {
-                FileOutputStream outFile = new FileOutputStream( file.toString() );
+                FileOutputStream outFile = new FileOutputStream( file );
                 loader.serialize( outFile );
                 outFile.close();
             } catch ( IOException e ) {

@@ -11,7 +11,11 @@
   .if ( primitive )
         if ( ${self.attribute_name} != this.${self.attribute_name} ) {
   .else
-        if ( !${self.attribute_name}.equality( this.${self.attribute_name} ) ) {
+    .if ( is_string )
+        if ( StringUtil.inequality( ${self.attribute_name}, this.${self.attribute_name} ) ) {
+    .else
+        if ( ${self.attribute_name}.inequality( this.${self.attribute_name} ) ) {
+    .end if
   .end if
             this.${self.attribute_name} = ${self.attribute_name};
 ${propagations}        }

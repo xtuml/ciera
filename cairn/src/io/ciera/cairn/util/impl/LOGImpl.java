@@ -4,7 +4,6 @@ import io.ciera.cairn.util.LOG;
 import io.ciera.cairn.util.Utility;
 import io.ciera.summit.components.IComponent;
 import io.ciera.summit.types.TimeStamp;
-import io.ciera.summit.types.XtumlString;
 
 public class LOGImpl<C extends IComponent<C>> extends Utility<C> implements LOG {
 
@@ -13,17 +12,17 @@ public class LOGImpl<C extends IComponent<C>> extends Utility<C> implements LOG 
     }
 
     @Override
-    public void LogFailure( XtumlString message ) {
+    public void LogFailure( String message ) {
         System.err.printf( "ERROR: %s\n", message );
     }
 
     @Override
-    public void LogInfo( XtumlString message ) {
+    public void LogInfo( String message ) {
         System.out.printf( "INFO: %s\n", message );
     }
 
     @Override
-    public void LogSuccess( XtumlString message ) {
+    public void LogSuccess( String message ) {
         System.out.printf( "SUCCESS: %s\n", message );
     }
 
@@ -33,12 +32,12 @@ public class LOGImpl<C extends IComponent<C>> extends Utility<C> implements LOG 
     }
     
     @Override
-    public void LogReal( XtumlString message, double r ) {
+    public void LogReal( String message, double r ) {
         System.out.printf( "REAL: %s %f\n", message, r );
     }
 
     @Override
-    public void LogTime( XtumlString message, TimeStamp t ) {
+    public void LogTime( String message, TimeStamp t ) {
         System.out.printf( "TIME: %s %s\n", message, t );
     }
 

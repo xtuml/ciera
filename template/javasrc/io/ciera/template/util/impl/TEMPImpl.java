@@ -12,13 +12,12 @@ import io.ciera.cairn.util.Utility;
 import io.ciera.summit.components.IComponent;
 import io.ciera.summit.exceptions.XtumlException;
 import io.ciera.summit.types.IXtumlType;
-import io.ciera.summit.types.XtumlString;
 import io.ciera.template.util.ITemplateRegistry;
 import io.ciera.template.util.TEMP;
 
 public class TEMPImpl<C extends IComponent<C>> extends Utility<C> implements TEMP {
     
-    private Stack<XtumlString> buffers;
+    private Stack<String> buffers;
     private ITemplateRegistry registry;
 
     public TEMPImpl( C context ) {
@@ -36,7 +35,7 @@ public class TEMPImpl<C extends IComponent<C>> extends Utility<C> implements TEM
 
     @Override
     public void pushBuffer() {
-        buffers.push( new XtumlString( "" ) );
+        buffers.push( "" );
     }
 
     @Override
@@ -45,26 +44,26 @@ public class TEMPImpl<C extends IComponent<C>> extends Utility<C> implements TEM
     }
 
     @Override
-    public void append( XtumlString s ) throws XtumlException {
-        buffers.push( buffers.pop().concat( s ) );
+    public void append( String s ) throws XtumlException {
+        buffers.push( buffers.pop() + s );
     }
 
     @Override
-    public XtumlString body() throws XtumlException {
+    public String body() throws XtumlException {
         return buffers.peek();
     }
 
     @Override
     public void clear() throws XtumlException {
         buffers.pop();
-        buffers.push( new XtumlString( "" ) );
+        buffers.push( "" );
     }
 
     @Override
-    public void emit( XtumlString file ) throws XtumlException {
+    public void emit( String file ) throws XtumlException {
         if ( null != file ) {
             try {
-                File outputFile = new File( file.toString() );
+                File outputFile = new File( file );
                 boolean preExists = outputFile.exists();
                 PrintStream out = new PrintStream( outputFile );
                 out.print( buffers.peek() );
@@ -79,8 +78,8 @@ public class TEMPImpl<C extends IComponent<C>> extends Utility<C> implements TEM
     }
 
     @Override
-    public void include( XtumlString file ) throws XtumlException {
-        if ( null != file && null != registry ) registry.getTemplate( file.toString() ).evaluate();
+    public void include( String file ) throws XtumlException {
+        if ( null != file && null != registry ) registry.getTemplate( file ).evaluate();
     }
 
     /** 
@@ -97,27 +96,27 @@ public class TEMPImpl<C extends IComponent<C>> extends Utility<C> implements TEM
      * t   no-op
      */
     @Override
-    public XtumlString sub( XtumlString format, boolean b ) throws XtumlException {
-        return sub( format, new XtumlString( Boolean.toString(b) ) );
+    public String sub( String format, boolean b ) throws XtumlException {
+        return sub( format, Boolean.toString(b) );
     }
 
     @Override
-    public XtumlString sub( XtumlString format, int i ) throws XtumlException {
-        return sub( format, new XtumlString( Integer.toString(i) ) );
+    public String sub( String format, int i ) throws XtumlException {
+        return sub( format, Integer.toString(i) );
     }
 
     @Override
-    public XtumlString sub( XtumlString format, double d ) throws XtumlException {
-        return sub( format, new XtumlString( Double.toString(d) ) );
+    public String sub( String format, double d ) throws XtumlException {
+        return sub( format, Double.toString(d) );
     }
 
     @Override
-    public XtumlString sub( XtumlString format, IXtumlType<?> o ) throws XtumlException {
-        return sub( format, new XtumlString( o.toString() ) );
+    public String sub( String format, IXtumlType<?> o ) throws XtumlException {
+        return sub( format, o );
     }
 
     @Override
-    public XtumlString sub( XtumlString format, XtumlString s ) throws XtumlException {
+    public String sub( String format, String s ) throws XtumlException {
         if ( null != format ) {
             for ( int i = 0; i < format.length(); i++ ) {
                 switch ( format.charAt( i ) ) {
@@ -155,47 +154,47 @@ public class TEMPImpl<C extends IComponent<C>> extends Utility<C> implements TEM
         return s;
     }
     
-    private XtumlString upper( XtumlString s ) {
-        if ( null == s || null == s.toString() ) return s;
-        else return new XtumlString( s.toString().toUpperCase() );
+    private String upper( String s ) {
+        if ( null == s ) return s;
+        else return s.toUpperCase();
     }
 
-    private XtumlString capitalize( XtumlString s ) {
-        if ( null == s || null == s.toString() ) return s;
+    private String capitalize( String s ) {
+        if ( null == s ) return s;
         else {
             Matcher m = Pattern.compile( "[^\\s]+\\b" ).matcher( s );
-            String baseString = s.toString();
+            String baseString = s;
             while ( m.matches() ) {
                 baseString = baseString.substring( 0, m.start() ) +
                              baseString.substring( m.start(), m.start()+1 ).toUpperCase() +
                              baseString.substring( m.start()+1, m.end() ).toLowerCase() +
                              baseString.substring( m.end() );
             }
-            s = new XtumlString( baseString );
+            s = baseString;
         }
         return s;
     }
 
-    private XtumlString lower( XtumlString s ) {
-        if ( null == s || null == s.toString() ) return s;
-        else return new XtumlString( s.toString().toLowerCase() );
+    private String lower( String s ) {
+        if ( null == s ) return s;
+        else return s.toLowerCase();
     }
         
-    private XtumlString underscore( XtumlString s ) {
-        if ( null == s || null == s.toString() ) return s;
-        else return new XtumlString( s.toString().replaceAll( "\\s", "_" ) );
+    private String underscore( String s ) {
+        if ( null == s ) return s;
+        else return s.replaceAll( "\\s", "_" );
     }
         
-    private XtumlString remove( XtumlString s ) {
-        if ( null == s || null == s.toString() ) return s;
-        else return new XtumlString( s.toString().replaceAll( "\\s+", "" ) );
+    private String remove( String s ) {
+        if ( null == s ) return s;
+        else return s.replaceAll( "\\s+", "" );
     }
         
-    private XtumlString cobra( XtumlString s ) {
-        if ( null == s || null == s.toString() ) return s;
+    private String cobra( String s ) {
+        if ( null == s ) return s;
         else {
             s = capitalize( s );
-            return new XtumlString( s.toString().substring( 0, 1 ).toLowerCase() + s.toString().substring( 1 ) );
+            return s.substring( 0, 1 ).toLowerCase() + s.substring( 1 );
         }
     }
 
