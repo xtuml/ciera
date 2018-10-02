@@ -26,7 +26,7 @@ public interface TEMP {
     public String body() throws XtumlException;
     public void clear() throws XtumlException;
     public void emit( String file ) throws XtumlException;
-    public void include( String file ) throws XtumlException;
+    public void include( String file, SymbolTable symbolTable ) throws XtumlException;
     public String sub( String format, boolean b ) throws XtumlException;
     public String sub( String format, int i ) throws XtumlException;
     public String sub( String format, double d ) throws XtumlException;

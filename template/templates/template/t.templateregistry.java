@@ -14,7 +14,7 @@ public class ${self.name} implements ITemplateRegistry {
     public ITemplate getTemplate( String filename ) {
         switch ( filename ) {
 ${template_initializers}        default:
-            return () -> {};
+            return (symbolTable) -> {};
         }
     }
 

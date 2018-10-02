@@ -12,7 +12,7 @@ T_b("                ");
 T_b("@Override");
 T_b("\n");
 T_b("                ");
-T_b("public void evaluate() throws XtumlException ");
+T_b("public void evaluate( SymbolTable symbolTable ) throws XtumlException ");
 T_b(body);
 T_b("\n");
 T_b("            ");

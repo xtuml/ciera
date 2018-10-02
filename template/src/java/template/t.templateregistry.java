@@ -39,7 +39,7 @@ T_b(template_initializers);
 T_b("        default:");
 T_b("\n");
 T_b("            ");
-T_b("return () -> {};");
+T_b("return (symbolTable) -> {};");
 T_b("\n");
 T_b("        ");
 T_b("}");

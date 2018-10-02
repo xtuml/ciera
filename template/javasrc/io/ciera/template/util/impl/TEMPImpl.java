@@ -13,6 +13,7 @@ import io.ciera.summit.components.IComponent;
 import io.ciera.summit.exceptions.XtumlException;
 import io.ciera.summit.types.IXtumlType;
 import io.ciera.template.util.ITemplateRegistry;
+import io.ciera.template.util.SymbolTable;
 import io.ciera.template.util.TEMP;
 
 public class TEMPImpl<C extends IComponent<C>> extends Utility<C> implements TEMP {
@@ -78,8 +79,8 @@ public class TEMPImpl<C extends IComponent<C>> extends Utility<C> implements TEM
     }
 
     @Override
-    public void include( String file ) throws XtumlException {
-        if ( null != file && null != registry ) registry.getTemplate( file ).evaluate();
+    public void include( String file, SymbolTable symbolTable ) throws XtumlException {
+        if ( null != file && null != registry ) registry.getTemplate( file ).evaluate( null == symbolTable ? new SymbolTable() : symbolTable );
     }
 
     /** 

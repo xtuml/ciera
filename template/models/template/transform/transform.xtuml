@@ -90,10 +90,33 @@ else
   // TODO bad
 end if;
 
+// unpack the symbol table
+select any block related by invocable->CodeBlock[R4000] where ( selected.top_level );
+indent = ::getIndent( tab_depth:block.tab_depth + 1 );
+select many var_refs from instances of VariableReference where ( selected.parent_name == temp.registry_name and
+                                                                 selected.parent_package == temp.registry_package and
+                                                                 selected.body_name == temp.name );
+select many referenced_vars related by var_refs->Variable[R782];
+select any last_var from instances of Variable where false;
+select any current_var from instances of Variable where false;
+i = 0;
+while ( i < cardinality referenced_vars )
+  for each referenced_var in referenced_vars
+    if ( ( empty last_var or last_var.name < referenced_var.name ) and ( empty current_var or referenced_var.name < current_var.name ) )
+      current_var = referenced_var;
+    end if;
+  end for;
+  block.prefix = block.prefix + indent + current_var.type_reference_name + " " + current_var.name + " = (" + current_var.type_reference_name + ")symbolTable.get(" + STR::itoa( i:i ) + ");\n";
+  last_var = current_var;
+  select any current_var from instances of Variable where false;
+  i = i + 1;
+end while;
+
 // create import block
 select one comp_file related by comp_def->File[R401];
 ::addFileToImports( file:registry_file, file_to_import:comp_file, type:ImportType::IMPL );
 ::addStringToImports( file:registry_file, s:"io.ciera.summit.exceptions.XtumlException", type:ImportType::IMPL );
+::addStringToImports( file:registry_file, s:"io.ciera.template.util.SymbolTable", type:ImportType::IMPL );
 ::addStringToImports( file:registry_file, s:"io.ciera.template.util.Template", type:ImportType::IMPL );',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,

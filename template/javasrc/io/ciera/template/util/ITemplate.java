@@ -4,6 +4,6 @@ import io.ciera.summit.exceptions.XtumlException;
 
 public interface ITemplate {
     
-    public void evaluate() throws XtumlException;
+    public void evaluate( SymbolTable symbolTable ) throws XtumlException;
 
 }

@@ -24,7 +24,7 @@ INSERT INTO GD_MD
 	0,
 	0,
 	0,
-	'',
+	'4.1.17',
 	'ciera::ciera::transform::expression');
 INSERT INTO DIM_DIA
 	VALUES ("b3d6fae4-b994-426d-9b0c-5fbc26572789",
@@ -1749,8 +1749,13 @@ if ( not_empty v_aer )
   ::transformArrayElementReference( v_aer:v_aer, smt:smt, expr_number:expr_number );
 
 else
+select one v_scv related by v_val->V_SCV[R801];
+if ( not_empty v_scv )
+  ::transformConstantReference( v_scv:v_scv, smt:smt, expr_number:expr_number );
+
+else
   LOG::LogInfo( message:"expression type not yet supported" );
-end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if;',
+end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -1791,6 +1796,75 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("2e7b2187-9ae2-4646-9813-911b0df77732",
+	1,
+	"c7e18228-e420-4b1e-9c87-113a222b7b0b",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("4c63f881-c368-447f-a162-78cc009d9370",
+	"00000000-0000-0000-0000-000000000000",
+	'transformConstantReference',
+	'',
+	'v_scv = param.v_scv;
+smt = param.smt;
+expr_number = param.expr_number;
+
+// create expression
+create object instance expr of Expression;
+relate expr to smt across R775.''expressed within'';
+expr.expression_number = expr_number;
+
+// link type
+select one s_dt related by v_scv->V_VAL[R801]->S_DT[R820];
+select many s_dims from instances of S_DIM where false;
+type = TypeReference::getInstance( s_dt:s_dt, s_dims:s_dims );
+relate type to expr across R795.''defines type of'';
+
+// create literal
+create object instance const_ref of ConstantReference;
+relate const_ref to expr across R776;
+select one cnst_lsc related by v_scv->CNST_SYC[R850]->CNST_LFSC[R1502]->CNST_LSC[R1503];
+const_ref.value = cnst_lsc.Value;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("6b38c3a8-5051-4844-8bab-cf7bf53ccb14",
+	"4c63f881-c368-447f-a162-78cc009d9370",
+	'smt',
+	"056a9b55-7c4c-45a4-a684-ea45fce8fa86",
+	0,
+	'',
+	"6e53d8d0-fdd0-4f9f-828b-48443e1bcbcb",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("d472b1f8-be2f-4f0c-a5f4-9affef591bf8",
+	"4c63f881-c368-447f-a162-78cc009d9370",
+	'expr_number',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"6b38c3a8-5051-4844-8bab-cf7bf53ccb14",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("6e53d8d0-fdd0-4f9f-828b-48443e1bcbcb",
+	"4c63f881-c368-447f-a162-78cc009d9370",
+	'v_scv',
+	"f71ef091-38bf-437f-bf05-dd3d0bbcda6a",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("f71ef091-38bf-437f-bf05-dd3d0bbcda6a",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Symbolic Constant Value>',
+	'',
+	'',
+	'../../../../../../mcooa/models/mcooa/ooaofooa/Value/Value.xtuml');
+INSERT INTO PE_PE
+	VALUES ("4c63f881-c368-447f-a162-78cc009d9370",
 	1,
 	"c7e18228-e420-4b1e-9c87-113a222b7b0b",
 	"00000000-0000-0000-0000-000000000000",
