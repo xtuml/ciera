@@ -109,7 +109,11 @@ if ( not_empty invocable )
   ::transformActualParameters( invocation:invoc, v_pars:v_pars, expr_number:"1", base_num:2 );
 else
   // TODO bad
-end if;',
+end if;
+
+// include performance profiling
+indent = ::getIndent( tab_depth:block.tab_depth + 1 );
+smt.prefix = smt.prefix + indent + "PerformanceUtil.mark(PerformanceUtil.BRIDGE);\n";',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -225,7 +229,11 @@ if ( not_empty invocable )
   ::transformActualParameters( invocation:invoc, v_pars:v_pars, expr_number:"1", base_num:2 );
 else
   // TODO bad
-end if;',
+end if;
+
+// include performance profiling
+indent = ::getIndent( tab_depth:block.tab_depth + 1 );
+smt.prefix = smt.prefix + indent + "PerformanceUtil.mark(PerformanceUtil.FUNCTION);\n";',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -359,7 +367,11 @@ if ( not_empty invocable )
   ::transformActualParameters( invocation:invoc, v_pars:v_pars, expr_number:"1", base_num:2 );
 else
   // TODO bad
-end if;',
+end if;
+
+// include performance profiling
+indent = ::getIndent( tab_depth:block.tab_depth + 1 );
+smt.prefix = smt.prefix + indent + "PerformanceUtil.mark(PerformanceUtil.OPERATION);\n";',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -472,7 +484,11 @@ if ( not_empty invocable )
   ::transformActualParameters( invocation:invoc, v_pars:v_pars, expr_number:"1", base_num:2 );
 else
   // TODO bad
-end if;',
+end if;
+
+// include performance profiling
+indent = ::getIndent( tab_depth:block.tab_depth + 1 );
+smt.prefix = smt.prefix + indent + "PerformanceUtil.mark(PerformanceUtil.SIGNAL);\n";',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -593,7 +609,11 @@ if ( not_empty else_blk )
   ::transformBlock( upper_block:block, act_blk:else_blk, block_number:else_block_number, invocable:empty_invocable );
   select any else_block related by block->InvocableObject[R4000.''is invoked in'']->CodeBlock[R4000.''has''] where ( selected.block_number == else_block_number );
   relate else_block to if_smt across R454.''controls else for'';
-end if;',
+end if;
+
+// include performance profiling
+indent = ::getIndent( tab_depth:block.tab_depth + 1 );
+smt.prefix = smt.prefix + indent + "PerformanceUtil.mark(PerformanceUtil.IF);\n";',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -674,7 +694,11 @@ control_block_number = ::getNextBlockNumber( upper_block:block );
 select one control_blk related by act_whl->ACT_BLK[R608];
 ::transformBlock( upper_block:block, act_blk:control_blk, block_number:control_block_number, invocable:empty_invocable );
 select any control_block related by block->InvocableObject[R4000.''is invoked in'']->CodeBlock[R4000.''has''] where ( selected.block_number == control_block_number );
-relate control_block to while_smt across R456.''controls'';',
+relate control_block to while_smt across R456.''controls'';
+
+// include performance profiling
+indent = ::getIndent( tab_depth:block.tab_depth + 1 );
+smt.prefix = smt.prefix + indent + "PerformanceUtil.mark(PerformanceUtil.WHILE);\n";',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -743,7 +767,11 @@ smt.oal = ::getOalStatement( body:body.oal, line_num:act_smt.LineNumber );
 
 // create break statement
 create object instance break_smt of BreakSmt;
-relate break_smt to smt across R451;',
+relate break_smt to smt across R451;
+
+// include performance profiling
+indent = ::getIndent( tab_depth:block.tab_depth + 1 );
+smt.prefix = smt.prefix + indent + "PerformanceUtil.mark(PerformanceUtil.BREAK);\n";',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -812,7 +840,11 @@ smt.oal = ::getOalStatement( body:body.oal, line_num:act_smt.LineNumber );
 
 // create continue statement
 create object instance continue_smt of ContinueSmt;
-relate continue_smt to smt across R451;',
+relate continue_smt to smt across R451;
+
+// include performance profiling
+indent = ::getIndent( tab_depth:block.tab_depth + 1 );
+smt.prefix = smt.prefix + indent + "PerformanceUtil.mark(PerformanceUtil.CONTINUE);\n";',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -905,7 +937,11 @@ select any r_op related by smt->Expression[R775.''may contain''] where ( selecte
 relate r_op to binop across R778.''is right operand for'';
 // link r_op type to the main expression
 select one type related by r_op->TypeReference[R795];
-relate type to expr across R795.''defines type of'';',
+relate type to expr across R795.''defines type of'';
+
+// include performance profiling
+indent = ::getIndent( tab_depth:block.tab_depth + 1 );
+smt.prefix = smt.prefix + indent + "PerformanceUtil.mark(PerformanceUtil.ASSIGN);\n";',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -1011,7 +1047,11 @@ select one control_blk related by act_for->ACT_BLK[R605];
 select any control_block related by block->InvocableObject[R4000.''is invoked in'']->CodeBlock[R4000.''has''] where ( selected.block_number == control_block_number );
 relate control_block to for_smt across R455.''controls'';
 for_smt.initializeIterator();
-::addStringToImports( file: ::getFileForStatement( smt:smt ), s:"java.util.Iterator", type:ImportType::IMPL );',
+::addStringToImports( file: ::getFileForStatement( smt:smt ), s:"java.util.Iterator", type:ImportType::IMPL );
+
+// include performance profiling
+indent = ::getIndent( tab_depth:block.tab_depth + 1 );
+smt.prefix = smt.prefix + indent + "PerformanceUtil.mark(PerformanceUtil.FOR);\n";',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -1140,7 +1180,11 @@ create object instance sel_fi of SelectFromInstances;
 relate sel_fi to sel across R789;
 relate selector to sel_fi across R799.''invoked by'';
 // link select type to the main expression
-relate select_type to expr across R795.''defines type of'';',
+relate select_type to expr across R795.''defines type of'';
+
+// include performance profiling
+indent = ::getIndent( tab_depth:block.tab_depth + 1 );
+smt.prefix = smt.prefix + indent + "PerformanceUtil.mark(PerformanceUtil.SELECT_FIO);\n";',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -1288,7 +1332,11 @@ else
   relate where_clause_expr to where_expr across R796.''defines condtion for'';
 end if;
 // link select type to the main expression
-relate select_type to expr across R795.''defines type of'';',
+relate select_type to expr across R795.''defines type of'';
+
+// include performance profiling
+indent = ::getIndent( tab_depth:block.tab_depth + 1 );
+smt.prefix = smt.prefix + indent + "PerformanceUtil.mark(PerformanceUtil.SELECT_FIW);\n";',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -1455,7 +1503,11 @@ else
   end if;
 end if;
 // link select type to the main expression
-relate select_type to expr across R795.''defines type of'';',
+relate select_type to expr across R795.''defines type of'';
+
+// include performance profiling
+indent = ::getIndent( tab_depth:block.tab_depth + 1 );
+smt.prefix = smt.prefix + indent + "PerformanceUtil.mark(PerformanceUtil.SELECT_REL);\n";',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -1571,7 +1623,11 @@ relate r_op to binop across R778.''is right operand for'';
 select one class_file related by obj->File[R401];
 ::addStringToImports( file: ::getFileForStatement( smt:smt ), s: ::pathToPackage( path:class_file.path ) + ".impl." + class_file.name + "Impl", type:ImportType::IMPL );
 // link create type to the main expression
-relate cr_type to expr across R795.''defines type of'';',
+relate cr_type to expr across R795.''defines type of'';
+
+// include performance profiling
+indent = ::getIndent( tab_depth:block.tab_depth + 1 );
+smt.prefix = smt.prefix + indent + "PerformanceUtil.mark(PerformanceUtil.CREATE);\n";',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -1657,7 +1713,11 @@ relate cr to expr across R776;
 select one obj related by act_cnv->O_OBJ[R672]->Class[R409.''is basis for''];
 relate cr to obj across R780.''creates'';
 select one class_file related by obj->File[R401];
-::addStringToImports( file: ::getFileForStatement( smt:smt ), s: ::pathToPackage( path:class_file.path ) + ".impl." + class_file.name + "Impl", type:ImportType::IMPL );',
+::addStringToImports( file: ::getFileForStatement( smt:smt ), s: ::pathToPackage( path:class_file.path ) + ".impl." + class_file.name + "Impl", type:ImportType::IMPL );
+
+// include performance profiling
+indent = ::getIndent( tab_depth:block.tab_depth + 1 );
+smt.prefix = smt.prefix + indent + "PerformanceUtil.mark(PerformanceUtil.CREATE_NV);\n";',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -1727,7 +1787,11 @@ smt.oal = ::getOalStatement( body:body.oal, line_num:act_smt.LineNumber );
 // create halt statement
 create object instance halt_smt of Halt;
 relate halt_smt to smt across R451;
-::addStringToImports( file: ::getFileForStatement( smt:smt ), s:"io.ciera.cairn.application.tasks.HaltExecutionTask", type:ImportType::IMPL );',
+::addStringToImports( file: ::getFileForStatement( smt:smt ), s:"io.ciera.cairn.application.tasks.HaltExecutionTask", type:ImportType::IMPL );
+
+// include performance profiling
+indent = ::getIndent( tab_depth:block.tab_depth + 1 );
+smt.prefix = smt.prefix + indent + "PerformanceUtil.mark(PerformanceUtil.CONTROL);\n";',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -1823,7 +1887,11 @@ elif ( "self" == del_v_var.Name )
   self_ref.name = "this";
 else
   // TODO bad
-end if;',
+end if;
+
+// include performance profiling
+indent = ::getIndent( tab_depth:block.tab_depth + 1 );
+smt.prefix = smt.prefix + indent + "PerformanceUtil.mark(PerformanceUtil.DELETE);\n";',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -1899,7 +1967,11 @@ if ( not_empty ret_val )
   ::transformExpression( v_val:ret_val, expr_number:"1", smt:smt );
   select any ret_expr related by smt->Expression[R775.''may contain''] where ( selected.expression_number == "1" );
   relate ret_expr to ret across R473.''defines return value for'';
-end if;',
+end if;
+
+// include performance profiling
+indent = ::getIndent( tab_depth:block.tab_depth + 1 );
+smt.prefix = smt.prefix + indent + "PerformanceUtil.mark(PerformanceUtil.RETURN);\n";',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -2086,7 +2158,11 @@ elif ( "self" == part_v_var.Name )
   self_ref.name = "this";
 else
   // TODO bad
-end if;',
+end if;
+
+// include performance profiling
+indent = ::getIndent( tab_depth:block.tab_depth + 1 );
+smt.prefix = smt.prefix + indent + "PerformanceUtil.mark(PerformanceUtil.RELATE);\n";',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -2317,7 +2393,11 @@ if ( not_empty rel1 and not_empty rel2 )
   end if;
 else
   // TODO bad
-end if;',
+end if;
+
+// include performance profiling
+indent = ::getIndent( tab_depth:block.tab_depth + 1 );
+smt.prefix = smt.prefix + indent + "PerformanceUtil.mark(PerformanceUtil.RELATE_USING);\n";',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -2504,7 +2584,11 @@ elif ( "self" == part_v_var.Name )
   self_ref.name = "this";
 else
   // TODO bad
-end if;',
+end if;
+
+// include performance profiling
+indent = ::getIndent( tab_depth:block.tab_depth + 1 );
+smt.prefix = smt.prefix + indent + "PerformanceUtil.mark(PerformanceUtil.UNRELATE);\n";',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -2735,7 +2819,11 @@ if ( not_empty rel1 and not_empty rel2 )
   end if;
 else
   // TODO bad
-end if;',
+end if;
+
+// include performance profiling
+indent = ::getIndent( tab_depth:block.tab_depth + 1 );
+smt.prefix = smt.prefix + indent + "PerformanceUtil.mark(PerformanceUtil.UNRELATE_USING);\n";',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -3038,6 +3126,10 @@ if ( not_empty act_blk )
     if ( not_empty deriv  or not_empty class_op )
       block.tab_depth = 2; // increase the tab depth by one for bodies which belong to derived attributes and class based operations
     end if;
+    // include performance profiling
+    indent = ::getIndent( tab_depth:block.tab_depth + 1 );
+    block.prefix = block.prefix + indent + "PerformanceUtil.enter(" + STR::quote() + invocable.parent_package + "." + invocable.parent_name + "#" + invocable.name + STR::quote() + ");\n";
+    block.suffix = block.suffix + indent + "PerformanceUtil.exit();\n";
   else
     select one invocable related by upper_block->InvocableObject[R4000.''is invoked in''];
     block.top_level = false;
@@ -3326,6 +3418,10 @@ INSERT INTO S_SYNC
 	'invocable = param.invocable;
 select one act_act related by invocable->ACT_ACT[R432.''transforms actions from''];
 if ( not_empty act_act and not_empty invocable )
+
+  // add performance util import
+  file = ::getFileForInvocable( invocable:invocable );
+  ::addStringToImports( file:file, s:"io.ciera.cairn.util.PerformanceUtil", type:ImportType::IMPL );
 
   select any upper_block from instances of CodeBlock where false;
   select one act_blk related by act_act->ACT_BLK[R666];

@@ -92,7 +92,11 @@ T_b("Form");
 T_b("() );");
 T_b("\n");
 T_b("        ");
-T_b("else throw new ModelIntegrityException( \"Association with multiplicity 'one' has more than one related instance.\" );");
+T_b("else return ");
+T_b(type_name);
+T_b("Impl.EMPTY_");
+T_b(T_underscore(T_u(type_name)));
+T_b("; /* TODO throw new ModelIntegrityException( \"Association with multiplicity 'one' has more than one related instance.\" ); */");
 T_b("\n");
 }
 T_b("    ");

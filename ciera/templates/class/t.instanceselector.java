@@ -34,6 +34,6 @@ Part\
 Form\
   .end if
 () );
-        else throw new ModelIntegrityException( "Association with multiplicity 'one' has more than one related instance." );
+        else return ${type_name}Impl.EMPTY_$u_{type_name}; /* TODO throw new ModelIntegrityException( "Association with multiplicity 'one' has more than one related instance." ); */
 .end if
     }

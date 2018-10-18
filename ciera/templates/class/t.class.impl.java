@@ -65,6 +65,13 @@ ${selectors}
         return this;
     }
 
+    @Override
+    public ${self.name} oneWhere( IWhere<${self.name}> condition ) throws XtumlException {
+        if ( null == condition ) throw new XtumlException( "Null condition passed to selection." );
+        if ( condition.evaluate( value() ) ) return value();
+        else return EMPTY_$u_{self.name};
+    }
+
 }
 
 class Empty${self.name} extends ${self.extends} implements ${self.name} {
@@ -91,6 +98,12 @@ ${empty_selectors}
     @Override
     public boolean isEmpty() {
         return true;
+    }
+
+    @Override
+    public ${self.name} oneWhere( IWhere<${self.name}> condition ) throws XtumlException {
+        if ( null == condition ) throw new XtumlException( "Null condition passed to selection." );
+        return ${self.name}Impl.EMPTY_$u_{self.name};
     }
 
 }
