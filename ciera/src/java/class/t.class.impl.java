@@ -45,6 +45,7 @@ T_b("        ");
 T_b("this.context = context;");
 T_b("\n");
 T_b(attribute_initializers);
+T_b(relationship_initializers);
 T_b("    }");
 T_b("\n");
 if ( 0!=strcmp("",attribute_list) ) {
@@ -61,6 +62,7 @@ T_b("        ");
 T_b("this.context = context;");
 T_b("\n");
 T_b(attribute_initializers2);
+T_b(relationship_initializers);
 T_b("    }");
 T_b("\n");
 }

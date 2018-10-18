@@ -12,11 +12,11 @@ public class ${self.name}Impl extends ${self.extends} implements ${self.name} {
     // constructors
     private ${self.name}Impl( ${self.comp_name} context ) {
         this.context = context;
-${attribute_initializers}    }
+${attribute_initializers}${relationship_initializers}    }
 .if ( "" != attribute_list )
     private ${self.name}Impl( ${self.comp_name} context${attribute_list} ) {
         this.context = context;
-${attribute_initializers2}    }
+${attribute_initializers2}${relationship_initializers}    }
 .end if
 
     public static ${self.name} create( ${self.comp_name} context ) throws XtumlException {

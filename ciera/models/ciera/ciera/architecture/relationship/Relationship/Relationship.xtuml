@@ -33,8 +33,39 @@ for each ref in refs
 end for;
 attribute_propagations = T::body();
 T::clear();
-T::b( s:body_save );
 
+relationship_setters = "";
+relationship_unsetters = "";
+select one form related by self->Class[R434];
+select one part related by self->Class[R435];
+form_name = "R" + STR::itoa( i:self.num ) + "_";
+if ( "" != self.form_phrase )
+  form_name = form_name + T::underscore( s:self.form_phrase ) + "_";
+end if;
+form_name = form_name + part.name;
+part_name = "R" + STR::itoa( i:self.num ) + "_";
+if ( "" != self.part_phrase )
+  part_name = part_name + T::underscore( s:self.part_phrase ) + "_";
+end if;
+part_name = part_name + form.name;
+select any form_selector related by form->InstanceSelector[R442]->Selector[R445] where ( selected.name == form_name );
+select any part_selector related by part->InstanceSelector[R442]->Selector[R445] where ( selected.name == part_name );
+if ( form_selector.multiplicity == Mult::MANY )
+  relationship_setters = relationship_setters + "            part.add" + form_selector.name + "(form);\n";
+  relationship_unsetters = relationship_unsetters + "            part.remove" + form_selector.name + "(form);\n";
+else
+  relationship_setters = relationship_setters + "            part.set" + form_selector.name + "(form);\n";
+  relationship_unsetters = relationship_unsetters + "            part.set" + form_selector.name + "(" + form_selector.type_reference_name + "Impl.EMPTY_" + T::u( s:T::underscore( s:form_selector.type_reference_name ) ) + ");\n";
+end if;
+if ( part_selector.multiplicity == Mult::MANY )
+  relationship_setters = relationship_setters + "            form.add" + part_selector.name + "(part);\n";
+  relationship_unsetters = relationship_unsetters + "            form.remove" + part_selector.name + "(part);\n";
+else
+  relationship_setters = relationship_setters + "            form.set" + part_selector.name + "(part);\n";
+  relationship_unsetters = relationship_unsetters + "            form.set" + part_selector.name + "(" + part_selector.type_reference_name + "Impl.EMPTY_" + T::u( s:T::underscore( s:part_selector.type_reference_name ) ) + ");\n";
+end if;
+
+T::b( s:body_save );
 T::include( file:"java/relationship/t.relationshipmodifiers.java" );',
 	1,
 	'',

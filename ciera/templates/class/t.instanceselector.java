@@ -1,39 +1,25 @@
+.if ( multiplicity_many )
+    private ${type_name} ${self.name}_set;
+    @Override
+    public void add${self.name}( ${inst_type_name} inst ) {
+        ${self.name}_set.add(inst);
+    }
+    @Override
+    public void remove${self.name}( ${inst_type_name} inst ) {
+        ${self.name}_set.remove(inst);
+    }
+.else
+    private ${type_name} ${self.name}_inst;
+    @Override
+    public void set${self.name}( ${inst_type_name} inst ) {
+        ${self.name}_inst = inst;
+    }
+.end if
     @Override
     public ${type_name} ${self.name}() throws XtumlException {
 .if ( multiplicity_many )
-        ${type_name} $l{type_name} = new ${type_name}Impl();
-.end if
-        IRelationshipSet R$t{self.rel_num}set = context().${selector_name}().get\
-.if ( self->formalizer )
-Participating\
+        return ${self.name}_set.toImmutableSet();
 .else
-Formalizing\
-.end if
-( getInstanceId() );
-.if ( unconditional )
-        // TODO if ( R$t{self.rel_num}set.isEmpty() ) throw new ModelIntegrityException( "Unconditional association has no related instances." );
-.else
-  .if ( not multiplicity_many )
-        if ( R$t{self.rel_num}set.isEmpty() ) return ${type_name}Impl.EMPTY_$u_{type_name};
-  .end if
-.end if
-.if ( multiplicity_many )
-        for ( IRelationship r$t{self.rel_num} : R$t{self.rel_num}set ) $l{type_name}.add( context().${target_class_name}_instances().getByInstanceId( r$t{self.rel_num}.get\
-  .if ( self->formalizer )
-Part\
-  .else
-Form\
-  .end if
-() ) );
-        return $l{type_name}.toImmutableSet();
-.else
-        if ( 1 == R$t{self.rel_num}set.size() ) return context().${target_class_name}_instances().getByInstanceId( R$t{self.rel_num}set.iterator().next().get\
-  .if ( self->formalizer )
-Part\
-  .else
-Form\
-  .end if
-() );
-        else return ${type_name}Impl.EMPTY_$u_{type_name}; /* TODO throw new ModelIntegrityException( "Association with multiplicity 'one' has more than one related instance." ); */
+        return ${self.name}_inst;
 .end if
     }

@@ -2014,13 +2014,13 @@ end if;
 // add imports to object file
 select one file related by obj->File[R401];
 ::addStringToImports( file:file, s:"io.ciera.summit.exceptions.XtumlException", type:ImportType::BOTH );
-::addStringToImports( file:file, s:"io.ciera.summit.classes.IRelationshipSet", type:ImportType::IMPL );
 if ( Cond::UNCONDITIONAL == param.cond or Mult::ONE == param.mult )
-  ::addStringToImports( file:file, s:"io.ciera.summit.exceptions.ModelIntegrityException", type:ImportType::IMPL );
+  //::addStringToImports( file:file, s:"io.ciera.summit.exceptions.ModelIntegrityException", type:ImportType::IMPL );
 end if;
 if ( Mult::MANY == param.mult )
-  ::addStringToImports( file:file, s:"io.ciera.summit.classes.IRelationship", type:ImportType::IMPL );
   ::addStringToImports( file:file, s:set_type.type_package + ".impl." + set_type.type_name + "Impl", type:ImportType::IMPL );
+  select one type related by class_type->Type[R3800];
+  ::addTypeToImports( file:file, type_to_import:type, type:ImportType::BOTH );
 else
   ::addStringToImports( file:file, s:class_type.type_package + ".impl." + class_type.type_name + "Impl", type:ImportType::IMPL );
 end if;
@@ -2028,7 +2028,13 @@ end if;
 // add imports to object set file
 select one set_file related by obj_set->File[R401];
 ::addStringToImports( file:set_file, s:"io.ciera.summit.exceptions.XtumlException", type:ImportType::BOTH );
-::addStringToImports( file:set_file, s:set_type.type_package + ".impl." + set_type.type_name + "Impl", type:ImportType::IMPL );',
+::addStringToImports( file:set_file, s:set_type.type_package + ".impl." + set_type.type_name + "Impl", type:ImportType::IMPL );
+
+// add imports to component file
+select one comp_file related by obj->ComponentDefinition[R408]->File[R401];
+if ( Mult::MANY != param.mult )
+  ::addStringToImports( file:comp_file, s:class_type.type_package + ".impl." + class_type.type_name + "Impl", type:ImportType::IMPL );
+end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',

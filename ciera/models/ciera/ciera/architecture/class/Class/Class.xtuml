@@ -75,8 +75,15 @@ operations = T::body();
 T::clear();
 
 select many selects related by self->InstanceSelector[R442.''selects instances through''];
+relationship_initializers = "";
 for each selector in selects
   selector.render();
+  select one sel related by selector->Selector[R445];
+  if ( sel.multiplicity == Mult::MANY )
+    relationship_initializers = relationship_initializers + "        " + selector.name + "_set = new " + sel.type_reference_name + "Impl();\n";
+  else
+    relationship_initializers = relationship_initializers + "        " + selector.name + "_inst = " + sel.type_reference_name + "Impl.EMPTY_" + T::u( s:T::underscore( s:sel.type_reference_name ) ) + ";\n";
+  end if;
 end for;
 selectors = T::body();
 T::clear();
