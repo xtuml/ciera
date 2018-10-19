@@ -15,7 +15,7 @@ T_b("\n");
 T_b("        ");
 T_b("return ");
 T_b(self->class_name);
-T_b("_extent.toImmutableSet();");
+T_b("_extent;");
 T_b("\n");
 T_b("    ");
 T_b("}");

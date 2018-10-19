@@ -18,7 +18,7 @@
     @Override
     public ${type_name} ${self.name}() throws XtumlException {
 .if ( multiplicity_many )
-        return ${self.name}_set.toImmutableSet();
+        return ${self.name}_set;
 .else
         return ${self.name}_inst;
 .end if

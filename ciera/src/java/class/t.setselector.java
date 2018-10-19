@@ -36,7 +36,7 @@ T_b("\n");
 T_b("        ");
 T_b("return ");
 T_b(T_l(type_name));
-T_b(".toImmutableSet();");
+T_b(";");
 T_b("\n");
 T_b("    ");
 T_b("}");

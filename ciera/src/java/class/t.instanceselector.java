@@ -80,7 +80,7 @@ if ( multiplicity_many ) {
 T_b("        ");
 T_b("return ");
 T_b(self->name);
-T_b("_set.toImmutableSet();");
+T_b("_set;");
 T_b("\n");
 } else {
 T_b("        ");

@@ -12,7 +12,7 @@ T_b("> _");
 T_b(self->iterator_name);
 T_b("_iter = ");
 T_b(iterable_expr);
-T_b(".iterator(); _");
+T_b(".clone().iterator(); _");
 T_b(self->iterator_name);
 T_b("_iter.hasNext(); ) ");
 T_b(control_block);

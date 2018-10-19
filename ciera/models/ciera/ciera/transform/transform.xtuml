@@ -805,10 +805,12 @@ if ( empty class_exclude_mark )
   ::addFileToImports( file:file, file_to_import:component_file, type:ImportType::BOTH );
 
   ::addFileToImports( file:file, file_to_import:file, type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"io.ciera.cairn.classes.ModelInstance", type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"io.ciera.cairn.classes.InstanceIdentifier", type:ImportType::IMPL );
   ::addStringToImports( file:file, s:"io.ciera.summit.application.IRunContext", type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"io.ciera.summit.classes.IInstanceIdentifier", type:ImportType::IMPL );
   ::addStringToImports( file:file, s:"io.ciera.summit.exceptions.InstancePopulationException", type:ImportType::IMPL );
   ::addStringToImports( file:file, s:"io.ciera.summit.types.IWhere", type:ImportType::IMPL );
-  ::addStringToImports( file:file, s:"io.ciera.cairn.classes.ModelInstance", type:ImportType::IMPL );
 
   ::addStringToImports( file:file, s:"io.ciera.summit.classes.IModelInstance", type:ImportType::INT );
   
@@ -890,7 +892,7 @@ if ( not_empty s_dt )
 else
   // TODO bad
 end if;
-type.default_value = "new " + objset.name + "Impl().toImmutableSet()";
+type.default_value = "new " + objset.name + "Impl()";
 relate type to objset across R407;
 
 // create the import block
@@ -962,6 +964,16 @@ end if;
 attr.base_name = o_attr.Name;
 attr.order = param.index;
 relate attr to obj across R410;
+
+// set part of identifier
+attr.identifier = 0;
+select many inst_ids related by o_attr->O_ID[R105];
+for each inst_id in inst_ids
+  if ( inst_id.Oid_ID == 0 )   attr.identifier = attr.identifier + 1;
+  elif ( inst_id.Oid_ID == 1 ) attr.identifier = attr.identifier + 2;
+  elif ( inst_id.Oid_ID == 2 ) attr.identifier = attr.identifier + 4;
+  end if;
+end for;
 
 // set the type
 select one s_dt related by o_attr->S_DT[R114];
@@ -1703,6 +1715,13 @@ if ( empty assoc_exclude_mark )
     relate rel to form_class across R435.''has formalizing'';
     relate rel to part_class across R434.''has participating'';
 
+    select any o_id related by r_simp->R_PART[R207]->R_RTO[R204]->O_ID[R109];
+    if ( not_empty o_id )
+      rel.id_num = o_id.Oid_ID + 1;
+    else
+      rel.id_num = 0;
+    end if;
+
   else
   select one r_subsup related by r_rel->R_SUBSUP[R206];
   if ( not_empty r_subsup )
@@ -1734,6 +1753,13 @@ if ( empty assoc_exclude_mark )
         relate rel to containing_comp_def across R448.''forms relationship population of'';
         relate rel to form_class across R435.''has formalizing'';
         relate rel to part_class across R434.''has participating'';
+        
+        select one o_id related by r_subsup->R_SUPER[R212]->R_RTO[R204]->O_ID[R109];
+        if ( not_empty o_id )
+          rel.id_num = o_id.Oid_ID + 1;
+        else
+          rel.id_num = 0;
+        end if;
 
         // special case for EP_PKG instances... top level packages do not have a PE_PE instance
         if ( 8001 == rel.num and "EP_PKG" == rel.form_name )
@@ -1789,6 +1815,13 @@ if ( empty assoc_exclude_mark )
     relate rel1 to form_class across R435.''has formalizing'';
     relate rel1 to part_class across R434.''has participating'';
 
+    select one o_id1 related by r_assoc->R_AONE[R209]->R_RTO[R204]->O_ID[R109];
+    if ( not_empty o_id1 )
+      rel1.id_num = o_id1.Oid_ID + 1;
+    else
+      rel1.id_num = 0;
+    end if;
+
     form_phrase = "";
     form_mult = Mult::ONE;
     form_cond = Cond::UNCONDITIONAL;
@@ -1827,6 +1860,13 @@ if ( empty assoc_exclude_mark )
     relate rel2 to containing_comp_def across R448.''forms relationship population of'';
     relate rel2 to form_class across R435.''has formalizing'';
     relate rel2 to part_class across R434.''has participating'';
+
+    select one o_id2 related by r_assoc->R_AOTH[R210]->R_RTO[R204]->O_ID[R109];
+    if ( not_empty o_id2 )
+      rel2.id_num = o_id2.Oid_ID + 1;
+    else
+      rel2.id_num = 0;
+    end if;
 
   else
     // TODO bad

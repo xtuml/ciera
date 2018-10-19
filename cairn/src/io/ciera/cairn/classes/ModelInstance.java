@@ -1,5 +1,8 @@
 package io.ciera.cairn.classes;
 
+import java.util.Arrays;
+import java.util.List;
+
 import io.ciera.summit.application.IRunContext;
 import io.ciera.summit.classes.IInstanceIdentifier;
 import io.ciera.summit.classes.IModelInstance;
@@ -39,38 +42,44 @@ public abstract class ModelInstance<T extends IModelInstance<T,C>,C extends ICom
     @Override
     public boolean equals( Object obj ) {
         if ( null != obj && obj instanceof IModelInstance<?,?> && !((IModelInstance<?,?>)obj).isEmpty() ) {
-            return getKeyLetters().equals( ((IModelInstance<?,?>)obj).getKeyLetters() ) &&
-                   getInstanceId().equals( ((IModelInstance<?,?>)obj).getInstanceId() ) &&
-                   ( null == getId1() || getId1().equals( ((IModelInstance<?,?>)obj).getId1() ) ) &&
-                   ( null == getId2() || getId2().equals( ((IModelInstance<?,?>)obj).getId2() ) ) &&
-                   ( null == getId3() || getId3().equals( ((IModelInstance<?,?>)obj).getId3() ) );
+            return getInstanceId().equals( ((IModelInstance<?,?>)obj).getInstanceId() );
         }
         else return false;
     }
 
     @Override
     public int hashCode() {
-        int hash = getKeyLetters().hashCode();
-        hash = hash * 31 + getInstanceId().hashCode();
-        if ( null != getId1() ) hash = hash * 31 + getId1().hashCode();
-        if ( null != getId2() ) hash = hash * 31 + getId2().hashCode();
-        if ( null != getId3() ) hash = hash * 31 + getId3().hashCode();
-        return hash;
+        return getInstanceId().hashCode();
     }
 
     @Override
     public IInstanceIdentifier getId1() {
-        return null;
+        return new InstanceIdentifier() {
+            @Override
+            public List<Object> getElements() {
+                return Arrays.asList(getInstanceId());
+            }
+        };
     }
 
     @Override
     public IInstanceIdentifier getId2() {
-        return null;
+        return new InstanceIdentifier() {
+            @Override
+            public List<Object> getElements() {
+                return Arrays.asList(getInstanceId());
+            }
+        };
     }
 
     @Override
     public IInstanceIdentifier getId3() {
-        return null;
+        return new InstanceIdentifier() {
+            @Override
+            public List<Object> getElements() {
+                return Arrays.asList(getInstanceId());
+            }
+        };
     }
 
     @Override

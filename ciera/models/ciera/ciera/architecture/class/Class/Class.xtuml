@@ -41,6 +41,12 @@ while ( not_empty attribute )
   select any attribute related by self->Attribute[R410.''data abstracted by''] where ( index == selected.order);
 end while;
 
+id1_attributes = "";
+id2_attributes = "";
+id3_attributes = "";
+sep1 = "";
+sep2 = "";
+sep3 = "";
 index = 0;
 select any attribute related by self->Attribute[R410.''data abstracted by''] where ( index == selected.order);
 while ( not_empty attribute ) 
@@ -48,6 +54,18 @@ while ( not_empty attribute )
   select many accessors related by attribute->AttributeAccessor[R4510.''value accessed through''];
   for each accessor in accessors
     accessor.render();
+    if ( AttributeAccessor::GETTER == accessor.accessor_type and attribute.identifier % 2 == 1 )
+      id1_attributes = id1_attributes + sep1 + accessor.getName() + "()";
+      sep1 = ", ";
+    end if;
+    if ( AttributeAccessor::GETTER == accessor.accessor_type and ( attribute.identifier / 2 ) % 2 == 1 )
+      id2_attributes = id2_attributes + sep2 + accessor.getName() + "()";
+      sep2 = ", ";
+    end if;
+    if ( AttributeAccessor::GETTER == accessor.accessor_type and ( attribute.identifier / 4 ) % 2 == 1 )
+      id3_attributes = id3_attributes + sep3 + accessor.getName() + "()";
+      sep3 = ", ";
+    end if;
   end for;
   index = index + 1;
   select any attribute related by self->Attribute[R410.''data abstracted by''] where ( index == selected.order);

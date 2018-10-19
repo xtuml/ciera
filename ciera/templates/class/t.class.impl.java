@@ -36,6 +36,47 @@ ${attribute_initializers2}${relationship_initializers}    }
     // attributes
 ${attributes}
 
+    // instance identifiers
+.if ( "" != id1_attributes )
+    @Override
+    public IInstanceIdentifier getId1() {
+        try {
+            return new InstanceIdentifier(${id1_attributes});
+        }
+        catch ( XtumlException e ) {
+            e.printStackTrace();
+            System.exit(1);
+            return null;
+        }
+    }
+.end if
+.if ( "" != id2_attributes )
+    @Override
+    public IInstanceIdentifier getId2() {
+        try {
+            return new InstanceIdentifier(${id2_attributes});
+        }
+        catch ( XtumlException e ) {
+            e.printStackTrace();
+            System.exit(1);
+            return null;
+        }
+    }
+.end if
+.if ( "" != id3_attributes )
+    @Override
+    public IInstanceIdentifier getId3() {
+        try {
+            return new InstanceIdentifier(${id3_attributes});
+        }
+        catch ( XtumlException e ) {
+            e.printStackTrace();
+            System.exit(1);
+            return null;
+        }
+    }
+.end if
+
     // operations
 ${operations}
     

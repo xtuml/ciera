@@ -1,7 +1,7 @@
 .if ( multiplicity_many )
     @Override
     public ${type_name} ${self.name}() {
-        return (new ${type_name}Impl()).toImmutableSet();
+        return (new ${type_name}Impl());
     }
 .else
     @Override

@@ -518,12 +518,25 @@ batch_relator.rel_name = rel.name;
 batch_relator.form_name = rel.form_name;
 batch_relator.part_name = rel.part_name;
 batch_relator.unconditional = Cond::UNCONDITIONAL == rel.part_cond;
+batch_relator.id_num = rel.id_num;
 
-// create attribute comparison for each identifying attribute
+index = 0;
+select any attribute related by rel->AttributeReference[R4511]->Attribute[R4506.''has value provided by'']->Class[R410]->Attribute[R410] where (index == selected.order);
 select many attr_refs related by rel->AttributeReference[R4511];
-for each attr_ref in attr_refs
-  ::transformAttributeComparison( attr_ref:attr_ref, batch_relator:batch_relator );
-end for;',
+while ( not_empty attribute ) 
+  for each attr_ref in attr_refs
+    select one attr related by attr_ref->Attribute[R4506.''has value provided by''];
+    if ( attribute.class_name == attr.class_name and attribute.class_package == attr.class_package and attribute.name == attr.name )
+      ::transformAttributeComparison( attr_ref:attr_ref, batch_relator:batch_relator );
+      break;
+    end if;
+  end for;
+  index = index + 1;
+  select any attribute related by rel->AttributeReference[R4511]->Attribute[R4506.''has value provided by'']->Class[R410]->Attribute[R410] where (index == selected.order);
+end while;
+
+select one file related by pop_loader->GeneralFile[R3009]->File[R401];
+::addStringToImports( file:file, s:"io.ciera.cairn.classes.InstanceIdentifier", type:ImportType::IMPL );',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -583,7 +596,7 @@ select one type related by type_ref->Type[R3800];
 attr_comp.primitive = type.primitive();
 select one basic_ref related by type_ref->BasicTypeReference[R3801];
 attr_comp.is_string = ( not_empty basic_ref and "String" == type.name and "" == type.package );
-if ( attr_comp.is_string )
+if ( attr_comp.is_string and 0 == batch_relator.id_num )
   select one file related by batch_relator->Z_PopulationLoader[R3011]->GeneralFile[R3009]->File[R401];
   ::addStringToImports( file:file, s:"io.ciera.summit.types.StringUtil", type:ImportType::IMPL );
 end if;',

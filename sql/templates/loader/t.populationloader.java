@@ -23,7 +23,10 @@ ${instance_loaders}        default:
     @Override
     public void finish() throws XtumlException {
         progressBar = new ProgressBar(${relate_count});
-${batch_relators}    }
+${batch_relators}        progressBar.join();
+    }
+
+${batch_relator_definitions}
 
     @Override
     public void serialize( OutputStream stream ) throws XtumlException {

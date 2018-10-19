@@ -6,5 +6,5 @@
 All\
 .end if
 ( $l{self.selector_class_name}.${self.selector_name}() );
-        return $l{type_name}.toImmutableSet();
+        return $l{type_name};
     }
