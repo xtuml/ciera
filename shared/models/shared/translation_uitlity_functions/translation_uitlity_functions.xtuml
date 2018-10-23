@@ -1060,14 +1060,19 @@ child_blocks = then_blocks + else_blocks + while_blocks + for_blocks;
 
 // find the most recent child block
 block_number = "0";
-for each child_block in child_blocks
-  if ( child_block.block_number > block_number )
-    block_number = child_block.block_number;
-  end if;
-end for;
-
-// increment
-block_number = upper_block.block_number + "." + STR::itoa( i:STR::atoi( s:STR::substr( s:block_number, begin:STR::strlen( s:upper_block.block_number ) + 1, end:-1 ) ) + 1 );
+int_block_number = 0;
+if ( not_empty child_blocks )
+  for each child_block in child_blocks
+    child_block_number = STR::atoi( s:STR::substr( s:child_block.block_number, begin:STR::strlen( s:upper_block.block_number ) + 1, end:-1 ) );
+    if ( child_block_number > int_block_number )
+      int_block_number = child_block_number;
+    end if;
+  end for;
+  // increment
+  block_number = upper_block.block_number + "." + STR::itoa( i:int_block_number + 1 );
+else
+  block_number = upper_block.block_number + ".1";;
+end if;
 
 return block_number;',
 	"ba5eda7a-def5-0000-0000-000000000004",

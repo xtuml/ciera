@@ -506,31 +506,59 @@ select many invocables from instances of InvocableObject;
 for each invocable in invocables
   select one generic_invoc related by invocable->GenericInvocable[R427];
   if ( empty generic_invoc )
-    select any template_invocation related by invocable->CodeBlock[R4000]->Statement[R450]->Expression[R775]->Invocation[R776] where
-      ( "TEMP" == selected.invoked_parent_name and "io.ciera.template.util" == selected.invoked_parent_package and
-      ( "append" == selected.invoked_name or
-        "body" == selected.invoked_name or
-        "clear" == selected.invoked_name or
-        "emit" == selected.invoked_name or
-        "include" == selected.invoked_name ) );
-    if ( not_empty template_invocation ) // for bodies which invoke the template utility, add statements to handle the buffer stack
-      select any top_block related by invocable->CodeBlock[R4000] where ( selected.top_level );
-      indent = ::getIndent( tab_depth:top_block.tab_depth + 1 );
-      top_block.prefix = top_block.prefix + indent + "context().TEMP().pushBuffer();\n";
-      select one operation related by invocable->Operation[R427] where ( not selected.is_class_based );
-      select one deriv_attr related by invocable->AttributeDerivation[R427];
-      if ( not_empty operation or not_empty deriv_attr )
-        select one self_class related by operation->Class[R416];
-        if ( empty self_class )
-          select one self_class related by deriv_attr->AttributeAccessor[R441]->Attribute[R4510]->Class[R410];
-        end if;
-        top_block.prefix = top_block.prefix + indent + "setSymbol( " + STR::quote() + "self" + STR::quote() + ", this );\n";
+    select many template_invocations related by invocable->CodeBlock[R4000]->Statement[R450]->Expression[R775]->Invocation[R776] where
+      ( "TEMP" == selected.invoked_parent_name and "io.ciera.template.util" == selected.invoked_parent_package and "include" == selected.invoked_name );
+    for each template_invocation in template_invocations
+      // get the symbol table parameter
+      select any symtab_param related by template_invocation->ActualParameter[R793] where ( selected.param_name == "p_symbol_table" );
+      select one param_expr related by symtab_param->Expression[R794];
+      select one const_expr related by param_expr->ConstantReference[R776];
+      if ( empty param_expr or empty const_expr )
+        // TODO bad
       end if;
-      top_block.suffix = top_block.suffix + indent + "context().TEMP().popBuffer();\n";
+      unrelate const_expr from param_expr across R776;
+      delete object instance const_expr;
+      // get required variables
+      select any file_param related by template_invocation->ActualParameter[R793] where ( selected.param_name == "p_file" );
+      select one file_val related by file_param->Expression[R794]->Literal[R776];
+      if ( empty file_val )
+        // TODO bad currently this only supports string literals to specify template name
+      end if;
+      select any temp from instances of Z_Template where ( selected.name == file_val.value );
+      select many var_refs from instances of VariableReference where ( selected.parent_name == temp.registry_name and
+                                                                       selected.parent_package == temp.registry_package and
+                                                                       selected.body_name == temp.name );
+      select many required_vars related by var_refs->Variable[R782];
+      var_list = "";
+      sep = "";
+      select any last_var from instances of Variable where false;
+      select any current_var from instances of Variable where false;
+      i = 0;
+      while ( i < cardinality required_vars )
+        for each required_var in required_vars
+          if ( ( empty last_var or last_var.name < required_var.name ) and ( empty current_var or required_var.name < current_var.name ) )
+            current_var = required_var;
+          end if;
+        end for;
+        if ( "self" == current_var.name )
+          var_list = var_list + sep + "this";
+        else
+          var_list = var_list + sep + current_var.name;
+        end if;
+        sep = ", ";
+        last_var = current_var;
+        select any current_var from instances of Variable where false;
+        i = i + 1;
+      end while;
+      // create new expression to create a symbol table
+      create object instance named_expr of NamedReference;
+      relate named_expr to param_expr across R776;
+      named_expr.name = "new SymbolTable(" + var_list + ")";
       // add to the affected files list
       file = ::getFileForInvocable( invocable:invocable );
       affected_files = affected_files | file;
-    end if;
+      ::addStringToImports( file:file, s:"io.ciera.template.util.SymbolTable", type:ImportType::IMPL );
+    end for;
   end if;
 end for;
 
@@ -637,7 +665,7 @@ if ( empty next_buffer_element )  // if this blob is the last element in the buf
   end if;
 end if;
 
-// escape single quotes
+// escape double quotes
 search_string = blob_string;
 blob_string = "";
 quote_index = STR::indexof( haystack:search_string, needle:STR::quote() );
@@ -645,7 +673,7 @@ while ( -1 != quote_index )
   prefix = STR::substr( s:search_string, begin:0, end:quote_index );
   suffix = STR::substr( s:search_string, begin:quote_index, end:-1 );
   blob_string = blob_string + prefix + "\\" + STR::quote();
-  search_string = STR::substr( s:search_string, begin:1, end:-1 );
+  search_string = STR::substr( s:suffix, begin:1, end:-1 );
   quote_index = STR::indexof( haystack:search_string, needle:STR::quote() );
 end while;
 blob_string = blob_string + search_string;

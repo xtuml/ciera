@@ -54,8 +54,6 @@ UserInitializationCalloutf( void )
 void
 UserPreOoaInitializationCalloutf( void )
 {
-  static char * a[2] = { "UserPreOoaInitializationCalloutf", "gen/code_generation/b.xtuml" };
-  Escher_xtUML_load( 2, a );
 }
 
 /*

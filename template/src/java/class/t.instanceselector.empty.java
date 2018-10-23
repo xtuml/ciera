@@ -12,7 +12,7 @@ T_b("\n");
 T_b("        ");
 T_b("return (new ");
 T_b(type_name);
-T_b("Impl()).toImmutableSet();");
+T_b("Impl());");
 T_b("\n");
 T_b("    ");
 T_b("}");

@@ -101,17 +101,12 @@ INSERT INTO S_SYNC
 
 LOG::LogInfo( message:"Translating..." );
 
-// insert template buffer handling
-LOG::LogInfo( message:"  Inserting template hooks..." );
-//::resolveTemplateHooks();
-LOG::LogInfo( message:"  done." );
-LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
-
 // translate templates package
 LOG::LogInfo( message:"  Processing RSL templates..." );
 select any template_dir_mark from instances of Mark where ( selected.markable_name == "*"
                                                             and selected.path == "*"
                                                             and selected.feature_name == "TemplateDir" );
+
 if ( not_empty template_dir_mark )
   TU::process_templates( root_folder:template_dir_mark.value );
 end if;
@@ -121,6 +116,12 @@ LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
 // transform template registries
 LOG::LogInfo( message:"  Translating template registries..." );
 ::transformTemplateRegistries();
+LOG::LogInfo( message:"  done." );
+LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
+
+// insert template symbol table hooks
+LOG::LogInfo( message:"  Inserting template hooks..." );
+::resolveTemplateHooks();
 LOG::LogInfo( message:"  done." );
 LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
 

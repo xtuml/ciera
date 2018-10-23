@@ -53,3 +53,12 @@ LOG_LogTime( c_t * p_message, Escher_TimeStamp_t p_t )
 {
   if ( LOG_EnableTracing ) fprintf( stderr, "-- %s %lu.%03lus\n", p_message, p_t / 1000, p_t % 1000 );
 }
+
+/*
+ * Bridge:  LogInteger
+ */
+void
+LOG_LogInteger( i_t p_message )
+{
+  if ( LOG_EnableTracing) fprintf( stderr, "-- %d\n", p_message );
+}

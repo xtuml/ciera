@@ -25,4 +25,9 @@ ${selectors}
         return this;
     }
 
+    @Override
+    public List<${self.class_name}> elements() {
+        return Arrays.asList(toArray(new ${self.class_name}[0]));
+    }
+
 }
