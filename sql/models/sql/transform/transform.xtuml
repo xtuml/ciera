@@ -150,6 +150,7 @@ INSERT INTO S_SYNC
 	'',
 	'obj = param.obj;
 pop_loader = param.pop_loader;
+select one pe related by obj->O_OBJ[R409]->PE_PE[R8001];
 
 // create the loader
 create object instance inst_loader of Z_InstanceLoader;
@@ -159,11 +160,17 @@ inst_loader.class_package = obj.package;
 inst_loader.class_key_letters = obj.key_letters;
 
 // create the serializer
-create object instance inst_serializer of Z_InstanceSerializer;
-relate pop_loader to inst_serializer across R3001;
-inst_serializer.class_name = obj.name;
-inst_serializer.class_package = obj.package;
-inst_serializer.class_key_letters = obj.key_letters;
+select any inst_serializer from instances of Z_InstanceSerializer where false;
+select any do_not_serialize_mark from instances of Mark where ( selected.markable_name == "Package" and
+                                                                selected.path == ::containerMarkingPath( pe:pe ) and
+                                                                selected.feature_name == "DoNotSerialize" );
+if ( empty do_not_serialize_mark )
+  create object instance inst_serializer of Z_InstanceSerializer;
+  relate pop_loader to inst_serializer across R3001;
+  inst_serializer.class_name = obj.name;
+  inst_serializer.class_package = obj.package;
+  inst_serializer.class_key_letters = obj.key_letters;
+end if;
 
 // create attribute loaders and serializers
 index = 0;
@@ -180,7 +187,7 @@ while ( not_empty attribute )
   select any non_persistent_mark from instances of Mark where ( selected.markable_name == "Attribute" and
                                                                 selected.path == marking_path and
                                                                 selected.feature_name == "NonPersistent" );
-  if ( empty non_persistent_mark )
+  if ( empty non_persistent_mark and not_empty inst_serializer )
     ::transformAttributeSerializer( attr:attribute, inst_serializer:inst_serializer, prev_attr_serializer:prev_attr_serializer );
     select any prev_attr_serializer related by inst_serializer->Z_AttributeSerializer[R3002] where ( selected.attr_name == attribute.name );
   end if;
