@@ -73,8 +73,8 @@ public class TEMPImpl<C extends IComponent<C>> extends Utility<C> implements TEM
                 out.print( buffers.peek() );
                 out.flush();
                 out.close();
-                if ( preExists ) System.out.printf( "File '%s' REPLACED.\n", file );
-                else System.out.printf( "File '%s' CREATED.\n", file );
+                if ( preExists ) System.out.printf( "FILE:   %s REPLACED.\n", file );
+                else System.out.printf( "FILE:   %s CREATED.\n", file );
             } catch ( IOException e ) {
                 throw new XtumlException( "Could not open output file." );
             }
