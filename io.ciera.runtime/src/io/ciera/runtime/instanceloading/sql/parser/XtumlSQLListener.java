@@ -1,16 +1,12 @@
-package io.ciera.instanceloading.sql.parser;
+package io.ciera.runtime.instanceloading.sql.parser;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 import io.ciera.runtime.summit.util.ProgressBar;
-import io.ciera.instanceloading.IPopulationLoader;
-import io.ciera.sql.parser.SQLBaseListener;
-import io.ciera.sql.parser.SQLParser.Insert_statementContext;
-import io.ciera.sql.parser.SQLParser.Sql_fileContext;
-import io.ciera.sql.parser.SQLParser.Table_nameContext;
-import io.ciera.sql.parser.SQLParser.ValueContext;
+import io.ciera.runtime.instanceloading.IPopulationLoader;
+import io.ciera.runtime.instanceloading.sql.parser.SQLParser.*;
 import io.ciera.summit.exceptions.XtumlException;
 
 public class XtumlSQLListener extends SQLBaseListener {

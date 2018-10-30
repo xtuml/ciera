@@ -1,4 +1,4 @@
-package io.ciera.instanceloading.sql.util.impl;
+package io.ciera.runtime.instanceloading.sql.util.impl;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -13,12 +13,12 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
 import io.ciera.runtime.summit.util.Utility;
-import io.ciera.instanceloading.sql.parser.XtumlSQLListener;
-import io.ciera.instanceloading.IPopulationLoader;
-import io.ciera.instanceloading.sql.util.SQL;
-import io.ciera.sql.parser.SQLLexer;
-import io.ciera.sql.parser.SQLParser;
-import io.ciera.sql.parser.SQLParser.Sql_fileContext;
+import io.ciera.runtime.instanceloading.IPopulationLoader;
+import io.ciera.runtime.instanceloading.sql.parser.SQLLexer;
+import io.ciera.runtime.instanceloading.sql.parser.SQLParser;
+import io.ciera.runtime.instanceloading.sql.parser.SQLParser.Sql_fileContext;
+import io.ciera.runtime.instanceloading.sql.parser.XtumlSQLListener;
+import io.ciera.runtime.instanceloading.sql.util.SQL;
 import io.ciera.summit.components.IComponent;
 import io.ciera.summit.exceptions.InstancePopulationException;
 import io.ciera.summit.exceptions.XtumlException;

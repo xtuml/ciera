@@ -1,7 +1,7 @@
 grammar SQL;
 
 @header {
-package io.ciera.sql.parser;
+package io.ciera.runtime.instanceloading.sql.parser;
 }
 
 sql_file:          ( comment )* insert_statement ( comment | insert_statement )*;

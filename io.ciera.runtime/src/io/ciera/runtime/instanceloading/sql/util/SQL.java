@@ -1,4 +1,4 @@
-package io.ciera.instanceloading.sql.util;
+package io.ciera.runtime.instanceloading.sql.util;
 
 import io.ciera.summit.exceptions.XtumlException;
 
