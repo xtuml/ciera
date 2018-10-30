@@ -436,7 +436,6 @@ select one c_po related by spr_rs->SPR_REP[R4502]->C_R[R4500]->C_IR[R4009]->C_PO
 if ( empty c_po )
   select one c_po related by spr_ps->SPR_PEP[R4503]->C_P[R4501]->C_IR[R4009]->C_PO[R4016];
 end if;
-containing_comp_def = ::getCompDefForStatement( smt:smt );
 select one target_port related by c_po->Port[R422.''is basis for''];
 select any invocable related by target_port->PortMessage[R420]->InvocableObject[R427] where ( selected.name == c_ep.Name );
 if ( not_empty invocable )
@@ -2165,7 +2164,6 @@ other_phrase = "";
 select one link_v_var related by act_ru->V_VAR[R619];
 select one link_o_obj related by link_v_var->V_INT[R814]->O_OBJ[R818];
 select one link_class related by link_o_obj->Class[R409.''is basis for''];
-select one simp related by r_rel->R_SIMP[R206];
 if ( one_o_obj.Obj_ID == other_o_obj.Obj_ID ) // reflexive linked association
   other_phrase = C_UTIL::stripTics( s:act_ru.relationship_phrase );
   select many oirs related by r_rel->R_OIR[R201] where ( C_UTIL::stripTics( s:act_ru.relationship_phrase ) != ::oirGetPhrase( r_oir_id:selected.OIR_ID ) );
@@ -2583,7 +2581,6 @@ other_phrase = "";
 select one link_v_var related by act_uru->V_VAR[R624];
 select one link_o_obj related by link_v_var->V_INT[R814]->O_OBJ[R818];
 select one link_class related by link_o_obj->Class[R409.''is basis for''];
-select one simp related by r_rel->R_SIMP[R206];
 if ( one_o_obj.Obj_ID == other_o_obj.Obj_ID ) // reflexive linked association
   other_phrase = C_UTIL::stripTics( s:act_uru.relationship_phrase );
   select many oirs related by r_rel->R_OIR[R201] where ( C_UTIL::stripTics( s:act_uru.relationship_phrase ) != ::oirGetPhrase( r_oir_id:selected.OIR_ID ) );
@@ -3229,8 +3226,6 @@ INSERT INTO S_SYNC
 	'',
 	'upper_block = param.upper_block;
 act_blk = param.act_blk;
-iter_var = param.iter_var;
-for_smt = param.for_smt;
 
 // create code block
 create object instance block of CodeBlock;

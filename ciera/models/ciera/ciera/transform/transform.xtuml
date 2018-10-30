@@ -187,7 +187,6 @@ INSERT INTO S_SYNC
 	'transformComponentDefinition',
 	'',
 	'c_c = param.c_c;
-containing_comp_def = param.containing_comp_def;
 
 if ( 1 == param.pass )
 
@@ -865,7 +864,6 @@ INSERT INTO S_SYNC
 	'transformClassSet',
 	'',
 	'obj = param.obj;
-ep_pkg = param.ep_pkg;
 
 // create the object file
 create object instance file of File;
@@ -1086,7 +1084,6 @@ select many o_objs from instances of O_OBJ;
 for each o_obj in o_objs
   select one packageableElem related by o_obj->PE_PE[R8001];
   select one pkg related by packageableElem->EP_PKG[R8000];
-  select one component related by packageableElem->C_C[R8003];
 
   // Make sure the IRDTs don''t already exist before creating new ones.  Check
   // the single and set version and create whatever does not exist.
@@ -1375,7 +1372,6 @@ INSERT INTO S_SYNC
 	'transformInterface',
 	'',
 	'c_i = param.c_i;
-select one ep_pkg related by c_i->PE_PE[R8001]->EP_PKG[R8000];
 select one iface related by c_i->Interface[R421.''is basis for''];
 if ( empty iface )
 
@@ -1512,7 +1508,6 @@ INSERT INTO S_SYNC
 	'',
 	'c_po = param.c_po;
 comp_def = param.comp_def;
-select one c_c related by c_po->C_C[R4010];
 
 // create the file
 create object instance file of File;
@@ -1621,7 +1616,6 @@ INSERT INTO S_SYNC
 	'r_rel = param.r_rel;
 containing_comp_def = param.containing_comp_def;
 select one file related by containing_comp_def->File[R401];
-select one ep_pkg related by r_rel->PE_PE[R8001]->EP_PKG[R8000];
 
 // get exclude mark
 select one pe related by r_rel->PE_PE[R8001];
@@ -2176,7 +2170,6 @@ INSERT INTO S_SYNC
 	'transformUtility',
 	'',
 	's_ee = param.s_ee;
-ep_pkg = param.ep_pkg;
 containing_comp_def = param.containing_comp_def;
 
 // create the file
@@ -2551,7 +2544,6 @@ select many act_lnks from instances of ACT_LNK;
 for each act_lnk in act_lnks
   
   select one r_rel related by act_lnk->R_REL[R681];
-  select one r_aone related by r_rel->R_ASSOC[R206]->R_AONE[R209];
   select one r_aoth related by r_rel->R_ASSOC[R206]->R_AOTH[R210];
   select one r_assr related by r_rel->R_ASSOC[R206]->R_ASSR[R211];
   select one assr_obj related by r_assr->R_RGO[R205]->R_OIR[R203]->O_OBJ[R201];
