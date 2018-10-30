@@ -5,7 +5,7 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.TreeSet;
 
-import io.ciera.cairn.util.Utility;
+import io.ciera.runtime.summit.util.Utility;
 import io.ciera.summit.components.IComponent;
 
 import io.ciera.instanceloading.sql.loader.ees.C_UTIL;

@@ -8,7 +8,7 @@ import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
-import io.ciera.cairn.util.Utility;
+import io.ciera.runtime.summit.util.Utility;
 import io.ciera.summit.components.IComponent;
 import io.ciera.template.RSL;
 import io.ciera.template.rsl.parser.RSLLexer;

@@ -1,6 +1,6 @@
 package sys.ciera.ees.impl;
 
-import io.ciera.cairn.util.Utility;
+import io.ciera.runtime.summit.util.Utility;
 import io.ciera.summit.components.IComponent;
 
 import sys.ciera.ees.STR;

@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import io.ciera.cairn.util.ProgressBar;
+import io.ciera.runtime.summit.util.ProgressBar;
 import io.ciera.instanceloading.IPopulationLoader;
 import io.ciera.sql.parser.SQLBaseListener;
 import io.ciera.sql.parser.SQLParser.Insert_statementContext;

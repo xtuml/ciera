@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.reflect.Constructor;
 import java.util.Stack;
-import io.ciera.cairn.util.Utility;
+import io.ciera.runtime.summit.util.Utility;
 import io.ciera.summit.components.IComponent;
 import io.ciera.summit.exceptions.XtumlException;
 import io.ciera.summit.types.IXtumlType;

@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
 
-import io.ciera.cairn.util.Utility;
+import io.ciera.runtime.summit.util.Utility;
 import io.ciera.summit.components.IComponent;
 
 import io.ciera.template.rsl.ooaofmarking.CSV;

@@ -5,7 +5,7 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.TreeSet;
 
-import io.ciera.cairn.util.Utility;
+import io.ciera.runtime.summit.util.Utility;
 import io.ciera.summit.components.IComponent;
 
 import io.ciera.template.rsl.ees.C_UTIL;

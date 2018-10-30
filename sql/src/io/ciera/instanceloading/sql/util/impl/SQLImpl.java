@@ -12,7 +12,7 @@ import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
-import io.ciera.cairn.util.Utility;
+import io.ciera.runtime.summit.util.Utility;
 import io.ciera.instanceloading.sql.parser.XtumlSQLListener;
 import io.ciera.instanceloading.IPopulationLoader;
 import io.ciera.instanceloading.sql.util.SQL;

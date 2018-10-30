@@ -1,6 +1,6 @@
 package io.ciera.template.rsl.ees.impl;
 
-import io.ciera.cairn.util.Utility;
+import io.ciera.runtime.summit.util.Utility;
 import io.ciera.summit.components.IComponent;
 
 import io.ciera.template.rsl.ees.STR;
