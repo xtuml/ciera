@@ -1,4 +1,4 @@
-package io.ciera.template.util;
+package io.ciera.runtime.template.util;
 
 import io.ciera.summit.exceptions.XtumlException;
 import io.ciera.summit.types.IXtumlType;

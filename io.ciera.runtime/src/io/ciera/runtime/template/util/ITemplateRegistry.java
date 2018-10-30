@@ -1,4 +1,4 @@
-package io.ciera.template.util;
+package io.ciera.runtime.template.util;
 
 public interface ITemplateRegistry {
     

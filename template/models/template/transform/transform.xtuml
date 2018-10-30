@@ -116,8 +116,8 @@ end while;
 select one comp_file related by comp_def->File[R401];
 ::addFileToImports( file:registry_file, file_to_import:comp_file, type:ImportType::IMPL );
 ::addStringToImports( file:registry_file, s:"io.ciera.summit.exceptions.XtumlException", type:ImportType::IMPL );
-::addStringToImports( file:registry_file, s:"io.ciera.template.util.SymbolTable", type:ImportType::IMPL );
-::addStringToImports( file:registry_file, s:"io.ciera.template.util.Template", type:ImportType::IMPL );',
+::addStringToImports( file:registry_file, s:"io.ciera.runtime.template.util.SymbolTable", type:ImportType::IMPL );
+::addStringToImports( file:registry_file, s:"io.ciera.runtime.template.util.Template", type:ImportType::IMPL );',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -206,7 +206,7 @@ invocs = invocs | attr_invocs;
 select many util_invocs related by comp_def->Utility[R4558]->UtilityFunction[R4559]->InvocableObject[R427];
 invocs = invocs | util_invocs;
 select many template_includes related by invocs->CodeBlock[R4000]->Statement[R450]->ExpressionAsStatement[R451]->Expression[R476]->Invocation[R776]
-  where ( selected.invoked_name == "include" and selected.invoked_parent_name == "TEMP" and selected.invoked_parent_package == "io.ciera.template.util" );
+  where ( selected.invoked_name == "include" and selected.invoked_parent_name == "TEMP" and selected.invoked_parent_package == "io.ciera.runtime.template.util" );
 for each template_include in template_includes
   select any filename_string related by template_include->ActualParameter[R793]->Expression[R794]->Literal[R776];
   if ( not_empty filename_string )
@@ -221,8 +221,8 @@ end for;
 
 // create import block
 ::addFileToImports( file:file, file_to_import:comp_def_file, type:ImportType::IMPL );
-::addStringToImports( file:file, s:"io.ciera.template.util.ITemplate", type:ImportType::IMPL );
-::addStringToImports( file:file, s:"io.ciera.template.util.ITemplateRegistry", type:ImportType::IMPL );',
+::addStringToImports( file:file, s:"io.ciera.runtime.template.util.ITemplate", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.runtime.template.util.ITemplateRegistry", type:ImportType::IMPL );',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -267,7 +267,7 @@ smt.statement_number = "1";
 smt.oal = "";
 create object instance nullsmt of NullSmt;
 relate nullsmt to smt across R451;
-select many includes from instances of Invocation where ( "TEMP" == selected.invoked_parent_name and "io.ciera.template.util" == selected.invoked_parent_package and "include" == selected.invoked_name );
+select many includes from instances of Invocation where ( "TEMP" == selected.invoked_parent_name and "io.ciera.runtime.template.util" == selected.invoked_parent_package and "include" == selected.invoked_name );
 select many act_params related by includes->ActualParameter[R793]->Expression[R794]->Literal[R776] where ( body.filename == selected.value );
 select many includes related by act_params->Expression[R776]->ActualParameter[R794]->Invocation[R793];
 select many incl_vars related by includes->Expression[R776]->Statement[R775]->CodeBlock[R450]->Variable[R458];
@@ -293,7 +293,7 @@ for each incl_var in incl_vars
 end for;
 
 // link the class context if it exists
-select many template_invocations from instances of Invocation where ( "TEMP" == selected.invoked_parent_name and "io.ciera.template.util" == selected.invoked_parent_package and "include" == selected.invoked_name );
+select many template_invocations from instances of Invocation where ( "TEMP" == selected.invoked_parent_name and "io.ciera.runtime.template.util" == selected.invoked_parent_package and "include" == selected.invoked_name );
 select any real_param related by template_invocations->ActualParameter[R793]->Expression[R794]->Literal[R776] where ( selected.value == invocable.name );
 select one template_invocable related by real_param->Expression[R776]->ActualParameter[R794]->Invocation[R793]->Expression[R776]->Statement[R775]->CodeBlock[R450]->InvocableObject[R4000];
 select one operation related by template_invocable->Operation[R427] where ( not selected.is_class_based );
@@ -507,7 +507,7 @@ for each invocable in invocables
   select one generic_invoc related by invocable->GenericInvocable[R427];
   if ( empty generic_invoc )
     select many template_invocations related by invocable->CodeBlock[R4000]->Statement[R450]->Expression[R775]->Invocation[R776] where
-      ( "TEMP" == selected.invoked_parent_name and "io.ciera.template.util" == selected.invoked_parent_package and "include" == selected.invoked_name );
+      ( "TEMP" == selected.invoked_parent_name and "io.ciera.runtime.template.util" == selected.invoked_parent_package and "include" == selected.invoked_name );
     for each template_invocation in template_invocations
       // get the symbol table parameter
       select any symtab_param related by template_invocation->ActualParameter[R793] where ( selected.param_name == "p_symbol_table" );
@@ -557,7 +557,7 @@ for each invocable in invocables
       // add to the affected files list
       file = ::getFileForInvocable( invocable:invocable );
       affected_files = affected_files | file;
-      ::addStringToImports( file:file, s:"io.ciera.template.util.SymbolTable", type:ImportType::IMPL );
+      ::addStringToImports( file:file, s:"io.ciera.runtime.template.util.SymbolTable", type:ImportType::IMPL );
     end for;
   end if;
 end for;
@@ -748,7 +748,7 @@ select one named_access related by sub_var->Y_NamedAccess[R3085];
 if ( "" != format_chars.FORMAT )
   // transform the named access
   // create an invocation to TEMP::append
-  select any invocable from instances of InvocableObject where ( "sub" == selected.name and "TEMP" == selected.parent_name and "io.ciera.template.util" == selected.parent_package );
+  select any invocable from instances of InvocableObject where ( "sub" == selected.name and "TEMP" == selected.parent_name and "io.ciera.runtime.template.util" == selected.parent_package );
   if ( empty invocable )
     // TODO bad
   end if;
@@ -853,7 +853,7 @@ INSERT INTO S_SYNC
 expr_arg = param.expr;
 
 // create an invocation to TEMP::append
-select any utility from instances of Utility where ( "TEMP" == selected.name and "io.ciera.template.util" == selected.package );
+select any utility from instances of Utility where ( "TEMP" == selected.name and "io.ciera.runtime.template.util" == selected.package );
 if ( not_empty utility )
   select any util_func related by utility->UtilityFunction[R4559] where ( selected.name == "append" );
   select one invocable related by util_func->InvocableObject[R427];
