@@ -1,0 +1,1194 @@
+-- BP 7.1.6 content: Package syschar: 3 persistence-version: 7.1.6
+
+INSERT INTO EP_PKG
+	VALUES ("d5206a58-2778-45d8-8709-df1433a1ec8b",
+	"aa743d3c-66dc-49df-a19a-ffbadf9c9d1b",
+	"aa743d3c-66dc-49df-a19a-ffbadf9c9d1b",
+	'translation_utility_functions',
+	'',
+	0);
+INSERT INTO S_SYNC
+	VALUES ("82ff71a9-5a65-4077-9c57-741e904be9d2",
+	"00000000-0000-0000-0000-000000000000",
+	'act_lnkGetMult',
+	'',
+	'act_lnk = param.act_lnk;
+mult = Mult::ONE;
+
+if ( Multiplicity::Many == act_lnk.Mult )
+  mult = Mult::MANY;
+elif ( Multiplicity::Unknown == act_lnk.Mult )
+  select one r_simp related by act_lnk->R_REL[R681]->R_SIMP[R206];
+  select one r_assoc related by act_lnk->R_REL[R681]->R_ASSOC[R206];
+  if ( not_empty r_simp or not_empty r_assoc )
+    // get base object
+    select one base_o_obj related by act_lnk->ACT_LNK[R604.''succeeds'']->O_OBJ[R678];
+    if ( empty base_o_obj )
+      select one base_o_obj related by act_lnk->ACT_SEL[R637]->V_VAL[R613]->V_IRF[R801]->V_VAR[R808]->V_INT[R814]->O_OBJ[R818];
+      if ( empty base_o_obj )
+        select one base_o_obj related by act_lnk->ACT_SEL[R637]->V_VAL[R613]->V_ISR[R801]->V_VAR[R809]->V_INS[R814]->O_OBJ[R819];
+      end if;
+    end if;
+    // get target object
+    select one target_o_obj related by act_lnk->O_OBJ[R678];
+    not_reflexive = target_o_obj.Obj_ID != base_o_obj.Obj_ID;
+    phrase = C_UTIL::stripTics( s:act_lnk.Rel_Phrase );
+    if ( not_empty r_simp )
+      select one r_form related by r_simp->R_FORM[R208];
+      if ( not_empty r_form and r_form.Mult == 1 and r_form.Obj_ID == target_o_obj.Obj_ID and ( not_reflexive or phrase == r_form.Txt_Phrs ) ) // target is simple formalizer and is many
+        mult = Mult::MANY;
+      else
+        select any r_part related by r_simp->R_PART[R207] where
+          ( selected.Mult == 1 and selected.Obj_ID == target_o_obj.Obj_ID and ( not_reflexive or phrase == selected.Txt_Phrs ) ); // target is simple participant and is many
+        if ( not_empty r_part )
+          mult = Mult::MANY;
+        end if;
+      end if;
+    else
+      select one r_aone related by r_assoc->R_AONE[R209];
+      select one r_aoth related by r_assoc->R_AOTH[R210];
+      select one r_assr related by r_assoc->R_ASSR[R211];
+      if ( r_aone.Mult == 1 and r_aone.Obj_ID == target_o_obj.Obj_ID and ( not_reflexive or phrase == r_aone.Txt_Phrs ) ) or                                          // target is associative one and is many
+         ( r_aoth.Mult == 1 and r_aoth.Obj_ID == target_o_obj.Obj_ID and ( not_reflexive or phrase == r_aoth.Txt_Phrs ) ) or                                          // target is associative other and is many
+         ( r_assr.Mult == 1 and r_assr.Obj_ID == target_o_obj.Obj_ID ) or                                                                                             // target is associative link and is many
+         ( r_aoth.Mult == 1 and r_assr.Obj_ID == target_o_obj.Obj_ID and r_aone.Obj_ID == base_o_obj.Obj_ID and ( not_reflexive or phrase == r_aoth.Txt_Phrs ) ) or   // target is associative link in the direction of other and other is many
+         ( r_aone.Mult == 1 and r_assr.Obj_ID == target_o_obj.Obj_ID and r_aoth.Obj_ID == base_o_obj.Obj_ID and ( not_reflexive or phrase == r_aone.Txt_Phrs ) )      // target is associative link in the direction of one and one is many
+        mult = Mult::MANY;
+      end if;
+    end if;
+  end if;
+end if;
+
+return mult;',
+	"8774ba5f-d952-424f-a26a-4815240d9ec8",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("e4d5b451-4f5a-4f00-a4c0-08935659957f",
+	"82ff71a9-5a65-4077-9c57-741e904be9d2",
+	'act_lnk',
+	"bcbe8755-e8ea-4d2b-9f81-529c5437c084",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("bcbe8755-e8ea-4d2b-9f81-529c5437c084",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Chain Link>',
+	'',
+	'',
+	'../../../../mcooa/models/mcooa/ooaofooa/Selection/Selection.xtuml');
+INSERT INTO PE_PE
+	VALUES ("82ff71a9-5a65-4077-9c57-741e904be9d2",
+	1,
+	"d5206a58-2778-45d8-8709-df1433a1ec8b",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_DT_PROXY
+	VALUES ("8774ba5f-d952-424f-a26a-4815240d9ec8",
+	"00000000-0000-0000-0000-000000000000",
+	'Mult',
+	'',
+	'',
+	'../types/types.xtuml');
+INSERT INTO S_SYNC
+	VALUES ("d0733648-9836-4379-b7ef-68fcc95525ed",
+	"00000000-0000-0000-0000-000000000000",
+	'addFileToImports',
+	'',
+	'file_to_import = param.file_to_import;
+import_string = ::pathToPackage( path:file_to_import.path ) + "." + file_to_import.name;
+::addStringToImports( file:param.file, s:import_string, type:param.type );',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("aaa471c7-bd47-4667-be7c-ff90b7dcb4d5",
+	"d0733648-9836-4379-b7ef-68fcc95525ed",
+	'file',
+	"7f1815c6-b9da-4371-acbc-8297d9eaecf4",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("7f1815c6-b9da-4371-acbc-8297d9eaecf4",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<File>',
+	'',
+	'',
+	'../architecture/file/file.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("0eef6e6e-81bc-4ce7-9d7a-b503eefa8798",
+	"d0733648-9836-4379-b7ef-68fcc95525ed",
+	'file_to_import',
+	"7f1815c6-b9da-4371-acbc-8297d9eaecf4",
+	0,
+	'',
+	"aaa471c7-bd47-4667-be7c-ff90b7dcb4d5",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("0a3c3005-ce43-4a5b-a1fb-48fbac0e6df0",
+	"d0733648-9836-4379-b7ef-68fcc95525ed",
+	'type',
+	"a65c34a3-dd47-4b91-a991-7859d23a011d",
+	0,
+	'',
+	"0eef6e6e-81bc-4ce7-9d7a-b503eefa8798",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("a65c34a3-dd47-4b91-a991-7859d23a011d",
+	"00000000-0000-0000-0000-000000000000",
+	'ImportType',
+	'',
+	'',
+	'../types/types.xtuml');
+INSERT INTO PE_PE
+	VALUES ("d0733648-9836-4379-b7ef-68fcc95525ed",
+	1,
+	"d5206a58-2778-45d8-8709-df1433a1ec8b",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("49579968-b04f-46b4-ba50-bf728e3af7d3",
+	"00000000-0000-0000-0000-000000000000",
+	'addStringToImports',
+	'',
+	'file = param.file;
+if ( "" != param.s )
+  select any import_ref related by file->TypeImportReference[R402] where ( selected.fully_qualified_name == param.s and selected.type == param.type );
+  if ( empty import_ref )
+    type_import = TypeImport::get_import( import:param.s );
+    create object instance import_ref of TypeImportReference;
+    import_ref.type = param.type;
+    relate type_import to file across R402 using import_ref;
+  end if;
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("2155c21b-efa5-406f-b00a-a6d60840a65b",
+	"49579968-b04f-46b4-ba50-bf728e3af7d3",
+	'file',
+	"7f1815c6-b9da-4371-acbc-8297d9eaecf4",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("f5433b57-172e-486b-80e4-665e37a94ead",
+	"49579968-b04f-46b4-ba50-bf728e3af7d3",
+	's',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"2155c21b-efa5-406f-b00a-a6d60840a65b",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("66eff752-b3f3-4a73-88ff-85eb12366f0a",
+	"49579968-b04f-46b4-ba50-bf728e3af7d3",
+	'type',
+	"a65c34a3-dd47-4b91-a991-7859d23a011d",
+	0,
+	'',
+	"f5433b57-172e-486b-80e4-665e37a94ead",
+	'');
+INSERT INTO PE_PE
+	VALUES ("49579968-b04f-46b4-ba50-bf728e3af7d3",
+	1,
+	"d5206a58-2778-45d8-8709-df1433a1ec8b",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("162f2e83-94c6-451a-9ad2-352e766e73e8",
+	"00000000-0000-0000-0000-000000000000",
+	'addTypeToImports',
+	'',
+	'type_to_import = param.type_to_import;
+if ( not type_to_import.primitive() and "" != type_to_import.package )
+  ::addStringToImports( file:param.file, s:type_to_import.package + "." + type_to_import.name, type:param.type );
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("719fce02-4df7-4c04-a62d-f38a47987da8",
+	"162f2e83-94c6-451a-9ad2-352e766e73e8",
+	'file',
+	"7f1815c6-b9da-4371-acbc-8297d9eaecf4",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("7764f857-10e7-4706-aaea-3896b5b13404",
+	"162f2e83-94c6-451a-9ad2-352e766e73e8",
+	'type_to_import',
+	"be784cfe-3f8b-4e25-b183-484885b71173",
+	0,
+	'',
+	"719fce02-4df7-4c04-a62d-f38a47987da8",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("be784cfe-3f8b-4e25-b183-484885b71173",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Type>',
+	'',
+	'',
+	'../architecture/type/type.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("620e116c-5fda-4408-b4cc-714635ce18d6",
+	"162f2e83-94c6-451a-9ad2-352e766e73e8",
+	'type',
+	"a65c34a3-dd47-4b91-a991-7859d23a011d",
+	0,
+	'',
+	"7764f857-10e7-4706-aaea-3896b5b13404",
+	'');
+INSERT INTO PE_PE
+	VALUES ("162f2e83-94c6-451a-9ad2-352e766e73e8",
+	1,
+	"d5206a58-2778-45d8-8709-df1433a1ec8b",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("660c3b6a-240e-4ddc-860f-bff76ad7ce82",
+	"00000000-0000-0000-0000-000000000000",
+	'c_cToPath',
+	'',
+	'c_c = param.c_c;
+path = ::formatPath( path:TEMP::sub( format:"l", s:TEMP::sub( format:"r", s:c_c.Name ) ) );
+select one containing_ep_pkg related by c_c->PE_PE[R8001]->EP_PKG[R8000];
+if ( not_empty containing_ep_pkg )
+  path = ::ep_pkgToPath( ep_pkg:containing_ep_pkg ) + "/" + path;
+else
+  select one containing_c_c related by c_c->PE_PE[R8001]->C_C[R8003];
+  if ( not_empty containing_c_c )
+    path = ::c_cToPath( c_c:containing_c_c ) + "/" + path;
+  end if;
+end if;
+return path;',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("d522e7e2-873d-4c04-94fd-b502a837d202",
+	"660c3b6a-240e-4ddc-860f-bff76ad7ce82",
+	'c_c',
+	"67f93d18-1045-4c6c-b0d5-a692023c471c",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("67f93d18-1045-4c6c-b0d5-a692023c471c",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Component>',
+	'',
+	'',
+	'../../../../mcooa/models/mcooa/ooaofooa/Component/Component.xtuml');
+INSERT INTO PE_PE
+	VALUES ("660c3b6a-240e-4ddc-860f-bff76ad7ce82",
+	1,
+	"d5206a58-2778-45d8-8709-df1433a1ec8b",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("4b19aac7-77a1-4981-8162-12e7ed4294ca",
+	"00000000-0000-0000-0000-000000000000",
+	'camelCaseName',
+	'',
+	'name = param.name;
+underscore_index = STRING::indexof( haystack:name, needle:"_" );
+while ( -1 != underscore_index )
+  left = STRING::substr( s:name, begin:0, end:underscore_index );
+  right = STRING::substr( s:name, begin:underscore_index + 1, end:-1 );
+  name = left + "  " + right;
+  underscore_index = STRING::indexof( haystack:name, needle:"_" );
+end while;
+name = TEMP::sub( format:"c", s:name );
+dblspc_index = STRING::indexof( haystack:name, needle:"  " );
+while ( -1 != dblspc_index )
+  left = STRING::substr( s:name, begin:0, end:dblspc_index );
+  right = STRING::substr( s:name, begin:dblspc_index + 1, end:-1 );
+  name = left + "_" + right;
+  dblspc_index = STRING::indexof( haystack:name, needle:"  " );
+end while;
+return TEMP::sub( format:"r", s:name );
+// TODO make sure already camel cased does not get destroyed',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("6296b238-80a9-44d9-b2b1-712322304e11",
+	"4b19aac7-77a1-4981-8162-12e7ed4294ca",
+	'name',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("4cb3481b-5134-42da-a025-d620b531e423",
+	"4b19aac7-77a1-4981-8162-12e7ed4294ca",
+	'start_lower',
+	"ba5eda7a-def5-0000-0000-000000000001",
+	0,
+	'',
+	"6296b238-80a9-44d9-b2b1-712322304e11",
+	'');
+INSERT INTO PE_PE
+	VALUES ("4b19aac7-77a1-4981-8162-12e7ed4294ca",
+	1,
+	"d5206a58-2778-45d8-8709-df1433a1ec8b",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("7c4f0508-468e-4362-b0b8-3808a156ae21",
+	"00000000-0000-0000-0000-000000000000",
+	'containerMarkingPath',
+	'',
+	'pe = param.pe;
+path = "";
+select one ep_pkg related by pe->EP_PKG[R8000];
+if ( not_empty ep_pkg )
+  path = ep_pkg.Name;
+else
+  select one c_c related by pe->C_C[R8003];
+  if ( not_empty c_c )
+    path = c_c.Name;
+  end if;
+end if;
+select one containing_pe related by pe->EP_PKG[R8000]->PE_PE[R8001];
+if ( empty containing_pe )
+  select one containing_pe related by pe->C_C[R8003]->PE_PE[R8001];
+end if;
+if ( not_empty containing_pe )
+  return ::containerMarkingPath( pe:containing_pe ) + "::" + path;
+else
+  return path;
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("6cb2728d-c0fe-4572-9da1-964ab90860fb",
+	"7c4f0508-468e-4362-b0b8-3808a156ae21",
+	'pe',
+	"e988e223-9ca4-4b6f-a675-001eefe3aa24",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("e988e223-9ca4-4b6f-a675-001eefe3aa24",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Packageable Element>',
+	'',
+	'',
+	'../../../../mcooa/models/mcooa/ooaofooa/Packageable Element/Packageable Element.xtuml');
+INSERT INTO PE_PE
+	VALUES ("7c4f0508-468e-4362-b0b8-3808a156ae21",
+	1,
+	"d5206a58-2778-45d8-8709-df1433a1ec8b",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("c1bee65b-55b3-403a-a966-52a06b39eec3",
+	"00000000-0000-0000-0000-000000000000",
+	'ep_pkgToPath',
+	'',
+	'ep_pkg = param.ep_pkg;
+path = ::formatPath( path:TEMP::sub( format:"l", s:TEMP::sub( format:"r", s:ep_pkg.Name ) ) );
+select one containing_ep_pkg related by ep_pkg->PE_PE[R8001]->EP_PKG[R8000];
+if ( not_empty containing_ep_pkg )
+  path = ::ep_pkgToPath( ep_pkg:containing_ep_pkg ) + "/" + path;
+else
+  select one containing_c_c related by ep_pkg->PE_PE[R8001]->C_C[R8003];
+  if ( not_empty containing_c_c )
+    path = ::c_cToPath( c_c:containing_c_c ) + "/" + path;
+  end if;
+end if;
+return path;',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("955cbaed-dd1b-4ae2-b52c-fd7ad24ab209",
+	"c1bee65b-55b3-403a-a966-52a06b39eec3",
+	'ep_pkg',
+	"9939c670-a721-4742-a824-ed4b0df4acd6",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("9939c670-a721-4742-a824-ed4b0df4acd6",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Package>',
+	'',
+	'',
+	'../../../../mcooa/models/mcooa/ooaofooa/Element Packaging/Element Packaging.xtuml');
+INSERT INTO PE_PE
+	VALUES ("c1bee65b-55b3-403a-a966-52a06b39eec3",
+	1,
+	"d5206a58-2778-45d8-8709-df1433a1ec8b",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("d181f10e-9a5d-43b3-8ab3-06c374630a74",
+	"00000000-0000-0000-0000-000000000000",
+	'formatPath',
+	'',
+	's = param.path;
+dot_index = STRING::indexof( haystack:s, needle:"." );
+while ( -1 != dot_index )
+  left = STRING::substr( s:s, begin:0, end:dot_index );
+  right = STRING::substr( s:s, begin:dot_index + 1, end:-1 );
+  s = left + "/" + right;
+  dot_index = STRING::indexof( haystack:s, needle:"." );
+end while;
+return s;',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("a7dbccb6-ca2d-4a6c-a6eb-87bf92312aed",
+	"d181f10e-9a5d-43b3-8ab3-06c374630a74",
+	'path',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO PE_PE
+	VALUES ("d181f10e-9a5d-43b3-8ab3-06c374630a74",
+	1,
+	"d5206a58-2778-45d8-8709-df1433a1ec8b",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("89a40086-3ef8-4bcd-a3a3-5cbca296cf99",
+	"00000000-0000-0000-0000-000000000000",
+	'getFileForInvocable',
+	'',
+	'invocable = param.invocable;
+select one file related by invocable->Function[R427]->ComponentDefinition[R405]->File[R401];
+if ( empty file )
+  select one file related by invocable->PortMessage[R427]->Port[R420]->File[R401];
+  if ( empty file )
+    select one file related by invocable->Operation[R427]->Class[R416]->File[R401];
+    if ( empty file )
+      select one file related by invocable->AttributeDerivation[R427]->AttributeAccessor[R441]->Attribute[R4510]->Class[R410]->File[R401];
+      if ( empty file )
+        select one file related by invocable->UtilityFunction[R427]->Utility[R4559]->File[R401];
+      end if;
+    end if;
+  end if;
+end if;
+return file;',
+	"7f1815c6-b9da-4371-acbc-8297d9eaecf4",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("a613809f-8679-4b3e-8c75-d29e93d5be09",
+	"89a40086-3ef8-4bcd-a3a3-5cbca296cf99",
+	'invocable',
+	"30c7a5ba-c6d9-44fd-8e61-f22cde8fdc41",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("30c7a5ba-c6d9-44fd-8e61-f22cde8fdc41",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Invocable Object>',
+	'',
+	'',
+	'../architecture/invocable/invocable.xtuml');
+INSERT INTO PE_PE
+	VALUES ("89a40086-3ef8-4bcd-a3a3-5cbca296cf99",
+	1,
+	"d5206a58-2778-45d8-8709-df1433a1ec8b",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("2c1a674a-88dd-489a-882a-e24c97b10e6a",
+	"00000000-0000-0000-0000-000000000000",
+	'getFileForStatement',
+	'',
+	'smt = param.smt;
+select one invocable related by smt->CodeBlock[R450]->InvocableObject[R4000];
+return ::getFileForInvocable( invocable:invocable );',
+	"7f1815c6-b9da-4371-acbc-8297d9eaecf4",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("9d9ddead-01b3-4380-a810-e7614e06c815",
+	"2c1a674a-88dd-489a-882a-e24c97b10e6a",
+	'smt',
+	"056a9b55-7c4c-45a4-a684-ea45fce8fa86",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("056a9b55-7c4c-45a4-a684-ea45fce8fa86",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Statement>',
+	'',
+	'',
+	'../architecture/statement/statement.xtuml');
+INSERT INTO PE_PE
+	VALUES ("2c1a674a-88dd-489a-882a-e24c97b10e6a",
+	1,
+	"d5206a58-2778-45d8-8709-df1433a1ec8b",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("281663ea-b6a4-4c7c-be08-eea8fe41f2f3",
+	"00000000-0000-0000-0000-000000000000",
+	'getIndent',
+	'',
+	'select any tab_width_mark from instances of Mark where ( selected.markable_name == "*" and selected.path == "*" and selected.feature_name == "TabWidth" );
+indent = "";
+default_tab_width = 4;
+tab_width = 0;
+if ( not_empty tab_width_mark )
+  tab_width = STRING::atoi( s:tab_width_mark.value );
+else
+  tab_width = default_tab_width;
+end if;
+i = 0;
+while ( i < param.tab_depth )
+  j = 0;
+  while ( j < tab_width )
+    indent = indent + " ";
+    j = j + 1;
+  end while;
+  i = i + 1;
+end while;
+return indent;',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("7e32ad80-1800-44eb-ae53-af8677d76d3e",
+	"281663ea-b6a4-4c7c-be08-eea8fe41f2f3",
+	'tab_depth',
+	"ba5eda7a-def5-0000-0000-000000000002",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO PE_PE
+	VALUES ("281663ea-b6a4-4c7c-be08-eea8fe41f2f3",
+	1,
+	"d5206a58-2778-45d8-8709-df1433a1ec8b",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("1786874d-9668-479d-8039-abe2e66fded0",
+	"00000000-0000-0000-0000-000000000000",
+	'getInstRefTypeForClass',
+	'',
+	's_dt = param.s_dt;
+o_obj = param.o_obj;
+if ( not_empty s_dt and not_empty o_obj )
+  if ( "inst_ref<Object>" == s_dt.Name )
+    select any s_irdt related by o_obj->S_IRDT[R123] where ( not selected.isSet );
+    select one s_dt related by s_irdt->S_DT[R17];
+  elif ( "inst_ref_set<Object>" == s_dt.Name )
+    select any s_irdt related by o_obj->S_IRDT[R123] where ( selected.isSet );
+    select one s_dt related by s_irdt->S_DT[R17];
+  end if;
+end if;
+return s_dt;',
+	"4a90cd45-ece0-4e72-afe7-44996f9d7e1e",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("4f4463e9-394c-4297-a1ff-65100f77b4ea",
+	"1786874d-9668-479d-8039-abe2e66fded0",
+	's_dt',
+	"4a90cd45-ece0-4e72-afe7-44996f9d7e1e",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("4a90cd45-ece0-4e72-afe7-44996f9d7e1e",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Data Type>',
+	'',
+	'',
+	'../../../../mcooa/models/mcooa/ooaofooa/Domain/Domain.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("553acc1e-aeec-412a-b04b-c9ecae90619a",
+	"1786874d-9668-479d-8039-abe2e66fded0",
+	'o_obj',
+	"63f4ff99-f127-443b-a678-30ace41da702",
+	0,
+	'',
+	"4f4463e9-394c-4297-a1ff-65100f77b4ea",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("63f4ff99-f127-443b-a678-30ace41da702",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Model Class>',
+	'',
+	'',
+	'../../../../mcooa/models/mcooa/ooaofooa/Subsystem/Subsystem.xtuml');
+INSERT INTO PE_PE
+	VALUES ("1786874d-9668-479d-8039-abe2e66fded0",
+	1,
+	"d5206a58-2778-45d8-8709-df1433a1ec8b",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("b8ef8991-3f3e-4c19-8ac0-d82f11eaf4ea",
+	"00000000-0000-0000-0000-000000000000",
+	'getNextBlockNumber',
+	'',
+	'upper_block = param.upper_block;
+
+select many then_blocks related by upper_block->Statement[R450]->IfSmt[R451]->CodeBlock[R453];
+select many else_blocks related by upper_block->Statement[R450]->IfSmt[R451]->CodeBlock[R454];
+select many while_blocks related by upper_block->Statement[R450]->WhileSmt[R451]->CodeBlock[R456];
+select many for_blocks related by upper_block->Statement[R450]->ForSmt[R451]->CodeBlock[R455];
+
+child_blocks = then_blocks + else_blocks + while_blocks + for_blocks;
+
+// find the most recent child block
+block_number = "0";
+int_block_number = 0;
+if ( not_empty child_blocks )
+  for each child_block in child_blocks
+    child_block_number = STRING::atoi( s:STRING::substr( s:child_block.block_number, begin:STRING::strlen( s:upper_block.block_number ) + 1, end:-1 ) );
+    if ( child_block_number > int_block_number )
+      int_block_number = child_block_number;
+    end if;
+  end for;
+  // increment
+  block_number = upper_block.block_number + "." + STRING::itoa( i:int_block_number + 1 );
+else
+  block_number = upper_block.block_number + ".1";;
+end if;
+
+return block_number;',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("94b1a26e-535f-4f90-a431-94bcf0c04601",
+	"b8ef8991-3f3e-4c19-8ac0-d82f11eaf4ea",
+	'upper_block',
+	"e2eb4f67-ca2b-42ab-accf-5a2b475f8933",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("e2eb4f67-ca2b-42ab-accf-5a2b475f8933",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Code Block>',
+	'',
+	'',
+	'../architecture/invocable/invocable.xtuml');
+INSERT INTO PE_PE
+	VALUES ("b8ef8991-3f3e-4c19-8ac0-d82f11eaf4ea",
+	1,
+	"d5206a58-2778-45d8-8709-df1433a1ec8b",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("9132af2f-09f4-420c-bfd9-0e50f0f98c86",
+	"00000000-0000-0000-0000-000000000000",
+	'getOalStatement',
+	'',
+	'// TODO this routine assumes a statement is only one line long
+
+body = param.body;
+line_num = param.line_num;
+
+i = 0;
+line = "";
+while ( i < line_num )
+  end_of_line = STRING::indexof( haystack:body, needle:"\n" );
+  if ( -1 != end_of_line )
+    line = STRING::substr( s:body, begin:0, end:end_of_line );
+    body = STRING::substr( s:body, begin:end_of_line+1, end:-1 );
+  else
+    line = body;
+    break;
+  end if;
+  i = i + 1;
+end while;
+
+return STRING::trim( s:line );',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("22c3561f-225d-48e7-bea7-ce40f4c478be",
+	"9132af2f-09f4-420c-bfd9-0e50f0f98c86",
+	'body',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("0682b5a1-1b7b-4181-9108-8404f9cc95b8",
+	"9132af2f-09f4-420c-bfd9-0e50f0f98c86",
+	'line_num',
+	"ba5eda7a-def5-0000-0000-000000000002",
+	0,
+	'',
+	"22c3561f-225d-48e7-bea7-ce40f4c478be",
+	'');
+INSERT INTO PE_PE
+	VALUES ("9132af2f-09f4-420c-bfd9-0e50f0f98c86",
+	1,
+	"d5206a58-2778-45d8-8709-df1433a1ec8b",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("b6aeee60-b869-4a70-8148-dbec60d9e329",
+	"00000000-0000-0000-0000-000000000000",
+	'getUDTCoreType',
+	'',
+	's_udt = param.s_udt;
+select any s_dt from instances of S_DT where false;
+if ( not_empty s_udt )
+  select one s_dt related by s_udt->S_DT[R18];
+  select one base_udt related by s_dt->S_UDT[R17];
+  if ( not_empty base_udt )
+    return ::getUDTCoreType( s_udt:base_udt );
+  end if;
+end if;
+return s_dt;',
+	"4a90cd45-ece0-4e72-afe7-44996f9d7e1e",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("187b0e34-262a-4c08-ab88-9e3ee7421b3e",
+	"b6aeee60-b869-4a70-8148-dbec60d9e329",
+	's_udt',
+	"587d8963-4757-4426-bc18-b235bcbd7937",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("587d8963-4757-4426-bc18-b235bcbd7937",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<User Data Type>',
+	'',
+	'',
+	'../../../../mcooa/models/mcooa/ooaofooa/Domain/Domain.xtuml');
+INSERT INTO PE_PE
+	VALUES ("b6aeee60-b869-4a70-8148-dbec60d9e329",
+	1,
+	"d5206a58-2778-45d8-8709-df1433a1ec8b",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("bd7a793c-4825-452c-91f0-26cfb285940b",
+	"00000000-0000-0000-0000-000000000000",
+	'oirGetPhrase',
+	'',
+	'select any r_oir from instances of R_OIR where ( selected.OIR_ID == param.r_oir_id );
+phrase = "";
+select one r_part related by r_oir->R_RTO[R203]->R_PART[R204];
+if ( not_empty r_part )
+  phrase = r_part.Txt_Phrs;
+else
+select one r_form related by r_oir->R_RGO[R203]->R_FORM[R205];
+if ( not_empty r_form )
+  phrase = r_form.Txt_Phrs;
+else
+select one r_aone related by r_oir->R_RTO[R203]->R_AONE[R204];
+if ( not_empty r_aone )
+  phrase = r_aone.Txt_Phrs;
+else
+select one r_aoth related by r_oir->R_RTO[R203]->R_AOTH[R204];
+if ( not_empty r_aoth )
+  phrase = r_aoth.Txt_Phrs;
+else
+select one r_sub related by r_oir->R_RGO[R203]->R_SUB[R205];
+select one r_super related by r_oir->R_RTO[R203]->R_SUPER[R204];
+if ( not_empty r_sub or not_empty r_super )
+  phrase = "is_a";
+end if; end if; end if; end if; end if;
+return phrase;',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("6150a4c9-4a07-4b41-a46a-1a164da9e12e",
+	"bd7a793c-4825-452c-91f0-26cfb285940b",
+	'r_oir_id',
+	"ba5eda7a-def5-0000-0000-000000000005",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO PE_PE
+	VALUES ("bd7a793c-4825-452c-91f0-26cfb285940b",
+	1,
+	"d5206a58-2778-45d8-8709-df1433a1ec8b",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("0679ca99-f570-420b-996d-86ae8b02bc27",
+	"00000000-0000-0000-0000-000000000000",
+	'pathToPackage',
+	'',
+	's = param.path;
+slash_index = STRING::indexof( haystack:s, needle:"/" );
+while ( -1 != slash_index )
+  left = STRING::substr( s:s, begin:0, end:slash_index );
+  right = STRING::substr( s:s, begin:slash_index + 1, end:-1 );
+  s = left + "." + right;
+  slash_index = STRING::indexof( haystack:s, needle:"/" );
+end while;
+return s;',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("03cc42ca-7996-474f-b777-76875625396a",
+	"0679ca99-f570-420b-996d-86ae8b02bc27",
+	'path',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO PE_PE
+	VALUES ("0679ca99-f570-420b-996d-86ae8b02bc27",
+	1,
+	"d5206a58-2778-45d8-8709-df1433a1ec8b",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("04aa1478-0516-43e5-9b58-99575ffe2503",
+	"00000000-0000-0000-0000-000000000000",
+	'precedenceCheck',
+	'',
+	'// returns < 0 if op1 is lower precedence than op2
+// returns > 0 if op1 is greater precedence than op2
+// returns 0 if op1 is the same precedence than op2
+
+// | Operator Precedence                                              |        |
+// | Operator(s)                   | Description                      | Number |
+// |-------------------------------|----------------------------------|--------|
+// | primary expression            | atomic value                     | 7      |
+// | cardinality, empty, not_empty | instance reference and set tests | 6      |
+// | not , -                       | negation                         | 5      |
+// | * , / , % , & , ^             | multiplicative operation         | 4      |
+// | + , - , |                     | additive operation               | 3      |
+// | == , != , < , > , <= , >=     | comparison operation             | 2      |
+// | and                           | logical conjunction              | 1      |
+// | or                            | logical disjunction              | 0      |
+
+
+val1 = param.val1;
+val2 = param.val2;
+
+prec1 = 7;
+prec2 = 7;
+
+i = 0;
+while i < 2
+  prec = 7;
+  val = val1;
+  if ( i != 0 )
+    val = val2;
+  end if;
+  select one v_uny related by val->V_UNY[R801];
+  if ( not_empty v_uny )
+    if ( ( "cardinality" == TEMP::sub( format:"l", s:v_uny.Operator ) ) or ( "empty" == TEMP::sub( format:"l", s:v_uny.Operator ) ) or ( "not_empty" == TEMP::sub( format:"l", s:v_uny.Operator ) ) )
+      prec = 6;
+    elif ( ( "not" == TEMP::sub( format:"l", s:v_uny.Operator ) ) or ( "-" == v_uny.Operator ) or ( "+" == v_uny.Operator ) )
+      prec = 5;
+    end if;
+  else
+    select one v_bin related by val->V_BIN[R801];
+    if ( not_empty v_bin )
+      if ( ( "*" == v_bin.Operator ) or ( "/" == v_bin.Operator ) or ( "%" == v_bin.Operator ) or ( "&" == v_bin.Operator ) or ( "^" == v_bin.Operator ) )
+        prec = 4;
+      elif ( ( "+" == v_bin.Operator ) or ( "-" == v_bin.Operator ) or ( "|" == v_bin.Operator ) )
+        prec = 3;
+      elif ( ( "==" == v_bin.Operator ) or ( "!=" == v_bin.Operator ) or ( "<" == v_bin.Operator ) or ( ">" == v_bin.Operator ) or ( "<=" == v_bin.Operator ) or ( ">=" == v_bin.Operator ) )
+        prec = 2;
+      elif ( "and" == TEMP::sub( format:"l", s:v_bin.Operator ) )
+        prec = 1;
+      elif ( "or" == TEMP::sub( format:"l", s:v_bin.Operator ) )
+        prec = 0;
+      end if;
+    end if;
+  end if;
+  if ( i == 0 )
+    prec1 = prec;
+  else
+    prec2 = prec;
+  end if;
+  i = i + 1;
+end while;
+
+return prec1 - prec2;',
+	"ba5eda7a-def5-0000-0000-000000000002",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("48eb4888-4583-400d-bc78-13b6bd16acbc",
+	"04aa1478-0516-43e5-9b58-99575ffe2503",
+	'val1',
+	"5400d269-ee31-4742-ac70-8532512a854c",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("5400d269-ee31-4742-ac70-8532512a854c",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Value>',
+	'',
+	'',
+	'../../../../mcooa/models/mcooa/ooaofooa/Value/Value.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("4c3c028c-d597-414c-9bae-8751992a5828",
+	"04aa1478-0516-43e5-9b58-99575ffe2503",
+	'val2',
+	"5400d269-ee31-4742-ac70-8532512a854c",
+	0,
+	'',
+	"48eb4888-4583-400d-bc78-13b6bd16acbc",
+	'');
+INSERT INTO PE_PE
+	VALUES ("04aa1478-0516-43e5-9b58-99575ffe2503",
+	1,
+	"d5206a58-2778-45d8-8709-df1433a1ec8b",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("374735e9-e3fb-457d-865b-50b60aeffd42",
+	"00000000-0000-0000-0000-000000000000",
+	'r_rel_is_formal',
+	'',
+	'r_rel = param.r_rel;
+select one simp related by r_rel->R_SIMP[R206];
+if ( not_empty simp )
+  select one form related by simp->R_FORM[R208];
+  if ( not_empty form )
+    return true;
+  end if;
+else
+  select one assoc related by r_rel->R_ASSOC[R206];
+  if ( not_empty assoc )
+    select one rto1 related by assoc->R_AONE[R209]->R_RTO[R204];
+    select any rtida1 related by rto1->O_RTIDA[R110];
+    select one rto2 related by assoc->R_AOTH[R210]->R_RTO[R204];
+    select any rtida2 related by rto2->O_RTIDA[R110];
+    return not_empty rtida1 and not_empty rtida2;
+  else
+    select one subsup related by r_rel->R_SUBSUP[R206];
+    if ( not_empty subsup )
+      select one rto related by subsup->R_SUPER[R212]->R_RTO[R204];
+      select any rtida related by rto->O_RTIDA[R110];
+      return not_empty rtida;
+    end if;
+  end if;
+end if;
+return false;',
+	"ba5eda7a-def5-0000-0000-000000000001",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("43f00e03-9bde-454c-8e63-67b595f63a2b",
+	"374735e9-e3fb-457d-865b-50b60aeffd42",
+	'r_rel',
+	"4480b008-8c74-4f57-9256-08b7365520bc",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("4480b008-8c74-4f57-9256-08b7365520bc",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Association>',
+	'',
+	'',
+	'../../../../mcooa/models/mcooa/ooaofooa/Association/Association.xtuml');
+INSERT INTO PE_PE
+	VALUES ("374735e9-e3fb-457d-865b-50b60aeffd42",
+	1,
+	"d5206a58-2778-45d8-8709-df1433a1ec8b",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("1bc82540-83b4-46ac-b28b-0a5d0066e729",
+	"00000000-0000-0000-0000-000000000000",
+	'r_rel_is_reflexive',
+	'',
+	'r_rel = param.r_rel;
+select one srel related by r_rel->R_SIMP[R206];
+if ( not_empty srel )
+  select many part_set related by srel->R_PART[R207];
+  if ( cardinality part_set > 1 )
+    select any part1 related by srel->R_PART[R207];
+    select any part2 related by srel->R_PART[R207]
+      where selected.OIR_ID != part1.OIR_ID;
+    if ( part1.Obj_ID == part2.Obj_ID )
+      return true;
+    end if;
+  else
+    select any part related by srel->R_PART[R207];
+    select one form related by srel->R_FORM[R208];
+    if ( not_empty form )
+      if ( part.Obj_ID == form.Obj_ID )
+        return true;
+      end if;
+    end if;
+  end if;
+else
+  select one arel related by r_rel->R_ASSOC[R206];
+  if ( not_empty arel )
+    select one aone related by arel->R_AONE[R209];
+    select one aoth related by arel->R_AOTH[R210];
+    if ( aone.Obj_ID == aoth.Obj_ID )
+      return true;
+    end if;
+  end if;
+end if;
+return false;',
+	"ba5eda7a-def5-0000-0000-000000000001",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("e6edb875-f0ea-4580-9921-3d4c564d494c",
+	"1bc82540-83b4-46ac-b28b-0a5d0066e729",
+	'r_rel',
+	"4480b008-8c74-4f57-9256-08b7365520bc",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO PE_PE
+	VALUES ("1bc82540-83b4-46ac-b28b-0a5d0066e729",
+	1,
+	"d5206a58-2778-45d8-8709-df1433a1ec8b",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("117c6875-9939-4573-b13c-f90ed487cfd8",
+	"00000000-0000-0000-0000-000000000000",
+	's_dtIsBuiltin',
+	'',
+	's_dt = param.s_dt;
+// builtin types have not containing package or component
+select one c_c related by s_dt->PE_PE[R8001]->C_C[R8003];
+select one ep_pkg related by s_dt->PE_PE[R8001]->EP_PKG[R8000];
+return ( empty c_c and empty ep_pkg );',
+	"ba5eda7a-def5-0000-0000-000000000001",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("0da30121-0e2f-4ea1-9356-65a24fe73c14",
+	"117c6875-9939-4573-b13c-f90ed487cfd8",
+	's_dt',
+	"4a90cd45-ece0-4e72-afe7-44996f9d7e1e",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO PE_PE
+	VALUES ("117c6875-9939-4573-b13c-f90ed487cfd8",
+	1,
+	"d5206a58-2778-45d8-8709-df1433a1ec8b",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("b41f0da7-cd47-4698-8840-16636811335b",
+	"00000000-0000-0000-0000-000000000000",
+	'load_marks',
+	'',
+	'ciera = CIERA::getDefaultInstance();
+if ( "" != ciera.projectroot )
+  i = 0; values[7] = "";
+  while ( i < 8 )
+  values[i] = "                                                                                                                                                                                          ";
+  i = i + 1;
+  end while;
+  LOG::LogInfo( message:"Loading marking data." );
+  Feature::load( filename:ciera.projectroot + "/gen/features.mark", values:values );
+  Mark::load( filename:ciera.projectroot + "/gen/application.mark", values:values );
+else
+  LOG::LogInfo( message:"No project root specified." );
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO PE_PE
+	VALUES ("b41f0da7-cd47-4698-8840-16636811335b",
+	1,
+	"d5206a58-2778-45d8-8709-df1433a1ec8b",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("94062aa2-e0d3-49e4-8cbc-54a86c7f852d",
+	"00000000-0000-0000-0000-000000000000",
+	'preprocess',
+	'',
+	'LOG::LogInfo( message:"Preprocessing..." );
+
+// load project marks
+::load_marks();',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO PE_PE
+	VALUES ("94062aa2-e0d3-49e4-8cbc-54a86c7f852d",
+	1,
+	"d5206a58-2778-45d8-8709-df1433a1ec8b",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO PE_PE
+	VALUES ("d5206a58-2778-45d8-8709-df1433a1ec8b",
+	1,
+	"00000000-0000-0000-0000-000000000000",
+	"00000000-0000-0000-0000-000000000000",
+	7);
+INSERT INTO S_SYS_PROXY
+	VALUES ("aa743d3c-66dc-49df-a19a-ffbadf9c9d1b",
+	'io.ciera.tool.core',
+	1,
+	'../io.ciera.tool.core.xtuml');

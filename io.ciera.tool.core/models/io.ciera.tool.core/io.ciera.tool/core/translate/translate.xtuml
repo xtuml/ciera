@@ -1,0 +1,185 @@
+-- BP 7.1.6 content: Package syschar: 3 persistence-version: 7.1.6
+
+INSERT INTO EP_PKG
+	VALUES ("31b0e4a2-8c73-4aa3-bf8d-222857cb313c",
+	"00000000-0000-0000-0000-000000000000",
+	"aa743d3c-66dc-49df-a19a-ffbadf9c9d1b",
+	'translate',
+	'',
+	0);
+INSERT INTO GD_MD
+	VALUES ("c5737d01-c20a-4eec-8c6a-584c5af47e65",
+	112,
+	"31b0e4a2-8c73-4aa3-bf8d-222857cb313c",
+	108,
+	0,
+	0,
+	1,
+	1,
+	1,
+	12,
+	1,
+	0,
+	0,
+	0,
+	0,
+	0,
+	'',
+	'io.ciera.tool.core::io.ciera.tool::core::translate');
+INSERT INTO DIM_DIA
+	VALUES ("c5737d01-c20a-4eec-8c6a-584c5af47e65",
+	'',
+	1.000000,
+	0.000000,
+	0.000000,
+	"00000000-0000-0000-0000-000000000000");
+INSERT INTO S_SYNC
+	VALUES ("315f6471-d74a-4e9b-bfd4-4e2244aa0ef9",
+	"00000000-0000-0000-0000-000000000000",
+	'translate',
+	'',
+	'start_time = TIM::current_clock();
+
+LOG::LogInfo( message:"Translating..." );
+
+// static analysis tasks
+
+// resolve direct selections across associative relationships
+LOG::LogInfo( message:"  Resolving associative selections..." );
+::resolveAssociativeSelections();
+LOG::LogInfo( message:"  done." );
+LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
+
+// translate builtin types
+LOG::LogInfo( message:"  Translating buitlin types..." );
+::transformBuiltinTypes();
+LOG::LogInfo( message:"  done." );
+LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
+
+// assure all classes have IRDTs
+LOG::LogInfo( message:"  Publishing IRDTs..." );
+::transformInstanceReferenceTypes();
+LOG::LogInfo( message:"  done." );
+LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
+
+// translate root package
+LOG::LogInfo( message:"  Translating application package..." );
+select any root_package_mark from instances of Mark where ( selected.markable_name == "*"
+                                                            and selected.path == "*"
+                                                            and selected.feature_name == "RootPackage" );
+if ( not_empty root_package_mark )
+  select any root_package from instances of EP_PKG where ( selected.Name == root_package_mark.value );
+  if ( not_empty root_package )
+    ::transformApplication( root_package:root_package, path: ::ep_pkgToPath( ep_pkg:root_package ) );
+  else
+    LOG::LogInfo( message:"No root package found" );
+  end if;
+else
+  LOG::LogInfo( message:"No root package specified" );
+end if;
+LOG::LogInfo( message:"  done." );
+LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
+
+// resolve types
+LOG::LogInfo( message:"  Resolving type references..." );
+::resolveTypeImports();
+LOG::LogInfo( message:"  done." );
+LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
+
+// resolve user defined types
+LOG::LogInfo( message:"  Resolving user defined types..." );
+::resolveUserDefinedTypes();
+LOG::LogInfo( message:"  done." );
+LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
+
+// translate bodies
+LOG::LogInfo( message:"  Translating OAL bodies..." );
+select many invocables from instances of InvocableObject;
+for each invocable in invocables
+  LOG::LogInfo( message:"  Translating ''" + invocable.parent_package + "." + invocable.parent_name + "#" + invocable.name + "'' ..." );
+  ::transformBody( invocable:invocable );
+end for;
+LOG::LogInfo( message:"  done." );
+LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
+
+// render all files
+LOG::LogInfo( message:"  Rendering application..." );
+select many files from instances of File;
+for each file in files
+  if ( not file.exclude )
+    file.render();
+  end if;
+end for;
+LOG::LogInfo( message:"  done." );
+LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
+
+LOG::LogInfo( message:"Done." );
+
+elapsed_time = TIM::current_clock() - start_time;
+LOG::LogTime( message:"Elapsed time:", t:elapsed_time );',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO PE_PE
+	VALUES ("315f6471-d74a-4e9b-bfd4-4e2244aa0ef9",
+	1,
+	"31b0e4a2-8c73-4aa3-bf8d-222857cb313c",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("37478494-1c0a-4a87-891c-8fa95a6fd995",
+	"00000000-0000-0000-0000-000000000000",
+	'init',
+	'',
+	'// load up instances
+SQL::load_file( file:"gen/code_generation/a.xtuml" );
+
+// set up command line options
+CMD::register_value( name:"i", value_name:"dir", usage:"base working directory", default:".", required:true );
+CMD::read_command_line();
+
+// preprocess
+CIERA::setprojectroot( value:CMD::get_value( name:"i" ) );
+::preprocess();
+
+// translate
+::translate();
+
+// dump instances
+SQL::serialize_file( file:"gen/code_generation/b.xtuml" );
+
+// exit
+control stop;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO PE_PE
+	VALUES ("37478494-1c0a-4a87-891c-8fa95a6fd995",
+	1,
+	"31b0e4a2-8c73-4aa3-bf8d-222857cb313c",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO PE_PE
+	VALUES ("31b0e4a2-8c73-4aa3-bf8d-222857cb313c",
+	1,
+	"00000000-0000-0000-0000-000000000000",
+	"762538d5-7ee0-4565-a534-726c7536db0e",
+	7);
+INSERT INTO C_C_PROXY
+	VALUES ("762538d5-7ee0-4565-a534-726c7536db0e",
+	"00000000-0000-0000-0000-000000000000",
+	"00000000-0000-0000-0000-000000000000",
+	'core',
+	'',
+	0,
+	"00000000-0000-0000-0000-000000000000",
+	0,
+	'',
+	'../core.xtuml');
+INSERT INTO S_SYS_PROXY
+	VALUES ("aa743d3c-66dc-49df-a19a-ffbadf9c9d1b",
+	'io.ciera.tool.core',
+	1,
+	'../../../io.ciera.tool.core.xtuml');

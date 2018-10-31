@@ -1,0 +1,2727 @@
+-- BP 7.1.6 content: Package syschar: 3 persistence-version: 7.1.6
+
+INSERT INTO EP_PKG
+	VALUES ("06787f13-1c16-4275-879c-00bbeee7cb88",
+	"aa743d3c-66dc-49df-a19a-ffbadf9c9d1b",
+	"aa743d3c-66dc-49df-a19a-ffbadf9c9d1b",
+	'transform',
+	'',
+	0);
+INSERT INTO S_SYNC
+	VALUES ("86c4c157-03cd-481b-a5ed-c7c91b1ad36e",
+	"00000000-0000-0000-0000-000000000000",
+	'transformApplication',
+	'',
+	'root_package = param.root_package;
+select one s_sys related by root_package->S_SYS[R1405];
+
+// get application marks
+select any app_name_mark from instances of Mark where ( selected.markable_name == "*" and selected.path == "*" and selected.feature_name == "ApplicationName" );
+select any app_pkg_mark from instances of Mark where ( selected.markable_name == "*" and selected.path == "*" and selected.feature_name == "ApplicationPackage" );
+
+// create the file
+create object instance file of File;
+if ( not_empty app_name_mark )
+  file.name = app_name_mark.value;
+else
+  file.name = ::camelCaseName( name:s_sys.Name, start_lower:false ) + "Application";
+end if;
+if ( not_empty app_pkg_mark )
+  file.package = app_pkg_mark.value;
+  file.path = ::formatPath( path:file.package );
+else
+  file.path = TEMP::sub( format:"l", s:TEMP::sub( format:"r", s:s_sys.Name ) );
+  file.package = ::pathToPackage( path:file.path );
+end if;
+file.extension = ".java";
+file.exclude = false;
+
+// create the application object
+create object instance app of Application;
+relate app to file across R401;
+
+// create application executors
+index = 0;
+while ( index < 1 ) // single executor for now
+  create object instance executor of ApplicationExecutor;
+  executor.index = index;
+  relate executor to app across R4027;
+  index = index + 1;
+end while;
+
+// create the import block
+::addStringToImports( file:file, s:"io.ciera.runtime.summit.application.ApplicationExecutor", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.runtime.summit.application.tasks.GenericExecutionTask", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.runtime.summit.application.IApplication", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.runtime.summit.application.IRunContext", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.runtime.summit.components.IComponent", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL );
+
+// translate components definitions
+select many c_cs related by root_package->PE_PE[R8000]->C_C[R8001];
+select many cl_ics related by root_package->PE_PE[R8000]->CL_IC[R8001]->C_C[R4201];
+c_cs = c_cs | cl_ics;
+select any empty_comp_def from instances of ComponentDefinition where false;
+select any current_comp_inst from instances of ComponentInstantiation where false;
+for each c_c in c_cs
+  select any comp_def from instances of ComponentDefinition where ( selected.name == ::camelCaseName( name:c_c.Name, start_lower:false ) );
+  if ( empty comp_def )
+    ::transformComponentDefinition( c_c:c_c, containing_comp_def:empty_comp_def, path:param.path, pass:1 );
+    ::transformComponentDefinition( c_c:c_c, containing_comp_def:empty_comp_def, path:param.path, pass:2 );
+    ::transformComponentDefinition( c_c:c_c, containing_comp_def:empty_comp_def, path:param.path, pass:3 );
+    select any comp_def from instances of ComponentDefinition where ( selected.name == ::camelCaseName( name:c_c.Name, start_lower:false ) );
+  end if;
+  create object instance comp_inst of ComponentInstantiation;
+  relate  comp_def to app across R426 using comp_inst;
+  select one comp_def_file related by comp_def->File[R401];
+  ::addFileToImports( file:file, file_to_import:comp_def_file, type:ImportType::IMPL );
+  select any executor from instances of ApplicationExecutor where ( selected.index == 0 );  // single executor for now
+  relate executor to comp_inst across R4028;
+  if ( not_empty current_comp_inst )
+    relate comp_inst to current_comp_inst across R4029.''follows'';
+    comp_inst.index = current_comp_inst.index + 1;
+  else
+    comp_inst.index = 0;
+  end if;
+  current_comp_inst = comp_inst;
+end for;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("6b6c262c-3690-4123-b000-38fb9cc04e80",
+	"86c4c157-03cd-481b-a5ed-c7c91b1ad36e",
+	'root_package',
+	"9939c670-a721-4742-a824-ed4b0df4acd6",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("9939c670-a721-4742-a824-ed4b0df4acd6",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Package>',
+	'',
+	'',
+	'../../../../mcooa/models/mcooa/ooaofooa/Element Packaging/Element Packaging.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("3f6c7555-b604-4d78-a329-f859ff004ed4",
+	"86c4c157-03cd-481b-a5ed-c7c91b1ad36e",
+	'path',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"6b6c262c-3690-4123-b000-38fb9cc04e80",
+	'');
+INSERT INTO PE_PE
+	VALUES ("86c4c157-03cd-481b-a5ed-c7c91b1ad36e",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("a77051bc-22a5-45fc-a0ba-6e4ceeaa7802",
+	"00000000-0000-0000-0000-000000000000",
+	'transformComponentDefinition',
+	'',
+	'c_c = param.c_c;
+
+if ( 1 == param.pass )
+
+  // create the file
+  create object instance file of File;
+  file.name = ::camelCaseName( name:c_c.Name, start_lower:false );
+  file.path = param.path;
+  file.package = ::pathToPackage( path:file.path );
+  file.extension = ".java";
+  file.exclude = false;
+
+  // create the component definition object
+  create object instance comp_def of ComponentDefinition;
+  relate comp_def to file across R401;
+  comp_def.extends = "Component<" + comp_def.name + ">";
+  relate c_c to comp_def across R4573;
+
+  // transform ports
+  select many c_pos related by c_c->C_PO[R4010];
+  for each c_po in c_pos
+    ::transformPort( c_po:c_po, comp_def:comp_def, path:file.path + "/" + TEMP::sub( format:"l", s:c_c.Name ) );
+  end for;
+
+  // transform inner packages
+  select many ep_pkgs related by c_c->PE_PE[R8003]->EP_PKG[R8001];
+  for each ep_pkg in ep_pkgs
+    ::transformPackage( ep_pkg:ep_pkg, containing_comp_def:comp_def, path:file.path + "/" + TEMP::sub( format:"l", s:c_c.Name ), pass:param.pass );
+  end for;
+
+  // transform inner components
+  select many inner_c_cs related by c_c->PE_PE[R8003]->C_C[R8001];
+  for each inner_c_c in inner_c_cs
+    ::transformComponentDefinition( c_c:inner_c_c, containing_comp_def:comp_def, path:file.path + "/" + TEMP::sub( format:"l", s:c_c.Name ), pass:1 );
+    ::transformComponentDefinition( c_c:inner_c_c, containing_comp_def:comp_def, path:file.path + "/" + TEMP::sub( format:"l", s:c_c.Name ), pass:2 );
+    ::transformComponentDefinition( c_c:inner_c_c, containing_comp_def:comp_def, path:file.path + "/" + TEMP::sub( format:"l", s:c_c.Name ), pass:3 );
+  end for;
+
+  // transform instance population selectors
+  select many objs related by comp_def->Class[R408];
+  for each obj in objs
+    create object instance inst_pop_selector of InstancePopulationSelector;
+    inst_pop_selector.name = obj.name + "_instances";
+    relate inst_pop_selector to comp_def across R447;
+    relate inst_pop_selector to obj across R449;
+  end for;
+
+  // create import block
+  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.components.Component", type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.application.IRunContext", type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.classes.IModelInstance", type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL );
+
+elif ( 2 == param.pass )
+
+  select any file from instances of File where ( selected.name == ::camelCaseName( name:c_c.Name, start_lower:false ) and selected.package == ::pathToPackage( path:param.path ) );
+  select one comp_def related by file->ComponentDefinition[R401];
+
+  // transform inner packages
+  select many ep_pkgs related by c_c->PE_PE[R8003]->EP_PKG[R8001];
+  for each ep_pkg in ep_pkgs
+    ::transformPackage( ep_pkg:ep_pkg, containing_comp_def:comp_def, path:file.path + "/" + TEMP::sub( format:"l", s:c_c.Name ), pass:param.pass );
+  end for;
+
+else
+
+  select any file from instances of File where ( selected.name == ::camelCaseName( name:c_c.Name, start_lower:false ) and selected.package == ::pathToPackage( path:param.path ) );
+  select one comp_def related by file->ComponentDefinition[R401];
+
+  // transform inner packages
+  select many ep_pkgs related by c_c->PE_PE[R8003]->EP_PKG[R8001];
+  for each ep_pkg in ep_pkgs
+    ::transformPackage( ep_pkg:ep_pkg, containing_comp_def:comp_def, path:file.path + "/" + TEMP::sub( format:"l", s:c_c.Name ), pass:param.pass );
+  end for;
+
+  // transform relationship population selectors
+  select many rels related by comp_def->Relationship[R448];
+  for each rel in rels
+    create object instance rel_pop_selector of RelationshipPopulationSelector;
+    rel_pop_selector.name = rel.name + "s";
+    relate rel_pop_selector to comp_def across R4571;
+    relate rel_pop_selector to rel across R4572;
+  end for;
+  
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("9e250ca1-996f-471c-9f10-bb5ad2591f03",
+	"a77051bc-22a5-45fc-a0ba-6e4ceeaa7802",
+	'c_c',
+	"67f93d18-1045-4c6c-b0d5-a692023c471c",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("67f93d18-1045-4c6c-b0d5-a692023c471c",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Component>',
+	'',
+	'',
+	'../../../../mcooa/models/mcooa/ooaofooa/Component/Component.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("35145c47-5490-4738-a0b2-7e513f9ed71c",
+	"a77051bc-22a5-45fc-a0ba-6e4ceeaa7802",
+	'containing_comp_def',
+	"1fef1559-c5b6-4eb7-a9c4-8b126b9b51a0",
+	0,
+	'',
+	"9e250ca1-996f-471c-9f10-bb5ad2591f03",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("1fef1559-c5b6-4eb7-a9c4-8b126b9b51a0",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Component Definition>',
+	'',
+	'',
+	'../architecture/component/component.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("339de843-5314-4e62-a1ea-25f8e95de699",
+	"a77051bc-22a5-45fc-a0ba-6e4ceeaa7802",
+	'path',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"35145c47-5490-4738-a0b2-7e513f9ed71c",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("066e5021-8977-4091-b68e-2a3948e3cf46",
+	"a77051bc-22a5-45fc-a0ba-6e4ceeaa7802",
+	'pass',
+	"ba5eda7a-def5-0000-0000-000000000002",
+	0,
+	'',
+	"339de843-5314-4e62-a1ea-25f8e95de699",
+	'');
+INSERT INTO PE_PE
+	VALUES ("a77051bc-22a5-45fc-a0ba-6e4ceeaa7802",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("1c26da85-1e78-4183-88ca-60811dc084db",
+	"00000000-0000-0000-0000-000000000000",
+	'transformPackage',
+	'',
+	'ep_pkg = param.ep_pkg;
+path = param.path;
+
+if ( 1 == param.pass )
+
+  // see if this is a package reference
+  select one referred_ep_pkg related by ep_pkg->EP_PKG[R1402.''refers to''];
+  if ( not_empty referred_ep_pkg )
+    ep_pkg = referred_ep_pkg;
+  end if;
+  containing_comp_def = param.containing_comp_def;
+  select many pe_pes related by ep_pkg->PE_PE[R8000];
+
+  // transform functions
+  select many s_syncs related by pe_pes->S_SYNC[R8001];
+  for each s_sync in s_syncs
+    ::transformFunction( s_sync:s_sync, comp_def:containing_comp_def );
+  end for;
+
+  // transform constants
+
+  // transform datatypes
+  select many edts related by pe_pes->S_DT[R8001]->S_EDT[R17]->S_DT[R17];
+  for each edt in edts
+    ::transformEnumeratedType( s_dt:edt );
+  end for;
+  
+  select many udts related by pe_pes->S_DT[R8001]->S_UDT[R17]->S_DT[R17];
+  for each udt in udts
+    ::transformUserDefinedType( s_dt:udt );
+  end for;
+
+  // transform EEs
+  select many s_ees related by pe_pes->S_EE[R8001];
+  for each s_ee in s_ees
+    ::transformUtility( s_ee:s_ee, ep_pkg:ep_pkg, containing_comp_def:containing_comp_def, exclude:false, path:path + "/" + TEMP::sub( format:"rl", s:ep_pkg.Name ) );
+  end for;
+
+  // transform classes
+  select many o_objs related by pe_pes->O_OBJ[R8001];
+  for each o_obj in o_objs
+    ::transformClass( o_obj:o_obj, containing_comp_def:containing_comp_def, path:path + "/" + TEMP::sub( format:"rl", s:ep_pkg.Name ) );
+  end for;
+
+  // transform components
+  select many c_cs related by pe_pes->C_C[R8001];
+  for each c_c in c_cs
+    ::transformComponentDefinition( c_c:c_c, containing_comp_def:containing_comp_def, path:path + "/" + TEMP::sub( format:"rl", s:ep_pkg.Name ), pass:1 );
+    ::transformComponentDefinition( c_c:c_c, containing_comp_def:containing_comp_def, path:path + "/" + TEMP::sub( format:"rl", s:ep_pkg.Name ), pass:2 );
+    ::transformComponentDefinition( c_c:c_c, containing_comp_def:containing_comp_def, path:path + "/" + TEMP::sub( format:"rl", s:ep_pkg.Name ), pass:3 );
+  end for;
+
+  // transform packages
+  select many inner_ep_pkgs related by pe_pes->EP_PKG[R8001];
+  for each inner_ep_pkg in inner_ep_pkgs
+    ::transformPackage( ep_pkg:inner_ep_pkg, containing_comp_def:containing_comp_def, path:path + "/" + TEMP::sub( format:"rl", s:ep_pkg.Name ), pass:param.pass );
+  end for;
+
+elif ( 2 == param.pass )
+
+  // see if this is a package reference
+  select one referred_ep_pkg related by ep_pkg->EP_PKG[R1402.''refers to''];
+  if ( not_empty referred_ep_pkg )
+    ep_pkg = referred_ep_pkg;
+  end if;
+  containing_comp_def = param.containing_comp_def;
+  select many pe_pes related by ep_pkg->PE_PE[R8000];
+
+  // transform associations
+  select many r_rels related by pe_pes->R_REL[R8001];
+  for each r_rel in r_rels
+    ::transformAssociation( r_rel:r_rel, containing_comp_def:containing_comp_def );
+  end for;
+
+  // transform packages
+  select many inner_ep_pkgs related by pe_pes->EP_PKG[R8001];
+  for each inner_ep_pkg in inner_ep_pkgs
+    ::transformPackage( ep_pkg:inner_ep_pkg, containing_comp_def:containing_comp_def, path:path + "/" + TEMP::sub( format:"rl", s:ep_pkg.Name ), pass:param.pass );
+  end for;
+  
+else
+
+  // see if this is a package reference
+  select one referred_ep_pkg related by ep_pkg->EP_PKG[R1402.''refers to''];
+  if ( not_empty referred_ep_pkg )
+    ep_pkg = referred_ep_pkg;
+  end if;
+  containing_comp_def = param.containing_comp_def;
+  select many pe_pes related by ep_pkg->PE_PE[R8000];
+
+  // transform selectors
+  select many o_objs related by pe_pes->O_OBJ[R8001];
+  select many objs related by o_objs->Class[R409];
+  for each obj in objs
+    ::transformSelectors( obj:obj );
+  end for;
+
+  // transform attribute references
+  select many o_objs related by pe_pes->O_OBJ[R8001];
+  select many objs related by o_objs->Class[R409];
+  for each obj in objs
+    ::transformAttributeReferences( obj:obj );
+  end for;
+
+  // transform packages
+  select many inner_ep_pkgs related by pe_pes->EP_PKG[R8001];
+  for each inner_ep_pkg in inner_ep_pkgs
+    ::transformPackage( ep_pkg:inner_ep_pkg, containing_comp_def:containing_comp_def, path:path + "/" + TEMP::sub( format:"rl", s:ep_pkg.Name ), pass:param.pass );
+  end for;
+
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("e05335a1-ada2-43dd-bdb1-f29837aff1fc",
+	"1c26da85-1e78-4183-88ca-60811dc084db",
+	'ep_pkg',
+	"9939c670-a721-4742-a824-ed4b0df4acd6",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("0ca0ea7b-7e27-4164-8c8f-51956eba948a",
+	"1c26da85-1e78-4183-88ca-60811dc084db",
+	'containing_comp_def',
+	"1fef1559-c5b6-4eb7-a9c4-8b126b9b51a0",
+	0,
+	'',
+	"e05335a1-ada2-43dd-bdb1-f29837aff1fc",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("4787f035-98e2-4c37-bf7d-99b5f69be179",
+	"1c26da85-1e78-4183-88ca-60811dc084db",
+	'path',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"0ca0ea7b-7e27-4164-8c8f-51956eba948a",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("62e875fa-2c95-46e0-a336-810edead7d02",
+	"1c26da85-1e78-4183-88ca-60811dc084db",
+	'pass',
+	"ba5eda7a-def5-0000-0000-000000000002",
+	0,
+	'',
+	"4787f035-98e2-4c37-bf7d-99b5f69be179",
+	'');
+INSERT INTO PE_PE
+	VALUES ("1c26da85-1e78-4183-88ca-60811dc084db",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("4372e9ec-b226-4bdc-9219-9427ca71b423",
+	"00000000-0000-0000-0000-000000000000",
+	'transformFunction',
+	'',
+	's_sync = param.s_sync;
+comp_def = param.comp_def;
+
+// create function object
+create object instance func of Function;
+relate func to comp_def across R405;
+
+// create invocable
+create object instance invocable of InvocableObject;
+invocable.name = s_sync.Name;
+invocable.parent_name = comp_def.name;
+invocable.parent_package = comp_def.package;
+relate func to invocable across R427;
+invocable.oal = s_sync.Action_Semantics_internal;
+
+// link type
+select one s_dt related by s_sync->S_DT[R25];
+select many s_dims related by s_sync->S_DIM[R51];
+type = TypeReference::getInstance( s_dt:s_dt, s_dims:s_dims );
+relate type to invocable across R428;
+
+// create parameters
+select any s_sparm related by s_sync->S_SPARM[R24];
+prev_s_sparm = s_sparm;
+// select first parameter
+while ( not_empty prev_s_sparm )
+  s_sparm = prev_s_sparm;
+  select one prev_s_sparm related by s_sparm->S_SPARM[R54.''succeeds''];
+end while;
+while ( not_empty s_sparm )
+  // create parameter
+  create object instance parm of FormalParameter;
+  parm.name = "p_" + s_sparm.Name;
+  parm.by_ref = ( 1 == s_sparm.By_Ref );
+  select one parm_dt related by s_sparm->S_DT[R26];
+  select many s_dims related by s_sparm->S_DIM[R52];
+  parm_type = TypeReference::getInstance( s_dt:parm_dt, s_dims:s_dims );
+  relate parm_type to parm across R431;
+  ::linkParameter( invocable:invocable, parameter:parm );
+  select one s_sparm related by s_sparm->S_SPARM[R54.''precedes''];
+end while;
+
+// see if this is an initializer function
+select one c_c related by comp_def->C_C[R4573];
+select one c_c_pe related by c_c->PE_PE[R8001];
+select any init_function_mark from instances of Mark where ( selected.markable_name == "Component" and
+                                                             selected.path == ::containerMarkingPath( pe:c_c_pe ) + "::" + c_c.Name and
+                                                             selected.feature_name == "InitFunction" );
+if ( not_empty init_function_mark and func.name == init_function_mark.value )
+  select any s_sparm related by s_sync->S_SPARM[R24];
+  if ( empty s_sparm )
+    select one init_function related by comp_def->Function[R4561];
+    if ( empty init_function )
+      relate func to comp_def across R4561;
+    else
+      // TODO bad
+    end if;
+  else
+    // TODO bad
+  end if;
+end if;
+
+// relate the body
+select one act_act related by s_sync->ACT_FNB[R695]->ACT_ACT[R698];
+if ( not_empty act_act )
+  relate act_act to invocable across R432;
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("20dcc580-c900-4c37-9db9-c96b57ce0c7a",
+	"4372e9ec-b226-4bdc-9219-9427ca71b423",
+	's_sync',
+	"60690409-5a69-45db-896b-5a63a9103c18",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("60690409-5a69-45db-896b-5a63a9103c18",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Function>',
+	'',
+	'',
+	'../../../../mcooa/models/mcooa/ooaofooa/Domain/Domain.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("30cff3bd-5277-4221-8d57-b94d725a461b",
+	"4372e9ec-b226-4bdc-9219-9427ca71b423",
+	'comp_def',
+	"1fef1559-c5b6-4eb7-a9c4-8b126b9b51a0",
+	0,
+	'',
+	"20dcc580-c900-4c37-9db9-c96b57ce0c7a",
+	'');
+INSERT INTO PE_PE
+	VALUES ("4372e9ec-b226-4bdc-9219-9427ca71b423",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("26bcd5a8-82fd-48ba-8dfc-40a65ebfd881",
+	"00000000-0000-0000-0000-000000000000",
+	'transformBuiltinTypes',
+	'',
+	'select many s_dts from instances of S_DT;
+for each s_dt in s_dts
+
+  if ( ::s_dtIsBuiltin( s_dt:s_dt ) )
+
+    type_name = "";
+    type_package = "";
+    type_primitive = false;
+    type_unique = false;
+    type_inst = false;
+    type_instset = false;
+    type_default_value = "";
+    if ( "boolean" == s_dt.Name )
+      type_name = "boolean";
+      type_primitive = true;
+      type_default_value = "false";
+    elif ( "component_ref" == s_dt.Name )
+      type_name = "IComponent";
+      type_package = "io.ciera.runtime.summit.components";
+      type_default_value = "null";
+    elif ( "date" == s_dt.Name )
+      type_name = "Date";
+      type_package = "io.ciera.runtime.summit.time";
+      type_default_value = "null";
+    elif ( "inst<Event>" == s_dt.Name )
+      type_name = "IEvent";
+      type_package = "io.ciera.runtime.summit.statemachine";
+      type_default_value = "null";
+    elif ( "inst_ref<Timer>" == s_dt.Name )
+      type_name = "Timer";
+      type_package = "io.ciera.runtime.summit.time";
+      type_default_value = "null";
+    elif ( "integer" == s_dt.Name )
+      type_name = "int";
+      type_primitive = true;
+      type_default_value = "0";
+    elif ( "real" == s_dt.Name )
+      type_name = "double";
+      type_primitive = true;
+      type_default_value = "0d";
+    elif ( "string" == s_dt.Name )
+      type_name = "String";
+      type_package = "";
+      type_default_value = STRING::quote() + STRING::quote();
+    elif ( "timestamp" == s_dt.Name )
+      type_name = "TimeStamp";
+      type_package = "io.ciera.runtime.summit.types";
+      type_default_value = "null";
+    elif ( "unique_id" == s_dt.Name )
+      type_name = "UniqueId";
+      type_package = "io.ciera.runtime.summit.types";
+      type_unique = true;
+      type_default_value = "new UniqueId()";
+    elif ( "void" == s_dt.Name )
+      type_name = "void";
+      type_primitive = true;
+      type_default_value = "";
+    elif ( "inst_ref_set<Object>" == s_dt.Name )
+      type_name = "IInstanceSet";
+      type_package = "io.ciera.runtime.summit.classes";
+      type_instset = true;
+      type_default_value = "null";
+    elif ( "inst_ref<Object>" == s_dt.Name )
+      type_name = "IModelInstance";
+      type_package = "io.ciera.runtime.summit.classes";
+      type_inst = true;
+      type_default_value = "null";
+    elif ( "inst_ref<Mapping>" == s_dt.Name ) // TODO
+      type_name = "InstRefMapping";
+      type_package = "io.ciera.runtime.summit.types";
+      type_default_value = "null";
+    elif ( "inst<Mapping>" == s_dt.Name ) // TODO
+      type_name = "InstMapping";
+      type_package = "io.ciera.runtime.summit.types";
+      type_default_value = "null";
+    end if;
+
+    if ( "" != type_name )
+      create object instance type of Type;
+      type.name = type_name;
+      type.package = type_package;
+      type.default_value = type_default_value;
+      type.resolve( s_dt:s_dt );
+      create object instance builtin of BuiltInType;
+      relate builtin to type across R407;
+      builtin.primitive = type_primitive;
+      builtin.unique = type_unique;
+      builtin.inst = type_inst;
+      builtin.instset = type_instset;
+    end if;
+
+  end if;
+
+end for;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO PE_PE
+	VALUES ("26bcd5a8-82fd-48ba-8dfc-40a65ebfd881",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("5d5d0e20-88ef-45c3-9564-38aff4db30b8",
+	"00000000-0000-0000-0000-000000000000",
+	'transformClass',
+	'',
+	'o_obj = param.o_obj;
+containing_comp_def = param.containing_comp_def;
+path = param.path;
+select one ep_pkg related by o_obj->PE_PE[R8001]->EP_PKG[R8000];
+
+// get exclude mark
+select one pe related by o_obj->PE_PE[R8001];
+select any class_exclude_mark from instances of Mark where ( selected.markable_name == "Model Class" and
+                                                            selected.path == ::containerMarkingPath( pe:pe ) + "::" + o_obj.Name and
+                                                            selected.feature_name == "Exclude" );
+if ( empty class_exclude_mark )
+  // get mark for naming
+  select any class_name_mark from instances of Mark where ( selected.markable_name == "Model Class" and
+                                                            selected.path == ::containerMarkingPath( pe:pe ) + "::" + o_obj.Name and
+                                                            selected.feature_name == "UseKeyLettersForName" );
+  // create the object file
+  create object instance file of File;
+  if ( empty class_name_mark )
+    file.name = ::camelCaseName( name:o_obj.Name, start_lower:false );
+  else
+    file.name = o_obj.Key_Lett;
+  end if;
+  file.path = path;
+  file.package = ::pathToPackage( path:file.path );
+  file.extension = ".java";
+  file.exclude = false;
+
+  // create the object
+  create object instance obj of Class;
+  relate obj to file across R401;
+  obj.key_letters = o_obj.Key_Lett;
+  obj.extends = "ModelInstance<" + obj.name + "," + containing_comp_def.name + ">";
+
+  // add the class to the component
+  relate obj to containing_comp_def across R408;
+
+  // create the instance type
+  create object instance type of Type;
+  type.name = obj.name;
+  type.package = obj.package;
+  select any s_irdt related by o_obj->S_IRDT[R123] where ( not selected.isSet );
+  select one s_dt related by s_irdt->S_DT[R17];
+  if ( not_empty s_dt )
+    type.resolve( s_dt:s_dt );
+  else
+    // TODO bad
+  end if;
+  type.default_value = obj.name + "Impl.EMPTY_" + TEMP::sub( format:"_u", s:obj.name );
+  relate type to obj across R407;
+
+  // relate to the OOA class
+  relate obj to o_obj across R409;
+
+  // transform the set object
+  ::transformClassSet( obj:obj, ep_pkg:ep_pkg, path:path );
+
+  // transform attributes
+  select any o_attr related by o_obj->O_ATTR[R102];
+  select one prev_attr related by o_attr->O_ATTR[R103.''succeeds''];
+  while ( not_empty prev_attr )
+    o_attr = prev_attr;
+    select one prev_attr related by o_attr->O_ATTR[R103.''succeeds''];
+  end while;
+  index = 0;
+  while ( not_empty o_attr )
+    if ( "current_state" != o_attr.Name )
+      ::transformAttribute( o_attr:o_attr, obj:obj, index:index );
+    end if;
+    select one o_attr related by o_attr->O_ATTR[R103.''precedes''];
+    index = index + 1;
+  end while;
+
+  // transform operations
+  select many o_tfrs related by o_obj->O_TFR[R115];
+  for each o_tfr in o_tfrs
+    ::transformOperation( o_tfr:o_tfr, obj:obj );
+  end for;
+
+  // add to the containing component imports
+  select one component_file related by containing_comp_def->File[R401];
+  select one set_file related by obj->ClassSet[R406]->File[R401];
+  ::addFileToImports( file:component_file, file_to_import:file, type:ImportType::IMPL );
+  ::addFileToImports( file:component_file, file_to_import:set_file, type:ImportType::IMPL );
+  ::addStringToImports( file: component_file, s: ::pathToPackage( path:set_file.path ) + ".impl." + set_file.name + "Impl", type:ImportType::IMPL );
+  ::addStringToImports( file: component_file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL );
+
+  // create the import block
+  ::addFileToImports( file:file, file_to_import:component_file, type:ImportType::BOTH );
+
+  ::addFileToImports( file:file, file_to_import:file, type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.classes.ModelInstance", type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.classes.InstanceIdentifier", type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.application.IRunContext", type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.classes.IInstanceIdentifier", type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.InstancePopulationException", type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.IWhere", type:ImportType::IMPL );
+
+  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.classes.IModelInstance", type:ImportType::INT );
+  
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("aa6be7c4-dd4e-4044-bbf1-81678db4c1f5",
+	"5d5d0e20-88ef-45c3-9564-38aff4db30b8",
+	'o_obj',
+	"63f4ff99-f127-443b-a678-30ace41da702",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("63f4ff99-f127-443b-a678-30ace41da702",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Model Class>',
+	'',
+	'',
+	'../../../../mcooa/models/mcooa/ooaofooa/Subsystem/Subsystem.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("9e76c7fd-92f6-44e6-92b5-aa4874148abc",
+	"5d5d0e20-88ef-45c3-9564-38aff4db30b8",
+	'containing_comp_def',
+	"1fef1559-c5b6-4eb7-a9c4-8b126b9b51a0",
+	0,
+	'',
+	"aa6be7c4-dd4e-4044-bbf1-81678db4c1f5",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("3e13db8d-1aaf-4219-9775-40e0e6e7760a",
+	"5d5d0e20-88ef-45c3-9564-38aff4db30b8",
+	'path',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"9e76c7fd-92f6-44e6-92b5-aa4874148abc",
+	'');
+INSERT INTO PE_PE
+	VALUES ("5d5d0e20-88ef-45c3-9564-38aff4db30b8",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("a14540ae-c3dd-4248-890f-99953be47efa",
+	"00000000-0000-0000-0000-000000000000",
+	'transformClassSet',
+	'',
+	'obj = param.obj;
+
+// create the object file
+create object instance file of File;
+file.name = obj.name + "Set";
+file.path = param.path;
+file.package = ::pathToPackage( path:file.path );
+file.extension = ".java";
+file.exclude = false;
+
+// create the class set object
+create object instance objset of ClassSet;
+relate objset to obj across R406;
+relate objset to file across R401;
+objset.extends = "InstanceSet<" + objset.name + "," + obj.name + ">";
+
+// create the instance type
+create object instance type of Type;
+type.name = objset.name;
+type.package = objset.package;
+select any s_irdt related by obj->O_OBJ[R409]->S_IRDT[R123] where ( selected.isSet );
+select one s_dt related by s_irdt->S_DT[R17];
+if ( not_empty s_dt )
+  type.resolve( s_dt:s_dt );
+else
+  // TODO bad
+end if;
+type.default_value = "new " + objset.name + "Impl()";
+relate type to objset across R407;
+
+// create the import block
+select one objfile related by obj->File[R401];
+::addFileToImports( file:file, file_to_import:file, type: ImportType::IMPL );
+::addFileToImports( file:file, file_to_import:objfile, type: ImportType::IMPL );
+::addStringToImports( file:file, s:"java.util.Arrays", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"java.util.List", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.runtime.summit.classes.InstanceSet", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.runtime.summit.classes.IInstanceSet", type:ImportType::INT );',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("ceb8a015-73b2-4bc0-acbc-a5fa93f21e67",
+	"a14540ae-c3dd-4248-890f-99953be47efa",
+	'obj',
+	"ac93823e-2644-440b-977c-1f4e8480ec59",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("ac93823e-2644-440b-977c-1f4e8480ec59",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Model Inst>',
+	'',
+	'',
+	'../architecture/classes/classes.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("72a8d944-1499-487e-9f40-06dbfc501f96",
+	"a14540ae-c3dd-4248-890f-99953be47efa",
+	'ep_pkg',
+	"9939c670-a721-4742-a824-ed4b0df4acd6",
+	0,
+	'',
+	"ceb8a015-73b2-4bc0-acbc-a5fa93f21e67",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("12fcf0c4-7b5e-4554-9447-3aee57ad6bd7",
+	"a14540ae-c3dd-4248-890f-99953be47efa",
+	'path',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"72a8d944-1499-487e-9f40-06dbfc501f96",
+	'');
+INSERT INTO PE_PE
+	VALUES ("a14540ae-c3dd-4248-890f-99953be47efa",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("19215085-ca84-43cb-bb81-6ffd50262136",
+	"00000000-0000-0000-0000-000000000000",
+	'transformAttribute',
+	'',
+	'o_attr = param.o_attr;
+obj = param.obj;
+
+// create the attribute
+create object instance attr of Attribute;
+select one rattr related by o_attr->O_RATTR[R106];
+if ( not_empty rattr )
+  attr.name = "ref_" + o_attr.Name;
+else
+  attr.name = "m_" + o_attr.Name;
+end if;
+attr.base_name = o_attr.Name;
+attr.order = param.index;
+relate attr to obj across R410;
+
+// set part of identifier
+attr.identifier = 0;
+select many inst_ids related by o_attr->O_ID[R105];
+for each inst_id in inst_ids
+  if ( inst_id.Oid_ID == 0 )   attr.identifier = attr.identifier + 1;
+  elif ( inst_id.Oid_ID == 1 ) attr.identifier = attr.identifier + 2;
+  elif ( inst_id.Oid_ID == 2 ) attr.identifier = attr.identifier + 4;
+  end if;
+end for;
+
+// set the type
+select one s_dt related by o_attr->S_DT[R114];
+if ( "same_as<Base_Attribute>" == s_dt.Name )
+  select one s_dt related by o_attr->O_RATTR[R106]->O_BATTR[R113]->O_ATTR[R106]->S_DT[R114];
+end if;
+if ( empty s_dt )
+  // TODO bad
+end if;
+select many s_dims related by o_attr->S_DIM[R120];
+type = TypeReference::getInstance( s_dt:s_dt, s_dims:s_dims );
+relate type to attr across R424;
+
+// link OOA attribute
+relate o_attr to attr across R414;
+
+// create accessors
+create object instance getter of AttributeAccessor;
+getter.accessor_type = AttributeAccessorType::GETTER;
+relate getter to attr across R4510;
+create object instance setter of AttributeAccessor;
+setter.accessor_type = AttributeAccessorType::SETTER;
+relate setter to attr across R4510;
+
+// transform derivation
+select one o_dbattr related by o_attr->O_BATTR[R106]->O_DBATTR[R107];
+if ( not_empty o_dbattr )
+  create object instance deriv of AttributeDerivation;
+  relate deriv to getter across R441;
+  // create invocable
+  create object instance invocable of InvocableObject;
+  invocable.name = attr.name;
+  invocable.parent_name = attr.class_name;
+  invocable.parent_package = attr.class_package;
+  relate deriv to invocable across R427;
+  invocable.oal = o_dbattr.Action_Semantics_internal;
+  // link type
+  relate type to invocable across R428;
+  // relate the body
+  select one act_act related by o_dbattr->ACT_DAB[R693]->ACT_ACT[R698];
+  if ( not_empty act_act )
+    relate act_act to invocable across R432;
+  end if;
+end if;
+
+// add import to object file
+select one file related by obj->File[R401];
+::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::BOTH );
+::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.EmptyInstanceException", type:ImportType::IMPL );
+if ( "String" == type.type_name and "" == type.type_package )
+  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.StringUtil", type:ImportType::IMPL );
+end if;
+
+// add imports to object set file
+select one set_file related by obj->ClassSet[R406]->File[R401];
+::addStringToImports( file:set_file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::BOTH );',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("7b1297b8-b278-4ae8-a571-70b7bf262f38",
+	"19215085-ca84-43cb-bb81-6ffd50262136",
+	'o_attr',
+	"579b8247-e153-481d-8926-384cdc722464",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("579b8247-e153-481d-8926-384cdc722464",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Attribute>',
+	'',
+	'',
+	'../../../../mcooa/models/mcooa/ooaofooa/Subsystem/Subsystem.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("7a7146b3-82c0-458a-bf9d-b99938b7d7c7",
+	"19215085-ca84-43cb-bb81-6ffd50262136",
+	'obj',
+	"ac93823e-2644-440b-977c-1f4e8480ec59",
+	0,
+	'',
+	"7b1297b8-b278-4ae8-a571-70b7bf262f38",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("f7a15049-5fc1-480a-984f-23bce39894eb",
+	"19215085-ca84-43cb-bb81-6ffd50262136",
+	'index',
+	"ba5eda7a-def5-0000-0000-000000000002",
+	0,
+	'',
+	"7a7146b3-82c0-458a-bf9d-b99938b7d7c7",
+	'');
+INSERT INTO PE_PE
+	VALUES ("19215085-ca84-43cb-bb81-6ffd50262136",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("a566ca37-5a57-4f7f-9212-c9cf475d697d",
+	"00000000-0000-0000-0000-000000000000",
+	'transformInstanceReferenceTypes',
+	'',
+	'// make sure an instance reference type is created for every class
+select many o_objs from instances of O_OBJ;
+for each o_obj in o_objs
+  select one packageableElem related by o_obj->PE_PE[R8001];
+  select one pkg related by packageableElem->EP_PKG[R8000];
+
+  // Make sure the IRDTs don''t already exist before creating new ones.  Check
+  // the single and set version and create whatever does not exist.
+  select any existing_irdt related by o_obj->S_IRDT[R123] where selected.isSet == false;
+  if (empty existing_irdt)
+    create object instance pe of PE_PE;
+    relate pe to pkg across R8000;
+    pe.Visibility = Visibility::Public;
+    pe.type = ElementTypeConstants::DATATYPE;
+    create object instance dt of S_DT;
+    relate pe to dt across R8001;
+    create object instance irdt of S_IRDT;
+    irdt.isSet = false;
+    relate dt to irdt across R17;
+    dt.Name = "inst_ref<" + o_obj.Name + ">" ;
+    relate o_obj to irdt across R123;
+  end if;
+
+  select any existing_irdt_set related by o_obj->S_IRDT[R123] where selected.isSet == true;
+  if (empty existing_irdt_set)
+    create object instance pe of PE_PE;
+    relate pe to pkg across R8000;
+    pe.Visibility = Visibility::Public;
+    pe.type = ElementTypeConstants::DATATYPE;
+    create object instance dt2 of S_DT;
+    relate pe to dt2 across R8001;
+    create object instance irsdt of S_IRDT;
+    irsdt.isSet = true;
+    relate irsdt to dt2 across R17;
+    dt2.Name = "inst_ref_set<" + o_obj.Name + ">" ;
+    relate o_obj to irsdt across R123;
+  end if;
+end for;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO PE_PE
+	VALUES ("a566ca37-5a57-4f7f-9212-c9cf475d697d",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("eb2d19db-99fd-443a-891e-1510a4224c8a",
+	"00000000-0000-0000-0000-000000000000",
+	'transformEnumeratedType',
+	'',
+	's_dt = param.s_dt;
+select one ep_pkg related by s_dt->PE_PE[R8001]->EP_PKG[R8000];
+
+// create the file
+create object instance file of File;
+file.name = ::camelCaseName( name:s_dt.Name, start_lower:false );
+file.path = ::ep_pkgToPath( ep_pkg:ep_pkg );
+file.package = ::pathToPackage( path:file.path );
+file.extension = ".java";
+file.exclude = false;
+
+// create the type
+create object instance type of Type;
+type.name = file.name;
+type.package = file.package;
+type.default_value = type.name + ".UNINITIALIZED_ENUM";
+type.resolve( s_dt:s_dt );
+create object instance edt of EnumeratedType;
+relate type to edt across R407;
+relate edt to file across R401;
+
+// transform enumerators
+select many enums related by s_dt->S_EDT[R17]->S_ENUM[R27];
+value = 0;
+for each enumer in enums
+  create object instance e of Enumerator;
+  e.name = TEMP::sub( format:"u", s:enumer.Name );
+  e.value = value;
+  value = value + 1;
+  relate e to edt across R415;
+end for;
+
+// add to imports
+::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.IXtumlType", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL );',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("39ff61e1-b925-497a-8d8a-1ea86381dec4",
+	"eb2d19db-99fd-443a-891e-1510a4224c8a",
+	's_dt',
+	"4a90cd45-ece0-4e72-afe7-44996f9d7e1e",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("4a90cd45-ece0-4e72-afe7-44996f9d7e1e",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Data Type>',
+	'',
+	'',
+	'../../../../mcooa/models/mcooa/ooaofooa/Domain/Domain.xtuml');
+INSERT INTO PE_PE
+	VALUES ("eb2d19db-99fd-443a-891e-1510a4224c8a",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("056fd761-beb4-4eed-85d2-b466883d17cb",
+	"00000000-0000-0000-0000-000000000000",
+	'resolveTypeImports',
+	'',
+	'select many types from instances of Type;
+for each type in types
+  select many impl_files from instances of File where false;
+  select many both_files from instances of File where false;
+
+  // find files
+  select many files related by type->TypeReference[R3800]->Attribute[R424]->Class[R410]->File[R401];
+  both_files = both_files | files;
+
+  select many files related by type->TypeReference[R3800]->Attribute[R424]->Class[R410]->ClassSet[R406]->File[R401];
+  both_files = both_files | files;
+
+  select many files related by type->TypeReference[R3800]->FormalParameter[R431]->InvocableObject[R429]->Function[R427]->ComponentDefinition[R405]->File[R401];
+  both_files = both_files | files;
+
+  select many inst_ops related by type->TypeReference[R3800]->FormalParameter[R431]->InvocableObject[R429]->Operation[R427] where ( not selected.is_class_based );
+  select many files related by inst_ops->Class[R416]->File[R401];
+  both_files = both_files | files;
+
+  select many class_ops related by type->TypeReference[R3800]->FormalParameter[R431]->InvocableObject[R429]->Operation[R427] where ( selected.is_class_based );
+  select many files related by class_ops->Class[R416]->File[R401];
+  impl_files = impl_files | files;
+
+  select many files related by type->TypeReference[R3800]->FormalParameter[R431]->InvocableObject[R429]->PortMessage[R427]->Message[R420]->Interface[R419]->File[R401];
+  both_files = both_files | files;
+
+  select many files related by type->TypeReference[R3800]->FormalParameter[R431]->InvocableObject[R429]->PortMessage[R427]->Port[R420]->File[R401];
+  both_files = both_files | files;
+
+  select many files related by type->TypeReference[R3800]->FormalParameter[R431]->InvocableObject[R429]->UtilityFunction[R427]->Utility[R4559]->File[R401];
+  both_files = both_files | files;
+
+  select many inst_ops related by type->TypeReference[R3800]->InvocableObject[R428]->Operation[R427] where ( not selected.is_class_based );
+  select many files related by inst_ops->Class[R416]->File[R401];
+  both_files = both_files | files;
+
+  select many class_ops related by type->TypeReference[R3800]->InvocableObject[R428]->Operation[R427] where ( selected.is_class_based );
+  select many files related by class_ops->Class[R416]->File[R401];
+  impl_files = impl_files | files;
+
+  select many files related by type->TypeReference[R3800]->InvocableObject[R428]->PortMessage[R427]->Message[R420]->Interface[R419]->File[R401];
+  both_files = both_files | files;
+
+  select many files related by type->TypeReference[R3800]->InvocableObject[R428]->PortMessage[R427]->Port[R420]->File[R401];
+  both_files = both_files | files;
+
+  select many files related by type->TypeReference[R3800]->InvocableObject[R428]->UtilityFunction[R427]->Utility[R4559]->File[R401];
+  both_files = both_files | files;
+
+  select many files related by type->TypeReference[R3800]->Selector[R446]->InstanceSelector[R445]->Class[R442]->File[R401];
+  both_files = both_files | files;
+
+  select many files related by type->TypeReference[R3800]->Selector[R446]->SetSelector[R445]->ClassSet[R444]->File[R401];
+  both_files = both_files | files;
+
+  // add to imports
+  for each file in impl_files
+    type.addToImports( file:file, type:ImportType::IMPL );
+  end for;
+  for each file in both_files
+    type.addToImports( file:file, type:ImportType::BOTH );
+  end for;
+end for;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO PE_PE
+	VALUES ("056fd761-beb4-4eed-85d2-b466883d17cb",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("03e1ea6e-74af-412c-b034-76ab7511674f",
+	"00000000-0000-0000-0000-000000000000",
+	'transformOperation',
+	'',
+	'o_tfr = param.o_tfr;
+obj = param.obj;
+
+// create function object
+create object instance op of Operation;
+op.is_class_based = Scope::Class == o_tfr.Instance_Based;
+relate op to obj across R416;
+
+// create invocable
+create object instance invocable of InvocableObject;
+invocable.name = o_tfr.Name;
+invocable.parent_name = op.class_name;
+invocable.parent_package = op.class_package;
+relate op to invocable across R427;
+invocable.oal = o_tfr.Action_Semantics_internal;
+
+// link type
+select one s_dt related by o_tfr->S_DT[R116];
+select many s_dims related by o_tfr->S_DIM[R122];
+type = TypeReference::getInstance( s_dt:s_dt, s_dims:s_dims );
+relate type to invocable across R428;
+
+// create parameters
+select any o_tparm related by o_tfr->O_TPARM[R117];
+prev_o_tparm = o_tparm;
+// select first parameter
+while ( not_empty prev_o_tparm )
+  o_tparm = prev_o_tparm;
+  select one prev_o_tparm related by o_tparm->O_TPARM[R124.''succeeds''];
+end while;
+while ( not_empty o_tparm )
+  // create parameter
+  create object instance parm of FormalParameter;
+  parm.name = "p_" + o_tparm.Name;
+  parm.by_ref = ( 1 == o_tparm.By_Ref );
+  select one parm_dt related by o_tparm->S_DT[R118];
+  select many s_dims related by o_tparm->S_DIM[R121];
+  parm_type = TypeReference::getInstance( s_dt:parm_dt, s_dims:s_dims );
+  relate parm_type to parm across R431;
+  ::linkParameter( invocable:invocable, parameter:parm );
+  select one o_tparm related by o_tparm->O_TPARM[R124.''precedes''];
+end while;
+
+// relate the body
+select one act_act related by o_tfr->ACT_OPB[R696]->ACT_ACT[R698];
+if ( not_empty act_act )
+  relate act_act to invocable across R432;
+end if;
+
+// add import for class based operations
+if ( op.is_class_based )
+  select one class_file related by obj->File[R401];
+  ::addStringToImports( file:class_file, s:"io.ciera.runtime.summit.application.ActionHome", type:ImportType::IMPL );
+end if;
+',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("30ba3ab6-6d9c-4d33-bd48-006d0df3ab1c",
+	"03e1ea6e-74af-412c-b034-76ab7511674f",
+	'o_tfr',
+	"5cb6d426-f094-4cad-8cdb-b16506c9f2e6",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("5cb6d426-f094-4cad-8cdb-b16506c9f2e6",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Operation>',
+	'',
+	'',
+	'../../../../mcooa/models/mcooa/ooaofooa/Subsystem/Subsystem.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("36319cba-4224-4f29-ab04-3a8b3ee913a7",
+	"03e1ea6e-74af-412c-b034-76ab7511674f",
+	'obj',
+	"ac93823e-2644-440b-977c-1f4e8480ec59",
+	0,
+	'',
+	"30ba3ab6-6d9c-4d33-bd48-006d0df3ab1c",
+	'');
+INSERT INTO PE_PE
+	VALUES ("03e1ea6e-74af-412c-b034-76ab7511674f",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("cae43083-b72d-40f8-95cb-4b31855ce3ee",
+	"00000000-0000-0000-0000-000000000000",
+	'transformInterface',
+	'',
+	'c_i = param.c_i;
+select one iface related by c_i->Interface[R421];
+if ( empty iface )
+
+  // create the file
+  create object instance file of File;
+  file.name = ::camelCaseName( name:c_i.Name, start_lower:false );
+  file.path = param.path;
+  file.package = ::pathToPackage( path:file.path );
+  file.extension = ".java";
+  file.exclude = false;
+
+  // create the interface package object
+  create object instance iface of Interface;
+  relate iface to file across R401;
+
+  // relate to the c_i
+  relate iface to c_i across R421;
+
+  // transform messages
+  select many c_eps related by c_i->C_EP[R4003];
+  for each c_ep in c_eps
+    ::transformMessage( c_ep:c_ep, iface:iface );
+  end for;
+
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("c871a7f5-dd47-49c0-ad37-2478c2c84f13",
+	"cae43083-b72d-40f8-95cb-4b31855ce3ee",
+	'c_i',
+	"80698720-cc57-44ba-8aa5-600c524db338",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("80698720-cc57-44ba-8aa5-600c524db338",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Interface>',
+	'',
+	'',
+	'../../../../mcooa/models/mcooa/ooaofooa/Component/Component.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("3cdf04f6-57a6-4a09-933a-9f2bcb94e1ee",
+	"cae43083-b72d-40f8-95cb-4b31855ce3ee",
+	'path',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"c871a7f5-dd47-49c0-ad37-2478c2c84f13",
+	'');
+INSERT INTO PE_PE
+	VALUES ("cae43083-b72d-40f8-95cb-4b31855ce3ee",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("e5071316-f813-44a9-b6f4-51f4e3089418",
+	"00000000-0000-0000-0000-000000000000",
+	'transformMessage',
+	'',
+	'c_ep = param.c_ep;
+iface = param.iface;
+select one c_as related by c_ep->C_AS[R4004];
+select one c_io related by c_ep->C_IO[R4004];
+
+if ( not_empty c_as )  // TODO currently only support signals
+
+// create message object
+create object instance msg of Message;
+msg.name = c_ep.Name;
+msg.to_provider = true;
+if ( not_empty c_as )
+  msg.to_provider = ( c_as.Direction == IFDirectionType::ClientServer );
+elif ( not_empty c_io )
+  msg.to_provider = ( c_io.Direction == IFDirectionType::ClientServer );
+end if;
+relate msg to iface across R419;
+
+end if;
+
+select one file related by iface->File[R401];
+::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL );',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("d7b9fb63-0ec0-4363-bf10-f8cee68b219b",
+	"e5071316-f813-44a9-b6f4-51f4e3089418",
+	'c_ep',
+	"5441230d-b4d6-495f-9e87-84acf5819d26",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("5441230d-b4d6-495f-9e87-84acf5819d26",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Executable Property>',
+	'',
+	'',
+	'../../../../mcooa/models/mcooa/ooaofooa/Component/Component.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("773be1d9-8ccf-438c-a765-b071c635f13f",
+	"e5071316-f813-44a9-b6f4-51f4e3089418",
+	'iface',
+	"fb653c16-f8e6-4951-9132-f0d7d0319578",
+	0,
+	'',
+	"d7b9fb63-0ec0-4363-bf10-f8cee68b219b",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("fb653c16-f8e6-4951-9132-f0d7d0319578",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Iface>',
+	'',
+	'',
+	'../architecture/interfaces/interfaces.xtuml');
+INSERT INTO PE_PE
+	VALUES ("e5071316-f813-44a9-b6f4-51f4e3089418",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("48a30c71-bd16-4087-a818-1c1479c64a33",
+	"00000000-0000-0000-0000-000000000000",
+	'transformPort',
+	'',
+	'c_po = param.c_po;
+comp_def = param.comp_def;
+
+// create the file
+create object instance file of File;
+file.name = ::camelCaseName( name:c_po.Name, start_lower:false );
+file.path = param.path;
+file.package = ::pathToPackage( path:file.path );
+file.extension = ".java";
+file.exclude = false;
+
+// create the interface package object
+create object instance port of Port;
+relate port to file across R401;
+relate port to c_po across R422;
+
+// set port as provider or requirer
+select any c_p related by c_po->C_IR[R4016]->C_P[R4009];
+port.provider = not_empty c_p;
+
+// relate to other component
+relate port to comp_def across R417;
+
+// relate to iface if the iface is there
+select any c_i related by c_po->C_IR[R4016]->C_I[R4012];
+select one iface related by c_i->Interface[R421];
+if ( empty iface and not_empty c_i )
+  select one ep_pkg related by c_i->PE_PE[R8001]->EP_PKG[R8000];
+  if ( not_empty ep_pkg )
+    ::transformInterface( c_i:c_i, path: ::ep_pkgToPath( ep_pkg:ep_pkg ) );
+  end if;
+  select one iface related by c_i->Interface[R421];
+end if;
+if ( not_empty iface )
+  relate port to iface across R418;
+  select many msgs related by iface->Message[R419];
+  for each msg in msgs
+    ::transformPortMessage( port:port, msg:msg );
+  end for;
+  select one iface_file related by iface->File[R401];
+  ::addFileToImports( file:file, file_to_import:iface_file, type:ImportType::IMPL );
+else
+  // TODO bad
+end if;
+
+// add to component file
+select one component_file related by comp_def->File[R401];
+::addFileToImports( file:component_file, file_to_import:file, type:ImportType::IMPL );
+
+// add imports
+::addStringToImports( file:file, s:"io.ciera.runtime.summit.interfaces.Port", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.BadArgumentException", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.runtime.summit.interfaces.IMessage", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.runtime.summit.interfaces.IPort", type:ImportType::IMPL );
+::addFileToImports( file:file, file_to_import:component_file, type:ImportType::IMPL );
+select one iface_file related by iface->File[R401];
+::addFileToImports( file:file, file_to_import:iface_file, type:ImportType::IMPL );',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("4e27e7e4-b388-4b0c-93bb-d8ccf14f4478",
+	"48a30c71-bd16-4087-a818-1c1479c64a33",
+	'c_po',
+	"7956bd81-f6de-4bc8-9851-92214668ced1",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("7956bd81-f6de-4bc8-9851-92214668ced1",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Port>',
+	'',
+	'',
+	'../../../../mcooa/models/mcooa/ooaofooa/Component/Component.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("751cc73a-dc3b-419c-b6dd-daba79556a01",
+	"48a30c71-bd16-4087-a818-1c1479c64a33",
+	'comp_def',
+	"1fef1559-c5b6-4eb7-a9c4-8b126b9b51a0",
+	0,
+	'',
+	"4e27e7e4-b388-4b0c-93bb-d8ccf14f4478",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("756e5a83-04eb-4baa-801c-b40bddd118e4",
+	"48a30c71-bd16-4087-a818-1c1479c64a33",
+	'path',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"751cc73a-dc3b-419c-b6dd-daba79556a01",
+	'');
+INSERT INTO PE_PE
+	VALUES ("48a30c71-bd16-4087-a818-1c1479c64a33",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("65d02f39-685e-434b-971f-e57fb66067f8",
+	"00000000-0000-0000-0000-000000000000",
+	'transformAssociation',
+	'',
+	'r_rel = param.r_rel;
+containing_comp_def = param.containing_comp_def;
+select one file related by containing_comp_def->File[R401];
+
+// get exclude mark
+select one pe related by r_rel->PE_PE[R8001];
+select any assoc_exclude_mark from instances of Mark where ( selected.markable_name == "Association" and
+                                                             selected.path == ::containerMarkingPath( pe:pe ) + "::R" + STRING::itoa( i:r_rel.Numb ) and
+                                                             selected.feature_name == "Exclude" );
+if ( empty assoc_exclude_mark )
+  form_phrase = "";
+  select any form_class from instances of Class where false;
+  form_mult = Mult::ONE;
+  part_mult = Mult::ONE;
+  form_cond = Cond::UNCONDITIONAL;
+  part_phrase = "";
+  select any part_class from instances of Class where false;
+  part_cond = Cond::UNCONDITIONAL;
+
+  // create the relationsip subtype
+  select one r_simp related by r_rel->R_SIMP[R206];
+  if ( not_empty r_simp )
+
+    // If there is no R_FORM and the multiplicity of both is ONE, one is chosen arbitrarily to be the formalizer
+    select one r_form related by r_simp->R_FORM[R208];
+    select one form_class related by r_form->R_RGO[R205]->R_OIR[R203]->O_OBJ[R201]->Class[R409];
+    if ( not_empty form_class )
+      select any r_part related by r_simp->R_PART[R207];
+      select one part_class related by r_part->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->Class[R409];
+      if ( not_empty part_class )
+        form_phrase = r_form.Txt_Phrs;
+        part_phrase = r_part.Txt_Phrs;
+        if ( 0 != r_form.Mult )
+          form_mult = Mult::MANY;
+        end if;
+        if ( 0 != r_part.Mult )
+          part_mult = Mult::MANY;
+        end if;
+        if ( 0 != r_form.Cond )
+          form_cond = Cond::CONDITIONAL;
+        end if;
+        if ( 0 != r_part.Cond )
+          part_cond = Cond::CONDITIONAL;
+        end if;
+      else
+        // TODO bad
+      end if;
+    else
+      select any r_part1 related by r_simp->R_PART[R207] where ( selected.Mult == 0 );
+      if ( empty r_part1 )
+        select any r_part1 related by r_simp->R_PART[R207]; // for many to many unformalized, select one randomly
+      end if;
+      if ( not_empty r_part1 )
+        select one part_class related by r_part1->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->Class[R409];
+        select any r_part2 related by r_simp->R_PART[R207] where ( selected.OIR_ID != r_part1.OIR_ID );
+        select one form_class related by r_part2->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->Class[R409];
+        if ( not_empty form_class and not_empty part_class )
+          form_phrase = r_part2.Txt_Phrs;
+          part_phrase = r_part1.Txt_Phrs;
+          if ( 0 != r_part2.Mult )
+            form_mult = Mult::MANY;
+          end if;
+          if ( 0 != r_part1.Mult )
+            part_mult = Mult::MANY;
+          end if;
+          if ( 0 != r_part2.Cond )
+            form_cond = Cond::CONDITIONAL;
+          end if;
+          if ( 0 != r_part1.Cond )
+            part_cond = Cond::CONDITIONAL;
+          end if;
+        else
+          // TODO bad
+        end if;
+      else
+        // TODO bad unformalized many to many binary associations not supported
+      end if;
+    end if;
+
+    // create the relationship
+    create object instance rel of Relationship;
+    name = "R" + STRING::itoa( i:r_rel.Numb ) + "_" + form_class.name + "_";
+    if ( "" != part_phrase )
+      name = name + TEMP::sub( format:"_", s:part_phrase ) + "_";
+    end if;
+    name = name + part_class.name;
+    rel.name = name;
+    rel.num = r_rel.Numb;
+    rel.form_phrase = form_phrase;
+    rel.part_phrase = part_phrase;
+    rel.form_mult = form_mult;
+    rel.part_mult = part_mult;
+    rel.form_cond = form_cond;
+    rel.part_cond = part_cond;
+    relate rel to containing_comp_def across R448;
+    relate rel to form_class across R435;
+    relate rel to part_class across R434;
+
+    select any o_id related by r_simp->R_PART[R207]->R_RTO[R204]->O_ID[R109];
+    if ( not_empty o_id )
+      rel.id_num = o_id.Oid_ID + 1;
+    else
+      rel.id_num = 0;
+    end if;
+
+  else
+  select one r_subsup related by r_rel->R_SUBSUP[R206];
+  if ( not_empty r_subsup )
+
+    select one part_class related by r_subsup->R_SUPER[R212]->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->Class[R409];
+    select many sub_classes related by r_subsup->R_SUB[R213]->R_RGO[R205]->R_OIR[R203]->O_OBJ[R201]->Class[R409];
+    if ( not_empty part_class and not_empty sub_classes )
+      part_phrase = "is_a";
+      for each form_class in sub_classes
+
+        form_phrase = "is_a";
+        form_cond = Cond::CONDITIONAL;
+
+        // create the relationship
+        create object instance rel of Relationship;
+        name = "R" + STRING::itoa( i:r_rel.Numb ) + "_" + form_class.name + "_";
+        if ( "" != part_phrase )
+          name = name + part_phrase + "_";
+        end if;
+        name = name + part_class.name;
+        rel.name = name;
+        rel.num = r_rel.Numb;
+        rel.form_phrase = form_phrase;
+        rel.part_phrase = part_phrase;
+        rel.form_mult = form_mult;
+        rel.part_mult = part_mult;
+        rel.form_cond = form_cond;
+        rel.part_cond = part_cond;
+        relate rel to containing_comp_def across R448;
+        relate rel to form_class across R435;
+        relate rel to part_class across R434;
+        
+        select one o_id related by r_subsup->R_SUPER[R212]->R_RTO[R204]->O_ID[R109];
+        if ( not_empty o_id )
+          rel.id_num = o_id.Oid_ID + 1;
+        else
+          rel.id_num = 0;
+        end if;
+
+        // special case for EP_PKG instances... top level packages do not have a PE_PE instance
+        if ( 8001 == rel.num and "EP_PKG" == rel.form_name )
+          LOG::LogInfo( message:"  Special casing R8001 EP_PKG to PackageableElement" );
+          rel.part_cond = Cond::CONDITIONAL;
+        end if;
+
+      end for;
+    else
+      // TODO bad
+    end if;
+
+  else
+  select one r_assoc related by r_rel->R_ASSOC[R206];
+  if ( not_empty r_assoc )
+
+    select one r_assr related by r_assoc->R_ASSR[R211];
+    select one r_aone related by r_assoc->R_AONE[R209];
+    select one r_aoth related by r_assoc->R_AOTH[R210];
+
+    select one form_class related by r_assr->R_RGO[R205]->R_OIR[R203]->O_OBJ[R201]->Class[R409];
+    select one part_class related by r_aone->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->Class[R409];
+    if ( not_empty form_class and not_empty part_class and not_empty r_aoth )
+      form_phrase = r_aoth.Txt_Phrs;
+      part_phrase = r_aone.Txt_Phrs;
+      if ( 0 != r_assr.Mult or 0 != r_aoth.Mult )
+        form_mult = Mult::MANY;
+      end if;
+      if ( 0 != r_aoth.Cond )
+        form_cond = Cond::CONDITIONAL;
+      end if;
+    else
+      // TODO bad
+    end if;
+
+    // create the first relationship
+    create object instance rel1 of Relationship;
+    name1 = "R" + STRING::itoa( i:r_rel.Numb ) + "_" + form_class.name + "_";
+    if ( "" != part_phrase )
+      name1 = name1 + TEMP::sub( format:"_", s:part_phrase ) + "_";
+    end if;
+    name1 = name1 + part_class.name;
+    rel1.name = name1;
+    rel1.num = r_rel.Numb;
+    rel1.form_phrase = form_phrase;
+    rel1.part_phrase = part_phrase;
+    rel1.form_mult = form_mult;
+    rel1.part_mult = part_mult;
+    rel1.form_cond = form_cond;
+    rel1.part_cond = part_cond;
+    relate rel1 to containing_comp_def across R448;
+    relate rel1 to form_class across R435;
+    relate rel1 to part_class across R434;
+
+    select one o_id1 related by r_assoc->R_AONE[R209]->R_RTO[R204]->O_ID[R109];
+    if ( not_empty o_id1 )
+      rel1.id_num = o_id1.Oid_ID + 1;
+    else
+      rel1.id_num = 0;
+    end if;
+
+    form_phrase = "";
+    form_mult = Mult::ONE;
+    form_cond = Cond::UNCONDITIONAL;
+    part_phrase = "";
+    part_cond = Cond::UNCONDITIONAL;
+
+    select one part_class related by r_aoth->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->Class[R409];
+    if ( not_empty form_class and not_empty part_class and not_empty r_aone )
+      form_phrase = r_aone.Txt_Phrs;
+      part_phrase = r_aoth.Txt_Phrs;
+      if ( 0 != r_assr.Mult or 0 != r_aone.Mult )
+        form_mult = Mult::MANY;
+      end if;
+      if ( 0 != r_aone.Cond )
+        form_cond = Cond::CONDITIONAL;
+      end if;
+    else
+      // TODO bad
+    end if;
+
+    // create the second relationship
+    create object instance rel2 of Relationship;
+    name2 = "R" + STRING::itoa( i:r_rel.Numb ) + "_" + form_class.name + "_";
+    if ( "" != part_phrase )
+      name2 = name2 + TEMP::sub( format:"_", s:part_phrase ) + "_";
+    end if;
+    name2 = name2 + part_class.name;
+    rel2.name = name2;
+    rel2.num = r_rel.Numb;
+    rel2.form_phrase = form_phrase;
+    rel2.part_phrase = part_phrase;
+    rel2.form_mult = form_mult;
+    rel2.part_mult = part_mult;
+    rel2.form_cond = form_cond;
+    rel2.part_cond = part_cond;
+    relate rel2 to containing_comp_def across R448;
+    relate rel2 to form_class across R435;
+    relate rel2 to part_class across R434;
+
+    select one o_id2 related by r_assoc->R_AOTH[R210]->R_RTO[R204]->O_ID[R109];
+    if ( not_empty o_id2 )
+      rel2.id_num = o_id2.Oid_ID + 1;
+    else
+      rel2.id_num = 0;
+    end if;
+
+  else
+    // TODO bad
+  end if; end if; end if;
+
+  // add necessary imports
+  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.classes.RelationshipSet", type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.classes.Relationship", type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.classes.IRelationshipSet", type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.BadArgumentException", type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.EmptyInstanceException", type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.ModelIntegrityException", type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL );
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("b3c53e3f-1986-4e3c-8047-04a969a3dd54",
+	"65d02f39-685e-434b-971f-e57fb66067f8",
+	'r_rel',
+	"4480b008-8c74-4f57-9256-08b7365520bc",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("4480b008-8c74-4f57-9256-08b7365520bc",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Association>',
+	'',
+	'',
+	'../../../../mcooa/models/mcooa/ooaofooa/Association/Association.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("c4877261-9b00-4291-af18-5490a8b591b9",
+	"65d02f39-685e-434b-971f-e57fb66067f8",
+	'containing_comp_def',
+	"1fef1559-c5b6-4eb7-a9c4-8b126b9b51a0",
+	0,
+	'',
+	"b3c53e3f-1986-4e3c-8047-04a969a3dd54",
+	'');
+INSERT INTO PE_PE
+	VALUES ("65d02f39-685e-434b-971f-e57fb66067f8",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("805f004a-96b0-4655-b033-f9311da42460",
+	"00000000-0000-0000-0000-000000000000",
+	'transformSelectors',
+	'',
+	'obj = param.obj;
+
+// transform selectors for associations
+// form to part
+select many form_to_part_rels related by obj->Relationship[R435];
+for each rel in form_to_part_rels
+  select one part_obj related by rel->Class[R434];
+  ::transformSelector( obj:obj, rel:rel, phrase:rel.part_phrase, cond:rel.part_cond,
+                       mult:rel.part_mult, formalizer:true, other_obj:part_obj );
+end for;
+// part to form
+select many part_to_form_rels related by obj->Relationship[R434];
+for each rel in part_to_form_rels
+  select one form_obj related by rel->Class[R435];
+  ::transformSelector( obj:obj, rel:rel, phrase:rel.form_phrase, cond:rel.form_cond,
+                       mult:rel.form_mult, formalizer:false, other_obj:form_obj );
+end for;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("20d5b38b-69c9-4fdd-a4d2-5fddb7bcf9bd",
+	"805f004a-96b0-4655-b033-f9311da42460",
+	'obj',
+	"ac93823e-2644-440b-977c-1f4e8480ec59",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO PE_PE
+	VALUES ("805f004a-96b0-4655-b033-f9311da42460",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("47432932-84af-42f4-8df8-1fefb66ca9b3",
+	"00000000-0000-0000-0000-000000000000",
+	'transformSelector',
+	'',
+	'obj = param.obj;
+rel = param.rel;
+other_obj = param.other_obj;
+
+// This function creates selectors for the class and set for a single path
+// through a relationship. For single instances, a selectOne or selectMany
+// are created based on multiplicity. For sets, a selectMany and is always
+// created.
+
+name = "R" + STRING::itoa( i:rel.num ) + "_";
+if ( "" != param.phrase )
+  name = name + TEMP::sub( format:"_", s:param.phrase ) + "_";
+end if;
+name = name + other_obj.name;
+
+// create set selectors
+select one obj_set related by obj->ClassSet[R406];
+
+// create ''many'' selector
+create object instance sel of Selector;
+sel.parent_name = obj_set.name;
+sel.parent_package = obj_set.package;
+sel.name = name;
+sel.multiplicity = param.mult;
+relate rel to sel across R4512;
+create object instance set_sel of SetSelector;
+relate set_sel to sel across R445;
+relate set_sel to obj_set across R444;
+
+// link up type
+select any set_irdt related by other_obj->O_OBJ[R409]->S_IRDT[R123] where ( selected.isSet );
+select one set_dt related by set_irdt->S_DT[R17];
+if ( empty set_dt )
+  // TODO bad
+end if;
+select many s_dims from instances of S_DIM where false;
+set_type = TypeReference::getInstance( s_dt:set_dt, s_dims:s_dims );
+relate set_type to sel across R446;
+
+select any s_irdt related by other_obj->O_OBJ[R409]->S_IRDT[R123] where ( not selected.isSet );
+select one s_dt related by s_irdt->S_DT[R17];
+if ( empty s_dt )
+  // TODO bad
+end if;
+class_type = TypeReference::getInstance( s_dt:s_dt, s_dims:s_dims );
+
+// create the instance selectors
+if ( Mult::ONE == param.mult )
+
+  // create ''one'' selector
+  create object instance sel of Selector;
+  sel.parent_name = obj.name;
+  sel.parent_package = obj.package;
+  sel.name = name;
+  sel.multiplicity = param.mult;
+  relate rel to sel across R4512;
+  create object instance inst_sel of InstanceSelector;
+  inst_sel.rel_num = rel.num;
+  inst_sel.conditionality = param.cond;
+  inst_sel.formalizer = param.formalizer;
+  relate inst_sel to sel across R445;
+  relate inst_sel to obj across R442;
+  relate inst_sel to set_sel across R4505;
+
+  // link up type
+  relate class_type to sel across R446;
+
+else
+
+  // create ''many'' selector
+  create object instance sel of Selector;
+  sel.parent_name = obj.name;
+  sel.parent_package = obj.package;
+  sel.name = name;
+  sel.multiplicity = param.mult;
+  relate rel to sel across R4512;
+  create object instance inst_sel of InstanceSelector;
+  inst_sel.rel_num = rel.num;
+  inst_sel.conditionality = param.cond;
+  inst_sel.formalizer = param.formalizer;
+  relate inst_sel to sel across R445;
+  relate inst_sel to obj across R442;
+  relate inst_sel to set_sel across R4505;
+
+  // link up type
+  relate set_type to sel across R446;
+
+end if;
+
+// add imports to object file
+select one file related by obj->File[R401];
+::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::BOTH );
+if ( Cond::UNCONDITIONAL == param.cond or Mult::ONE == param.mult )
+  //::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.ModelIntegrityException", type:ImportType::IMPL );
+end if;
+if ( Mult::MANY == param.mult )
+  ::addStringToImports( file:file, s:set_type.type_package + ".impl." + set_type.type_name + "Impl", type:ImportType::IMPL );
+  select one type related by class_type->Type[R3800];
+  ::addTypeToImports( file:file, type_to_import:type, type:ImportType::BOTH );
+else
+  ::addStringToImports( file:file, s:class_type.type_package + ".impl." + class_type.type_name + "Impl", type:ImportType::IMPL );
+end if;
+
+// add imports to object set file
+select one set_file related by obj_set->File[R401];
+::addStringToImports( file:set_file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::BOTH );
+::addStringToImports( file:set_file, s:set_type.type_package + ".impl." + set_type.type_name + "Impl", type:ImportType::IMPL );
+
+// add imports to component file
+select one comp_file related by obj->ComponentDefinition[R408]->File[R401];
+if ( Mult::MANY != param.mult )
+  ::addStringToImports( file:comp_file, s:class_type.type_package + ".impl." + class_type.type_name + "Impl", type:ImportType::IMPL );
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("b81cbde9-cf73-4bf5-b4f8-3eb2e2cc1593",
+	"47432932-84af-42f4-8df8-1fefb66ca9b3",
+	'obj',
+	"ac93823e-2644-440b-977c-1f4e8480ec59",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("f708f32f-8d0f-40ec-9cc7-0fd1733c8f48",
+	"47432932-84af-42f4-8df8-1fefb66ca9b3",
+	'rel',
+	"acea8715-3cc0-489c-a9e9-9521870ce9ab",
+	0,
+	'',
+	"b81cbde9-cf73-4bf5-b4f8-3eb2e2cc1593",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("acea8715-3cc0-489c-a9e9-9521870ce9ab",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Class Relationship>',
+	'',
+	'',
+	'../architecture/relationship/relationship.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("e4b07e41-5de1-453c-b389-7cab38261f79",
+	"47432932-84af-42f4-8df8-1fefb66ca9b3",
+	'cond',
+	"a2a4c58a-abbb-4d3a-afee-8f80d4ab0cd4",
+	0,
+	'',
+	"f708f32f-8d0f-40ec-9cc7-0fd1733c8f48",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("a2a4c58a-abbb-4d3a-afee-8f80d4ab0cd4",
+	"00000000-0000-0000-0000-000000000000",
+	'Cond',
+	'',
+	'',
+	'../types/types.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("1ac9195e-0a27-4cad-81de-677a96ff5688",
+	"47432932-84af-42f4-8df8-1fefb66ca9b3",
+	'mult',
+	"8774ba5f-d952-424f-a26a-4815240d9ec8",
+	0,
+	'',
+	"e4b07e41-5de1-453c-b389-7cab38261f79",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("8774ba5f-d952-424f-a26a-4815240d9ec8",
+	"00000000-0000-0000-0000-000000000000",
+	'Mult',
+	'',
+	'',
+	'../types/types.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("85857ae0-d439-4e33-b983-8e7ea2fa5d48",
+	"47432932-84af-42f4-8df8-1fefb66ca9b3",
+	'other_obj',
+	"ac93823e-2644-440b-977c-1f4e8480ec59",
+	0,
+	'',
+	"978b3686-0ba2-478e-bd72-796331a47665",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("3e3e8b80-f33b-4e1a-955c-d4c477f6f8c0",
+	"47432932-84af-42f4-8df8-1fefb66ca9b3",
+	'formalizer',
+	"ba5eda7a-def5-0000-0000-000000000001",
+	0,
+	'',
+	"1ac9195e-0a27-4cad-81de-677a96ff5688",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("978b3686-0ba2-478e-bd72-796331a47665",
+	"47432932-84af-42f4-8df8-1fefb66ca9b3",
+	'phrase',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"3e3e8b80-f33b-4e1a-955c-d4c477f6f8c0",
+	'');
+INSERT INTO PE_PE
+	VALUES ("47432932-84af-42f4-8df8-1fefb66ca9b3",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("0b1dcdfd-3e1a-4aaa-a22a-df354cd09e94",
+	"00000000-0000-0000-0000-000000000000",
+	'transformUtility',
+	'',
+	's_ee = param.s_ee;
+containing_comp_def = param.containing_comp_def;
+
+// create the file
+create object instance file of File;
+file.name = ::camelCaseName( name:s_ee.Key_Lett, start_lower:false );
+file.path = param.path;
+file.package = ::pathToPackage( path:file.path );
+file.extension = ".java";
+file.exclude = param.exclude;
+
+// create the utility object
+create object instance utility of Utility;
+relate utility to file across R401;
+
+// relate the containing component
+if ( not_empty containing_comp_def )
+  create object instance util_ref of UtilityReference;
+  relate utility to containing_comp_def across R4558 using util_ref;
+  select one component_file related by containing_comp_def->File[R401];
+  ::addFileToImports( file:component_file, file_to_import:file, type:ImportType::IMPL );
+  ::addStringToImports( file:component_file, s: ::pathToPackage( path:file.path ) + ".impl." + file.name + "Impl", type:ImportType::IMPL );
+end if;
+
+// transform each utility function
+select many s_brgs related by s_ee->S_BRG[R19];
+for each s_brg in s_brgs
+  ::transformUtilityFunction( s_brg:s_brg, utility:utility );
+end for;
+
+// create import block
+::addFileToImports( file:file, file_to_import:file, type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.runtime.summit.util.Utility", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.runtime.summit.components.IComponent", type:ImportType::IMPL );',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("3e2fdcea-3b0f-4b1e-9bc8-f44f1c434121",
+	"0b1dcdfd-3e1a-4aaa-a22a-df354cd09e94",
+	's_ee',
+	"fc04695e-75c8-413e-a409-6dbc6465e011",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("fc04695e-75c8-413e-a409-6dbc6465e011",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<External Entity>',
+	'',
+	'',
+	'../../../../mcooa/models/mcooa/ooaofooa/Domain/Domain.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("2b01a5a1-1096-4eba-abb6-9c8d15e4bb40",
+	"0b1dcdfd-3e1a-4aaa-a22a-df354cd09e94",
+	'containing_comp_def',
+	"1fef1559-c5b6-4eb7-a9c4-8b126b9b51a0",
+	0,
+	'',
+	"17f7d23f-e0a1-41a5-9816-8fe56e4f9d41",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("42579ca2-d6b4-465a-8be0-bdfe32b0f0bc",
+	"0b1dcdfd-3e1a-4aaa-a22a-df354cd09e94",
+	'exclude',
+	"ba5eda7a-def5-0000-0000-000000000001",
+	0,
+	'',
+	"2b01a5a1-1096-4eba-abb6-9c8d15e4bb40",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("17f7d23f-e0a1-41a5-9816-8fe56e4f9d41",
+	"0b1dcdfd-3e1a-4aaa-a22a-df354cd09e94",
+	'ep_pkg',
+	"9939c670-a721-4742-a824-ed4b0df4acd6",
+	0,
+	'',
+	"3e2fdcea-3b0f-4b1e-9bc8-f44f1c434121",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("0fc5fb18-6d8e-4224-97dd-38e638cc1e44",
+	"0b1dcdfd-3e1a-4aaa-a22a-df354cd09e94",
+	'path',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"42579ca2-d6b4-465a-8be0-bdfe32b0f0bc",
+	'');
+INSERT INTO PE_PE
+	VALUES ("0b1dcdfd-3e1a-4aaa-a22a-df354cd09e94",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("9280b1e4-c562-48f3-8530-1ad3cee50c62",
+	"00000000-0000-0000-0000-000000000000",
+	'transformUtilityFunction',
+	'',
+	's_brg = param.s_brg;
+utility = param.utility;
+
+// create utility function object
+create object instance util_func of UtilityFunction;
+relate util_func to utility across R4559;
+
+// create invocable
+create object instance invocable of InvocableObject;
+invocable.name = s_brg.Name;
+invocable.parent_name = utility.name;
+invocable.parent_package = utility.package;
+relate util_func to invocable across R427;
+invocable.oal = s_brg.Action_Semantics_internal;
+
+// link type
+select one s_dt related by s_brg->S_DT[R20];
+select many s_dims related by s_brg->S_DIM[R50];
+type = TypeReference::getInstance( s_dt:s_dt, s_dims:s_dims );
+relate type to invocable across R428;
+
+// create parameters
+select any s_bparm related by s_brg->S_BPARM[R21];
+prev_s_bparm = s_bparm;
+// select first parameter
+while ( not_empty prev_s_bparm )
+  s_bparm = prev_s_bparm;
+  select one prev_s_bparm related by s_bparm->S_BPARM[R55.''succeeds''];
+end while;
+while ( not_empty s_bparm )
+  // create parameter
+  create object instance parm of FormalParameter;
+  parm.name = "p_" + s_bparm.Name;
+  parm.by_ref = ( 1 == s_bparm.By_Ref );
+  select one parm_dt related by s_bparm->S_DT[R22];
+  select many s_dims related by s_bparm->S_DIM[R49];
+  parm_type = TypeReference::getInstance( s_dt:parm_dt, s_dims:s_dims );
+  relate parm_type to parm across R431;
+  ::linkParameter( invocable:invocable, parameter:parm );
+  select one s_bparm related by s_bparm->S_BPARM[R55.''precedes''];
+end while;
+
+// relate bridge
+relate s_brg to util_func across R4570;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("7a55a482-325f-4c69-8b40-f5000de09729",
+	"9280b1e4-c562-48f3-8530-1ad3cee50c62",
+	'utility',
+	"93db392d-1bd7-4276-baa0-47f361e867b5",
+	0,
+	'',
+	"ea9b2942-b98d-4911-9a84-fb52e87ac401",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("93db392d-1bd7-4276-baa0-47f361e867b5",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Utility>',
+	'',
+	'',
+	'../architecture/component/component.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("ea9b2942-b98d-4911-9a84-fb52e87ac401",
+	"9280b1e4-c562-48f3-8530-1ad3cee50c62",
+	's_brg',
+	"ecc1ab34-9767-4e8a-82ed-4ab5b2aea2c8",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("ecc1ab34-9767-4e8a-82ed-4ab5b2aea2c8",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Bridge>',
+	'',
+	'',
+	'../../../../mcooa/models/mcooa/ooaofooa/Domain/Domain.xtuml');
+INSERT INTO PE_PE
+	VALUES ("9280b1e4-c562-48f3-8530-1ad3cee50c62",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("b36bee85-a614-4d69-9feb-cda336242c18",
+	"00000000-0000-0000-0000-000000000000",
+	'transformAttributeReferences',
+	'',
+	'obj = param.obj;
+select many attrs related by obj->Attribute[R410];
+for each attr in attrs
+  select many o_refs related by attr->O_ATTR[R414]->O_RATTR[R106]->O_REF[R108];
+  for each o_ref in o_refs
+    select one r_rel related by o_ref->O_RTIDA[R111]->R_RTO[R110]->R_OIR[R203]->R_REL[R201];
+    select one referred_to_attr related by o_ref->O_RTIDA[R111]->O_OIDA[R110]->O_ATTR[R105]->Attribute[R414];
+    select one referred_to_obj related by referred_to_attr->Class[R410];
+    referred_to_phrase = ::oirGetPhrase( r_oir_id:o_ref.ROIR_ID );
+    phrase = ::oirGetPhrase( r_oir_id:o_ref.OIR_ID );
+    select any relationship from instances of Relationship where ( selected.num == r_rel.Numb and
+                                                                   selected.form_name == obj.name and
+                                                                   selected.part_name == referred_to_obj.name and
+                                                                   ( selected.form_phrase == phrase or selected.part_phrase == referred_to_phrase ) );
+
+    // create attribute reference
+    create object instance attr_ref of AttributeReference;
+    relate attr to referred_to_attr across R4506.''has value provided by'' using attr_ref;
+    relate relationship to attr_ref across R4511;
+  end for;
+end for;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("305d84cf-5ace-4032-bde8-9f647e76e318",
+	"b36bee85-a614-4d69-9feb-cda336242c18",
+	'obj',
+	"ac93823e-2644-440b-977c-1f4e8480ec59",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO PE_PE
+	VALUES ("b36bee85-a614-4d69-9feb-cda336242c18",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("14b78b78-1e96-4ddc-b225-5609683f4072",
+	"00000000-0000-0000-0000-000000000000",
+	'transformPortMessage',
+	'',
+	'port = param.port;
+msg = param.msg;
+
+select any c_ep related by msg->Interface[R419]->C_I[R421]->C_EP[R4003] where ( selected.Name == msg.name );
+select one c_po related by port->C_PO[R422];
+
+// create port message
+create object instance port_msg of PortMessage;
+relate port to msg across R420 using port_msg;
+
+// create invocable
+create object instance invocable of InvocableObject;
+invocable.name = msg.name;
+invocable.parent_name = port.name;
+invocable.parent_package = port.package;
+relate port_msg to invocable across R427;
+
+// populate the OAL
+invocable.oal = "";
+select any act_act from instances of ACT_ACT where false;
+select any spr_rep related by c_po->C_IR[R4016]->C_R[R4009]->SPR_REP[R4500] where ( selected.ExecutableProperty_Id == c_ep.Id );
+select one spr_ro related by spr_rep->SPR_RO[R4502];
+if ( not_empty spr_ro )
+  invocable.oal = spr_ro.Action_Semantics_internal;
+  select one act_act related by spr_ro->ACT_ROB[R685]->ACT_ACT[R698];
+else
+  select one spr_rs related by spr_rep->SPR_RS[R4502];
+  if ( not_empty spr_rs )
+    invocable.oal = spr_rs.Action_Semantics_internal;
+    select one act_act related by spr_rs->ACT_RSB[R684]->ACT_ACT[R698];
+  else
+    select any spr_pep related by c_po->C_IR[R4016]->C_P[R4009]->SPR_PEP[R4501] where ( selected.ExecutableProperty_Id == c_ep.Id );
+    select one spr_po related by spr_pep->SPR_PO[R4503];
+    if ( not_empty spr_po )
+      invocable.oal = spr_po.Action_Semantics_internal;
+      select one act_act related by spr_po->ACT_POB[R687]->ACT_ACT[R698];
+    else
+      select one spr_ps related by spr_pep->SPR_PS[R4503];
+      if ( not_empty spr_ps )
+        invocable.oal = spr_ps.Action_Semantics_internal;
+        select one act_act related by spr_ps->ACT_PSB[R686]->ACT_ACT[R698];
+      end if;
+    end if;
+  end if;
+end if;
+
+// link type
+type = TypeReference::getBuiltinTypeReference( name:"void" );
+relate type to invocable across R428;
+
+// create parameters
+select any c_pp related by c_ep->C_PP[R4006];
+prev_c_pp = c_pp;
+// select first parameter
+while ( not_empty prev_c_pp )
+  c_pp = prev_c_pp;
+  select one prev_c_pp related by c_pp->C_PP[R4021.''succeeds''];
+end while;
+while ( not_empty c_pp )
+  // create parameter
+  create object instance parm of FormalParameter;
+  parm.name = "p_" + c_pp.Name;
+  parm.by_ref = ( 1 == c_pp.By_Ref );
+  select one parm_dt related by c_pp->S_DT[R4007];
+  select many s_dims related by c_pp->S_DIM[R4017];
+  parm_type = TypeReference::getInstance( s_dt:parm_dt, s_dims:s_dims );
+  relate parm_type to parm across R431;
+  ::linkParameter( invocable:invocable, parameter:parm );
+  select one c_pp related by c_pp->C_PP[R4021.''precedes''];
+end while;
+
+// add to import block
+if ( port.provider and not msg.to_provider or not port.provider and msg.to_provider )
+  select one file related by port->File[R401];
+  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.interfaces.Message", type:ImportType::IMPL );
+end if;
+
+// relate the body
+if ( not_empty act_act )
+  relate act_act to invocable across R432;
+else
+  // TODO bad
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("05f0167e-78b2-44e5-a8e6-5e1e211b14c8",
+	"14b78b78-1e96-4ddc-b225-5609683f4072",
+	'port',
+	"fd525a31-5f7e-4b86-ab4f-d7ad8b09281d",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("fd525a31-5f7e-4b86-ab4f-d7ad8b09281d",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Port>',
+	'',
+	'',
+	'../architecture/interfaces/interfaces.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("ff9c2b40-e48a-4e3c-b344-c7afa715de9c",
+	"14b78b78-1e96-4ddc-b225-5609683f4072",
+	'msg',
+	"ad08b5ef-5316-4ff4-a266-1fe49249c53f",
+	0,
+	'',
+	"05f0167e-78b2-44e5-a8e6-5e1e211b14c8",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("ad08b5ef-5316-4ff4-a266-1fe49249c53f",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Message>',
+	'',
+	'',
+	'../architecture/interfaces/interfaces.xtuml');
+INSERT INTO PE_PE
+	VALUES ("14b78b78-1e96-4ddc-b225-5609683f4072",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("04acdb19-1dbe-4c28-a736-ff73e44b1dbe",
+	"00000000-0000-0000-0000-000000000000",
+	'resolveAssociativeSelections',
+	'',
+	'// This function selects all ACT_LNK instances which select directly from one to
+// other or other to one on an associative relationship and turns it into two 
+// links.
+
+select many act_lnks from instances of ACT_LNK;
+for each act_lnk in act_lnks
+  
+  select one r_rel related by act_lnk->R_REL[R681];
+  select one r_aoth related by r_rel->R_ASSOC[R206]->R_AOTH[R210];
+  select one r_assr related by r_rel->R_ASSOC[R206]->R_ASSR[R211];
+  select one assr_obj related by r_assr->R_RGO[R205]->R_OIR[R203]->O_OBJ[R201];
+  
+  select one target_obj related by act_lnk->O_OBJ[R678];
+  select any prev_lnk from instances of ACT_LNK where false;
+  select any v_int from instances of V_INT where false;
+  select any v_ins from instances of V_INS where false;
+  select one prev_lnk related by act_lnk->ACT_LNK[R604.''succeeds'']; // previous link
+  select one base_obj related by prev_lnk->O_OBJ[R678];
+  if ( empty base_obj )
+    select one v_int related by act_lnk->ACT_SEL[R637]->V_VAL[R613]->V_IRF[R801]->V_VAR[R808]->V_INT[R814]; // instance reference
+    select one base_obj related by v_int->O_OBJ[R818];
+    if ( empty base_obj )
+      select one v_ins related by act_lnk->ACT_SEL[R637]->V_VAL[R613]->V_ISR[R801]->V_VAR[R809]->V_INS[R814]; // instance reference set
+      select one base_obj related by v_ins->O_OBJ[R819];
+    end if;
+  end if;
+  
+  // if this is an associative selection in which the link class is _not_ involved, it must be split up
+  if ( not_empty r_assr and target_obj.Obj_ID != r_assr.Obj_ID and base_obj.Obj_ID != r_assr.Obj_ID )
+  
+    // create the first intermediate link
+    create object instance act_lnk1 of ACT_LNK;
+    act_lnk1.modelClassKeyLettersLineNumber = act_lnk.modelClassKeyLettersLineNumber;
+    act_lnk1.modelClassKeyLettersColumn = act_lnk.modelClassKeyLettersColumn;
+    act_lnk1.associationNumberLineNumber = act_lnk.associationNumberLineNumber;
+    act_lnk1.associationNumberColumn = act_lnk.associationNumberColumn;
+    act_lnk1.phraseLineNumber = act_lnk.phraseLineNumber;
+    act_lnk1.phraseColumn = act_lnk.phraseColumn;
+    act_lnk1.Rel_Phrase = act_lnk.Rel_Phrase; // use the same rel phrase
+    relate r_rel to act_lnk1 across R681;
+    relate act_lnk1 to assr_obj across R678;
+    if ( 1 == r_assr.Mult or ( not_empty prev_lnk and Multiplicity::Many == prev_lnk.Mult ) or not_empty v_ins )
+      act_lnk1.Mult = Multiplicity::Many; // always many if the associative object has multiplicity many, or the starting point is multiplicity many
+    else
+      if ( target_obj.Obj_ID != base_obj.Obj_ID and r_aoth.Obj_ID == target_obj.Obj_ID ) or 
+         ( target_obj.Obj_ID == base_obj.Obj_ID and r_aoth.Txt_Phrs == C_UTIL::stripTics( s:act_lnk.Rel_Phrase ) )  // one to other
+        if ( 1 == r_aoth.Mult )
+          act_lnk1.Mult = Multiplicity::Many;
+        else
+          act_lnk1.Mult = Multiplicity::One;
+        end if;
+      end if;
+    end if;
+
+    // create the second intermediate link
+    create object instance act_lnk2 of ACT_LNK;
+    act_lnk2.modelClassKeyLettersLineNumber = act_lnk.modelClassKeyLettersLineNumber;
+    act_lnk2.modelClassKeyLettersColumn = act_lnk.modelClassKeyLettersColumn;
+    act_lnk2.associationNumberLineNumber = act_lnk.associationNumberLineNumber;
+    act_lnk2.associationNumberColumn = act_lnk.associationNumberColumn;
+    act_lnk2.phraseLineNumber = act_lnk.phraseLineNumber;
+    act_lnk2.phraseColumn = act_lnk.phraseColumn;
+    act_lnk2.Rel_Phrase = act_lnk.Rel_Phrase; // use the same rel phrase
+    act_lnk2.Mult = act_lnk.Mult; // the second link always gets the same multiplicity as the original link
+    relate r_rel to act_lnk2 across R681;
+    relate act_lnk2 to target_obj across R678;
+    
+    // link the two together and insert into the order
+    relate act_lnk1 to act_lnk2 across R604.''precedes'';
+    select one next_lnk related by act_lnk->ACT_LNK[R604.''precedes''];
+    if ( not_empty next_lnk )
+      unrelate act_lnk from next_lnk across R604.''precedes'';
+      relate act_lnk2 to next_lnk across R604.''precedes'';
+    end if;
+    if ( not_empty prev_lnk )
+      unrelate act_lnk from prev_lnk across R604.''succeeds'';
+      relate act_lnk1 to prev_lnk across R604.''succeeds'';
+    else // this is the starting point
+      select one act_sel related by act_lnk->ACT_SEL[R637];
+      unrelate act_lnk from act_sel across R637;
+      relate act_lnk1 to act_sel across R637;
+    end if;
+    
+    // dispose old link
+    unrelate target_obj from act_lnk across R678;
+    unrelate r_rel from act_lnk across R681;
+    delete object instance act_lnk;
+    
+  end if;
+  
+end for;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO PE_PE
+	VALUES ("04acdb19-1dbe-4c28-a736-ff73e44b1dbe",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("c0d8df16-ca3e-4dfe-afd3-3b67c4953da0",
+	"00000000-0000-0000-0000-000000000000",
+	'linkParameter',
+	'',
+	'invocable = param.invocable;
+parm = param.parameter;
+// link parameter
+select any last_parm related by invocable->FormalParameter[R429];
+select one next_parm related by last_parm->FormalParameter[R404.''precedes''];
+while ( not_empty next_parm )
+  last_parm = next_parm;
+  select one next_parm related by last_parm->FormalParameter[R404.''precedes''];
+end while;
+if ( not_empty last_parm )
+  relate parm to last_parm across R404.''follows'';
+end if;
+relate parm to invocable across R429;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("0ace3d4c-3db1-4306-af9e-603a1d4f8ad7",
+	"c0d8df16-ca3e-4dfe-afd3-3b67c4953da0",
+	'invocable',
+	"30c7a5ba-c6d9-44fd-8e61-f22cde8fdc41",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("30c7a5ba-c6d9-44fd-8e61-f22cde8fdc41",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Invocable Object>',
+	'',
+	'',
+	'../architecture/invocable/invocable.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("a432e006-434b-4b8d-9b6c-e3e3e240deb5",
+	"c0d8df16-ca3e-4dfe-afd3-3b67c4953da0",
+	'parameter',
+	"a4048d05-d8f6-4f96-b1fc-79a73158a744",
+	0,
+	'',
+	"0ace3d4c-3db1-4306-af9e-603a1d4f8ad7",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("a4048d05-d8f6-4f96-b1fc-79a73158a744",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Formal Parameter>',
+	'',
+	'',
+	'../architecture/invocable/invocable.xtuml');
+INSERT INTO PE_PE
+	VALUES ("c0d8df16-ca3e-4dfe-afd3-3b67c4953da0",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("64ba7d8b-4444-49d3-87cb-8e5c63278248",
+	"00000000-0000-0000-0000-000000000000",
+	'transformUserDefinedType',
+	'',
+	's_dt = param.s_dt;
+select one ep_pkg related by s_dt->PE_PE[R8001]->EP_PKG[R8000];
+
+// create the file
+create object instance file of File;
+file.name = ::camelCaseName( name:s_dt.Name, start_lower:false );
+file.path = ::ep_pkgToPath( ep_pkg:ep_pkg );
+file.package = ::pathToPackage( path:file.path );
+file.extension = ".java";
+file.exclude = false;
+
+// create the type
+create object instance type of Type;
+type.name = file.name;
+type.package = file.package;
+type.default_value = "new " + type.name + "()";
+type.resolve( s_dt:s_dt );
+create object instance udt of UserDefinedType;
+relate type to udt across R407;
+relate udt to file across R401;
+
+// add import
+::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.IXtumlType", type:ImportType::IMPL );',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("38e5b048-c9f5-427f-8dd4-78c692c104f2",
+	"64ba7d8b-4444-49d3-87cb-8e5c63278248",
+	's_dt',
+	"4a90cd45-ece0-4e72-afe7-44996f9d7e1e",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO PE_PE
+	VALUES ("64ba7d8b-4444-49d3-87cb-8e5c63278248",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("6fab7686-b52d-4e9a-926a-9ee2876b2884",
+	"00000000-0000-0000-0000-000000000000",
+	'resolveUserDefinedTypes',
+	'',
+	'select many udts from instances of UserDefinedType;
+for each udt in udts
+
+  select one type related by udt->Type[R407];
+  select one base_type related by type->S_DT[R423]->S_UDT[R17]->S_DT[R18]->Type[R423];
+  if ( empty base_type )
+    // TODO bad
+  end if;
+  
+  relate udt to base_type across R3802;
+  
+  // add to imports
+  select one file related by udt->File[R401];
+  ::addTypeToImports( file:file, type_to_import:base_type, type:ImportType::IMPL );
+
+end for;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO PE_PE
+	VALUES ("6fab7686-b52d-4e9a-926a-9ee2876b2884",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO PE_PE
+	VALUES ("06787f13-1c16-4275-879c-00bbeee7cb88",
+	1,
+	"00000000-0000-0000-0000-000000000000",
+	"00000000-0000-0000-0000-000000000000",
+	7);
+INSERT INTO S_SYS_PROXY
+	VALUES ("aa743d3c-66dc-49df-a19a-ffbadf9c9d1b",
+	'io.ciera.tool.core',
+	1,
+	'../io.ciera.tool.core.xtuml');
