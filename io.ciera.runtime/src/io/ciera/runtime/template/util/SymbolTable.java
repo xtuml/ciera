@@ -1,9 +1,9 @@
 package io.ciera.runtime.template.util;
 
-import io.ciera.summit.exceptions.BadArgumentException;
-import io.ciera.summit.exceptions.XtumlException;
-import io.ciera.summit.types.IXtumlType;
-import io.ciera.summit.types.InstRefMapping;
+import io.ciera.runtime.summit.exceptions.BadArgumentException;
+import io.ciera.runtime.summit.exceptions.XtumlException;
+import io.ciera.runtime.summit.types.IXtumlType;
+import io.ciera.runtime.summit.types.InstRefMapping;
 
 public class SymbolTable extends InstRefMapping<SymbolTable> implements IXtumlType<SymbolTable> {
     

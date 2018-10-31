@@ -3,12 +3,8 @@ package io.ciera.runtime.summit.application;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.PriorityBlockingQueue;
 
-import io.ciera.runtime.summit.application.DefaultExceptionHandler;
 import io.ciera.runtime.summit.application.tasks.HaltExecutionTask;
-import io.ciera.summit.application.IApplicationTask;
-import io.ciera.summit.application.IExceptionHandler;
-import io.ciera.summit.application.IRunContext;
-import io.ciera.summit.exceptions.XtumlException;
+import io.ciera.runtime.summit.exceptions.XtumlException;
 
 public class ApplicationExecutor extends Thread implements IRunContext {
 

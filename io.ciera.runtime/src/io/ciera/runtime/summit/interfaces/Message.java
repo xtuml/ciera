@@ -1,7 +1,5 @@
 package io.ciera.runtime.summit.interfaces;
 
-import io.ciera.summit.interfaces.IMessage;
-
 public class Message implements IMessage {
 
     private String name;

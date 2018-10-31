@@ -5,10 +5,8 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.ListIterator;
 
-import io.ciera.summit.exceptions.BadArgumentException;
-import io.ciera.summit.exceptions.XtumlException;
-import io.ciera.summit.types.IList;
-import io.ciera.summit.types.IWhere;
+import io.ciera.runtime.summit.exceptions.BadArgumentException;
+import io.ciera.runtime.summit.exceptions.XtumlException;
 
 public abstract class List<L extends IList<L,E>,E> implements IList<L,E> {
 

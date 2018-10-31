@@ -7,11 +7,11 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import io.ciera.runtime.summit.application.tasks.HaltExecutionTask;
+import io.ciera.runtime.summit.components.IComponent;
+import io.ciera.runtime.summit.exceptions.XtumlException;
+import io.ciera.runtime.summit.exceptions.XtumlInterruptedException;
 import io.ciera.runtime.summit.util.CMD;
 import io.ciera.runtime.summit.util.Utility;
-import io.ciera.summit.components.IComponent;
-import io.ciera.summit.exceptions.XtumlException;
-import io.ciera.summit.exceptions.XtumlInterruptedException;
 
 public class CMDImpl<C extends IComponent<C>> extends Utility<C> implements CMD {
     

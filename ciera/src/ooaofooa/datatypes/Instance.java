@@ -1,7 +1,7 @@
 package ooaofooa.datatypes;
 
-import io.ciera.summit.types.IXtumlType;
-import io.ciera.summit.types.InstRefMapping;
+import io.ciera.runtime.summit.types.IXtumlType;
+import io.ciera.runtime.summit.types.InstRefMapping;
 
 public class Instance extends InstRefMapping<Instance> implements IXtumlType<Instance> {
     

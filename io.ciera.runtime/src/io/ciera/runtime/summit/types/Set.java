@@ -4,10 +4,8 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.TreeSet;
 
-import io.ciera.summit.exceptions.BadArgumentException;
-import io.ciera.summit.exceptions.XtumlException;
-import io.ciera.summit.types.ISet;
-import io.ciera.summit.types.IWhere;
+import io.ciera.runtime.summit.exceptions.BadArgumentException;
+import io.ciera.runtime.summit.exceptions.XtumlException;
 
 public abstract class Set<S extends ISet<S,E>,E> implements ISet<S,E> {
 

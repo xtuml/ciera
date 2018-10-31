@@ -1,6 +1,6 @@
 package io.ciera.runtime.template.util;
 
-import io.ciera.summit.exceptions.XtumlException;
+import io.ciera.runtime.summit.exceptions.XtumlException;
 
 public interface ITemplate {
     

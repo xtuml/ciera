@@ -1,6 +1,6 @@
 package io.ciera.runtime.summit.util;
 
-import io.ciera.summit.types.TimeStamp;
+import io.ciera.runtime.summit.types.TimeStamp;
 
 public interface LOG {
 

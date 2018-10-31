@@ -1,6 +1,6 @@
 package io.ciera.runtime.summit.util;
 
-import io.ciera.summit.exceptions.XtumlException;
+import io.ciera.runtime.summit.exceptions.XtumlException;
 
 public interface CMD {
 

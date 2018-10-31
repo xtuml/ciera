@@ -1,11 +1,9 @@
 package io.ciera.runtime.summit.interfaces;
 
+import io.ciera.runtime.summit.application.IRunContext;
 import io.ciera.runtime.summit.application.tasks.ReceivedMessageTask;
-import io.ciera.summit.application.IRunContext;
-import io.ciera.summit.components.IComponent;
-import io.ciera.summit.exceptions.XtumlException;
-import io.ciera.summit.interfaces.IMessage;
-import io.ciera.summit.interfaces.IPort;
+import io.ciera.runtime.summit.components.IComponent;
+import io.ciera.runtime.summit.exceptions.XtumlException;
 
 public abstract class Port<C extends IComponent<C>> implements IPort<C> {
 

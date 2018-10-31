@@ -1,7 +1,5 @@
 package io.ciera.runtime.summit.util;
 
-import io.ciera.runtime.summit.util.ProgressBar;
-
 public class ProgressBar {
     
     private final Thread displayThread;

@@ -3,12 +3,9 @@ package io.ciera.runtime.summit.classes;
 import java.util.Arrays;
 import java.util.List;
 
-import io.ciera.runtime.summit.classes.RelationshipSet;
+import io.ciera.runtime.summit.exceptions.XtumlException;
 import io.ciera.runtime.summit.types.Set;
-import io.ciera.summit.classes.IRelationship;
-import io.ciera.summit.classes.IRelationshipSet;
-import io.ciera.summit.exceptions.XtumlException;
-import io.ciera.summit.types.UniqueId;
+import io.ciera.runtime.summit.types.UniqueId;
 
 public class RelationshipSet extends Set<IRelationshipSet,IRelationship> implements IRelationshipSet {
     

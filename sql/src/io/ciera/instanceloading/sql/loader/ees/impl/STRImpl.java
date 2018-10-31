@@ -1,9 +1,8 @@
 package io.ciera.instanceloading.sql.loader.ees.impl;
 
-import io.ciera.runtime.summit.util.Utility;
-import io.ciera.summit.components.IComponent;
-
 import io.ciera.instanceloading.sql.loader.ees.STR;
+import io.ciera.runtime.summit.components.IComponent;
+import io.ciera.runtime.summit.util.Utility;
 
 public class STRImpl<C extends IComponent<C>> extends Utility<C> implements STR {
     public STRImpl( C context ) {

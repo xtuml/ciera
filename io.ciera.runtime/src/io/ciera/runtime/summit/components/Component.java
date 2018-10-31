@@ -1,8 +1,7 @@
 package io.ciera.runtime.summit.components;
 
-import io.ciera.summit.application.IRunContext;
-import io.ciera.summit.components.IComponent;
-import io.ciera.summit.exceptions.XtumlException;
+import io.ciera.runtime.summit.application.IRunContext;
+import io.ciera.runtime.summit.exceptions.XtumlException;
 
 public abstract class Component<C extends IComponent<C>> implements IComponent<C> {
 

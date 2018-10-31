@@ -12,16 +12,16 @@ import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
-import io.ciera.runtime.summit.util.Utility;
 import io.ciera.runtime.instanceloading.IPopulationLoader;
 import io.ciera.runtime.instanceloading.sql.parser.SQLLexer;
 import io.ciera.runtime.instanceloading.sql.parser.SQLParser;
 import io.ciera.runtime.instanceloading.sql.parser.SQLParser.Sql_fileContext;
 import io.ciera.runtime.instanceloading.sql.parser.XtumlSQLListener;
 import io.ciera.runtime.instanceloading.sql.util.SQL;
-import io.ciera.summit.components.IComponent;
-import io.ciera.summit.exceptions.InstancePopulationException;
-import io.ciera.summit.exceptions.XtumlException;
+import io.ciera.runtime.summit.components.IComponent;
+import io.ciera.runtime.summit.exceptions.InstancePopulationException;
+import io.ciera.runtime.summit.exceptions.XtumlException;
+import io.ciera.runtime.summit.util.Utility;
 
 public class SQLImpl<C extends IComponent<C>> extends Utility<C> implements SQL {
     

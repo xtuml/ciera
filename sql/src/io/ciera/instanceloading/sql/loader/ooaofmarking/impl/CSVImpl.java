@@ -4,10 +4,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
 
-import io.ciera.runtime.summit.util.Utility;
-import io.ciera.summit.components.IComponent;
-
 import io.ciera.instanceloading.sql.loader.ooaofmarking.CSV;
+import io.ciera.runtime.summit.components.IComponent;
+import io.ciera.runtime.summit.util.Utility;
 
 public class CSVImpl<C extends IComponent<C>> extends Utility<C> implements CSV {
     

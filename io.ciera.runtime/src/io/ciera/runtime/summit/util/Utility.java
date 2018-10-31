@@ -1,8 +1,8 @@
 package io.ciera.runtime.summit.util;
 
-import io.ciera.summit.application.IActionHome;
-import io.ciera.summit.application.IRunContext;
-import io.ciera.summit.components.IComponent;
+import io.ciera.runtime.summit.application.IActionHome;
+import io.ciera.runtime.summit.application.IRunContext;
+import io.ciera.runtime.summit.components.IComponent;
 
 public class Utility<C extends IComponent<C>> implements IActionHome<C> {
 

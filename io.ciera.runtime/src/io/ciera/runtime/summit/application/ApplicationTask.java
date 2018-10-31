@@ -1,7 +1,5 @@
 package io.ciera.runtime.summit.application;
 
-import io.ciera.summit.application.IApplicationTask;
-
 public abstract class ApplicationTask implements IApplicationTask {
 
     @Override

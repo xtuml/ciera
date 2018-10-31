@@ -4,8 +4,6 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
-import io.ciera.summit.classes.IInstanceIdentifier;
-
 public class InstanceIdentifier implements IInstanceIdentifier {
     
     List<Object> elements;

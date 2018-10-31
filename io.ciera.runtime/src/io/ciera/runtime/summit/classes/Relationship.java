@@ -1,7 +1,6 @@
 package io.ciera.runtime.summit.classes;
 
-import io.ciera.summit.classes.IRelationship;
-import io.ciera.summit.types.UniqueId;
+import io.ciera.runtime.summit.types.UniqueId;
 
 public class Relationship implements IRelationship, Comparable<IRelationship> {
 

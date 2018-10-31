@@ -1,6 +1,6 @@
 package ooaofooa.datatypes;
 
-import io.ciera.summit.types.IXtumlType;
+import io.ciera.runtime.summit.types.IXtumlType;
 
 public class Long extends Object implements IXtumlType<Long> {
     

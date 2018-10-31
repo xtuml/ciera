@@ -1,7 +1,7 @@
 package io.ciera.runtime.summit.util;
 
-import io.ciera.summit.exceptions.XtumlException;
-import io.ciera.summit.types.TimeStamp;
+import io.ciera.runtime.summit.exceptions.XtumlException;
+import io.ciera.runtime.summit.types.TimeStamp;
 
 public interface TIM {
 

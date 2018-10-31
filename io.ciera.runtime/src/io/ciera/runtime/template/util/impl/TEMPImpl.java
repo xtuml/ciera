@@ -5,13 +5,14 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.reflect.Constructor;
 import java.util.Stack;
+
+import io.ciera.runtime.summit.components.IComponent;
+import io.ciera.runtime.summit.exceptions.XtumlException;
+import io.ciera.runtime.summit.types.IXtumlType;
 import io.ciera.runtime.summit.util.Utility;
 import io.ciera.runtime.template.util.ITemplateRegistry;
 import io.ciera.runtime.template.util.SymbolTable;
 import io.ciera.runtime.template.util.TEMP;
-import io.ciera.summit.components.IComponent;
-import io.ciera.summit.exceptions.XtumlException;
-import io.ciera.summit.types.IXtumlType;
 
 public class TEMPImpl<C extends IComponent<C>> extends Utility<C> implements TEMP {
     

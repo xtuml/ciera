@@ -1,8 +1,7 @@
 package io.ciera.template.rsl.ees.impl;
 
+import io.ciera.runtime.summit.components.IComponent;
 import io.ciera.runtime.summit.util.Utility;
-import io.ciera.summit.components.IComponent;
-
 import io.ciera.template.rsl.ees.STR;
 
 public class STRImpl<C extends IComponent<C>> extends Utility<C> implements STR {

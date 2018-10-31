@@ -3,15 +3,12 @@ package io.ciera.runtime.summit.classes;
 import java.util.Arrays;
 import java.util.List;
 
-import io.ciera.runtime.summit.classes.InstanceIdentifier;
-import io.ciera.summit.application.IRunContext;
-import io.ciera.summit.classes.IInstanceIdentifier;
-import io.ciera.summit.classes.IModelInstance;
-import io.ciera.summit.components.IComponent;
-import io.ciera.summit.exceptions.DeletedInstanceException;
-import io.ciera.summit.exceptions.InstancePopulationException;
-import io.ciera.summit.exceptions.XtumlException;
-import io.ciera.summit.types.UniqueId;
+import io.ciera.runtime.summit.application.IRunContext;
+import io.ciera.runtime.summit.components.IComponent;
+import io.ciera.runtime.summit.exceptions.DeletedInstanceException;
+import io.ciera.runtime.summit.exceptions.InstancePopulationException;
+import io.ciera.runtime.summit.exceptions.XtumlException;
+import io.ciera.runtime.summit.types.UniqueId;
 
 public abstract class ModelInstance<T extends IModelInstance<T,C>,C extends IComponent<C>> implements IModelInstance<T,C>, Comparable<T> {
 

@@ -2,7 +2,7 @@ package io.ciera.runtime.summit.application.tasks;
 
 import io.ciera.runtime.summit.application.ApplicationTask;
 import io.ciera.runtime.summit.application.TaskPriority;
-import io.ciera.summit.exceptions.XtumlException;
+import io.ciera.runtime.summit.exceptions.XtumlException;
 
 public final class HaltExecutionTask extends ApplicationTask {
     

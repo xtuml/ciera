@@ -3,7 +3,7 @@ package io.ciera.runtime.instanceloading;
 import java.io.OutputStream;
 import java.util.List;
 
-import io.ciera.summit.exceptions.XtumlException;
+import io.ciera.runtime.summit.exceptions.XtumlException;
 
 public interface IPopulationLoader {
     
