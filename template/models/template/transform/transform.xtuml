@@ -106,7 +106,7 @@ while ( i < cardinality referenced_vars )
       current_var = referenced_var;
     end if;
   end for;
-  block.prefix = block.prefix + indent + current_var.type_reference_name + " " + current_var.name + " = (" + current_var.type_reference_name + ")symbolTable.get(" + STR::itoa( i:i ) + ");\n";
+  block.prefix = block.prefix + indent + current_var.type_reference_name + " " + current_var.name + " = (" + current_var.type_reference_name + ")symbolTable.get(" + STRING::itoa( i:i ) + ");\n";
   last_var = current_var;
   select any current_var from instances of Variable where false;
   i = i + 1;
@@ -597,7 +597,7 @@ end while;
 create object instance smt of Statement;
 relate smt to block across R450;
 if ( not_empty prev_smt )
-  smt.statement_number = STR::itoa( i:STR::atoi( s:prev_smt.statement_number ) + 1 );
+  smt.statement_number = STRING::itoa( i:STRING::atoi( s:prev_smt.statement_number ) + 1 );
   relate smt to prev_smt across R477.''executes after'';
 else
   smt.statement_number = "1";
@@ -653,12 +653,12 @@ block = param.block;
 blob_string = blob.BLOB;
 select any next_buffer_element related by blob->Y_BufferElement[R3057]->Y_Buffer[R3056]->Y_BufferElement[R3056] where ( selected.node_id > blob.node_id );
 if ( empty next_buffer_element )  // if this blob is the last element in the buffer line, handle line break special cases
-  if ( "\\\\\\" == STR::substr( s:blob_string, begin:STR::strlen( s:blob_string ) - 3, end:-1 ) )  // three slashes = literal slash, no newline
-    blob_string = STR::substr( s:blob_string, begin:0, end:STR::strlen( s:blob_string ) - 3 ) + "\\\\";
-  elif ( "\\\\" == STR::substr( s:blob_string, begin:STR::strlen( s:blob_string ) - 2, end:-1 ) )  // two slashes = literal slash, with newline
-    blob_string = STR::substr( s:blob_string, begin:0, end:STR::strlen( s:blob_string ) - 2 ) + "\\\\\\" + "n";
-  elif ( "\\" == STR::substr( s:blob_string, begin:STR::strlen( s:blob_string ) - 1, end:-1 ) )    // one slash = no literal slash, no newline
-    blob_string = STR::substr( s:blob_string, begin:0, end:STR::strlen( s:blob_string ) - 1 );
+  if ( "\\\\\\" == STRING::substr( s:blob_string, begin:STRING::strlen( s:blob_string ) - 3, end:-1 ) )  // three slashes = literal slash, no newline
+    blob_string = STRING::substr( s:blob_string, begin:0, end:STRING::strlen( s:blob_string ) - 3 ) + "\\\\";
+  elif ( "\\\\" == STRING::substr( s:blob_string, begin:STRING::strlen( s:blob_string ) - 2, end:-1 ) )  // two slashes = literal slash, with newline
+    blob_string = STRING::substr( s:blob_string, begin:0, end:STRING::strlen( s:blob_string ) - 2 ) + "\\\\\\" + "n";
+  elif ( "\\" == STRING::substr( s:blob_string, begin:STRING::strlen( s:blob_string ) - 1, end:-1 ) )    // one slash = no literal slash, no newline
+    blob_string = STRING::substr( s:blob_string, begin:0, end:STRING::strlen( s:blob_string ) - 1 );
   else                                                                                             // no slashes = no literal slash, with newline
     blob_string = blob_string + "\\" + "n";
   end if;
@@ -667,13 +667,13 @@ end if;
 // escape double quotes
 search_string = blob_string;
 blob_string = "";
-quote_index = STR::indexof( haystack:search_string, needle:STR::quote() );
+quote_index = STRING::indexof( haystack:search_string, needle:STRING::quote() );
 while ( -1 != quote_index )
-  prefix = STR::substr( s:search_string, begin:0, end:quote_index );
-  suffix = STR::substr( s:search_string, begin:quote_index, end:-1 );
-  blob_string = blob_string + prefix + "\\" + STR::quote();
-  search_string = STR::substr( s:suffix, begin:1, end:-1 );
-  quote_index = STR::indexof( haystack:search_string, needle:STR::quote() );
+  prefix = STRING::substr( s:search_string, begin:0, end:quote_index );
+  suffix = STRING::substr( s:search_string, begin:quote_index, end:-1 );
+  blob_string = blob_string + prefix + "\\" + STRING::quote();
+  search_string = STRING::substr( s:suffix, begin:1, end:-1 );
+  quote_index = STRING::indexof( haystack:search_string, needle:STRING::quote() );
 end while;
 blob_string = blob_string + search_string;
 
@@ -736,7 +736,7 @@ end while;
 create object instance smt of Statement;
 relate smt to block across R450;
 if ( not_empty prev_smt )
-  smt.statement_number = STR::itoa( i:STR::atoi( s:prev_smt.statement_number ) + 1 );
+  smt.statement_number = STRING::itoa( i:STRING::atoi( s:prev_smt.statement_number ) + 1 );
   relate smt to prev_smt across R477.''executes after'';
 else
   smt.statement_number = "1";
@@ -1182,7 +1182,7 @@ end while;
 create object instance smt of Statement;
 relate smt to block across R450;
 if ( not_empty prev_smt )
-  smt.statement_number = STR::itoa( i:STR::atoi( s:prev_smt.statement_number ) + 1 );
+  smt.statement_number = STRING::itoa( i:STRING::atoi( s:prev_smt.statement_number ) + 1 );
   relate smt to prev_smt across R477.''executes after'';
 else
   smt.statement_number = "1";
