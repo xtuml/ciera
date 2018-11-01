@@ -56,6 +56,7 @@ end while;
 ::addStringToImports( file:file, s:"io.ciera.runtime.summit.application.IRunContext", type:ImportType::IMPL );
 ::addStringToImports( file:file, s:"io.ciera.runtime.summit.components.IComponent", type:ImportType::IMPL );
 ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"java.util.Arrays", type:ImportType::IMPL );
 
 // translate components definitions
 select many c_cs related by root_package->PE_PE[R8000]->C_C[R8001];
@@ -142,6 +143,28 @@ if ( 1 == param.pass )
   relate comp_def to file across R401;
   comp_def.extends = "Component<" + comp_def.name + ">";
   relate c_c to comp_def across R4573;
+  comp_def.version = "";
+  comp_def.version_date = "";
+  
+  // set version information
+  select one c_c_pe related by c_c->PE_PE[R8001];
+  select any version_mark from instances of Mark where ( selected.markable_name == "Component" and
+                                                                  selected.path == ::containerMarkingPath( pe:c_c_pe ) + "::" + c_c.Name and
+                                                                  selected.feature_name == "Version" );
+  if ( not_empty version_mark )
+    comp_def.version = version_mark.value;
+    current_date = TIM::current_date();
+    year_string = STRING::itoa( i:TIM::get_year( date:current_date ) );
+    month_string = STRING::itoa( i:TIM::get_month( date:current_date ) );
+    if ( STRING::strlen( s:month_string ) < 2 )
+      month_string = "0" + month_string;
+    end if;
+    day_string = STRING::itoa( i:TIM::get_day( date:current_date ) );
+    if ( STRING::strlen( s:day_string ) < 2 )
+      day_string = "0" + day_string;
+    end if;
+    comp_def.version_date = year_string + "-" + month_string + "-" + day_string;
+  end if;
 
   // transform ports
   select many c_pos related by c_c->C_PO[R4010];
@@ -566,7 +589,7 @@ for each s_dt in s_dts
       type_default_value = "null";
     elif ( "date" == s_dt.Name )
       type_name = "Date";
-      type_package = "io.ciera.runtime.summit.time";
+      type_package = "io.ciera.runtime.summit.types";
       type_default_value = "null";
     elif ( "inst<Event>" == s_dt.Name )
       type_name = "IEvent";

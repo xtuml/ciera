@@ -8,5 +8,6 @@ public interface IApplication {
     }
     public void initialize();
     public void start();
+    public void printVersions();
 
 }

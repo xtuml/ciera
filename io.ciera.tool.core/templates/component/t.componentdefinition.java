@@ -35,6 +35,19 @@ ${utilities}
 ${init}
     }
 
+.if ( "" != self.version )
+    @Override
+    public String getVersion() {
+        return "${self.version}";
+    }
+.end if
+.if ( "" != self.version_date )
+    @Override
+    public String getVersionDate() {
+        return "${self.version_date}";
+    }
+.end if
+
     @Override
     public boolean addInstance( IModelInstance<?,?> instance ) throws XtumlException {
         if ( null == instance ) throw new BadArgumentException( "Null instance passed." );
