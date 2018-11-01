@@ -1,0 +1,2573 @@
+-- BP 7.1.6 content: Package syschar: 3 persistence-version: 7.1.6
+
+INSERT INTO EP_PKG
+	VALUES ("0f65277e-71ba-472a-ad12-048000976d40",
+	"9bad5865-c62d-406a-afba-4ffdfa887a1d",
+	"9bad5865-c62d-406a-afba-4ffdfa887a1d",
+	'transform',
+	'',
+	0);
+INSERT INTO GD_MD
+	VALUES ("a286abed-8056-4e9b-8cf7-c15ab19d2f84",
+	112,
+	"0f65277e-71ba-472a-ad12-048000976d40",
+	108,
+	0,
+	0,
+	1,
+	1,
+	1,
+	12,
+	1,
+	0,
+	0,
+	0,
+	0,
+	0,
+	'',
+	'io.ciera.tool.template::transform');
+INSERT INTO DIM_DIA
+	VALUES ("a286abed-8056-4e9b-8cf7-c15ab19d2f84",
+	'',
+	1.000000,
+	0.000000,
+	0.000000,
+	"00000000-0000-0000-0000-000000000000");
+INSERT INTO S_SYNC
+	VALUES ("ed99ed22-7ecf-40c1-9e95-aab5538ae4f4",
+	"00000000-0000-0000-0000-000000000000",
+	'transformTemplateRegistries',
+	'',
+	'select many comp_defs from instances of ComponentDefinition;
+for each comp_def in comp_defs
+  ::transformTemplateRegistry( comp_def:comp_def );
+end for;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO PE_PE
+	VALUES ("ed99ed22-7ecf-40c1-9e95-aab5538ae4f4",
+	1,
+	"0f65277e-71ba-472a-ad12-048000976d40",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("84b152bf-ae5a-4d05-ba55-2482f90eeebe",
+	"00000000-0000-0000-0000-000000000000",
+	'transformTemplate',
+	'',
+	'filename = param.filename;
+registry = param.registry;
+comp_def = param.comp_def;
+select one registry_file related by registry->GeneralFile[R3051]->File[R401];
+
+// create the template instance
+create object instance temp of Z_Template;
+relate temp to registry across R3052;
+
+// create the invocable instance
+create object instance invocable of InvocableObject;
+invocable.name = filename;
+invocable.parent_name = registry.name;
+invocable.parent_package = registry.package;
+create object instance generic_invocable of GenericInvocable;
+relate generic_invocable to invocable across R427;
+invocable.oal = "";
+
+relate temp to generic_invocable across R3053;
+temp.comp_name = registry.comp_name;
+
+// link void type
+void_type_ref = TypeReference::getBuiltinTypeReference( name:"void" );
+relate void_type_ref to invocable across R428;
+
+// transform the body
+select any body from instances of Y_Body where ( selected.filename == temp.name );
+if ( not_empty body )
+  ::transformRSLBody( body:body, invocable:invocable );
+else
+  // TODO bad
+end if;
+
+// unpack the symbol table
+select any block related by invocable->CodeBlock[R4000] where ( selected.top_level );
+indent = ::getIndent( tab_depth:block.tab_depth + 1 );
+select many var_refs from instances of VariableReference where ( selected.parent_name == temp.registry_name and
+                                                                 selected.parent_package == temp.registry_package and
+                                                                 selected.body_name == temp.name );
+select many referenced_vars related by var_refs->Variable[R782];
+select any last_var from instances of Variable where false;
+select any current_var from instances of Variable where false;
+i = 0;
+while ( i < cardinality referenced_vars )
+  for each referenced_var in referenced_vars
+    if ( ( empty last_var or last_var.name < referenced_var.name ) and ( empty current_var or referenced_var.name < current_var.name ) )
+      current_var = referenced_var;
+    end if;
+  end for;
+  block.prefix = block.prefix + indent + current_var.type_reference_name + " " + current_var.name + " = (" + current_var.type_reference_name + ")symbolTable.get(" + STRING::itoa( i:i ) + ");\n";
+  last_var = current_var;
+  select any current_var from instances of Variable where false;
+  i = i + 1;
+end while;
+
+// create import block
+select one comp_file related by comp_def->File[R401];
+::addFileToImports( file:registry_file, file_to_import:comp_file, type:ImportType::IMPL );
+::addStringToImports( file:registry_file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL );
+::addStringToImports( file:registry_file, s:"io.ciera.runtime.template.util.SymbolTable", type:ImportType::IMPL );
+::addStringToImports( file:registry_file, s:"io.ciera.runtime.template.util.Template", type:ImportType::IMPL );',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("c4e9070f-fa44-4b8d-8e82-e01ab932200f",
+	"84b152bf-ae5a-4d05-ba55-2482f90eeebe",
+	'registry',
+	"c578e2f3-3a0f-4b18-8c5e-321105a85089",
+	0,
+	'',
+	"130ffd23-f5be-439c-805b-568a65cc8b95",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("c578e2f3-3a0f-4b18-8c5e-321105a85089",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Template Registry>',
+	'',
+	'',
+	'../templating/templating.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("e31ecbd5-dd55-48eb-82c0-74e0b950fc46",
+	"84b152bf-ae5a-4d05-ba55-2482f90eeebe",
+	'comp_def',
+	"1fef1559-c5b6-4eb7-a9c4-8b126b9b51a0",
+	0,
+	'',
+	"c4e9070f-fa44-4b8d-8e82-e01ab932200f",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("1fef1559-c5b6-4eb7-a9c4-8b126b9b51a0",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Component Definition>',
+	'',
+	'',
+	'../../../../io.ciera.tool.core/models/io.ciera.tool.core/architecture/component/component.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("130ffd23-f5be-439c-805b-568a65cc8b95",
+	"84b152bf-ae5a-4d05-ba55-2482f90eeebe",
+	'filename',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO PE_PE
+	VALUES ("84b152bf-ae5a-4d05-ba55-2482f90eeebe",
+	1,
+	"0f65277e-71ba-472a-ad12-048000976d40",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("ef09830e-f240-454f-9a09-c54ae1f5ee5b",
+	"00000000-0000-0000-0000-000000000000",
+	'transformTemplateRegistry',
+	'',
+	'comp_def = param.comp_def;
+select one comp_def_file related by comp_def->File[R401];
+
+// create the file
+create object instance file of File;
+file.name = comp_def.name + "TemplateRegistry";
+file.path = comp_def_file.path;
+file.package = ::pathToPackage( path:file.path );
+file.extension = ".java";
+file.exclude = false;
+
+// create the general file
+create object instance general_file of GeneralFile;
+relate general_file to file across R401;
+
+// create the template registry instance
+create object instance registry of Z_TemplateRegistry;
+relate registry to general_file across R3051;
+registry.comp_name = comp_def.name;
+
+// create a template for each reference in the component
+select many invocs from instances of InvocableObject where false;
+select many func_invocs related by comp_def->Function[R405]->InvocableObject[R427];
+select many msg_invocs related by comp_def->Port[R417]->PortMessage[R420]->InvocableObject[R427];
+invocs = func_invocs | msg_invocs;
+select many op_invocs related by comp_def->Class[R408]->Operation[R416]->InvocableObject[R427];
+invocs = invocs | op_invocs;
+select many attr_invocs related by comp_def->Class[R408]->Attribute[R410]->AttributeAccessor[R4510]->AttributeDerivation[R441]->InvocableObject[R427];
+invocs = invocs | attr_invocs;
+select many util_invocs related by comp_def->Utility[R4558]->UtilityFunction[R4559]->InvocableObject[R427];
+invocs = invocs | util_invocs;
+select many template_includes related by invocs->CodeBlock[R4000]->Statement[R450]->ExpressionAsStatement[R451]->Expression[R476]->Invocation[R776]
+  where ( selected.invoked_name == "include" and selected.invoked_parent_name == "TEMP" and selected.invoked_parent_package == "io.ciera.runtime.template.util" );
+for each template_include in template_includes
+  select any filename_string related by template_include->ActualParameter[R793]->Expression[R794]->Literal[R776];
+  if ( not_empty filename_string )
+    select any existing_template related by registry->Z_Template[R3052] where ( selected.name == filename_string.value );
+    if ( empty existing_template )
+      ::transformTemplate( registry:registry, comp_def:comp_def, filename:filename_string.value );
+    end if;
+  else
+    // TODO bad
+  end if;
+end for;
+
+// create import block
+::addFileToImports( file:file, file_to_import:comp_def_file, type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.runtime.template.util.ITemplate", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.runtime.template.util.ITemplateRegistry", type:ImportType::IMPL );',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("2079a875-53b2-4adb-97b9-61aa2457d33e",
+	"ef09830e-f240-454f-9a09-c54ae1f5ee5b",
+	'comp_def',
+	"1fef1559-c5b6-4eb7-a9c4-8b126b9b51a0",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO PE_PE
+	VALUES ("ef09830e-f240-454f-9a09-c54ae1f5ee5b",
+	1,
+	"0f65277e-71ba-472a-ad12-048000976d40",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("25eaf350-9fa7-4771-b222-f8cabc32148c",
+	"00000000-0000-0000-0000-000000000000",
+	'transformRSLBody',
+	'',
+	'body = param.body;
+invocable = param.invocable;
+
+// create code block
+create object instance block of CodeBlock;
+block.top_level = true;
+block.tab_depth = 4;
+relate block to invocable across R4000;
+block.block_number = "1";
+
+// create a null statement to hold variable declarations for all locals in context
+// the variables that are copied is the intersection set of all the contexts where
+// this particular template is included
+// create a statement
+create object instance smt of Statement;
+relate smt to block across R450;
+smt.statement_number = "1";
+smt.oal = "";
+create object instance nullsmt of NullSmt;
+relate nullsmt to smt across R451;
+select many includes from instances of Invocation where ( "TEMP" == selected.invoked_parent_name and "io.ciera.runtime.template.util" == selected.invoked_parent_package and "include" == selected.invoked_name );
+select many act_params related by includes->ActualParameter[R793]->Expression[R794]->Literal[R776] where ( body.filename == selected.value );
+select many includes related by act_params->Expression[R776]->ActualParameter[R794]->Invocation[R793];
+select many incl_vars related by includes->Expression[R776]->Statement[R775]->CodeBlock[R450]->Variable[R458];
+for each incl_var in incl_vars
+  select many matching_vars related by includes->Expression[R776]->Statement[R775]->CodeBlock[R450]->Variable[R458]
+    where ( selected.name == incl_var.name and selected.type_name == incl_var.type_name and selected.type_package == incl_var.type_package );
+  // if there is a variable with this name and type in context _everywhere_ where this template is included, add it to the template context
+  if ( cardinality includes == cardinality matching_vars )
+    select any existing_var related by smt->Variable[R457] where ( selected.name == incl_var.name ); // do not allow duplicate variables
+    if ( empty existing_var )
+      // create new variable
+      create object instance new_var of Variable;
+      relate new_var to smt across R457;
+      new_var.name = incl_var.name;
+      // link type
+      select one var_type_ref related by incl_var->TypeReference[R461];
+      relate var_type_ref to new_var across R461;
+      // create variable in scope
+      create object instance var_in_scope of VariableInScope;
+      relate new_var to block across R458 using var_in_scope;
+    end if;
+  end if;
+end for;
+
+// link the class context if it exists
+select many template_invocations from instances of Invocation where ( "TEMP" == selected.invoked_parent_name and "io.ciera.runtime.template.util" == selected.invoked_parent_package and "include" == selected.invoked_name );
+select any real_param related by template_invocations->ActualParameter[R793]->Expression[R794]->Literal[R776] where ( selected.value == invocable.name );
+select one template_invocable related by real_param->Expression[R776]->ActualParameter[R794]->Invocation[R793]->Expression[R776]->Statement[R775]->CodeBlock[R450]->InvocableObject[R4000];
+select one operation related by template_invocable->Operation[R427] where ( not selected.is_class_based );
+select one deriv_attr related by template_invocable->AttributeDerivation[R427];
+if ( not_empty operation or not_empty deriv_attr )
+  select one self_class related by operation->Class[R416];
+  if ( empty self_class )
+    select one self_class related by deriv_attr->AttributeAccessor[R441]->Attribute[R4510]->Class[R410];
+  end if;
+  // create new variable
+  create object instance self_var of Variable;
+  relate self_var to smt across R457;
+  self_var.name = "self";
+  // link type
+  select one self_type related by self_class->Type[R407];
+  select many s_dims from instances of S_DIM where false;
+  self_type_ref = TypeReference::getInstanceFromType( type:self_type, s_dims:s_dims );
+  relate self_type_ref to self_var across R461;
+  // create variable in scope
+  create object instance var_in_scope of VariableInScope;
+  relate self_var to block across R458 using var_in_scope;
+end if;
+
+// transform each line
+current_id = -1;
+done = false;
+select many lines related by body->Y_Line[R3054];
+while not done
+  // select next line to process
+  select any current_line from instances of Y_Line where false;
+  for each line in lines
+    if ( ( empty current_line or line.node_id < current_line.node_id ) and ( line.node_id > current_id ) )
+      current_line = line;
+    end if;
+  end for;
+  // process current line
+  if ( not_empty current_line )
+    block = ::transformRSLLine( line:current_line, block:block );
+    current_id = current_line.node_id;
+  else
+    done = true;
+  end if;
+end while;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("b33835a5-eaa5-4192-97b8-15e8ed8667dc",
+	"25eaf350-9fa7-4771-b222-f8cabc32148c",
+	'body',
+	"0566c21d-6680-412f-b8e1-d74f3509f680",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("0566c21d-6680-412f-b8e1-d74f3509f680",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Body>',
+	'',
+	'',
+	'../RSL/RSL.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("aff8aa34-7d0e-459b-a66e-d993aaf61ced",
+	"25eaf350-9fa7-4771-b222-f8cabc32148c",
+	'invocable',
+	"30c7a5ba-c6d9-44fd-8e61-f22cde8fdc41",
+	0,
+	'',
+	"b33835a5-eaa5-4192-97b8-15e8ed8667dc",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("30c7a5ba-c6d9-44fd-8e61-f22cde8fdc41",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Invocable Object>',
+	'',
+	'',
+	'../../../../io.ciera.tool.core/models/io.ciera.tool.core/architecture/invocable/invocable.xtuml');
+INSERT INTO PE_PE
+	VALUES ("25eaf350-9fa7-4771-b222-f8cabc32148c",
+	1,
+	"0f65277e-71ba-472a-ad12-048000976d40",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("839b40bd-7fa6-489c-abca-aa0d5fd2bf8a",
+	"00000000-0000-0000-0000-000000000000",
+	'transformRSLLine',
+	'',
+	'line = param.line;
+block = param.block;
+
+select one buffer related by line->Y_Buffer[R3055];
+if ( not_empty buffer )
+  // transform each buffer element
+  current_id = -1;
+  done = false;
+  select many buffer_elements related by buffer->Y_BufferElement[R3056];
+  while not done
+    // select next buffer element to process
+    select any current_buffer_element from instances of Y_BufferElement where false;
+    for each buffer_element in buffer_elements
+      if ( ( empty current_buffer_element or buffer_element.node_id < current_buffer_element.node_id ) and ( buffer_element.node_id > current_id ) )
+        current_buffer_element = buffer_element;
+      end if;
+    end for;
+    // process current buffer element
+    if ( not_empty current_buffer_element )
+      select one blob related by current_buffer_element->Y_Blob[R3057];
+      if ( not_empty blob )
+        ::transformRSLBlob( blob:blob, block:block );
+      else
+      select one sub_var related by current_buffer_element->Y_SubstitutionVar[R3057];
+      if ( not_empty sub_var )
+        ::transformRSLSubstitutionVar( sub_var:sub_var, block:block );
+      end if; end if;
+      current_id = current_buffer_element.node_id;
+    else
+      done = true;
+    end if;
+  end while;
+  
+else
+select one if_smt related by line->Y_IfStatement[R3055];
+if ( not_empty if_smt )
+  select one if_expr related by if_smt->Y_Expression[R3059];
+  block = ::transformRSLIfStatement( block:block, expr:if_expr, is_else_if:false );
+  
+else
+select one elif_smt related by line->Y_ElifStatement[R3055];
+if ( not_empty elif_smt )
+  select one elif_expr related by elif_smt->Y_Expression[R3060];
+  block = ::transformRSLElseStatement( block:block, is_else_if:true );
+  block = ::transformRSLIfStatement( block:block, expr:elif_expr, is_else_if:true );
+  
+else
+select one else_smt related by line->Y_ElseStatement[R3055];
+if ( not_empty else_smt )
+  block = ::transformRSLElseStatement( block:block, is_else_if:false );
+  
+else
+select one endif_smt related by line->Y_EndIfStatement[R3055];
+if ( not_empty endif_smt )
+  // pop up to the parent block
+  select one ifsmt related by block->IfSmt[R453];
+  if ( empty ifsmt )
+    select one ifsmt related by block->IfSmt[R454];
+  end if;
+  while ( ifsmt.is_else_if )
+    select one ifsmt related by ifsmt->Statement[R451]->CodeBlock[R450]->IfSmt[R454]; // elif must be within an ''else'' block
+    if ( empty ifsmt )
+      // TODO bad
+    end if;
+  end while;
+  select one block related by ifsmt->Statement[R451]->CodeBlock[R450];
+
+end if; end if; end if; end if; end if;
+
+return block;',
+	"e2eb4f67-ca2b-42ab-accf-5a2b475f8933",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("a292877f-686d-4fe6-8a85-fab5dd86a10f",
+	"839b40bd-7fa6-489c-abca-aa0d5fd2bf8a",
+	'line',
+	"ddad7e06-add4-41df-bf00-ef51cfb2f6de",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("ddad7e06-add4-41df-bf00-ef51cfb2f6de",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Line>',
+	'',
+	'',
+	'../RSL/RSL.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("3220da9d-0552-4bf7-93dd-7f8b9ee056a3",
+	"839b40bd-7fa6-489c-abca-aa0d5fd2bf8a",
+	'block',
+	"e2eb4f67-ca2b-42ab-accf-5a2b475f8933",
+	0,
+	'',
+	"a292877f-686d-4fe6-8a85-fab5dd86a10f",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("e2eb4f67-ca2b-42ab-accf-5a2b475f8933",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Code Block>',
+	'',
+	'',
+	'../../../../io.ciera.tool.core/models/io.ciera.tool.core/architecture/invocable/invocable.xtuml');
+INSERT INTO PE_PE
+	VALUES ("839b40bd-7fa6-489c-abca-aa0d5fd2bf8a",
+	1,
+	"0f65277e-71ba-472a-ad12-048000976d40",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("d9b12366-1a10-402c-971a-9370b6b2599f",
+	"00000000-0000-0000-0000-000000000000",
+	'resolveTemplateHooks',
+	'',
+	'select many affected_files from instances of File where false;
+select many invocables from instances of InvocableObject;
+for each invocable in invocables
+  select one generic_invoc related by invocable->GenericInvocable[R427];
+  if ( empty generic_invoc )
+    select many template_invocations related by invocable->CodeBlock[R4000]->Statement[R450]->Expression[R775]->Invocation[R776] where
+      ( "TEMP" == selected.invoked_parent_name and "io.ciera.runtime.template.util" == selected.invoked_parent_package and "include" == selected.invoked_name );
+    for each template_invocation in template_invocations
+      // get the symbol table parameter
+      select any symtab_param related by template_invocation->ActualParameter[R793] where ( selected.param_name == "p_symbol_table" );
+      select one param_expr related by symtab_param->Expression[R794];
+      select one const_expr related by param_expr->ConstantReference[R776];
+      if ( empty param_expr or empty const_expr )
+        // TODO bad
+      end if;
+      unrelate const_expr from param_expr across R776;
+      delete object instance const_expr;
+      // get required variables
+      select any file_param related by template_invocation->ActualParameter[R793] where ( selected.param_name == "p_file" );
+      select one file_val related by file_param->Expression[R794]->Literal[R776];
+      if ( empty file_val )
+        // TODO bad currently this only supports string literals to specify template name
+      end if;
+      select any temp from instances of Z_Template where ( selected.name == file_val.value );
+      select many var_refs from instances of VariableReference where ( selected.parent_name == temp.registry_name and
+                                                                       selected.parent_package == temp.registry_package and
+                                                                       selected.body_name == temp.name );
+      select many required_vars related by var_refs->Variable[R782];
+      var_list = "";
+      sep = "";
+      select any last_var from instances of Variable where false;
+      select any current_var from instances of Variable where false;
+      i = 0;
+      while ( i < cardinality required_vars )
+        for each required_var in required_vars
+          if ( ( empty last_var or last_var.name < required_var.name ) and ( empty current_var or required_var.name < current_var.name ) )
+            current_var = required_var;
+          end if;
+        end for;
+        if ( "self" == current_var.name )
+          var_list = var_list + sep + "this";
+        else
+          var_list = var_list + sep + current_var.name;
+        end if;
+        sep = ", ";
+        last_var = current_var;
+        select any current_var from instances of Variable where false;
+        i = i + 1;
+      end while;
+      // create new expression to create a symbol table
+      create object instance named_expr of NamedReference;
+      relate named_expr to param_expr across R776;
+      named_expr.name = "new SymbolTable(" + var_list + ")";
+      // add to the affected files list
+      file = ::getFileForInvocable( invocable:invocable );
+      affected_files = affected_files | file;
+      ::addStringToImports( file:file, s:"io.ciera.runtime.template.util.SymbolTable", type:ImportType::IMPL );
+    end for;
+  end if;
+end for;
+
+// re-render affected files
+for each file in affected_files
+  if ( not file.exclude )
+    file.render();
+  end if;
+end for;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO PE_PE
+	VALUES ("d9b12366-1a10-402c-971a-9370b6b2599f",
+	1,
+	"0f65277e-71ba-472a-ad12-048000976d40",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("44750a9b-7eff-4709-8e36-a05f7ccb49c5",
+	"00000000-0000-0000-0000-000000000000",
+	'templateAppendString',
+	'',
+	'block = param.block;
+
+// get last statement in block
+select any prev_smt related by block->Statement[R450];
+select one next_smt related by prev_smt->Statement[R477.''executes before''];
+while ( not_empty next_smt )
+  prev_smt = next_smt;
+  select one next_smt related by prev_smt->Statement[R477.''executes before''];
+end while;
+
+// create a statement
+create object instance smt of Statement;
+relate smt to block across R450;
+if ( not_empty prev_smt )
+  smt.statement_number = STRING::itoa( i:STRING::atoi( s:prev_smt.statement_number ) + 1 );
+  relate smt to prev_smt across R477.''executes after'';
+else
+  smt.statement_number = "1";
+end if;
+smt.oal = "";
+
+// transform argument expression
+create object instance expr_arg of Expression;
+relate expr_arg to smt across R775;
+expr_arg.expression_number = "1.2";
+string_type_ref = TypeReference::getBuiltinTypeReference( name:"String" );
+relate string_type_ref to expr_arg across R795;
+create object instance lit of Literal;
+relate lit to expr_arg across R776;
+lit.value = param.str;
+::templateAppend( smt:smt, expr:expr_arg );',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("b57fba2a-3c39-4ade-bd7a-772605067f5c",
+	"44750a9b-7eff-4709-8e36-a05f7ccb49c5",
+	'block',
+	"e2eb4f67-ca2b-42ab-accf-5a2b475f8933",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("3b3d7f37-6700-43e8-be85-92ed03df24a1",
+	"44750a9b-7eff-4709-8e36-a05f7ccb49c5",
+	'str',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"b57fba2a-3c39-4ade-bd7a-772605067f5c",
+	'');
+INSERT INTO PE_PE
+	VALUES ("44750a9b-7eff-4709-8e36-a05f7ccb49c5",
+	1,
+	"0f65277e-71ba-472a-ad12-048000976d40",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("8bb45b69-2502-4858-9b42-1868a1a7be69",
+	"00000000-0000-0000-0000-000000000000",
+	'transformRSLBlob',
+	'',
+	'blob = param.blob;
+block = param.block;
+
+blob_string = blob.BLOB;
+select any next_buffer_element related by blob->Y_BufferElement[R3057]->Y_Buffer[R3056]->Y_BufferElement[R3056] where ( selected.node_id > blob.node_id );
+if ( empty next_buffer_element )  // if this blob is the last element in the buffer line, handle line break special cases
+  if ( "\\\\\\" == STRING::substr( s:blob_string, begin:STRING::strlen( s:blob_string ) - 3, end:-1 ) )  // three slashes = literal slash, no newline
+    blob_string = STRING::substr( s:blob_string, begin:0, end:STRING::strlen( s:blob_string ) - 3 ) + "\\\\";
+  elif ( "\\\\" == STRING::substr( s:blob_string, begin:STRING::strlen( s:blob_string ) - 2, end:-1 ) )  // two slashes = literal slash, with newline
+    blob_string = STRING::substr( s:blob_string, begin:0, end:STRING::strlen( s:blob_string ) - 2 ) + "\\\\\\" + "n";
+  elif ( "\\" == STRING::substr( s:blob_string, begin:STRING::strlen( s:blob_string ) - 1, end:-1 ) )    // one slash = no literal slash, no newline
+    blob_string = STRING::substr( s:blob_string, begin:0, end:STRING::strlen( s:blob_string ) - 1 );
+  else                                                                                             // no slashes = no literal slash, with newline
+    blob_string = blob_string + "\\" + "n";
+  end if;
+end if;
+
+// escape double quotes
+search_string = blob_string;
+blob_string = "";
+quote_index = STRING::indexof( haystack:search_string, needle:STRING::quote() );
+while ( -1 != quote_index )
+  prefix = STRING::substr( s:search_string, begin:0, end:quote_index );
+  suffix = STRING::substr( s:search_string, begin:quote_index, end:-1 );
+  blob_string = blob_string + prefix + "\\" + STRING::quote();
+  search_string = STRING::substr( s:suffix, begin:1, end:-1 );
+  quote_index = STRING::indexof( haystack:search_string, needle:STRING::quote() );
+end while;
+blob_string = blob_string + search_string;
+
+// TODO more escaping rules (e.g. double dot at beginning of line)
+
+// create statement and expression
+::templateAppendString( block:block, str:blob_string );',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("8b35003c-f044-485e-afec-ba998b6c1cd0",
+	"8bb45b69-2502-4858-9b42-1868a1a7be69",
+	'blob',
+	"5a531544-516a-4913-ae40-89d67fe28827",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("5a531544-516a-4913-ae40-89d67fe28827",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Blob>',
+	'',
+	'',
+	'../RSL/RSL.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("7d577a45-fcf0-4b98-86b0-e3c1c000bed8",
+	"8bb45b69-2502-4858-9b42-1868a1a7be69",
+	'block',
+	"e2eb4f67-ca2b-42ab-accf-5a2b475f8933",
+	0,
+	'',
+	"8b35003c-f044-485e-afec-ba998b6c1cd0",
+	'');
+INSERT INTO PE_PE
+	VALUES ("8bb45b69-2502-4858-9b42-1868a1a7be69",
+	1,
+	"0f65277e-71ba-472a-ad12-048000976d40",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("3e5e1880-d131-47e6-95ee-a2c31042f2ca",
+	"00000000-0000-0000-0000-000000000000",
+	'transformRSLSubstitutionVar',
+	'',
+	'sub_var = param.sub_var;
+block = param.block;
+
+// get last statement in block
+select any prev_smt related by block->Statement[R450];
+select one next_smt related by prev_smt->Statement[R477.''executes before''];
+while ( not_empty next_smt )
+  prev_smt = next_smt;
+  select one next_smt related by prev_smt->Statement[R477.''executes before''];
+end while;
+
+// create a statement
+create object instance smt of Statement;
+relate smt to block across R450;
+if ( not_empty prev_smt )
+  smt.statement_number = STRING::itoa( i:STRING::atoi( s:prev_smt.statement_number ) + 1 );
+  relate smt to prev_smt across R477.''executes after'';
+else
+  smt.statement_number = "1";
+end if;
+smt.oal = "";
+
+select one format_chars related by sub_var->Y_FormatChars[R3058];
+select one named_access related by sub_var->Y_NamedAccess[R3085];
+if ( "" != format_chars.FORMAT )
+  // transform the named access
+  // create an invocation to TEMP::append
+  select any invocable from instances of InvocableObject where ( "sub" == selected.name and "TEMP" == selected.parent_name and "io.ciera.runtime.template.util" == selected.parent_package );
+  if ( empty invocable )
+    // TODO bad
+  end if;
+  // create invocation expression
+  create object instance expr of Expression;
+  relate expr to smt across R775;
+  expr.expression_number = "1.2";
+  string_type_ref = TypeReference::getBuiltinTypeReference( name:"String" );
+  relate string_type_ref to expr across R795;
+  // create invocation
+  create object instance invoc of Invocation;
+  relate invoc to expr across R776;
+  relate invoc to invocable across R792;
+  // create named reference expression
+  create object instance expr2 of Expression;
+  relate expr2 to smt across R775;
+  expr2.expression_number = "1.2.1";
+  void_type_ref = TypeReference::getBuiltinTypeReference( name:"void" );
+  relate void_type_ref to expr2 across R795;
+  // create named reference
+  create object instance named_ref of NamedReference;
+  relate named_ref to expr2 across R776;
+  relate expr2 to invoc across R798;
+  named_ref.name = "context()." + invocable.parent_name + "()";
+  // transform actual parameters
+  // format characters
+  create object instance format_chars_expr of Expression;
+  relate format_chars_expr to smt across R775;
+  format_chars_expr.expression_number = "1.2.2";
+  relate string_type_ref to format_chars_expr across R795;
+  create object instance format_chars_lit of Literal;
+  relate format_chars_lit to format_chars_expr across R776;
+  format_chars_lit.value = format_chars.FORMAT;
+  create object instance act_parm1 of ActualParameter;
+  relate act_parm1 to format_chars_expr across R794;
+  select any parm1 related by invocable->FormalParameter[R429] where ( selected.name == "p_format" );
+  relate invoc to parm1 across R793 using act_parm1;
+  // named access parameter
+  ::transformRSLNamedAccess( named_access:named_access, smt:smt, expr_number:"1.2.3" );
+  select any access_expr related by smt->Expression[R775] where ( selected.expression_number == "1.2.3" );
+  create object instance act_parm2 of ActualParameter;
+  relate act_parm2 to access_expr across R794;
+  select any parm2 related by invocable->FormalParameter[R429] where ( selected.name == "p_s" );
+  relate invoc to parm2 across R793 using act_parm2;
+  // add string type to imports
+  select one registry_file related by block->InvocableObject[R4000]->GenericInvocable[R427]->Z_Template[R3053]->Z_TemplateRegistry[R3052]->GeneralFile[R3051]->File[R401];
+  select one string_type related by string_type_ref->Type[R3800];
+  ::addTypeToImports( file:registry_file, type_to_import:string_type, type:ImportType::IMPL );
+else
+  // transform the named access
+  ::transformRSLNamedAccess( named_access:named_access, smt:smt, expr_number:"1.2" );
+end if;
+select any expr related by smt->Expression[R775] where ( selected.expression_number == "1.2" );
+::templateAppend( smt:smt, expr:expr );
+
+// handle line break
+select any next_buffer_element related by sub_var->Y_BufferElement[R3057]->Y_Buffer[R3056]->Y_BufferElement[R3056] where ( selected.node_id > sub_var.node_id );
+if ( empty next_buffer_element )  // if this substitution is the last element in the buffer line, add a newline
+  ::templateAppendString( block:block, str:"\\" + "n" );
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("c2a66cd8-b8ed-412e-97e8-f2f29ed032e8",
+	"3e5e1880-d131-47e6-95ee-a2c31042f2ca",
+	'sub_var',
+	"1429624d-48db-4d79-bcc0-5ad815e7a79e",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("1429624d-48db-4d79-bcc0-5ad815e7a79e",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Substitution Var>',
+	'',
+	'',
+	'../RSL/RSL.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("924a668f-37c7-45ec-a480-f479d80ef499",
+	"3e5e1880-d131-47e6-95ee-a2c31042f2ca",
+	'block',
+	"e2eb4f67-ca2b-42ab-accf-5a2b475f8933",
+	0,
+	'',
+	"c2a66cd8-b8ed-412e-97e8-f2f29ed032e8",
+	'');
+INSERT INTO PE_PE
+	VALUES ("3e5e1880-d131-47e6-95ee-a2c31042f2ca",
+	1,
+	"0f65277e-71ba-472a-ad12-048000976d40",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("d84b7e51-8766-4ee6-b050-05cd8bc03eb7",
+	"00000000-0000-0000-0000-000000000000",
+	'templateAppend',
+	'',
+	'smt = param.smt;
+expr_arg = param.expr;
+
+// create an invocation to TEMP::append
+select any utility from instances of Utility where ( "TEMP" == selected.name and "io.ciera.runtime.template.util" == selected.package );
+if ( not_empty utility )
+  select any util_func related by utility->UtilityFunction[R4559] where ( selected.name == "append" );
+  select one invocable related by util_func->InvocableObject[R427];
+  if ( not_empty invocable )
+    // create expression as statement
+    create object instance eas of ExpressionAsStatement;
+    relate eas to smt across R451;
+    // create main expression
+    create object instance expr of Expression;
+    relate expr to smt across R775;
+    expr.expression_number = "1";
+    void_type_ref = TypeReference::getBuiltinTypeReference( name:"void" );
+    relate void_type_ref to expr across R795;
+    // create invocation
+    create object instance invoc of Invocation;
+    relate invoc to expr across R776;
+    relate invoc to invocable across R792;
+    // relate expression to expression as statement
+    relate eas to expr across R476;
+    // create named reference expression
+    create object instance expr2 of Expression;
+    relate expr2 to smt across R775;
+    expr2.expression_number = "1.1";
+    relate void_type_ref to expr2 across R795;
+    // create named reference
+    create object instance named_ref of NamedReference;
+    relate named_ref to expr2 across R776;
+    relate expr2 to invoc across R798;
+    named_ref.name = "context()." + utility.name + "()";
+    // transform actual parameter
+    create object instance act_parm of ActualParameter;
+    relate act_parm to expr_arg across R794;
+    select any parm related by invocable->FormalParameter[R429];
+    relate invoc to parm across R793 using act_parm;
+  else
+    // TODO bad
+  end if;
+else
+  // TODO bad
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("f4017050-8d4d-49b4-83c2-931db099f66e",
+	"d84b7e51-8766-4ee6-b050-05cd8bc03eb7",
+	'smt',
+	"056a9b55-7c4c-45a4-a684-ea45fce8fa86",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("056a9b55-7c4c-45a4-a684-ea45fce8fa86",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Statement>',
+	'',
+	'',
+	'../../../../io.ciera.tool.core/models/io.ciera.tool.core/architecture/statement/statement.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("b148164c-8079-4653-9887-7ff905da5316",
+	"d84b7e51-8766-4ee6-b050-05cd8bc03eb7",
+	'expr',
+	"f82d9f89-dd1e-4520-85df-cef79a550939",
+	0,
+	'',
+	"f4017050-8d4d-49b4-83c2-931db099f66e",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("f82d9f89-dd1e-4520-85df-cef79a550939",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Expression>',
+	'',
+	'',
+	'../../../../io.ciera.tool.core/models/io.ciera.tool.core/architecture/expression/expression.xtuml');
+INSERT INTO PE_PE
+	VALUES ("d84b7e51-8766-4ee6-b050-05cd8bc03eb7",
+	1,
+	"0f65277e-71ba-472a-ad12-048000976d40",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("cf63d9a4-f269-4fc3-b4c8-c6b7253f4855",
+	"00000000-0000-0000-0000-000000000000",
+	'transformRSLNamedAccess',
+	'',
+	'named_access = param.named_access;
+smt = param.smt;
+expr_number = param.expr_number;
+
+select one var_access related by named_access->Y_VariableAccess[R3082];
+select one attr_access related by named_access->Y_AttributeAccess[R3083];
+if ( not_empty attr_access )
+  // create an attribute access expression for the last attribute access in the access chain
+  select one next_attr_access related by attr_access->Y_AttributeAccess[R3084.''contains''];
+  while ( not_empty next_attr_access )
+    attr_access = next_attr_access;
+    select one next_attr_access related by attr_access->Y_AttributeAccess[R3084.''contains''];
+  end while;
+  ::transformRSLAttributeAccess( attr_access:attr_access, smt:smt, expr_number:expr_number );
+else
+  // create a simple variable access
+  ::transformRSLVariableAccess( var_access:var_access, smt:smt, expr_number:expr_number );
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("4ddd1914-6e54-4319-b951-591460aa7d63",
+	"cf63d9a4-f269-4fc3-b4c8-c6b7253f4855",
+	'named_access',
+	"522ab80a-2136-4b22-a5aa-38be1a2461af",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("522ab80a-2136-4b22-a5aa-38be1a2461af",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Named Access>',
+	'',
+	'',
+	'../RSL/RSL.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("e9afcb0c-520c-4ad7-b71a-3584420618ea",
+	"cf63d9a4-f269-4fc3-b4c8-c6b7253f4855",
+	'smt',
+	"056a9b55-7c4c-45a4-a684-ea45fce8fa86",
+	0,
+	'',
+	"4ddd1914-6e54-4319-b951-591460aa7d63",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("ec529800-42a2-4595-8e4e-57b1a68d18ed",
+	"cf63d9a4-f269-4fc3-b4c8-c6b7253f4855",
+	'expr_number',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"e9afcb0c-520c-4ad7-b71a-3584420618ea",
+	'');
+INSERT INTO PE_PE
+	VALUES ("cf63d9a4-f269-4fc3-b4c8-c6b7253f4855",
+	1,
+	"0f65277e-71ba-472a-ad12-048000976d40",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("e37a39b1-e9a9-4e69-8c76-d7d0cf021d62",
+	"00000000-0000-0000-0000-000000000000",
+	'transformRSLAttributeAccess',
+	'',
+	'attr_access = param.attr_access;
+smt = param.smt;
+expr_number = param.expr_number;
+
+// transform base expression
+select one base_attr_access related by attr_access->Y_AttributeAccess[R3084.''contained by''];
+if ( not_empty base_attr_access )
+  ::transformRSLAttributeAccess( attr_access:base_attr_access, smt:smt, expr_number:expr_number + ".1" );
+else
+  select one var_access related by attr_access->Y_NamedAccess[R3083]->Y_VariableAccess[R3082];
+  ::transformRSLVariableAccess( var_access:var_access, smt:smt, expr_number:expr_number + ".1" );
+end if;
+select any root_expr related by smt->Expression[R775] where ( selected.expression_number == expr_number + ".1" );
+
+// get the attribute to reference
+select any attr related by root_expr->TypeReference[R795]->Type[R3800]->Class[R407]->Attribute[R410] where ( selected.base_name == attr_access.ID );
+if ( empty attr )
+  // TODO bad
+end if;
+
+// create expression
+create object instance expr of Expression;
+relate expr to smt across R775;
+expr.expression_number = expr_number;
+
+// link type
+select one type_ref related by attr->TypeReference[R424];
+relate type_ref to expr across R795;
+
+// create attribute access
+create object instance acc of AttributeAccess;
+relate acc to expr across R776;
+relate root_expr to acc across R785;
+relate attr to acc across R788;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("81c9e7ba-f194-4516-9b5a-6963c241069a",
+	"e37a39b1-e9a9-4e69-8c76-d7d0cf021d62",
+	'attr_access',
+	"211aa83b-6be6-43cf-a712-5ffa101fe014",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("211aa83b-6be6-43cf-a712-5ffa101fe014",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Attribute Access>',
+	'',
+	'',
+	'../RSL/RSL.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("24827452-7052-4b90-9010-14483be6b65f",
+	"e37a39b1-e9a9-4e69-8c76-d7d0cf021d62",
+	'smt',
+	"056a9b55-7c4c-45a4-a684-ea45fce8fa86",
+	0,
+	'',
+	"81c9e7ba-f194-4516-9b5a-6963c241069a",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("eeb0962c-71b0-46fe-9e7a-87e2ca7da559",
+	"e37a39b1-e9a9-4e69-8c76-d7d0cf021d62",
+	'expr_number',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"24827452-7052-4b90-9010-14483be6b65f",
+	'');
+INSERT INTO PE_PE
+	VALUES ("e37a39b1-e9a9-4e69-8c76-d7d0cf021d62",
+	1,
+	"0f65277e-71ba-472a-ad12-048000976d40",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("275144d6-f10d-44eb-be5e-b929d82bcc7a",
+	"00000000-0000-0000-0000-000000000000",
+	'transformRSLVariableAccess',
+	'',
+	'var_access = param.var_access;
+smt = param.smt;
+
+// create expression
+create object instance expr of Expression;
+relate expr to smt across R775;
+expr.expression_number = param.expr_number;
+
+// select the referred to variable
+select any var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == var_access.ID );
+if ( empty var )
+  // TODO bad
+end if;
+
+// create variable reference
+create object instance var_ref of VariableReference;
+relate var to var_ref across R782;
+relate var_ref to expr across R776;
+
+// link type
+select one var_type_ref related by var->TypeReference[R461];
+relate var_type_ref to expr across R795;
+
+// add the type to the file imports
+select one file related by smt->CodeBlock[R450]->InvocableObject[R4000]->GenericInvocable[R427]->Z_Template[R3053]->Z_TemplateRegistry[R3052]->GeneralFile[R3051]->File[R401];
+select one var_type related by var_type_ref->Type[R3800];
+::addTypeToImports( file:file, type_to_import:var_type, type:ImportType::IMPL );',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("c11f2563-a141-441f-a766-f9ac23e9c9ee",
+	"275144d6-f10d-44eb-be5e-b929d82bcc7a",
+	'var_access',
+	"0fd27c32-fe26-4152-93a1-282094f02755",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("0fd27c32-fe26-4152-93a1-282094f02755",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Variable Access>',
+	'',
+	'',
+	'../RSL/RSL.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("23d6207b-3861-49a4-a956-c7376047eb81",
+	"275144d6-f10d-44eb-be5e-b929d82bcc7a",
+	'smt',
+	"056a9b55-7c4c-45a4-a684-ea45fce8fa86",
+	0,
+	'',
+	"c11f2563-a141-441f-a766-f9ac23e9c9ee",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("7bf6212a-06e1-4030-bf72-9f8c968c4fb5",
+	"275144d6-f10d-44eb-be5e-b929d82bcc7a",
+	'expr_number',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"23d6207b-3861-49a4-a956-c7376047eb81",
+	'');
+INSERT INTO PE_PE
+	VALUES ("275144d6-f10d-44eb-be5e-b929d82bcc7a",
+	1,
+	"0f65277e-71ba-472a-ad12-048000976d40",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("7d9024b5-7655-4bba-973a-da3b2a9f2d92",
+	"00000000-0000-0000-0000-000000000000",
+	'transformRSLIfStatement',
+	'',
+	'block = param.block;
+expr = param.expr;
+is_else_if = param.is_else_if;
+
+// get last statement in block
+select any prev_smt related by block->Statement[R450];
+select one next_smt related by prev_smt->Statement[R477.''executes before''];
+while ( not_empty next_smt )
+  prev_smt = next_smt;
+  select one next_smt related by prev_smt->Statement[R477.''executes before''];
+end while;
+// create a statement
+create object instance smt of Statement;
+relate smt to block across R450;
+if ( not_empty prev_smt )
+  smt.statement_number = STRING::itoa( i:STRING::atoi( s:prev_smt.statement_number ) + 1 );
+  relate smt to prev_smt across R477.''executes after'';
+else
+  smt.statement_number = "1";
+end if;
+smt.oal = "";
+// create if statement
+create object instance if_smt of IfSmt;
+relate if_smt to smt across R451;
+if_smt.is_else_if = is_else_if;
+// translate if expression
+::transformRSLExpression( expr:expr, smt:smt, expr_number:"1" );
+select any if_expr related by smt->Expression[R775] where ( selected.expression_number == "1" );
+relate if_expr to if_smt across R471;
+// create then block
+create object instance then_block of CodeBlock;
+select one invocable related by block->InvocableObject[R4000];
+then_block.top_level = false;
+then_block.tab_depth = block.tab_depth + 1;
+relate then_block to invocable across R4000;
+then_block.block_number = ::getNextBlockNumber( upper_block:block );
+// copy visibile variables from upper block
+select many vars related by block->Variable[R458];
+for each var in vars
+  create object instance var_in_scope of VariableInScope;
+  relate var to then_block across R458 using var_in_scope;
+end for;
+relate then_block to if_smt across R453;
+  
+return then_block;',
+	"e2eb4f67-ca2b-42ab-accf-5a2b475f8933",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("8355a4c0-06dd-42b4-87ef-a858e91e3417",
+	"7d9024b5-7655-4bba-973a-da3b2a9f2d92",
+	'block',
+	"e2eb4f67-ca2b-42ab-accf-5a2b475f8933",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("08b884ed-efff-44fb-88d6-995f36d86f58",
+	"7d9024b5-7655-4bba-973a-da3b2a9f2d92",
+	'expr',
+	"e375419c-cbcb-4fa4-8b63-df91e6d60c8a",
+	0,
+	'',
+	"8355a4c0-06dd-42b4-87ef-a858e91e3417",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("e375419c-cbcb-4fa4-8b63-df91e6d60c8a",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Expression>',
+	'',
+	'',
+	'../RSL/RSL.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("4f82844e-c16a-4401-b7d7-2a3c7dc43d29",
+	"7d9024b5-7655-4bba-973a-da3b2a9f2d92",
+	'is_else_if',
+	"ba5eda7a-def5-0000-0000-000000000001",
+	0,
+	'',
+	"08b884ed-efff-44fb-88d6-995f36d86f58",
+	'');
+INSERT INTO PE_PE
+	VALUES ("7d9024b5-7655-4bba-973a-da3b2a9f2d92",
+	1,
+	"0f65277e-71ba-472a-ad12-048000976d40",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("57e875ad-32cb-4aeb-ab57-0f86612c02f7",
+	"00000000-0000-0000-0000-000000000000",
+	'transformRSLElseStatement',
+	'',
+	'block = param.block;
+is_else_if = param.is_else_if;
+
+select one if_smt related by block->IfSmt[R453]; // else always comes from the context of a ''then'' block
+if ( empty if_smt )
+  // TODO bad
+end if;
+select one block related by if_smt->Statement[R451]->CodeBlock[R450];
+// create else block
+create object instance else_block of CodeBlock;
+select one invocable related by block->InvocableObject[R4000];
+else_block.top_level = false;
+if ( is_else_if )
+  else_block.tab_depth = block.tab_depth;
+else
+  else_block.tab_depth = block.tab_depth + 1;
+end if;
+relate else_block to invocable across R4000;
+else_block.block_number = ::getNextBlockNumber( upper_block:block );
+// copy visibile variables from upper block
+select many vars related by block->Variable[R458];
+for each var in vars
+  create object instance var_in_scope of VariableInScope;
+  relate var to else_block across R458 using var_in_scope;
+end for;
+relate else_block to if_smt across R454;
+ 
+return else_block;',
+	"e2eb4f67-ca2b-42ab-accf-5a2b475f8933",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("d1e49e67-3f63-43fe-919d-d657c05c771f",
+	"57e875ad-32cb-4aeb-ab57-0f86612c02f7",
+	'block',
+	"e2eb4f67-ca2b-42ab-accf-5a2b475f8933",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("cbf70d9c-dc79-4239-af1e-28b92a69c9dd",
+	"57e875ad-32cb-4aeb-ab57-0f86612c02f7",
+	'is_else_if',
+	"ba5eda7a-def5-0000-0000-000000000001",
+	0,
+	'',
+	"d1e49e67-3f63-43fe-919d-d657c05c771f",
+	'');
+INSERT INTO PE_PE
+	VALUES ("57e875ad-32cb-4aeb-ab57-0f86612c02f7",
+	1,
+	"0f65277e-71ba-472a-ad12-048000976d40",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("19da2125-c562-4835-88c4-dd41a3ebfad4",
+	"00000000-0000-0000-0000-000000000000",
+	'transformRSLExpression',
+	'',
+	'expr = param.expr;
+smt = param.smt;
+expr_number = param.expr_number;
+
+select one disj related by expr->Y_Disjunction[R3061];
+::transformRSLDisjunction( disj:disj, smt:smt, expr_number:expr_number );',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("7fb44ff8-b1f8-4c63-b36a-fbaf7d4b1bbd",
+	"19da2125-c562-4835-88c4-dd41a3ebfad4",
+	'expr',
+	"e375419c-cbcb-4fa4-8b63-df91e6d60c8a",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("519763ed-040d-4247-aeac-846736cbd683",
+	"19da2125-c562-4835-88c4-dd41a3ebfad4",
+	'smt',
+	"056a9b55-7c4c-45a4-a684-ea45fce8fa86",
+	0,
+	'',
+	"7fb44ff8-b1f8-4c63-b36a-fbaf7d4b1bbd",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("9a47813d-3bab-4f87-8f55-28e9abf22a5c",
+	"19da2125-c562-4835-88c4-dd41a3ebfad4",
+	'expr_number',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"519763ed-040d-4247-aeac-846736cbd683",
+	'');
+INSERT INTO PE_PE
+	VALUES ("19da2125-c562-4835-88c4-dd41a3ebfad4",
+	1,
+	"0f65277e-71ba-472a-ad12-048000976d40",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("15d80acb-95d9-412f-a9b6-3c3804c75321",
+	"00000000-0000-0000-0000-000000000000",
+	'transformRSLDisjunction',
+	'',
+	'disj = param.disj;
+smt = param.smt;
+expr_number = param.expr_number;
+
+select one l_conj related by disj->Y_Conjunction[R3062];
+select many disj_ops related by disj->Y_DisjunctionOperation[R3068];
+if ( not_empty disj_ops )
+  // transform last disjunction operation in the chain
+  select any disj_op related by disj->Y_DisjunctionOperation[R3068];
+  for each current_disj_op in disj_ops
+    if ( current_disj_op.node_id > disj_op.node_id )
+      disj_op = current_disj_op;
+    end if;
+  end for;
+  ::transformRSLDisjunctionOperation( disj_op:disj_op, smt:smt, expr_number:expr_number );
+else
+  ::transformRSLConjunction( conj:l_conj, smt:smt, expr_number:expr_number );
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("193bdbb2-ce99-4e5e-80fc-4c304fd908af",
+	"15d80acb-95d9-412f-a9b6-3c3804c75321",
+	'disj',
+	"b8813669-8d98-4b0e-a20d-bb2b44b2bedc",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("b8813669-8d98-4b0e-a20d-bb2b44b2bedc",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Disjunction>',
+	'',
+	'',
+	'../RSL/RSL.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("e6b16d82-9fc5-41be-80bf-69d5651ba77e",
+	"15d80acb-95d9-412f-a9b6-3c3804c75321",
+	'smt',
+	"056a9b55-7c4c-45a4-a684-ea45fce8fa86",
+	0,
+	'',
+	"193bdbb2-ce99-4e5e-80fc-4c304fd908af",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("6c81cf80-17b0-4951-8b56-debaca5a9918",
+	"15d80acb-95d9-412f-a9b6-3c3804c75321",
+	'expr_number',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"e6b16d82-9fc5-41be-80bf-69d5651ba77e",
+	'');
+INSERT INTO PE_PE
+	VALUES ("15d80acb-95d9-412f-a9b6-3c3804c75321",
+	1,
+	"0f65277e-71ba-472a-ad12-048000976d40",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("260613ea-24a0-4d11-b633-08e73020e551",
+	"00000000-0000-0000-0000-000000000000",
+	'transformRSLConjunction',
+	'',
+	'conj = param.conj;
+smt = param.smt;
+expr_number = param.expr_number;
+
+select one l_comp related by conj->Y_Comparison[R3063];
+select many conj_ops related by conj->Y_ConjunctionOperation[R3070];
+if ( not_empty conj_ops )
+  // transform last conjunction operation in the chain
+  select any conj_op related by conj->Y_ConjunctionOperation[R3070];
+  for each current_conj_op in conj_ops
+    if ( current_conj_op.node_id > conj_op.node_id )
+      conj_op = current_conj_op;
+    end if;
+  end for;
+  ::transformRSLConjunctionOperation( conj_op:conj_op, smt:smt, expr_number:expr_number );
+else
+  ::transformRSLComparison( comp:l_comp, smt:smt, expr_number:expr_number );
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("087a089c-72cc-47f6-b5e8-6e8f03f0f76c",
+	"260613ea-24a0-4d11-b633-08e73020e551",
+	'conj',
+	"2648e24a-c8c8-4114-8439-f321fdad3dd9",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("2648e24a-c8c8-4114-8439-f321fdad3dd9",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Conjunction>',
+	'',
+	'',
+	'../RSL/RSL.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("341ed73c-7c3a-40a8-b344-c4236b0403d4",
+	"260613ea-24a0-4d11-b633-08e73020e551",
+	'smt',
+	"056a9b55-7c4c-45a4-a684-ea45fce8fa86",
+	0,
+	'',
+	"087a089c-72cc-47f6-b5e8-6e8f03f0f76c",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("1173321e-18ee-4080-98cb-abbc86691765",
+	"260613ea-24a0-4d11-b633-08e73020e551",
+	'expr_number',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"341ed73c-7c3a-40a8-b344-c4236b0403d4",
+	'');
+INSERT INTO PE_PE
+	VALUES ("260613ea-24a0-4d11-b633-08e73020e551",
+	1,
+	"0f65277e-71ba-472a-ad12-048000976d40",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("93304b8a-34fd-4432-a203-4de6bf6c1091",
+	"00000000-0000-0000-0000-000000000000",
+	'transformRSLComparison',
+	'',
+	'comp = param.comp;
+smt = param.smt;
+expr_number = param.expr_number;
+
+select one l_addition related by comp->Y_Addition[R3064];
+select many comp_ops related by comp->Y_ComparisonOperation[R3072];
+if ( not_empty comp_ops )
+  // transform last comparison operation in the chain
+  select any comp_op related by comp->Y_ComparisonOperation[R3072];
+  for each current_comp_op in comp_ops
+    if ( current_comp_op.node_id > comp_op.node_id )
+      comp_op = current_comp_op;
+    end if;
+  end for;
+  ::transformRSLComparisonOperation( comp_op:comp_op, smt:smt, expr_number:expr_number );
+else
+  ::transformRSLAddition( addition:l_addition, smt:smt, expr_number:expr_number );
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("d56659f5-c0b5-4350-a0f6-4bf114af857b",
+	"93304b8a-34fd-4432-a203-4de6bf6c1091",
+	'comp',
+	"5f08ed1f-66af-46d1-b08f-7b65ed5da4f2",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("5f08ed1f-66af-46d1-b08f-7b65ed5da4f2",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Comparison>',
+	'',
+	'',
+	'../RSL/RSL.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("c1fc4b04-57de-4e35-a48d-be0325c68da5",
+	"93304b8a-34fd-4432-a203-4de6bf6c1091",
+	'smt',
+	"056a9b55-7c4c-45a4-a684-ea45fce8fa86",
+	0,
+	'',
+	"d56659f5-c0b5-4350-a0f6-4bf114af857b",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("0f393f89-a190-4f10-9597-c41dbdf7a14e",
+	"93304b8a-34fd-4432-a203-4de6bf6c1091",
+	'expr_number',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"c1fc4b04-57de-4e35-a48d-be0325c68da5",
+	'');
+INSERT INTO PE_PE
+	VALUES ("93304b8a-34fd-4432-a203-4de6bf6c1091",
+	1,
+	"0f65277e-71ba-472a-ad12-048000976d40",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("f6b2ea32-8007-4151-b4e8-509db2b9ebc5",
+	"00000000-0000-0000-0000-000000000000",
+	'transformRSLAddition',
+	'',
+	'addition = param.addition;
+smt = param.smt;
+expr_number = param.expr_number;
+
+select one l_mult related by addition->Y_Multiplication[R3065];
+select many addition_ops related by addition->Y_AdditionOperation[R3074];
+if ( not_empty addition_ops )
+  // transform last addition operation in the chain
+  select any addition_op related by addition->Y_AdditionOperation[R3074];
+  for each current_addition_op in addition_ops
+    if ( current_addition_op.node_id > addition_op.node_id )
+      addition_op = current_addition_op;
+    end if;
+  end for;
+  ::transformRSLAdditionOperation( addition_op:addition_op, smt:smt, expr_number:expr_number );
+else
+  ::transformRSLMultiplication( mult:l_mult, smt:smt, expr_number:expr_number );
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("76137524-69db-4efe-8c88-fd93052544f6",
+	"f6b2ea32-8007-4151-b4e8-509db2b9ebc5",
+	'addition',
+	"3e83d89f-3d2f-41f9-b0de-3fef92e93436",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("3e83d89f-3d2f-41f9-b0de-3fef92e93436",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Addition>',
+	'',
+	'',
+	'../RSL/RSL.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("767fe8e1-1d23-47c1-9677-3c9cbadc9ce4",
+	"f6b2ea32-8007-4151-b4e8-509db2b9ebc5",
+	'smt',
+	"056a9b55-7c4c-45a4-a684-ea45fce8fa86",
+	0,
+	'',
+	"76137524-69db-4efe-8c88-fd93052544f6",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("6ff28f8a-0269-4b86-9309-3a717a3a83a0",
+	"f6b2ea32-8007-4151-b4e8-509db2b9ebc5",
+	'expr_number',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"767fe8e1-1d23-47c1-9677-3c9cbadc9ce4",
+	'');
+INSERT INTO PE_PE
+	VALUES ("f6b2ea32-8007-4151-b4e8-509db2b9ebc5",
+	1,
+	"0f65277e-71ba-472a-ad12-048000976d40",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("5a0b51d8-a28c-4cbe-9738-2d5f1663c1bc",
+	"00000000-0000-0000-0000-000000000000",
+	'transformRSLMultiplication',
+	'',
+	'mult = param.mult;
+smt = param.smt;
+expr_number = param.expr_number;
+
+select one l_neg related by mult->Y_Negation[R3066];
+select many mult_ops related by mult->Y_MultiplicationOperation[R3076];
+if ( not_empty mult_ops )
+  // transform last mult operation in the chain
+  select any mult_op related by mult->Y_MultiplicationOperation[R3076];
+  for each current_mult_op in mult_ops
+    if ( current_mult_op.node_id > mult_op.node_id )
+      mult_op = current_mult_op;
+    end if;
+  end for;
+  ::transformRSLMultiplicationOperation( mult_op:mult_op, smt:smt, expr_number:expr_number );
+else
+  ::transformRSLNegation( neg:l_neg, smt:smt, expr_number:expr_number );
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("e2583b97-b158-4eb2-8429-a0bcbc30e66b",
+	"5a0b51d8-a28c-4cbe-9738-2d5f1663c1bc",
+	'mult',
+	"6c4cbaef-e02e-468d-aa11-adb3b1f353fa",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("6c4cbaef-e02e-468d-aa11-adb3b1f353fa",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Multiplication>',
+	'',
+	'',
+	'../RSL/RSL.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("e751264d-bda4-40e0-94d2-8023c1ebc931",
+	"5a0b51d8-a28c-4cbe-9738-2d5f1663c1bc",
+	'smt',
+	"056a9b55-7c4c-45a4-a684-ea45fce8fa86",
+	0,
+	'',
+	"e2583b97-b158-4eb2-8429-a0bcbc30e66b",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("59491167-6fd1-4cc9-9558-b7681a6b6f83",
+	"5a0b51d8-a28c-4cbe-9738-2d5f1663c1bc",
+	'expr_number',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"e751264d-bda4-40e0-94d2-8023c1ebc931",
+	'');
+INSERT INTO PE_PE
+	VALUES ("5a0b51d8-a28c-4cbe-9738-2d5f1663c1bc",
+	1,
+	"0f65277e-71ba-472a-ad12-048000976d40",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("25d54353-cddf-4c55-817e-e773a6e4148d",
+	"00000000-0000-0000-0000-000000000000",
+	'transformRSLNegation',
+	'',
+	'neg = param.neg;
+smt = param.smt;
+expr_number = param.expr_number;
+
+select one term related by neg->Y_Term[R3067];
+select one neg_op related by neg->Y_NegationOperation[R3078];
+if ( not_empty neg_op )
+  // transform negation operation if it exists
+  ::transformRSLNegationOperation( neg_op:neg_op, smt:smt, expr_number:expr_number );
+else
+  ::transformRSLTerm( term:term, smt:smt, expr_number:expr_number );
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("782be782-3c4a-4033-8935-587485ec3b1a",
+	"25d54353-cddf-4c55-817e-e773a6e4148d",
+	'neg',
+	"70bf7ece-36f6-413d-b0c4-ff7d1e28dacb",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("70bf7ece-36f6-413d-b0c4-ff7d1e28dacb",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Negation>',
+	'',
+	'',
+	'../RSL/RSL.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("5fd5f1b6-ecf8-4789-814f-c2bbcab20018",
+	"25d54353-cddf-4c55-817e-e773a6e4148d",
+	'smt',
+	"056a9b55-7c4c-45a4-a684-ea45fce8fa86",
+	0,
+	'',
+	"782be782-3c4a-4033-8935-587485ec3b1a",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("7af1caa0-4963-4a4d-8314-6488e386ebcb",
+	"25d54353-cddf-4c55-817e-e773a6e4148d",
+	'expr_number',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"5fd5f1b6-ecf8-4789-814f-c2bbcab20018",
+	'');
+INSERT INTO PE_PE
+	VALUES ("25d54353-cddf-4c55-817e-e773a6e4148d",
+	1,
+	"0f65277e-71ba-472a-ad12-048000976d40",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("4bdf60d5-0b11-455a-ada3-21a0c425ad36",
+	"00000000-0000-0000-0000-000000000000",
+	'transformRSLTerm',
+	'',
+	'term = param.term;
+smt = param.smt;
+expr_number = param.expr_number;
+
+select one named_access related by term->Y_NamedAccess[R3081];
+if ( not_empty named_access )
+  ::transformRSLNamedAccess( named_access:named_access, smt:smt, expr_number:expr_number );
+
+else
+select one paren related by term->Y_Parenthesis[R3079];
+if ( not_empty paren )
+  // transform inner expression
+  select one sub_expr related by paren->Y_Expression[R3080];
+  ::transformRSLExpression( expr:sub_expr, smt:smt, expr_number:expr_number + ".1" );
+  select any inner_expr related by smt->Expression[R775] where ( selected.expression_number == expr_number + ".1" );
+  // create expression
+  create object instance expr of Expression;
+  relate expr to smt across R775;
+  expr.expression_number = expr_number;
+  select one inner_type_ref related by inner_expr->TypeReference[R795];
+  relate inner_type_ref to expr across R795;
+  // create parenthesized expression
+  create object instance paren_expr of ParenthesizedExpression;
+  relate paren_expr to expr across R776;
+  relate inner_expr to paren_expr across R784;
+
+else
+select one literal related by term->Y_Literal[R3086];
+if ( not_empty literal )
+  // create expression
+  create object instance expr of Expression;
+  relate expr to smt across R775;
+  expr.expression_number = expr_number;
+  // create literal
+  create object instance lit of Literal;
+  relate lit to expr across R776;
+
+  select one string_literal related by literal->Y_StringLiteral[R3087];
+  if ( not_empty string_literal )
+    lit.value = string_literal.BLOB; // TODO unescape stuff
+    string_type_ref = TypeReference::getBuiltinTypeReference( name:"String" );
+    relate string_type_ref to expr across R795;
+    select one registry_file related by smt->CodeBlock[R450]->InvocableObject[R4000]->GenericInvocable[R427]->Z_Template[R3053]->Z_TemplateRegistry[R3052]->GeneralFile[R3051]->File[R401];
+    select one string_type related by string_type_ref->Type[R3800];
+    ::addTypeToImports( file: registry_file, type_to_import:string_type, type:ImportType::IMPL );
+  elif ( "" != literal.BOOLEAN_LITERAL )
+    if ( "true" == TEMP::sub( format:"l", s:literal.BOOLEAN_LITERAL ) )
+      lit.value = "true";
+    else
+      lit.value = "false";
+    end if;
+    boolean_type_ref = TypeReference::getBuiltinTypeReference( name:"boolean" );
+    relate boolean_type_ref to expr across R795;
+  elif ( "" != literal.INTEGER_LITERAL )
+    lit.value = literal.INTEGER_LITERAL;
+    integer_type_ref = TypeReference::getBuiltinTypeReference( name:"int" );
+    relate integer_type_ref to expr across R795;
+  elif ( "" != literal.REAL_LITERAL )
+    lit.value = literal.REAL_LITERAL;
+    real_type_ref = TypeReference::getBuiltinTypeReference( name:"double" );
+    relate real_type_ref to expr across R795;
+  end if;
+
+end if; end if; end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("bb023bfb-7780-46f8-9232-b24735e15a34",
+	"4bdf60d5-0b11-455a-ada3-21a0c425ad36",
+	'term',
+	"d3e34609-d37f-44de-a06e-dda7498ab948",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("d3e34609-d37f-44de-a06e-dda7498ab948",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Term>',
+	'',
+	'',
+	'../RSL/RSL.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("58233c14-f15e-47d3-8eb4-d96471c3d864",
+	"4bdf60d5-0b11-455a-ada3-21a0c425ad36",
+	'smt',
+	"056a9b55-7c4c-45a4-a684-ea45fce8fa86",
+	0,
+	'',
+	"bb023bfb-7780-46f8-9232-b24735e15a34",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("012b45fc-f56f-49d7-984c-b47c7a22a7ec",
+	"4bdf60d5-0b11-455a-ada3-21a0c425ad36",
+	'expr_number',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"58233c14-f15e-47d3-8eb4-d96471c3d864",
+	'');
+INSERT INTO PE_PE
+	VALUES ("4bdf60d5-0b11-455a-ada3-21a0c425ad36",
+	1,
+	"0f65277e-71ba-472a-ad12-048000976d40",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("3fe2b492-8970-4b9c-bca8-57519046e1ee",
+	"00000000-0000-0000-0000-000000000000",
+	'transformRSLComparisonOperation',
+	'',
+	'comp_op = param.comp_op;
+smt = param.smt;
+expr_number = param.expr_number;
+
+select one file related by smt->CodeBlock[R450]->InvocableObject[R4000]->GenericInvocable[R427]->Z_Template[R3053]->Z_TemplateRegistry[R3052]->GeneralFile[R3051]->File[R401];
+
+// transform the left operand
+select any l_comp_op from instances of Y_ComparisonOperation where false;
+select many comp_ops related by comp_op->Y_Comparison[R3072]->Y_ComparisonOperation[R3072] where ( selected.node_id != comp_op.node_id );
+for each current_comp_op in comp_ops
+  if ( ( empty l_comp_op or current_comp_op.node_id > l_comp_op.node_id ) and current_comp_op.node_id < comp_op.node_id )
+    l_comp_op = current_comp_op;
+  end if;
+end for;
+if ( not_empty l_comp_op )
+  ::transformRSLComparisonOperation( comp_op:l_comp_op, smt:smt, expr_number:expr_number + ".1" );
+else
+  select one l_addition related by comp_op->Y_Comparison[R3072]->Y_Addition[R3064];
+  ::transformRSLAddition( addition:l_addition, smt:smt, expr_number:expr_number + ".1" );
+end if;
+select any l_op related by smt->Expression[R775] where ( selected.expression_number == expr_number + ".1" );
+
+// transform the right operand
+select one r_addition related by comp_op->Y_Addition[R3073];
+::transformRSLAddition( addition:r_addition, smt:smt, expr_number:expr_number + ".2" );
+select any r_op related by smt->Expression[R775] where ( selected.expression_number == expr_number + ".2" );
+
+// create binary operation
+create object instance expr of Expression;
+relate expr to smt across R775;
+expr.expression_number = expr_number;
+create object instance binary of BinaryOperation;
+relate binary to expr across R776;
+relate l_op to binary across R779;
+relate r_op to binary across R778;
+select one l_type related by l_op->TypeReference[R795]->Type[R3800];
+
+// link type
+boolean_type_ref = TypeReference::getBuiltinTypeReference( name:"boolean" );
+relate boolean_type_ref to expr across R795;
+
+// translate the operator
+binary.invocation = false;
+if ( "" != comp_op.EQ )
+  if ( l_type.primitive() )
+    binary.operator = "==";
+  else
+    if ( "String" == l_type.name and "" == l_type.package )
+      binary.operator = "StringUtil.equality";
+      binary.invocation = true;
+      binary.util = true;
+      ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.StringUtil", type:ImportType::IMPL );
+    else
+      binary.operator = "equality";
+      binary.invocation = true;
+    end if;
+  end if;
+elif ( "" != comp_op.NE )
+  if ( l_type.primitive() )
+    binary.operator = "!=";
+  else
+    if ( "String" == l_type.name and "" == l_type.package )
+      binary.operator = "StringUtil.inequality";
+      binary.invocation = true;
+      binary.util = true;
+      ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.StringUtil", type:ImportType::IMPL );
+    else
+      binary.operator = "inequality";
+      binary.invocation = true;
+    end if;
+  end if;
+elif ( "" != comp_op.LT )
+  if ( l_type.primitive() )
+    binary.operator = "<";
+  else
+    if ( "String" == l_type.name and "" == l_type.package )
+      binary.operator = "StringUtil.lessThan";
+      binary.invocation = true;
+      binary.util = true;
+      ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.StringUtil", type:ImportType::IMPL );
+    else
+      binary.operator = "lessThan";
+      binary.invocation = true;
+    end if;
+  end if;
+elif ( "" != comp_op.LTE )
+  if ( l_type.primitive() )
+    binary.operator = "<=";
+  else
+    if ( "String" == l_type.name and "" == l_type.package )
+      binary.operator = "StringUtil.lessThanOrEqual";
+      binary.invocation = true;
+      binary.util = true;
+      ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.StringUtil", type:ImportType::IMPL );
+    else
+      binary.operator = "lessThanOrEqual";
+      binary.invocation = true;
+    end if;
+  end if;
+elif ( "" != comp_op.GT )
+  if ( l_type.primitive() )
+    binary.operator = ">";
+  else
+    if ( "String" == l_type.name and "" == l_type.package )
+      binary.operator = "StringUtil.greaterThan";
+      binary.invocation = true;
+      binary.util = true;
+      ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.StringUtil", type:ImportType::IMPL );
+    else
+      binary.operator = "greaterThan";
+      binary.invocation = true;
+    end if;
+  end if;
+elif ( "" != comp_op.GTE )
+  if ( l_type.primitive() )
+    binary.operator = ">=";
+  else
+    if ( "String" == l_type.name and "" == l_type.package )
+      binary.operator = "StringUtil.greaterThanOrEqual";
+      binary.invocation = true;
+      binary.util = true;
+      ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.StringUtil", type:ImportType::IMPL );
+    else
+      binary.operator = "greaterThanOrEqual";
+      binary.invocation = true;
+    end if;
+  end if;
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("d31ceb0b-2a20-4cf7-ba61-5643d41d4fd2",
+	"3fe2b492-8970-4b9c-bca8-57519046e1ee",
+	'comp_op',
+	"6eeac7ec-03cb-4967-bb34-9eeee4e6494e",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("6eeac7ec-03cb-4967-bb34-9eeee4e6494e",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Comparison Operation>',
+	'',
+	'',
+	'../RSL/RSL.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("88ce5034-2335-45b1-b2f3-2af2e3d8328e",
+	"3fe2b492-8970-4b9c-bca8-57519046e1ee",
+	'smt',
+	"056a9b55-7c4c-45a4-a684-ea45fce8fa86",
+	0,
+	'',
+	"d31ceb0b-2a20-4cf7-ba61-5643d41d4fd2",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("d8320a5c-0175-477c-9a97-9b0aefdbd482",
+	"3fe2b492-8970-4b9c-bca8-57519046e1ee",
+	'expr_number',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"88ce5034-2335-45b1-b2f3-2af2e3d8328e",
+	'');
+INSERT INTO PE_PE
+	VALUES ("3fe2b492-8970-4b9c-bca8-57519046e1ee",
+	1,
+	"0f65277e-71ba-472a-ad12-048000976d40",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("338bb646-7391-4c1c-a17b-0a9222aab043",
+	"00000000-0000-0000-0000-000000000000",
+	'transformRSLAdditionOperation',
+	'',
+	'addition_op = param.addition_op;
+smt = param.smt;
+expr_number = param.expr_number;
+
+// transform the left operand
+select any l_addition_op from instances of Y_AdditionOperation where false;
+select many addition_ops related by addition_op->Y_Addition[R3074]->Y_AdditionOperation[R3074] where ( selected.node_id != addition_op.node_id );
+for each current_addition_op in addition_ops
+  if ( ( empty l_addition_op or current_addition_op.node_id > l_addition_op.node_id ) and current_addition_op.node_id < addition_op.node_id )
+    l_addition_op = current_addition_op;
+  end if;
+end for;
+if ( not_empty l_addition_op )
+  ::transformRSLAdditionOperation( addition_op:l_addition_op, smt:smt, expr_number:expr_number + ".1" );
+else
+  select one l_mult related by addition_op->Y_Addition[R3074]->Y_Multiplication[R3065];
+  ::transformRSLMultiplication( mult:l_mult, smt:smt, expr_number:expr_number + ".1" );
+end if;
+select any l_op related by smt->Expression[R775] where ( selected.expression_number == expr_number + ".1" );
+
+// transform the right operand
+select one r_mult related by addition_op->Y_Multiplication[R3075];
+::transformRSLMultiplication( mult:r_mult, smt:smt, expr_number:expr_number + ".2" );
+select any r_op related by smt->Expression[R775] where ( selected.expression_number == expr_number + ".2" );
+
+// create binary operation
+create object instance expr of Expression;
+relate expr to smt across R775;
+expr.expression_number = expr_number;
+create object instance binary of BinaryOperation;
+relate binary to expr across R776;
+relate l_op to binary across R779;
+relate r_op to binary across R778;
+select one l_type_ref related by l_op->TypeReference[R795];
+select one l_type related by l_type_ref->Type[R3800];
+select one r_type_ref related by r_op->TypeReference[R795];
+select one r_type related by r_type_ref->Type[R3800];
+
+// link type
+if ( r_type.name == "double" and r_type.package == "" )
+  relate r_type_ref to expr across R795; // promote to real
+else
+  relate r_type_ref to expr across R795;
+end if;
+
+// translate the operator
+if ( "" != addition_op.PLUS )
+  if ( l_type.primitive() )
+    binary.operator = "+";
+    binary.invocation = false;
+  else
+    if ( "String" == l_type.name and "" == l_type.package )
+      // TODO handle concatenation for UDTs based on string
+      binary.operator = "+";
+      binary.invocation = false;
+    else
+      binary.operator = "add";
+    end if;
+    binary.invocation = true;
+  end if;
+elif ( "" != addition_op.MINUS )
+  if ( l_type.primitive() )
+    binary.operator = "-";
+    binary.invocation = false;
+  else
+    binary.operator = "subtract";
+    binary.invocation = true;
+  end if;
+end if;
+ ',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("ee021de2-516e-4272-9108-7a8a0cf3cebd",
+	"338bb646-7391-4c1c-a17b-0a9222aab043",
+	'addition_op',
+	"ac1513a8-f676-4018-8dea-245f0ef8eb9f",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("ac1513a8-f676-4018-8dea-245f0ef8eb9f",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Addition Operation>',
+	'',
+	'',
+	'../RSL/RSL.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("ca48fc6e-204f-4471-b233-f7ca98d0b9bf",
+	"338bb646-7391-4c1c-a17b-0a9222aab043",
+	'smt',
+	"056a9b55-7c4c-45a4-a684-ea45fce8fa86",
+	0,
+	'',
+	"ee021de2-516e-4272-9108-7a8a0cf3cebd",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("0deccce7-7fc0-4e4a-b652-0cb1049102e4",
+	"338bb646-7391-4c1c-a17b-0a9222aab043",
+	'expr_number',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"ca48fc6e-204f-4471-b233-f7ca98d0b9bf",
+	'');
+INSERT INTO PE_PE
+	VALUES ("338bb646-7391-4c1c-a17b-0a9222aab043",
+	1,
+	"0f65277e-71ba-472a-ad12-048000976d40",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("06ae2440-6564-49fd-a5e0-2fd464ccacbc",
+	"00000000-0000-0000-0000-000000000000",
+	'transformRSLMultiplicationOperation',
+	'',
+	'mult_op = param.mult_op;
+smt = param.smt;
+expr_number = param.expr_number;
+
+// transform the left operand
+select any l_mult_op from instances of Y_MultiplicationOperation where false;
+select many mult_ops related by mult_op->Y_Multiplication[R3076]->Y_MultiplicationOperation[R3076] where ( selected.node_id != mult_op.node_id );
+for each current_mult_op in mult_ops
+  if ( ( empty l_mult_op or current_mult_op.node_id > l_mult_op.node_id ) and current_mult_op.node_id < mult_op.node_id )
+    l_mult_op = current_mult_op;
+  end if;
+end for;
+if ( not_empty l_mult_op )
+  ::transformRSLMultiplicationOperation( mult_op:l_mult_op, smt:smt, expr_number:expr_number + ".1" );
+else
+  select one l_neg related by mult_op->Y_Multiplication[R3076]->Y_Negation[R3066];
+  ::transformRSLNegation( neg:l_neg, smt:smt, expr_number:expr_number + ".1" );
+end if;
+select any l_op related by smt->Expression[R775] where ( selected.expression_number == expr_number + ".1" );
+
+// transform the right operand
+select one r_neg related by mult_op->Y_Negation[R3077];
+::transformRSLNegation( neg:r_neg, smt:smt, expr_number:expr_number + ".2" );
+select any r_op related by smt->Expression[R775] where ( selected.expression_number == expr_number + ".2" );
+
+// create binary operation
+create object instance expr of Expression;
+relate expr to smt across R775;
+expr.expression_number = expr_number;
+create object instance binary of BinaryOperation;
+relate binary to expr across R776;
+relate l_op to binary across R779;
+relate r_op to binary across R778;
+select one l_type_ref related by l_op->TypeReference[R795];
+select one l_type related by l_type_ref->Type[R3800];
+select one r_type_ref related by r_op->TypeReference[R795];
+select one r_type related by r_type_ref->Type[R3800];
+
+// link type
+if ( r_type.name == "double" and r_type.package == "" )
+  relate r_type_ref to expr across R795; // promote to real
+else
+  relate r_type_ref to expr across R795;
+end if;
+
+// translate the operator
+if ( "" != mult_op.TIMES )
+  if ( l_type.primitive() )
+    binary.operator = "*";
+    binary.invocation = false;
+  else
+    binary.operator = "multiply";
+    binary.invocation = true;
+  end if;
+elif ( "" != mult_op.DIVIDE )
+  if ( l_type.primitive() )
+    binary.operator = "/";
+    binary.invocation = false;
+  else
+    binary.operator = "divide";
+    binary.invocation = true;
+  end if;
+elif ( "" != mult_op.REM )
+  if ( l_type.primitive() )
+    binary.operator = "%";
+    binary.invocation = false;
+  else
+    binary.operator = "remainder";
+    binary.invocation = true;
+  end if;
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("266bb257-9dea-496a-bf7a-582e4990e085",
+	"06ae2440-6564-49fd-a5e0-2fd464ccacbc",
+	'mult_op',
+	"d0b6237c-429d-4646-bb35-bfc422543320",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("d0b6237c-429d-4646-bb35-bfc422543320",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Multiplication Operation>',
+	'',
+	'',
+	'../RSL/RSL.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("f0f810f4-f2cf-4a3e-8f0a-fa9380e7c088",
+	"06ae2440-6564-49fd-a5e0-2fd464ccacbc",
+	'smt',
+	"056a9b55-7c4c-45a4-a684-ea45fce8fa86",
+	0,
+	'',
+	"266bb257-9dea-496a-bf7a-582e4990e085",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("40452545-f4d8-432d-8c2d-6ff636d8cb25",
+	"06ae2440-6564-49fd-a5e0-2fd464ccacbc",
+	'expr_number',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"f0f810f4-f2cf-4a3e-8f0a-fa9380e7c088",
+	'');
+INSERT INTO PE_PE
+	VALUES ("06ae2440-6564-49fd-a5e0-2fd464ccacbc",
+	1,
+	"0f65277e-71ba-472a-ad12-048000976d40",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("3b8bccb4-1e2d-4790-b053-16b2bd10cf17",
+	"00000000-0000-0000-0000-000000000000",
+	'transformRSLDisjunctionOperation',
+	'',
+	'disj_op = param.disj_op;
+smt = param.smt;
+expr_number = param.expr_number;
+
+// transform the left operand
+select any l_disj_op from instances of Y_DisjunctionOperation where false;
+select many disj_ops related by disj_op->Y_Disjunction[R3068]->Y_DisjunctionOperation[R3068] where ( selected.node_id != disj_op.node_id );
+for each current_disj_op in disj_ops
+  if ( ( empty l_disj_op or current_disj_op.node_id > l_disj_op.node_id ) and current_disj_op.node_id < disj_op.node_id )
+    l_disj_op = current_disj_op;
+  end if;
+end for;
+if ( not_empty l_disj_op )
+  ::transformRSLDisjunctionOperation( disj_op:l_disj_op, smt:smt, expr_number:expr_number + ".1" );
+else
+  select one l_conj related by disj_op->Y_Disjunction[R3068]->Y_Conjunction[R3062];
+  ::transformRSLConjunction( conj:l_conj, smt:smt, expr_number:expr_number + ".1" );
+end if;
+select any l_op related by smt->Expression[R775] where ( selected.expression_number == expr_number + ".1" );
+
+// transform the right operand
+select one r_conj related by disj_op->Y_Conjunction[R3069];
+::transformRSLConjunction( conj:r_conj, smt:smt, expr_number:expr_number + ".2" );
+select any r_op related by smt->Expression[R775] where ( selected.expression_number == expr_number + ".2" );
+
+// create binary operation
+create object instance expr of Expression;
+relate expr to smt across R775;
+expr.expression_number = expr_number;
+create object instance binary of BinaryOperation;
+relate binary to expr across R776;
+relate l_op to binary across R779;
+relate r_op to binary across R778;
+select one l_type related by l_op->TypeReference[R795]->Type[R3800];
+
+// link type
+boolean_type_ref = TypeReference::getBuiltinTypeReference( name:"boolean" );
+relate boolean_type_ref to expr across R795;
+
+// translate the operator
+if ( l_type.primitive() )
+  binary.operator = "||";
+  binary.invocation = false;
+else
+  binary.operator = "or";
+  binary.invocation = true;
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("fce56b0c-fe80-4186-aad7-f77d4f47b5c4",
+	"3b8bccb4-1e2d-4790-b053-16b2bd10cf17",
+	'disj_op',
+	"63a1e863-123a-48f3-a9a9-5832c187ff79",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("63a1e863-123a-48f3-a9a9-5832c187ff79",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Disjunction Operation>',
+	'',
+	'',
+	'../RSL/RSL.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("69ea01ed-5334-4b35-b33d-00a33689d250",
+	"3b8bccb4-1e2d-4790-b053-16b2bd10cf17",
+	'smt',
+	"056a9b55-7c4c-45a4-a684-ea45fce8fa86",
+	0,
+	'',
+	"fce56b0c-fe80-4186-aad7-f77d4f47b5c4",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("0bdc7952-e8f2-4388-9953-ca4bf58716f2",
+	"3b8bccb4-1e2d-4790-b053-16b2bd10cf17",
+	'expr_number',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"69ea01ed-5334-4b35-b33d-00a33689d250",
+	'');
+INSERT INTO PE_PE
+	VALUES ("3b8bccb4-1e2d-4790-b053-16b2bd10cf17",
+	1,
+	"0f65277e-71ba-472a-ad12-048000976d40",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("247e01c7-cb18-4d24-8023-00ca39f179df",
+	"00000000-0000-0000-0000-000000000000",
+	'transformRSLConjunctionOperation',
+	'',
+	'conj_op = param.conj_op;
+smt = param.smt;
+expr_number = param.expr_number;
+
+// transform the left operand
+select any l_conj_op from instances of Y_ConjunctionOperation where false;
+select many conj_ops related by conj_op->Y_Conjunction[R3070]->Y_ConjunctionOperation[R3070] where ( selected.node_id != conj_op.node_id );
+for each current_conj_op in conj_ops
+  if ( ( empty l_conj_op or current_conj_op.node_id > l_conj_op.node_id ) and current_conj_op.node_id < conj_op.node_id )
+    l_conj_op = current_conj_op;
+  end if;
+end for;
+if ( not_empty l_conj_op )
+  ::transformRSLConjunctionOperation( conj_op:l_conj_op, smt:smt, expr_number:expr_number + ".1" );
+else
+  select one l_comp related by conj_op->Y_Conjunction[R3070]->Y_Comparison[R3063];
+  ::transformRSLComparison( comp:l_comp, smt:smt, expr_number:expr_number + ".1" );
+end if;
+select any l_op related by smt->Expression[R775] where ( selected.expression_number == expr_number + ".1" );
+
+// transform the right operand
+select one r_comp related by conj_op->Y_Comparison[R3071];
+::transformRSLComparison( comp:r_comp, smt:smt, expr_number:expr_number + ".2" );
+select any r_op related by smt->Expression[R775] where ( selected.expression_number == expr_number + ".2" );
+
+// create binary operation
+create object instance expr of Expression;
+relate expr to smt across R775;
+expr.expression_number = expr_number;
+create object instance binary of BinaryOperation;
+relate binary to expr across R776;
+relate l_op to binary across R779;
+relate r_op to binary across R778;
+select one l_type related by l_op->TypeReference[R795]->Type[R3800];
+
+// link type
+boolean_type_ref = TypeReference::getBuiltinTypeReference( name:"boolean" );
+relate boolean_type_ref to expr across R795;
+
+// translate the operator
+if ( l_type.primitive() )
+  binary.operator = "&&";
+  binary.invocation = false;
+else
+  binary.operator = "and";
+  binary.invocation = true;
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("900f903c-2eff-4061-8278-b6887e8f9c18",
+	"247e01c7-cb18-4d24-8023-00ca39f179df",
+	'conj_op',
+	"9886b30f-8098-46a4-abed-4ffdee9a158b",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("9886b30f-8098-46a4-abed-4ffdee9a158b",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Conjunction Operation>',
+	'',
+	'',
+	'../RSL/RSL.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("c61b0394-691a-43c0-9878-501807d71e59",
+	"247e01c7-cb18-4d24-8023-00ca39f179df",
+	'smt',
+	"056a9b55-7c4c-45a4-a684-ea45fce8fa86",
+	0,
+	'',
+	"900f903c-2eff-4061-8278-b6887e8f9c18",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("e7d9a401-70bb-48d6-ba55-09c04c242cb6",
+	"247e01c7-cb18-4d24-8023-00ca39f179df",
+	'expr_number',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"c61b0394-691a-43c0-9878-501807d71e59",
+	'');
+INSERT INTO PE_PE
+	VALUES ("247e01c7-cb18-4d24-8023-00ca39f179df",
+	1,
+	"0f65277e-71ba-472a-ad12-048000976d40",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("5ba9db58-d617-49c3-9c99-2a6023ea0ccd",
+	"00000000-0000-0000-0000-000000000000",
+	'transformRSLNegationOperation',
+	'',
+	'neg_op = param.neg_op;
+smt = param.smt;
+expr_number = param.expr_number;
+
+// transform the operand
+select one term related by neg_op->Y_Negation[R3078]->Y_Term[R3067];
+::transformRSLTerm( term:term, smt:smt, expr_number:expr_number + ".1" );
+select any op related by smt->Expression[R775] where ( selected.expression_number == expr_number + ".1" );
+
+// create unary operation
+create object instance expr of Expression;
+relate expr to smt across R775;
+expr.expression_number = expr_number;
+create object instance unary of UnaryOperation;
+relate unary to expr across R776;
+relate op to unary across R777;
+select one type_ref related by op->TypeReference[R795];
+
+// link type
+relate type_ref to expr across R795;
+
+// translate the operator
+if ( "" != neg_op.NOT )
+  unary.operator = "!";
+  unary.invocation = false;
+elif ( "" != neg_op.MINUS )
+  unary.operator = "-";
+  unary.invocation = false;
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("fa3feb52-e070-4297-99c0-ebff2a336121",
+	"5ba9db58-d617-49c3-9c99-2a6023ea0ccd",
+	'neg_op',
+	"e10edaa6-d81f-4dbf-97c7-ba1706247679",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("e10edaa6-d81f-4dbf-97c7-ba1706247679",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Negation Operation>',
+	'',
+	'',
+	'../RSL/RSL.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("e6fb0ac4-c68d-46a4-b7de-feb9decca7a6",
+	"5ba9db58-d617-49c3-9c99-2a6023ea0ccd",
+	'smt',
+	"056a9b55-7c4c-45a4-a684-ea45fce8fa86",
+	0,
+	'',
+	"fa3feb52-e070-4297-99c0-ebff2a336121",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("ce00ef28-3ed3-440c-9aaa-69e92439eb34",
+	"5ba9db58-d617-49c3-9c99-2a6023ea0ccd",
+	'expr_number',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"e6fb0ac4-c68d-46a4-b7de-feb9decca7a6",
+	'');
+INSERT INTO PE_PE
+	VALUES ("5ba9db58-d617-49c3-9c99-2a6023ea0ccd",
+	1,
+	"0f65277e-71ba-472a-ad12-048000976d40",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO PE_PE
+	VALUES ("0f65277e-71ba-472a-ad12-048000976d40",
+	1,
+	"00000000-0000-0000-0000-000000000000",
+	"00000000-0000-0000-0000-000000000000",
+	7);
+INSERT INTO S_SYS_PROXY
+	VALUES ("9bad5865-c62d-406a-afba-4ffdfa887a1d",
+	'io.ciera.tool.template',
+	1,
+	'../io.ciera.tool.template.xtuml');
