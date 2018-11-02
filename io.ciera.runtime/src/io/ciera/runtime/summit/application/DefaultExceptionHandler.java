@@ -2,7 +2,6 @@ package io.ciera.runtime.summit.application;
 
 import io.ciera.runtime.summit.exceptions.XtumlException;
 import io.ciera.runtime.summit.exceptions.XtumlInterruptedException;
-import io.ciera.runtime.summit.util.PerformanceUtil;
 
 public class DefaultExceptionHandler implements IExceptionHandler {
 
@@ -13,7 +12,6 @@ public class DefaultExceptionHandler implements IExceptionHandler {
         }
         else {
             e.printStackTrace( System.err );
-            PerformanceUtil.generateReport();
             System.exit( 1 );
         }
     }
