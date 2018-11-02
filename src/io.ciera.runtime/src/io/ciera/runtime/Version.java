@@ -1,18 +1,28 @@
 package io.ciera.runtime;
 
+import java.io.IOException;
+import java.util.Properties;
+
 public class Version implements IVersioned{
-	
-	private static final String VERSION = "v1.0";
-	private static final String DATE = "2018-11-01";
+    
+    private static final String PROPERTIES_FILE = "io.ciera.runtime.properties";
+    private Properties properties;
+    
+    public Version() {
+        properties = new Properties();
+        try {
+            properties.load(getClass().getResourceAsStream(PROPERTIES_FILE));
+        } catch (IOException e) { /* do nothing */ }
+    }
 	
 	@Override
 	public String getVersion() {
-		return VERSION;
+		return properties.getProperty("version", "Unknown");
 	}
 
 	@Override
 	public String getVersionDate() {
-		return DATE;
+		return properties.getProperty("version_date", "Unknown");
 	}
 
   public static void printVersion() {
