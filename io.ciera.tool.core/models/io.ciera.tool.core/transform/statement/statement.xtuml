@@ -881,30 +881,56 @@ smt.oal = ::getOalStatement( body:body.oal, line_num:act_smt.LineNumber );
 // create expression as statement
 create object instance eas of ExpressionAsStatement;
 relate eas to smt across R451;
-// create main expression
-create object instance expr of Expression;
-relate expr to smt across R775;
-expr.expression_number = "1";
-// create binary operation and assignment expression
-create object instance binop of BinaryOperation;
-relate binop to expr across R776;
-binop.operator = "=";
-binop.invocation = false;
-// relate expression to expression as statement
-relate eas to expr across R476;
-// create left operand
+// If this assignment is assigning an invocation return value to a variable
+// that is never read in the body, simply execute the invocation. OAL has
+// a limitation in that you cannot invoke bodies that return a value without
+// assigning the value to something (even if you do not intend to use it).
+// If there is an invocation of TEMP::include anywhere in the body, bail because
+// the variable might be referenced in the template.
 select one l_val related by act_ai->V_VAL[R689];
-::transformExpression( v_val:l_val, expr_number:"1.1", smt:smt );
-select any l_op related by smt->Expression[R775] where ( selected.expression_number == "1.1" );
-relate l_op to binop across R779;
-// create right operand
 select one r_val related by act_ai->V_VAL[R609];
-::transformExpression( v_val:r_val, expr_number:"1.2", smt:smt );
-select any r_op related by smt->Expression[R775] where ( selected.expression_number == "1.2" );
-relate r_op to binop across R778;
-// link r_op type to the main expression
-select one type related by r_op->TypeReference[R795];
-relate type to expr across R795;',
+select one v_var related by l_val->V_TVL[R801]->V_VAR[R805];
+if ( empty v_var )
+  select one v_var related by l_val->V_IRF[R801]->V_VAR[R808];
+  if ( empty v_var )
+    select one v_var related by l_val->V_ISR[R801]->V_VAR[R809];
+  end if;
+end if;
+num_references = ::numReferences( v_var:v_var );
+select one r_brv related by r_val->V_BRV[R801];
+select one r_fnv related by r_val->V_FNV[R801];
+select one r_trv related by r_val->V_TRV[R801];
+rhs_is_invocation = not_empty r_brv or not_empty r_fnv or not_empty r_trv;
+select many s_brgs related by act_ai->ACT_SMT[R603]->ACT_BLK[R602]->ACT_ACT[R601]->ACT_BLK[R601]->ACT_SMT[R602]->ACT_BRG[R603]->S_BRG[R674] where ( selected.Name == "include" );
+select any s_ee related by s_brgs->S_EE[R19] where ( selected.Key_Lett == "TEMP" );
+if ( empty s_ee and rhs_is_invocation and num_references == 1 )
+  // create right operand
+  ::transformExpression( v_val:r_val, expr_number:"1", smt:smt );
+  select any r_op related by smt->Expression[R775] where ( selected.expression_number == "1" );
+  relate r_op to eas across R476;
+else
+  // create main expression
+  create object instance expr of Expression;
+  relate expr to smt across R775;
+  expr.expression_number = "1";
+  relate expr to eas across R476;
+  // create binary operation and assignment expression
+  create object instance binop of BinaryOperation;
+  relate binop to expr across R776;
+  binop.operator = "=";
+  binop.invocation = false;
+  // create left operand
+  ::transformExpression( v_val:l_val, expr_number:"1.1", smt:smt );
+  select any l_op related by smt->Expression[R775] where ( selected.expression_number == "1.1" );
+  relate l_op to binop across R779;
+  // create right operand
+  ::transformExpression( v_val:r_val, expr_number:"1.2", smt:smt );
+  select any r_op related by smt->Expression[R775] where ( selected.expression_number == "1.2" );
+  relate r_op to binop across R778;
+  // link r_op type to the main expression
+  select one type related by r_op->TypeReference[R795];
+  relate type to expr across R795;
+end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
