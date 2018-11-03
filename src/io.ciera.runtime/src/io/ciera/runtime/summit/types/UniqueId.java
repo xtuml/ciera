@@ -48,12 +48,8 @@ public class UniqueId implements IXtumlType<UniqueId>, Comparable<UniqueId> {
 
     @Override
     public String toString() {
-        // if ( null == id ) return "null";
-        // else return id.toString();
-        if (null == id)
-            return "0";
-        else
-            return Long.toString(id.getLeastSignificantBits());
+        if ( null == id ) return "null";
+        else return id.toString();
     }
 
     @Override

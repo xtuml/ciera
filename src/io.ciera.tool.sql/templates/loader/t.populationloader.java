@@ -15,8 +15,8 @@ public class ${self.name} implements IPopulationLoader {
     public void insert( String tableName, List<Object> values ) throws XtumlException {
         switch ( tableName ) {
 ${instance_loaders}        default:
-            System.out.print( "missing table: " + tableName );
             //throw new XtumlException( "Class not supported by this population." );
+            break;
         }
     }
 
