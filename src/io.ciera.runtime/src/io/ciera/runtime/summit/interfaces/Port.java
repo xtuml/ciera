@@ -10,27 +10,27 @@ public abstract class Port<C extends IComponent<C>> implements IPort<C> {
     private C context;
     private IPort<?> peer;
 
-    public Port( C context, IPort<?> peer ) {
+    public Port(C context, IPort<?> peer) {
         this.context = context;
         this.peer = peer;
     }
-    
-    public void send( IMessage message ) {
-        if ( null != peer ) {
-            peer.getRunContext().execute( new ReceivedMessageTask() {
+
+    public void send(IMessage message) {
+        if (null != peer) {
+            peer.getRunContext().execute(new ReceivedMessageTask() {
                 @Override
                 public void run() throws XtumlException {
-                    peer.deliver( message );
+                    peer.deliver(message);
                 }
             });
         }
     }
-    
+
     @Override
-    public void satisfy( IPort<?> peer ) {
+    public void satisfy(IPort<?> peer) {
         this.peer = peer;
     }
-    
+
     @Override
     public boolean satisfied() {
         return null != peer;

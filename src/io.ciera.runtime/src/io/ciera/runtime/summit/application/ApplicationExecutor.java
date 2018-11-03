@@ -11,15 +11,15 @@ public class ApplicationExecutor extends Thread implements IRunContext {
     private IExceptionHandler handler;
     private BlockingQueue<IApplicationTask> tasks;
     private boolean running;
-    
+
     private String[] args;
-    
-    public ApplicationExecutor( String name ) {
-        this( name, new String[0] );
+
+    public ApplicationExecutor(String name) {
+        this(name, new String[0]);
     }
 
-    public ApplicationExecutor( String name, String[] args ) {
-        super( name );
+    public ApplicationExecutor(String name, String[] args) {
+        super(name);
         handler = new DefaultExceptionHandler();
         tasks = new PriorityBlockingQueue<>();
         running = false;
@@ -27,29 +27,27 @@ public class ApplicationExecutor extends Thread implements IRunContext {
     }
 
     @Override
-    public void execute( IApplicationTask task ) {
-        tasks.add( task );
+    public void execute(IApplicationTask task) {
+        tasks.add(task);
     }
 
     @Override
     public void run() {
         running = true;
-        while ( running ) {
+        while (running) {
             try {
                 IApplicationTask task = tasks.take();
-                if ( task instanceof HaltExecutionTask ) {
+                if (task instanceof HaltExecutionTask) {
                     running = false;
-                }
-                else {
+                } else {
                     try {
-                      task.run();
-                    }
-                    catch ( XtumlException e ) {
-                      handler.handle( e );
+                        task.run();
+                    } catch (XtumlException e) {
+                        handler.handle(e);
                     }
                 }
+            } catch (InterruptedException e) {
             }
-            catch ( InterruptedException e ) {}
         }
     }
 
@@ -59,8 +57,9 @@ public class ApplicationExecutor extends Thread implements IRunContext {
     }
 
     @Override
-    public void setExceptionHandler( IExceptionHandler h ) {
-        if ( null != h ) handler = h;
+    public void setExceptionHandler(IExceptionHandler h) {
+        if (null != h)
+            handler = h;
     }
 
     @Override

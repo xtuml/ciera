@@ -5,13 +5,14 @@ import io.ciera.runtime.summit.application.TaskPriority;
 import io.ciera.runtime.summit.exceptions.XtumlException;
 
 public final class HaltExecutionTask extends ApplicationTask {
-    
+
     @Override
     public int getPriority() {
         return TaskPriority.HALT_EXECUTION_PRIORITY;
     }
 
     @Override
-    public void run() throws XtumlException {}
-    
+    public void run() throws XtumlException {
+    }
+
 }

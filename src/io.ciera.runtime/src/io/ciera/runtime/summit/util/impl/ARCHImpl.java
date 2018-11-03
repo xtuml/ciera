@@ -7,13 +7,13 @@ import io.ciera.runtime.summit.util.Utility;
 
 public class ARCHImpl<C extends IComponent<C>> extends Utility<C> implements ARCH {
 
-    public ARCHImpl( C context ) {
-        super( context );
+    public ARCHImpl(C context) {
+        super(context);
     }
 
     @Override
     public void shutdown() {
-        getRunContext().execute( new HaltExecutionTask() );
+        getRunContext().execute(new HaltExecutionTask());
     }
 
 }

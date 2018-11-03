@@ -8,17 +8,17 @@ public abstract class Template<C extends IComponent<C>> implements ITemplate, IA
 
     private C population;
 
-    public Template( C population ) {
-        this.population = population;   
+    public Template(C population) {
+        this.population = population;
     }
 
-    @Override              
+    @Override
     public IRunContext getRunContext() {
         return context().getRunContext();
     }
 
     @Override
-    public C context() {    
+    public C context() {
         return population;
     }
 

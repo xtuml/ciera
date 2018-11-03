@@ -8,7 +8,7 @@ public class Utility<C extends IComponent<C>> implements IActionHome<C> {
 
     private C context;
 
-    public Utility( C context ) {
+    public Utility(C context) {
         this.context = context;
     }
 

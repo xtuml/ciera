@@ -7,21 +7,21 @@ import io.ciera.runtime.summit.exceptions.XtumlException;
 import io.ciera.runtime.summit.types.Set;
 import io.ciera.runtime.summit.types.UniqueId;
 
-public class RelationshipSet extends Set<IRelationshipSet,IRelationship> implements IRelationshipSet {
-    
+public class RelationshipSet extends Set<IRelationshipSet, IRelationship> implements IRelationshipSet {
+
     @Override
-    public IRelationshipSet getFormalizing( UniqueId part ) throws XtumlException {
-        return where( selected -> selected.getPart().equals( part ) );
+    public IRelationshipSet getFormalizing(UniqueId part) throws XtumlException {
+        return where(selected -> selected.getPart().equals(part));
     }
 
     @Override
-    public IRelationshipSet getParticipating( UniqueId form ) throws XtumlException {
-        return where( selected -> selected.getForm().equals( form ) );
+    public IRelationshipSet getParticipating(UniqueId form) throws XtumlException {
+        return where(selected -> selected.getForm().equals(form));
     }
 
     @Override
-    public IRelationship get( UniqueId form, UniqueId part ) throws XtumlException {
-        return where( selected -> selected.getForm().equals( form ) && selected.getPart().equals( part ) ).any();
+    public IRelationship get(UniqueId form, UniqueId part) throws XtumlException {
+        return where(selected -> selected.getForm().equals(form) && selected.getPart().equals(part)).any();
     }
 
     @Override
@@ -33,15 +33,15 @@ public class RelationshipSet extends Set<IRelationshipSet,IRelationship> impleme
     public IRelationshipSet emptySet() {
         return new RelationshipSet();
     }
-    
+
     @Override
     public RelationshipSet value() {
         return this;
     }
-    
+
     @Override
     public List<IRelationship> elements() {
         return Arrays.asList(toArray(new IRelationship[0]));
     }
-    
+
 }

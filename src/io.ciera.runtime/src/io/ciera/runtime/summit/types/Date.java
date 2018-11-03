@@ -3,23 +3,23 @@ package io.ciera.runtime.summit.types;
 import java.util.Calendar;
 
 public class Date extends TimeStamp {
-	
-	private Calendar cal;
-	
+
+    private Calendar cal;
+
     public Date() {
-    	super();
-    	cal = Calendar.getInstance();
-    	cal.setTimeInMillis(0);
+        super();
+        cal = Calendar.getInstance();
+        cal.setTimeInMillis(0);
     }
-    
-    public Date( long timestamp ) {
-    	super(timestamp);
-    	cal = Calendar.getInstance();
-    	cal.setTimeInMillis(timestamp);
+
+    public Date(long timestamp) {
+        super(timestamp);
+        cal = Calendar.getInstance();
+        cal.setTimeInMillis(timestamp);
     }
 
     public int getYear() {
-    	return cal.get(Calendar.YEAR);
+        return cal.get(Calendar.YEAR);
     }
 
     public int getMonth() {
@@ -29,7 +29,7 @@ public class Date extends TimeStamp {
     public int getDay() {
         return cal.get(Calendar.DAY_OF_MONTH);
     }
-    
+
     public int getHour() {
         return cal.get(Calendar.HOUR_OF_DAY);
     }
@@ -43,7 +43,7 @@ public class Date extends TimeStamp {
     }
 
     public static Date now() {
-    	return new Date(System.currentTimeMillis());
+        return new Date(System.currentTimeMillis());
     }
 
 }

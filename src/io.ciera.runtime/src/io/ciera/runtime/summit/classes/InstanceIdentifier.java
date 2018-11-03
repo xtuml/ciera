@@ -5,10 +5,10 @@ import java.util.Iterator;
 import java.util.List;
 
 public class InstanceIdentifier implements IInstanceIdentifier {
-    
+
     List<Object> elements;
-    
-    public InstanceIdentifier( Object ... elements ) {
+
+    public InstanceIdentifier(Object... elements) {
         this.elements = Arrays.asList(elements);
     }
 
@@ -16,26 +16,28 @@ public class InstanceIdentifier implements IInstanceIdentifier {
     public List<Object> getElements() {
         return elements;
     }
-    
+
     @Override
-    public boolean equals( Object o ) {
-        if ( null != o && o instanceof IInstanceIdentifier && getElements().size() == ((IInstanceIdentifier)o).getElements().size() ) {
-            Iterator<Object> otherElements = ((IInstanceIdentifier)o).getElements().iterator();
-            for ( Object element : getElements() ) {
-                if ( !element.equals(otherElements.next()) ) return false;
+    public boolean equals(Object o) {
+        if (null != o && o instanceof IInstanceIdentifier
+                && getElements().size() == ((IInstanceIdentifier) o).getElements().size()) {
+            Iterator<Object> otherElements = ((IInstanceIdentifier) o).getElements().iterator();
+            for (Object element : getElements()) {
+                if (!element.equals(otherElements.next()))
+                    return false;
             }
             return true;
-        }
-        else return false;
+        } else
+            return false;
     }
-    
+
     @Override
     public int hashCode() {
         int hash = 0;
-        for ( Object element : getElements() ) {
+        for (Object element : getElements()) {
             hash = hash * 31 + element.hashCode();
         }
         return hash;
     }
-    
+
 }

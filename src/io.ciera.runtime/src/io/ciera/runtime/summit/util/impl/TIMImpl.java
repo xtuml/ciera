@@ -9,8 +9,8 @@ import io.ciera.runtime.summit.util.Utility;
 
 public class TIMImpl<C extends IComponent<C>> extends Utility<C> implements TIM {
 
-    public TIMImpl( C context ) {
-        super( context );
+    public TIMImpl(C context) {
+        super(context);
     }
 
     @Override
@@ -18,41 +18,39 @@ public class TIMImpl<C extends IComponent<C>> extends Utility<C> implements TIM 
         return TimeStamp.now();
     }
 
-	@Override
-	public Date current_date() throws XtumlException {
-		return Date.now();
-	}
+    @Override
+    public Date current_date() throws XtumlException {
+        return Date.now();
+    }
 
-	@Override
-	public int get_day(Date date) throws XtumlException {
-		return date.getDay();
-	}
+    @Override
+    public int get_day(Date date) throws XtumlException {
+        return date.getDay();
+    }
 
-	@Override
-	public int get_month(Date date) throws XtumlException {
-		return date.getMonth();
-	}
+    @Override
+    public int get_month(Date date) throws XtumlException {
+        return date.getMonth();
+    }
 
-	@Override
-	public int get_year(Date date) throws XtumlException {
-		return date.getYear();
-	}
+    @Override
+    public int get_year(Date date) throws XtumlException {
+        return date.getYear();
+    }
 
-	@Override
-	public int get_hour(Date date) throws XtumlException {
-		return date.getHour();
-	}
+    @Override
+    public int get_hour(Date date) throws XtumlException {
+        return date.getHour();
+    }
 
-	@Override
-	public int get_minute(Date date) throws XtumlException {
-		return date.getMinute();
-	}
+    @Override
+    public int get_minute(Date date) throws XtumlException {
+        return date.getMinute();
+    }
 
-	@Override
-	public int get_second(Date date) throws XtumlException {
-		return date.getSecond();
-	}
-
-
+    @Override
+    public int get_second(Date date) throws XtumlException {
+        return date.getSecond();
+    }
 
 }

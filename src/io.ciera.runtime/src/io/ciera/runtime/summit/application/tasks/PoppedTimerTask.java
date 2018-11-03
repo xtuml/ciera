@@ -7,7 +7,7 @@ import io.ciera.runtime.summit.application.TaskPriority;
 
 public abstract class PoppedTimerTask extends ApplicationTask {
 
-    //public abstract Timer getTimer();
+    // public abstract Timer getTimer();
 
     @Override
     public int getPriority() {
