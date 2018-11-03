@@ -38,13 +38,21 @@ ${init}
 .if ( "" != self.version )
     @Override
     public String getVersion() {
-        return "${self.version}";
+        Properties prop = new Properties();
+        try {
+            prop.load(getClass().getResourceAsStream("${self.name}Properties.properties"));
+        } catch (IOException e) { /* do nothing */ }
+        return prop.getProperty("version", "Unknown");
     }
 .end if
 .if ( "" != self.version_date )
     @Override
     public String getVersionDate() {
-        return "${self.version_date}";
+        Properties prop = new Properties();
+        try {
+            prop.load(getClass().getResourceAsStream("${self.name}Properties.properties"));
+        } catch (IOException e) { /* do nothing */ }
+        return prop.getProperty("version_date", "Unknown");
     }
 .end if
 

@@ -11,5 +11,8 @@ public interface TIM {
     public int get_day( Date date ) throws XtumlException;
     public int get_month( Date date ) throws XtumlException;
     public int get_year( Date date ) throws XtumlException;
+    public int get_hour( Date date ) throws XtumlException;
+    public int get_minute( Date date ) throws XtumlException;
+    public int get_second( Date date ) throws XtumlException;
 
 }

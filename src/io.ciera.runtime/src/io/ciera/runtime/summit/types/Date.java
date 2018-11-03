@@ -30,22 +30,20 @@ public class Date extends TimeStamp {
         return cal.get(Calendar.DAY_OF_MONTH);
     }
     
-    public static Date now() {
-    	return new Date(System.currentTimeMillis());
-    }
-
-    /*
     public int getHour() {
-        return internalCalendar.get( Calendar.HOUR );
+        return cal.get(Calendar.HOUR_OF_DAY);
     }
 
     public int getMinute() {
-        return internalCalendar.get( Calendar.MINUTE );
+        return cal.get(Calendar.MINUTE);
     }
 
     public int getSecond() {
-        return internalCalendar.get( Calendar.SECOND );
+        return cal.get(Calendar.SECOND);
     }
-    */
+
+    public static Date now() {
+    	return new Date(System.currentTimeMillis());
+    }
 
 }

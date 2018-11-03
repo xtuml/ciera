@@ -163,7 +163,19 @@ if ( 1 == param.pass )
     if ( STRING::strlen( s:day_string ) < 2 )
       day_string = "0" + day_string;
     end if;
-    comp_def.version_date = year_string + "-" + month_string + "-" + day_string;
+    hour_string = STRING::itoa( i:TIM::get_hour( date:current_date ) );
+    if ( STRING::strlen( s:hour_string ) < 2 )
+      hour_string = "0" + hour_string;
+    end if;
+    minute_string = STRING::itoa( i:TIM::get_minute( date:current_date ) );
+    if ( STRING::strlen( s:minute_string ) < 2 )
+      minute_string = "0" + minute_string;
+    end if;
+    second_string = STRING::itoa( i:TIM::get_second( date:current_date ) );
+    if ( STRING::strlen( s:second_string ) < 2 )
+      second_string = "0" + second_string;
+    end if;
+    comp_def.version_date = year_string + "-" + month_string + "-" + day_string + " " + hour_string + ":" + minute_string + ":" + second_string;
   end if;
 
   // transform ports
@@ -194,12 +206,27 @@ if ( 1 == param.pass )
     relate inst_pop_selector to comp_def across R447;
     relate inst_pop_selector to obj across R449;
   end for;
-
+  
+  // create properties file
+  create object instance prop_file of File;
+  prop_file.name = file.name + "Properties";
+  prop_file.path = file.path;
+  prop_file.package = file.package;
+  prop_file.extension = ".properties";
+  prop_file.exclude = false;
+  create object instance gen_file of GeneralFile;
+  relate gen_file to prop_file across R401;
+  comp_def.render_version();
+  gen_file.contents = TEMP::body();
+  TEMP::clear();
+  
   // create import block
   ::addStringToImports( file:file, s:"io.ciera.runtime.summit.components.Component", type:ImportType::IMPL );
   ::addStringToImports( file:file, s:"io.ciera.runtime.summit.application.IRunContext", type:ImportType::IMPL );
   ::addStringToImports( file:file, s:"io.ciera.runtime.summit.classes.IModelInstance", type:ImportType::IMPL );
   ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"java.io.IOException", type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"java.util.Properties", type:ImportType::IMPL );
 
 elif ( 2 == param.pass )
 

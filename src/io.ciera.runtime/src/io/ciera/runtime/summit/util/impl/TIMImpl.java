@@ -38,4 +38,21 @@ public class TIMImpl<C extends IComponent<C>> extends Utility<C> implements TIM 
 		return date.getYear();
 	}
 
+	@Override
+	public int get_hour(Date date) throws XtumlException {
+		return date.getHour();
+	}
+
+	@Override
+	public int get_minute(Date date) throws XtumlException {
+		return date.getMinute();
+	}
+
+	@Override
+	public int get_second(Date date) throws XtumlException {
+		return date.getSecond();
+	}
+
+
+
 }
