@@ -153,19 +153,34 @@ INSERT INTO S_SYNC
 	"00000000-0000-0000-0000-000000000000",
 	'init',
 	'',
-	'// load up instances
-SQL::load_file( file:"gen/code_generation/b.xtuml" );
-
-// set up command line options
-CMD::register_value( name:"i", value_name:"dir", usage:"base working directory", default:".", required:true );
+	'// set up command line options
+CMD::register_value( name:"cwd", value_name:"root_dir", usage:"base working directory", default:".", required:false );
+CMD::register_value( name:"i", value_name:"input_file", usage:"input file", default:"", required:false );
+CMD::register_value( name:"o", value_name:"output_file", usage:"output file", default:"", required:false );
 CMD::read_command_line();
 
-// preprocess
-CIERA::setprojectroot( value:CMD::get_value( name:"i" ) );
-::preprocess();
+CIERA::setprojectroot( value:CMD::get_value( name:"cwd" ) );
+ciera = CIERA::getDefaultInstance();
 
-// translate
-::translate();
+// load up instances
+input_file = CMD::get_value( name:"i" );
+if ( "" != input_file )
+  SQL::load_file( file:ciera.projectroot + "/" + input_file );
+
+  // preprocess
+  ::preprocess();
+
+  // translate
+  ::translate();
+
+  // dump instances
+  output_file = CMD::get_value( name:"o" );
+  if ( "" != output_file )
+    SQL::serialize_file( file:ciera.projectroot + "/" + output_file );
+  end if;
+else
+  LOG::LogInfo( message:"No input file." );
+end if;
 
 // exit
 control stop;',
