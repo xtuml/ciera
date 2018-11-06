@@ -12,11 +12,11 @@ public class ${self.name}Impl extends ${self.extends} implements ${self.name} {
     // constructors
     private ${self.name}Impl( ${self.comp_name} context ) {
         this.context = context;
-${attribute_initializers}${relationship_initializers}    }
+${attribute_initializers}${relationship_initializers}${state_machine_initializer}    }
 .if ( "" != attribute_list )
     private ${self.name}Impl( ${self.comp_name} context${attribute_list} ) {
         this.context = context;
-${attribute_initializers2}${relationship_initializers}    }
+${attribute_initializers2}${relationship_initializers}${state_machine_initializer}    }
 .end if
 
     public static ${self.name} create( ${self.comp_name} context ) throws XtumlException {
@@ -32,6 +32,8 @@ ${attribute_initializers2}${relationship_initializers}    }
         else throw new InstancePopulationException( "Instance already exists within this population." );
     }
 .end if
+
+${state_machine_decl}
 
     // attributes
 ${attributes}
@@ -79,9 +81,12 @@ ${attributes}
 
     // operations
 ${operations}
-    
+
     // static operations
 ${static_operations}
+
+    // events
+${state_machine_events}
 
     // selections
 ${selectors}

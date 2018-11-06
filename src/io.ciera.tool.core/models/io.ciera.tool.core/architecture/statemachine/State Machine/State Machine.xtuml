@@ -14,10 +14,59 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'// TODO',
+	'select one file related by self->File[R401];
+imports = file.getFormattedImports( type:ImportType::IMPL );
+
+select many states related by self->State[R4751];
+
+select any init_state from instances of State where false;
+initial_state = "";
+for each state in states
+  if ( empty init_state or state.number < init_state.number )
+    init_state = state;
+  end if;
+end for;
+if ( not_empty init_state )
+  initial_state = init_state.name;
+end if;
+
+for each state in states
+  state.render_decl();
+end for;
+state_declarations = TEMP::body();
+TEMP::clear();
+
+for each state in states
+  state.render();
+end for;
+state_actions = TEMP::body();
+TEMP::clear();
+
+select many rows related by self->TransitionTableRow[R4753];
+for each row in rows
+  row.render();
+end for;
+transition_table_rows = TEMP::body();
+TEMP::clear();
+
+TEMP::include( file:"statemachine/t.statemachine.java", symbol_table:NULL_SYMBOL_TABLE );
+TEMP::emit( file:"src-gen/" + file.path + "/impl/" + self.name + file.extension );
+TEMP::clear();',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",
+	0);
+INSERT INTO O_TFR
+	VALUES ("fe48af91-faaa-4e91-b2c9-342302fd8a7b",
+	"620c8459-f5df-4f16-8cc3-cc6ef485c49d",
+	'render_decl',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'TEMP::include( file:"statemachine/t.statemachine.decl.java", symbol_table:NULL_SYMBOL_TABLE );',
+	1,
+	'',
+	"9d3ed934-360e-455c-9e84-163fdf93aa39",
 	0);
 INSERT INTO O_REF
 	VALUES ("620c8459-f5df-4f16-8cc3-cc6ef485c49d",

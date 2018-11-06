@@ -92,6 +92,23 @@ end for;
 operations = TEMP::body();
 TEMP::clear();
 
+state_machine_initializer = "";
+state_machine_decl = "";
+select one sm related by self->StateMachine[R4750];
+if ( not_empty sm )
+  state_machine_initializer = "statemachine = new " + sm.name + "(this, context());\n";
+  sm.render_decl();
+  state_machine_decl = TEMP::body();
+  TEMP::clear();
+end if;
+
+select many evts related by sm->Event[R4752];
+for each evt in evts
+  evt.render();
+end for;
+state_machine_events = TEMP::body();
+TEMP::clear();
+
 select many selects related by self->InstanceSelector[R442];
 relationship_initializers = "";
 for each selector in selects
