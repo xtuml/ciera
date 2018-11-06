@@ -1,11 +1,11 @@
 package io.ciera.runtime.summit.statemachine;
 
-import io.ciera.runtime.summit.application.IActionHome;
+import io.ciera.runtime.summit.application.IInstanceActionHome;
 import io.ciera.runtime.summit.application.IRunContext;
 import io.ciera.runtime.summit.classes.IModelInstance;
 import io.ciera.runtime.summit.components.IComponent;
 
-public abstract class StateMachine<T extends IModelInstance<T,C>, C extends IComponent<C>> implements IStateMachine<T,C>, IActionHome<C> {
+public abstract class StateMachine<T extends IModelInstance<T,C>, C extends IComponent<C>> implements IStateMachine<T,C>, IInstanceActionHome<T,C> {
 	
 	public static final int NON_EXISTENT = -1;
 

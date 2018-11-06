@@ -9,6 +9,5 @@ public interface IStateMachine<T extends IModelInstance<T,C>, C extends ICompone
 	public int getCurrentState();
 	public void setCurrentState(int state);
 	public void transition(IEvent event) throws XtumlException;
-	public T self();
 
 }

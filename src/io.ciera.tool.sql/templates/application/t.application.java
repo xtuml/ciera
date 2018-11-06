@@ -38,11 +38,25 @@ ${component_instantiations}
         }
     }
 
+    @Override
+    public void printVersions() {
+        io.ciera.runtime.Version.printVersion();
+        for ( IComponent<?> c : components ) {
+            System.out.printf("%s: %s (%s)", c.getClass().getName(), c.getVersion(), c.getVersionDate());
+            System.out.println();
+        }
+    }
+
     public static void main( String[] args ) {
         IApplication app = new ${self.name}();
         app.setup( args );
-        app.initialize();
-        app.start();
+        if ( Arrays.asList(args).contains("-v") || Arrays.asList(args).contains("--version") ) {
+        	  app.printVersions();
+        }
+        else {
+            app.initialize();
+            app.start();
+        }
     }
 
 }
