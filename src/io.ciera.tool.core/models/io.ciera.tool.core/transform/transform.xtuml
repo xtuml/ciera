@@ -2777,6 +2777,7 @@ INSERT INTO S_SYNC
 obj = param.obj;
 
 // TODO support polymorphic events
+// TODO support transition actions
 
 // create the state machine file
 create object instance file of File;
@@ -2801,6 +2802,47 @@ end for;
 select many sm_evts related by sm_sm->SM_EVT[R502]->SM_SEVT[R525]->SM_LEVT[R526]->SM_SEVT[R526]->SM_EVT[R525];
 for each sm_evt in sm_evts
   ::transformEvent( sm_evt:sm_evt, sm:sm );
+end for;
+
+// transform transition table
+select many states related by sm->State[R4751];
+for each state in states
+
+  // create a row for this start state
+  create object instance row of TransitionTableRow;
+  relate row to sm across R4753;
+  relate row to state across R4754;
+  
+  select many evts related by sm->Event[R4752];
+  for each evt in evts
+    
+    // create a cell for this event
+    create object instance cell of TransitionTableCell;
+    relate cell to row across R4755;
+    relate cell to evt across R4756;
+    
+    select one sm_state related by state->SM_STATE[R4758];
+    select one sm_evt related by evt->SM_EVT[R4759];
+    select any sm_seme related by sm_evt->SM_SEVT[R525]->SM_SEME[R503] where ( selected.SMstt_ID == sm_state.SMstt_ID );
+    if ( not_empty sm_seme )
+      // TODO bad
+    end if;
+    select one cant_happen related by sm_seme->SM_CH[R504];
+    if ( not_empty cant_happen )
+      cell.transition_type = TransitionType::CANT_HAPPEN;
+    else
+      select one event_ignored related by sm_seme->SM_EIGN[R504];
+      if ( not_empty event_ignored )
+        cell.transition_type = TransitionType::IGNORE;
+      else
+        select one dest_state related by sm_seme->SM_NSTXN[R504]->SM_TXN[R507]->SM_STATE[R506]->State[R4758];
+        relate dest_state to cell across R4757;
+        cell.transition_type = TransitionType::TRANSITION;
+      end if;
+    end if;
+
+  end for;
+  
 end for;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -2848,17 +2890,30 @@ sm = param.sm;
 // create state
 create object instance state of State;
 relate state to sm across R4751;
+state.final = sm_state.Final == 1;
+state.number = sm_state.Numb;
 
 // create invocable
 create object instance invocable of InvocableObject;
 invocable.name = sm_state.Name;
 invocable.parent_name = sm.name;
-invocable.parent_package = sm.class_package;
-relate state to in
-relate func to invocable across R427;
-invocable.oal = s_sync.Action_Semantics_internal;
+invocable.parent_package = sm.package;
+relate state to invocable across R427;
+select one sm_act related by sm_state->SM_MOAH[R511]->SM_AH[R513]->SM_ACT[R514];
+invocable.oal = sm_act.Action_Semantics_internal;
 
-',
+// relate the body
+select one act_act related by sm_act->ACT_SAB[R691]->ACT_ACT[R698];
+if ( not_empty act_act )
+  relate act_act to invocable across R432;
+end if;
+
+// link type
+type = TypeReference::getBuiltinTypeReference( name:"void" );
+relate type to invocable across R428;
+
+// link to ooa state
+relate state to sm_state across R4758;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -2906,7 +2961,48 @@ INSERT INTO S_SYNC
 	"00000000-0000-0000-0000-000000000000",
 	'transformEvent',
 	'',
-	'',
+	'sm_evt = param.sm_evt;
+sm = param.sm;
+
+// create event
+create object instance evt of Event;
+relate evt to sm across R4752;
+
+// create invocable
+create object instance invocable of InvocableObject;
+invocable.name = sm_evt.Mning;
+invocable.parent_name = sm.name;
+invocable.parent_package = sm.package;
+relate evt to invocable across R427;
+invocable.oal = "";
+
+// link type
+type = TypeReference::getBuiltinTypeReference( name:"void" );
+relate type to invocable across R428;
+
+// create parameters
+select any sm_evtdi related by sm_evt->SM_EVTDI[R532];
+prev_sm_evtdi = sm_evtdi;
+// select first parameter
+while ( not_empty prev_sm_evtdi )
+  sm_evtdi = prev_sm_evtdi;
+  select one prev_sm_evtdi related by sm_evtdi->SM_EVTDI[R533.''succeeds''];
+end while;
+while ( not_empty sm_evtdi )
+  // create parameter
+  create object instance parm of FormalParameter;
+  parm.name = "p_" + sm_evtdi.Name;
+  parm.by_ref = false;
+  select one parm_dt related by sm_evtdi->S_DT[R524];
+  select many s_dims related by sm_evtdi->S_DIM[R531];
+  parm_type = TypeReference::getInstance( s_dt:parm_dt, s_dims:s_dims );
+  relate parm_type to parm across R431;
+  ::linkParameter( invocable:invocable, parameter:parm );
+  select one sm_evtdi related by sm_evtdi->SM_EVTDI[R533.''precedes''];
+end while;
+
+// link to ooa event
+relate evt to sm_evt across R4759;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
