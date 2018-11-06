@@ -3,11 +3,12 @@ package io.ciera.runtime.summit.classes;
 import io.ciera.runtime.summit.application.IActionHome;
 import io.ciera.runtime.summit.components.IComponent;
 import io.ciera.runtime.summit.exceptions.XtumlException;
+import io.ciera.runtime.summit.statemachine.IEventTarget;
 import io.ciera.runtime.summit.types.IXtumlType;
 import io.ciera.runtime.summit.types.UniqueId;
 
 public interface IModelInstance<T extends IModelInstance<T, C>, C extends IComponent<C>>
-        extends IActionHome<C>, IXtumlType<T> {
+        extends IActionHome<C>, IXtumlType<T>, IEventTarget {
 
     public String getKeyLetters();
 

@@ -7,7 +7,9 @@ import io.ciera.runtime.summit.application.IRunContext;
 import io.ciera.runtime.summit.components.IComponent;
 import io.ciera.runtime.summit.exceptions.DeletedInstanceException;
 import io.ciera.runtime.summit.exceptions.InstancePopulationException;
+import io.ciera.runtime.summit.exceptions.StateMachineException;
 import io.ciera.runtime.summit.exceptions.XtumlException;
+import io.ciera.runtime.summit.statemachine.IEvent;
 import io.ciera.runtime.summit.types.UniqueId;
 
 public abstract class ModelInstance<T extends IModelInstance<T, C>, C extends IComponent<C>>
@@ -101,6 +103,11 @@ public abstract class ModelInstance<T extends IModelInstance<T, C>, C extends IC
     @Override
     public int compareTo(T o) {
         return instanceId.compareTo(o.getInstanceId());
+    }
+    
+    @Override
+    public void accept(IEvent event) throws XtumlException {
+    	throw new StateMachineException("Event generated to passive instance");
     }
 
 }
