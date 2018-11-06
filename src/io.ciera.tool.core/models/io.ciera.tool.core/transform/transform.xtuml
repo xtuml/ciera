@@ -783,15 +783,23 @@ if ( empty class_exclude_mark )
   
   // transform the state machine
   select one sm related by o_obj->SM_ISM[R518]->SM_SM[R517];
-  ::transformStateMachine( sm_sm:sm, obj:obj );
+  if ( not_empty sm )
+    ::transformStateMachine( sm_sm:sm, obj:obj );
+    ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL );
+    ::addStringToImports( file:file, s:"io.ciera.runtime.summit.statemachine.IEvent", type:ImportType::IMPL );
+    select any evt related by obj->StateMachine[R4750]->Event[R4752];
+    if ( not_empty evt )
+      ::addStringToImports( file:file, s:"io.ciera.runtime.summit.statemachine.Event", type:ImportType::IMPL );
+    end if;
+  end if;
 
   // add to the containing component imports
   select one component_file related by containing_comp_def->File[R401];
   select one set_file related by obj->ClassSet[R406]->File[R401];
   ::addFileToImports( file:component_file, file_to_import:file, type:ImportType::IMPL );
   ::addFileToImports( file:component_file, file_to_import:set_file, type:ImportType::IMPL );
-  ::addStringToImports( file: component_file, s: ::pathToPackage( path:set_file.path ) + ".impl." + set_file.name + "Impl", type:ImportType::IMPL );
-  ::addStringToImports( file: component_file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL );
+  ::addStringToImports( file:component_file, s: ::pathToPackage( path:set_file.path ) + ".impl." + set_file.name + "Impl", type:ImportType::IMPL );
+  ::addStringToImports( file:component_file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL );
 
   // create the import block
   ::addFileToImports( file:file, file_to_import:component_file, type:ImportType::BOTH );
@@ -1222,6 +1230,12 @@ for each type in types
 
   select many files related by type->TypeReference[R3800]->FormalParameter[R431]->InvocableObject[R429]->UtilityFunction[R427]->Utility[R4559]->File[R401];
   both_files = both_files | files;
+
+  select many files related by type->TypeReference[R3800]->FormalParameter[R431]->InvocableObject[R429]->Event[R427]->TransitionTableCell[R4756]->State[R4757]->StateMachine[R4751]->File[R401];
+  both_files = both_files | files;
+
+  select many files related by type->TypeReference[R3800]->FormalParameter[R431]->InvocableObject[R429]->Event[R427]->StateMachine[R4752]->Class[R4750]->File[R401];
+  impl_files = impl_files | files;
 
   select many inst_ops related by type->TypeReference[R3800]->InvocableObject[R428]->Operation[R427] where ( not selected.is_class_based );
   select many files related by inst_ops->Class[R416]->File[R401];
@@ -2833,6 +2847,7 @@ for each state in states
     select one cant_happen related by sm_seme->SM_CH[R504];
     if ( not_empty cant_happen )
       cell.transition_type = TransitionType::CANT_HAPPEN;
+      ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.CantHappenException", type:ImportType::IMPL );
     else
       select one event_ignored related by sm_seme->SM_EIGN[R504];
       if ( not_empty event_ignored )
@@ -2846,7 +2861,19 @@ for each state in states
 
   end for;
   
-end for;',
+end for;
+
+// add imports
+::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.StateMachineException", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.runtime.summit.statemachine.IEvent", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.runtime.summit.statemachine.StateMachine", type:ImportType::IMPL );
+
+select one class_file related by obj->File[R401];
+select one comp_file related by obj->ComponentDefinition[R408]->File[R401];
+::addFileToImports( file:file, file_to_import:class_file, type:ImportType::IMPL );
+::addFileToImports( file:file, file_to_import:comp_file, type:ImportType::IMPL );
+',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',

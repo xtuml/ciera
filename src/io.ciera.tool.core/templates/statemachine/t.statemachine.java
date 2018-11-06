@@ -34,7 +34,7 @@ ${transition_table_rows}
     }
 
     @Override
-    public Analog_Input self() {
+    public ${self.class_name} self() {
         return self;
     }
 

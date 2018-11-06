@@ -6,4 +6,5 @@
 .else
                 ${self.end_state_name}_entry_action(${parameter_list});
                 setCurrentState(${self.end_state_name});
+.end if
             }
