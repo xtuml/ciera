@@ -780,6 +780,10 @@ if ( empty class_exclude_mark )
   for each o_tfr in o_tfrs
     ::transformOperation( o_tfr:o_tfr, obj:obj );
   end for;
+  
+  // transform the state machine
+  select one sm related by o_obj->SM_ISM[R518]->SM_SM[R517];
+  ::transformStateMachine( sm_sm:sm, obj:obj );
 
   // add to the containing component imports
   select one component_file related by containing_comp_def->File[R401];
@@ -2760,6 +2764,180 @@ end for;',
 	0);
 INSERT INTO PE_PE
 	VALUES ("6fab7686-b52d-4e9a-926a-9ee2876b2884",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("2f037e37-dace-4397-93da-afae456434d3",
+	"00000000-0000-0000-0000-000000000000",
+	'transformStateMachine',
+	'',
+	'sm_sm = param.sm_sm;
+obj = param.obj;
+
+// TODO support polymorphic events
+
+// create the state machine file
+create object instance file of File;
+file.name = obj.name + "StateMachine";
+file.path = ::formatPath( path:obj.package );
+file.package = obj.package;
+file.extension = ".java";
+file.exclude = false;
+
+// create the object
+create object instance sm of StateMachine;
+relate sm to file across R401;
+relate sm to obj across R4750;
+
+// transform states
+select many sm_states related by sm_sm->SM_STATE[R501];
+for each sm_state in sm_states
+  ::transformState( sm_state:sm_state, sm:sm );
+end for;
+
+// transform events
+select many sm_evts related by sm_sm->SM_EVT[R502]->SM_SEVT[R525]->SM_LEVT[R526]->SM_SEVT[R526]->SM_EVT[R525];
+for each sm_evt in sm_evts
+  ::transformEvent( sm_evt:sm_evt, sm:sm );
+end for;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("8e29f895-5dc2-4a73-a04e-d4286bb780e0",
+	"2f037e37-dace-4397-93da-afae456434d3",
+	'sm_sm',
+	"f6562655-0940-4f4f-a1ae-7094b79949a7",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("f6562655-0940-4f4f-a1ae-7094b79949a7",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<State Machine>',
+	'',
+	'',
+	'../../../../mcooa/models/mcooa/ooaofooa/State Machine/State Machine.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("f807d4c1-6c97-4e14-8f9b-a8c7ce5a30a3",
+	"2f037e37-dace-4397-93da-afae456434d3",
+	'obj',
+	"ac93823e-2644-440b-977c-1f4e8480ec59",
+	0,
+	'',
+	"8e29f895-5dc2-4a73-a04e-d4286bb780e0",
+	'');
+INSERT INTO PE_PE
+	VALUES ("2f037e37-dace-4397-93da-afae456434d3",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("4f798aa0-1e41-4aca-86a1-8b8684c301d3",
+	"00000000-0000-0000-0000-000000000000",
+	'transformState',
+	'',
+	'sm_state = param.sm_state;
+sm = param.sm;
+
+// create state
+create object instance state of State;
+relate state to sm across R4751;
+
+// create invocable
+create object instance invocable of InvocableObject;
+invocable.name = sm_state.Name;
+invocable.parent_name = sm.name;
+invocable.parent_package = sm.class_package;
+relate state to in
+relate func to invocable across R427;
+invocable.oal = s_sync.Action_Semantics_internal;
+
+',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("7b6e0c79-c4cf-4a28-b506-5b77e47da7ad",
+	"4f798aa0-1e41-4aca-86a1-8b8684c301d3",
+	'sm_state',
+	"ce86dade-b263-4245-8001-19dd4123f4f9",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("ce86dade-b263-4245-8001-19dd4123f4f9",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<State Machine State>',
+	'',
+	'',
+	'../../../../mcooa/models/mcooa/ooaofooa/State Machine/State Machine.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("c21d7680-4fc3-4349-aae3-171abb8880b2",
+	"4f798aa0-1e41-4aca-86a1-8b8684c301d3",
+	'sm',
+	"d86d5f5b-c100-416b-9b7b-68e746e6ca6c",
+	0,
+	'',
+	"7b6e0c79-c4cf-4a28-b506-5b77e47da7ad",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("d86d5f5b-c100-416b-9b7b-68e746e6ca6c",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<State Machine>',
+	'',
+	'',
+	'../architecture/statemachine/statemachine.xtuml');
+INSERT INTO PE_PE
+	VALUES ("4f798aa0-1e41-4aca-86a1-8b8684c301d3",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("5f428aea-6a6d-49dd-babb-3ecf53588835",
+	"00000000-0000-0000-0000-000000000000",
+	'transformEvent',
+	'',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("d2d8f17c-f887-45e9-99d6-80278f211e2d",
+	"5f428aea-6a6d-49dd-babb-3ecf53588835",
+	'sm_evt',
+	"33eebb24-8068-410b-a905-37c4e5cc2fdb",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("33eebb24-8068-410b-a905-37c4e5cc2fdb",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<State Machine Event>',
+	'',
+	'',
+	'../../../../mcooa/models/mcooa/ooaofooa/State Machine/State Machine.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("1f650281-1dd6-4475-8467-12eeb8e6c051",
+	"5f428aea-6a6d-49dd-babb-3ecf53588835",
+	'sm',
+	"d86d5f5b-c100-416b-9b7b-68e746e6ca6c",
+	0,
+	'',
+	"d2d8f17c-f887-45e9-99d6-80278f211e2d",
+	'');
+INSERT INTO PE_PE
+	VALUES ("5f428aea-6a6d-49dd-babb-3ecf53588835",
 	1,
 	"06787f13-1c16-4275-879c-00bbeee7cb88",
 	"00000000-0000-0000-0000-000000000000",
