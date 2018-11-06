@@ -24,7 +24,7 @@ INSERT INTO GD_MD
 	0,
 	0,
 	0,
-	'',
+	'4.1.17',
 	'io.ciera.tool.core::transform::statement');
 INSERT INTO DIM_DIA
 	VALUES ("fcf2ce31-09e2-4fa2-86a2-f55ad489714d",
@@ -3499,10 +3499,20 @@ else
 select one act_uru related by act_smt->ACT_URU[R603];
 if ( not_empty act_uru )
   ::transformUnrelateUsing( act_uru:act_uru, block:block, prev_smt:prev_smt );
+  
+else
+select one e_ess related by act_smt->E_ESS[R603];
+if ( not_empty e_ess )
+  ::transformEventSpecificationStatement( e_ess:e_ess, block:block, prev_smt:prev_smt );
 
 else
-  LOG::LogInfo( message:"statement type not yet supported" );
-end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if;',
+select one e_gpr related by act_smt->E_GPR[R603];
+if ( not_empty e_gpr )
+  ::transformGeneratePreexistingEventStatement( e_gpr:e_gpr, block:block, prev_smt:prev_smt );
+
+else
+  LOG::LogFailure( message:"statement type not supported" );
+end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -3935,6 +3945,204 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("957fe8e1-37b4-4e14-9489-6b5a106d34c4",
+	1,
+	"28c6aa17-9b54-4321-916c-a20a5290984e",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("db01a73a-5fd2-4a1d-bd26-f1c81f317873",
+	"00000000-0000-0000-0000-000000000000",
+	'transformEventSpecificationStatement',
+	'',
+	'e_ess = param.e_ess;
+block = param.block;
+prev_smt = param.prev_smt;
+select one act_smt related by e_ess->ACT_SMT[R603];
+
+// create a statement
+create object instance smt of Statement;
+relate smt to block across R450;
+if ( not_empty prev_smt )
+  smt.statement_number = STRING::itoa( i:STRING::atoi( s:prev_smt.statement_number ) + 1 );
+  relate smt to prev_smt across R477.''executes after'';
+else
+  smt.statement_number = "1";
+end if;
+select one body related by block->InvocableObject[R4000];
+smt.oal = ::getOalStatement( body:body.oal, line_num:act_smt.LineNumber );
+
+select one e_ges related by e_ess->E_GES[R701];
+if ( not_empty e_ges )
+
+  // transform generate statements
+  select one evt related by e_ges->E_GSME[R703]->SM_EVT[R707]->Event[R4759];
+  select one target_v_var related by e_ges->E_GSME[R703]->E_GEN[R705]->V_VAR[R712];
+  if ( empty target_v_var )
+    // TODO bad
+    LOG::LogFailure( message:"Generation to class and generation to creator not supported." );
+  end if;
+  
+  // create generate statement
+  create object instance gen_smt of Generate;
+  relate gen_smt to smt across R451;
+  gen_smt.to_self = false;
+  
+  // create the event expression
+  create object instance evt_expr of Expression;
+  relate evt_expr to smt across R775;
+  evt_expr.expression_number = "1";
+  evt_type_ref = TypeReference::getBuiltinTypeReference( name:"IEvent" );
+  relate evt_type_ref to evt_expr across R795;
+  relate evt_expr to gen_smt across R486;
+  // create the event invocation
+  create object instance invoc of Invocation;
+  relate invoc to evt_expr across R776;
+  select one evt_invocable related by evt->InvocableObject[R427];
+  relate invoc to evt_invocable across R792;
+  // create named reference expression
+  create object instance expr2 of Expression;
+  relate expr2 to smt across R775;
+  expr2.expression_number = evt_expr.expression_number + ".1";
+  select one obj related by evt->StateMachine[R4752]->Class[R4750];
+  select one inst_type related by obj->Type[R407];
+  select many s_dims from instances of S_DIM where false;
+  inst_type_ref = TypeReference::getInstanceFromType( type:inst_type, s_dims:s_dims );
+  relate inst_type_ref to expr2 across R795;
+  // create named reference
+  create object instance named_ref of NamedReference;
+  relate named_ref to expr2 across R776;
+  relate expr2 to invoc across R798;
+  named_ref.name = obj.name + "Impl";
+  // transform actual parameters
+  select many v_pars related by e_ess->V_PAR[R700];
+  ::transformActualParameters( invocation:invoc, v_pars:v_pars, expr_number:evt_expr.expression_number, base_num:2 );
+  
+  // create the target expression
+  create object instance target_expr of Expression;
+  relate target_expr to smt across R775;
+  target_expr.expression_number = "2";
+  relate gen_smt to target_expr across R487;
+  select one target_s_dt related by target_v_var->S_DT[R848];
+  select one target_obj related by target_v_var->V_INT[R814]->O_OBJ[R818];
+  target_s_dt = ::getInstRefTypeForClass( s_dt:target_s_dt, o_obj:target_obj );
+  target_type = TypeReference::getInstance( s_dt:target_s_dt, s_dims:s_dims );
+  relate target_type to target_expr across R795;
+  select any target_var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == target_v_var.Name );
+  if ( not_empty target_var ) // cannot declare two variables of the same name in the same scope
+    create object instance var_ref of VariableReference;
+    relate target_var to var_ref across R782;
+    relate var_ref to target_expr across R776;
+    select one type related by target_expr->TypeReference[R795]->Type[R3800];
+    ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:type, type:ImportType::IMPL );
+  elif ( "self" == target_v_var.Name )
+    // create named reference
+    create object instance self_ref of NamedReference;
+    relate self_ref to target_expr across R776;
+    self_ref.name = "self()";
+    gen_smt.to_self = true;
+  else
+    // TODO bad
+  end if;
+
+else
+
+  // transform create event statements
+  select one e_ces related by e_ess->E_CES[R701];
+
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("7bd88dcf-9d2b-4300-906d-5620bd007d0c",
+	"db01a73a-5fd2-4a1d-bd26-f1c81f317873",
+	'e_ess',
+	"a885b904-2a7c-42ce-bc53-db13d709ae6f",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("a885b904-2a7c-42ce-bc53-db13d709ae6f",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Event Specification Statement>',
+	'',
+	'',
+	'../../../../../mcooa/models/mcooa/ooaofooa/Event/Event.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("3a341200-48ed-46fb-ad7f-c45aa03b84c6",
+	"db01a73a-5fd2-4a1d-bd26-f1c81f317873",
+	'block',
+	"e2eb4f67-ca2b-42ab-accf-5a2b475f8933",
+	0,
+	'',
+	"7bd88dcf-9d2b-4300-906d-5620bd007d0c",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("4d26dc28-7589-4238-9f8f-4c5749c30834",
+	"db01a73a-5fd2-4a1d-bd26-f1c81f317873",
+	'prev_smt',
+	"056a9b55-7c4c-45a4-a684-ea45fce8fa86",
+	0,
+	'',
+	"3a341200-48ed-46fb-ad7f-c45aa03b84c6",
+	'');
+INSERT INTO PE_PE
+	VALUES ("db01a73a-5fd2-4a1d-bd26-f1c81f317873",
+	1,
+	"28c6aa17-9b54-4321-916c-a20a5290984e",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("7487e9ae-6e17-4315-b08b-d64801f34fb2",
+	"00000000-0000-0000-0000-000000000000",
+	'transformGeneratePreexistingEventStatement',
+	'',
+	'e_gpr = param.e_gpr;
+block = param.block;
+prev_smt = param.prev_smt;
+select one act_smt related by e_gpr->ACT_SMT[R603];',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("ba1f6e61-dbf1-4dd2-b782-48c15aae251e",
+	"7487e9ae-6e17-4315-b08b-d64801f34fb2",
+	'e_gpr',
+	"13c04771-67be-42a3-a789-b68f0f9c6f54",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("13c04771-67be-42a3-a789-b68f0f9c6f54",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Generate Preexisting Event>',
+	'',
+	'',
+	'../../../../../mcooa/models/mcooa/ooaofooa/Event/Event.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("011e7893-074d-4369-aaae-33ee23c407b3",
+	"7487e9ae-6e17-4315-b08b-d64801f34fb2",
+	'block',
+	"e2eb4f67-ca2b-42ab-accf-5a2b475f8933",
+	0,
+	'',
+	"ba1f6e61-dbf1-4dd2-b782-48c15aae251e",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("a8920a68-1b16-4755-91b7-835f75eca39f",
+	"7487e9ae-6e17-4315-b08b-d64801f34fb2",
+	'prev_smt',
+	"056a9b55-7c4c-45a4-a684-ea45fce8fa86",
+	0,
+	'',
+	"011e7893-074d-4369-aaae-33ee23c407b3",
+	'');
+INSERT INTO PE_PE
+	VALUES ("7487e9ae-6e17-4315-b08b-d64801f34fb2",
 	1,
 	"28c6aa17-9b54-4321-916c-a20a5290984e",
 	"00000000-0000-0000-0000-000000000000",

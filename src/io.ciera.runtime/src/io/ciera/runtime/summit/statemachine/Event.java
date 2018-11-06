@@ -3,12 +3,17 @@ package io.ciera.runtime.summit.statemachine;
 import io.ciera.runtime.summit.exceptions.StateMachineException;
 import io.ciera.runtime.summit.exceptions.XtumlException;
 
-public class Event implements IEvent {
+public abstract class Event implements IEvent {
+    
+    private IEventTarget target;
+    private boolean toSelf;
 	
 	private Object[] dataItems;
 	
 	public Event(Object ... dataItems) {
 		this.dataItems = dataItems;
+		target = null;
+		toSelf = false;
 	}
 
 	@Override
@@ -18,5 +23,29 @@ public class Event implements IEvent {
 		}
 		else throw new StateMachineException("Invalid index");
 	}
+
+    @Override
+    public IEventTarget getTarget() {
+        return target;
+    }
+
+    @Override
+    public IEvent to(IEventTarget target) {
+        this.target = target;
+        toSelf = false;
+        return this;
+    }
+
+    @Override
+    public IEvent toSelf(IEventTarget target) {
+        this.target = target;
+        toSelf = true;
+        return this;
+    }
+
+    @Override
+    public boolean toSelf() {
+        return toSelf;
+    }
 
 }
