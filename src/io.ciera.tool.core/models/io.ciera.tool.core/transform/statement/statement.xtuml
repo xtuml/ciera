@@ -4000,7 +4000,7 @@ if ( not_empty e_ges )
   // create the event invocation
   create object instance invoc_expr of Expression;
   relate invoc_expr to smt across R775;
-  invoc_expr.expression_number = "1.1";
+  invoc_expr.expression_number = evt_expr.expression_number + ".1";
   relate evt_type_ref to invoc_expr across R795;
   relate invoc_expr to evt_cr across R3903;
   create object instance invoc of Invocation;
@@ -4028,7 +4028,7 @@ if ( not_empty e_ges )
   // create the target expression
   create object instance target_expr of Expression;
   relate target_expr to smt across R775;
-  target_expr.expression_number = "1.2";
+  target_expr.expression_number = evt_expr.expression_number + ".2";
   relate evt_cr to target_expr across R3902;
   select one target_s_dt related by target_v_var->S_DT[R848];
   select one target_obj related by target_v_var->V_INT[R814]->O_OBJ[R818];
@@ -4056,6 +4056,109 @@ else
 
   // transform create event statements
   select one e_ces related by e_ess->E_CES[R701];
+  select one evt related by e_ces->E_CSME[R702]->SM_EVT[R706]->Event[R4759];
+  select one result_v_var related by e_ces->V_VAR[R710];
+  select one target_v_var related by e_ces->E_CSME[R702]->E_CEI[R704]->V_VAR[R711];
+  if ( empty target_v_var )
+    // TODO bad
+    LOG::LogFailure( message:"Event creation to class and event creation to creator not supported." );
+  end if;
+  
+  // create expression as statement
+  create object instance eas of ExpressionAsStatement;
+  relate eas to smt across R451;
+  // create main expression
+  create object instance expr of Expression;
+  relate expr to smt across R775;
+  expr.expression_number = "1";
+  // create binary operation and assignment expression
+  create object instance binop of BinaryOperation;
+  relate binop to expr across R776;
+  binop.operator = "=";
+  binop.invocation = false;
+  // relate expression to expression as statement
+  relate eas to expr across R476;
+  // create left operand
+  create object instance l_op of Expression;
+  relate l_op to smt across R775;
+  l_op.expression_number = "1.1";
+  evt_type_ref = TypeReference::getBuiltinTypeReference( name:"IEvent" );
+  relate evt_type_ref to l_op across R795;
+  select any existing_var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == result_v_var.Name );
+  if ( empty existing_var ) // cannot declare two variables of the same name in the same scope
+    ::transformVariable( v_var:result_v_var, smt:smt );
+  end if;
+  select any result_var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == result_v_var.Name );
+  create object instance var_ref of VariableReference;
+  relate result_var to var_ref across R782;
+  relate var_ref to l_op across R776;
+  relate l_op to binop across R779;
+  select one type related by l_op->TypeReference[R795]->Type[R3800];
+  ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:type, type:ImportType::IMPL );
+  // create right operand
+  create object instance r_op of Expression;
+  relate r_op to smt across R775;
+  r_op.expression_number = "1.2";
+  relate evt_type_ref to r_op across R795;
+  relate r_op to binop across R778;
+  // create event creation
+  create object instance evt_cr of EventCreation;
+  relate evt_cr to r_op across R776;
+  evt_cr.to_self = false;
+  // create the event invocation
+  create object instance invoc_expr of Expression;
+  relate invoc_expr to smt across R775;
+  invoc_expr.expression_number = r_op.expression_number + ".1";
+  relate evt_type_ref to invoc_expr across R795;
+  relate invoc_expr to evt_cr across R3903;
+  create object instance invoc of Invocation;
+  relate invoc to invoc_expr across R776;
+  select one evt_invocable related by evt->InvocableObject[R427];
+  relate invoc to evt_invocable across R792;
+  // create named reference expression
+  create object instance expr2 of Expression;
+  relate expr2 to smt across R775;
+  expr2.expression_number = invoc_expr.expression_number + ".1";
+  select one obj related by evt->StateMachine[R4752]->Class[R4750];
+  select one inst_type related by obj->Type[R407];
+  select many s_dims from instances of S_DIM where false;
+  inst_type_ref = TypeReference::getInstanceFromType( type:inst_type, s_dims:s_dims );
+  relate inst_type_ref to expr2 across R795;
+  // create named reference
+  create object instance named_ref of NamedReference;
+  relate named_ref to expr2 across R776;
+  relate expr2 to invoc across R798;
+  named_ref.name = obj.name + "Impl";
+  // transform actual parameters
+  select many v_pars related by e_ess->V_PAR[R700];
+  ::transformActualParameters( invocation:invoc, v_pars:v_pars, expr_number:invoc_expr.expression_number, base_num:2 );
+  
+  // create the target expression
+  create object instance target_expr of Expression;
+  relate target_expr to smt across R775;
+  target_expr.expression_number = r_op.expression_number + ".2";
+  relate evt_cr to target_expr across R3902;
+  select one target_s_dt related by target_v_var->S_DT[R848];
+  select one target_obj related by target_v_var->V_INT[R814]->O_OBJ[R818];
+  target_s_dt = ::getInstRefTypeForClass( s_dt:target_s_dt, o_obj:target_obj );
+  target_type = TypeReference::getInstance( s_dt:target_s_dt, s_dims:s_dims );
+  relate target_type to target_expr across R795;
+  select any target_var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == target_v_var.Name );
+  if ( not_empty target_var ) // cannot declare two variables of the same name in the same scope
+    create object instance var_ref of VariableReference;
+    relate target_var to var_ref across R782;
+    relate var_ref to target_expr across R776;
+    select one type related by target_expr->TypeReference[R795]->Type[R3800];
+    ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:type, type:ImportType::IMPL );
+  elif ( "self" == target_v_var.Name )
+    // create named reference
+    create object instance self_ref of NamedReference;
+    relate self_ref to target_expr across R776;
+    self_ref.name = "self()";
+    evt_cr.to_self = true;
+  else
+    // TODO bad
+  end if;
 
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
@@ -4110,7 +4213,29 @@ INSERT INTO S_SYNC
 	'e_gpr = param.e_gpr;
 block = param.block;
 prev_smt = param.prev_smt;
-select one act_smt related by e_gpr->ACT_SMT[R603];',
+select one act_smt related by e_gpr->ACT_SMT[R603];
+
+// create a statement
+create object instance smt of Statement;
+relate smt to block across R450;
+if ( not_empty prev_smt )
+  smt.statement_number = STRING::itoa( i:STRING::atoi( s:prev_smt.statement_number ) + 1 );
+  relate smt to prev_smt across R477.''executes after'';
+else
+  smt.statement_number = "1";
+end if;
+select one body related by block->InvocableObject[R4000];
+smt.oal = ::getOalStatement( body:body.oal, line_num:act_smt.LineNumber );
+
+// create generate statement
+create object instance gen_smt of Generate;
+relate gen_smt to smt across R451;
+
+// create the event expression
+select one evt_v_val related by e_gpr->V_VAL[R714];
+::transformExpression( v_val:evt_v_val, expr_number:"1", smt:smt );
+select any evt_expr related by smt->Expression[R775] where ( selected.expression_number == "1" );
+relate evt_expr to gen_smt across R486;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
