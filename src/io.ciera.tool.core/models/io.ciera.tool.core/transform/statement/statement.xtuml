@@ -3985,7 +3985,6 @@ if ( not_empty e_ges )
   // create generate statement
   create object instance gen_smt of Generate;
   relate gen_smt to smt across R451;
-  gen_smt.to_self = false;
   
   // create the event expression
   create object instance evt_expr of Expression;
@@ -3994,15 +3993,24 @@ if ( not_empty e_ges )
   evt_type_ref = TypeReference::getBuiltinTypeReference( name:"IEvent" );
   relate evt_type_ref to evt_expr across R795;
   relate evt_expr to gen_smt across R486;
+  // create event creation
+  create object instance evt_cr of EventCreation;
+  relate evt_cr to evt_expr across R776;
+  evt_cr.to_self = false;
   // create the event invocation
+  create object instance invoc_expr of Expression;
+  relate invoc_expr to smt across R775;
+  invoc_expr.expression_number = "1.1";
+  relate evt_type_ref to invoc_expr across R795;
+  relate invoc_expr to evt_cr across R3903;
   create object instance invoc of Invocation;
-  relate invoc to evt_expr across R776;
+  relate invoc to invoc_expr across R776;
   select one evt_invocable related by evt->InvocableObject[R427];
   relate invoc to evt_invocable across R792;
   // create named reference expression
   create object instance expr2 of Expression;
   relate expr2 to smt across R775;
-  expr2.expression_number = evt_expr.expression_number + ".1";
+  expr2.expression_number = invoc_expr.expression_number + ".1";
   select one obj related by evt->StateMachine[R4752]->Class[R4750];
   select one inst_type related by obj->Type[R407];
   select many s_dims from instances of S_DIM where false;
@@ -4015,13 +4023,13 @@ if ( not_empty e_ges )
   named_ref.name = obj.name + "Impl";
   // transform actual parameters
   select many v_pars related by e_ess->V_PAR[R700];
-  ::transformActualParameters( invocation:invoc, v_pars:v_pars, expr_number:evt_expr.expression_number, base_num:2 );
+  ::transformActualParameters( invocation:invoc, v_pars:v_pars, expr_number:invoc_expr.expression_number, base_num:2 );
   
   // create the target expression
   create object instance target_expr of Expression;
   relate target_expr to smt across R775;
-  target_expr.expression_number = "2";
-  relate gen_smt to target_expr across R487;
+  target_expr.expression_number = "1.2";
+  relate evt_cr to target_expr across R3902;
   select one target_s_dt related by target_v_var->S_DT[R848];
   select one target_obj related by target_v_var->V_INT[R814]->O_OBJ[R818];
   target_s_dt = ::getInstRefTypeForClass( s_dt:target_s_dt, o_obj:target_obj );
@@ -4039,7 +4047,7 @@ if ( not_empty e_ges )
     create object instance self_ref of NamedReference;
     relate self_ref to target_expr across R776;
     self_ref.name = "self()";
-    gen_smt.to_self = true;
+    evt_cr.to_self = true;
   else
     // TODO bad
   end if;
