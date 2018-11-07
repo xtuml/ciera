@@ -1,8 +1,9 @@
 package io.ciera.runtime.summit.time;
 
 import io.ciera.runtime.summit.statemachine.IEvent;
+import io.ciera.runtime.summit.types.IXtumlType;
 
-public class Timer implements Comparable<Timer> {
+public class Timer implements Comparable<Timer>, IXtumlType<Timer> {
 
     private IEvent eventToGenerate;
     private long wakeUpTime; // time to wake up in milliseconds since the epoch
@@ -13,7 +14,7 @@ public class Timer implements Comparable<Timer> {
         eventToGenerate = e;
         recurring = recur;
         period = microseconds / 1000;
-        calculateWakeUpTime();
+        reset();
     }
      
     public IEvent getEventToGenerate() {
@@ -23,9 +24,9 @@ public class Timer implements Comparable<Timer> {
     public long getWakeUpTime() {
         return wakeUpTime;
     }
-     
-    public void calculateWakeUpTime() {
-        wakeUpTime = System.currentTimeMillis() + period;
+    
+    public void addTime(int microseconds) {
+        wakeUpTime += microseconds / 1000;
     }
      
     public void setPeriod( int microseconds ) {
@@ -33,7 +34,7 @@ public class Timer implements Comparable<Timer> {
     }
     
     public void reset() {
-    	wakeUpTime += period;
+    	wakeUpTime = System.currentTimeMillis() + period;
     }
      
     public boolean isRecurring() {
@@ -45,6 +46,11 @@ public class Timer implements Comparable<Timer> {
         if ( getWakeUpTime() < o.getWakeUpTime() ) return -1;
         else if ( getWakeUpTime() > o.getWakeUpTime() ) return 1;
         else return 0;
+    }
+
+    @Override
+    public Timer value() {
+        return this;
     }
      
 }

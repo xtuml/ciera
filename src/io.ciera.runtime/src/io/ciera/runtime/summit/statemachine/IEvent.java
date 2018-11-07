@@ -1,8 +1,9 @@
 package io.ciera.runtime.summit.statemachine;
 
 import io.ciera.runtime.summit.exceptions.XtumlException;
+import io.ciera.runtime.summit.types.IXtumlType;
 
-public interface IEvent {
+public interface IEvent extends IXtumlType<IEvent>{
 	
 	public Object get(int index) throws XtumlException;
 

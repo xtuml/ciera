@@ -3,7 +3,6 @@ package io.ciera.runtime.summit.util.impl;
 import java.util.Calendar;
 
 import io.ciera.runtime.summit.components.IComponent;
-import io.ciera.runtime.summit.exceptions.NotImplementedException;
 import io.ciera.runtime.summit.exceptions.XtumlException;
 import io.ciera.runtime.summit.statemachine.IEvent;
 import io.ciera.runtime.summit.time.Timer;
@@ -67,22 +66,29 @@ public class TIMImpl<C extends IComponent<C>> extends Utility<C> implements TIM 
 
     @Override
     public boolean timer_add_time(int microseconds, Timer timer_inst_ref) throws XtumlException {
-        throw new NotImplementedException("Not implemented");
+        boolean success = getRunContext().cancelTimer(timer_inst_ref);
+        timer_inst_ref.addTime(microseconds);
+        getRunContext().addTimer(timer_inst_ref);
+        return success;
     }
 
     @Override
     public boolean timer_cancel(Timer timer_inst_ref) throws XtumlException {
-        throw new NotImplementedException("Not implemented");
+        return getRunContext().cancelTimer(timer_inst_ref);
     }
 
     @Override
     public int timer_remaining_time(Timer timer_inst_ref) throws XtumlException {
-        throw new NotImplementedException("Not implemented");
+        return (int)(timer_inst_ref.getWakeUpTime() - System.currentTimeMillis());
     }
 
     @Override
     public boolean timer_reset_time(int microseconds, Timer timer_inst_ref) throws XtumlException {
-        throw new NotImplementedException("Not implemented");
+        boolean success = getRunContext().cancelTimer(timer_inst_ref);
+        timer_inst_ref.setPeriod(microseconds);
+        timer_inst_ref.reset();
+        getRunContext().addTimer(timer_inst_ref);
+        return success;
     }
 
     @Override

@@ -10,5 +10,6 @@ public interface IRunContext {
     public void setExceptionHandler(IExceptionHandler h);
     public String[] args();
     public void addTimer(Timer timer);
+    public boolean cancelTimer(Timer timer);
     
 }

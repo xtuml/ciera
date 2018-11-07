@@ -48,4 +48,9 @@ public abstract class Event implements IEvent {
         return toSelf;
     }
 
+    @Override
+    public IEvent value() {
+        return this;
+    }
+
 }

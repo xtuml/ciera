@@ -6,8 +6,9 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import io.ciera.runtime.summit.application.tasks.GeneratedEventTask;
+import io.ciera.runtime.summit.application.tasks.GeneratedEventToSelfTask;
 import io.ciera.runtime.summit.application.tasks.HaltExecutionTask;
-import io.ciera.runtime.summit.application.tasks.PoppedTimerTask;
 import io.ciera.runtime.summit.exceptions.XtumlException;
 import io.ciera.runtime.summit.statemachine.IEvent;
 import io.ciera.runtime.summit.time.Timer;
@@ -61,17 +62,27 @@ public class ApplicationExecutor extends Thread implements IRunContext {
             // check for expired timers
             Timer t = activeTimers.peek();
             while ( t != null && t.getWakeUpTime() < System.currentTimeMillis() ) {
-            	t = activeTimers.poll();
+                t = activeTimers.poll();
                 final IEvent event = t.getEventToGenerate();
-                execute(new PoppedTimerTask() {
-                    @Override
-                    public void run() throws XtumlException {
-                        event.getTarget().accept(event);
-                    }
-                });
+                if (event.toSelf()) {
+                    execute(new GeneratedEventTask() {
+                        @Override
+                        public void run() throws XtumlException {
+                            event.getTarget().accept(event);
+                        }
+                    });
+                }
+                else {
+                    execute(new GeneratedEventToSelfTask() {
+                        @Override
+                        public void run() throws XtumlException {
+                            event.getTarget().accept(event);
+                        }
+                    });
+                }
                 if ( t.isRecurring() ) {
-                	t.reset();
-                	activeTimers.add(t);
+                    t.reset();
+                    activeTimers.add(t);
                 }
                 t = activeTimers.peek();
             }
@@ -97,6 +108,11 @@ public class ApplicationExecutor extends Thread implements IRunContext {
     @Override
     public void addTimer(Timer timer) {
         activeTimers.add(timer);
+    }
+
+    @Override
+    public boolean cancelTimer(Timer timer) {
+        return activeTimers.remove(timer);
     }
 
 }
