@@ -6,15 +6,14 @@ import io.ciera.runtime.summit.types.IXtumlType;
 public class Timer implements Comparable<Timer>, IXtumlType<Timer> {
 
     private IEvent eventToGenerate;
-    private long wakeUpTime; // time to wake up in milliseconds since the epoch
+    private long wakeUpTime; // time to wake up in microseconds since the epoch
+    private long period; // duration in microseconds
     private boolean recurring;
-    private int period; // duration in millizeconds
     
     public Timer( IEvent e, int microseconds, boolean recur ) {
         eventToGenerate = e;
         recurring = recur;
-        period = microseconds / 1000;
-        reset();
+        period = microseconds;
     }
      
     public IEvent getEventToGenerate() {
@@ -26,15 +25,15 @@ public class Timer implements Comparable<Timer>, IXtumlType<Timer> {
     }
     
     public void addTime(int microseconds) {
-        wakeUpTime += microseconds / 1000;
+        wakeUpTime += microseconds;
     }
      
     public void setPeriod( int microseconds ) {
-        period = microseconds / 1000;
+        period = microseconds;
     }
     
-    public void reset() {
-    	wakeUpTime = System.currentTimeMillis() + period;
+    public void reset(long currentTimeMicro) {
+    	wakeUpTime = currentTimeMicro + period;
     }
      
     public boolean isRecurring() {

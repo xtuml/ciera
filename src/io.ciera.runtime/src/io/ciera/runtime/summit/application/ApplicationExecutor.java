@@ -2,23 +2,24 @@ package io.ciera.runtime.summit.application;
 
 import java.util.PriorityQueue;
 import java.util.Queue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.PriorityBlockingQueue;
-import java.util.concurrent.TimeUnit;
 
-import io.ciera.runtime.summit.application.tasks.GeneratedEventTask;
-import io.ciera.runtime.summit.application.tasks.GeneratedEventToSelfTask;
 import io.ciera.runtime.summit.application.tasks.HaltExecutionTask;
+import io.ciera.runtime.summit.application.tasks.TimerExpiredTask;
 import io.ciera.runtime.summit.exceptions.XtumlException;
 import io.ciera.runtime.summit.statemachine.IEvent;
 import io.ciera.runtime.summit.time.Timer;
 
 public class ApplicationExecutor extends Thread implements IRunContext {
+    
+    private static final int TICK_LEN = 1; // tick length in milliseconds
 
     private IExceptionHandler handler;
-    private BlockingQueue<IApplicationTask> tasks;
+    private Queue<IApplicationTask> tasks;
     private Queue<Timer> activeTimers;
     private boolean running;
+    
+    private long currentTime;
+    private boolean simulatedTime;
 
     private String[] args;
 
@@ -29,10 +30,13 @@ public class ApplicationExecutor extends Thread implements IRunContext {
     public ApplicationExecutor(String name, String[] args) {
         super(name);
         handler = new DefaultExceptionHandler();
-        tasks = new PriorityBlockingQueue<>();
+        tasks = new PriorityQueue<>();
         activeTimers = new PriorityQueue<>();
         running = false;
+        currentTime = 0;
+        simulatedTime = true;
         this.args = args;
+        tick();
     }
 
     @Override
@@ -44,47 +48,50 @@ public class ApplicationExecutor extends Thread implements IRunContext {
     public void run() {
         running = true;
         while (running) {
-            // try to execute a task
+            // evaluate timers
+            tick();
+        	// handle waiting tasks
+            handleTasks();
+            // sleep for a tick
             try {
-                IApplicationTask task = tasks.poll(1, TimeUnit.MILLISECONDS);
-                if ( null != task ) {
-                    if (task instanceof HaltExecutionTask) {
-                        running = false;
-                    } else {
-                        try {
-                            task.run();
-                        } catch (XtumlException e) {
-                            handler.handle(e);
-                        }
-                    }
-                }
+                Thread.sleep(TICK_LEN);
             } catch (InterruptedException e) { /* do nothing */ }
-            // check for expired timers
-            Timer t = activeTimers.peek();
-            while ( t != null && t.getWakeUpTime() < System.currentTimeMillis() ) {
-                t = activeTimers.poll();
-                final IEvent event = t.getEventToGenerate();
-                if (event.toSelf()) {
-                    execute(new GeneratedEventTask() {
-                        @Override
-                        public void run() throws XtumlException {
-                            event.getTarget().accept(event);
-                        }
-                    });
+        }
+    }
+    
+    private void handleTasks() {
+        // execute waiting tasks
+        while (!tasks.isEmpty()) {
+            IApplicationTask task = tasks.poll();
+            if (task instanceof HaltExecutionTask) {
+                running = false;
+            } else {
+                try {
+                    task.run();
+                } catch (XtumlException e) {
+                    handler.handle(e);
                 }
-                else {
-                    execute(new GeneratedEventToSelfTask() {
-                        @Override
-                        public void run() throws XtumlException {
-                            event.getTarget().accept(event);
-                        }
-                    });
+            }
+        }
+    }
+    
+    private void tick() {
+        if ( !activeTimers.isEmpty() && ( simulatedTime || (time()*1000) >= activeTimers.peek().getWakeUpTime() ) ) {
+            Timer t = activeTimers.poll();
+            // set the clock to the timer wake up time (simulated time only)
+            if ( simulatedTime ) setTime(t.getWakeUpTime());
+            // generate the event
+            final IEvent event = t.getEventToGenerate();
+            execute(new TimerExpiredTask() {
+                @Override
+                public void run() throws XtumlException {
+                    event.getTarget().accept(event);
                 }
-                if ( t.isRecurring() ) {
-                    t.reset();
-                    activeTimers.add(t);
-                }
-                t = activeTimers.peek();
+            });
+            // reset recurring timer
+            if ( t.isRecurring() ) {
+                t.reset(time()*1000);
+                activeTimers.add(t);
             }
         }
     }
@@ -114,5 +121,15 @@ public class ApplicationExecutor extends Thread implements IRunContext {
     public boolean cancelTimer(Timer timer) {
         return activeTimers.remove(timer);
     }
+
+	@Override
+	public long time() {
+	    if (simulatedTime) return currentTime;
+	    else return System.currentTimeMillis();
+	}
+
+	private void setTime(long time) {
+		currentTime = time;
+	}
 
 }

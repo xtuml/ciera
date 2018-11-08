@@ -2,6 +2,7 @@ package io.ciera.runtime.summit.types;
 
 import java.time.Duration;
 
+import io.ciera.runtime.summit.application.IRunContext;
 import io.ciera.runtime.summit.exceptions.XtumlException;
 
 public class TimeStamp implements IXtumlType<TimeStamp>, Comparable<TimeStamp> {
@@ -55,8 +56,8 @@ public class TimeStamp implements IXtumlType<TimeStamp>, Comparable<TimeStamp> {
         return this;
     }
 
-    public static TimeStamp now() {
-        return new TimeStamp(System.currentTimeMillis());
+    public static TimeStamp now(IRunContext runContext) {
+        return new TimeStamp(runContext.time());
     }
 
 }

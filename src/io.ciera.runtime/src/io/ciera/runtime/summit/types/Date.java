@@ -2,6 +2,8 @@ package io.ciera.runtime.summit.types;
 
 import java.util.Calendar;
 
+import io.ciera.runtime.summit.application.IRunContext;
+
 public class Date extends TimeStamp {
 
     private Calendar cal;
@@ -42,8 +44,8 @@ public class Date extends TimeStamp {
         return cal.get(Calendar.SECOND);
     }
 
-    public static Date now() {
-        return new Date(System.currentTimeMillis());
+    public static Date now(IRunContext runContext) {
+        return new Date(runContext.time());
     }
 
 }
