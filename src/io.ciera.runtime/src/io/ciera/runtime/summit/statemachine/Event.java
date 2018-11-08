@@ -10,6 +10,12 @@ public abstract class Event implements IEvent {
 	
 	private Object[] dataItems;
 	
+	public Event() {
+		dataItems = new Object[]{};
+		target = null;
+		toSelf = false;
+	}
+	
 	public Event(Object ... dataItems) {
 		this.dataItems = dataItems;
 		target = null;
@@ -51,6 +57,11 @@ public abstract class Event implements IEvent {
     @Override
     public IEvent value() {
         return this;
+    }
+    
+    @Override
+    public String getName() {
+    	return getClass().getSimpleName();
     }
 
 }

@@ -17,19 +17,14 @@ INSERT INTO O_TFR
 	'select one file related by self->File[R401];
 imports = file.getFormattedImports( type:ImportType::IMPL );
 
-select many states related by self->State[R4751];
 
-select any init_state from instances of State where false;
 initial_state = "";
-for each state in states
-  if ( empty init_state or state.number < init_state.number )
-    init_state = state;
-  end if;
-end for;
+select any init_state related by self->State[R4751] where ( selected.number == 0 );
 if ( not_empty init_state )
   initial_state = init_state.name;
 end if;
 
+select many states related by self->State[R4751];
 for each state in states
   state.render_decl();
 end for;
@@ -42,10 +37,16 @@ end for;
 state_actions = TEMP::body();
 TEMP::clear();
 
-select many rows related by self->TransitionTableRow[R4753];
-for each row in rows
+index = 0;
+sep = "";
+select any row related by self->TransitionTableRow[R4753] where ( selected.index == index );
+while ( not_empty row )
+  TEMP::append( s:sep );
   row.render();
-end for;
+  index = index + 1;
+  sep = ",\n";
+  select any row related by self->TransitionTableRow[R4753] where ( selected.index == index );
+end while;
 transition_table_rows = TEMP::body();
 TEMP::clear();
 

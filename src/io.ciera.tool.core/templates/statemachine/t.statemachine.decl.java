@@ -2,5 +2,5 @@
     
     @Override
     public void accept(IEvent event) throws XtumlException {
-        statemachine.accept(event);
+        statemachine.transition(event);
     }
