@@ -51,7 +51,7 @@ ${component_instantiations}
         IApplication app = new ${self.name}();
         app.setup( args );
         if ( Arrays.asList(args).contains("-v") || Arrays.asList(args).contains("--version") ) {
-        	  app.printVersions();
+            app.printVersions();
         }
         else {
             app.initialize();

@@ -1,10 +1,7 @@
-            ${self.test} (event instanceof ${class_name}Impl.${self.event_name}) {
 .if ( cant_happen )
-                throw new CantHappenException("${self.state_name} -> ${self.event_name}: Event cannot happen");
+CANT_HAPPEN\
 .elif ( event_ignored )
-                /* ${self.state_name} -> ${self.event_name}: Event ignored */ 
+IGNORE\
 .else
-                ${self.end_state_name}_entry_action(${parameter_list});
-                setCurrentState(${self.end_state_name});
+(event) -> {${self.end_state_name}_entry_action(${parameter_list}); return ${self.end_state_name};}\
 .end if
-            }

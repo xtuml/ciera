@@ -25,34 +25,35 @@ public abstract class Component<C extends IComponent<C>> implements IComponent<C
     public boolean equality(C value) throws XtumlException {
         return equals(value);
     }
-    
+
     @Override
     public void generate(IEvent event) throws XtumlException {
         if (null != event && null != event.getTarget()) {
-            if ( event.toSelf() ) generateToSelf(event, event.getTarget());
-            else generate(event, event.getTarget());
-        }
-        else {
+            if (event.toSelf())
+                generateToSelf(event, event.getTarget());
+            else
+                generate(event, event.getTarget());
+        } else {
             throw new StateMachineException("Event has not target");
         }
     }
 
     private void generate(IEvent event, IEventTarget target) {
-    	runContext.execute(new GeneratedEventTask() {
-			@Override
-			public void run() throws XtumlException {
-				target.accept(event);
-			}
-		});
+        runContext.execute(new GeneratedEventTask() {
+            @Override
+            public void run() throws XtumlException {
+                target.accept(event);
+            }
+        });
     }
 
     private void generateToSelf(IEvent event, IEventTarget target) {
-    	runContext.execute(new GeneratedEventToSelfTask() {
-			@Override
-			public void run() throws XtumlException {
-				target.accept(event);
-			}
-		});
+        runContext.execute(new GeneratedEventToSelfTask() {
+            @Override
+            public void run() throws XtumlException {
+                target.accept(event);
+            }
+        });
     }
 
 }

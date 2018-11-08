@@ -11,7 +11,7 @@ public interface IComponent<C extends IComponent<C>>
         extends IInstancePopulation, IActionHome<C>, IXtumlType<C>, IVersioned {
 
     public void initialize() throws XtumlException;
-    
+
     public void generate(IEvent event) throws XtumlException;
 
 }

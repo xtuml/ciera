@@ -104,10 +104,10 @@ public abstract class ModelInstance<T extends IModelInstance<T, C>, C extends IC
     public int compareTo(T o) {
         return instanceId.compareTo(o.getInstanceId());
     }
-    
+
     @Override
     public void accept(IEvent event) throws XtumlException {
-    	throw new StateMachineException("Event generated to passive instance");
+        throw new StateMachineException("Event generated to passive instance");
     }
 
 }

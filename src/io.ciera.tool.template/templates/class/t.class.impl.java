@@ -112,6 +112,11 @@ ${selectors}
     }
 
     @Override
+    public ${self.name} self() {
+        return this;
+    }
+
+    @Override
     public ${self.name} oneWhere( IWhere<${self.name}> condition ) throws XtumlException {
         if ( null == condition ) throw new XtumlException( "Null condition passed to selection." );
         if ( condition.evaluate( value() ) ) return value();

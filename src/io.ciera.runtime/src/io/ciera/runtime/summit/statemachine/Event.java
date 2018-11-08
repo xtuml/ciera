@@ -4,31 +4,31 @@ import io.ciera.runtime.summit.exceptions.StateMachineException;
 import io.ciera.runtime.summit.exceptions.XtumlException;
 
 public abstract class Event implements IEvent {
-    
+
     private IEventTarget target;
     private boolean toSelf;
-	
-	private Object[] dataItems;
-	
-	public Event() {
-		dataItems = new Object[]{};
-		target = null;
-		toSelf = false;
-	}
-	
-	public Event(Object ... dataItems) {
-		this.dataItems = dataItems;
-		target = null;
-		toSelf = false;
-	}
 
-	@Override
-	public Object get(int index) throws XtumlException {
-		if (index >= 0 && index < dataItems.length) {
-			return dataItems[index];
-		}
-		else throw new StateMachineException("Invalid index");
-	}
+    private Object[] dataItems;
+
+    public Event() {
+        dataItems = new Object[] {};
+        target = null;
+        toSelf = false;
+    }
+
+    public Event(Object... dataItems) {
+        this.dataItems = dataItems;
+        target = null;
+        toSelf = false;
+    }
+
+    @Override
+    public Object get(int index) throws XtumlException {
+        if (index >= 0 && index < dataItems.length) {
+            return dataItems[index];
+        } else
+            throw new StateMachineException("Invalid index");
+    }
 
     @Override
     public IEventTarget getTarget() {
@@ -58,10 +58,10 @@ public abstract class Event implements IEvent {
     public IEvent value() {
         return this;
     }
-    
+
     @Override
     public String getName() {
-    	return getClass().getSimpleName();
+        return getClass().getSimpleName();
     }
 
 }

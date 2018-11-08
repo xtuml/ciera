@@ -1,1 +1,1 @@
-    private static final int ${self.name} = ${self.number};
+    public static final int ${self.name} = ${self.number};

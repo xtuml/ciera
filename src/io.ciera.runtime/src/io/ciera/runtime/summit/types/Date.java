@@ -19,7 +19,7 @@ public class Date extends TimeStamp {
         cal = Calendar.getInstance();
         cal.setTimeInMillis(timestamp);
     }
-    
+
     public int getYear() {
         return cal.get(Calendar.YEAR);
     }

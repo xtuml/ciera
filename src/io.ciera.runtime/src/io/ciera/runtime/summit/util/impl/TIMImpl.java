@@ -79,14 +79,14 @@ public class TIMImpl<C extends IComponent<C>> extends Utility<C> implements TIM 
 
     @Override
     public int timer_remaining_time(Timer timer_inst_ref) throws XtumlException {
-        return (int)(timer_inst_ref.getWakeUpTime() - getRunContext().time()*1000);
+        return (int) (timer_inst_ref.getWakeUpTime() - getRunContext().time() * 1000);
     }
 
     @Override
     public boolean timer_reset_time(int microseconds, Timer timer_inst_ref) throws XtumlException {
         boolean success = getRunContext().cancelTimer(timer_inst_ref);
         timer_inst_ref.setPeriod(microseconds);
-        timer_inst_ref.reset(getRunContext().time()*1000);
+        timer_inst_ref.reset(getRunContext().time() * 1000);
         getRunContext().addTimer(timer_inst_ref);
         return success;
     }
@@ -94,7 +94,7 @@ public class TIMImpl<C extends IComponent<C>> extends Utility<C> implements TIM 
     @Override
     public Timer timer_start(IEvent event_inst, int microseconds) throws XtumlException {
         Timer timer = new Timer(event_inst, microseconds, false);
-        timer.reset(getRunContext().time()*1000);
+        timer.reset(getRunContext().time() * 1000);
         getRunContext().addTimer(timer);
         return timer;
     }
@@ -102,7 +102,7 @@ public class TIMImpl<C extends IComponent<C>> extends Utility<C> implements TIM 
     @Override
     public Timer timer_start_recurring(IEvent event_inst, int microseconds) throws XtumlException {
         Timer timer = new Timer(event_inst, microseconds, true);
-        timer.reset(getRunContext().time()*1000);
+        timer.reset(getRunContext().time() * 1000);
         getRunContext().addTimer(timer);
         return timer;
     }
