@@ -287,12 +287,11 @@ if ( not_empty builtin )
     create object instance string_serializer of Z_StringSerializer;
     relate string_serializer to attr_serializer across R3004;
     string_serializer.value = accessor_name;
-  elif ( "UniqueId" == builtin.name )
-    create object instance uuid_serializer of Z_UUIDSerializer;
-    relate uuid_serializer to attr_serializer across R3004;
-    uuid_serializer.value = accessor_name;
   else
-    // TODO bad unsupported builtin type
+    create object instance general_serializer of Z_GeneralSerializer;
+    relate general_serializer to attr_serializer across R3004;
+    general_serializer.value = accessor_name;
+    relate type to general_serializer across R3014;
   end if;
 else
   select one edt related by type->EnumeratedType[R407];
@@ -421,12 +420,12 @@ else
     elif ( "String" == builtin.name )
       create object instance string_loader of Z_StringLoader;
       relate string_loader to attr_loader across R3008;
-    elif ( "UniqueId" == builtin.name )
-      create object instance unique_id_loader of Z_UniqueIdLoader;
-      relate unique_id_loader to attr_loader across R3008;
-      ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.UniqueId", type:ImportType::IMPL );
     else
-      // TODO bad unsupported builtin type
+      create object instance general_loader of Z_GeneralLoader;
+      relate general_loader to attr_loader across R3008;
+      relate type to general_loader across R3013;
+      ::addTypeToImports( file:file, type_to_import:type, type:ImportType::IMPL );
+      general_loader.load_value = true;
     end if;
   else
     select one edt related by type->EnumeratedType[R407];

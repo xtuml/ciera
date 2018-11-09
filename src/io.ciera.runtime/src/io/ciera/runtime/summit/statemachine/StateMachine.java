@@ -32,28 +32,32 @@ public abstract class StateMachine<T extends IModelInstance<T, C>, C extends ICo
 
     @Override
     public void transition(IEvent event) throws XtumlException {
-        ITransition entry;
-        ITransition[][] sem = getStateEventMatrix();
-        if (currentState >= 0 && currentState < sem.length && event.getId() >= 0
-                && event.getId() < sem[currentState].length) {
-            entry = sem[currentState][event.getId()];
-        } else {
-            throw new XtumlException("Could not get state event matrix entry");
-        }
-        if (entry instanceof CantHappen) {
-            throw new CantHappenException(getClassName() + ": Event '" + event.getName() + "' cannot happen in state '"
-                    + getStateName(currentState) + "'");
-        } else if (entry instanceof Ignore) {
-            /* do nothing */
-        } else if (entry instanceof ITransition) {
-            ITransition txn = entry;
-            int prevState = currentState;
-            currentState = txn.execute(event);
-            System.out.printf("TXN: %-15s: %-50s -> %-50s\n", getClassName(), getStateName(prevState),
-                    getStateName(currentState));
-        } else {
-            throw new XtumlException("Unknown state event matrix entry");
-        }
+    	if ( null != event ) {
+            ITransition entry;
+            ITransition[][] sem = getStateEventMatrix();
+            if (currentState >= 0 && currentState < sem.length && event.getId() >= 0
+                    && event.getId() < sem[currentState].length) {
+                entry = sem[currentState][event.getId()];
+            } else {
+                throw new XtumlException("Could not get state event matrix entry");
+            }
+            if (entry instanceof CantHappen) {
+                throw new CantHappenException(getClassName() + ": Event '" + event.getName() + "' cannot happen in state '"
+                        + getStateName(currentState) + "'");
+            } else if (entry instanceof Ignore) {
+                /* do nothing */
+            } else if (entry instanceof ITransition) {
+                ITransition txn = entry;
+                int prevState = currentState;
+                currentState = txn.execute(event);
+                System.out.printf("TXN: %-15s: %-50s -> %-50s\n", getClassName(), getStateName(prevState),
+                        getStateName(currentState));
+            } else {
+                throw new XtumlException("Unknown state event matrix entry");
+            }
+            // deregister consumed event
+            event.deregister();
+    	}
 
     }
 

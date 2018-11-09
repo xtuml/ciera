@@ -6,8 +6,6 @@ import io.ciera.runtime.summit.exceptions.XtumlException;
 
 public class UniqueId implements IXtumlType<UniqueId>, Comparable<UniqueId> {
 
-    private static long counter = 0;
-
     UUID id;
 
     public UniqueId() {
@@ -59,12 +57,16 @@ public class UniqueId implements IXtumlType<UniqueId>, Comparable<UniqueId> {
         return this;
     }
 
+	@Override
+	public String serialize() {
+		return "\"" + id.toString() + "\"";
+	}
+
     public static UniqueId random() {
-        return new UniqueId(new UUID(0, counter++));
-        // return new UniqueId( UUID.randomUUID() );
+        return new UniqueId( UUID.randomUUID() );
     }
 
-    public static UniqueId get(Object o) throws XtumlException {
+    public static UniqueId deserialize(Object o) throws XtumlException {
         if (o instanceof UUID) {
             return new UniqueId((UUID) o);
         } else if (o instanceof Integer) {
@@ -72,5 +74,6 @@ public class UniqueId implements IXtumlType<UniqueId>, Comparable<UniqueId> {
         } else
             throw new XtumlException("Could not get value for type: " + o.getClass().getName());
     }
+
 
 }

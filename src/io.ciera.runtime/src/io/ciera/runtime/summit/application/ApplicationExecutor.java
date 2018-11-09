@@ -6,8 +6,10 @@ import java.util.Queue;
 import io.ciera.runtime.summit.application.tasks.HaltExecutionTask;
 import io.ciera.runtime.summit.application.tasks.TimerExpiredTask;
 import io.ciera.runtime.summit.exceptions.XtumlException;
+import io.ciera.runtime.summit.statemachine.EventSet;
 import io.ciera.runtime.summit.statemachine.IEvent;
 import io.ciera.runtime.summit.time.Timer;
+import io.ciera.runtime.summit.time.TimerSet;
 
 public class ApplicationExecutor extends Thread implements IRunContext {
 
@@ -15,8 +17,10 @@ public class ApplicationExecutor extends Thread implements IRunContext {
 
     private IExceptionHandler handler;
     private Queue<IApplicationTask> tasks;
-    private Queue<Timer> activeTimers;
     private boolean running;
+
+    private Queue<Timer> activeTimers;
+    private EventSet activeEvents;
 
     private long currentTime;
     private boolean simulatedTime;
@@ -135,5 +139,25 @@ public class ApplicationExecutor extends Thread implements IRunContext {
     private void setTime(long time) {
         currentTime = time;
     }
+
+	@Override
+	public TimerSet getActiveTimers() {
+		return new TimerSet(activeTimers);
+	}
+
+	@Override
+	public EventSet getActiveEvents() {
+		return activeEvents;
+	}
+
+	@Override
+	public void registerEvent(IEvent event) {
+		activeEvents.add(event);
+	}
+
+	@Override
+	public boolean deregisterEvent(IEvent event) {
+		return activeEvents.remove(event);
+	}
 
 }

@@ -60,4 +60,9 @@ public class TimeStamp implements IXtumlType<TimeStamp>, Comparable<TimeStamp> {
         return new TimeStamp(runContext.time());
     }
 
+	@Override
+	public String serialize() {
+		return Long.toString(timestamp);
+	}
+
 }

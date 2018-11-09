@@ -6,7 +6,7 @@
 , 0d\
 .else
   .if ( self.load_value )
-, new ${self.type_name}(values.get($t{value_index}))\
+, ${self.type_name}.deserialize(values.get($t{value_index}))\
   .else
 , new ${self.type_name}()\
   .end if

@@ -24,11 +24,16 @@ public class Instance extends InstRefMapping<Instance> implements IXtumlType<Ins
         return obj;
     }
 
+    @Override
     public String serialize() {
         if ("".equals(obj))
             return "";
         else
             return obj.toString();
+    }
+
+    public static Instance deserialize(Object o) {
+    	return new Instance(o);
     }
 
 }

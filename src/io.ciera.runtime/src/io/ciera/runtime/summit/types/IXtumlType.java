@@ -1,6 +1,7 @@
 package io.ciera.runtime.summit.types;
 
 import io.ciera.runtime.summit.exceptions.BadArgumentException;
+import io.ciera.runtime.summit.exceptions.NotImplementedException;
 import io.ciera.runtime.summit.exceptions.XtumlException;
 
 public interface IXtumlType<T extends IXtumlType<T>> {
@@ -22,6 +23,10 @@ public interface IXtumlType<T extends IXtumlType<T>> {
             return value();
         else
             return null;
+    }
+    
+    default public String serialize() throws XtumlException {
+    	throw new NotImplementedException("Type cannot be directly serialized");
     }
 
 }

@@ -18,5 +18,7 @@ public interface IEvent extends IXtumlType<IEvent> {
     public IEvent to(IEventTarget target);
 
     public IEvent toSelf(IEventTarget target);
-
+    
+    public void deregister();
+    
 }

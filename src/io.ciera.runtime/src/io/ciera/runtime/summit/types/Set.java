@@ -14,6 +14,10 @@ public abstract class Set<S extends ISet<S, E>, E> implements ISet<S, E> {
     public Set() {
         internalSet = new TreeSet<>();
     }
+    
+    public Set(Collection<E> c) {
+        internalSet = new TreeSet<>(c);
+    }
 
     @Override
     public S union(S set) {
