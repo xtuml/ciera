@@ -1,4 +1,4 @@
--- BP 7.1 content: InstanceStateMachine syschar: 3 persistence-version: 7.1.5
+-- BP 7.1.6 content: InstanceStateMachine syschar: 3 persistence-version: 7.1.6
 
 INSERT INTO SM_ISM
 	VALUES ("7155cbee-2ad5-470a-b1c1-837f7f12c176",
@@ -217,7 +217,8 @@ INSERT INTO SM_ACT
 	'assign self.beep_count = 0;
 
 cancelled_timer = TIM::timer_cancel(timer_inst_ref:self.beeper_timer);',
-	'');
+	'',
+	0);
 INSERT INTO SM_MOAH
 	VALUES ("2e1c2939-d6ca-4186-b8a3-2ab91a33f512",
 	"7155cbee-2ad5-470a-b1c1-837f7f12c176",
@@ -232,8 +233,7 @@ INSERT INTO SM_ACT
 	'if (self.beep_count == 0) // beeper yet to begin
 
    create event instance delay_over of MO_B2:''beep_delay_over'' to self;
-   assign self.beeper_delay_over = delay_over;
-   assign self.beeper_timer = TIM::timer_start(microseconds:100000,event_inst:self.beeper_delay_over);
+   assign self.beeper_timer = TIM::timer_start(microseconds:100000,event_inst:delay_over);
 
 elif (self.beep_count == 4) // last beep 
 
@@ -243,13 +243,15 @@ elif (self.beep_count == 4) // last beep
 
 else
 
-   assign self.beeper_timer = TIM::timer_start(microseconds:100000,event_inst:self.beeper_delay_over);
+   create event instance delay_over of MO_B2:''beep_delay_over'' to self;
+   assign self.beeper_timer = TIM::timer_start(microseconds:100000,event_inst:delay_over);
 
 end if;
 
 assign self.beep_count = self.beep_count + 1;
 ',
-	'');
+	'',
+	0);
 INSERT INTO SM_TAH
 	VALUES ("b1f6ac68-e80b-4410-b164-c8dc888e9b3a",
 	"7155cbee-2ad5-470a-b1c1-837f7f12c176",
@@ -260,9 +262,10 @@ INSERT INTO SM_AH
 INSERT INTO SM_ACT
 	VALUES ("b1f6ac68-e80b-4410-b164-c8dc888e9b3a",
 	"7155cbee-2ad5-470a-b1c1-837f7f12c176",
-	3,
+	1,
 	'',
-	'');
+	'',
+	0);
 INSERT INTO SM_TAH
 	VALUES ("0c543561-84ad-4c51-9eca-ae571b50bcd5",
 	"7155cbee-2ad5-470a-b1c1-837f7f12c176",
@@ -273,9 +276,10 @@ INSERT INTO SM_AH
 INSERT INTO SM_ACT
 	VALUES ("0c543561-84ad-4c51-9eca-ae571b50bcd5",
 	"7155cbee-2ad5-470a-b1c1-837f7f12c176",
-	3,
+	1,
 	'',
-	'');
+	'',
+	0);
 INSERT INTO SM_TAH
 	VALUES ("768d76a5-2fed-4bd0-b15d-d3d1f223d1fe",
 	"7155cbee-2ad5-470a-b1c1-837f7f12c176",
@@ -286,9 +290,10 @@ INSERT INTO SM_AH
 INSERT INTO SM_ACT
 	VALUES ("768d76a5-2fed-4bd0-b15d-d3d1f223d1fe",
 	"7155cbee-2ad5-470a-b1c1-837f7f12c176",
-	3,
+	1,
 	'',
-	'');
+	'',
+	0);
 INSERT INTO SM_TAH
 	VALUES ("73b3ca01-fc14-4a2f-b3cd-ccfccd2e520f",
 	"7155cbee-2ad5-470a-b1c1-837f7f12c176",
@@ -299,9 +304,10 @@ INSERT INTO SM_AH
 INSERT INTO SM_ACT
 	VALUES ("73b3ca01-fc14-4a2f-b3cd-ccfccd2e520f",
 	"7155cbee-2ad5-470a-b1c1-837f7f12c176",
-	3,
+	1,
 	'',
-	'');
+	'',
+	0);
 INSERT INTO GD_MD
 	VALUES ("0cc0c2cb-a4cf-4ce7-be4f-1f4a8e15ff0d",
 	8,
@@ -319,13 +325,15 @@ INSERT INTO GD_MD
 	0,
 	0,
 	0,
-	'');
+	'4.1.17',
+	'MicrowaveOven::components::MicrowaveOven::Microwave Oven::Beeper::Instance State Machine');
 INSERT INTO GD_GE
 	VALUES ("098d76c0-2891-4a2e-990a-68126236a430",
 	"0cc0c2cb-a4cf-4ce7-be4f-1f4a8e15ff0d",
 	"0eb2c8d8-1c8e-4037-8dca-6cc0fc3aa1b5",
 	41,
-	0);
+	0,
+	'MicrowaveOven::components::MicrowaveOven::Microwave Oven::Beeper::Instance State Machine::Awaiting Beeper Request');
 INSERT INTO GD_SHP
 	VALUES ("098d76c0-2891-4a2e-990a-68126236a430");
 INSERT INTO GD_NCS
@@ -363,7 +371,8 @@ INSERT INTO GD_GE
 	"0cc0c2cb-a4cf-4ce7-be4f-1f4a8e15ff0d",
 	"7cdac7db-f41a-4d5f-885b-ee72b2a5e9e0",
 	41,
-	0);
+	0,
+	'MicrowaveOven::components::MicrowaveOven::Microwave Oven::Beeper::Instance State Machine::Beeping');
 INSERT INTO GD_SHP
 	VALUES ("ee3af572-4267-41ab-8c66-18b3523e2c1a");
 INSERT INTO GD_NCS
@@ -411,7 +420,8 @@ INSERT INTO GD_GE
 	"0cc0c2cb-a4cf-4ce7-be4f-1f4a8e15ff0d",
 	"7c2083ba-b1be-4b65-a323-e00510b6f3ea",
 	42,
-	0);
+	0,
+	'MicrowaveOven::components::MicrowaveOven::Microwave Oven::Beeper::Instance State Machine::Awaiting Beeper Request::MO_B1: start_beeping');
 INSERT INTO GD_CON
 	VALUES ("cb8ce8ed-19aa-4208-a54f-a532c1a3330e",
 	"00000000-0000-0000-0000-000000000000");
@@ -510,7 +520,8 @@ INSERT INTO GD_GE
 	"0cc0c2cb-a4cf-4ce7-be4f-1f4a8e15ff0d",
 	"712aab97-8e10-4a0b-9136-808273ef1378",
 	42,
-	0);
+	0,
+	'MicrowaveOven::components::MicrowaveOven::Microwave Oven::Beeper::Instance State Machine::Beeping::MO_B3: beeping_stopped');
 INSERT INTO GD_CON
 	VALUES ("d52632fe-8a4d-495c-a9a6-e22822ef38e9",
 	"00000000-0000-0000-0000-000000000000");
@@ -609,7 +620,8 @@ INSERT INTO GD_GE
 	"0cc0c2cb-a4cf-4ce7-be4f-1f4a8e15ff0d",
 	"f788b4f6-4881-406e-bd27-b59c8be43404",
 	42,
-	0);
+	0,
+	'MicrowaveOven::components::MicrowaveOven::Microwave Oven::Beeper::Instance State Machine::Beeping::MO_B2: beep_delay_over');
 INSERT INTO GD_CON
 	VALUES ("cdbe58ee-7f6e-4f25-b818-29ff33501894",
 	"00000000-0000-0000-0000-000000000000");
@@ -734,7 +746,8 @@ INSERT INTO GD_GE
 	"0cc0c2cb-a4cf-4ce7-be4f-1f4a8e15ff0d",
 	"205b38d7-2df2-49d7-83b5-9bbeb9ec3e7d",
 	42,
-	0);
+	0,
+	'MicrowaveOven::components::MicrowaveOven::Microwave Oven::Beeper::Instance State Machine::Beeping::MO_B4: stop_beeping');
 INSERT INTO GD_CON
 	VALUES ("c1fbadfa-c29a-4ced-8f47-88caa5b6bdb0",
 	"00000000-0000-0000-0000-000000000000");
