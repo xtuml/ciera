@@ -4,8 +4,9 @@ import java.util.Calendar;
 
 import io.ciera.runtime.summit.components.IComponent;
 import io.ciera.runtime.summit.exceptions.XtumlException;
-import io.ciera.runtime.summit.statemachine.IEvent;
+import io.ciera.runtime.summit.statemachine.EventHandle;
 import io.ciera.runtime.summit.time.Timer;
+import io.ciera.runtime.summit.time.TimerHandle;
 import io.ciera.runtime.summit.types.Date;
 import io.ciera.runtime.summit.types.TimeStamp;
 import io.ciera.runtime.summit.util.TIM;
@@ -65,46 +66,52 @@ public class TIMImpl<C extends IComponent<C>> extends Utility<C> implements TIM 
     }
 
     @Override
-    public boolean timer_add_time(int microseconds, Timer timer_inst_ref) throws XtumlException {
-        boolean success = getRunContext().cancelTimer(timer_inst_ref);
-        timer_inst_ref.addTime(microseconds);
-        getRunContext().addTimer(timer_inst_ref);
-        return success;
+    public boolean timer_add_time(int microseconds, TimerHandle timer_inst_ref) throws XtumlException {
+    	Timer timer = getRunContext().getTimer(timer_inst_ref);
+    	if ( null != timer ) {
+    		timer.addTime(microseconds);
+    		return true;
+    	}
+    	else return false;
     }
 
     @Override
-    public boolean timer_cancel(Timer timer_inst_ref) throws XtumlException {
+    public boolean timer_cancel(TimerHandle timer_inst_ref) throws XtumlException {
         return getRunContext().cancelTimer(timer_inst_ref);
     }
 
     @Override
-    public int timer_remaining_time(Timer timer_inst_ref) throws XtumlException {
-        return (int) (timer_inst_ref.getWakeUpTime() - getRunContext().time() * 1000);
+    public int timer_remaining_time(TimerHandle timer_inst_ref) throws XtumlException {
+    	Timer timer = getRunContext().getTimer(timer_inst_ref);
+    	if ( null != timer ) {
+            return timer.getWakeUpTime() - Math.toIntExact(getRunContext().time());
+    	}
+    	else return 0;
     }
 
     @Override
-    public boolean timer_reset_time(int microseconds, Timer timer_inst_ref) throws XtumlException {
-        boolean success = getRunContext().cancelTimer(timer_inst_ref);
-        timer_inst_ref.setPeriod(microseconds);
-        timer_inst_ref.reset(getRunContext().time() * 1000);
-        getRunContext().addTimer(timer_inst_ref);
-        return success;
+    public boolean timer_reset_time(int microseconds, TimerHandle timer_inst_ref) throws XtumlException {
+    	Timer timer = getRunContext().getTimer(timer_inst_ref);
+    	if ( null != timer ) {
+            timer.setPeriod(microseconds);
+            timer.reset(Math.toIntExact(getRunContext().time()));
+    		return true;
+    	}
+    	else return false;
     }
 
     @Override
-    public Timer timer_start(IEvent event_inst, int microseconds) throws XtumlException {
+    public TimerHandle timer_start(EventHandle event_inst, int microseconds) throws XtumlException {
         Timer timer = new Timer(event_inst, microseconds, false);
-        timer.reset(getRunContext().time() * 1000);
-        getRunContext().addTimer(timer);
-        return timer;
+        timer.reset(Math.toIntExact(getRunContext().time()));
+        return getRunContext().addTimer(timer);
     }
 
     @Override
-    public Timer timer_start_recurring(IEvent event_inst, int microseconds) throws XtumlException {
+    public TimerHandle timer_start_recurring(EventHandle event_inst, int microseconds) throws XtumlException {
         Timer timer = new Timer(event_inst, microseconds, true);
-        timer.reset(getRunContext().time() * 1000);
-        getRunContext().addTimer(timer);
-        return timer;
+        timer.reset(Math.toIntExact(getRunContext().time()));
+        return getRunContext().addTimer(timer);
     }
 
 }

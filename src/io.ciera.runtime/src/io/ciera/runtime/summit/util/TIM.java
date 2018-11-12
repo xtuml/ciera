@@ -1,8 +1,8 @@
 package io.ciera.runtime.summit.util;
 
 import io.ciera.runtime.summit.exceptions.XtumlException;
-import io.ciera.runtime.summit.statemachine.IEvent;
-import io.ciera.runtime.summit.time.Timer;
+import io.ciera.runtime.summit.statemachine.EventHandle;
+import io.ciera.runtime.summit.time.TimerHandle;
 import io.ciera.runtime.summit.types.Date;
 import io.ciera.runtime.summit.types.TimeStamp;
 
@@ -26,16 +26,16 @@ public interface TIM {
 
     public int get_second(Date date) throws XtumlException;
 
-    public boolean timer_add_time(int microseconds, Timer timer_inst_ref) throws XtumlException;
+    public boolean timer_add_time(int microseconds, TimerHandle timer_inst_ref) throws XtumlException;
 
-    public boolean timer_cancel(Timer timer_inst_ref) throws XtumlException;
+    public boolean timer_cancel(TimerHandle timer_inst_ref) throws XtumlException;
 
-    public int timer_remaining_time(Timer timer_inst_ref) throws XtumlException;
+    public int timer_remaining_time(TimerHandle timer_inst_ref) throws XtumlException;
 
-    public boolean timer_reset_time(int microseconds, Timer timer_inst_ref) throws XtumlException;
+    public boolean timer_reset_time(int microseconds, TimerHandle timer_inst_ref) throws XtumlException;
 
-    public Timer timer_start(IEvent event_inst, int microseconds) throws XtumlException;
+    public TimerHandle timer_start(EventHandle event_inst, int microseconds) throws XtumlException;
 
-    public Timer timer_start_recurring(IEvent event_inst, int microseconds) throws XtumlException;
+    public TimerHandle timer_start_recurring(EventHandle event_inst, int microseconds) throws XtumlException;
 
 }

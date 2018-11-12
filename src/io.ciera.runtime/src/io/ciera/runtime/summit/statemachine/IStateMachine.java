@@ -13,5 +13,7 @@ public interface IStateMachine<T extends IModelInstance<T, C>, C extends ICompon
     public ITransition[][] getStateEventMatrix();
 
     public void transition(IEvent event) throws XtumlException;
+    
+    public int getCurrentState();
 
 }

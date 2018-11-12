@@ -5,6 +5,7 @@ import io.ciera.runtime.summit.application.tasks.GeneratedEventTask;
 import io.ciera.runtime.summit.application.tasks.GeneratedEventToSelfTask;
 import io.ciera.runtime.summit.exceptions.StateMachineException;
 import io.ciera.runtime.summit.exceptions.XtumlException;
+import io.ciera.runtime.summit.statemachine.EventHandle;
 import io.ciera.runtime.summit.statemachine.IEvent;
 import io.ciera.runtime.summit.statemachine.IEventTarget;
 
@@ -27,19 +28,29 @@ public abstract class Component<C extends IComponent<C>> implements IComponent<C
     }
 
     @Override
-    public void generate(IEvent event) throws XtumlException {
-        if (null != event && null != event.getTarget()) {
-            if (event.toSelf())
-                generateToSelf(event, event.getTarget());
-            else
-                generate(event, event.getTarget());
-        } else {
-            throw new StateMachineException("Event has not target");
-        }
+    public void generate(EventHandle e) throws XtumlException {
+    	if ( null != e ) {
+    		IEvent event = getRunContext().getEvent(e);
+    		if ( null != event && null != event.getTarget() ) {
+                if (event.toSelf()) {
+                    generateToSelf(event, event.getTarget());
+                }
+                else {
+                    generate(event, event.getTarget());
+                }
+                getRunContext().deregisterEvent(e);
+    		}
+    		else {
+                throw new StateMachineException("Event has not target");
+    		}
+    	}
+    	else {
+            throw new StateMachineException("Could not acquire event instance");
+    	}
     }
 
     private void generate(IEvent event, IEventTarget target) {
-        runContext.execute(new GeneratedEventTask() {
+        getRunContext().execute(new GeneratedEventTask() {
             @Override
             public void run() throws XtumlException {
                 target.accept(event);
@@ -48,7 +59,7 @@ public abstract class Component<C extends IComponent<C>> implements IComponent<C
     }
 
     private void generateToSelf(IEvent event, IEventTarget target) {
-        runContext.execute(new GeneratedEventToSelfTask() {
+        getRunContext().execute(new GeneratedEventToSelfTask() {
             @Override
             public void run() throws XtumlException {
                 target.accept(event);

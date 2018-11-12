@@ -110,4 +110,9 @@ public abstract class ModelInstance<T extends IModelInstance<T, C>, C extends IC
         throw new StateMachineException("Event generated to passive instance");
     }
 
+    @Override
+    public int getCurrentState() throws XtumlException {
+        throw new StateMachineException("Read of current state on passive instance");
+    }
+
 }

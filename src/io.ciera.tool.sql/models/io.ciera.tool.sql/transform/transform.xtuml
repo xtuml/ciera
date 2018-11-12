@@ -200,6 +200,32 @@ while ( not_empty attribute )
   select any attribute related by obj->Attribute[R410] where ( index == selected.order);
 end while;
 
+// create a loader and serializer for current_state
+select one sm related by obj->StateMachine[R4750];
+if ( not_empty sm )
+  // create the serializer
+  create object instance attr_serializer of Z_AttributeSerializer;
+  relate inst_serializer to attr_serializer across R3002;
+  attr_serializer.attr_name = "currentState";
+  if ( not_empty prev_attr_serializer )
+    relate prev_attr_serializer to attr_serializer across R3003.''precedes'';
+  end if;
+  accessor_name = "getCurrentState()";
+  create object instance int_serializer of Z_IntegerSerializer;
+  relate int_serializer to attr_serializer across R3004;
+  int_serializer.value = accessor_name;
+  // create the loader
+  create object instance attr_loader of Z_AttributeLoader;
+  relate inst_loader to attr_loader across R3006;
+  if (not_empty prev_attr_loader )
+    relate prev_attr_loader to attr_loader across R3007.''precedes'';
+    attr_loader.index = prev_attr_loader.index + 1;
+  end if;
+  attr_loader.value_index = value_index;
+  create object instance int_loader of Z_IntegerLoader;
+  relate int_loader to attr_loader across R3008;
+end if;
+
 // add to the imports
 select one class_file related by obj->File[R401];
 select one file related by pop_loader->GeneralFile[R3009]->File[R401];

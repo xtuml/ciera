@@ -55,8 +55,6 @@ public abstract class StateMachine<T extends IModelInstance<T, C>, C extends ICo
             } else {
                 throw new XtumlException("Unknown state event matrix entry");
             }
-            // deregister consumed event
-            event.deregister();
     	}
 
     }
@@ -76,6 +74,11 @@ public abstract class StateMachine<T extends IModelInstance<T, C>, C extends ICo
                 /* do nothing */ }
         }
         return name;
+    }
+    
+    @Override
+    public int getCurrentState() {
+    	return currentState;
     }
 
     @Override

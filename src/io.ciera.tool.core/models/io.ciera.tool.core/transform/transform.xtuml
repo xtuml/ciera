@@ -619,13 +619,13 @@ for each s_dt in s_dts
       type_package = "io.ciera.runtime.summit.types";
       type_default_value = "null";
     elif ( "inst<Event>" == s_dt.Name )
-      type_name = "IEvent";
+      type_name = "EventHandle";
       type_package = "io.ciera.runtime.summit.statemachine";
-      type_default_value = "null";
+      type_default_value = "new EventHandle()";
     elif ( "inst_ref<Timer>" == s_dt.Name )
-      type_name = "Timer";
+      type_name = "TimerHandle";
       type_package = "io.ciera.runtime.summit.time";
-      type_default_value = "null";
+      type_default_value = "new TimerHandle()";
     elif ( "integer" == s_dt.Name )
       type_name = "int";
       type_primitive = true;
@@ -964,6 +964,7 @@ else
 end if;
 attr.base_name = o_attr.Name;
 attr.order = param.index;
+attr.default_value = "";
 relate attr to obj across R410;
 
 // set part of identifier
@@ -987,6 +988,11 @@ end if;
 select many s_dims related by o_attr->S_DIM[R120];
 type = TypeReference::getInstance( s_dt:s_dt, s_dims:s_dims );
 relate type to attr across R424;
+
+// set default value for unique id attributes
+if ( "UniqueId" == type.type_name )
+  attr.default_value = "UniqueId.random()";
+end if;
 
 // link OOA attribute
 relate o_attr to attr across R414;

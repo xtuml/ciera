@@ -1,29 +1,28 @@
 package io.ciera.runtime.summit.time;
 
-import io.ciera.runtime.summit.statemachine.IEvent;
+import io.ciera.runtime.summit.statemachine.EventHandle;
 import io.ciera.runtime.summit.types.IXtumlType;
-import io.ciera.runtime.summit.types.UniqueId;
 
 public class Timer implements Comparable<Timer>, IXtumlType<Timer> {
 
-	private UniqueId timerId;
-    private IEvent eventToGenerate;
-    private long wakeUpTime; // time to wake up in microseconds since the epoch
-    private long period; // duration in microseconds
+	private TimerHandle timerId;
+    private EventHandle eventToGenerate;
+    private int wakeUpTime; // time to wake up in microseconds since the start of the application
+    private int period;     // duration in microseconds
     private boolean recurring;
 
-    public Timer(IEvent e, int microseconds, boolean recur) {
-    	timerId = UniqueId.random();
+    public Timer(EventHandle e, int microseconds, boolean recur) {
+    	timerId = TimerHandle.random();
         eventToGenerate = e;
         recurring = recur;
         period = microseconds;
     }
 
-    public IEvent getEventToGenerate() {
+    public EventHandle getEventToGenerate() {
         return eventToGenerate;
     }
 
-    public long getWakeUpTime() {
+    public int getWakeUpTime() {
         return wakeUpTime;
     }
 
@@ -35,12 +34,16 @@ public class Timer implements Comparable<Timer>, IXtumlType<Timer> {
         period = microseconds;
     }
 
-    public void reset(long currentTimeMicro) {
+    public void reset(int currentTimeMicro) {
         wakeUpTime = currentTimeMicro + period;
     }
 
     public boolean isRecurring() {
         return recurring;
+    }
+    
+    public TimerHandle getId() {
+    	return timerId;
     }
 
     @Override
@@ -57,10 +60,5 @@ public class Timer implements Comparable<Timer>, IXtumlType<Timer> {
     public Timer value() {
         return this;
     }
-
-	@Override
-	public String serialize() {
-		return "\"" + timerId.toString() + "\"";
-	}
 
 }

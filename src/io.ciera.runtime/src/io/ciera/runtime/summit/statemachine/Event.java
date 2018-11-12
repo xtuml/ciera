@@ -3,11 +3,9 @@ package io.ciera.runtime.summit.statemachine;
 import io.ciera.runtime.summit.application.IRunContext;
 import io.ciera.runtime.summit.exceptions.StateMachineException;
 import io.ciera.runtime.summit.exceptions.XtumlException;
-import io.ciera.runtime.summit.types.UniqueId;
 
 public abstract class Event implements IEvent {
 	
-	private UniqueId eventId;
 	private IRunContext context;
 
     private IEventTarget target;
@@ -20,12 +18,10 @@ public abstract class Event implements IEvent {
     }
 
     public Event(IRunContext runContext, Object... data) {
-    	eventId = UniqueId.random();
     	context = runContext;
         dataItems = data;
         target = null;
         toSelf = false;
-        context.registerEvent(this);
     }
 
     @Override
@@ -42,17 +38,17 @@ public abstract class Event implements IEvent {
     }
 
     @Override
-    public IEvent to(IEventTarget target) {
+    public EventHandle to(IEventTarget target) {
         this.target = target;
         toSelf = false;
-        return this;
+        return context.registerEvent(this);
     }
 
     @Override
-    public IEvent toSelf(IEventTarget target) {
+    public EventHandle toSelf(IEventTarget target) {
         this.target = target;
         toSelf = true;
-        return this;
+        return context.registerEvent(this);
     }
 
     @Override
@@ -61,23 +57,8 @@ public abstract class Event implements IEvent {
     }
 
     @Override
-    public IEvent value() {
-        return this;
-    }
-
-    @Override
     public String getName() {
         return getClass().getSimpleName();
     }
-
-	@Override
-	public void deregister() {
-		context.deregisterEvent(this);
-	}
-
-	@Override
-	public String serialize() {
-		return "\"" + eventId.toString() + "\"";
-	}
 
 }

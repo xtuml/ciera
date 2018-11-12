@@ -1,8 +1,10 @@
 package io.ciera.runtime.summit.application;
 
+import io.ciera.runtime.summit.statemachine.EventHandle;
 import io.ciera.runtime.summit.statemachine.EventSet;
 import io.ciera.runtime.summit.statemachine.IEvent;
 import io.ciera.runtime.summit.time.Timer;
+import io.ciera.runtime.summit.time.TimerHandle;
 import io.ciera.runtime.summit.time.TimerSet;
 
 public interface IRunContext {
@@ -17,17 +19,21 @@ public interface IRunContext {
 
     public String[] args();
 
-    public void addTimer(Timer timer);
+    public TimerHandle addTimer(Timer timer);
 
-    public boolean cancelTimer(Timer timer);
+    public boolean cancelTimer(TimerHandle t);
     
     public TimerSet getActiveTimers();
     
-    public void registerEvent(IEvent event);
+    public Timer getTimer(TimerHandle t);
+    
+    public EventHandle registerEvent(IEvent event);
 
-    public boolean deregisterEvent(IEvent event);
+    public void deregisterEvent(EventHandle e);
 
     public EventSet getActiveEvents();
+    
+    public IEvent getEvent(EventHandle e);
 
     public long time();
 

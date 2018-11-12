@@ -10,12 +10,18 @@ ${state_declarations}
 
     public ${self.name}(${self.class_name} self, ${self.comp_name} context) {
 .if ( "" != initial_state )
-        super(context, ${initial_state});
-.else
-        super(context);
-.end if
+        this(self, context, ${initial_state});
+    }
+
+    public ${self.name}(${self.class_name} self, ${self.comp_name} context, int initialState) {
+        super(context, initialState);
         this.self = self;
     }
+.else
+        super(context);
+        this.self = self;
+    }
+.end if
 
 ${state_actions}
 

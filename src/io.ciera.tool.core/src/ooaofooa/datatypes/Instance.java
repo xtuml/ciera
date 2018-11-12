@@ -24,7 +24,6 @@ public class Instance extends InstRefMapping<Instance> implements IXtumlType<Ins
         return obj;
     }
 
-    @Override
     public String serialize() {
         if ("".equals(obj))
             return "";
