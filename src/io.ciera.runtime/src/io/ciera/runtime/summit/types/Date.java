@@ -9,9 +9,7 @@ public class Date extends TimeStamp {
     private Calendar cal;
 
     public Date() {
-        super();
-        cal = Calendar.getInstance();
-        cal.setTimeInMillis(0);
+    	this(0L);
     }
 
     public Date(long timestamp) {
@@ -45,7 +43,7 @@ public class Date extends TimeStamp {
     }
 
     public static Date now(IRunContext runContext) {
-        return new Date(runContext.time());
+        return new Date(runContext.time() / 1000L);
     }
 
 }

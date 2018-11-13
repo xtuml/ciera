@@ -21,6 +21,10 @@ public abstract class ModelInstance<T extends IModelInstance<T, C>, C extends IC
     public ModelInstance() {
         instanceId = UniqueId.random();
     }
+    
+    public ModelInstance(UniqueId id) {
+    	instanceId = id;
+    }
 
     @Override
     public UniqueId getInstanceId() {

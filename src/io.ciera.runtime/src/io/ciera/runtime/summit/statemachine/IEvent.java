@@ -4,6 +4,8 @@ import io.ciera.runtime.summit.exceptions.XtumlException;
 
 public interface IEvent {
 
+	public EventHandle getEventHandle();
+	
     public String getName();
 
     public int getId();
@@ -15,6 +17,8 @@ public interface IEvent {
     public boolean toSelf();
 
     public EventHandle to(IEventTarget target);
+
+    public void to(EventHandle e, IEventTarget target);
 
     public EventHandle toSelf(IEventTarget target);
     

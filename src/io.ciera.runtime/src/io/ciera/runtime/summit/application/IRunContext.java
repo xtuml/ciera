@@ -27,7 +27,7 @@ public interface IRunContext {
     
     public Timer getTimer(TimerHandle t);
     
-    public EventHandle registerEvent(IEvent event);
+    public void registerEvent(IEvent event);
 
     public void deregisterEvent(EventHandle e);
 

@@ -7,8 +7,8 @@ public class Timer implements Comparable<Timer>, IXtumlType<Timer> {
 
 	private TimerHandle timerId;
     private EventHandle eventToGenerate;
-    private int wakeUpTime; // time to wake up in microseconds since the start of the application
-    private int period;     // duration in microseconds
+    private long wakeUpTime;   // time to wake up in microseconds since the epoch
+    private int period;        // duration in microseconds
     private boolean recurring;
 
     public Timer(EventHandle e, int microseconds, boolean recur) {
@@ -18,11 +18,19 @@ public class Timer implements Comparable<Timer>, IXtumlType<Timer> {
         period = microseconds;
     }
 
+    public Timer(TimerHandle id, EventHandle e, long wakeUpTime, int period, boolean recur) {
+    	timerId = id;
+    	eventToGenerate = e;
+    	this.wakeUpTime = wakeUpTime;
+    	this.period = period;
+    	recurring = recur;
+    }
+
     public EventHandle getEventToGenerate() {
         return eventToGenerate;
     }
 
-    public int getWakeUpTime() {
+    public long getWakeUpTime() {
         return wakeUpTime;
     }
 
@@ -33,8 +41,12 @@ public class Timer implements Comparable<Timer>, IXtumlType<Timer> {
     public void setPeriod(int microseconds) {
         period = microseconds;
     }
+    
+    public int getPeriod() {
+    	return period;
+    }
 
-    public void reset(int currentTimeMicro) {
+    public void reset(long currentTimeMicro) {
         wakeUpTime = currentTimeMicro + period;
     }
 

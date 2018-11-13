@@ -14,21 +14,38 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'select many inst_serializers related by self->Z_InstanceSerializer[R3001];
-for each inst_serializer in inst_serializers
-  inst_serializer.render();
+	'select many class_inst_serializers related by self->Z_InstanceSerializer[R3001]->ClassInstanceSerializer[R3015]->Z_InstanceSerializer[R3015];
+for each class_inst_serializer in class_inst_serializers
+  class_inst_serializer.render();
+end for;
+select many timer_serializers related by self->Z_InstanceSerializer[R3001]->TimerInstanceSerializer[R3015]->Z_InstanceSerializer[R3015];
+for each timer_serializer in timer_serializers
+  timer_serializer.render();
+end for;
+select many event_serializers related by self->Z_InstanceSerializer[R3001]->EventInstanceSerializer[R3015]->Z_InstanceSerializer[R3015];
+for each event_serializer in event_serializers
+  event_serializer.render();
 end for;
 instance_serializers = TEMP::body();
 TEMP::clear();
 
+select many inst_serializers related by self->Z_InstanceSerializer[R3001];
 for each inst_serializer in inst_serializers
   inst_serializer.render_def();
 end for;
 instance_serializer_definitions = TEMP::body();
 
-select many inst_loaders related by self->Z_InstanceLoader[R3005];
-for each inst_loader in inst_loaders
-  inst_loader.render();
+select many class_inst_loaders related by self->Z_InstanceLoader[R3005]->ClassInstanceLoader[R3016]->Z_InstanceLoader[R3016];
+for each class_inst_loader in class_inst_loaders
+  class_inst_loader.render();
+end for;
+select many timer_loaders related by self->Z_InstanceLoader[R3005]->TimerInstanceLoader[R3016]->Z_InstanceLoader[R3016];
+for each timer_loader in timer_loaders
+  timer_loader.render();
+end for;
+select many event_loaders related by self->Z_InstanceLoader[R3005]->EventInstanceLoader[R3016]->Z_InstanceLoader[R3016];
+for each event_loader in event_loaders
+  event_loader.render();
 end for;
 instance_loaders = TEMP::body();
 TEMP::clear();
@@ -51,10 +68,18 @@ end for;
 
 instance_count = "";
 sep = "";
-for each inst_serializer in inst_serializers
-  instance_count = instance_count + sep + "population." + inst_serializer.class_name + "_instances().size()";
+for each class_inst_serializer in class_inst_serializers
+  instance_count = instance_count + sep + "population." + class_inst_serializer.class_name + "_instances().size()";
   sep = " + ";
 end for;
+if ( not_empty timer_serializers )
+  instance_count = instance_count + sep + "population.getRunContext().getActiveTimers().size()";
+  sep = " + ";
+end if;
+if ( not_empty event_serializers )
+  instance_count = instance_count + sep + "population.getRunContext().getActiveEvents().size()";
+  sep = " + ";
+end if;
 
 select one general_file related by self->GeneralFile[R3009];
 select one file related by general_file->File[R401];

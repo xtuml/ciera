@@ -4,10 +4,10 @@ import io.ciera.runtime.summit.application.IRunContext;
 import io.ciera.runtime.summit.exceptions.StateMachineException;
 import io.ciera.runtime.summit.exceptions.XtumlException;
 
-public abstract class Event implements IEvent {
+public abstract class Event implements IEvent, Comparable<IEvent> {
 	
-	private IRunContext context;
-
+	private EventHandle eventHandle;
+	private IRunContext runContext;
     private IEventTarget target;
     private boolean toSelf;
 
@@ -18,7 +18,7 @@ public abstract class Event implements IEvent {
     }
 
     public Event(IRunContext runContext, Object... data) {
-    	context = runContext;
+    	this.runContext = runContext;
         dataItems = data;
         target = null;
         toSelf = false;
@@ -31,6 +31,11 @@ public abstract class Event implements IEvent {
         } else
             throw new StateMachineException("Invalid index");
     }
+    
+    @Override
+    public EventHandle getEventHandle() {
+    	return eventHandle;
+    }
 
     @Override
     public IEventTarget getTarget() {
@@ -39,16 +44,25 @@ public abstract class Event implements IEvent {
 
     @Override
     public EventHandle to(IEventTarget target) {
-        this.target = target;
-        toSelf = false;
-        return context.registerEvent(this);
+    	return to(EventHandle.random(), target, false);
     }
 
     @Override
     public EventHandle toSelf(IEventTarget target) {
+    	return to(EventHandle.random(), target, true);
+    }
+
+    @Override
+    public void to(EventHandle e, IEventTarget target) {
+        to(e, target, false);
+    }
+    
+    private EventHandle to(EventHandle e, IEventTarget target, boolean toSelf) {
         this.target = target;
-        toSelf = true;
-        return context.registerEvent(this);
+        this.toSelf = toSelf;
+        eventHandle = e;
+        runContext.registerEvent(this);
+        return eventHandle;
     }
 
     @Override
@@ -59,6 +73,22 @@ public abstract class Event implements IEvent {
     @Override
     public String getName() {
         return getClass().getSimpleName();
+    }
+
+    @Override
+    public int compareTo(IEvent e) {
+    	return eventHandle.compareTo(e.getEventHandle());
+    }
+    
+    @Override
+    public boolean equals(Object o) {
+    	if (null != o && o instanceof IEvent) return eventHandle.equals(((IEvent)o).getEventHandle());
+    	else return false;
+    }
+    
+    @Override
+    public int hashCode() {
+    	return eventHandle.hashCode();
     }
 
 }

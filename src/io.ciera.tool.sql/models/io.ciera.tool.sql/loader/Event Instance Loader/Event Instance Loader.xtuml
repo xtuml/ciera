@@ -1,0 +1,402 @@
+-- BP 7.1.6 content: ModelClass syschar: 3 persistence-version: 7.1.6
+
+INSERT INTO O_OBJ
+	VALUES ("256462c0-8bcc-4aee-b69c-73b1b2d9fa54",
+	'Event Instance Loader',
+	3023,
+	'EventInstanceLoader',
+	'',
+	"00000000-0000-0000-0000-000000000000");
+INSERT INTO O_TFR
+	VALUES ("8000915b-2a5c-434d-83a7-365137f45a9d",
+	"256462c0-8bcc-4aee-b69c-73b1b2d9fa54",
+	'render',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'body_save = TEMP::body(); // TODO
+TEMP::clear();
+
+select any attr_loader related by self->Z_InstanceLoader[R3016]->Z_AttributeLoader[R3006];
+select one prev_attr_loader related by attr_loader->Z_AttributeLoader[R3007.''follows''];
+while ( not_empty prev_attr_loader )
+  attr_loader = prev_attr_loader;
+  select one prev_attr_loader related by attr_loader->Z_AttributeLoader[R3007.''follows''];
+end while;
+sep = "";
+while ( not_empty attr_loader )
+  if ( attr_loader.index > 1 )
+    TEMP::append( s:sep );
+    attr_loader.render();
+    sep = ", ";
+  end if;
+  select one attr_loader related by attr_loader->Z_AttributeLoader[R3007.''precedes''];
+end while;
+attribute_loaders = TEMP::body();
+TEMP::clear();
+
+class_name = STRING::substr( s:self.evt_class_name, begin:0, end:STRING::indexof( haystack:self.evt_class_name, needle:"_" ) ) + "Impl." +
+             STRING::substr( s:self.evt_class_name, begin:STRING::indexof( haystack:self.evt_class_name, needle:"_" ) + 1, end:-1 );
+event_handle = "EventHandle.deserialize(values.get(0))";
+event_target = "UniqueId.deserialize(values.get(1))";
+
+TEMP::append( s:body_save );
+TEMP::include( file:"loader/t.eventinstanceloader.java", symbol_table:NULL_SYMBOL_TABLE );',
+	1,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	0);
+INSERT INTO O_REF
+	VALUES ("256462c0-8bcc-4aee-b69c-73b1b2d9fa54",
+	"9b77d2ff-7076-429c-9845-c0dc08682978",
+	0,
+	"f3a0f58b-f91c-40ee-88c4-86df6bc55d9a",
+	"53b5ba1f-82b6-4a90-b131-4ae79d758bd0",
+	"3c28bcf2-10f4-41e4-b68e-27ad1f15c695",
+	"2d20d8fe-2af7-4d82-8eee-46812ed16c3e",
+	"9d1fabbf-b56b-4b14-a712-87e48f9bf036",
+	"26c70d84-5ad7-4dfd-a763-dc54ded3084e",
+	"00000000-0000-0000-0000-000000000000",
+	0,
+	'',
+	'Instance Loader',
+	'loader_name',
+	'R3016');
+INSERT INTO R_RGO_PROXY
+	VALUES ("256462c0-8bcc-4aee-b69c-73b1b2d9fa54",
+	"53b5ba1f-82b6-4a90-b131-4ae79d758bd0",
+	"3c28bcf2-10f4-41e4-b68e-27ad1f15c695",
+	'../loader.xtuml');
+INSERT INTO O_RTIDA_PROXY
+	VALUES ("f3a0f58b-f91c-40ee-88c4-86df6bc55d9a",
+	"9b77d2ff-7076-429c-9845-c0dc08682978",
+	0,
+	"53b5ba1f-82b6-4a90-b131-4ae79d758bd0",
+	"2d20d8fe-2af7-4d82-8eee-46812ed16c3e",
+	'../loader.xtuml');
+INSERT INTO O_RATTR
+	VALUES ("9d1fabbf-b56b-4b14-a712-87e48f9bf036",
+	"256462c0-8bcc-4aee-b69c-73b1b2d9fa54",
+	"84875bfc-0aa6-4032-ab0e-b2162c106b46",
+	"cf3f6a66-3c80-4818-a5ad-6b491a84e448",
+	1,
+	'name');
+INSERT INTO O_BATTR_PROXY
+	VALUES ("84875bfc-0aa6-4032-ab0e-b2162c106b46",
+	"cf3f6a66-3c80-4818-a5ad-6b491a84e448",
+	'../../../../../io.ciera.tool.core/models/io.ciera.tool.core/architecture/file/File/File.xtuml');
+INSERT INTO O_ATTR
+	VALUES ("9d1fabbf-b56b-4b14-a712-87e48f9bf036",
+	"256462c0-8bcc-4aee-b69c-73b1b2d9fa54",
+	"00000000-0000-0000-0000-000000000000",
+	'loader_name',
+	'',
+	'',
+	'loader_name',
+	2,
+	"ba5eda7a-def5-0000-0000-000000000007",
+	'',
+	'');
+INSERT INTO O_REF
+	VALUES ("256462c0-8bcc-4aee-b69c-73b1b2d9fa54",
+	"9b77d2ff-7076-429c-9845-c0dc08682978",
+	0,
+	"3cd88d22-ec4c-4a6a-8d65-674280898260",
+	"53b5ba1f-82b6-4a90-b131-4ae79d758bd0",
+	"3c28bcf2-10f4-41e4-b68e-27ad1f15c695",
+	"2d20d8fe-2af7-4d82-8eee-46812ed16c3e",
+	"367e132e-8df2-4df1-940d-c9df319fa310",
+	"5b21cfbe-e059-4960-9f92-f502412fa41c",
+	"00000000-0000-0000-0000-000000000000",
+	0,
+	'',
+	'Instance Loader',
+	'loader_package',
+	'R3016');
+INSERT INTO O_RTIDA_PROXY
+	VALUES ("3cd88d22-ec4c-4a6a-8d65-674280898260",
+	"9b77d2ff-7076-429c-9845-c0dc08682978",
+	0,
+	"53b5ba1f-82b6-4a90-b131-4ae79d758bd0",
+	"2d20d8fe-2af7-4d82-8eee-46812ed16c3e",
+	'../loader.xtuml');
+INSERT INTO O_RATTR
+	VALUES ("367e132e-8df2-4df1-940d-c9df319fa310",
+	"256462c0-8bcc-4aee-b69c-73b1b2d9fa54",
+	"8fb8cbbf-8af1-4206-a2b0-a53023b8b11a",
+	"cf3f6a66-3c80-4818-a5ad-6b491a84e448",
+	1,
+	'package');
+INSERT INTO O_BATTR_PROXY
+	VALUES ("8fb8cbbf-8af1-4206-a2b0-a53023b8b11a",
+	"cf3f6a66-3c80-4818-a5ad-6b491a84e448",
+	'../../../../../io.ciera.tool.core/models/io.ciera.tool.core/architecture/file/File/File.xtuml');
+INSERT INTO O_ATTR
+	VALUES ("367e132e-8df2-4df1-940d-c9df319fa310",
+	"256462c0-8bcc-4aee-b69c-73b1b2d9fa54",
+	"9d1fabbf-b56b-4b14-a712-87e48f9bf036",
+	'loader_package',
+	'',
+	'',
+	'loader_package',
+	2,
+	"ba5eda7a-def5-0000-0000-000000000007",
+	'',
+	'');
+INSERT INTO O_REF
+	VALUES ("256462c0-8bcc-4aee-b69c-73b1b2d9fa54",
+	"9b77d2ff-7076-429c-9845-c0dc08682978",
+	0,
+	"82f283e9-0162-4aba-8ee7-7c7f3e90a91f",
+	"53b5ba1f-82b6-4a90-b131-4ae79d758bd0",
+	"3c28bcf2-10f4-41e4-b68e-27ad1f15c695",
+	"2d20d8fe-2af7-4d82-8eee-46812ed16c3e",
+	"4b5dbbc6-e526-4b92-98c8-0f6d7da6c4bb",
+	"1500ae4d-76b3-4ee2-bc30-d2a125e75a73",
+	"00000000-0000-0000-0000-000000000000",
+	0,
+	'',
+	'Instance Loader',
+	'class_name',
+	'R3016');
+INSERT INTO O_RTIDA_PROXY
+	VALUES ("82f283e9-0162-4aba-8ee7-7c7f3e90a91f",
+	"9b77d2ff-7076-429c-9845-c0dc08682978",
+	0,
+	"53b5ba1f-82b6-4a90-b131-4ae79d758bd0",
+	"2d20d8fe-2af7-4d82-8eee-46812ed16c3e",
+	'../loader.xtuml');
+INSERT INTO O_RATTR
+	VALUES ("4b5dbbc6-e526-4b92-98c8-0f6d7da6c4bb",
+	"256462c0-8bcc-4aee-b69c-73b1b2d9fa54",
+	"82f283e9-0162-4aba-8ee7-7c7f3e90a91f",
+	"9b77d2ff-7076-429c-9845-c0dc08682978",
+	1,
+	'class_name');
+INSERT INTO O_BATTR_PROXY
+	VALUES ("82f283e9-0162-4aba-8ee7-7c7f3e90a91f",
+	"9b77d2ff-7076-429c-9845-c0dc08682978",
+	'../Instance Loader/Instance Loader.xtuml');
+INSERT INTO O_ATTR
+	VALUES ("4b5dbbc6-e526-4b92-98c8-0f6d7da6c4bb",
+	"256462c0-8bcc-4aee-b69c-73b1b2d9fa54",
+	"367e132e-8df2-4df1-940d-c9df319fa310",
+	'evt_class_name',
+	'',
+	'evt_',
+	'class_name',
+	1,
+	"ba5eda7a-def5-0000-0000-000000000007",
+	'',
+	'');
+INSERT INTO O_REF
+	VALUES ("256462c0-8bcc-4aee-b69c-73b1b2d9fa54",
+	"1dbec688-8d2c-4cd4-a8b4-27bf3ccaa1fd",
+	0,
+	"4e720386-2338-4c2e-bfab-7370b470cf09",
+	"93e97f24-39e7-4330-ac04-2a307193b00e",
+	"f2a265d4-ac8f-48d2-b607-98f983b0fa13",
+	"4798b403-bd7d-4eda-86fc-86cacff1a643",
+	"74e2c196-63fd-4969-9420-e195032f166b",
+	"2f12e83b-b8da-4897-b3b8-df515b53b1e9",
+	"00000000-0000-0000-0000-000000000000",
+	0,
+	'',
+	'Model Inst',
+	'package',
+	'R3017');
+INSERT INTO R_RGO_PROXY
+	VALUES ("256462c0-8bcc-4aee-b69c-73b1b2d9fa54",
+	"93e97f24-39e7-4330-ac04-2a307193b00e",
+	"f2a265d4-ac8f-48d2-b607-98f983b0fa13",
+	'../loader.xtuml');
+INSERT INTO O_RTIDA_PROXY
+	VALUES ("4e720386-2338-4c2e-bfab-7370b470cf09",
+	"1dbec688-8d2c-4cd4-a8b4-27bf3ccaa1fd",
+	0,
+	"93e97f24-39e7-4330-ac04-2a307193b00e",
+	"4798b403-bd7d-4eda-86fc-86cacff1a643",
+	'../loader.xtuml');
+INSERT INTO O_RATTR
+	VALUES ("74e2c196-63fd-4969-9420-e195032f166b",
+	"256462c0-8bcc-4aee-b69c-73b1b2d9fa54",
+	"8fb8cbbf-8af1-4206-a2b0-a53023b8b11a",
+	"cf3f6a66-3c80-4818-a5ad-6b491a84e448",
+	1,
+	'package');
+INSERT INTO O_ATTR
+	VALUES ("74e2c196-63fd-4969-9420-e195032f166b",
+	"256462c0-8bcc-4aee-b69c-73b1b2d9fa54",
+	"2c6ef69a-0e67-4405-9316-fc1c8e3b9766",
+	'class_package',
+	'',
+	'class_',
+	'package',
+	1,
+	"ba5eda7a-def5-0000-0000-000000000007",
+	'',
+	'');
+INSERT INTO O_REF
+	VALUES ("256462c0-8bcc-4aee-b69c-73b1b2d9fa54",
+	"1dbec688-8d2c-4cd4-a8b4-27bf3ccaa1fd",
+	0,
+	"422e73f9-8fcb-4e0e-a9b3-4e2183b6cae8",
+	"93e97f24-39e7-4330-ac04-2a307193b00e",
+	"f2a265d4-ac8f-48d2-b607-98f983b0fa13",
+	"4798b403-bd7d-4eda-86fc-86cacff1a643",
+	"2c6ef69a-0e67-4405-9316-fc1c8e3b9766",
+	"14ca9b82-799f-4ae0-acdf-4ebb88a28c64",
+	"00000000-0000-0000-0000-000000000000",
+	0,
+	'',
+	'Model Inst',
+	'name',
+	'R3017');
+INSERT INTO O_RTIDA_PROXY
+	VALUES ("422e73f9-8fcb-4e0e-a9b3-4e2183b6cae8",
+	"1dbec688-8d2c-4cd4-a8b4-27bf3ccaa1fd",
+	0,
+	"93e97f24-39e7-4330-ac04-2a307193b00e",
+	"4798b403-bd7d-4eda-86fc-86cacff1a643",
+	'../loader.xtuml');
+INSERT INTO O_RATTR
+	VALUES ("2c6ef69a-0e67-4405-9316-fc1c8e3b9766",
+	"256462c0-8bcc-4aee-b69c-73b1b2d9fa54",
+	"84875bfc-0aa6-4032-ab0e-b2162c106b46",
+	"cf3f6a66-3c80-4818-a5ad-6b491a84e448",
+	1,
+	'name');
+INSERT INTO O_ATTR
+	VALUES ("2c6ef69a-0e67-4405-9316-fc1c8e3b9766",
+	"256462c0-8bcc-4aee-b69c-73b1b2d9fa54",
+	"4b5dbbc6-e526-4b92-98c8-0f6d7da6c4bb",
+	'class_name',
+	'',
+	'class_',
+	'name',
+	1,
+	"ba5eda7a-def5-0000-0000-000000000007",
+	'',
+	'');
+INSERT INTO O_REF
+	VALUES ("256462c0-8bcc-4aee-b69c-73b1b2d9fa54",
+	"1dbec688-8d2c-4cd4-a8b4-27bf3ccaa1fd",
+	0,
+	"4262f267-7e69-4050-a672-633ce04a8fbe",
+	"93e97f24-39e7-4330-ac04-2a307193b00e",
+	"f2a265d4-ac8f-48d2-b607-98f983b0fa13",
+	"4798b403-bd7d-4eda-86fc-86cacff1a643",
+	"d385bf2b-0012-4647-bba8-027cb03a0488",
+	"ac845b79-beb5-497f-9636-fd8627f59578",
+	"00000000-0000-0000-0000-000000000000",
+	0,
+	'',
+	'Model Inst',
+	'comp_name',
+	'R3017');
+INSERT INTO O_RTIDA_PROXY
+	VALUES ("4262f267-7e69-4050-a672-633ce04a8fbe",
+	"1dbec688-8d2c-4cd4-a8b4-27bf3ccaa1fd",
+	0,
+	"93e97f24-39e7-4330-ac04-2a307193b00e",
+	"4798b403-bd7d-4eda-86fc-86cacff1a643",
+	'../loader.xtuml');
+INSERT INTO O_RATTR
+	VALUES ("d385bf2b-0012-4647-bba8-027cb03a0488",
+	"256462c0-8bcc-4aee-b69c-73b1b2d9fa54",
+	"84875bfc-0aa6-4032-ab0e-b2162c106b46",
+	"cf3f6a66-3c80-4818-a5ad-6b491a84e448",
+	1,
+	'name');
+INSERT INTO O_ATTR
+	VALUES ("d385bf2b-0012-4647-bba8-027cb03a0488",
+	"256462c0-8bcc-4aee-b69c-73b1b2d9fa54",
+	"74e2c196-63fd-4969-9420-e195032f166b",
+	'comp_name',
+	'',
+	'class_',
+	'comp_name',
+	2,
+	"ba5eda7a-def5-0000-0000-000000000007",
+	'',
+	'');
+INSERT INTO O_REF
+	VALUES ("256462c0-8bcc-4aee-b69c-73b1b2d9fa54",
+	"1dbec688-8d2c-4cd4-a8b4-27bf3ccaa1fd",
+	0,
+	"2f83dfa4-6d0b-4553-8c7e-c4162f9493c0",
+	"93e97f24-39e7-4330-ac04-2a307193b00e",
+	"f2a265d4-ac8f-48d2-b607-98f983b0fa13",
+	"4798b403-bd7d-4eda-86fc-86cacff1a643",
+	"ef8ac921-f3fc-4f2c-8a72-70391561267d",
+	"cad01cd3-413d-4fec-8055-44f39c3ac567",
+	"00000000-0000-0000-0000-000000000000",
+	0,
+	'',
+	'Model Inst',
+	'comp_package',
+	'R3017');
+INSERT INTO O_RTIDA_PROXY
+	VALUES ("2f83dfa4-6d0b-4553-8c7e-c4162f9493c0",
+	"1dbec688-8d2c-4cd4-a8b4-27bf3ccaa1fd",
+	0,
+	"93e97f24-39e7-4330-ac04-2a307193b00e",
+	"4798b403-bd7d-4eda-86fc-86cacff1a643",
+	'../loader.xtuml');
+INSERT INTO O_RATTR
+	VALUES ("ef8ac921-f3fc-4f2c-8a72-70391561267d",
+	"256462c0-8bcc-4aee-b69c-73b1b2d9fa54",
+	"8fb8cbbf-8af1-4206-a2b0-a53023b8b11a",
+	"cf3f6a66-3c80-4818-a5ad-6b491a84e448",
+	1,
+	'package');
+INSERT INTO O_ATTR
+	VALUES ("ef8ac921-f3fc-4f2c-8a72-70391561267d",
+	"256462c0-8bcc-4aee-b69c-73b1b2d9fa54",
+	"d385bf2b-0012-4647-bba8-027cb03a0488",
+	'comp_package',
+	'',
+	'class_',
+	'comp_package',
+	2,
+	"ba5eda7a-def5-0000-0000-000000000007",
+	'',
+	'');
+INSERT INTO O_ID
+	VALUES (0,
+	"256462c0-8bcc-4aee-b69c-73b1b2d9fa54");
+INSERT INTO O_OIDA
+	VALUES ("9d1fabbf-b56b-4b14-a712-87e48f9bf036",
+	"256462c0-8bcc-4aee-b69c-73b1b2d9fa54",
+	0,
+	'loader_name');
+INSERT INTO O_OIDA
+	VALUES ("367e132e-8df2-4df1-940d-c9df319fa310",
+	"256462c0-8bcc-4aee-b69c-73b1b2d9fa54",
+	0,
+	'loader_package');
+INSERT INTO O_OIDA
+	VALUES ("4b5dbbc6-e526-4b92-98c8-0f6d7da6c4bb",
+	"256462c0-8bcc-4aee-b69c-73b1b2d9fa54",
+	0,
+	'evt_class_name');
+INSERT INTO O_ID
+	VALUES (1,
+	"256462c0-8bcc-4aee-b69c-73b1b2d9fa54");
+INSERT INTO O_ID
+	VALUES (2,
+	"256462c0-8bcc-4aee-b69c-73b1b2d9fa54");
+INSERT INTO PE_PE
+	VALUES ("256462c0-8bcc-4aee-b69c-73b1b2d9fa54",
+	1,
+	"69fea8b2-da67-48b8-82e8-cb0c2bd311b1",
+	"00000000-0000-0000-0000-000000000000",
+	4);
+INSERT INTO EP_PKG_PROXY
+	VALUES ("69fea8b2-da67-48b8-82e8-cb0c2bd311b1",
+	"6e3bb88b-47e9-45a4-8d47-4c15f8c1052d",
+	"6e3bb88b-47e9-45a4-8d47-4c15f8c1052d",
+	'loader',
+	'',
+	0,
+	'../loader.xtuml');

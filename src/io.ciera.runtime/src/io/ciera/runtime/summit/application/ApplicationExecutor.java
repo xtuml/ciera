@@ -19,7 +19,6 @@ import io.ciera.runtime.summit.time.TimerSet;
 public class ApplicationExecutor extends Thread implements IRunContext {
 
     private static final int TICK_LEN = 1; // tick length in milliseconds
-	private static long startTime = 0;     // system start time
 
     private IExceptionHandler handler;
     private Queue<IApplicationTask> tasks;
@@ -28,7 +27,7 @@ public class ApplicationExecutor extends Thread implements IRunContext {
     private Queue<Timer> activeTimers;
     private Map<EventHandle, IEvent> activeEvents;
 
-    private long currentTime;
+    private long systemTime;  // current system time in microseconds
     private boolean simulatedTime;
 
     private String[] args;
@@ -44,10 +43,9 @@ public class ApplicationExecutor extends Thread implements IRunContext {
         activeTimers = new PriorityQueue<>();
         activeEvents = new HashMap<>();
         running = false;
-        currentTime = 0;
-        simulatedTime = true;
+        systemTime = 0;
+        simulatedTime = false;
         this.args = args;
-        startTime = time();
     }
 
     @Override
@@ -104,7 +102,7 @@ public class ApplicationExecutor extends Thread implements IRunContext {
                 });
                 // reset recurring timer
                 if (t.isRecurring()) {
-                    t.reset(Math.toIntExact(time()));
+                    t.reset(time());
                     addTimer(t);
                 }
                 // deregister non-recurring event
@@ -143,21 +141,24 @@ public class ApplicationExecutor extends Thread implements IRunContext {
     @Override
     public boolean cancelTimer(TimerHandle t) {
     	for ( Timer timer : activeTimers ) {
-    		if ( timer.getId().equals(t) ) return activeTimers.remove(timer);
+    		if ( timer.getId().equals(t) ) {
+    			boolean success = activeTimers.remove(timer);
+    			deregisterEvent(timer.getEventToGenerate());
+    			return success;
+    		}
     	}
         return false;
     }
 
+    // Get system time in microseconds
     @Override
     public long time() {
-        if (simulatedTime)
-            return currentTime;
-        else
-            return (System.currentTimeMillis() * 1000) - startTime;
+        if (!simulatedTime) systemTime = System.currentTimeMillis() * 1000L;
+        return systemTime;
     }
 
     private void setTime(long time) {
-        currentTime = time;
+        systemTime = time;
     }
 
 	@Override
@@ -171,10 +172,8 @@ public class ApplicationExecutor extends Thread implements IRunContext {
 	}
 
 	@Override
-	public EventHandle registerEvent(IEvent event) {
-		EventHandle e = EventHandle.random();
-		activeEvents.put(e, event);
-		return e;
+	public void registerEvent(IEvent event) {
+		activeEvents.put(event.getEventHandle(), event);
 	}
 
 	@Override

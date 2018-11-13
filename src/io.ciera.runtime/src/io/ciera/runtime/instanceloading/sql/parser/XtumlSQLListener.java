@@ -74,7 +74,12 @@ public class XtumlSQLListener extends SQLBaseListener {
         } else if (null != ctx.REAL()) {
             values.add(Double.parseDouble(ctx.REAL().getText()));
         } else if (null != ctx.INTEGER()) {
-            values.add(Integer.parseInt(ctx.INTEGER().getText()));
+        	long longValue = Long.parseLong(ctx.INTEGER().getText());
+        	try {
+        		values.add(Math.toIntExact(longValue));
+        	} catch (ArithmeticException e) {
+        		values.add(longValue);
+        	}
         } else if (null != ctx.UUID()) {
             String text = ctx.UUID().getText();
             values.add(UUID.fromString(text.substring(1, text.length() - 1)));

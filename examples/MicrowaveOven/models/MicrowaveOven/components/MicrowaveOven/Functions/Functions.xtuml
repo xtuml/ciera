@@ -224,8 +224,22 @@ INSERT INTO S_SYNC
 	"00000000-0000-0000-0000-000000000000",
 	'init',
 	'',
-	'::DefineOven();
-::TestSequence1();',
+	'// set up command line options
+CMD::register_value( name:"cwd", value_name:"root_dir", usage:"base working directory", default:".", required:false );
+CMD::register_value( name:"i", value_name:"input_file", usage:"input file", default:"", required:false );
+CMD::read_command_line();
+
+// load up instances
+input_file = CMD::get_value( name:"i" );
+if ( "" != input_file )
+  SQL::load_file( file:CMD::get_value( name:"cwd" ) + "/" + input_file );
+end if;
+
+select any oven from instances of MO_O;
+if ( empty oven )
+  ::DefineOven();
+  ::TestSequence1();
+end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',

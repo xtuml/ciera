@@ -57,7 +57,7 @@ public class TimeStamp implements IXtumlType<TimeStamp>, Comparable<TimeStamp> {
     }
 
     public static TimeStamp now(IRunContext runContext) {
-        return new TimeStamp(runContext.time());
+        return new TimeStamp(runContext.time() / 1000L);
     }
 
 	@Override

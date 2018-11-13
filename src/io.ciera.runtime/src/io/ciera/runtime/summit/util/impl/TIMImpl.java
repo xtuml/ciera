@@ -84,7 +84,7 @@ public class TIMImpl<C extends IComponent<C>> extends Utility<C> implements TIM 
     public int timer_remaining_time(TimerHandle timer_inst_ref) throws XtumlException {
     	Timer timer = getRunContext().getTimer(timer_inst_ref);
     	if ( null != timer ) {
-            return timer.getWakeUpTime() - Math.toIntExact(getRunContext().time());
+            return Math.toIntExact(timer.getWakeUpTime() - getRunContext().time());
     	}
     	else return 0;
     }
@@ -94,7 +94,7 @@ public class TIMImpl<C extends IComponent<C>> extends Utility<C> implements TIM 
     	Timer timer = getRunContext().getTimer(timer_inst_ref);
     	if ( null != timer ) {
             timer.setPeriod(microseconds);
-            timer.reset(Math.toIntExact(getRunContext().time()));
+            timer.reset(getRunContext().time());
     		return true;
     	}
     	else return false;
@@ -103,14 +103,14 @@ public class TIMImpl<C extends IComponent<C>> extends Utility<C> implements TIM 
     @Override
     public TimerHandle timer_start(EventHandle event_inst, int microseconds) throws XtumlException {
         Timer timer = new Timer(event_inst, microseconds, false);
-        timer.reset(Math.toIntExact(getRunContext().time()));
+        timer.reset(getRunContext().time());
         return getRunContext().addTimer(timer);
     }
 
     @Override
     public TimerHandle timer_start_recurring(EventHandle event_inst, int microseconds) throws XtumlException {
         Timer timer = new Timer(event_inst, microseconds, true);
-        timer.reset(Math.toIntExact(getRunContext().time()));
+        timer.reset(getRunContext().time());
         return getRunContext().addTimer(timer);
     }
 
