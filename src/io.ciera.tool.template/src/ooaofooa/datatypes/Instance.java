@@ -31,4 +31,8 @@ public class Instance extends InstRefMapping<Instance> implements IXtumlType<Ins
             return obj.toString();
     }
 
+    public static Instance deserialize(Object o) {
+    	return new Instance(o);
+    }
+
 }

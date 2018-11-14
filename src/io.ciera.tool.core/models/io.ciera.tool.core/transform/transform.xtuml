@@ -1161,15 +1161,21 @@ relate type to edt across R407;
 relate edt to file across R401;
 
 // transform enumerators
-select many enums related by s_dt->S_EDT[R17]->S_ENUM[R27];
+select any enumer related by s_dt->S_EDT[R17]->S_ENUM[R27];
+select one prev_enumer related by enumer->S_ENUM[R56.''succeeds''];
+while ( not_empty prev_enumer )
+  enumer = prev_enumer;
+  select one prev_enumer related by enumer->S_ENUM[R56.''succeeds''];
+end while;
 value = 0;
-for each enumer in enums
+while ( not_empty enumer )
   create object instance e of Enumerator;
   e.name = TEMP::sub( format:"u", s:enumer.Name );
   e.value = value;
   value = value + 1;
   relate e to edt across R415;
-end for;
+  select one enumer related by enumer->S_ENUM[R56.''precedes''];
+end while;
 
 // add to imports
 ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.IXtumlType", type:ImportType::IMPL );

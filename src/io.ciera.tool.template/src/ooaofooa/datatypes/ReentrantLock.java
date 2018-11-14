@@ -24,4 +24,8 @@ public class ReentrantLock extends InstRefMapping<ReentrantLock> implements IXtu
         return obj;
     }
 
+    public static ReentrantLock deserialize(Object o) {
+    	return new ReentrantLock(o);
+    }
+
 }

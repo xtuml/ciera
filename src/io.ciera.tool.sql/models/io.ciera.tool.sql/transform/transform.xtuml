@@ -189,32 +189,45 @@ if ( empty do_not_serialize_mark )
   relate class_inst_serializer to inst_serializer across R3015;
 end if;
 
-// create loader and serializer for instance id
-unique_id_type_ref = TypeReference::getBuiltinTypeReference( name:"UniqueId" );
-select one unique_id_type related by unique_id_type_ref->Type[R3800];
-create object instance attr_serializer1 of Z_AttributeSerializer;
-relate inst_serializer to attr_serializer1 across R3002;
-attr_serializer1.attr_name = "instanceId";
-attr_serializer1.cast = "";
-create object instance general_serializer1 of Z_GeneralSerializer;
-relate general_serializer1 to attr_serializer1 across R3004;
-general_serializer1.value = "getInstanceId()";
-relate general_serializer1 to unique_id_type across R3014;
-create object instance attr_loader1 of Z_AttributeLoader;
-relate inst_loader to attr_loader1 across R3006;
-attr_loader1.index = 0;
-attr_loader1.value_index = 0;
-create object instance general_loader1 of Z_GeneralLoader;
-relate general_loader1 to attr_loader1 across R3008;
-relate general_loader1 to unique_id_type across R3013;
-general_loader1.load_value = true;
+select any non_persistent_instance_ids_mark from instances of Mark where ( selected.markable_name == "*" and selected.path == "*" and
+                                                                           selected.feature_name == "NonPersistentInstanceIds" );
+                                                                           
+index_diff = 0;
+index = 0;
+value_index = 0; // needed because of non persistent attributes
+select any prev_attr_loader from instances of Z_AttributeLoader where false;
+select any prev_attr_serializer from instances of Z_AttributeSerializer where false;
+if ( empty non_persistent_instance_ids_mark )
+  // create loader and serializer for instance id
+  unique_id_type_ref = TypeReference::getBuiltinTypeReference( name:"UniqueId" );
+  select one unique_id_type related by unique_id_type_ref->Type[R3800];
+  if ( not_empty inst_serializer )
+    create object instance attr_serializer1 of Z_AttributeSerializer;
+    relate inst_serializer to attr_serializer1 across R3002;
+    attr_serializer1.attr_name = "instanceId";
+    attr_serializer1.cast = "";
+    create object instance general_serializer1 of Z_GeneralSerializer;
+    relate general_serializer1 to attr_serializer1 across R3004;
+    general_serializer1.value = "getInstanceId()";
+    relate general_serializer1 to unique_id_type across R3014;
+    prev_attr_serializer = attr_serializer1;
+  end if;
+  create object instance attr_loader1 of Z_AttributeLoader;
+  relate inst_loader to attr_loader1 across R3006;
+  attr_loader1.index = 0;
+  attr_loader1.value_index = 0;
+  create object instance general_loader1 of Z_GeneralLoader;
+  relate general_loader1 to attr_loader1 across R3008;
+  relate general_loader1 to unique_id_type across R3013;
+  general_loader1.load_value = true;
+  prev_attr_loader = attr_loader1;
+  index = 1;
+  value_index = 1;
+  index_diff = 1;
+end if;
 
 // create attribute loaders and serializers
-index = 1;
-value_index = 1; // needed because of non persistent attributes
-select any attribute related by obj->Attribute[R410] where (index == selected.order+1);
-prev_attr_loader = attr_loader1;
-prev_attr_serializer = attr_serializer1;
+select any attribute related by obj->Attribute[R410] where (index-index_diff == selected.order);
 while ( not_empty attribute ) 
   // check if the attribute is persistent
   select one o_attr related by attribute->O_ATTR[R414];
@@ -234,25 +247,27 @@ while ( not_empty attribute )
   end if;
   select any prev_attr_loader related by inst_loader->Z_AttributeLoader[R3006] where ( selected.index == index );
   index = index + 1;
-  select any attribute related by obj->Attribute[R410] where (index == selected.order+1);
+  select any attribute related by obj->Attribute[R410] where (index-index_diff == selected.order);
 end while;
 
 // create a loader and serializer for current_state
 select one sm related by obj->StateMachine[R4750];
 if ( not_empty sm )
-  // create the serializer
-  create object instance attr_serializer of Z_AttributeSerializer;
-  relate inst_serializer to attr_serializer across R3002;
-  attr_serializer.attr_name = "currentState";
-  attr_serializer.cast = "";
-  if ( not_empty prev_attr_serializer )
-    relate prev_attr_serializer to attr_serializer across R3003.''precedes'';
+  if ( not_empty inst_serializer )
+    // create the serializer
+    create object instance attr_serializer of Z_AttributeSerializer;
+    relate inst_serializer to attr_serializer across R3002;
+    attr_serializer.attr_name = "currentState";
+    attr_serializer.cast = "";
+    if ( not_empty prev_attr_serializer )
+      relate prev_attr_serializer to attr_serializer across R3003.''precedes'';
+    end if;
+    accessor_name = "getCurrentState()";
+    create object instance int_serializer of Z_IntegerSerializer;
+    relate int_serializer to attr_serializer across R3004;
+    int_serializer.value = accessor_name;
+    int_serializer.value2 = "";
   end if;
-  accessor_name = "getCurrentState()";
-  create object instance int_serializer of Z_IntegerSerializer;
-  relate int_serializer to attr_serializer across R3004;
-  int_serializer.value = accessor_name;
-  int_serializer.value2 = "";
   // create the loader
   create object instance attr_loader of Z_AttributeLoader;
   relate inst_loader to attr_loader across R3006;
@@ -615,13 +630,19 @@ batch_relator.unconditional = Cond::UNCONDITIONAL == rel.part_cond;
 batch_relator.id_num = rel.id_num;
 
 index = 0;
+select any prev_attr_comp from instances of Z_AttributeComparison where false;
 select any attribute related by rel->AttributeReference[R4511]->Attribute[R4506.''has value provided by'']->Class[R410]->Attribute[R410] where (index == selected.order);
 select many attr_refs related by rel->AttributeReference[R4511];
 while ( not_empty attribute ) 
   for each attr_ref in attr_refs
     select one attr related by attr_ref->Attribute[R4506.''has value provided by''];
     if ( attribute.class_name == attr.class_name and attribute.class_package == attr.class_package and attribute.name == attr.name )
-      ::transformAttributeComparison( attr_ref:attr_ref, batch_relator:batch_relator );
+      ::transformAttributeComparison( attr_ref:attr_ref, batch_relator:batch_relator, prev_attr_comp:prev_attr_comp );
+      if ( empty prev_attr_comp )
+        select any prev_attr_comp related by batch_relator->Z_AttributeComparison[R3012];
+      else
+        select one prev_attr_comp related by prev_attr_comp->Z_AttributeComparison[R3018.''precedes''];
+      end if;
       break;
     end if;
   end for;
@@ -673,11 +694,15 @@ INSERT INTO S_SYNC
 	'',
 	'attr_ref = param.attr_ref;
 batch_relator = param.batch_relator;
+prev_attr_comp = param.prev_attr_comp;
 
 // create attribute comparison
 create object instance attr_comp of Z_AttributeComparison;
 relate attr_comp to batch_relator across R3012;
 attr_comp.part_attr_name = attr_ref.referred_to_attribute_name;
+if ( not_empty prev_attr_comp )
+  relate prev_attr_comp to attr_comp across R3018.''precedes'';
+end if;
 
 select any form_accessor related by attr_ref->Attribute[R4506.''provides value for'']->AttributeAccessor[R4510] where ( selected.accessor_type == AttributeAccessorType::GETTER );
 attr_comp.form_accessor = form_accessor.getName() + "()";
@@ -727,6 +752,22 @@ INSERT INTO S_DT_PROXY
 	VALUES ("089b9849-22e9-40f7-b8e3-77442ae979e1",
 	"00000000-0000-0000-0000-000000000000",
 	'inst_ref<Batch Relator>',
+	'',
+	'',
+	'../loader/loader.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("e50cd27b-0a59-40c8-bb9f-79640d7844dd",
+	"af92b7f9-8a99-4382-8277-3f9403de55c0",
+	'prev_attr_comp',
+	"ec032117-a9c3-4c31-81d8-22be0827cd33",
+	0,
+	'',
+	"c8b4aec4-b572-4eaf-81fa-86a567ab0518",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("ec032117-a9c3-4c31-81d8-22be0827cd33",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Attribute Comparison>',
 	'',
 	'',
 	'../loader/loader.xtuml');

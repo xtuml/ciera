@@ -17,9 +17,14 @@ INSERT INTO O_TFR
 	'body_save = TEMP::body();
 TEMP::clear();
 
-select many attr_comps related by self->Z_AttributeComparison[R3012];
+select any attr_comp related by self->Z_AttributeComparison[R3012];
+select one prev_attr_comp related by attr_comp->Z_AttributeComparison[R3018.''succeeds''];
+while ( not_empty prev_attr_comp )
+  attr_comp = prev_attr_comp;
+  select one prev_attr_comp related by attr_comp->Z_AttributeComparison[R3018.''succeeds''];
+end while;
 separator = "";
-for each attr_comp in attr_comps
+while ( not_empty attr_comp )
   TEMP::append( s:separator );
   attr_comp.render();
   if ( 0 == self.id_num )
@@ -27,7 +32,8 @@ for each attr_comp in attr_comps
   else
     separator = ", ";
   end if;
-end for;
+  select one attr_comp related by attr_comp->Z_AttributeComparison[R3018.''precedes''];
+end while;
 attribute_comparisons = TEMP::body();
 TEMP::clear();
 

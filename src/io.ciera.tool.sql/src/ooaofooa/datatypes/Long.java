@@ -24,7 +24,7 @@ public class Long extends Object implements IXtumlType<Long> {
     public long getValue() {
         return value;
     }
-    
+
     public static Long deserialize(Object o) {
     	return new Long(o);
     }

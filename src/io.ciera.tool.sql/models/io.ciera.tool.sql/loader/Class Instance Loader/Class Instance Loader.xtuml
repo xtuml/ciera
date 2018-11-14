@@ -33,6 +33,13 @@ end while;
 attribute_loaders = TEMP::body();
 TEMP::clear();
 
+select any non_persistent_instance_ids_mark from instances of Mark where ( selected.markable_name == "*" and selected.path == "*" and
+                                                                           selected.feature_name == "NonPersistentInstanceIds" );
+if ( not_empty non_persistent_instance_ids_mark )
+  // if instance id is not being loaded, it must be created
+  attribute_loaders = "UniqueId.random(), " + attribute_loaders;
+end if;
+
 TEMP::append( s:body_save );
 TEMP::include( file:"loader/t.classinstanceloader.java", symbol_table:NULL_SYMBOL_TABLE );',
 	1,
