@@ -225,8 +225,13 @@ if ( 1 == param.pass )
   ::addStringToImports( file:file, s:"io.ciera.runtime.summit.application.IRunContext", type:ImportType::IMPL );
   ::addStringToImports( file:file, s:"io.ciera.runtime.summit.classes.IModelInstance", type:ImportType::IMPL );
   ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL );
-  ::addStringToImports( file:file, s:"java.io.IOException", type:ImportType::IMPL );
-  ::addStringToImports( file:file, s:"java.util.Properties", type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.BadArgumentException", type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.EmptyInstanceException", type:ImportType::IMPL );
+  
+  if ( not_empty version_mark )
+    ::addStringToImports( file:file, s:"java.io.IOException", type:ImportType::IMPL );
+    ::addStringToImports( file:file, s:"java.util.Properties", type:ImportType::IMPL );
+  end if;
 
 elif ( 2 == param.pass )
 
@@ -1396,7 +1401,7 @@ if ( empty iface )
 
   // create the file
   create object instance file of File;
-  file.name = ::camelCaseName( name:c_i.Name, start_lower:false );
+  file.name = "I" + ::camelCaseName( name:c_i.Name, start_lower:false );
   file.path = param.path;
   file.package = ::pathToPackage( path:file.path );
   file.extension = ".java";
@@ -1410,9 +1415,11 @@ if ( empty iface )
   relate iface to c_i across R421;
 
   // transform messages
+  index = 1;
   select many c_eps related by c_i->C_EP[R4003];
   for each c_ep in c_eps
-    ::transformMessage( c_ep:c_ep, iface:iface );
+    ::transformMessage( c_ep:c_ep, iface:iface, index:index );
+    index = index + 1;
   end for;
 
 end if;',
@@ -1458,6 +1465,7 @@ INSERT INTO S_SYNC
 	'',
 	'c_ep = param.c_ep;
 iface = param.iface;
+index = param.index;
 select one c_as related by c_ep->C_AS[R4004];
 select one c_io related by c_ep->C_IO[R4004];
 
@@ -1467,6 +1475,7 @@ if ( not_empty c_as )  // TODO currently only support signals
 create object instance msg of Message;
 msg.name = c_ep.Name;
 msg.to_provider = true;
+msg.id = index;
 if ( not_empty c_as )
   msg.to_provider = ( c_as.Direction == IFDirectionType::ClientServer );
 elif ( not_empty c_io )
@@ -1477,7 +1486,8 @@ relate msg to iface across R419;
 end if;
 
 select one file related by iface->File[R401];
-::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL );',
+::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.runtime.summit.interfaces.Message", type:ImportType::IMPL );',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -1514,6 +1524,15 @@ INSERT INTO S_DT_PROXY
 	'',
 	'',
 	'../architecture/interfaces/interfaces.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("c53bda6b-5181-4a64-b257-d0c4827d2e26",
+	"e5071316-f813-44a9-b6f4-51f4e3089418",
+	'index',
+	"ba5eda7a-def5-0000-0000-000000000002",
+	0,
+	'',
+	"773be1d9-8ccf-438c-a765-b071c635f13f",
+	'');
 INSERT INTO PE_PE
 	VALUES ("e5071316-f813-44a9-b6f4-51f4e3089418",
 	1,
@@ -1530,7 +1549,7 @@ comp_def = param.comp_def;
 
 // create the file
 create object instance file of File;
-file.name = ::camelCaseName( name:c_po.Name, start_lower:false );
+file.name = comp_def.name + ::camelCaseName( name:c_po.Name, start_lower:false );
 file.path = param.path;
 file.package = ::pathToPackage( path:file.path );
 file.extension = ".java";
@@ -1540,6 +1559,7 @@ file.exclude = false;
 create object instance port of Port;
 relate port to file across R401;
 relate port to c_po across R422;
+port.port_name = ::camelCaseName( name:c_po.Name, start_lower:false );
 
 // set port as provider or requirer
 select any c_p related by c_po->C_IR[R4016]->C_P[R4009];
@@ -2495,12 +2515,6 @@ while ( not_empty c_pp )
   ::linkParameter( invocable:invocable, parameter:parm );
   select one c_pp related by c_pp->C_PP[R4021.''precedes''];
 end while;
-
-// add to import block
-if ( port.provider and not msg.to_provider or not port.provider and msg.to_provider )
-  select one file related by port->File[R401];
-  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.interfaces.Message", type:ImportType::IMPL );
-end if;
 
 // relate the body
 if ( not_empty act_act )

@@ -30,7 +30,20 @@ public enum ${self.name} implements IXtumlType<${self.name}> {
         return this;
     }
 
-    public static ${self.name} get( int value ) {
+    @Override
+    public String serialize() {
+        return Integer.toString(value);
+    }
+
+    public static ${self.name} deserialize(Object o) throws XtumlException {
+        int value;
+        if (o instanceof Integer) {
+            value = (int)o;
+        }
+        else if (o instanceof String) {
+            value = Integer.parseInt((String)o);
+        }
+        else throw new XtumlException("Cannot deserialize value");
         switch( value ) {
 ${enumerator_accessors}        default:
             return UNINITIALIZED_ENUM;
