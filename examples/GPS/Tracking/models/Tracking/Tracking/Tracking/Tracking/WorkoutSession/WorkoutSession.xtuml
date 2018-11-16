@@ -172,8 +172,9 @@ INSERT INTO O_TFR
 // the first and last point in the subset used for the calculation.
 
 select one lastPoint related by self->TrackLog[R4.''captures_path_in'']->TrackPoint[R3.''has_last''];
+select one nextToLastPoint related by lastPoint->TrackPoint[R2.''preceeds''];
 speed = 0.0;
-if ( not empty lastPoint )
+if ( not empty lastPoint and not empty nextToLastPoint )
   cursor = lastPoint;
   Speed::initialize();
   select any spd from instances of Speed;
@@ -192,7 +193,10 @@ if ( not empty lastPoint )
     cursor = previousPoint;
   end while;
   elapsedTime = elapsedTime - cursor.time;
-  speed = (totalDistance / 1000) / (elapsedTime / spd.SecondsPerHour);
+  //speed = (totalDistance / 1000) / (elapsedTime / spd.SecondsPerHour); TODO issue #32
+  kmDist = totalDistance / 1000;
+  hourTm = elapsedTime / spd.SecondsPerHour;
+  speed = kmDist / hourTm;
 end if;
 
 return speed;',

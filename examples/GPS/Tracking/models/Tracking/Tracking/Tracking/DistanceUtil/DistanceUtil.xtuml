@@ -40,30 +40,11 @@ INSERT INTO S_SYNC
 	'',
 	'kmPerDegree = 111.32;
 deltaLat = param.toLat - param.fromLat;
-deltaLong = param.toLong - param.fromLong;
-sumSquares = (deltaLat * deltaLat) + (deltaLong * deltaLong);
-
-// sqrt approx
-MAX_ITERATIONS = 24;
-sqrtSum = 0.0;
-if sumSquares < 0
-  sumSquares = -sumSquares;
-end if;
-if (sumSquares > 0) 
-	guess = sumSquares;
-	i = 0;
-	prev_value = -1.0;
-	while (i < MAX_ITERATIONS and prev_value != guess)
-      prev_value = guess;
-      guess = guess - (((guess*guess)-sumSquares)/(2*guess));
-	  i = i + 1;
-	end while;
-    sqrtSum = guess;
-end if;
-// end sqrt approx
-
-sqrtSum = (sqrtSum * kmPerDegree * 1000 );
-return sqrtSum;',
+deltaLong = param.toLong - param.fromLong; 
+deltaXMeters = deltaLat * kmPerDegree * 1000;
+deltaYMeters = deltaLong * kmPerDegree * 1000;
+sumSquares = (deltaXMeters * deltaXMeters) + (deltaYMeters * deltaYMeters);
+return MATH::sqrt( x:sumSquares );',
 	"ba5eda7a-def5-0000-0000-000000000003",
 	1,
 	'',
