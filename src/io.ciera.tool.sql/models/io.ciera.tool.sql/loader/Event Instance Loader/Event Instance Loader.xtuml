@@ -17,6 +17,10 @@ INSERT INTO O_TFR
 	'body_save = TEMP::body(); // TODO
 TEMP::clear();
 
+event_handle = "";
+population_id = "";
+event_target = "";
+
 select any attr_loader related by self->Z_InstanceLoader[R3016]->Z_AttributeLoader[R3006];
 select one prev_attr_loader related by attr_loader->Z_AttributeLoader[R3007.''follows''];
 while ( not_empty prev_attr_loader )
@@ -25,9 +29,18 @@ while ( not_empty prev_attr_loader )
 end while;
 sep = "";
 while ( not_empty attr_loader )
-  if ( attr_loader.index > 1 )
-    TEMP::append( s:sep );
-    attr_loader.render();
+  TEMP::append( s:sep );
+  attr_loader.render();
+  if ( attr_loader.index == 0 )
+    event_handle = TEMP::body();
+    TEMP::clear();
+  elif ( attr_loader.index == 1 )
+    population_id = TEMP::body();
+    TEMP::clear();
+  elif ( attr_loader.index == 2 )
+    event_target = TEMP::body();
+    TEMP::clear();
+  else
     sep = ", ";
   end if;
   select one attr_loader related by attr_loader->Z_AttributeLoader[R3007.''precedes''];
@@ -37,8 +50,6 @@ TEMP::clear();
 
 class_name = STRING::substr( s:self.evt_class_name, begin:0, end:STRING::indexof( haystack:self.evt_class_name, needle:"_" ) ) + "Impl." +
              STRING::substr( s:self.evt_class_name, begin:STRING::indexof( haystack:self.evt_class_name, needle:"_" ) + 1, end:-1 );
-event_handle = "EventHandle.deserialize(values.get(0))";
-event_target = "UniqueId.deserialize(values.get(1))";
 
 TEMP::append( s:body_save );
 TEMP::include( file:"loader/t.eventinstanceloader.java", symbol_table:NULL_SYMBOL_TABLE );',

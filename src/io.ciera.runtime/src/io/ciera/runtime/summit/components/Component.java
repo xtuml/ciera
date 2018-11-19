@@ -1,5 +1,6 @@
 package io.ciera.runtime.summit.components;
 
+import io.ciera.runtime.summit.application.IApplication;
 import io.ciera.runtime.summit.application.IRunContext;
 import io.ciera.runtime.summit.application.tasks.GeneratedEventTask;
 import io.ciera.runtime.summit.application.tasks.GeneratedEventToSelfTask;
@@ -11,15 +12,29 @@ import io.ciera.runtime.summit.statemachine.IEventTarget;
 
 public abstract class Component<C extends IComponent<C>> implements IComponent<C> {
 
+	private IApplication app;
     private IRunContext runContext;
+    private int populationId;
 
-    public Component(IRunContext runContext) {
+    public Component(IApplication app, IRunContext runContext, int populationId) {
+    	this.app = app;
         this.runContext = runContext;
+        this.populationId = populationId;
+    }
+
+    @Override
+    public IApplication getApp() {
+    	return app;
     }
 
     @Override
     public IRunContext getRunContext() {
         return runContext;
+    }
+    
+    @Override
+    public int getId() {
+    	return populationId;
     }
 
     @Override

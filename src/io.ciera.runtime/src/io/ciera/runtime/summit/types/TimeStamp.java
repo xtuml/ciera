@@ -64,5 +64,18 @@ public class TimeStamp implements IXtumlType<TimeStamp>, Comparable<TimeStamp> {
 	public String serialize() {
 		return Long.toString(timestamp);
 	}
+	
+	public static TimeStamp deserialize(Object o) throws XtumlException {
+		if (o instanceof Long) {
+			return new TimeStamp(((Long)o).longValue());
+		}
+		else if (o instanceof Integer) {
+			return new TimeStamp(((Integer)o).longValue());
+		}
+		else if (o instanceof String) {
+			return new TimeStamp(Long.parseLong((String)o));
+		}
+		else throw new XtumlException("Cannot deserialize value");
+	}
 
 }

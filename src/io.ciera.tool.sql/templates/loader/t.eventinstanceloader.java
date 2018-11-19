@@ -1,5 +1,5 @@
         case "${self.evt_class_name}":
-            new ${class_name}(population.getRunContext()\
+            new ${class_name}(population.getRunContext(), ${population_id}\
 .if ( "" != attribute_loaders )
 , ${attribute_loaders}\
 .end if

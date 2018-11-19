@@ -6,6 +6,8 @@ public interface IEvent {
 
 	public EventHandle getEventHandle();
 	
+	public int getPopulationId();
+	
     public String getName();
 
     public int getId();

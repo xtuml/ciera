@@ -6,20 +6,23 @@ import io.ciera.runtime.summit.types.IXtumlType;
 public class Timer implements Comparable<Timer>, IXtumlType<Timer> {
 
 	private TimerHandle timerId;
+	private int populationId;
     private EventHandle eventToGenerate;
     private long wakeUpTime;   // time to wake up in microseconds since the epoch
     private int period;        // duration in microseconds
     private boolean recurring;
 
-    public Timer(EventHandle e, int microseconds, boolean recur) {
+    public Timer(int populationId, EventHandle e, int microseconds, boolean recur) {
     	timerId = TimerHandle.random();
+    	this.populationId = populationId;
         eventToGenerate = e;
         recurring = recur;
         period = microseconds;
     }
 
-    public Timer(TimerHandle id, EventHandle e, long wakeUpTime, int period, boolean recur) {
+    public Timer(TimerHandle id, int populationId, EventHandle e, long wakeUpTime, int period, boolean recur) {
     	timerId = id;
+    	this.populationId = populationId;
     	eventToGenerate = e;
     	this.wakeUpTime = wakeUpTime;
     	this.period = period;
@@ -57,6 +60,10 @@ public class Timer implements Comparable<Timer>, IXtumlType<Timer> {
     public TimerHandle getId() {
     	return timerId;
     }
+    
+    public int getPopulationId() {
+    	return populationId;
+    }
 
     @Override
     public int compareTo(Timer o) {
@@ -65,12 +72,22 @@ public class Timer implements Comparable<Timer>, IXtumlType<Timer> {
         else if (getWakeUpTime() > o.getWakeUpTime())
             return 1;
         else
-            return 0;
+            return timerId.compareTo(o.getId());
     }
 
     @Override
     public Timer value() {
         return this;
+    }
+    
+    @Override
+    public boolean equals(Object o) {
+    	return null != o && null != timerId && timerId.equals(((Timer)o).getId());
+    }
+    
+    @Override
+    public int hashCode() {
+    	return timerId.hashCode();
     }
 
 }

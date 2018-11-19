@@ -40,7 +40,10 @@ INSERT INTO S_SYNC
 	'',
 	'select many comp_defs from instances of ComponentDefinition;
 for each comp_def in comp_defs
-  ::transformPopulationLoader( comp_def:comp_def );
+  select any obj related by comp_def->Class[R408];
+  if ( not_empty obj )  // only create population loader if there are classes
+    ::transformPopulationLoader( comp_def:comp_def );
+  end if;
 end for;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -164,6 +167,7 @@ INSERT INTO S_SYNC
 	'obj = param.obj;
 pop_loader = param.pop_loader;
 select one pe related by obj->O_OBJ[R409]->PE_PE[R8001];
+select one file related by pop_loader->GeneralFile[R3009]->File[R401];
 
 // create the loader
 create object instance inst_loader of Z_InstanceLoader;
@@ -224,6 +228,7 @@ if ( empty non_persistent_instance_ids_mark )
   index = 1;
   value_index = 1;
   index_diff = 1;
+  ::addTypeToImports( file:file, type_to_import:unique_id_type, type:ImportType::IMPL );
 end if;
 
 // create attribute loaders and serializers
@@ -283,7 +288,6 @@ end if;
 
 // add to the imports
 select one class_file related by obj->File[R401];
-select one file related by pop_loader->GeneralFile[R3009]->File[R401];
 ::addFileToImports( file:file, file_to_import:class_file, type: ImportType::IMPL );
 ::addStringToImports( file:file, s: ::pathToPackage( path:class_file.path ) + ".impl." + class_file.name + "Impl", type:ImportType::IMPL );',
 	"ba5eda7a-def5-0000-0000-000000000000",
@@ -818,56 +822,55 @@ relate general_loader1 to attr_loader1 across R3008;
 relate general_loader1 to timer_handle_type across R3013;
 general_loader1.load_value = true;
 
-// create a loader and serializer for event handle
-event_handle_type_ref = TypeReference::getBuiltinTypeReference( name:"EventHandle" );
-select one event_handle_type related by event_handle_type_ref->Type[R3800];
+// create a loader and serializer for population id
 create object instance attr_serializer2 of Z_AttributeSerializer;
 relate inst_serializer to attr_serializer2 across R3002;
-attr_serializer2.attr_name = "eventToGenerate";
+attr_serializer2.attr_name = "populationId";
 attr_serializer2.cast = "";
 relate attr_serializer1 to attr_serializer2 across R3003.''precedes'';
-create object instance general_serializer2 of Z_GeneralSerializer;
-relate general_serializer2 to attr_serializer2 across R3004;
-general_serializer2.value = "getEventToGenerate()";
-relate general_serializer2 to event_handle_type across R3014;
+create object instance int_serializer2 of Z_IntegerSerializer;
+relate int_serializer2 to attr_serializer2 across R3004;
+int_serializer2.value = "getPopulationId()";
 create object instance attr_loader2 of Z_AttributeLoader;
 relate inst_loader to attr_loader2 across R3006;
 relate attr_loader1 to attr_loader2 across R3007.''precedes'';
 attr_loader2.index = attr_loader1.index + 1;
 attr_loader2.value_index = attr_loader1.index + 1;
-create object instance general_loader2 of Z_GeneralLoader;
-relate general_loader2 to attr_loader2 across R3008;
-relate general_loader2 to event_handle_type across R3013;
-general_loader2.load_value = true;
+create object instance int_loader2 of Z_IntegerLoader;
+int_loader2.is_long = false;
+relate int_loader2 to attr_loader2 across R3008;
 
-// create a loader and serializer for wakeup time
+// create a loader and serializer for event handle
+event_handle_type_ref = TypeReference::getBuiltinTypeReference( name:"EventHandle" );
+select one event_handle_type related by event_handle_type_ref->Type[R3800];
 create object instance attr_serializer3 of Z_AttributeSerializer;
 relate inst_serializer to attr_serializer3 across R3002;
-attr_serializer3.attr_name = "wakeUpTime";
+attr_serializer3.attr_name = "eventToGenerate";
 attr_serializer3.cast = "";
 relate attr_serializer2 to attr_serializer3 across R3003.''precedes'';
-create object instance int_serializer3 of Z_IntegerSerializer;
-relate int_serializer3 to attr_serializer3 across R3004;
-int_serializer3.value = "getWakeUpTime()";
-int_serializer3.value2 = "";
+create object instance general_serializer3 of Z_GeneralSerializer;
+relate general_serializer3 to attr_serializer3 across R3004;
+general_serializer3.value = "getEventToGenerate()";
+relate general_serializer3 to event_handle_type across R3014;
 create object instance attr_loader3 of Z_AttributeLoader;
 relate inst_loader to attr_loader3 across R3006;
 relate attr_loader2 to attr_loader3 across R3007.''precedes'';
 attr_loader3.index = attr_loader2.index + 1;
 attr_loader3.value_index = attr_loader2.index + 1;
-create object instance int_loader3 of Z_IntegerLoader;
-int_loader3.is_long = true;
-relate int_loader3 to attr_loader3 across R3008;
+create object instance general_loader3 of Z_GeneralLoader;
+relate general_loader3 to attr_loader3 across R3008;
+relate general_loader3 to event_handle_type across R3013;
+general_loader3.load_value = true;
 
-// create a loader and serializer for period
+// create a loader and serializer for wakeup time
 create object instance attr_serializer4 of Z_AttributeSerializer;
 relate inst_serializer to attr_serializer4 across R3002;
-attr_serializer4.attr_name = "period";
+attr_serializer4.attr_name = "wakeUpTime";
 attr_serializer4.cast = "";
 relate attr_serializer3 to attr_serializer4 across R3003.''precedes'';
 create object instance int_serializer4 of Z_IntegerSerializer;
 relate int_serializer4 to attr_serializer4 across R3004;
-int_serializer4.value = "getPeriod()";
+int_serializer4.value = "getWakeUpTime()";
 int_serializer4.value2 = "";
 create object instance attr_loader4 of Z_AttributeLoader;
 relate inst_loader to attr_loader4 across R3006;
@@ -875,26 +878,45 @@ relate attr_loader3 to attr_loader4 across R3007.''precedes'';
 attr_loader4.index = attr_loader3.index + 1;
 attr_loader4.value_index = attr_loader3.index + 1;
 create object instance int_loader4 of Z_IntegerLoader;
-int_loader4.is_long = false;
+int_loader4.is_long = true;
 relate int_loader4 to attr_loader4 across R3008;
 
-// create a loader and serializer for recurring
+// create a loader and serializer for period
 create object instance attr_serializer5 of Z_AttributeSerializer;
 relate inst_serializer to attr_serializer5 across R3002;
-attr_serializer5.attr_name = "recurring";
+attr_serializer5.attr_name = "period";
 attr_serializer5.cast = "";
 relate attr_serializer4 to attr_serializer5 across R3003.''precedes'';
-create object instance bool_serializer5 of Z_IntegerSerializer;
-relate bool_serializer5 to attr_serializer5 across R3004;
-bool_serializer5.value = "isRecurring() ? 1 : 0";
-bool_serializer5.value2 = "";
+create object instance int_serializer5 of Z_IntegerSerializer;
+relate int_serializer5 to attr_serializer5 across R3004;
+int_serializer5.value = "getPeriod()";
+int_serializer5.value2 = "";
 create object instance attr_loader5 of Z_AttributeLoader;
 relate inst_loader to attr_loader5 across R3006;
 relate attr_loader4 to attr_loader5 across R3007.''precedes'';
 attr_loader5.index = attr_loader4.index + 1;
 attr_loader5.value_index = attr_loader4.index + 1;
-create object instance bool_loader5 of Z_BooleanLoader;
-relate bool_loader5 to attr_loader5 across R3008;
+create object instance int_loader5 of Z_IntegerLoader;
+int_loader5.is_long = false;
+relate int_loader5 to attr_loader5 across R3008;
+
+// create a loader and serializer for recurring
+create object instance attr_serializer6 of Z_AttributeSerializer;
+relate inst_serializer to attr_serializer6 across R3002;
+attr_serializer6.attr_name = "recurring";
+attr_serializer6.cast = "";
+relate attr_serializer5 to attr_serializer6 across R3003.''precedes'';
+create object instance bool_serializer6 of Z_IntegerSerializer;
+relate bool_serializer6 to attr_serializer6 across R3004;
+bool_serializer6.value = "isRecurring() ? 1 : 0";
+bool_serializer6.value2 = "";
+create object instance attr_loader6 of Z_AttributeLoader;
+relate inst_loader to attr_loader6 across R3006;
+relate attr_loader5 to attr_loader6 across R3007.''precedes'';
+attr_loader6.index = attr_loader5.index + 1;
+attr_loader6.value_index = attr_loader5.index + 1;
+create object instance bool_loader6 of Z_BooleanLoader;
+relate bool_loader6 to attr_loader6 across R3008;
 
 // add to the imports
 select one file related by pop_loader->GeneralFile[R3009]->File[R401];
@@ -964,38 +986,56 @@ relate general_loader1 to attr_loader1 across R3008;
 relate general_loader1 to event_handle_type across R3013;
 general_loader1.load_value = true;
 
-// create loader and serializer for event target
-unique_id_type_ref = TypeReference::getBuiltinTypeReference( name:"UniqueId" );
-select one unique_id_type related by unique_id_type_ref->Type[R3800];
+// create a loader and serializer for population id
 create object instance attr_serializer2 of Z_AttributeSerializer;
 relate inst_serializer to attr_serializer2 across R3002;
-attr_serializer2.attr_name = "eventTarget";
+attr_serializer2.attr_name = "populationId";
 attr_serializer2.cast = "";
 relate attr_serializer1 to attr_serializer2 across R3003.''precedes'';
-create object instance general_serializer2 of Z_GeneralSerializer;
-relate general_serializer2 to attr_serializer2 across R3004;
-general_serializer2.value = "getTarget().getInstanceId()";
-relate general_serializer2 to unique_id_type across R3014;
+create object instance int_serializer2 of Z_IntegerSerializer;
+relate int_serializer2 to attr_serializer2 across R3004;
+int_serializer2.value = "getPopulationId()";
 create object instance attr_loader2 of Z_AttributeLoader;
 relate inst_loader to attr_loader2 across R3006;
 relate attr_loader1 to attr_loader2 across R3007.''precedes'';
-attr_loader2.index = 1;
-attr_loader2.value_index = 1;
-create object instance general_loader2 of Z_GeneralLoader;
-relate general_loader2 to attr_loader2 across R3008;
-relate general_loader2 to unique_id_type across R3013;
-general_loader2.load_value = true;
+attr_loader2.index = attr_loader1.index + 1;
+attr_loader2.value_index = attr_loader1.index + 1;
+create object instance int_loader2 of Z_IntegerLoader;
+int_loader2.is_long = false;
+relate int_loader2 to attr_loader2 across R3008;
+
+// create loader and serializer for event target
+unique_id_type_ref = TypeReference::getBuiltinTypeReference( name:"UniqueId" );
+select one unique_id_type related by unique_id_type_ref->Type[R3800];
+create object instance attr_serializer3 of Z_AttributeSerializer;
+relate inst_serializer to attr_serializer3 across R3002;
+attr_serializer3.attr_name = "eventTarget";
+attr_serializer3.cast = "";
+relate attr_serializer2 to attr_serializer3 across R3003.''precedes'';
+create object instance general_serializer3 of Z_GeneralSerializer;
+relate general_serializer3 to attr_serializer3 across R3004;
+general_serializer3.value = "getTarget().getInstanceId()";
+relate general_serializer3 to unique_id_type across R3014;
+create object instance attr_loader3 of Z_AttributeLoader;
+relate inst_loader to attr_loader3 across R3006;
+relate attr_loader2 to attr_loader3 across R3007.''precedes'';
+attr_loader3.index = attr_loader2.index + 1;
+attr_loader3.value_index = attr_loader2.index + 1;
+create object instance general_loader3 of Z_GeneralLoader;
+relate general_loader3 to attr_loader3 across R3008;
+relate general_loader3 to unique_id_type across R3013;
+general_loader3.load_value = true;
 
 // create attribute loaders and serializers
-index = 2;
+index = attr_loader3.index + 1;
 select any data_item related by evt->InvocableObject[R427]->FormalParameter[R429];
 select one prev_data_item related by data_item->FormalParameter[R404.''follows''];
 while ( not_empty prev_data_item )
   data_item = prev_data_item;
   select one prev_data_item related by data_item->FormalParameter[R404.''follows''];
 end while;
-prev_attr_loader = attr_loader2;
-prev_attr_serializer = attr_serializer2;
+prev_attr_loader = attr_loader3;
+prev_attr_serializer = attr_serializer3;
 while ( not_empty data_item ) 
   ::transformEventDataSerializer( parameter:data_item, inst_serializer:inst_serializer, prev_attr_serializer:prev_attr_serializer );
   select any prev_attr_serializer related by inst_serializer->Z_AttributeSerializer[R3002] where ( selected.attr_name == data_item.name );
@@ -1173,7 +1213,7 @@ if ( not_empty prev_attr_serializer )
 end if;
 
 // get the accessor name
-index = -2; // start at -2 to account for the first two serializers for event handle and instance handle
+index = -3; // start at -3 to account for the first three serializers for event handle, population id, and instance handle
 while ( not_empty prev_attr_serializer )
   index = index + 1;
   select one prev_attr_serializer related by prev_attr_serializer->Z_AttributeSerializer[R3003.''follows''];

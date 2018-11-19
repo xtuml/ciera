@@ -7,17 +7,19 @@ import io.ciera.runtime.summit.exceptions.XtumlException;
 public abstract class Event implements IEvent, Comparable<IEvent> {
 	
 	private EventHandle eventHandle;
+	private int populationId;
 	private IRunContext runContext;
     private IEventTarget target;
     private boolean toSelf;
 
     private Object[] dataItems;
 
-    public Event(IRunContext runContext) {
-    	this(runContext, new Object[0]);
+    public Event(IRunContext runContext, int populationId) {
+    	this(runContext, populationId, new Object[0]);
     }
 
-    public Event(IRunContext runContext, Object... data) {
+    public Event(IRunContext runContext, int populationId, Object... data) {
+    	this.populationId = populationId;
     	this.runContext = runContext;
         dataItems = data;
         target = null;
@@ -35,6 +37,11 @@ public abstract class Event implements IEvent, Comparable<IEvent> {
     @Override
     public EventHandle getEventHandle() {
     	return eventHandle;
+    }
+    
+    @Override
+    public int getPopulationId() {
+    	return populationId;
     }
 
     @Override

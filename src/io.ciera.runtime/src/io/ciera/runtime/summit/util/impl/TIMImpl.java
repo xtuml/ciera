@@ -102,14 +102,14 @@ public class TIMImpl<C extends IComponent<C>> extends Utility<C> implements TIM 
 
     @Override
     public TimerHandle timer_start(EventHandle event_inst, int microseconds) throws XtumlException {
-        Timer timer = new Timer(event_inst, microseconds, false);
+        Timer timer = new Timer(context().getId(), event_inst, microseconds, false);
         timer.reset(getRunContext().time());
         return getRunContext().addTimer(timer);
     }
 
     @Override
     public TimerHandle timer_start_recurring(EventHandle event_inst, int microseconds) throws XtumlException {
-        Timer timer = new Timer(event_inst, microseconds, true);
+        Timer timer = new Timer(context().getId(), event_inst, microseconds, true);
         timer.reset(getRunContext().time());
         return getRunContext().addTimer(timer);
     }

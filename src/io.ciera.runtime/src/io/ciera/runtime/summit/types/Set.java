@@ -16,7 +16,8 @@ public abstract class Set<S extends ISet<S, E>, E> implements ISet<S, E> {
     }
     
     public Set(Collection<E> c) {
-        internalSet = new TreeSet<>(c);
+    	this();
+    	addAll(c);
     }
 
     @Override

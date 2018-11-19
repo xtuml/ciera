@@ -46,6 +46,13 @@ ${component_instantiations}${component_satisfactions}    }
         }
     }
 
+    @Override
+    public void stop() {
+        for ( IRunContext executor : executors ) {
+            executor.execute(new HaltExecutionTask());
+        }
+    }
+
     public static void main( String[] args ) {
         IApplication app = new ${self.name}();
         app.setup( args );

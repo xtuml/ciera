@@ -1,11 +1,14 @@
     public static class ${self.name} extends Event {
+        public ${self.name}(IRunContext runContext, int populationId\
 .if ( "" != parameter_list )
-        public ${self.name}(IRunContext runContext, ${parameter_list}) {
-            super(runContext, new Object[]{${invocation_parameter_list}});
-.else
-        public ${self.name}(IRunContext runContext) {
-            super(runContext);
+, ${parameter_list}\
 .end if
+) {
+            super(runContext, populationId\
+.if ( "" != parameter_list )
+, new Object[]{${invocation_parameter_list}}\
+.end if
+);
         }
         @Override
         public int getId() {

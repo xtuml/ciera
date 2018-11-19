@@ -4,8 +4,8 @@ ${imports}
 
 public class ${self.name} extends ${self.extends} {
 
-    public ${self.name}( IRunContext runContext ) {
-        super( runContext );
+    public ${self.name}(IApplication app, IRunContext runContext, int populationId) {
+        super(app, runContext, populationId);
 ${instance_extent_initializers}
 ${relationship_extent_initializers}
 ${utility_initializers}

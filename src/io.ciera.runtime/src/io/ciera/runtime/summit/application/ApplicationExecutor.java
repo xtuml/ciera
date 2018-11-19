@@ -75,25 +75,24 @@ public class ApplicationExecutor extends Thread implements IRunContext {
         // execute a single external task
         if (!externalTasks.isEmpty()) {
             IApplicationTask externalTask = externalTasks.poll();
-            try {
-                externalTask.run();
-            } catch (XtumlException e) {
-                handler.handle(e);
+            if (externalTask instanceof HaltExecutionTask) {
+                running = false;
+            }
+            else {
+                try {
+                    externalTask.run();
+                } catch (XtumlException e) {
+                	handler.handle(e);
+                }
             }
             // handle all internal tasks
             while (!internalTasks.isEmpty()) {
                 IApplicationTask internalTask = internalTasks.poll();
-                if (internalTask instanceof HaltExecutionTask) {
-                	running = false;
+                try {
+                    internalTask.run();
+                } catch (XtumlException e) {
+                    handler.handle(e);
                 }
-                else {
-                    try {
-                        internalTask.run();
-                    } catch (XtumlException e) {
-                        handler.handle(e);
-                    }
-                }
-            	
             }
         }
         // end transaction
@@ -117,11 +116,11 @@ public class ApplicationExecutor extends Thread implements IRunContext {
                 // reset recurring timer
                 if (t.isRecurring()) {
                     t.reset(time());
-                    addTimer(t);
+                	activeTimers.add(t);
                 }
                 // deregister non-recurring event
                 else {
-                  deregisterEvent(t.getEventToGenerate());
+                    deregisterEvent(t.getEventToGenerate());
                 }
             }
             else {

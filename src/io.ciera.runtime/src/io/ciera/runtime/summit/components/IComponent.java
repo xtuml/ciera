@@ -2,6 +2,7 @@ package io.ciera.runtime.summit.components;
 
 import io.ciera.runtime.IVersioned;
 import io.ciera.runtime.summit.application.IActionHome;
+import io.ciera.runtime.summit.application.IApplication;
 import io.ciera.runtime.summit.classes.IInstancePopulation;
 import io.ciera.runtime.summit.exceptions.XtumlException;
 import io.ciera.runtime.summit.statemachine.EventHandle;
@@ -13,5 +14,7 @@ public interface IComponent<C extends IComponent<C>>
     public void initialize() throws XtumlException;
 
     public void generate(EventHandle event) throws XtumlException;
+    
+    public IApplication getApp();
 
 }
