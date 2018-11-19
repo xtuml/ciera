@@ -48,7 +48,7 @@ public class UI extends Component<UI> {
         }
     }
 
-    public void setTime( final int p_time ) throws XtumlException {
+    public void setTime(final int p_time) throws XtumlException {
         if (requester != null) {
             try {
                 requester.sendMessage(new IUI.SetTime(p_time));
@@ -60,7 +60,7 @@ public class UI extends Component<UI> {
         }
     }
 
-    public void setData( final double p_value,  final Unit p_unit ) throws XtumlException {
+    public void setData(final double p_value,  final Unit p_unit) throws XtumlException {
     	//LOG().LogReal("value: ", p_value);
     	//LOG().LogFailure("unit: " + p_unit.toString() + " " + p_unit.getValue());
         if (requester != null) {
