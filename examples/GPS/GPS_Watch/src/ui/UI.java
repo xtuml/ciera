@@ -14,7 +14,7 @@ public class UI extends gps_watch.UI implements IUIToProvider {
 	private IUIFromProvider peer;
 	
 	public UI(IUIFromProvider peer) {
-		super(new ApplicationExecutor("VerifierExecutor"));
+		super(null, new ApplicationExecutor("VerifierExecutor"), 0);
 		this.peer = peer;
 		try {
 		    initialize();

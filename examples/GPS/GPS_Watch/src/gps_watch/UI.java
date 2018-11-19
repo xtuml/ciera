@@ -8,6 +8,7 @@ import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import gps_watch.ui.UIUI;
+import io.ciera.runtime.summit.application.IApplication;
 import io.ciera.runtime.summit.application.IRunContext;
 import io.ciera.runtime.summit.application.tasks.GenericExecutionTask;
 import io.ciera.runtime.summit.application.tasks.HaltExecutionTask;
@@ -29,8 +30,8 @@ public class UI extends Component<UI> {
     private static GuiConnection requester = null;
     private static final int SOCKET_ERROR = -1;
 
-    public UI( IRunContext runContext ) {
-        super( runContext );
+    public UI(IApplication app, IRunContext runContext, int populationId) {
+        super(app, runContext, populationId);
         LOG = null;
         UIUI = null;
     }
