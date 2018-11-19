@@ -17,7 +17,7 @@ ${outbound_message_block}
     @Override
     public void deliver( IMessage message ) throws XtumlException {
         if ( null == message ) throw new BadArgumentException( "Cannot deliver null message." );
-        switch ( message.getName() ) {
+        switch ( message.getId() ) {
 ${message_switch_block}\
             default:
                 throw new BadArgumentException( "Message not implemented by this port." );

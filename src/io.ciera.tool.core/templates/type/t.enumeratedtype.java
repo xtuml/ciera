@@ -44,6 +44,10 @@ public enum ${self.name} implements IXtumlType<${self.name}> {
             value = Integer.parseInt((String)o);
         }
         else throw new XtumlException("Cannot deserialize value");
+        return valueOf(value);
+    }
+
+    public static ${self.name} valueOf(int value) {
         switch( value ) {
 ${enumerator_accessors}        default:
             return UNINITIALIZED_ENUM;

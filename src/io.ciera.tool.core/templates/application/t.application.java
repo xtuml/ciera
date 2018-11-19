@@ -16,8 +16,7 @@ public class ${self.name} implements IApplication {
     public void setup( String[] args ) {
         for ( int i = 0; i < executors.length; i++ )
             executors[i] = new ApplicationExecutor( "${self.name}Executor" + i, args );
-${component_instantiations}
-    }
+${component_instantiations}${component_satisfactions}    }
 
     @Override
     public void initialize() {

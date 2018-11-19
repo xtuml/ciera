@@ -49,15 +49,6 @@ while ( index < 1 ) // single executor for now
   index = index + 1;
 end while;
 
-// create the import block
-::addStringToImports( file:file, s:"io.ciera.runtime.summit.application.ApplicationExecutor", type:ImportType::IMPL );
-::addStringToImports( file:file, s:"io.ciera.runtime.summit.application.tasks.GenericExecutionTask", type:ImportType::IMPL );
-::addStringToImports( file:file, s:"io.ciera.runtime.summit.application.IApplication", type:ImportType::IMPL );
-::addStringToImports( file:file, s:"io.ciera.runtime.summit.application.IRunContext", type:ImportType::IMPL );
-::addStringToImports( file:file, s:"io.ciera.runtime.summit.components.IComponent", type:ImportType::IMPL );
-::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL );
-::addStringToImports( file:file, s:"java.util.Arrays", type:ImportType::IMPL );
-
 // translate components definitions
 select many c_cs related by root_package->PE_PE[R8000]->C_C[R8001];
 select many cl_ics related by root_package->PE_PE[R8000]->CL_IC[R8001]->C_C[R4201];
@@ -85,7 +76,23 @@ for each c_c in c_cs
     comp_inst.index = 0;
   end if;
   current_comp_inst = comp_inst;
-end for;',
+end for;
+
+// transform satisfactions
+select many c_sfs related by root_package->PE_PE[R8000]->C_SF[R8001];
+for each c_sf in c_sfs
+  ::transformSatisfaction( c_sf:c_sf );
+end for;
+
+// create the import block
+::addStringToImports( file:file, s:"io.ciera.runtime.summit.application.ApplicationExecutor", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.runtime.summit.application.tasks.GenericExecutionTask", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.runtime.summit.application.IApplication", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.runtime.summit.application.IRunContext", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.runtime.summit.components.IComponent", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"java.util.Arrays", type:ImportType::IMPL );
+',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -207,18 +214,20 @@ if ( 1 == param.pass )
     relate inst_pop_selector to obj across R449;
   end for;
   
-  // create properties file
-  create object instance prop_file of File;
-  prop_file.name = file.name + "Properties";
-  prop_file.path = file.path;
-  prop_file.package = file.package;
-  prop_file.extension = ".properties";
-  prop_file.exclude = false;
-  create object instance gen_file of GeneralFile;
-  relate gen_file to prop_file across R401;
-  comp_def.render_version();
-  gen_file.contents = TEMP::body();
-  TEMP::clear();
+  if ( not_empty version_mark )
+    // create version file
+    create object instance prop_file of File;
+    prop_file.name = file.name + "Properties";
+    prop_file.path = file.path;
+    prop_file.package = file.package;
+    prop_file.extension = ".properties";
+    prop_file.exclude = false;
+    create object instance gen_file of GeneralFile;
+    relate gen_file to prop_file across R401;
+    comp_def.render_version();
+    gen_file.contents = TEMP::body();
+    TEMP::clear();
+  end if;
   
   // create import block
   ::addStringToImports( file:file, s:"io.ciera.runtime.summit.components.Component", type:ImportType::IMPL );
@@ -381,7 +390,7 @@ if ( 1 == param.pass )
     ::transformComponentDefinition( c_c:c_c, containing_comp_def:containing_comp_def, path:path + "/" + TEMP::sub( format:"rl", s:ep_pkg.Name ), pass:2 );
     ::transformComponentDefinition( c_c:c_c, containing_comp_def:containing_comp_def, path:path + "/" + TEMP::sub( format:"rl", s:ep_pkg.Name ), pass:3 );
   end for;
-
+  
   // transform packages
   select many inner_ep_pkgs related by pe_pes->EP_PKG[R8001];
   for each inner_ep_pkg in inner_ep_pkgs
@@ -3124,6 +3133,44 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("5f428aea-6a6d-49dd-babb-3ecf53588835",
+	1,
+	"06787f13-1c16-4275-879c-00bbeee7cb88",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("77a64fbf-63ee-4c45-92f2-8ab432c0a13c",
+	"00000000-0000-0000-0000-000000000000",
+	'transformSatisfaction',
+	'',
+	'c_sf = param.c_sf;
+
+select one provider related by c_sf->C_P[R4002]->C_IR[R4009]->C_PO[R4016]->Port[R422];
+select one requirer related by c_sf->C_R[R4002]->C_IR[R4009]->C_PO[R4016]->Port[R422];
+
+relate provider to requirer across R4160.''satisfies required'';
+LOG::LogInfo( message:"requirement " + requirer.port_name + " in component " + requirer.comp_name + " satisfied by provision " + provider.port_name + " in component " + provider.comp_name );',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("07062f9f-0a6c-4cea-adb6-6f014598cecf",
+	"77a64fbf-63ee-4c45-92f2-8ab432c0a13c",
+	'c_sf',
+	"cb87cce2-556b-41ae-85e4-d8813981c372",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("cb87cce2-556b-41ae-85e4-d8813981c372",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Satisfaction>',
+	'',
+	'',
+	'../../../../mcooa/models/mcooa/ooaofooa/Component/Component.xtuml');
+INSERT INTO PE_PE
+	VALUES ("77a64fbf-63ee-4c45-92f2-8ab432c0a13c",
 	1,
 	"06787f13-1c16-4275-879c-00bbeee7cb88",
 	"00000000-0000-0000-0000-000000000000",
