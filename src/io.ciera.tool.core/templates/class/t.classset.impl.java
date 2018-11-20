@@ -27,7 +27,17 @@ ${selectors}
 
     @Override
     public List<${self.class_name}> elements() {
+.if ( "" != self.comparator )
+        ${self.class_name}[] elements = toArray(new ${self.class_name}[0]);
+        Arrays.sort(elements, (a, b) -> {
+            try {
+                return a.${self.comparator}().compareTo(b.${self.comparator}());
+            } catch (XtumlException e) { return 0; }
+        });
+        return Arrays.asList(elements);
+.else
         return Arrays.asList(toArray(new ${self.class_name}[0]));
+.end if
     }
 
 }
