@@ -395,6 +395,9 @@ public class WatchGui extends JFrame {
 					Socket newConnection = providerSocket.accept();
 					connection.close();
 					connection = newConnection;
+					try {
+						Thread.sleep(10);
+					} catch (InterruptedException e) {}
 				}
 			} catch (IOException ioException) {
 				ioException.printStackTrace();
@@ -427,6 +430,7 @@ public class WatchGui extends JFrame {
 		public void sendSignal(IMessage data) {
 			try{
 				out.write(data.serialize().getBytes());
+				out.write('\n');
 				out.flush();
 			}
 			catch(IOException ioException){
@@ -467,10 +471,11 @@ public class WatchGui extends JFrame {
 						default:
 							break;
 						}
-						
+						Thread.sleep(10);
 					} catch (IOException ioe) {
 						System.out.println("Connection closed by client.");
 						break;
+					} catch (InterruptedException e) { // do nothing
 					} catch (XtumlException e) {
 						e.printStackTrace();
 					}

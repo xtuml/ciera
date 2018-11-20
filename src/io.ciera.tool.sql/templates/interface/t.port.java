@@ -2,7 +2,7 @@ package ${self.package};
 
 ${imports}
 
-public class ${self.name} extends Port<${self.comp_name}> implements ${self.iface_name} {
+public class ${self.name} extends ${self.base_class}<${self.comp_name}> implements ${self.iface_name} {
 
     public ${self.name}( ${self.comp_name} context, IPort<?> peer ) {
         super( context, peer );
@@ -19,9 +19,16 @@ ${outbound_message_block}
         if ( null == message ) throw new BadArgumentException( "Cannot deliver null message." );
         switch ( message.getId() ) {
 ${message_switch_block}\
-            default:
-                throw new BadArgumentException( "Message not implemented by this port." );
+        default:
+            throw new BadArgumentException( "Message not implemented by this port." );
         }
+    }
+
+${extra_parameters}
+
+    @Override
+    public String getName() {
+        return "${self.port_name}";
     }
 
 }

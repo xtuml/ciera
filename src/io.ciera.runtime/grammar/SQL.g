@@ -14,7 +14,7 @@ values:            value |
                    value COMMA values
                    ;
 
-value:             STRING | REAL | INTEGER | UUID;
+value:             STRING | REAL | INTEGER;
 
 comment:           COMMENT;
 
@@ -22,8 +22,6 @@ COMMENT:           '--' ~( '\n' )* '\n';
 ID:                [a-zA-Z][a-zA-Z0-9_]*;
 INTEGER:           '-'? [0-9]+;
 REAL:              '-'? [0-9]+ '.' [0-9]+;
-fragment HB:       [0-9a-f][0-9a-f];  // single hex byte
-UUID:              '"' HB HB HB HB '-' HB HB '-' HB HB '-' HB HB '-' HB HB HB HB HB HB '"';
 STRING:            '\'' ( ~( '\'' ) | '\'' '\'' )* '\'';
 
 LPAREN:            '(';

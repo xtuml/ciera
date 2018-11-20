@@ -15,7 +15,7 @@ public abstract class Port<C extends IComponent<C>> implements IPort<C> {
         this.peer = peer;
     }
 
-    public void send(IMessage message) {
+    public void send(IMessage message) throws XtumlException {
         if (null != peer) {
             peer.getRunContext().execute(new ReceivedMessageTask() {
                 @Override
@@ -34,6 +34,14 @@ public abstract class Port<C extends IComponent<C>> implements IPort<C> {
     @Override
     public boolean satisfied() {
         return null != peer;
+    }
+    
+    @Override
+    public String getPeerName() {
+    	if (satisfied()) {
+    		return peer.getName();
+    	}
+    	else return "";
     }
 
     @Override

@@ -65,8 +65,19 @@ end while;
 sep = "";
 i = 0;
 while ( not_empty msg_parm )
+  accessor = "message.get(" + STRING::itoa( i:i ) + ")";
   select one parm_dt related by msg_parm->TypeReference[R431];
-  message_parameter_list = message_parameter_list + sep + "(" + parm_dt.type_reference_name + ")message.get(" + STRING::itoa( i:i ) + ")";
+  if ( "boolean" == parm_dt.type_name )
+    message_parameter_list = message_parameter_list + sep + "BooleanUtil.deserialize(" + accessor + ")";
+  elif ( "int" == parm_dt.type_name )
+    message_parameter_list = message_parameter_list + sep + "IntegerUtil.deserialize(" + accessor + ")";
+  elif ( "double" == parm_dt.type_name )
+    message_parameter_list = message_parameter_list + sep + "RealUtil.deserialize(" + accessor + ")";
+  elif ( "String" == parm_dt.type_name )
+    message_parameter_list = message_parameter_list + sep + "StringUtil.deserialize(" + accessor + ")";
+  else
+    message_parameter_list = message_parameter_list + sep + parm_dt.type_reference_name + ".deserialize(" + accessor + ")";
+  end if;
   sep = ", ";
   i = i + 1;
   select one msg_parm related by msg_parm->FormalParameter[R404.''precedes''];

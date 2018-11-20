@@ -1,8 +1,9 @@
 package io.ciera.runtime.summit.interfaces;
 
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
-import java.util.Arrays;
+import java.util.List;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import io.ciera.runtime.summit.exceptions.XtumlException;
 import io.ciera.runtime.summit.types.IXtumlType;
@@ -60,43 +61,49 @@ public abstract class Message implements IMessage, Comparable<IMessage> {
     
     @Override
     public String serialize() throws XtumlException {
-    	ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    	PrintStream out = new PrintStream(baos);
-    	out.printf("%d,%s", getId(), getName());
+    	JSONObject msg = new JSONObject();
+    	msg.put("messageHandle", getMessageHandle().serialize());
+    	msg.put("name", getName());
+    	msg.put("id", getId());
+    	JSONArray params = new JSONArray();
+    	msg.put("parameterData", params);
     	for (Object param : parameterData) {
-    		out.print(',');
-    		if (param instanceof IXtumlType<?>) out.print(((IXtumlType<?>)param).serialize());
-    		else out.print(param.toString());
+    		if (param instanceof IXtumlType<?>) params.put(((IXtumlType<?>)param).serialize());
+    		else params.put(param.toString());
     	}
-    	out.println();
-    	return baos.toString();
+    	return msg.toString();
     }
     
     public static IMessage deserialize(Object o) throws XtumlException {
-    	if (o instanceof String) {
-    		String[] parts = ((String)o).split(",");
-    		if (parts.length >= 2) {
-    			final int id = Integer.parseInt(parts[0]);
-    			final String name = parts[1];
-    			final String[] params = Arrays.copyOfRange(parts, 2, parts.length);
-    			return new Message() {
-                    @Override
-                    public String getName() {
-                    	return name;
-                    }
-                    @Override
-                    public int getId() {
-                    	return id;
-                    }
-                    @Override
-                    public Object get(int index) throws XtumlException {
-                        if (index >= 0 && index < params.length) {
-                            return params[index];
-                        } else throw new XtumlException("Invalid index");
-                    }
-    			};
-    		}
-    		else throw new XtumlException("Cannot deserialize message");
+    	if (o instanceof IMessage) {
+          return (IMessage)o;
+      }
+    	else if (o instanceof String) {
+    		JSONObject msg = new JSONObject((String)o);
+    		final UniqueId messageHandle = UniqueId.deserialize(msg.get("messageHandle"));
+    		final String name = msg.getString("name");
+    		final int id = msg.getInt("id");
+    		final List<Object> params = msg.getJSONArray("parameterData").toList();
+    		return new Message() {
+    			@Override
+    			public UniqueId getMessageHandle() {
+    				return messageHandle;
+    			}
+                @Override
+                public String getName() {
+                    return name;
+                }
+                @Override
+                public int getId() {
+                    return id;
+                }
+                @Override
+                public Object get(int index) throws XtumlException {
+                    if (index >= 0 && index < params.size()) {
+                        return params.get(index);
+                    } else throw new XtumlException("Invalid index");
+                }
+    		};
     	}
         else throw new XtumlException("Cannot deserialize message");
     }

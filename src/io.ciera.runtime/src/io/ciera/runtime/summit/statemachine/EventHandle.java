@@ -16,7 +16,10 @@ public final class EventHandle extends UniqueId {
 	}
 	
 	public static EventHandle deserialize(Object o) throws XtumlException {
-		return new EventHandle(UniqueId.deserialize(o));
+      if (o instanceof EventHandle) {
+          return (EventHandle)o;
+      }
+      else return new EventHandle(UniqueId.deserialize(o));
 	}
 
 }

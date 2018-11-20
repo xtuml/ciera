@@ -51,4 +51,11 @@ public class StringUtil {
             return true;
     }
 
+	public static String deserialize(Object o) {
+		if (o instanceof String) {
+			return (String)o;
+		}
+		else return o.toString();
+	}
+
 }

@@ -11,5 +11,9 @@ public interface IPort<C extends IComponent<C>> extends IActionHome<C> {
     public void satisfy(IPort<?> peer);
 
     public boolean satisfied();
+    
+    public String getName();
+    
+    public String getPeerName();
 
 }

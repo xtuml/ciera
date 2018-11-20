@@ -36,15 +36,20 @@ public enum ${self.name} implements IXtumlType<${self.name}> {
     }
 
     public static ${self.name} deserialize(Object o) throws XtumlException {
-        int value;
-        if (o instanceof Integer) {
-            value = (int)o;
+        if (o instanceof ${self.name}) {
+            return (${self.name})o;
         }
-        else if (o instanceof String) {
-            value = Integer.parseInt((String)o);
+        else {
+            int value;
+            if (o instanceof Integer) {
+                value = (int)o;
+            }
+            else if (o instanceof String) {
+                value = Integer.parseInt((String)o);
+            }
+            else throw new XtumlException("Cannot deserialize value");
+            return valueOf(value);
         }
-        else throw new XtumlException("Cannot deserialize value");
-        return valueOf(value);
     }
 
     public static ${self.name} valueOf(int value) {

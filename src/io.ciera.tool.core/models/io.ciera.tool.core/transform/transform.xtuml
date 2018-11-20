@@ -1557,6 +1557,8 @@ INSERT INTO S_SYNC
 	'',
 	'c_po = param.c_po;
 comp_def = param.comp_def;
+select one c_c related by c_po->C_C[R4010];
+select one pe related by c_c->PE_PE[R8001];
 
 // create the file
 create object instance file of File;
@@ -1571,6 +1573,18 @@ create object instance port of Port;
 relate port to file across R401;
 relate port to c_po across R422;
 port.port_name = ::camelCaseName( name:c_po.Name, start_lower:false );
+
+// set base class
+select any base_class_mark from instances of Mark where ( selected.markable_name == "Port" and
+                                                          selected.path == ::containerMarkingPath( pe:pe ) + "::" + c_c.Name + "::" + c_po.Name and
+                                                          selected.feature_name == "BaseClass" );
+if ( not_empty base_class_mark )
+  port.base_class = base_class_mark.value;
+  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.interfaces." + base_class_mark.value, type:ImportType::IMPL );
+else
+  port.base_class = "Port";
+  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.interfaces.Port", type:ImportType::IMPL );
+end if;
 
 // set port as provider or requirer
 select any c_p related by c_po->C_IR[R4016]->C_P[R4009];
@@ -1606,7 +1620,6 @@ select one component_file related by comp_def->File[R401];
 ::addFileToImports( file:component_file, file_to_import:file, type:ImportType::IMPL );
 
 // add imports
-::addStringToImports( file:file, s:"io.ciera.runtime.summit.interfaces.Port", type:ImportType::IMPL );
 ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.BadArgumentException", type:ImportType::IMPL );
 ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL );
 ::addStringToImports( file:file, s:"io.ciera.runtime.summit.interfaces.IMessage", type:ImportType::IMPL );
@@ -2458,6 +2471,7 @@ INSERT INTO S_SYNC
 	'',
 	'port = param.port;
 msg = param.msg;
+select one file related by port->File[R401];
 
 select any c_ep related by msg->Interface[R419]->C_I[R421]->C_EP[R4003] where ( selected.Name == msg.name );
 select one c_po related by port->C_PO[R422];
@@ -2521,10 +2535,24 @@ while ( not_empty c_pp )
   parm.by_ref = ( 1 == c_pp.By_Ref );
   select one parm_dt related by c_pp->S_DT[R4007];
   select many s_dims related by c_pp->S_DIM[R4017];
-  parm_type = TypeReference::getInstance( s_dt:parm_dt, s_dims:s_dims );
-  relate parm_type to parm across R431;
+  parm_type_ref = TypeReference::getInstance( s_dt:parm_dt, s_dims:s_dims );
+  relate parm_type_ref to parm across R431;
   ::linkParameter( invocable:invocable, parameter:parm );
   select one c_pp related by c_pp->C_PP[R4021.''precedes''];
+  if ((msg.to_provider and port.provider) or (not msg.to_provider and not port.provider))
+    if ( "boolean" == parm_type_ref.type_name )
+      ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.BooleanUtil", type:ImportType::IMPL );
+    elif ( "int" == parm_type_ref.type_name )
+      ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.IntegerUtil", type:ImportType::IMPL );
+    elif ( "double" == parm_type_ref.type_name )
+      ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.RealUtil", type:ImportType::IMPL );
+    elif ( "String" == parm_type_ref.type_name )
+      ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.StringUtil", type:ImportType::IMPL );
+    else
+      select one parm_type related by parm_type_ref->Type[R3800];
+      ::addTypeToImports( file:file, type_to_import:parm_type, type:ImportType::IMPL );
+    end if;
+  end if;
 end while;
 
 // relate the body
@@ -3149,8 +3177,7 @@ INSERT INTO S_SYNC
 select one provider related by c_sf->C_P[R4002]->C_IR[R4009]->C_PO[R4016]->Port[R422];
 select one requirer related by c_sf->C_R[R4002]->C_IR[R4009]->C_PO[R4016]->Port[R422];
 
-relate provider to requirer across R4160.''satisfies required'';
-LOG::LogInfo( message:"requirement " + requirer.port_name + " in component " + requirer.comp_name + " satisfied by provision " + provider.port_name + " in component " + provider.comp_name );',
+relate provider to requirer across R4160.''satisfies required'';',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',

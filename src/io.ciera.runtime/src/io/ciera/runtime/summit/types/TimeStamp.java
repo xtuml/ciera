@@ -66,7 +66,10 @@ public class TimeStamp implements IXtumlType<TimeStamp>, Comparable<TimeStamp> {
 	}
 	
 	public static TimeStamp deserialize(Object o) throws XtumlException {
-		if (o instanceof Long) {
+		if (o instanceof TimeStamp) {
+            return (TimeStamp)o;
+		}
+		else if (o instanceof Long) {
 			return new TimeStamp(((Long)o).longValue());
 		}
 		else if (o instanceof Integer) {

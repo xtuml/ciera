@@ -63,7 +63,7 @@ public class UniqueId implements IXtumlType<UniqueId>, Comparable<UniqueId> {
 
 	@Override
 	public String serialize() {
-		return "\"" + id.toString() + "\"";
+		return id.toString();
 	}
 
     public static UniqueId random() {
@@ -71,8 +71,13 @@ public class UniqueId implements IXtumlType<UniqueId>, Comparable<UniqueId> {
     }
 
     public static UniqueId deserialize(Object o) throws XtumlException {
-        if (o instanceof UUID) {
+        if (o instanceof UniqueId) {
+            return (UniqueId)o;
+        }
+        else if (o instanceof UUID) {
             return new UniqueId((UUID) o);
+        } else if (o instanceof String) {
+            return new UniqueId(UUID.fromString((String)o));
         } else if (o instanceof Integer) {
             return new UniqueId(new UUID(0, ((Integer) o).longValue()));
         } else

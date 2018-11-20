@@ -2,7 +2,6 @@ package io.ciera.runtime.instanceloading.sql.parser;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 import io.ciera.runtime.instanceloading.IPopulationLoader;
 import io.ciera.runtime.instanceloading.sql.parser.SQLParser.Insert_statementContext;
@@ -80,9 +79,6 @@ public class XtumlSQLListener extends SQLBaseListener {
         	} catch (ArithmeticException e) {
         		values.add(longValue);
         	}
-        } else if (null != ctx.UUID()) {
-            String text = ctx.UUID().getText();
-            values.add(UUID.fromString(text.substring(1, text.length() - 1)));
         } else {
             System.err.println("This is bad"); // TODO
         }

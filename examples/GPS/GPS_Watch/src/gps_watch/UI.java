@@ -229,7 +229,7 @@ public class UI extends Component<UI> {
                     LOG().LogInfo("Connection closed by server");
                     return SOCKET_ERROR;
                 }
-                //LOG().LogFailure(msg);
+                //LOG().LogFailure(data);
                 IMessage msg = Message.deserialize(data);
                 return msg.getId();
             } catch ( IOException e ) {
@@ -241,6 +241,7 @@ public class UI extends Component<UI> {
         
         private void sendMessage(IMessage msg) throws IOException, XtumlException {
             out.write(msg.serialize().getBytes());
+            out.write('\n');
             out.flush();
         }
         

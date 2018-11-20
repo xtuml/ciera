@@ -16,7 +16,10 @@ public final class TimerHandle extends UniqueId {
 	}
 
 	public static TimerHandle deserialize(Object o) throws XtumlException {
-		return new TimerHandle(UniqueId.deserialize(o));
+      if (o instanceof TimerHandle) {
+          return (TimerHandle)o;
+      }
+      else return new TimerHandle(UniqueId.deserialize(o));
 	}
 
 }
