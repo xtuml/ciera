@@ -13,6 +13,10 @@ public interface IRunContext {
 
     public void execute(IApplicationTask task);
 
+    public void performTransaction(IApplicationTask task);
+    
+    public void heartbeat();
+
     public IExceptionHandler getExceptionHandler();
 
     public void setExceptionHandler(IExceptionHandler h);

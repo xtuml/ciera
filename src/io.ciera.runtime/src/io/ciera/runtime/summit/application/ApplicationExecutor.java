@@ -21,8 +21,8 @@ public class ApplicationExecutor extends Thread implements IRunContext {
     private static final int TICK_LEN = 1; // tick length in milliseconds
 
     private IExceptionHandler handler;
-    private Queue<IApplicationTask> internalTasks;
-    private Queue<IApplicationTask> externalTasks;
+    private Queue<IApplicationTask> pendingEvents;
+    private Queue<IApplicationTask> tasks;
     private boolean running;
 
     private Queue<Timer> activeTimers;
@@ -40,8 +40,8 @@ public class ApplicationExecutor extends Thread implements IRunContext {
     public ApplicationExecutor(String name, String[] args) {
         super(name);
         handler = new DefaultExceptionHandler();
-        internalTasks = new PriorityQueue<>();
-        externalTasks = new PriorityQueue<>();
+        pendingEvents = new PriorityQueue<>();
+        tasks = new PriorityQueue<>();
         activeTimers = new PriorityQueue<>();
         activeEvents = new HashMap<>();
         running = false;
@@ -52,8 +52,8 @@ public class ApplicationExecutor extends Thread implements IRunContext {
 
     @Override
     public void execute(IApplicationTask task) {
-    	if ( task.getPriority() < 0x10 ) internalTasks.add(task);
-    	else externalTasks.add(task);
+    	if ( task.getPriority() < 0x10 ) pendingEvents.add(task);
+    	else tasks.add(task);
     }
 
     @Override
@@ -61,38 +61,46 @@ public class ApplicationExecutor extends Thread implements IRunContext {
         running = true;
         while (running) {
     	    tick();
-        	performTransaction();
+        	if (!tasks.isEmpty()) {
+        	    performTransaction(tasks.poll());
+        	}
         	// if the queue is empty, go to sleep
-        	if (externalTasks.isEmpty()) {
+        	else {
                 try {
                     Thread.sleep(TICK_LEN);
                 } catch (InterruptedException e) {/* do nothing */}
         	}
         }
     }
+    
+    @Override
+    public void heartbeat() {
+    	tick();
+        if (!tasks.isEmpty()) {
+            performTransaction(tasks.poll());
+        }
+    }
 
-    private void performTransaction() {
-        // execute a single external task
-        if (!externalTasks.isEmpty()) {
-            IApplicationTask externalTask = externalTasks.poll();
-            if (externalTask instanceof HaltExecutionTask) {
-                running = false;
+    @Override
+    public void performTransaction(IApplicationTask task) {
+        // execute a single task
+        if (task instanceof HaltExecutionTask) {
+            running = false;
+        }
+        else {
+            try {
+                task.run();
+            } catch (XtumlException e) {
+              handler.handle(e);
             }
-            else {
-                try {
-                    externalTask.run();
-                } catch (XtumlException e) {
-                	handler.handle(e);
-                }
-            }
-            // handle all internal tasks
-            while (!internalTasks.isEmpty()) {
-                IApplicationTask internalTask = internalTasks.poll();
-                try {
-                    internalTask.run();
-                } catch (XtumlException e) {
-                    handler.handle(e);
-                }
+        }
+        // handle all generated events
+        while (!pendingEvents.isEmpty()) {
+            IApplicationTask pendingEvent = pendingEvents.poll();
+            try {
+                pendingEvent.run();
+            } catch (XtumlException e) {
+                handler.handle(e);
             }
         }
         // end transaction

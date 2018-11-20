@@ -4,8 +4,8 @@ ${imports}
 
 public class ${self.name} implements IApplication {
 
-    IComponent<?>[] components;
-    IRunContext[] executors;
+    private IComponent<?>[] components;
+    private IRunContext[] executors;
 
     public ${self.name}() {
         components = new IComponent<?>[$t{num_component_instances}];

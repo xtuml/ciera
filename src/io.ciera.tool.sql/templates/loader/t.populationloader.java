@@ -31,7 +31,7 @@ ${batch_relator_definitions}
     @Override
     public void serialize( OutputStream stream ) throws XtumlException {
         progressBar = new ProgressBar(${instance_count});
-        System.err.println( "Serializing instances..." );
+        //System.err.println( "Serializing instances..." );
         PrintStream out = new PrintStream( stream );
 ${instance_serializers}        out.flush();
         progressBar.join();

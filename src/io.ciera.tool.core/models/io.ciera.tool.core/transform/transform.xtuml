@@ -40,11 +40,19 @@ file.exclude = false;
 create object instance app of Application;
 relate app to file across R401;
 
+// see if this needs to be generated as an asynchronous application
+select any async_app_mark from instances of Mark where ( selected.markable_name == "*" and selected.path == "*" and selected.feature_name == "AsyncApplication" );
+app.async = not_empty async_app_mark;
+
 // create application executors
 index = 0;
 while ( index < 1 ) // single executor for now
   create object instance executor of ApplicationExecutor;
-  executor.index = index;
+  if ( app.async )
+    executor.index = -1;
+  else
+    executor.index = index;
+  end if;
   relate executor to app across R4027;
   index = index + 1;
 end while;
@@ -67,7 +75,7 @@ for each c_c in c_cs
   relate  comp_def to app across R426 using comp_inst;
   select one comp_def_file related by comp_def->File[R401];
   ::addFileToImports( file:file, file_to_import:comp_def_file, type:ImportType::IMPL );
-  select any executor from instances of ApplicationExecutor where ( selected.index == 0 );  // single executor for now
+  select any executor related by app->ApplicationExecutor[R4027]; // single executor for now
   relate executor to comp_inst across R4028;
   if ( not_empty current_comp_inst )
     relate comp_inst to current_comp_inst across R4029.''follows'';
@@ -85,15 +93,26 @@ for each c_sf in c_sfs
 end for;
 
 // create the import block
+if ( app.async )
+  ::addStringToImports( file:file, s:"java.io.File", type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"java.io.IOException", type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"java.lang.reflect.InvocationTargetException", type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"java.lang.reflect.Method", type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"java.util.Scanner", type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"org.json.JSONObject", type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.interfaces.IPort", type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.interfaces.Message", type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.util.CommandLine", type:ImportType::IMPL );
+else
+  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.application.tasks.HaltExecutionTask", type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"java.util.Arrays", type:ImportType::IMPL );
+end if;
+::addStringToImports( file:file, s:"io.ciera.runtime.summit.application.IApplication", type:ImportType::IMPL );
 ::addStringToImports( file:file, s:"io.ciera.runtime.summit.application.ApplicationExecutor", type:ImportType::IMPL );
 ::addStringToImports( file:file, s:"io.ciera.runtime.summit.application.tasks.GenericExecutionTask", type:ImportType::IMPL );
-::addStringToImports( file:file, s:"io.ciera.runtime.summit.application.tasks.HaltExecutionTask", type:ImportType::IMPL );
-::addStringToImports( file:file, s:"io.ciera.runtime.summit.application.IApplication", type:ImportType::IMPL );
 ::addStringToImports( file:file, s:"io.ciera.runtime.summit.application.IRunContext", type:ImportType::IMPL );
 ::addStringToImports( file:file, s:"io.ciera.runtime.summit.components.IComponent", type:ImportType::IMPL );
-::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL );
-::addStringToImports( file:file, s:"java.util.Arrays", type:ImportType::IMPL );
-',
+::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL );',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -772,9 +791,6 @@ if ( empty class_exclude_mark )
   // relate to the OOA class
   relate obj to o_obj across R409;
 
-  // transform the set object
-  ::transformClassSet( obj:obj, ep_pkg:ep_pkg, path:path );
-
   // transform attributes
   select any o_attr related by o_obj->O_ATTR[R102];
   select one prev_attr related by o_attr->O_ATTR[R103.''succeeds''];
@@ -808,6 +824,9 @@ if ( empty class_exclude_mark )
       ::addStringToImports( file:file, s:"io.ciera.runtime.summit.statemachine.Event", type:ImportType::IMPL );
     end if;
   end if;
+
+  // transform the set object
+  ::transformClassSet( obj:obj, ep_pkg:ep_pkg, path:path );
 
   // add to the containing component imports
   select one component_file related by containing_comp_def->File[R401];
@@ -895,6 +914,19 @@ create object instance objset of ClassSet;
 relate objset to obj across R406;
 relate objset to file across R401;
 objset.extends = "InstanceSet<" + objset.name + "," + obj.name + ">";
+objset.comparator = "";
+
+// set the comparator
+select any comparator_mark from instances of Mark where ( selected.markable_name == "*" and selected.path == "*" and selected.feature_name == "AsyncApplication" );
+if ( not_empty comparator_mark )
+  select many attr_accessors related by objset->Class[R406]->Attribute[R410]->AttributeAccessor[R4510] where ( selected.accessor_type == AttributeAccessorType::GETTER );
+  for each attr_accessor in attr_accessors
+    if ( attr_accessor.getName() == comparator_mark.value )
+      objset.comparator = comparator_mark.value;
+      break;
+    end if;
+  end for;
+end if;
 
 // create the instance type
 create object instance type of Type;
@@ -917,7 +949,12 @@ select one objfile related by obj->File[R401];
 ::addStringToImports( file:file, s:"java.util.Arrays", type:ImportType::IMPL );
 ::addStringToImports( file:file, s:"java.util.List", type:ImportType::IMPL );
 ::addStringToImports( file:file, s:"io.ciera.runtime.summit.classes.InstanceSet", type:ImportType::IMPL );
-::addStringToImports( file:file, s:"io.ciera.runtime.summit.classes.IInstanceSet", type:ImportType::INT );',
+::addStringToImports( file:file, s:"io.ciera.runtime.summit.classes.IInstanceSet", type:ImportType::INT );
+
+select any attr related by objset->Class[R406]->Attribute[R410];
+if ( not_empty attr )
+  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::BOTH );
+end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -1048,11 +1085,7 @@ select one file related by obj->File[R401];
 ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.EmptyInstanceException", type:ImportType::IMPL );
 if ( "String" == type.type_name and "" == type.type_package )
   ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.StringUtil", type:ImportType::IMPL );
-end if;
-
-// add imports to object set file
-select one set_file related by obj->ClassSet[R406]->File[R401];
-::addStringToImports( file:set_file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::BOTH );',
+end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -1426,8 +1459,9 @@ if ( empty iface )
   relate iface to c_i across R421;
 
   // transform messages
-  index = 1;
+  // sort by name to assure consistent translation
   select many c_eps related by c_i->C_EP[R4003];
+  index = 1;
   for each c_ep in c_eps
     ::transformMessage( c_ep:c_ep, iface:iface, index:index );
     index = index + 1;
