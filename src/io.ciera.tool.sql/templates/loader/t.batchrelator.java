@@ -6,6 +6,5 @@
             ${self.part_name} part = population.${self.part_name}_instances().getById$t{self.id_num}(new InstanceIdentifier(${attribute_comparisons}));
             if ( !part.isEmpty() ) population.relate_${self.rel_name}( form, part );
 .end if
-            progressBar.step();
         }
     }

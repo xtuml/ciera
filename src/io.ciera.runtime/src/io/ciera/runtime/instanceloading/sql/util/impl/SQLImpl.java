@@ -1,11 +1,9 @@
 package io.ciera.runtime.instanceloading.sql.util.impl;
 
-import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.lang.reflect.Constructor;
 
 import org.antlr.v4.runtime.CharStreams;
@@ -41,29 +39,21 @@ public class SQLImpl<C extends IComponent<C>> extends Utility<C> implements SQL 
 
     @Override
     public void load() throws XtumlException {
-        load(System.in, -1);
+        load(System.in);
     }
 
     @Override
     public void load_file(String file) throws XtumlException {
         if (null != file) {
             try {
-                BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
-                String line = "";
-                int instanceCount = 0;
-                while ((line = reader.readLine()) != null) {
-                    if (line.contains("INSERT INTO"))
-                        instanceCount++;
-                }
-                reader.close();
-                load(new FileInputStream(file), instanceCount);
+                load(new FileInputStream(file));
             } catch (IOException e) {
                 throw new InstancePopulationException("Could not read input file.");
             }
         }
     }
 
-    private void load(InputStream in, int instanceCount) throws XtumlException {
+    private void load(InputStream in) throws XtumlException {
         if (null != loader && null != in) {
             try {
                 SQLLexer lexer = new SQLLexer(CharStreams.fromStream(in));
@@ -71,7 +61,7 @@ public class SQLImpl<C extends IComponent<C>> extends Utility<C> implements SQL 
                 SQLParser parser = new SQLParser(tokens);
                 Sql_fileContext ctx = parser.sql_file();
                 ParseTreeWalker walker = new ParseTreeWalker();
-                XtumlSQLListener listener = new XtumlSQLListener(loader, instanceCount);
+                XtumlSQLListener listener = new XtumlSQLListener(loader);
                 walker.walk(listener, ctx);
             } catch (IOException e) {
                 throw new InstancePopulationException("Could not read input file.");

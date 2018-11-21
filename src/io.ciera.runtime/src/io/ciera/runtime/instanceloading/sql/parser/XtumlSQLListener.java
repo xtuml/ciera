@@ -9,32 +9,22 @@ import io.ciera.runtime.instanceloading.sql.parser.SQLParser.Sql_fileContext;
 import io.ciera.runtime.instanceloading.sql.parser.SQLParser.Table_nameContext;
 import io.ciera.runtime.instanceloading.sql.parser.SQLParser.ValueContext;
 import io.ciera.runtime.summit.exceptions.XtumlException;
-import io.ciera.runtime.summit.util.ProgressBar;
 
 public class XtumlSQLListener extends SQLBaseListener {
 
     private IPopulationLoader loader;
-    private ProgressBar progressBar;
     private String tableName;
     private List<Object> values;
 
-    public XtumlSQLListener(IPopulationLoader loader, int instanceCount) {
+    public XtumlSQLListener(IPopulationLoader loader) {
         this.loader = loader;
-        progressBar = new ProgressBar(instanceCount);
         tableName = null;
         values = null;
     }
 
     @Override
-    public void enterSql_file(Sql_fileContext ctx) {
-        System.err.println("Loading instances...");
-    }
-
-    @Override
     public void exitSql_file(Sql_fileContext ctx) {
         try {
-            progressBar.join();
-            System.err.println("Finishing up...");
             loader.finish();
         } catch (XtumlException e) {
             e.printStackTrace();
@@ -52,7 +42,6 @@ public class XtumlSQLListener extends SQLBaseListener {
     public void exitInsert_statement(Insert_statementContext ctx) {
         try {
             loader.insert(tableName, values);
-            progressBar.step();
         } catch (XtumlException e) {
             e.printStackTrace();
             System.exit(1);

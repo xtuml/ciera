@@ -4,7 +4,7 @@ grammar SQL;
 package io.ciera.runtime.instanceloading.sql.parser;
 }
 
-sql_file:          ( comment )* insert_statement ( comment | insert_statement )*;
+sql_file:          ( comment | insert_statement )*;
 
 insert_statement:  'INSERT' 'INTO' table_name 'VALUES' LPAREN values RPAREN SEMI;
 
