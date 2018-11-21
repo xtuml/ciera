@@ -9,15 +9,19 @@ import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URL;
+import java.net.URLEncoder;
 
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
+
+import org.json.JSONObject;
 
 import io.ciera.runtime.summit.exceptions.XtumlException;
 import io.ciera.runtime.summit.interfaces.IMessage;
@@ -153,35 +157,35 @@ public class WatchGui extends JFrame {
 		lightLabel.setBounds(0, 190, 75, 122);
 		lightLabel.addMouseListener(new ButtonListener(lightHover, powerPressed) {
 			public void buttonPressed() {
-				WatchGui.this.buttonPressed(new IUI.SetTargetPressed());
+				WatchGui.this.sendSignal(new IUI.SetTargetPressed());
 			}
 		});
 
 		startStopLabel.setBounds(165, 499, 164, 70);
 		startStopLabel.addMouseListener(new ButtonListener(startStopHover, startStopPressed) {
 			public void buttonPressed() {
-				WatchGui.this.buttonPressed(new IUI.StartStopPressed());
+				WatchGui.this.sendSignal(new IUI.StartStopPressed());
 			}
 		});
 
 		lapResetLabel.setBounds(420, 434, 83, 121);
 		lapResetLabel.addMouseListener(new ButtonListener(lapResetHover, lapResetPressed) {
 			public void buttonPressed() {
-				WatchGui.this.buttonPressed(new IUI.LapResetPressed());
+				WatchGui.this.sendSignal(new IUI.LapResetPressed());
 			}
 		});
 
 		displayLabel.setBounds(412, 190, 75, 122);
 		displayLabel.addMouseListener(new ButtonListener(displayHover, displayPressed) {
 			public void buttonPressed() {
-				WatchGui.this.buttonPressed(new IUI.LightPressed());
+				WatchGui.this.sendSignal(new IUI.LightPressed());
 			}
 		});
 		
 		modeLabel.setBounds(0, 434, 81, 121);
 		modeLabel.addMouseListener(new ButtonListener(modeHover, modePressed) {
 			public void buttonPressed() {
-				WatchGui.this.buttonPressed(new IUI.ModePressed());
+				WatchGui.this.sendSignal(new IUI.ModePressed());
 			}
 		});
 
@@ -250,11 +254,6 @@ public class WatchGui extends JFrame {
 			smallSeparatorLabel.setIcon(smallSeparator);
 		} else {
 			smallSeparatorLabel.setIcon(null);
-		}
-	}
-	private void buttonPressed(IMessage data) {
-		if (server != null && !server.connection.isClosed()) {
-			server.sendSignal(data);
 		}
 	}
 
@@ -427,19 +426,6 @@ public class WatchGui extends JFrame {
 	 	public ApplicationConnection(Socket connection) {
 	 		this.connection = connection;
 	 	}
-		public void sendSignal(IMessage data) {
-			try{
-				out.write(data.serialize().getBytes());
-				out.write('\n');
-				out.flush();
-			}
-			catch(IOException ioException){
-				ioException.printStackTrace();
-			}
-			catch (XtumlException e) {
-				e.printStackTrace();
-			}
-		}
 		public void run() {
 			try {
 				System.out.println("Connection received from " + connection.getInetAddress().getHostName());
@@ -491,6 +477,35 @@ public class WatchGui extends JFrame {
 					ioException.printStackTrace();
 				}
 			}
+		}
+	}
+	
+	private void sendSignal(IMessage message) {
+		try {
+            JSONObject msg = new JSONObject();
+            msg.put("componentId", 0);
+            msg.put("portName", "UI");
+            msg.put("message", new JSONObject(message.serialize()));
+            HttpURLConnection connection = null;
+            try {
+                URL url = new URL(String.format("http://%s:%d/message?data=%s", "0.0.0.0", 8080, URLEncoder.encode(msg.toString(), "UTF-8")));
+                connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestMethod("GET");
+                int resp = connection.getResponseCode();
+                if (HttpURLConnection.HTTP_OK != resp) {
+                    throw new XtumlException("Invalid response code: " + resp);
+                }
+            } catch (IOException e) {
+                if (connection != null) {
+                    connection.disconnect();
+                }
+                throw new XtumlException("Failed to send message");
+            }
+            if (connection != null) {
+                connection.disconnect();
+            }
+		} catch (XtumlException e) {
+			e.printStackTrace();
 		}
 	}
 	

@@ -20,7 +20,7 @@ public abstract class HttpPort<C extends IComponent<C>> extends Port<C> {
     public void send(IMessage message) throws XtumlException {
     	if (satisfied()) {
             JSONObject msg = new JSONObject();
-            msg.put("componentId", context().getId());
+            msg.put("componentId", getPeerId());
             msg.put("portName", getPeerName());
             msg.put("message", new JSONObject(message.serialize()));
             HttpURLConnection connection = null;

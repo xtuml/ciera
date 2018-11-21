@@ -43,6 +43,14 @@ public abstract class Port<C extends IComponent<C>> implements IPort<C> {
     	}
     	else return "";
     }
+    
+    @Override
+    public int getPeerId() {
+    	if (satisfied()) {
+    		return peer.context().getId();
+    	}
+    	else return -1;
+    }
 
     @Override
     public IRunContext getRunContext() {

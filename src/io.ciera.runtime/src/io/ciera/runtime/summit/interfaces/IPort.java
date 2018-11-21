@@ -15,5 +15,7 @@ public interface IPort<C extends IComponent<C>> extends IActionHome<C> {
     public String getName();
     
     public String getPeerName();
+    
+    public int getPeerId();
 
 }
