@@ -17,7 +17,9 @@
         if ( ${self.attribute_name}.inequality( this.${self.attribute_name} ) ) {
     .end if
   .end if
+            final ${type_name} oldValue = this.${self.attribute_name};
             this.${self.attribute_name} = ${self.attribute_name};
+            getRunContext().addChange(new AttributeChangedDelta(this, KEY_LETTERS, "${self.attribute_name}", oldValue, this.${self.attribute_name}));
 ${propagations}        }
     }
 .end if

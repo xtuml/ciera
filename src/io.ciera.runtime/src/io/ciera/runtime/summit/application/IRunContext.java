@@ -1,5 +1,7 @@
 package io.ciera.runtime.summit.application;
 
+import io.ciera.runtime.instanceloading.IChangeLog;
+import io.ciera.runtime.instanceloading.IModelDelta;
 import io.ciera.runtime.summit.statemachine.EventHandle;
 import io.ciera.runtime.summit.statemachine.EventSet;
 import io.ciera.runtime.summit.statemachine.IEvent;
@@ -40,5 +42,9 @@ public interface IRunContext {
     public IEvent getEvent(EventHandle e);
 
     public long time();
+    
+    public void addChange(IModelDelta delta);
+
+    public IChangeLog getChangeLog();
 
 }

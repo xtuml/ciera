@@ -21,13 +21,19 @@ ${attribute_initializers2}${relationship_initializers}${state_machine_initialize
 
     public static ${self.name} create( ${self.comp_name} context ) throws XtumlException {
         ${self.name} new${self.name} = new ${self.name}Impl( context );
-        if ( context.addInstance( new${self.name} ) ) return new${self.name};
+        if ( context.addInstance( new${self.name} ) ) {
+            new${self.name}.getRunContext().addChange(new InstanceCreatedDelta(new${self.name}, KEY_LETTERS));
+            return new${self.name};
+        }
         else throw new InstancePopulationException( "Instance already exists within this population." );
     }
 
     public static ${self.name} create( ${self.comp_name} context, UniqueId instanceId${attribute_list}${initial_state} ) throws XtumlException {
         ${self.name} new${self.name} = new ${self.name}Impl( context, instanceId${attribute_invocation_list}${initial_state2} );
-        if ( context.addInstance( new${self.name} ) ) return new${self.name};
+        if ( context.addInstance( new${self.name} ) ) {
+            new${self.name}.getRunContext().addChange(new InstanceCreatedDelta(new${self.name}, KEY_LETTERS));
+            return new${self.name};
+        }
         else throw new InstancePopulationException( "Instance already exists within this population." );
     }
 

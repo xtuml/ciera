@@ -69,7 +69,9 @@ public class TIMImpl<C extends IComponent<C>> extends Utility<C> implements TIM 
     public boolean timer_add_time(int microseconds, TimerHandle timer_inst_ref) throws XtumlException {
     	Timer timer = getRunContext().getTimer(timer_inst_ref);
     	if ( null != timer ) {
+    		long oldTime = timer.getWakeUpTime();
     		timer.addTime(microseconds);
+    		getRunContext().addChange(new Timer.TimerAttributeChangedDelta(timer, "wakeUpTime", oldTime, timer.getWakeUpTime()));
     		return true;
     	}
     	else return false;
@@ -93,8 +95,12 @@ public class TIMImpl<C extends IComponent<C>> extends Utility<C> implements TIM 
     public boolean timer_reset_time(int microseconds, TimerHandle timer_inst_ref) throws XtumlException {
     	Timer timer = getRunContext().getTimer(timer_inst_ref);
     	if ( null != timer ) {
+    		int oldPeriod = timer.getPeriod();
+    		long oldTime = timer.getWakeUpTime();
             timer.setPeriod(microseconds);
             timer.reset(getRunContext().time());
+    		getRunContext().addChange(new Timer.TimerAttributeChangedDelta(timer, "period", oldPeriod, timer.getPeriod()));
+    		getRunContext().addChange(new Timer.TimerAttributeChangedDelta(timer, "wakeUpTime", oldTime, timer.getWakeUpTime()));
     		return true;
     	}
     	else return false;

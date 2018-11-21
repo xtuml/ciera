@@ -5,10 +5,14 @@ import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Queue;
 
+import io.ciera.runtime.instanceloading.ChangeLog;
+import io.ciera.runtime.instanceloading.IChangeLog;
+import io.ciera.runtime.instanceloading.IModelDelta;
 import io.ciera.runtime.summit.application.tasks.HaltExecutionTask;
 import io.ciera.runtime.summit.application.tasks.TimerExpiredTask;
 import io.ciera.runtime.summit.exceptions.StateMachineException;
 import io.ciera.runtime.summit.exceptions.XtumlException;
+import io.ciera.runtime.summit.statemachine.Event;
 import io.ciera.runtime.summit.statemachine.EventHandle;
 import io.ciera.runtime.summit.statemachine.EventSet;
 import io.ciera.runtime.summit.statemachine.IEvent;
@@ -24,6 +28,8 @@ public class ApplicationExecutor extends Thread implements IRunContext {
     private Queue<IApplicationTask> pendingEvents;
     private Queue<IApplicationTask> tasks;
     private boolean running;
+    
+    private IChangeLog changeLog;
 
     private Queue<Timer> activeTimers;
     private Map<EventHandle, IEvent> activeEvents;
@@ -45,6 +51,7 @@ public class ApplicationExecutor extends Thread implements IRunContext {
         activeTimers = new PriorityQueue<>();
         activeEvents = new HashMap<>();
         running = false;
+        changeLog = null;
         systemTime = 0;
         simulatedTime = false;
         this.args = args;
@@ -83,6 +90,7 @@ public class ApplicationExecutor extends Thread implements IRunContext {
 
     @Override
     public void performTransaction(IApplicationTask task) {
+        changeLog = new ChangeLog();
         // execute a single task
         if (task instanceof HaltExecutionTask) {
             running = false;
@@ -123,8 +131,10 @@ public class ApplicationExecutor extends Thread implements IRunContext {
                 });
                 // reset recurring timer
                 if (t.isRecurring()) {
+                	long oldTime = t.getWakeUpTime();
                     t.reset(time());
                 	activeTimers.add(t);
+                	addChange(new Timer.TimerAttributeChangedDelta(t, "wakeUpTime", oldTime, t.getWakeUpTime()));
                 }
                 // deregister non-recurring event
                 else {
@@ -156,6 +166,7 @@ public class ApplicationExecutor extends Thread implements IRunContext {
     @Override
     public TimerHandle addTimer(Timer timer) {
         activeTimers.add(timer);
+        addChange(new Timer.TimerCreatedDelta(timer));
         return timer.getId();
     }
 
@@ -164,7 +175,10 @@ public class ApplicationExecutor extends Thread implements IRunContext {
     	for ( Timer timer : activeTimers ) {
     		if ( timer.getId().equals(t) ) {
     			boolean success = activeTimers.remove(timer);
-    			deregisterEvent(timer.getEventToGenerate());
+    			if (success) {
+    			    deregisterEvent(timer.getEventToGenerate());
+                    addChange(new Timer.TimerDeletedDelta(timer));
+    			}
     			return success;
     		}
     	}
@@ -195,11 +209,14 @@ public class ApplicationExecutor extends Thread implements IRunContext {
 	@Override
 	public void registerEvent(IEvent event) {
 		activeEvents.put(event.getEventHandle(), event);
+        addChange(new Event.EventCreatedDelta(event));
 	}
 
 	@Override
 	public void deregisterEvent(EventHandle e) {
+		IEvent event = getEvent(e);
 		activeEvents.remove(e);
+        addChange(new Event.EventDeletedDelta(event));
 	}
 
 	@Override
@@ -213,6 +230,18 @@ public class ApplicationExecutor extends Thread implements IRunContext {
     		if ( timer.getId().equals(t) ) return timer;
     	}
 		return null;
+	}
+
+	@Override
+	public void addChange(IModelDelta delta) {
+		if (null != changeLog) {
+		    changeLog.addChange(delta);
+		}
+	}
+
+	@Override
+	public IChangeLog getChangeLog() {
+		return changeLog;
 	}
 
 }

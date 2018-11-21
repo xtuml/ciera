@@ -3,6 +3,7 @@ package io.ciera.runtime.summit.classes;
 import java.util.Arrays;
 import java.util.List;
 
+import io.ciera.runtime.instanceloading.InstanceDeletedDelta;
 import io.ciera.runtime.summit.application.IRunContext;
 import io.ciera.runtime.summit.components.IComponent;
 import io.ciera.runtime.summit.exceptions.DeletedInstanceException;
@@ -16,13 +17,15 @@ public abstract class ModelInstance<T extends IModelInstance<T, C>, C extends IC
         implements IModelInstance<T, C>, Comparable<T> {
 
     private UniqueId instanceId;
+    private boolean alive;
 
     // constructors
     public ModelInstance() {
-        instanceId = UniqueId.random();
+    	this(UniqueId.random());
     }
     
     public ModelInstance(UniqueId id) {
+    	alive = true;
     	instanceId = id;
     }
 
@@ -33,15 +36,17 @@ public abstract class ModelInstance<T extends IModelInstance<T, C>, C extends IC
 
     @Override
     public void checkLiving() throws XtumlException {
-        if (instanceId.isNull())
+        if (!alive)
             throw new DeletedInstanceException("Access of deleted instance ");
     }
 
     @Override
     public void delete() throws XtumlException {
         checkLiving();
-        if (context().removeInstance(this))
-            instanceId.nullify();
+        if (context().removeInstance(this)) {
+        	alive = false;
+            getRunContext().addChange(new InstanceDeletedDelta(this, getKeyLetters()));
+        }
         else
             throw new InstancePopulationException("Instance does not exist within this population.");
     }

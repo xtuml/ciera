@@ -1,5 +1,8 @@
 package io.ciera.runtime.summit.time;
 
+import io.ciera.runtime.instanceloading.AttributeChangedDelta;
+import io.ciera.runtime.instanceloading.InstanceCreatedDelta;
+import io.ciera.runtime.instanceloading.InstanceDeletedDelta;
 import io.ciera.runtime.summit.statemachine.EventHandle;
 import io.ciera.runtime.summit.types.IXtumlType;
 
@@ -88,6 +91,24 @@ public class Timer implements Comparable<Timer>, IXtumlType<Timer> {
     @Override
     public int hashCode() {
     	return timerId.hashCode();
+    }
+    
+    public static class TimerCreatedDelta extends InstanceCreatedDelta {
+    	public TimerCreatedDelta(Timer t) {
+    		super(t, "CIERA_TIMER");
+    	}
+    }
+
+    public static class TimerDeletedDelta extends InstanceDeletedDelta {
+    	public TimerDeletedDelta(Timer t) {
+    		super(t, "CIERA_TIMER");
+    	}
+    }
+
+    public static class TimerAttributeChangedDelta extends AttributeChangedDelta {
+    	public TimerAttributeChangedDelta(Timer t, String attributeName, Object oldValue, Object newValue) {
+    		super(t, "CIERA_TIMER", attributeName, oldValue, newValue);
+    	}
     }
 
 }
