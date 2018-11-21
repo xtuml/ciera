@@ -409,6 +409,7 @@ public class WatchGui extends JFrame {
 				new ConnectionHandler().start();
 			}
 		}
+		
 	}
 	
 	/**
@@ -426,6 +427,19 @@ public class WatchGui extends JFrame {
 	 	public ApplicationConnection(Socket connection) {
 	 		this.connection = connection;
 	 	}
+        public void sendSignal(IMessage data) {
+		    try{
+		        out.write(data.serialize().getBytes());
+		        out.write('\n');
+		        out.flush();
+		    }
+		    catch(IOException ioException){
+		        ioException.printStackTrace();
+		    }
+		    catch (XtumlException e) {
+		        e.printStackTrace();
+		    }
+		}
 		public void run() {
 			try {
 				System.out.println("Connection received from " + connection.getInetAddress().getHostName());
@@ -505,7 +519,7 @@ public class WatchGui extends JFrame {
                 connection.disconnect();
             }
 		} catch (XtumlException e) {
-			e.printStackTrace();
+			server.sendSignal(message);
 		}
 	}
 	

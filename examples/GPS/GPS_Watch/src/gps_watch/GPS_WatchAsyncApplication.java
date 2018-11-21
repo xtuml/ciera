@@ -23,12 +23,12 @@ import java.util.Scanner;
 
 import org.json.JSONObject;
 
-public class GPS_WatchApplication implements IApplication {
+public class GPS_WatchAsyncApplication implements IApplication {
 
     private IComponent<?>[] components;
     private IRunContext executor;
 
-    public GPS_WatchApplication() {
+    public GPS_WatchAsyncApplication() {
         components = new IComponent<?>[4];
     }
 
@@ -114,7 +114,7 @@ public class GPS_WatchApplication implements IApplication {
     public void stop() {}
 
     public static void main(String[] args) {
-        GPS_WatchApplication app = new GPS_WatchApplication();
+        GPS_WatchAsyncApplication app = new GPS_WatchAsyncApplication();
         app.setup(args);
         CommandLine cmd = new CommandLine(args);
         try {
