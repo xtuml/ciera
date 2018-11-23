@@ -2,7 +2,7 @@
      xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.ciera</groupId>
-  <artifactId>io.ciera.tool.dynamodb</artifactId>
+  <artifactId>GPS_Watch</artifactId>
   <packaging>jar</packaging>
   <version>1.0.0-SNAPSHOT</version>
   <properties>
@@ -26,11 +26,21 @@
       <artifactId>DynamoDBLocal</artifactId>
       <version>[1.11,2.0)</version>
     </dependency>
+    <dependency>
+      <groupId>org.antlr</groupId>
+      <artifactId>antlr4-runtime</artifactId>
+      <version>4.7.1</version>
+    </dependency>
   </dependencies>
   <build>
     <directory>${project.basedir}/gen/code_generation</directory>
     <outputDirectory>${project.basedir}/bin</outputDirectory>
     <sourceDirectory>${project.basedir}/src</sourceDirectory>
+    <resources>
+      <resource>
+        <directory>${project.basedir}/resources</directory>
+      </resource>
+    </resources>
     <plugins>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
@@ -45,9 +55,9 @@
               <workingDirectory>${project.basedir}</workingDirectory>
               <arguments>
                 <argument>-jar</argument>
-                <argument>${project.basedir}/../../release/core-tool.jar</argument>
+                <argument>${project.basedir}/../../../release/core-tool.jar</argument>
                 <argument>-i</argument>
-                <argument>gen/code_generation/io.ciera.tool.dynamodb.sql</argument>
+                <argument>gen/code_generation/GPS_Watch.sql</argument>
                 <argument>-o</argument>
                 <argument>gen/code_generation/b.xtuml</argument>
               </arguments>
@@ -57,31 +67,14 @@
             </goals>
           </execution>
           <execution>
-            <id>ciera-sql</id>
+            <id>ciera-dynamodb</id>
             <phase>generate-sources</phase>
             <configuration>
               <executable>java</executable>
               <workingDirectory>${project.basedir}</workingDirectory>
               <arguments>
                 <argument>-jar</argument>
-                <argument>${project.basedir}/../../release/sql-tool.jar</argument>
-                <argument>-i</argument>
-                <argument>gen/code_generation/b.xtuml</argument>
-              </arguments>
-            </configuration>
-            <goals>
-              <goal>exec</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>ciera-template</id>
-            <phase>generate-sources</phase>
-            <configuration>
-              <executable>java</executable>
-              <workingDirectory>${project.basedir}</workingDirectory>
-              <arguments>
-                <argument>-jar</argument>
-                <argument>${project.basedir}/../../release/template-tool.jar</argument>
+                <argument>${project.basedir}/../../../release/dynamodb-tool.jar</argument>
                 <argument>-i</argument>
                 <argument>gen/code_generation/b.xtuml</argument>
               </arguments>
@@ -121,6 +114,26 @@
               <sources>
                 <source>${project.basedir}/src-gen</source>
               </sources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <version>3.0.1</version>
+        <executions>
+          <execution>
+            <id>copy-dependencies</id>
+            <phase>process-test-resources</phase>
+            <goals>
+              <goal>copy-dependencies</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/dependencies</outputDirectory>
+              <overWriteReleases>false</overWriteReleases>
+              <overWriteSnapshots>false</overWriteSnapshots>
+              <overWriteIfNewer>true</overWriteIfNewer>
             </configuration>
           </execution>
         </executions>

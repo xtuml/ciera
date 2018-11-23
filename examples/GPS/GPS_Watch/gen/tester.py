@@ -31,13 +31,13 @@ class XtumlRunner(threading.Thread):
       out = open("signalData.json", "w")
       out.write(json.dumps(data))
       out.close()
-      cmd = "java -jar GPS_Watch.jar --signal " + out.name
+      cmd = "./run_gps.sh --signal " + out.name
       rc = os.system(cmd)
       if (0 != rc):
         sys.exit(rc)
 
   def tick(self):
-    cmd = "java -jar GPS_Watch.jar --heartbeat"
+    cmd = "./run_gps.sh --heartbeat"
     rc = os.system(cmd)
     if (0 != rc):
       sys.exit(rc)
