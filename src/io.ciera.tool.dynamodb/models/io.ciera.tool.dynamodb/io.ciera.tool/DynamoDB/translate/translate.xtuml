@@ -1,16 +1,16 @@
 -- BP 7.1.6 content: Package syschar: 3 persistence-version: 7.1.6
 
 INSERT INTO EP_PKG
-	VALUES ("526fc60c-cbc6-43e3-ac78-01c7c3028f23",
+	VALUES ("bbc7c961-06f7-453e-87d6-6c0dd1ac4e89",
 	"00000000-0000-0000-0000-000000000000",
-	"6e3bb88b-47e9-45a4-8d47-4c15f8c1052d",
+	"009ed1c2-fc19-4903-9f15-147dbd00652a",
 	'translate',
 	'',
 	0);
 INSERT INTO GD_MD
-	VALUES ("d2a6503d-0ecb-435f-9a3a-6d60288408da",
+	VALUES ("8ffeb676-485b-472b-919a-845de397f8fd",
 	112,
-	"526fc60c-cbc6-43e3-ac78-01c7c3028f23",
+	"bbc7c961-06f7-453e-87d6-6c0dd1ac4e89",
 	108,
 	0,
 	0,
@@ -25,73 +25,16 @@ INSERT INTO GD_MD
 	0,
 	0,
 	'',
-	'io.ciera.tool.sql::io.ciera.tool::sql::translate');
+	'io.ciera.tool.dynamodb::io.ciera.tool::DynamoDB::translate');
 INSERT INTO DIM_DIA
-	VALUES ("d2a6503d-0ecb-435f-9a3a-6d60288408da",
+	VALUES ("8ffeb676-485b-472b-919a-845de397f8fd",
 	'',
 	1.000000,
 	0.000000,
 	0.000000,
 	"00000000-0000-0000-0000-000000000000");
 INSERT INTO S_SYNC
-	VALUES ("03336ede-4cc5-4d60-992a-654350ce68ca",
-	"00000000-0000-0000-0000-000000000000",
-	'translate',
-	'',
-	'start_time = TIM::current_clock();
-
-LOG::LogInfo( message:"Translating..." );
-
-// translate root package
-LOG::LogInfo( message:"  Translating application package..." );
-select any root_package_mark from instances of Mark where ( selected.markable_name == "*"
-                                                            and selected.path == "*"
-                                                            and selected.feature_name == "RootPackage" );
-if ( not_empty root_package_mark )
-  select any root_package from instances of EP_PKG where false;
-  select many s_syss from instances of S_SYS;
-  for each s_sys in s_syss
-    select any root_package related by s_sys->EP_PKG[R1401] where ( root_package_mark.value == s_sys.Name + "::" + selected.Name );
-    if ( not_empty root_package )
-      break;
-    end if;
-  end for;
-  if ( not_empty root_package )
-    ::transformSQLLoaders();
-  else
-    LOG::LogInfo( message:"No root package found" );
-  end if;
-else
-  LOG::LogInfo( message:"No root package specified" );
-end if;
-LOG::LogInfo( message:"  done." );
-LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
-
-// render all instance pop_loaders
-LOG::LogInfo( message:"  Rendering instance population loaders..." );
-select many pop_loaders from instances of Z_PopulationLoader;
-for each pop_loader in pop_loaders
-  pop_loader.render();
-end for;
-LOG::LogInfo( message:"  done." );
-LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
-
-LOG::LogInfo( message:"Done." );
-
-elapsed_time = TIM::current_clock() - start_time;
-LOG::LogTime( message:"Elapsed time:", t:elapsed_time );',
-	"ba5eda7a-def5-0000-0000-000000000000",
-	1,
-	'',
-	0);
-INSERT INTO PE_PE
-	VALUES ("03336ede-4cc5-4d60-992a-654350ce68ca",
-	1,
-	"526fc60c-cbc6-43e3-ac78-01c7c3028f23",
-	"00000000-0000-0000-0000-000000000000",
-	1);
-INSERT INTO S_SYNC
-	VALUES ("b47dadef-0b76-44de-8b15-2548fcc40893",
+	VALUES ("1180330b-bd6a-4d17-b052-45a0c9810bfa",
 	"00000000-0000-0000-0000-000000000000",
 	'init',
 	'',
@@ -131,30 +74,88 @@ control stop;',
 	'',
 	0);
 INSERT INTO PE_PE
-	VALUES ("b47dadef-0b76-44de-8b15-2548fcc40893",
+	VALUES ("1180330b-bd6a-4d17-b052-45a0c9810bfa",
 	1,
-	"526fc60c-cbc6-43e3-ac78-01c7c3028f23",
+	"bbc7c961-06f7-453e-87d6-6c0dd1ac4e89",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("e74a99ca-d6d5-4a4a-be9f-0ba9c8f7664c",
+	"00000000-0000-0000-0000-000000000000",
+	'translate',
+	'',
+	'start_time = TIM::current_clock();
+
+LOG::LogInfo( message:"Translating..." );
+
+// translate root package
+LOG::LogInfo( message:"  Translating application package..." );
+select any root_package_mark from instances of Mark where ( selected.markable_name == "*"
+                                                            and selected.path == "*"
+                                                            and selected.feature_name == "RootPackage" );
+if ( not_empty root_package_mark )
+  select any root_package from instances of EP_PKG where false;
+  select many s_syss from instances of S_SYS;
+  for each s_sys in s_syss
+    select any root_package related by s_sys->EP_PKG[R1401] where ( root_package_mark.value == s_sys.Name + "::" + selected.Name );
+    if ( not_empty root_package )
+      break;
+    end if;
+  end for;
+  if ( not_empty root_package )
+    ::transformDynamoDBLoaders();
+  else
+    LOG::LogInfo( message:"No root package found" );
+  end if;
+else
+  LOG::LogInfo( message:"No root package specified" );
+end if;
+LOG::LogInfo( message:"  done." );
+LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
+
+// render all instance pop_loaders
+LOG::LogInfo( message:"  Rendering instance population loaders..." );
+
+select many pop_loaders from instances of Z_PopulationLoader;
+for each pop_loader in pop_loaders
+  pop_loader.render();
+end for;
+LOG::LogInfo( message:"  done." );
+LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
+
+LOG::LogInfo( message:"Done." );
+
+elapsed_time = TIM::current_clock() - start_time;
+LOG::LogTime( message:"Elapsed time:", t:elapsed_time );',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO PE_PE
+	VALUES ("e74a99ca-d6d5-4a4a-be9f-0ba9c8f7664c",
+	1,
+	"bbc7c961-06f7-453e-87d6-6c0dd1ac4e89",
 	"00000000-0000-0000-0000-000000000000",
 	1);
 INSERT INTO PE_PE
-	VALUES ("526fc60c-cbc6-43e3-ac78-01c7c3028f23",
+	VALUES ("bbc7c961-06f7-453e-87d6-6c0dd1ac4e89",
 	1,
 	"00000000-0000-0000-0000-000000000000",
-	"5134cf10-f74f-494e-a348-c8367a546230",
+	"127c1b1f-f872-4649-8c05-b922b2493e85",
 	7);
 INSERT INTO C_C_PROXY
-	VALUES ("5134cf10-f74f-494e-a348-c8367a546230",
+	VALUES ("127c1b1f-f872-4649-8c05-b922b2493e85",
 	"00000000-0000-0000-0000-000000000000",
 	"00000000-0000-0000-0000-000000000000",
-	'sql',
+	'DynamoDB',
 	'',
 	0,
 	"00000000-0000-0000-0000-000000000000",
 	0,
 	'',
-	'../sql.xtuml');
+	'../DynamoDB.xtuml');
 INSERT INTO S_SYS_PROXY
-	VALUES ("6e3bb88b-47e9-45a4-8d47-4c15f8c1052d",
-	'io.ciera.tool.sql',
+	VALUES ("009ed1c2-fc19-4903-9f15-147dbd00652a",
+	'io.ciera.tool.dynamodb',
 	1,
-	'../../../io.ciera.tool.sql.xtuml');
+	'../../../io.ciera.tool.dynamodb.xtuml');
