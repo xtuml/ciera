@@ -1,22 +1,22 @@
-package io.ciera.runtime.instanceloading.sql.parser;
+package io.ciera.runtime.instanceloading.sql;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import io.ciera.runtime.instanceloading.IPopulationLoader;
+import io.ciera.runtime.instanceloading.sql.parser.SQLBaseListener;
 import io.ciera.runtime.instanceloading.sql.parser.SQLParser.Insert_statementContext;
 import io.ciera.runtime.instanceloading.sql.parser.SQLParser.Sql_fileContext;
 import io.ciera.runtime.instanceloading.sql.parser.SQLParser.Table_nameContext;
 import io.ciera.runtime.instanceloading.sql.parser.SQLParser.ValueContext;
 import io.ciera.runtime.summit.exceptions.XtumlException;
 
-public class XtumlSQLListener extends SQLBaseListener {
+public class SqlListener extends SQLBaseListener {
 
-    private IPopulationLoader loader;
+    private ISqlLoader loader;
     private String tableName;
     private List<Object> values;
 
-    public XtumlSQLListener(IPopulationLoader loader) {
+    public SqlListener(ISqlLoader loader) {
         this.loader = loader;
         tableName = null;
         values = null;
@@ -25,7 +25,7 @@ public class XtumlSQLListener extends SQLBaseListener {
     @Override
     public void exitSql_file(Sql_fileContext ctx) {
         try {
-            loader.finish();
+            loader.batchRelate();
         } catch (XtumlException e) {
             e.printStackTrace();
             System.exit(1);

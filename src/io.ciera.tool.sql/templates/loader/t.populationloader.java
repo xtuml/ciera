@@ -2,7 +2,7 @@ package ${self.package};
 
 ${imports}
 
-public class ${self.name} implements IPopulationLoader {
+public class ${self.name} extends SqlLoader {
 
     private ${self.comp_name} population;
 
@@ -11,7 +11,7 @@ public class ${self.name} implements IPopulationLoader {
     }
 
     @Override
-    public void insert( String tableName, List<Object> values ) throws XtumlException {
+    public void insert(String tableName, List<Object> values) throws XtumlException {
         switch ( tableName ) {
 ${instance_loaders}        default:
             //throw new XtumlException( "Class not supported by this population." );
@@ -20,14 +20,14 @@ ${instance_loaders}        default:
     }
 
     @Override
-    public void finish() throws XtumlException {
+    public void batchRelate() throws XtumlException {
 ${batch_relators}    }
 
 ${batch_relator_definitions}
 
     @Override
-    public void serialize( OutputStream stream ) throws XtumlException {
-        PrintStream out = new PrintStream( stream );
+    public void serialize() throws XtumlException {
+        PrintStream out = new PrintStream(getOut());
 ${instance_serializers}        out.flush();
     }
 

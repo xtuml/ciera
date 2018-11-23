@@ -1,6 +1,6 @@
 package io.ciera.runtime.instanceloading;
 
-public class ModelDelta implements IModelDelta {
+public abstract class ModelDelta implements IModelDelta {
 	
 	private Object modelElement;
 	private String elementName;
