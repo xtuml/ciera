@@ -1,1 +1,1 @@
-(String)values.get($t{value_index})\
+inst.get("${self.attr_name}").getS()\

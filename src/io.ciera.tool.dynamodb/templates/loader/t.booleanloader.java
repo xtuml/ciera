@@ -1,1 +1,1 @@
-(int)values.get($t{value_index}) == 1 ? true : false\
+(boolean)inst.get("${self.attr_name}").getBOOL()\

@@ -1,1 +1,1 @@
-(double)values.get($t{value_index})\
+RealUtil.deserialize(inst.get("${self.attr_name}").getN())\

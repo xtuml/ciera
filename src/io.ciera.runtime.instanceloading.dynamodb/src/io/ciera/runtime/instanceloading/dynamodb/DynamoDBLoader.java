@@ -1,7 +1,6 @@
 package io.ciera.runtime.instanceloading.dynamodb;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 
 import com.amazonaws.auth.AWSCredentials;
@@ -13,7 +12,6 @@ import com.amazonaws.services.dynamodbv2.local.main.ServerRunner;
 import com.amazonaws.services.dynamodbv2.local.server.DynamoDBProxyServer;
 import com.amazonaws.services.dynamodbv2.model.AttributeDefinition;
 import com.amazonaws.services.dynamodbv2.model.CreateTableRequest;
-import com.amazonaws.services.dynamodbv2.model.CreateTableResult;
 import com.amazonaws.services.dynamodbv2.model.KeySchemaElement;
 import com.amazonaws.services.dynamodbv2.model.KeyType;
 import com.amazonaws.services.dynamodbv2.model.ListTablesResult;
@@ -62,6 +60,10 @@ public abstract class DynamoDBLoader implements IDynamoDBLoader {
             }
         }
         tableNames = null;
+	}
+	
+	public AmazonDynamoDB getDb() {
+		return dynamodb;
 	}
 	
 	public List<String> getTableNames() {

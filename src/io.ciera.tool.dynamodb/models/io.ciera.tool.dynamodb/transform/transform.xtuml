@@ -43,7 +43,7 @@ select one comp_def_file related by comp_def->File[R401];
 
 // create the file
 create object instance file of File;
-file.name = comp_def.name + "SqlLoader";
+file.name = comp_def.name + "DynamoDBLoader";
 file.path = comp_def_file.path;
 file.package = ::pathToPackage( path:file.path );
 file.extension = ".java";
@@ -105,10 +105,27 @@ for each rel in rels
 end for;
 
 // create import block
-::addStringToImports( file:file, s:"io.ciera.runtime.instanceloading.sql.SqlLoader", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.runtime.instanceloading.dynamodb.DynamoDBLoader", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.runtime.instanceloading.IChangeLog", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.runtime.instanceloading.IModelDelta", type:ImportType::IMPL );
 ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL );
-::addStringToImports( file:file, s:"java.io.PrintStream", type:ImportType::IMPL );
-::addStringToImports( file:file, s:"java.util.List", type:ImportType::IMPL );',
+::addStringToImports( file:file, s:"java.util.Map", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"com.amazonaws.services.dynamodbv2.model.AttributeValue", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"com.amazonaws.services.dynamodbv2.model.ScanRequest", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"com.amazonaws.services.dynamodbv2.model.ScanResult", type:ImportType::IMPL );
+
+select any int_loader related by pop_loader->Z_InstanceLoader[R3005]->Z_AttributeLoader[R3006]->Z_IntegerLoader[R3008] where ( not selected.is_long );
+if ( not_empty int_loader )
+  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.IntegerUtil", type:ImportType::IMPL );
+end if;
+select any long_loader related by pop_loader->Z_InstanceLoader[R3005]->Z_AttributeLoader[R3006]->Z_IntegerLoader[R3008] where ( selected.is_long );
+if ( not_empty long_loader )
+  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.LongUtil", type:ImportType::IMPL );
+end if;
+select any real_loader related by pop_loader->Z_InstanceLoader[R3005]->Z_AttributeLoader[R3006]->Z_RealLoader[R3008];
+if ( not_empty real_loader )
+  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.RealUtil", type:ImportType::IMPL );
+end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',

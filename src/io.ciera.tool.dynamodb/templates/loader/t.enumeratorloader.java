@@ -1,1 +1,1 @@
-${self.type_name}.deserialize( (int)values.get($t{value_index}) )\
+${self.type_name}.deserialize(inst.get("${self.attr_name}").getN())\
