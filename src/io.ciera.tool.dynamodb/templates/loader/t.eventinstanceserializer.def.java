@@ -1,2 +1,5 @@
-    public void serialize_${self.class_name}(${class_name} $l{self.class_name}_inst) throws XtumlException {
+    public void serialize_${self.class_name}(Table table, IModelDelta delta) throws XtumlException {
+        IEvent $l{self.class_name}_inst = (IEvent)delta.getModelElement();
+        Item item = new Item();
+${attribute_serializers}        table.putItem(item);
     }

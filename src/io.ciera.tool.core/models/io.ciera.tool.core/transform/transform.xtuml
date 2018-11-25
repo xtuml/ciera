@@ -83,6 +83,17 @@ for each c_c in c_cs
   else
     comp_inst.index = 0;
   end if;
+
+  // apply instance loading
+  select one c_c_pe related by c_c->PE_PE[R8001];
+  select any inst_loading_mark from instances of Mark where ( selected.markable_name == "Component" and
+                                                              selected.path == ::containerMarkingPath( pe:c_c_pe ) + "::" + c_c.Name and
+                                                              selected.feature_name == "InstanceLoading" );
+  if (not_empty inst_loading_mark)
+    comp_inst.instance_loading = inst_loading_mark.value;
+    ::addStringToImports( file:file, s:comp_inst.comp_package + "." + comp_inst.comp_name + inst_loading_mark.value + "Loader", type:ImportType::IMPL );
+  end if;
+
   current_comp_inst = comp_inst;
 end for;
 
@@ -100,16 +111,18 @@ if ( app.async )
   ::addStringToImports( file:file, s:"java.lang.reflect.Method", type:ImportType::IMPL );
   ::addStringToImports( file:file, s:"java.util.Scanner", type:ImportType::IMPL );
   ::addStringToImports( file:file, s:"org.json.JSONObject", type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.application.tasks.ReceivedMessageTask", type:ImportType::IMPL );
   ::addStringToImports( file:file, s:"io.ciera.runtime.summit.interfaces.IPort", type:ImportType::IMPL );
   ::addStringToImports( file:file, s:"io.ciera.runtime.summit.interfaces.Message", type:ImportType::IMPL );
   ::addStringToImports( file:file, s:"io.ciera.runtime.summit.util.CommandLine", type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"io.ciera.runtime.instanceloading.IChangeLog", type:ImportType::IMPL );
 else
   ::addStringToImports( file:file, s:"io.ciera.runtime.summit.application.tasks.HaltExecutionTask", type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.application.tasks.GenericExecutionTask", type:ImportType::IMPL );
   ::addStringToImports( file:file, s:"java.util.Arrays", type:ImportType::IMPL );
 end if;
 ::addStringToImports( file:file, s:"io.ciera.runtime.summit.application.IApplication", type:ImportType::IMPL );
 ::addStringToImports( file:file, s:"io.ciera.runtime.summit.application.ApplicationExecutor", type:ImportType::IMPL );
-::addStringToImports( file:file, s:"io.ciera.runtime.summit.application.tasks.GenericExecutionTask", type:ImportType::IMPL );
 ::addStringToImports( file:file, s:"io.ciera.runtime.summit.application.IRunContext", type:ImportType::IMPL );
 ::addStringToImports( file:file, s:"io.ciera.runtime.summit.components.IComponent", type:ImportType::IMPL );
 ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL );',

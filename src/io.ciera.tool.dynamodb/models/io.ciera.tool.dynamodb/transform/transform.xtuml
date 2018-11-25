@@ -108,11 +108,16 @@ end for;
 ::addStringToImports( file:file, s:"io.ciera.runtime.instanceloading.dynamodb.DynamoDBLoader", type:ImportType::IMPL );
 ::addStringToImports( file:file, s:"io.ciera.runtime.instanceloading.IChangeLog", type:ImportType::IMPL );
 ::addStringToImports( file:file, s:"io.ciera.runtime.instanceloading.IModelDelta", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.runtime.instanceloading.IInstanceDeletedDelta", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.runtime.instanceloading.IAttributeChangedDelta", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.runtime.instanceloading.IInstanceCreatedDelta", type:ImportType::IMPL );
 ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL );
 ::addStringToImports( file:file, s:"java.util.Map", type:ImportType::IMPL );
 ::addStringToImports( file:file, s:"com.amazonaws.services.dynamodbv2.model.AttributeValue", type:ImportType::IMPL );
 ::addStringToImports( file:file, s:"com.amazonaws.services.dynamodbv2.model.ScanRequest", type:ImportType::IMPL );
 ::addStringToImports( file:file, s:"com.amazonaws.services.dynamodbv2.model.ScanResult", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"com.amazonaws.services.dynamodbv2.document.DynamoDB", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"com.amazonaws.services.dynamodbv2.document.Table", type:ImportType::IMPL );
 
 select any int_loader related by pop_loader->Z_InstanceLoader[R3005]->Z_AttributeLoader[R3006]->Z_IntegerLoader[R3008] where ( not selected.is_long );
 if ( not_empty int_loader )
@@ -125,6 +130,11 @@ end if;
 select any real_loader related by pop_loader->Z_InstanceLoader[R3005]->Z_AttributeLoader[R3006]->Z_RealLoader[R3008];
 if ( not_empty real_loader )
   ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.RealUtil", type:ImportType::IMPL );
+end if;
+
+select any inst_serializer related by pop_loader->Z_InstanceSerializer[R3001];
+if ( not_empty inst_serializer )
+  ::addStringToImports( file:file, s:"com.amazonaws.services.dynamodbv2.document.Item", type:ImportType::IMPL );
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,

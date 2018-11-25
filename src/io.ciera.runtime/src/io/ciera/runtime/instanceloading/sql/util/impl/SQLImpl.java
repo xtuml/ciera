@@ -3,7 +3,6 @@ package io.ciera.runtime.instanceloading.sql.util.impl;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.lang.reflect.Constructor;
 
 import io.ciera.runtime.instanceloading.sql.ISqlLoader;
 import io.ciera.runtime.instanceloading.sql.util.SQL;
@@ -18,14 +17,7 @@ public class SQLImpl<C extends IComponent<C>> extends Utility<C> implements SQL 
 
     public SQLImpl(C context) {
         super(context);
-        try {
-            Class<?> componentClass = context.getClass();
-            Class<?> instanceLoaderClass = Class.forName(componentClass.getName() + "SqlLoader");
-            Constructor<?> instanceLoaderConstructor = instanceLoaderClass.getConstructor(componentClass);
-            loader = (ISqlLoader) instanceLoaderConstructor.newInstance(context);
-        } catch (Exception e) {
-            loader = null;
-        }
+        loader = (ISqlLoader)context.getLoader("Sql");
     }
 
     @Override

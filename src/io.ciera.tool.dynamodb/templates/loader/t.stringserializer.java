@@ -1,5 +1,5 @@
 .if ( "" == cast )
-        out.printf( "'%s'", $l{self.class_name}_inst.${self.value}.replaceAll( "'", "''" ) );
+        item = item.withString("${self.attr_name}", $l{self.class_name}_inst.${self.value});
 .else
-        out.printf( "'%s'", (${cast}$l{self.class_name}_inst.${self.value}).replaceAll( "'", "''" ) );
+        item = item.withString("${self.attr_name}", ${cast}$l{self.class_name}_inst.${self.value});
 .end if

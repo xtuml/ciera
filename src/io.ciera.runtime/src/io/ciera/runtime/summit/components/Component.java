@@ -1,5 +1,10 @@
 package io.ciera.runtime.summit.components;
 
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+
+import io.ciera.runtime.instanceloading.IPopulationLoader;
 import io.ciera.runtime.summit.application.IApplication;
 import io.ciera.runtime.summit.application.IRunContext;
 import io.ciera.runtime.summit.application.tasks.GeneratedEventTask;
@@ -15,11 +20,13 @@ public abstract class Component<C extends IComponent<C>> implements IComponent<C
 	private IApplication app;
     private IRunContext runContext;
     private int populationId;
+    private Map<String, IPopulationLoader> loaders;
 
     public Component(IApplication app, IRunContext runContext, int populationId) {
     	this.app = app;
         this.runContext = runContext;
         this.populationId = populationId;
+        loaders = new HashMap<>();
     }
 
     @Override
@@ -80,6 +87,20 @@ public abstract class Component<C extends IComponent<C>> implements IComponent<C
                 target.accept(event);
             }
         });
+    }
+
+    public void addLoader(String key, IPopulationLoader loader) {
+    	loaders.put(key, loader);
+    }
+
+    public IPopulationLoader getLoader(String key) {
+    	return loaders.get(key);
+    }
+
+    public IPopulationLoader getDefaultLoader() {
+    	Iterator<IPopulationLoader> iter = loaders.values().iterator();
+    	if (iter.hasNext()) return iter.next();
+    	else return null;
     }
 
 }

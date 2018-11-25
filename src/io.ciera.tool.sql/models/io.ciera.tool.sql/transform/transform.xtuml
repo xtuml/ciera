@@ -211,6 +211,7 @@ if ( empty non_persistent_instance_ids_mark )
     create object instance uniqueid_serializer1 of UniqueIDSerializer;
     relate uniqueid_serializer1 to attr_serializer1 across R3004;
     uniqueid_serializer1.value = "getInstanceId()";
+    uniqueid_serializer1.primary_key = true;
     prev_attr_serializer = attr_serializer1;
   end if;
   create object instance attr_loader1 of Z_AttributeLoader;
@@ -357,10 +358,9 @@ select one type related by attr->TypeReference[R424]->Type[R3800];
 select one builtin related by type->BuiltInType[R407];
 if ( not_empty builtin )
   if ( "boolean" == builtin.name )
-    create object instance int_serializer of Z_IntegerSerializer;
+    create object instance int_serializer of BooleanSerializer;
     relate int_serializer to attr_serializer across R3004;
-    int_serializer.value = accessor_name + " ? 1 : 0";
-    int_serializer.value2 = "";
+    int_serializer.value = accessor_name;
   elif ( "int" == builtin.name )
     create object instance int_serializer of Z_IntegerSerializer;
     relate int_serializer to attr_serializer across R3004;
@@ -816,6 +816,7 @@ attr_serializer1.cast = "";
 create object instance uniqueid_serializer1 of UniqueIDSerializer;
 relate uniqueid_serializer1 to attr_serializer1 across R3004;
 uniqueid_serializer1.value = "getId()";
+uniqueid_serializer1.primary_key = true;
 create object instance attr_loader1 of Z_AttributeLoader;
 relate inst_loader to attr_loader1 across R3006;
 attr_loader1.attr_name = "timerId";
@@ -913,10 +914,9 @@ relate inst_serializer to attr_serializer6 across R3002;
 attr_serializer6.attr_name = "recurring";
 attr_serializer6.cast = "";
 relate attr_serializer5 to attr_serializer6 across R3003.''precedes'';
-create object instance bool_serializer6 of Z_IntegerSerializer;
+create object instance bool_serializer6 of BooleanSerializer;
 relate bool_serializer6 to attr_serializer6 across R3004;
-bool_serializer6.value = "isRecurring() ? 1 : 0";
-bool_serializer6.value2 = "";
+bool_serializer6.value = "isRecurring()";
 create object instance attr_loader6 of Z_AttributeLoader;
 relate inst_loader to attr_loader6 across R3006;
 relate attr_loader5 to attr_loader6 across R3007.''precedes'';
@@ -984,6 +984,7 @@ attr_serializer1.cast = "";
 create object instance uniqueid_serializer1 of UniqueIDSerializer;
 relate uniqueid_serializer1 to attr_serializer1 across R3004;
 uniqueid_serializer1.value = "getEventHandle()";
+uniqueid_serializer1.primary_key = true;
 create object instance attr_loader1 of Z_AttributeLoader;
 relate inst_loader to attr_loader1 across R3006;
 attr_loader1.attr_name = "eventHandle";
@@ -1234,10 +1235,9 @@ select one type related by parameter->TypeReference[R431]->Type[R3800];
 select one builtin related by type->BuiltInType[R407];
 if ( not_empty builtin )
   if ( "boolean" == builtin.name )
-    create object instance int_serializer of Z_IntegerSerializer;
+    create object instance int_serializer of BooleanSerializer;
     relate int_serializer to attr_serializer across R3004;
-    int_serializer.value = accessor_name + " ? 1 : 0";
-    int_serializer.value2 = "";
+    int_serializer.value = accessor_name;
   elif ( "int" == builtin.name )
     create object instance int_serializer of Z_IntegerSerializer;
     relate int_serializer to attr_serializer across R3004;

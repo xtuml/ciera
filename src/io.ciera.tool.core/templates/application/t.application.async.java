@@ -26,14 +26,17 @@ ${component_instantiations}${component_satisfactions}    }
     }
 
     public void handleSignal(final String data) {
-        executor.performTransaction(new GenericExecutionTask() {
+        final JSONObject msg = new JSONObject(data);
+        final int index = msg.getInt("componentId");
+        final String portName = msg.getString("portName");
+        // load population
+        try {
+            components[index].getDefaultLoader().load();
+        } catch (XtumlException e) {/* fail silently */}
+        IChangeLog changeLog = executor.performTransaction(new ReceivedMessageTask() {
             @Override
             public void run() throws XtumlException {
-                // load population
                 // execute signal
-                final JSONObject msg = new JSONObject(data);
-                final int index = msg.getInt("componentId");
-                final String portName = msg.getString("portName");
                 try {
                     Method portAccessor = components[index].getClass().getMethod(portName);
                     IPort<?> port = (IPort<?>)portAccessor.invoke(components[index]);
@@ -41,25 +44,29 @@ ${component_instantiations}${component_satisfactions}    }
                 } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
                     throw new XtumlException("Could not deliver message");
                 }
-                // serialize population
             }
         });
+        // serialize population
+        try {
+            components[index].getDefaultLoader().serialize(changeLog);
+        } catch (XtumlException e) {/* fail silently */}
     }
 
     public void heartbeat() {
-        executor.performTransaction(new GenericExecutionTask() {
-            @Override
-            public void run() throws XtumlException {
-                // load population
-            }
-        });
-        executor.heartbeat();
-        executor.performTransaction(new GenericExecutionTask() {
-            @Override
-            public void run() throws XtumlException {
-                // serialize population
-            }
-        });
+        // load population
+        for ( IComponent<?> c : components ) {
+        	try {
+        	    c.getDefaultLoader().load();
+            } catch (XtumlException e) {/* fail silently */}
+        }
+        // tick
+        IChangeLog changeLog = executor.heartbeat();
+        // serialize population
+        for ( IComponent<?> c : components ) {
+        	try {
+        	    c.getDefaultLoader().serialize(changeLog);
+            } catch (XtumlException e) {/* fail silently */}
+        }
     }
 
     @Override

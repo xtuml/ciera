@@ -8,6 +8,13 @@ import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
+import com.amazonaws.services.dynamodbv2.document.Item;
+import com.amazonaws.services.dynamodbv2.document.ItemCollection;
+import com.amazonaws.services.dynamodbv2.document.Page;
+import com.amazonaws.services.dynamodbv2.document.QueryOutcome;
+import com.amazonaws.services.dynamodbv2.document.Table;
+import com.amazonaws.services.dynamodbv2.document.spec.QuerySpec;
+import com.amazonaws.services.dynamodbv2.document.utils.ValueMap;
 import com.amazonaws.services.dynamodbv2.local.main.ServerRunner;
 import com.amazonaws.services.dynamodbv2.local.server.DynamoDBProxyServer;
 import com.amazonaws.services.dynamodbv2.model.AttributeDefinition;
@@ -19,6 +26,7 @@ import com.amazonaws.services.dynamodbv2.model.ProvisionedThroughput;
 
 import io.ciera.runtime.instanceloading.ChangeLog;
 import io.ciera.runtime.summit.exceptions.XtumlException;
+import io.ciera.runtime.summit.types.UniqueId;
 
 public abstract class DynamoDBLoader implements IDynamoDBLoader {
 	
@@ -84,6 +92,23 @@ public abstract class DynamoDBLoader implements IDynamoDBLoader {
           .withProvisionedThroughput(new ProvisionedThroughput()
             .withReadCapacityUnits(10L)
             .withWriteCapacityUnits(5L)));
+	}
+	
+	public Item getItem(Table table, UniqueId instanceId) throws XtumlException {
+		ItemCollection<QueryOutcome> result = table.query(new QuerySpec().withKeyConditionExpression("instanceId = :id").withValueMap(new ValueMap().withString(":id", instanceId.serialize())));
+		for (Page<Item, QueryOutcome> page : result.pages()) {
+			for (Item item : page) {
+				return item; // return the first item we find
+			}
+		}
+		return null;
+	}
+	
+	public void deleteItem(Table table, UniqueId instanceId) throws XtumlException {
+		Item item = getItem(table, instanceId);
+		if (null != item) {
+			table.deleteItem("instanceId", instanceId.serialize());
+		}
 	}
 
 	@Override

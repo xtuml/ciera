@@ -1,5 +1,10 @@
 package io.ciera.runtime.instanceloading;
 
+import io.ciera.runtime.summit.classes.IModelInstance;
+import io.ciera.runtime.summit.statemachine.IEvent;
+import io.ciera.runtime.summit.time.Timer;
+import io.ciera.runtime.summit.types.UniqueId;
+
 public abstract class ModelDelta implements IModelDelta {
 	
 	private Object modelElement;
@@ -23,6 +28,22 @@ public abstract class ModelDelta implements IModelDelta {
 	@Override
 	public String getElementName() {
 		return elementName;
+	}
+	
+	@Override
+	public UniqueId getElementId() {
+		if (modelElement instanceof IModelInstance<?,?>) {
+			return ((IModelInstance<?,?>)modelElement).getInstanceId();
+		}
+		else if (modelElement instanceof IEvent) {
+			return ((IEvent)modelElement).getEventHandle();
+		}
+		else if (modelElement instanceof Timer) {
+			return ((Timer)modelElement).getId();
+		}
+		else {
+			return new UniqueId();
+		}
 	}
 
 }

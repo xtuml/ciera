@@ -15,9 +15,9 @@ public interface IRunContext {
 
     public void execute(IApplicationTask task);
 
-    public void performTransaction(IApplicationTask task);
+    public IChangeLog performTransaction(IApplicationTask task);
     
-    public void heartbeat();
+    public IChangeLog heartbeat();
 
     public IExceptionHandler getExceptionHandler();
 
@@ -44,7 +44,5 @@ public interface IRunContext {
     public long time();
     
     public void addChange(IModelDelta delta);
-
-    public IChangeLog getChangeLog();
 
 }

@@ -1,5 +1,5 @@
 .if ( "" == cast )
-        out.printf( "%f", $l{self.class_name}_inst.${self.value} );
+        item = item.withNumber("${self.attr_name}", $l{self.class_name}_inst.${self.value});
 .else
-        out.printf( "%f", (${cast}$l{self.class_name}_inst.${self.value}) );
+        item = item.withNumber("${self.attr_name}", ${cast}$l{self.class_name}_inst.${self.value}));
 .end if

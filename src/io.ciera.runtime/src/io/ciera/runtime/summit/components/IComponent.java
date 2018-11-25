@@ -1,6 +1,7 @@
 package io.ciera.runtime.summit.components;
 
 import io.ciera.runtime.IVersioned;
+import io.ciera.runtime.instanceloading.IPopulationLoader;
 import io.ciera.runtime.summit.application.IActionHome;
 import io.ciera.runtime.summit.application.IApplication;
 import io.ciera.runtime.summit.classes.IInstancePopulation;
@@ -16,5 +17,11 @@ public interface IComponent<C extends IComponent<C>>
     public void generate(EventHandle event) throws XtumlException;
     
     public IApplication getApp();
+    
+    public void addLoader(String key, IPopulationLoader loader);
+
+    public IPopulationLoader getLoader(String key);
+
+    public IPopulationLoader getDefaultLoader();
 
 }

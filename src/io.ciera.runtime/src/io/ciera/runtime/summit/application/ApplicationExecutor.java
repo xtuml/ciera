@@ -81,15 +81,16 @@ public class ApplicationExecutor extends Thread implements IRunContext {
     }
     
     @Override
-    public void heartbeat() {
+    public IChangeLog heartbeat() {
     	tick();
         if (!tasks.isEmpty()) {
-            performTransaction(tasks.poll());
+            return performTransaction(tasks.poll());
         }
+        else return new ChangeLog();
     }
 
     @Override
-    public void performTransaction(IApplicationTask task) {
+    public IChangeLog performTransaction(IApplicationTask task) {
         changeLog = new ChangeLog();
         // execute a single task
         if (task instanceof HaltExecutionTask) {
@@ -112,6 +113,7 @@ public class ApplicationExecutor extends Thread implements IRunContext {
             }
         }
         // end transaction
+        return changeLog;
     }
 
     private void tick() {
@@ -237,11 +239,6 @@ public class ApplicationExecutor extends Thread implements IRunContext {
 		if (null != changeLog) {
 		    changeLog.addChange(delta);
 		}
-	}
-
-	@Override
-	public IChangeLog getChangeLog() {
-		return changeLog;
 	}
 
 }
