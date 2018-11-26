@@ -14,8 +14,7 @@ public class ${self.name} extends DynamoDBLoader {
     @Override
     public void load() throws XtumlException {
         for (String tableName : getTableNames()) {
-            ScanResult scan = getDb().scan(new ScanRequest().withTableName(tableName));
-            for (Map<String, AttributeValue> inst : scan.getItems()) {
+            for (Item values : getItems(tableName, population.getId())) {
                 switch (tableName) {
 ${instance_loaders}                default:
                     break;
@@ -33,10 +32,10 @@ ${batch_relator_definitions}
     @Override
     public void serialize(IChangeLog changeLog) throws XtumlException {
         for (IModelDelta delta : changeLog.getChanges()) {
-            if (!getTableNames().contains(delta.getElementName())) createTable(delta.getElementName());
-            Table table = new DynamoDB(getDb()).getTable(delta.getElementName());
+            createTable(delta.getElementName());
+            Table table = getDb().getTable(delta.getElementName());
             if (delta instanceof IInstanceDeletedDelta) {
-                deleteItem(table, delta.getElementId());
+                deleteItem(table, population.getId(), delta.getElementId());
             }
             else if (delta instanceof IAttributeChangedDelta || delta instanceof IInstanceCreatedDelta) {
                 switch (delta.getElementName()) {
@@ -46,6 +45,11 @@ ${instance_serializers}                default:
             }
         }
     }
+
+    @Override
+    public void initialize() {
+        super.initialize();
+${instance_serializer_initializers}    }
 
 ${instance_serializer_definitions}
 

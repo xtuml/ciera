@@ -29,7 +29,10 @@ public class ChangeLog implements IChangeLog {
             if (changes.containsKey(delta.getModelElement())) {
               currentDelta = changes.get(delta.getModelElement());
             }
-			if (null == currentDelta || delta instanceof IInstanceCreatedDelta || delta instanceof IInstanceDeletedDelta) {
+            if (delta instanceof IInstanceDeletedDelta && currentDelta instanceof IInstanceCreatedDelta) {
+            	changes.remove(delta.getModelElement()); // create and delete negate one another
+            }
+            else if (null == currentDelta || delta instanceof IInstanceCreatedDelta || delta instanceof IInstanceDeletedDelta) {
 				changes.put(delta.getModelElement(), delta);
 			}
 			else if (delta instanceof IAttributeChangedDelta && currentDelta instanceof IAttributeChangedDelta) {

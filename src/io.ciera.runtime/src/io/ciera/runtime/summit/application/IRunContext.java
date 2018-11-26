@@ -44,5 +44,7 @@ public interface IRunContext {
     public long time();
     
     public void addChange(IModelDelta delta);
+    
+    public IChangeLog getChangeLog();
 
 }

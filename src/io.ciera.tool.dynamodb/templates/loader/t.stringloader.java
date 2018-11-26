@@ -1,1 +1,1 @@
-inst.get("${self.attr_name}").getS()\
+null == values.getString("${self.attr_name}") ? "" : values.getString("${self.attr_name}")\

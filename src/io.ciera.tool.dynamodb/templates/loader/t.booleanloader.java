@@ -1,1 +1,1 @@
-(boolean)inst.get("${self.attr_name}").getBOOL()\
+(boolean)values.getBOOL("${self.attr_name}")\

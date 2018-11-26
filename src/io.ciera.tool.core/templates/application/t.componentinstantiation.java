@@ -2,7 +2,7 @@
 .if ( -1 == self.executor_index )
 executor\
 .else
-executors[$t{self.executor_index}]);
+executors[$t{self.executor_index}]\
 .end if
 , $t{self.index});
 .if ("" != self.instance_loading)

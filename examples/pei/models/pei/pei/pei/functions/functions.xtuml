@@ -62,7 +62,7 @@ create object instance c3 of dog; c3.cID = 3;
 create object instance c4 of dog; c4.cID = 4;
 create object instance c5 of dog;  // extra
 create object instance d1 of dog_owner;  // extra
-create object instance d2 of dog_owner; d2.name = "DeeTwo";
+create object instance d2 of dog_owner; d2.dID = 1; d2.name = "DeeTwo";
 relate c1 to d2 across R2;
 relate d2 to c2 across R2;
 relate d2 to c3 across R2;
@@ -144,12 +144,12 @@ relate n1 to n6 across R7.''works_for'' using m4; // Pete works for Chris.
 relate n6 to n2 across R7.''manages'' using m5; // Chris manages Dave.
 
 // automobile R9 jurisdiction using license
-create object instance p1 of automobile; p1.eyedee = "Rox";
-create object instance p2 of automobile; p2.eyedee = "Bita";
-create object instance p3 of automobile; p3.eyedee = "Tina";
-create object instance q1 of jurisdiction; q1.deeeye = "Shane";
-create object instance q2 of jurisdiction; q2.deeeye = "Rusty";
-create object instance q3 of jurisdiction; q3.deeeye = "Cort";
+create object instance p1 of automobile; p1.pID = 1; p1.eyedee = "Rox";
+create object instance p2 of automobile; p2.pID = 2; p2.eyedee = "Bita";
+create object instance p3 of automobile; p3.pID = 3; p3.eyedee = "Tina";
+create object instance q1 of jurisdiction; q1.qID = 1; q1.deeeye = "Shane";
+create object instance q2 of jurisdiction; q2.qID = 2; q2.deeeye = "Rusty";
+create object instance q3 of jurisdiction; q3.qID = 3; q3.deeeye = "Cort";
 create object instance r1 of license; r1.city = "Indianapolis";
 create object instance r2 of license; r2.city = "Lockport";
 create object instance r3 of license; r3.city = "Battleground";
@@ -158,18 +158,18 @@ relate q2 to p2 across R9 using r3;
 relate p3 to q1 across R9 using r2;
 
 // AtoD_converter R10 analog_input using sample
-create object instance s1 of AtoD_converter; s1.s = "Rox";
-create object instance s2 of AtoD_converter; s2.s = "Jacqui";
-create object instance t1 of analog_input; t1.t = "Clare";
-create object instance t2 of analog_input; t2.t = "Katrina";
-create object instance t3 of analog_input; t3.t = "Colleen";
-create object instance t4 of analog_input; t4.t = "Hannah";
-create object instance t5 of analog_input; t5.t = "Ruby";
-create object instance u5 of sample; u5.s = "Oct";
-create object instance u4 of sample; u4.s = "Aug";
-create object instance u3 of sample; u3.s = "Apr";
-create object instance u2 of sample; u2.s = "Dec";
-create object instance u1 of sample; u1.s = "Nov";
+create object instance s1 of AtoD_converter; s1.sID = 1; s1.s = "Rox";
+create object instance s2 of AtoD_converter; s2.sID = 2; s2.s = "Jacqui";
+create object instance t1 of analog_input; t1.tID = 1; t1.t = "Clare";
+create object instance t2 of analog_input; t2.tID = 2; t2.t = "Katrina";
+create object instance t3 of analog_input; t3.tID = 3; t3.t = "Colleen";
+create object instance t4 of analog_input; t4.tID = 4; t4.t = "Hannah";
+create object instance t5 of analog_input; t5.tID = 5; t5.t = "Ruby";
+create object instance u5 of sample; u5.uID = 5; u5.s = "Oct";
+create object instance u4 of sample; u4.uID = 4; u4.s = "Aug";
+create object instance u3 of sample; u3.uID = 3; u3.s = "Apr";
+create object instance u2 of sample; u2.uID = 2; u2.s = "Dec";
+create object instance u1 of sample; u1.uID = 1; u1.s = "Nov";
 relate s1 to t4 across R10 using u2;
 relate s1 to t5 across R10 using u1;
 relate t1 to s2 across R10 using u5;
@@ -257,6 +257,8 @@ INSERT INTO S_SYNC
 // or that preexisting instances were defined in data.
 //
 
+DynamoDB::load();
+
 select any a from instances of plug;
 if ( empty a )
 
@@ -264,6 +266,7 @@ if ( empty a )
   // Set up instances for existance test later on.
   //
 
+  LOG::LogInfo( message:"creating instances" );
   ::do_creates();
 
 end if;   // if empty a',
@@ -738,7 +741,9 @@ INSERT INTO S_SYNC
 	"00000000-0000-0000-0000-000000000000",
 	'xit',
 	'',
-	'control stop;',
+	'DynamoDB::serialize();
+LOG::LogInfo( message:"done" );
+control stop;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',

@@ -3,4 +3,4 @@ LongUtil.deserialize(\
 .else
 IntegerUtil.deserialize(\
 .end if
-inst.get("${self.attr_name}").getN())\
+values.getInt("${self.attr_name}"))\

@@ -1,1 +1,1 @@
-RealUtil.deserialize(inst.get("${self.attr_name}").getN())\
+RealUtil.deserialize(values.getDouble("${self.attr_name}"))\

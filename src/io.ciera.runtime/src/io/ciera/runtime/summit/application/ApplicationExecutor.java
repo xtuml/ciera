@@ -240,5 +240,10 @@ public class ApplicationExecutor extends Thread implements IRunContext {
 		    changeLog.addChange(delta);
 		}
 	}
+	
+	@Override
+	public IChangeLog getChangeLog() {
+		return (null != changeLog) ? changeLog : new ChangeLog();
+	}
 
 }

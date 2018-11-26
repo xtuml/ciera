@@ -6,7 +6,7 @@ false\
 0d\
 .else
   .if ( self.load_value )
-${self.type_name}.deserialize(inst.get("${self.attr_name}").getS())\
+${self.type_name}.deserialize(values.get("${self.attr_name}"))\
   .else
 new ${self.type_name}()\
   .end if
