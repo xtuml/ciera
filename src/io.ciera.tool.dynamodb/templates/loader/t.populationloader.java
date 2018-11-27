@@ -32,7 +32,6 @@ ${batch_relator_definitions}
     @Override
     public void serialize(IChangeLog changeLog) throws XtumlException {
         for (IModelDelta delta : changeLog.getChanges()) {
-            createTable(delta.getElementName());
             Table table = getDb().getTable(delta.getElementName());
             if (delta instanceof IInstanceDeletedDelta) {
                 deleteItem(table, population.getId(), delta.getElementId());

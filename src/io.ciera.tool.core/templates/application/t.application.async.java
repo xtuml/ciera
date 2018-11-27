@@ -31,7 +31,7 @@ ${component_instantiations}${component_satisfactions}    }
         final String portName = msg.getString("portName");
         // load population
         try {
-            components[index].getDefaultLoader().load();
+            if (null!= components[index].getDefaultLoader()) components[index].getDefaultLoader().load();
         } catch (XtumlException e) {/* fail silently */}
         IChangeLog changeLog = executor.performTransaction(new ReceivedMessageTask() {
             @Override
@@ -48,7 +48,7 @@ ${component_instantiations}${component_satisfactions}    }
         });
         // serialize population
         try {
-            components[index].getDefaultLoader().serialize(changeLog);
+            if (null!= components[index].getDefaultLoader()) components[index].getDefaultLoader().serialize(changeLog);
         } catch (XtumlException e) {/* fail silently */}
     }
 
@@ -56,7 +56,7 @@ ${component_instantiations}${component_satisfactions}    }
         // load population
         for ( IComponent<?> c : components ) {
         	try {
-        	    c.getDefaultLoader().load();
+        	    if (null != c.getDefaultLoader()) c.getDefaultLoader().load();
             } catch (XtumlException e) {/* fail silently */}
         }
         // tick
@@ -64,7 +64,7 @@ ${component_instantiations}${component_satisfactions}    }
         // serialize population
         for ( IComponent<?> c : components ) {
         	try {
-        	    c.getDefaultLoader().serialize(changeLog);
+        	    if (null != c.getDefaultLoader()) c.getDefaultLoader().serialize(changeLog);
             } catch (XtumlException e) {/* fail silently */}
         }
     }

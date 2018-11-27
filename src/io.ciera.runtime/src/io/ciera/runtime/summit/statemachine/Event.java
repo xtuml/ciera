@@ -103,19 +103,19 @@ public abstract class Event implements IEvent, Comparable<IEvent> {
 
     public static class EventCreatedDelta extends InstanceCreatedDelta {
     	public EventCreatedDelta(IEvent e) {
-    		super(e, e.getName());
+    		super(e, e.getClassName() + "_" + e.getName());
     	}
     }
 
     public static class EventDeletedDelta extends InstanceDeletedDelta {
     	public EventDeletedDelta(IEvent e) {
-    		super(e, e.getName());
+    		super(e, e.getClassName() + "_" + e.getName());
     	}
     }
 
     public static class EventAttributeChangedDelta extends AttributeChangedDelta {
     	public EventAttributeChangedDelta(IEvent e, String attributeName, Object oldValue, Object newValue) {
-    		super(e, e.getName(), attributeName, oldValue, newValue);
+    		super(e, e.getClassName() + "_" + e.getName(), attributeName, oldValue, newValue);
     	}
     }
 

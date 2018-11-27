@@ -98,9 +98,11 @@ public abstract class DynamoDBLoader implements IDynamoDBLoader {
     
     @Override
     public void initialize() {
+    	/*
     	for (String tableName : getTableNames()) {
     		TableUtils.deleteTableIfExists(dynamodb, new DeleteTableRequest().withTableName(tableName));
     	}
+    	*/
     }
 
     private static class CompoundIterator<E, O extends Iterable<I>, I extends Iterable<E>> implements Iterator<E> {

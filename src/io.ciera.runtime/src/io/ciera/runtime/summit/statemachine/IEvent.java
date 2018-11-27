@@ -9,6 +9,8 @@ public interface IEvent {
 	public int getPopulationId();
 	
     public String getName();
+    
+    public String getClassName();
 
     public int getId();
 

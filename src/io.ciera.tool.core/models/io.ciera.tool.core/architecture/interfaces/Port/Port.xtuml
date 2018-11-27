@@ -50,14 +50,10 @@ if ( "HttpPort" == self.base_class )
   select one c_po related by self->C_PO[R422];
   select one c_c related by c_po->C_C[R4010];
   select one pe related by c_c->PE_PE[R8001];
-  select any http_host_mark from instances of Mark where ( selected.markable_name == "Port" and
-                                                           selected.path == ::containerMarkingPath( pe:pe ) + "::" + c_c.Name + "::" + c_po.Name and
-                                                           selected.feature_name == "HttpHost" );
-  select any http_port_mark from instances of Mark where ( selected.markable_name == "Port" and
-                                                           selected.path == ::containerMarkingPath( pe:pe ) + "::" + c_c.Name + "::" + c_po.Name and
-                                                           selected.feature_name == "HttpPort" );
-  host_name = http_host_mark.value;
-  port_num = http_port_mark.value;
+  select any http_endpoint_mark from instances of Mark where ( selected.markable_name == "Port" and
+                                                               selected.path == ::containerMarkingPath( pe:pe ) + "::" + c_c.Name + "::" + c_po.Name and
+                                                               selected.feature_name == "HttpEndpoint" );
+  endpoint = http_endpoint_mark.value;
   TEMP::include( file:"interface/t.port.http.java", symbol_table:NULL_SYMBOL_TABLE );
   extra_parameters = TEMP::body();
   TEMP::clear();

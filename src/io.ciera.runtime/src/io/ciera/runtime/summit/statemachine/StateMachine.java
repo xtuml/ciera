@@ -9,6 +9,8 @@ import io.ciera.runtime.summit.classes.IModelInstance;
 import io.ciera.runtime.summit.components.IComponent;
 import io.ciera.runtime.summit.exceptions.CantHappenException;
 import io.ciera.runtime.summit.exceptions.XtumlException;
+import io.ciera.runtime.summit.util.LOG;
+import io.ciera.runtime.summit.util.impl.LOGImpl;
 
 public abstract class StateMachine<T extends IModelInstance<T, C>, C extends IComponent<C>>
         implements IStateMachine<T, C>, IInstanceActionHome<T, C> {
@@ -50,8 +52,9 @@ public abstract class StateMachine<T extends IModelInstance<T, C>, C extends ICo
                 ITransition txn = entry;
                 int prevState = currentState;
                 currentState = txn.execute(event);
-                System.out.printf("TXN: %-15s: %-50s -> %-50s\n", getClassName(), getStateName(prevState),
-                        getStateName(currentState));
+                LOG logger = new LOGImpl<C>(context);
+                logger.LogInfo(String.format("TXN: %-15s: %-50s -> %-50s\n", getClassName(), getStateName(prevState),
+                        getStateName(currentState)));
             } else {
                 throw new XtumlException("Unknown state event matrix entry");
             }
