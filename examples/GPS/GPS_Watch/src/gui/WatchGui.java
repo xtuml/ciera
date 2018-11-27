@@ -13,7 +13,7 @@ import java.net.HttpURLConnection;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URL;
-import java.net.URLEncoder;
+import java.util.Scanner;
 
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
@@ -26,6 +26,8 @@ import org.json.JSONObject;
 import io.ciera.runtime.summit.exceptions.XtumlException;
 import io.ciera.runtime.summit.interfaces.IMessage;
 import io.ciera.runtime.summit.interfaces.Message;
+import io.ciera.runtime.summit.util.LOG;
+import io.ciera.runtime.summit.util.impl.LOGImpl;
 import tracking.shared.Indicator;
 import tracking.shared.Unit;
 import ui.shared.IUI;
@@ -497,17 +499,24 @@ public class WatchGui extends JFrame {
 	private void sendSignal(IMessage message) {
 		try {
             JSONObject msg = new JSONObject();
-            msg.put("componentId", 0);
+            msg.put("heartbeat", "false");
+            msg.put("componentId", 2);
             msg.put("portName", "UI");
             msg.put("message", new JSONObject(message.serialize()));
             HttpURLConnection connection = null;
             try {
-                URL url = new URL(String.format("http://%s:%d/message?data=%s", "0.0.0.0", 8080, URLEncoder.encode(msg.toString(), "UTF-8")));
+                URL url = new URL(String.format("%s/message", "https://7t6vbnkhn4.execute-api.us-east-1.amazonaws.com/test"));
                 connection = (HttpURLConnection) url.openConnection();
-                connection.setRequestMethod("GET");
-                int resp = connection.getResponseCode();
-                if (HttpURLConnection.HTTP_OK != resp) {
-                    throw new XtumlException("Invalid response code: " + resp);
+                connection.setDoOutput(true);
+                connection.setRequestMethod("POST");
+                connection.setRequestProperty("content-type", "application/json");
+                connection.setRequestProperty("InvocationType", "Event");
+                try (DataOutputStream out = new DataOutputStream(connection.getOutputStream())) {
+                    out.write(msg.toString().getBytes());
+                }
+                Scanner sc = new Scanner(connection.getInputStream()).useDelimiter("\\z");
+                if (sc.hasNext()) {
+                	System.out.println(sc.next());
                 }
             } catch (IOException e) {
                 if (connection != null) {
