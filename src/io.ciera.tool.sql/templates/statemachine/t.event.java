@@ -14,4 +14,8 @@
         public int getId() {
             return ${self.id};
         }
+        @Override
+        public String getClassName() {
+            return "${class_name}";
+        }
     }

@@ -5,3 +5,6 @@ executor\
 executors[$t{self.executor_index}]\
 .end if
 , $t{self.index});
+.if ("" != self.instance_loading)
+        components[${self.index}].addLoader("${self.instance_loading}", new ${self.comp_name}${self.instance_loading}Loader((${self.comp_name})components[${self.index}]));
+.end if
