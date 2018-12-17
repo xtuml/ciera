@@ -12,7 +12,9 @@ import io.ciera.runtime.summit.time.TimerSet;
 public interface IRunContext {
 
     public void start();
-
+    
+    public String getName();
+    
     public void execute(IApplicationTask task);
 
     public IChangeLog performTransaction(IApplicationTask task);

@@ -6,8 +6,6 @@ import org.apache.maven.project.MavenProject;
 
 import java.io.File;
 
-import io.ciera.runtime.summit.application.ApplicationExecutor;
-
 import org.sonatype.plexus.build.incremental.BuildContext;
 
 public abstract class AbstractCieraMojo extends AbstractMojo {
@@ -19,16 +17,6 @@ public abstract class AbstractCieraMojo extends AbstractMojo {
         if (null != buildContext) {
             File srcGen = new File(getProject().getBasedir(), "src-gen");
             buildContext.refresh(srcGen);
-        }
-    }
-
-    public void waitForThreads() {
-        for (Thread thread : Thread.getAllStackTraces().keySet()) {
-            if (thread instanceof ApplicationExecutor) {
-                try {
-                    thread.join();
-                } catch (InterruptedException e) {}
-            }
         }
     }
 

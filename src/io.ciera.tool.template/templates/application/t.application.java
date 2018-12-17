@@ -5,11 +5,11 @@ ${imports}
 public class ${self.name} implements IApplication {
 
     private IComponent<?>[] components;
-    private IRunContext[] executors;
+    private ApplicationExecutor[] executors;
 
     public ${self.name}() {
         components = new IComponent<?>[$t{num_component_instances}];
-        executors = new IRunContext[$t{num_executors}];
+        executors = new ApplicationExecutor[$t{num_executors}];
     }
 
     @Override
@@ -38,8 +38,13 @@ ${component_instantiations}${component_satisfactions}    }
 
     @Override
     public void start() {
-        for ( IRunContext executor : executors ) {
-            executor.start();
+        if (1 == executors.length) {
+            executors[0].run();
+        }
+        else {
+            for ( ApplicationExecutor executor : executors ) {
+                executor.start();
+            }
         }
     }
 
@@ -54,7 +59,7 @@ ${component_instantiations}${component_satisfactions}    }
 
     @Override
     public void stop() {
-        for ( IRunContext executor : executors ) {
+        for ( ApplicationExecutor executor : executors ) {
             executor.execute(new HaltExecutionTask());
         }
     }

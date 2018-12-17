@@ -5,7 +5,7 @@ ${imports}
 public class ${self.name} implements IApplication {
 
     private IComponent<?>[] components;
-    private IRunContext executor;
+    private ApplicationExecutor executor;
 
     public ${self.name}() {
         components = new IComponent<?>[$t{num_component_instances}];

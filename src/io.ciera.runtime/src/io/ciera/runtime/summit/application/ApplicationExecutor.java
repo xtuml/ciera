@@ -20,9 +20,11 @@ import io.ciera.runtime.summit.time.Timer;
 import io.ciera.runtime.summit.time.TimerHandle;
 import io.ciera.runtime.summit.time.TimerSet;
 
-public class ApplicationExecutor extends Thread implements IRunContext {
+public class ApplicationExecutor implements Runnable, IRunContext {
 
     private static final int TICK_LEN = 1; // tick length in milliseconds
+    
+    private String name;
 
     private IExceptionHandler handler;
     private Queue<IApplicationTask> pendingEvents;
@@ -50,7 +52,7 @@ public class ApplicationExecutor extends Thread implements IRunContext {
     }
 
     public ApplicationExecutor(String name, String[] args, ILogger logger) {
-        super(name);
+        this.name = name;
         handler = new DefaultExceptionHandler(this);
         pendingEvents = new PriorityQueue<>();
         tasks = new PriorityQueue<>();
@@ -62,6 +64,11 @@ public class ApplicationExecutor extends Thread implements IRunContext {
         simulatedTime = false;
         this.logger = logger;
         this.args = args;
+    }
+    
+    @Override
+    public String getName() {
+        return name;
     }
 
     @Override
@@ -256,6 +263,11 @@ public class ApplicationExecutor extends Thread implements IRunContext {
     @Override
     public ILogger getLog() {
         return logger;
+    }
+
+    @Override
+    public void start() {
+        new Thread(this, getName()).start();
     }
 
 }

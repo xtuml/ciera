@@ -36,7 +36,6 @@ public class TemplateMojo extends AbstractCieraMojo {
         app.setup(new String[]{"-i", inFile, "-o", outFile, "--cwd", projectDir}, new CieraMavenLogger(getLog()));
         app.initialize();
         app.start();
-        waitForThreads();
         copyCustomCode();
         addSrcGen();
         refreshFiles();
