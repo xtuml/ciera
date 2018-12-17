@@ -28,98 +28,77 @@
     <sourceDirectory>${project.basedir}/src</sourceDirectory>
     <plugins>
       <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>exec-maven-plugin</artifactId>
-        <version>1.6.0</version>
+        <groupId>io.ciera</groupId>
+        <artifactId>ciera-maven-plugin</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
         <executions>
           <execution>
             <id>ciera-core</id>
-            <phase>generate-sources</phase>
-            <configuration>
-              <executable>java</executable>
-              <workingDirectory>${project.basedir}</workingDirectory>
-              <arguments>
-                <argument>-jar</argument>
-                <argument>${project.basedir}/../../release/core-tool.jar</argument>
-                <argument>-i</argument>
-                <argument>gen/code_generation/io.ciera.tool.dynamodb.sql</argument>
-                <argument>-o</argument>
-                <argument>gen/code_generation/b.xtuml</argument>
-              </arguments>
-            </configuration>
             <goals>
-              <goal>exec</goal>
+              <goal>core</goal>
             </goals>
+            <configuration>
+              <input>${project.basedir}/gen/code_generation/io.ciera.tool.dynamodb.sql</input>
+              <output>${project.basedir}/gen/code_generation/b.xtuml</output>
+            </configuration>
           </execution>
           <execution>
             <id>ciera-sql</id>
-            <phase>generate-sources</phase>
-            <configuration>
-              <executable>java</executable>
-              <workingDirectory>${project.basedir}</workingDirectory>
-              <arguments>
-                <argument>-jar</argument>
-                <argument>${project.basedir}/../../release/sql-tool.jar</argument>
-                <argument>-i</argument>
-                <argument>gen/code_generation/b.xtuml</argument>
-              </arguments>
-            </configuration>
             <goals>
-              <goal>exec</goal>
+              <goal>sql</goal>
             </goals>
+            <configuration>
+              <input>${project.basedir}/gen/code_generation/b.xtuml</input>
+            </configuration>
           </execution>
           <execution>
             <id>ciera-template</id>
-            <phase>generate-sources</phase>
-            <configuration>
-              <executable>java</executable>
-              <workingDirectory>${project.basedir}</workingDirectory>
-              <arguments>
-                <argument>-jar</argument>
-                <argument>${project.basedir}/../../release/template-tool.jar</argument>
-                <argument>-i</argument>
-                <argument>gen/code_generation/b.xtuml</argument>
-              </arguments>
-            </configuration>
             <goals>
-              <goal>exec</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>ciera-postprocess</id>
-            <phase>generate-sources</phase>
-            <configuration>
-              <executable>bash</executable>
-              <workingDirectory>${project.basedir}/gen</workingDirectory>
-              <arguments>
-                <argument>postprocess.sh</argument>
-              </arguments>
-            </configuration>
-            <goals>
-              <goal>exec</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>build-helper-maven-plugin</artifactId>
-        <version>3.0.0</version>
-        <executions>
-          <execution>
-            <id>add-source</id>
-            <phase>generate-sources</phase>
-            <goals>
-              <goal>add-source</goal>
+              <goal>template</goal>
             </goals>
             <configuration>
-              <sources>
-                <source>${project.basedir}/src-gen</source>
-              </sources>
+              <input>${project.basedir}/gen/code_generation/b.xtuml</input>
             </configuration>
           </execution>
         </executions>
       </plugin>
     </plugins>
+    <extensions>
+      <extension>
+        <groupId>com.gkatzioura.maven.cloud</groupId>
+        <artifactId>s3-storage-wagon</artifactId>
+        <version>1.0</version>
+      </extension>
+    </extensions>
   </build>
+  <distributionManagement>
+    <snapshotRepository>
+      <id>io.ciera.repo.snapshot</id>
+      <url>s3://xtuml-releases/maven/snapshot</url>
+    </snapshotRepository>
+    <repository>
+      <id>io.ciera.repo.release</id>
+      <url>s3://xtuml-releases/maven/release</url>
+    </repository>
+  </distributionManagement>
+  <repositories>
+    <repository>
+      <id>io.ciera.repo.snapshot</id>
+      <url>s3://xtuml-releases/maven/snapshot</url>
+    </repository>
+    <repository>
+      <id>io.ciera.repo.release</id>
+      <url>s3://xtuml-releases/maven/release</url>
+    </repository>
+  </repositories>
+  <pluginRepositories>
+    <pluginRepository>
+      <id>io.ciera.repo.snapshot</id>
+      <url>s3://xtuml-releases/maven/snapshot</url>
+    </pluginRepository>
+    <pluginRepository>
+      <id>io.ciera.repo.release</id>
+      <url>s3://xtuml-releases/maven/release</url>
+    </pluginRepository>
+  </pluginRepositories>
 </project>

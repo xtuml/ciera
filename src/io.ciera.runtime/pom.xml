@@ -10,6 +10,18 @@
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
   </properties>
+  <dependencies>
+    <dependency>
+      <groupId>org.antlr</groupId>
+      <artifactId>antlr4</artifactId>
+      <version>4.7.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.json</groupId>
+      <artifactId>json</artifactId>
+      <version>20180813</version>
+    </dependency>
+  </dependencies>
   <build>
     <directory>${project.basedir}/gen/code_generation</directory>
     <outputDirectory>${project.basedir}/bin</outputDirectory>
@@ -33,17 +45,22 @@
         </executions>
       </plugin>
     </plugins>
+    <extensions>
+      <extension>
+        <groupId>com.gkatzioura.maven.cloud</groupId>
+        <artifactId>s3-storage-wagon</artifactId>
+        <version>1.0</version>
+      </extension>
+    </extensions>
   </build>
-  <dependencies>
-    <dependency>
-      <groupId>org.antlr</groupId>
-      <artifactId>antlr4</artifactId>
-      <version>4.7.1</version>
-    </dependency>
-    <dependency>
-      <groupId>org.json</groupId>
-      <artifactId>json</artifactId>
-      <version>20180813</version>
-    </dependency>
-  </dependencies>
+  <distributionManagement>
+    <snapshotRepository>
+      <id>io.ciera.repo</id>
+      <url>s3://xtuml-releases/maven/snapshot</url>
+    </snapshotRepository>
+    <repository>
+      <id>io.ciera.repo</id>
+      <url>s3://xtuml-releases/maven/release</url>
+    </repository>
+  </distributionManagement>
 </project>
