@@ -58,7 +58,7 @@ public class DefaultLogger implements ILogger {
 
     @Override
     public void error(String format, Object... args) {
-        err.printf(format, args);
+        err.printf(format + "\n", args);
     }
 
     @Override
@@ -81,7 +81,7 @@ public class DefaultLogger implements ILogger {
 
     @Override
     public void info(String format, Object... args) {
-        out.printf(format, args);
+        out.printf(format + "\n", args);
     }
 
     @Override

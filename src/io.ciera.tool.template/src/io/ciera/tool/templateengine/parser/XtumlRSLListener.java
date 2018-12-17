@@ -97,7 +97,7 @@ public class XtumlRSLListener extends RSLBaseListener {
                     .where((selected) -> selected.getParent_node_id() == body.getNode_id()))
                 population.relate_R3054_Y_Line_Y_Body(line, body);
         } catch (XtumlException e) {
-            e.printStackTrace();
+            population.getRunContext().getLog().error(e);
         }
     }
 
@@ -121,7 +121,7 @@ public class XtumlRSLListener extends RSLBaseListener {
                     .where((selected) -> selected.getParent_node_id() == line.getNode_id()))
                 population.relate_R3055_Y_EndIfStatement_is_a_Y_Line(endif_statement, line);
         } catch (XtumlException e) {
-            e.printStackTrace();
+            population.getRunContext().getLog().error(e);
         }
     }
 
@@ -134,7 +134,7 @@ public class XtumlRSLListener extends RSLBaseListener {
                     .where((selected) -> selected.getParent_node_id() == buffer.getNode_id()))
                 population.relate_R3056_Y_BufferElement_Y_Buffer(buffer_element, buffer);
         } catch (XtumlException e) {
-            e.printStackTrace();
+            population.getRunContext().getLog().error(e);
         }
     }
 
@@ -149,7 +149,7 @@ public class XtumlRSLListener extends RSLBaseListener {
                     .where((selected) -> selected.getParent_node_id() == buffer_element.getNode_id()))
                 population.relate_R3057_Y_SubstitutionVar_is_a_Y_BufferElement(substitution_var, buffer_element);
         } catch (XtumlException e) {
-            e.printStackTrace();
+            population.getRunContext().getLog().error(e);
         }
     }
 
@@ -159,7 +159,7 @@ public class XtumlRSLListener extends RSLBaseListener {
             Y_BlobImpl.create(population, UniqueId.random(), parentIds.pop(), parentIds.peek(),
                     null == ctx.BLOB() ? "" : ctx.BLOB().getText());
         } catch (XtumlException e) {
-            e.printStackTrace();
+            population.getRunContext().getLog().error(e);
         }
     }
 
@@ -177,7 +177,7 @@ public class XtumlRSLListener extends RSLBaseListener {
                     .where((selected) -> selected.getParent_node_id() == substitution_var.getNode_id()))
                 population.relate_R3085_Y_NamedAccess_Y_SubstitutionVar(named_access, substitution_var);
         } catch (XtumlException e) {
-            e.printStackTrace();
+            population.getRunContext().getLog().error(e);
         }
     }
 
@@ -187,7 +187,7 @@ public class XtumlRSLListener extends RSLBaseListener {
             Y_FormatCharsImpl.create(population, UniqueId.random(), parentIds.pop(), parentIds.peek(),
                     null == ctx.FORMAT() ? "" : ctx.FORMAT().getText());
         } catch (XtumlException e) {
-            e.printStackTrace();
+            population.getRunContext().getLog().error(e);
         }
     }
 
@@ -200,7 +200,7 @@ public class XtumlRSLListener extends RSLBaseListener {
                     .where((selected) -> selected.getParent_node_id() == if_statement.getNode_id()))
                 population.relate_R3059_Y_Expression_Y_IfStatement(expression, if_statement);
         } catch (XtumlException e) {
-            e.printStackTrace();
+            population.getRunContext().getLog().error(e);
         }
     }
 
@@ -214,7 +214,7 @@ public class XtumlRSLListener extends RSLBaseListener {
                     .where((selected) -> selected.getParent_node_id() == elif_statement.getNode_id()))
                 population.relate_R3060_Y_Expression_Y_ElifStatement(expression, elif_statement);
         } catch (XtumlException e) {
-            e.printStackTrace();
+            population.getRunContext().getLog().error(e);
         }
     }
 
@@ -225,7 +225,7 @@ public class XtumlRSLListener extends RSLBaseListener {
                     null == ctx.ELSE() ? "" : ctx.ELSE().getText(),
                     null == ctx.NEWLINE() ? "" : ctx.NEWLINE().getText());
         } catch (XtumlException e) {
-            e.printStackTrace();
+            population.getRunContext().getLog().error(e);
         }
     }
 
@@ -236,7 +236,7 @@ public class XtumlRSLListener extends RSLBaseListener {
                     null == ctx.END() ? "" : ctx.END().getText(), null == ctx.IF() ? "" : ctx.IF().getText(),
                     null == ctx.NEWLINE() ? "" : ctx.NEWLINE().getText());
         } catch (XtumlException e) {
-            e.printStackTrace();
+            population.getRunContext().getLog().error(e);
         }
     }
 
@@ -248,7 +248,7 @@ public class XtumlRSLListener extends RSLBaseListener {
                     .where((selected) -> selected.getParent_node_id() == expression.getNode_id()))
                 population.relate_R3061_Y_Disjunction_Y_Expression(disjunction, expression);
         } catch (XtumlException e) {
-            e.printStackTrace();
+            population.getRunContext().getLog().error(e);
         }
     }
 
@@ -263,7 +263,7 @@ public class XtumlRSLListener extends RSLBaseListener {
                     .where((selected) -> selected.getParent_node_id() == disjunction.getNode_id()))
                 population.relate_R3062_Y_Conjunction_Y_Disjunction(conjunction, disjunction);
         } catch (XtumlException e) {
-            e.printStackTrace();
+            population.getRunContext().getLog().error(e);
         }
     }
 
@@ -276,7 +276,7 @@ public class XtumlRSLListener extends RSLBaseListener {
                     .where((selected) -> selected.getParent_node_id() == disjunction_operation.getNode_id()))
                 population.relate_R3069_Y_Conjunction_Y_DisjunctionOperation(conjunction, disjunction_operation);
         } catch (XtumlException e) {
-            e.printStackTrace();
+            population.getRunContext().getLog().error(e);
         }
     }
 
@@ -291,7 +291,7 @@ public class XtumlRSLListener extends RSLBaseListener {
                     .where((selected) -> selected.getParent_node_id() == conjunction.getNode_id()))
                 population.relate_R3063_Y_Comparison_Y_Conjunction(comparison, conjunction);
         } catch (XtumlException e) {
-            e.printStackTrace();
+            population.getRunContext().getLog().error(e);
         }
     }
 
@@ -304,7 +304,7 @@ public class XtumlRSLListener extends RSLBaseListener {
                     .where((selected) -> selected.getParent_node_id() == conjunction_operation.getNode_id()))
                 population.relate_R3071_Y_Comparison_Y_ConjunctionOperation(comparison, conjunction_operation);
         } catch (XtumlException e) {
-            e.printStackTrace();
+            population.getRunContext().getLog().error(e);
         }
     }
 
@@ -319,7 +319,7 @@ public class XtumlRSLListener extends RSLBaseListener {
                     .where((selected) -> selected.getParent_node_id() == comparison.getNode_id()))
                 population.relate_R3064_Y_Addition_Y_Comparison(addition, comparison);
         } catch (XtumlException e) {
-            e.printStackTrace();
+            population.getRunContext().getLog().error(e);
         }
     }
 
@@ -335,7 +335,7 @@ public class XtumlRSLListener extends RSLBaseListener {
                     .where((selected) -> selected.getParent_node_id() == comparison_operation.getNode_id()))
                 population.relate_R3073_Y_Addition_Y_ComparisonOperation(addition, comparison_operation);
         } catch (XtumlException e) {
-            e.printStackTrace();
+            population.getRunContext().getLog().error(e);
         }
     }
 
@@ -350,7 +350,7 @@ public class XtumlRSLListener extends RSLBaseListener {
                     .where((selected) -> selected.getParent_node_id() == addition.getNode_id()))
                 population.relate_R3065_Y_Multiplication_Y_Addition(multiplication, addition);
         } catch (XtumlException e) {
-            e.printStackTrace();
+            population.getRunContext().getLog().error(e);
         }
     }
 
@@ -364,7 +364,7 @@ public class XtumlRSLListener extends RSLBaseListener {
                     .where((selected) -> selected.getParent_node_id() == addition_operation.getNode_id()))
                 population.relate_R3075_Y_Multiplication_Y_AdditionOperation(multiplication, addition_operation);
         } catch (XtumlException e) {
-            e.printStackTrace();
+            population.getRunContext().getLog().error(e);
         }
     }
 
@@ -381,7 +381,7 @@ public class XtumlRSLListener extends RSLBaseListener {
                     .where((selected) -> selected.getParent_node_id() == multiplication.getNode_id()))
                 population.relate_R3066_Y_Negation_Y_Multiplication(negation, multiplication);
         } catch (XtumlException e) {
-            e.printStackTrace();
+            population.getRunContext().getLog().error(e);
         }
     }
 
@@ -395,7 +395,7 @@ public class XtumlRSLListener extends RSLBaseListener {
                     .where((selected) -> selected.getParent_node_id() == multiplication_operation.getNode_id()))
                 population.relate_R3077_Y_Negation_Y_MultiplicationOperation(negation, multiplication_operation);
         } catch (XtumlException e) {
-            e.printStackTrace();
+            population.getRunContext().getLog().error(e);
         }
     }
 
@@ -410,7 +410,7 @@ public class XtumlRSLListener extends RSLBaseListener {
                     .where((selected) -> selected.getParent_node_id() == negation.getNode_id()))
                 population.relate_R3067_Y_Term_Y_Negation(term, negation);
         } catch (XtumlException e) {
-            e.printStackTrace();
+            population.getRunContext().getLog().error(e);
         }
     }
 
@@ -420,7 +420,7 @@ public class XtumlRSLListener extends RSLBaseListener {
             Y_NegationOperationImpl.create(population, UniqueId.random(), parentIds.pop(), parentIds.peek(),
                     null == ctx.NOT() ? "" : ctx.NOT().getText(), null == ctx.MINUS() ? "" : ctx.MINUS().getText());
         } catch (XtumlException e) {
-            e.printStackTrace();
+            population.getRunContext().getLog().error(e);
         }
     }
 
@@ -438,7 +438,7 @@ public class XtumlRSLListener extends RSLBaseListener {
                     .where((selected) -> selected.getParent_node_id() == term.getNode_id()))
                 population.relate_R3086_Y_Literal_Y_Term(parenthesis, term);
         } catch (XtumlException e) {
-            e.printStackTrace();
+            population.getRunContext().getLog().error(e);
         }
     }
 
@@ -452,7 +452,7 @@ public class XtumlRSLListener extends RSLBaseListener {
                     .where((selected) -> selected.getParent_node_id() == parenthesis.getNode_id()))
                 population.relate_R3080_Y_Expression_Y_Parenthesis(expression, parenthesis);
         } catch (XtumlException e) {
-            e.printStackTrace();
+            population.getRunContext().getLog().error(e);
         }
     }
 
@@ -467,7 +467,7 @@ public class XtumlRSLListener extends RSLBaseListener {
                     .where((selected) -> selected.getParent_node_id() == named_access.getNode_id()))
                 population.relate_R3083_Y_AttributeAccess_Y_NamedAccess(attribute_access, named_access);
         } catch (XtumlException e) {
-            e.printStackTrace();
+            population.getRunContext().getLog().error(e);
         }
     }
 
@@ -477,7 +477,7 @@ public class XtumlRSLListener extends RSLBaseListener {
             Y_VariableAccessImpl.create(population, UniqueId.random(), parentIds.pop(), parentIds.peek(),
                     null == ctx.ID() ? "" : ctx.ID().getText());
         } catch (XtumlException e) {
-            e.printStackTrace();
+            population.getRunContext().getLog().error(e);
         }
     }
 
@@ -492,7 +492,7 @@ public class XtumlRSLListener extends RSLBaseListener {
                 population.relate_R3084_Y_AttributeAccess_contained_by_Y_AttributeAccess(attribute_access2,
                         attribute_access1);
         } catch (XtumlException e) {
-            e.printStackTrace();
+            population.getRunContext().getLog().error(e);
         }
     }
 
@@ -507,7 +507,7 @@ public class XtumlRSLListener extends RSLBaseListener {
                     .where((selected) -> selected.getParent_node_id() == literal.getNode_id()))
                 population.relate_R3087_Y_StringLiteral_Y_Literal(string_literal, literal);
         } catch (XtumlException e) {
-            e.printStackTrace();
+            population.getRunContext().getLog().error(e);
         }
     }
 
@@ -518,7 +518,7 @@ public class XtumlRSLListener extends RSLBaseListener {
                     null == ctx.QUOTE(0) ? "" : ctx.QUOTE(0).getText(), null == ctx.BLOB() ? "" : ctx.BLOB().getText(),
                     null == ctx.QUOTE(1) ? "" : ctx.QUOTE(1).getText());
         } catch (XtumlException e) {
-            e.printStackTrace();
+            population.getRunContext().getLog().error(e);
         }
     }
 

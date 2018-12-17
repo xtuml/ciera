@@ -51,7 +51,7 @@ public class ApplicationExecutor extends Thread implements IRunContext {
 
     public ApplicationExecutor(String name, String[] args, ILogger logger) {
         super(name);
-        handler = new DefaultExceptionHandler();
+        handler = new DefaultExceptionHandler(this);
         pendingEvents = new PriorityQueue<>();
         tasks = new PriorityQueue<>();
         activeTimers = new PriorityQueue<>();

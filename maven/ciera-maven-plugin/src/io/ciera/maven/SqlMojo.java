@@ -8,6 +8,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 
 import org.apache.maven.project.MavenProject;
 
+import io.ciera.runtime.summit.application.IApplication;
 import io.ciera.tool.SqlTool;
 
 import java.io.File;
@@ -31,7 +32,10 @@ public class SqlMojo extends AbstractCieraMojo {
         String projectDir = getProject().getBasedir().getPath();
         String inFile = null == input ? "" : new File(projectDir).toURI().relativize(new File(input).toURI()).getPath();
         String outFile = null == output ? "" : new File(projectDir).toURI().relativize(new File(output).toURI()).getPath();
-        SqlTool.main(new String[]{"-i", inFile, "-o", outFile, "--cwd", projectDir});
+        IApplication app = new SqlTool();
+        app.setup(new String[]{"-i", inFile, "-o", outFile, "--cwd", projectDir}, new CieraMavenLogger(getLog()));
+        app.initialize();
+        app.start();
         waitForThreads();
         copyCustomCode();
         addSrcGen();

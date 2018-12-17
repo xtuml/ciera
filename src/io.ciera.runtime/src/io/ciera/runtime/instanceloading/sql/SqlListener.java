@@ -8,16 +8,20 @@ import io.ciera.runtime.instanceloading.sql.parser.SQLParser.Insert_statementCon
 import io.ciera.runtime.instanceloading.sql.parser.SQLParser.Sql_fileContext;
 import io.ciera.runtime.instanceloading.sql.parser.SQLParser.Table_nameContext;
 import io.ciera.runtime.instanceloading.sql.parser.SQLParser.ValueContext;
+import io.ciera.runtime.summit.application.IRunContext;
 import io.ciera.runtime.summit.exceptions.XtumlException;
 
 public class SqlListener extends SQLBaseListener {
 
+    private IRunContext runContext;
     private ISqlLoader loader;
+
     private String tableName;
     private List<Object> values;
-
-    public SqlListener(ISqlLoader loader) {
+    
+    public SqlListener(ISqlLoader loader, IRunContext runContext) {
         this.loader = loader;
+        this.runContext = runContext;
         tableName = null;
         values = null;
     }
@@ -27,7 +31,7 @@ public class SqlListener extends SQLBaseListener {
         try {
             loader.batchRelate();
         } catch (XtumlException e) {
-            e.printStackTrace();
+            runContext.getLog().error(e);
             System.exit(1);
             // TODO
         }
@@ -43,7 +47,7 @@ public class SqlListener extends SQLBaseListener {
         try {
             loader.insert(tableName, values);
         } catch (XtumlException e) {
-            e.printStackTrace();
+            runContext.getLog().error(e);
             System.exit(1);
             // TODO
         }
@@ -69,7 +73,7 @@ public class SqlListener extends SQLBaseListener {
         		values.add(longValue);
         	}
         } else {
-            System.err.println("This is bad"); // TODO
+            runContext.getLog().error("This is bad"); // TODO
         }
     }
 

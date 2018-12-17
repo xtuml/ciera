@@ -12,8 +12,13 @@ public class ${self.name} implements IApplication {
     }
 
     @Override
-    public void setup( String[] args ) {
-        executor = new ApplicationExecutor("${self.name}Executor", args);
+    public void setup( String[] args, ILogger logger ) {
+        if ( null != logger ) {
+            executor = new ApplicationExecutor("${self.name}Executor", args, logger);
+        }
+        else {
+            executor = new ApplicationExecutor("${self.name}Executor", args);
+        }
 ${component_instantiations}${component_satisfactions}    }
 
     @Override
@@ -80,7 +85,7 @@ ${component_instantiations}${component_satisfactions}    }
 
     public static void main(String[] args) {
         ${self.name} app = new ${self.name}();
-        app.setup(args);
+        app.setup(args, null);
         CommandLine cmd = new CommandLine(args);
         try {
             cmd.register_flag("v", "Print version");

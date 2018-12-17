@@ -7,6 +7,7 @@ public class ${self.name} extends SqlLoader {
     private ${self.comp_name} population;
 
     public ${self.name}( ${self.comp_name} population ) {
+        super(population.getRunContext());
         this.population = population;
     }
 

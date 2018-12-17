@@ -12,6 +12,7 @@ import io.ciera.runtime.instanceloading.IChangeLog;
 import io.ciera.runtime.instanceloading.sql.parser.SQLLexer;
 import io.ciera.runtime.instanceloading.sql.parser.SQLParser;
 import io.ciera.runtime.instanceloading.sql.parser.SQLParser.Sql_fileContext;
+import io.ciera.runtime.summit.application.IRunContext;
 import io.ciera.runtime.summit.exceptions.InstancePopulationException;
 import io.ciera.runtime.summit.exceptions.XtumlException;
 
@@ -20,9 +21,12 @@ public abstract class SqlLoader implements ISqlLoader {
 	private InputStream in;
 	private OutputStream out;
 	
-	public SqlLoader() {
+	private IRunContext runContext;
+	
+	public SqlLoader(IRunContext runContext) {
 		in = System.in;
 		out = System.out;
+		this.runContext = runContext;
 	}
 
 	@Override
@@ -34,7 +38,7 @@ public abstract class SqlLoader implements ISqlLoader {
                 SQLParser parser = new SQLParser(tokens);
                 Sql_fileContext ctx = parser.sql_file();
                 ParseTreeWalker walker = new ParseTreeWalker();
-                SqlListener listener = new SqlListener(this);
+                SqlListener listener = new SqlListener(this, runContext);
                 walker.walk(listener, ctx);
             } catch (IOException e) {
                 throw new InstancePopulationException("Could not read input file.");

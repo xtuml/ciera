@@ -49,7 +49,7 @@ ${attributes}
             return new InstanceIdentifier(${id1_attributes});
         }
         catch ( XtumlException e ) {
-            e.printStackTrace();
+            getRunContext().getLog().error(e);
             System.exit(1);
             return null;
         }
@@ -62,7 +62,7 @@ ${attributes}
             return new InstanceIdentifier(${id2_attributes});
         }
         catch ( XtumlException e ) {
-            e.printStackTrace();
+            getRunContext().getLog().error(e);
             System.exit(1);
             return null;
         }
@@ -75,7 +75,7 @@ ${attributes}
             return new InstanceIdentifier(${id3_attributes});
         }
         catch ( XtumlException e ) {
-            e.printStackTrace();
+            getRunContext().getLog().error(e);
             System.exit(1);
             return null;
         }

@@ -13,9 +13,15 @@ public class ${self.name} implements IApplication {
     }
 
     @Override
-    public void setup( String[] args ) {
-        for ( int i = 0; i < executors.length; i++ )
-            executors[i] = new ApplicationExecutor( "${self.name}Executor" + i, args );
+    public void setup( String[] args, ILogger logger ) {
+        for ( int i = 0; i < executors.length; i++ ) {
+            if ( null != logger ) {
+                executors[i] = new ApplicationExecutor( "${self.name}Executor" + i, args, logger );
+            }
+            else {
+                executors[i] = new ApplicationExecutor( "${self.name}Executor" + i, args );
+            }
+        }
 ${component_instantiations}${component_satisfactions}    }
 
     @Override
@@ -55,7 +61,7 @@ ${component_instantiations}${component_satisfactions}    }
 
     public static void main( String[] args ) {
         IApplication app = new ${self.name}();
-        app.setup( args );
+        app.setup( args, null );
         if ( Arrays.asList(args).contains("-v") || Arrays.asList(args).contains("--version") ) {
             app.printVersions();
         }
