@@ -36,6 +36,8 @@ public class ApplicationExecutor extends Thread implements IRunContext {
 
     private long systemTime;  // current system time in microseconds
     private boolean simulatedTime;
+    
+    private ILogger logger;
 
     private String[] args;
 
@@ -44,6 +46,10 @@ public class ApplicationExecutor extends Thread implements IRunContext {
     }
 
     public ApplicationExecutor(String name, String[] args) {
+        this(name, args, new DefaultLogger());
+    }
+
+    public ApplicationExecutor(String name, String[] args, ILogger logger) {
         super(name);
         handler = new DefaultExceptionHandler();
         pendingEvents = new PriorityQueue<>();
@@ -54,6 +60,7 @@ public class ApplicationExecutor extends Thread implements IRunContext {
         changeLog = null;
         systemTime = 0;
         simulatedTime = false;
+        this.logger = logger;
         this.args = args;
     }
 
@@ -245,5 +252,10 @@ public class ApplicationExecutor extends Thread implements IRunContext {
 	public IChangeLog getChangeLog() {
 		return (null != changeLog) ? changeLog : new ChangeLog();
 	}
+
+    @Override
+    public ILogger getLog() {
+        return logger;
+    }
 
 }

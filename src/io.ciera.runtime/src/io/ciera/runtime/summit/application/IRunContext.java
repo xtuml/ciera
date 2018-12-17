@@ -46,5 +46,7 @@ public interface IRunContext {
     public void addChange(IModelDelta delta);
     
     public IChangeLog getChangeLog();
+    
+    public ILogger getLog();
 
 }
