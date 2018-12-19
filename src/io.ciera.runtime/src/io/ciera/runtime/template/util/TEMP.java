@@ -5,6 +5,8 @@ import io.ciera.runtime.summit.types.IXtumlType;
 
 public interface TEMP {
 
+    public void set_output_directory(String dir) throws XtumlException;
+
     public void append(String s) throws XtumlException;
 
     default public void append(boolean b) throws XtumlException {
@@ -40,9 +42,5 @@ public interface TEMP {
     public String sub(String format, String s) throws XtumlException;
 
     public String sub(String format, IXtumlType<?> o) throws XtumlException;
-
-    public void pushBuffer();
-
-    public void popBuffer();
 
 }

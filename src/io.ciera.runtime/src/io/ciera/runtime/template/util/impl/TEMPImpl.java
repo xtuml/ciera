@@ -19,8 +19,12 @@ public class TEMPImpl<C extends IComponent<C>> extends Utility<C> implements TEM
     private Stack<String> buffers;
     private ITemplateRegistry registry;
 
+    private String rootDir;
+
     public TEMPImpl(C context) {
         super(context);
+        rootDir = ".";
+        this.rootDir = rootDir;
         buffers = new Stack<>();
         try {
             Class<?> componentClass = context.getClass();
@@ -33,14 +37,19 @@ public class TEMPImpl<C extends IComponent<C>> extends Utility<C> implements TEM
         pushBuffer();
     }
 
-    @Override
-    public void pushBuffer() {
+    private void pushBuffer() {
         buffers.push("");
     }
 
-    @Override
-    public void popBuffer() {
+    private void popBuffer() {
         buffers.pop();
+    }
+
+    @Override
+    public void set_output_directory(String dir) throws XtumlException {
+        if (null != dir) {
+            rootDir = dir;
+        }
     }
 
     @Override
@@ -65,7 +74,7 @@ public class TEMPImpl<C extends IComponent<C>> extends Utility<C> implements TEM
     public void emit(String file) throws XtumlException {
         if (null != file) {
             try {
-                File outputFile = new File(file);
+                File outputFile = new File(new File(rootDir), file);
                 if (!outputFile.getParentFile().exists()) {
                     outputFile.getParentFile().mkdirs();
                 }

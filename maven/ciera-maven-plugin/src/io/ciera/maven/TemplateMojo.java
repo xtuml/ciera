@@ -25,6 +25,9 @@ public class TemplateMojo extends AbstractCieraMojo {
     @Parameter
     private String output;
 
+    @Parameter(defaultValue="${project.basedir}/src-gen")
+    private String genDir;
+
     @Parameter(readonly=true, defaultValue="${project}")
     private MavenProject project;
 
@@ -32,10 +35,11 @@ public class TemplateMojo extends AbstractCieraMojo {
         String projectDir = getProject().getBasedir().getPath();
         String inFile = null == input ? "" : new File(projectDir).toURI().relativize(new File(input).toURI()).getPath();
         String outFile = null == output ? "" : new File(projectDir).toURI().relativize(new File(output).toURI()).getPath();
-        IApplication app = new TemplateTool();
-        app.setup(new String[]{"-i", inFile, "-o", outFile, "--cwd", projectDir}, new CieraMavenLogger(getLog()));
-        app.initialize();
-        app.start();
+        String genDirPath = null == genDir ? "" : new File(projectDir).toURI().relativize(new File(genDir).toURI()).getPath();
+        IApplication compiler = new TemplateTool();
+        compiler.setup(new String[]{"-i", inFile, "-o", outFile, "--cwd", projectDir, "--gendir", genDirPath}, new CieraMavenLogger(getLog()));
+        compiler.initialize();
+        compiler.start();
         copyCustomCode();
         addSrcGen();
         refreshFiles();
