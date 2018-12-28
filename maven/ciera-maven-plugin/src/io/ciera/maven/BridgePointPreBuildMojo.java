@@ -46,6 +46,9 @@ public class BridgePointPreBuildMojo extends AbstractMojo {
             final String workspace = null == this.workspace || "".equals(this.workspace) ? System.getenv("WORKSPACE") : this.workspace;
             final String bpHome = null == this.bpHome || "".equals(this.bpHome) ? System.getenv("BPHOME") : this.bpHome;
             final String cliExe = bpHome + File.separator + BIN_DIR + File.separator + "CLI.sh";
+            if ("".equals(workspace.trim())) {
+                getLog().warn("WORKSPACE is unset.");
+            }
             ProcessBuilder pb = new ProcessBuilder(cliExe, "Build", "-project", projectName, "-prebuildOnly").redirectOutput(Redirect.PIPE);
             pb.environment().put("WORKSPACE", workspace);
             getLog().info("Performing BridgePoint pre-build (workspace location: " + workspace + ")...");
@@ -59,7 +62,7 @@ public class BridgePointPreBuildMojo extends AbstractMojo {
                 }
                 sc.close();
             } catch (IOException e) {
-                getLog().error("Problem executing pre-builder", e);
+                getLog().error("Problem executing pre-builder:", e);
             }
         }
         else {
