@@ -1492,7 +1492,7 @@ elif ( "^" == TEMP::sub( format:"l", s:v_bin.Operator ) )
   binary.invocation = true;
 end if;
 // translate the left operand
-if ( ::precedenceCheck( val1:l_val, val2:v_val ) < 0 ) // if the left operand is lower precedence than the current operator, force it to be evaluated first with parentheses
+if ( ::precedenceCheck( val1:l_val, val2:v_val ) <= 0 ) // if the left operand is lower precedence than the current operator, force it to be evaluated first with parentheses
   // transform the left hand expression
   ::transformExpression( v_val:l_val, expr_number:expr.expression_number + ".1.1", smt:smt );
   select any paren_expr related by smt->Expression[R775] where ( selected.expression_number == expr.expression_number + ".1.1" );
@@ -1513,7 +1513,7 @@ else
   relate l_expr to binary across R779;
 end if;
 // translate the right operand
-if ( ::precedenceCheck( val1:r_val, val2:v_val ) < 0 ) // if the right operand is lower precedence than the current operator, force it to be evaluated first with parentheses
+if ( ::precedenceCheck( val1:r_val, val2:v_val ) <= 0 ) // if the right operand is lower precedence than the current operator, force it to be evaluated first with parentheses
   // transform the right hand expression
   ::transformExpression( v_val:r_val, expr_number:expr.expression_number + ".2.1", smt:smt );
   select any paren_expr related by smt->Expression[R775] where ( selected.expression_number == expr.expression_number + ".2.1" );
