@@ -653,16 +653,21 @@ block = param.block;
 blob_string = blob.BLOB;
 
 // if this blob is the last element in the buffer line, handle line break special cases
+// create a suffix that will be appended after other escaping rules are applied
+blob_suffix = "";
 select any next_buffer_element related by blob->Y_BufferElement[R3057]->Y_Buffer[R3056]->Y_BufferElement[R3056] where ( selected.node_id > blob.node_id );
 if ( empty next_buffer_element )
   if ( "\\\\\\" == STRING::substr( s:blob_string, begin:STRING::strlen( s:blob_string ) - 3, end:-1 ) )  // three slashes = literal slash, no newline
-    blob_string = STRING::substr( s:blob_string, begin:0, end:STRING::strlen( s:blob_string ) - 3 ) + "\\\\";
+    blob_string = STRING::substr( s:blob_string, begin:0, end:STRING::strlen( s:blob_string ) - 3 );
+    blob_suffix = "\\\\";
   elif ( "\\\\" == STRING::substr( s:blob_string, begin:STRING::strlen( s:blob_string ) - 2, end:-1 ) )  // two slashes = literal slash, with newline
-    blob_string = STRING::substr( s:blob_string, begin:0, end:STRING::strlen( s:blob_string ) - 2 ) + "\\\\\\" + "n";
+    blob_string = STRING::substr( s:blob_string, begin:0, end:STRING::strlen( s:blob_string ) - 2 );
+    blob_suffix = "\\\\\\" + "n";
   elif ( "\\" == STRING::substr( s:blob_string, begin:STRING::strlen( s:blob_string ) - 1, end:-1 ) )    // one slash = no literal slash, no newline
     blob_string = STRING::substr( s:blob_string, begin:0, end:STRING::strlen( s:blob_string ) - 1 );
+    blob_suffix = "";
   else                                                                                             // no slashes = no literal slash, with newline
-    blob_string = blob_string + "\\" + "n";
+    blob_suffix = "\\" + "n";
   end if;
 end if;
 
@@ -689,7 +694,23 @@ while ( -1 != quote_index )
 end while;
 blob_string = blob_string + search_string;
 
+// escape slashes
+search_string = blob_string;
+blob_string = "";
+slash_index = STRING::indexof( haystack:search_string, needle:"\\" );
+while ( -1 != slash_index )
+  prefix = STRING::substr( s:search_string, begin:0, end:slash_index );
+  suffix = STRING::substr( s:search_string, begin:slash_index, end:-1 );
+  blob_string = blob_string + prefix + "\\\\";
+  search_string = STRING::substr( s:suffix, begin:1, end:-1 );
+  slash_index = STRING::indexof( haystack:search_string, needle:"\\" );
+end while;
+blob_string = blob_string + search_string;
+
 // TODO more escaping rules (e.g. double dot at beginning of line)
+
+// add blob suffix last
+blob_string = blob_string + blob_suffix;
 
 // create statement and expression
 ::templateAppendString( block:block, str:blob_string );',
