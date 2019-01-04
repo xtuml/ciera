@@ -650,10 +650,11 @@ INSERT INTO S_SYNC
 	'',
 	'blob = param.blob;
 block = param.block;
-
 blob_string = blob.BLOB;
+
+// if this blob is the last element in the buffer line, handle line break special cases
 select any next_buffer_element related by blob->Y_BufferElement[R3057]->Y_Buffer[R3056]->Y_BufferElement[R3056] where ( selected.node_id > blob.node_id );
-if ( empty next_buffer_element )  // if this blob is the last element in the buffer line, handle line break special cases
+if ( empty next_buffer_element )
   if ( "\\\\\\" == STRING::substr( s:blob_string, begin:STRING::strlen( s:blob_string ) - 3, end:-1 ) )  // three slashes = literal slash, no newline
     blob_string = STRING::substr( s:blob_string, begin:0, end:STRING::strlen( s:blob_string ) - 3 ) + "\\\\";
   elif ( "\\\\" == STRING::substr( s:blob_string, begin:STRING::strlen( s:blob_string ) - 2, end:-1 ) )  // two slashes = literal slash, with newline
@@ -662,6 +663,16 @@ if ( empty next_buffer_element )  // if this blob is the last element in the buf
     blob_string = STRING::substr( s:blob_string, begin:0, end:STRING::strlen( s:blob_string ) - 1 );
   else                                                                                             // no slashes = no literal slash, with newline
     blob_string = blob_string + "\\" + "n";
+  end if;
+end if;
+
+// if this blob is the first element in the buffer line, handle initial dot cases
+select one blob_buffer_element related by blob->Y_BufferElement[R3057];
+select any prev_buffer_element related by blob_buffer_element->Y_Buffer[R3056]->Y_BufferElement[R3056] where ( selected.node_id < blob_buffer_element.node_id );
+if (empty prev_buffer_element)
+  if (0 == STRING::indexof(haystack:STRING::trim(s:blob_string), needle:".."))
+    double_dot_index = STRING::indexof(haystack:blob_string, needle:"..");
+    blob_string = STRING::substr(s:blob_string, begin:0, end:double_dot_index) + STRING::substr(s:blob_string, begin:double_dot_index + 1, end:-1);
   end if;
 end if;
 
