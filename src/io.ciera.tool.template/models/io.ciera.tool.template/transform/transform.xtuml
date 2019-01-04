@@ -721,8 +721,6 @@ while ( -1 != quote_index )
 end while;
 blob_string = blob_string + search_string;
 
-// TODO more escaping rules (e.g. double dot at beginning of line)
-
 // add blob suffix last
 blob_string = blob_string + blob_suffix;
 
@@ -1852,7 +1850,20 @@ if ( not_empty literal )
 
   select one string_literal related by literal->Y_StringLiteral[R3087];
   if ( not_empty string_literal )
-    lit.value = string_literal.BLOB; // TODO unescape stuff
+    blob_string = string_literal.BLOB;
+    // convert double quotes to single quote
+    double_quote_index = STRING::indexof( haystack:blob_string, needle:STRING::quote() + STRING::quote() );
+    while ( -1 != double_quote_index )
+      blob_string = STRING::substr( s:blob_string, begin:0, end:double_quote_index ) + "\\" + STRING::substr( s:blob_string, begin:double_quote_index+1, end:-1 );
+      double_quote_index = STRING::indexof( haystack:blob_string, needle:STRING::quote() + STRING::quote() );
+    end while;
+    // convert double dollar to single dollar
+    double_dollar_index = STRING::indexof( haystack:blob_string, needle:"$$" );
+    while ( -1 != double_dollar_index )
+      blob_string = STRING::substr( s:blob_string, begin:0, end:double_dollar_index ) + STRING::substr( s:blob_string, begin:double_dollar_index+1, end:-1 );
+      double_dollar_index = STRING::indexof( haystack:blob_string, needle:"$$" );
+    end while;
+    lit.value = blob_string;
     string_type_ref = TypeReference::getBuiltinTypeReference( name:"String" );
     relate string_type_ref to expr across R795;
     select one registry_file related by smt->CodeBlock[R450]->InvocableObject[R4000]->GenericInvocable[R427]->Z_Template[R3053]->Z_TemplateRegistry[R3052]->GeneralFile[R3051]->File[R401];
