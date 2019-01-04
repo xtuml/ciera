@@ -695,19 +695,6 @@ while ( -1 != double_dollar_index )
   double_dollar_index = STRING::indexof( haystack:blob_string, needle:"$$" );
 end while;
 
-// escape quotes
-search_string = blob_string;
-blob_string = "";
-quote_index = STRING::indexof( haystack:search_string, needle:STRING::quote() );
-while ( -1 != quote_index )
-  prefix = STRING::substr( s:search_string, begin:0, end:quote_index );
-  suffix = STRING::substr( s:search_string, begin:quote_index, end:-1 );
-  blob_string = blob_string + prefix + "\\" + STRING::quote();
-  search_string = STRING::substr( s:suffix, begin:1, end:-1 );
-  quote_index = STRING::indexof( haystack:search_string, needle:STRING::quote() );
-end while;
-blob_string = blob_string + search_string;
-
 // escape slashes
 search_string = blob_string;
 blob_string = "";
@@ -718,6 +705,19 @@ while ( -1 != slash_index )
   blob_string = blob_string + prefix + "\\\\";
   search_string = STRING::substr( s:suffix, begin:1, end:-1 );
   slash_index = STRING::indexof( haystack:search_string, needle:"\\" );
+end while;
+blob_string = blob_string + search_string;
+
+// escape quotes
+search_string = blob_string;
+blob_string = "";
+quote_index = STRING::indexof( haystack:search_string, needle:STRING::quote() );
+while ( -1 != quote_index )
+  prefix = STRING::substr( s:search_string, begin:0, end:quote_index );
+  suffix = STRING::substr( s:search_string, begin:quote_index, end:-1 );
+  blob_string = blob_string + prefix + "\\" + STRING::quote();
+  search_string = STRING::substr( s:suffix, begin:1, end:-1 );
+  quote_index = STRING::indexof( haystack:search_string, needle:STRING::quote() );
 end while;
 blob_string = blob_string + search_string;
 
