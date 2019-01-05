@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.reflect.Constructor;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Stack;
 
 import io.ciera.runtime.summit.components.IComponent;
@@ -16,7 +18,7 @@ import io.ciera.runtime.template.util.TEMP;
 
 public class TEMPImpl<C extends IComponent<C>> extends Utility<C> implements TEMP {
 
-    private Stack<String> buffers;
+    private Stack<List<String>> buffers;
     private ITemplateRegistry registry;
 
     private String rootDir;
@@ -38,7 +40,7 @@ public class TEMPImpl<C extends IComponent<C>> extends Utility<C> implements TEM
     }
 
     private void pushBuffer() {
-        buffers.push("");
+        buffers.push(new LinkedList<>());
     }
 
     private void popBuffer() {
@@ -54,20 +56,20 @@ public class TEMPImpl<C extends IComponent<C>> extends Utility<C> implements TEM
 
     @Override
     public void append(String s) throws XtumlException {
-        buffers.push(buffers.pop() + s);
+        buffers.peek().add(s);
     }
 
     @Override
     public String body() throws XtumlException {
-        String retval = buffers.pop();
-        buffers.push("");
-        return retval;
+        List<String> strings = buffers.pop();
+        pushBuffer();
+        return String.join("", strings);
     }
 
     @Override
     public void clear() throws XtumlException {
-        buffers.pop();
-        buffers.push("");
+        popBuffer();
+        pushBuffer();
     }
 
     @Override
@@ -80,7 +82,9 @@ public class TEMPImpl<C extends IComponent<C>> extends Utility<C> implements TEM
                 }
                 boolean preExists = outputFile.exists();
                 PrintStream out = new PrintStream(outputFile);
-                out.print(buffers.peek());
+                for (String str : buffers.peek()) {
+                    out.print(str);
+                }
                 out.flush();
                 out.close();
                 if (preExists)
