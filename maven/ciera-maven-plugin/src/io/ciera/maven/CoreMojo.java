@@ -37,7 +37,7 @@ public class CoreMojo extends AbstractCieraMojo {
         String outFile = null == output ? "" : new File(projectDir).toURI().relativize(new File(output).toURI()).getPath();
         String genDirPath = null == genDir ? "" : new File(projectDir).toURI().relativize(new File(genDir).toURI()).getPath();
         IApplication compiler = new CoreTool();
-        compiler.setup(new String[]{"-i", inFile, "-o", outFile, "--cwd", projectDir, "--gendir", genDirPath}, new CieraMavenLogger(getLog()));
+        compiler.setup(new String[]{"-i", inFile, "-o", outFile, "--cwd", projectDir, "--gendir", genDirPath, "--use-version", getProject().getVersion()}, new CieraMavenLogger(getLog()));
         compiler.initialize();
         compiler.start();
         copyCustomCode();
