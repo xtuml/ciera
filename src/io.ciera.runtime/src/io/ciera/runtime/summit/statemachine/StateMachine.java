@@ -53,7 +53,7 @@ public abstract class StateMachine<T extends IModelInstance<T, C>, C extends ICo
                 int prevState = currentState;
                 currentState = txn.execute(event);
                 LOG logger = new LOGImpl<C>(context);
-                logger.LogInfo(String.format("TXN: %-15s: %-50s -> %-50s\n", getClassName(), getStateName(prevState),
+                logger.LogInfo(String.format("TXN: %-15s: %-50s -> %-50s", getClassName(), getStateName(prevState),
                         getStateName(currentState)));
             } else {
                 throw new XtumlException("Unknown state event matrix entry");

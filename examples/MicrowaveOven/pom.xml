@@ -14,7 +14,7 @@
     <dependency>
       <groupId>io.ciera</groupId>
       <artifactId>io.ciera.runtime</artifactId>
-      <version>[1.0.0-SNAPSHOT,)</version>
+      <version>[1.1.0-SNAPSHOT,)</version>
     </dependency>
   </dependencies>
   <build>
@@ -25,8 +25,18 @@
       <plugin>
         <groupId>io.ciera</groupId>
         <artifactId>ciera-maven-plugin</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
+        <version>1.1.0-SNAPSHOT</version>
         <executions>
+          <execution>
+            <id>pre-build</id>
+            <goals>
+              <goal>pre-build</goal>
+            </goals>
+            <configuration>
+              <!--workspace> Location of the Eclipse workspace to build (default is $WORKSPACE) </workspace-->
+              <!--bpHome> Location of the BridgePoint installation directory (default is $BPHOME) </bpHome-->
+            </configuration>
+          </execution>
           <execution>
             <id>ciera-core</id>
             <goals>
@@ -34,47 +44,22 @@
             </goals>
             <configuration>
               <input>${project.basedir}/gen/code_generation/MicrowaveOven.sql</input>
-              <output>${project.basedir}/gen/code_generation/b.xtuml</output>
-            </configuration>
-          </execution>
-          <execution>
-            <id>ciera-sql</id>
-            <goals>
-              <goal>sql</goal>
-            </goals>
-            <configuration>
-              <input>${project.basedir}/gen/code_generation/b.xtuml</input>
             </configuration>
           </execution>
         </executions>
       </plugin>
     </plugins>
-    <extensions>
-      <extension>
-        <groupId>com.gkatzioura.maven.cloud</groupId>
-        <artifactId>s3-storage-wagon</artifactId>
-        <version>1.0</version>
-      </extension>
-    </extensions>
   </build>
   <repositories>
     <repository>
-      <id>io.ciera.repo.snapshot</id>
-      <url>s3://xtuml-releases/maven/snapshot</url>
-    </repository>
-    <repository>
-      <id>io.ciera.repo.release</id>
-      <url>s3://xtuml-releases/maven/release</url>
+      <id>io.ciera.repo</id>
+      <url>https://s3.amazonaws.com/xtuml-releases/maven</url>
     </repository>
   </repositories>
   <pluginRepositories>
     <pluginRepository>
-      <id>io.ciera.repo.snapshot</id>
-      <url>s3://xtuml-releases/maven/snapshot</url>
-    </pluginRepository>
-    <pluginRepository>
-      <id>io.ciera.repo.release</id>
-      <url>s3://xtuml-releases/maven/release</url>
+      <id>io.ciera.repo</id>
+      <url>https://s3.amazonaws.com/xtuml-releases/maven</url>
     </pluginRepository>
   </pluginRepositories>
 </project>

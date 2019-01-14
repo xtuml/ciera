@@ -497,39 +497,7 @@ public class WatchGui extends JFrame {
 	}
 	
 	private void sendSignal(IMessage message) {
-		try {
-            JSONObject msg = new JSONObject();
-            msg.put("heartbeat", "false");
-            msg.put("componentId", 2);
-            msg.put("portName", "UI");
-            msg.put("message", new JSONObject(message.serialize()));
-            HttpURLConnection connection = null;
-            try {
-                URL url = new URL(String.format("%s/message", "https://7t6vbnkhn4.execute-api.us-east-1.amazonaws.com/test"));
-                connection = (HttpURLConnection) url.openConnection();
-                connection.setDoOutput(true);
-                connection.setRequestMethod("POST");
-                connection.setRequestProperty("content-type", "application/json");
-                connection.setRequestProperty("InvocationType", "Event");
-                try (DataOutputStream out = new DataOutputStream(connection.getOutputStream())) {
-                    out.write(msg.toString().getBytes());
-                }
-                Scanner sc = new Scanner(connection.getInputStream()).useDelimiter("\\z");
-                if (sc.hasNext()) {
-                	System.out.println(sc.next());
-                }
-            } catch (IOException e) {
-                if (connection != null) {
-                    connection.disconnect();
-                }
-                throw new XtumlException("Failed to send message");
-            }
-            if (connection != null) {
-                connection.disconnect();
-            }
-		} catch (XtumlException e) {
 			server.sendSignal(message);
-		}
 	}
 	
 	public static void main(String[] args) {		

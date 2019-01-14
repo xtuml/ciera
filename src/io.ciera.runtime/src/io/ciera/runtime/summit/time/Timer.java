@@ -41,7 +41,7 @@ public class Timer implements Comparable<Timer>, IXtumlType<Timer> {
     }
 
     public void addTime(int microseconds) {
-        wakeUpTime += (microseconds*10);
+        wakeUpTime += microseconds;
     }
 
     public void setPeriod(int microseconds) {
@@ -53,7 +53,7 @@ public class Timer implements Comparable<Timer>, IXtumlType<Timer> {
     }
 
     public void reset(long currentTimeMicro) {
-        wakeUpTime = currentTimeMicro + (period*10);
+        wakeUpTime = currentTimeMicro + period;
     }
 
     public boolean isRecurring() {
