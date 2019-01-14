@@ -28,8 +28,7 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'body_save = TEMP::body(); // TODO
-TEMP::clear();
+	'TEMP::push_buffer();
 
 select any attr_serializer related by self->Z_InstanceSerializer[R3015]->Z_AttributeSerializer[R3002];
 select one prev_attr_serializer related by attr_serializer->Z_AttributeSerializer[R3003.''follows''];
@@ -45,12 +44,11 @@ while ( not_empty attr_serializer )
   end if;
 end while;
 attribute_serializers = TEMP::body();
-TEMP::clear();
 
 class_name = STRING::substr( s:self.class_name, begin:0, end:STRING::indexof( haystack:self.class_name, needle:"_" ) ) + "Impl." +
              STRING::substr( s:self.class_name, begin:STRING::indexof( haystack:self.class_name, needle:"_" ) + 1, end:-1 );
 
-TEMP::append( s:body_save );
+TEMP::pop_buffer();
 TEMP::include( file:"loader/t.eventinstanceserializer.def.java", symbol_table:NULL_SYMBOL_TABLE );',
 	1,
 	'',

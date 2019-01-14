@@ -14,8 +14,7 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'body_save = TEMP::body(); // TODO
-TEMP::clear();
+	'TEMP::push_buffer();
 
 event_handle = "";
 population_id = "";
@@ -46,12 +45,11 @@ while ( not_empty attr_loader )
   select one attr_loader related by attr_loader->Z_AttributeLoader[R3007.''precedes''];
 end while;
 attribute_loaders = TEMP::body();
-TEMP::clear();
 
 class_name = STRING::substr( s:self.evt_class_name, begin:0, end:STRING::indexof( haystack:self.evt_class_name, needle:"_" ) ) + "Impl." +
              STRING::substr( s:self.evt_class_name, begin:STRING::indexof( haystack:self.evt_class_name, needle:"_" ) + 1, end:-1 );
 
-TEMP::append( s:body_save );
+TEMP::pop_buffer();
 TEMP::include( file:"loader/t.eventinstanceloader.java", symbol_table:NULL_SYMBOL_TABLE );',
 	1,
 	'',

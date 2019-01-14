@@ -3903,12 +3903,10 @@ for each array_var in array_vars
     end for;
     select one var_type related by array_var->TypeReference[R461];
     select one array_index related by earliest_array_ref->Expression[R3901];;
-    old_body = TEMP::body();
-    TEMP::clear();
+    TEMP::push_buffer();
     array_index.render();
     smt.prefix = smt.prefix + indent + var_type.type_reference_name + " " + array_var.name + " = new " + var_type.type_name + "[" + TEMP::body() + "+1];\n";
-    TEMP::clear();
-    TEMP::append( s:old_body );
+    TEMP::pop_buffer();
     // no longer need to mark the first reference as a declaration
     select many var_refs related by array_var->VariableReference[R782] where ( selected.block_number == smt.block_number and selected.statement_number == smt.statement_number );
     for each var_ref in var_refs
