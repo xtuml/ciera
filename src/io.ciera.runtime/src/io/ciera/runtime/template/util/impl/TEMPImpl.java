@@ -36,22 +36,7 @@ public class TEMPImpl<C extends IComponent<C>> extends Utility<C> implements TEM
         } catch (Exception e) {
             registry = null;
         }
-        pushBuffer();
-    }
-
-    private void pushBuffer() {
-        buffers.push(new LinkedList<>());
-    }
-
-    private void popBuffer() {
-        buffers.pop();
-    }
-
-    @Override
-    public void set_output_directory(String dir) throws XtumlException {
-        if (null != dir) {
-            rootDir = dir;
-        }
+        push_buffer();
     }
 
     @Override
@@ -62,14 +47,14 @@ public class TEMPImpl<C extends IComponent<C>> extends Utility<C> implements TEM
     @Override
     public String body() throws XtumlException {
         List<String> strings = buffers.pop();
-        pushBuffer();
+        push_buffer();
         return String.join("", strings);
     }
 
     @Override
     public void clear() throws XtumlException {
-        popBuffer();
-        pushBuffer();
+        pop_buffer();
+        push_buffer();
     }
 
     @Override
@@ -103,6 +88,23 @@ public class TEMPImpl<C extends IComponent<C>> extends Utility<C> implements TEM
             registry.getTemplate(file).evaluate(null == symbolTable ? new SymbolTable() : symbolTable);
     }
 
+    @Override
+    public void pop_buffer() {
+        buffers.pop();
+    }
+
+    @Override
+    public void push_buffer() {
+        buffers.push(new LinkedList<>());
+    }
+
+    @Override
+    public void set_output_directory(String dir) throws XtumlException {
+        if (null != dir) {
+            rootDir = dir;
+        }
+    }
+
     /**
      * u Upper - make all characters upper case c Capitalize - make the first
      * character of each word capitalized and all other characters of a word
@@ -112,26 +114,6 @@ public class TEMPImpl<C extends IComponent<C>> extends Utility<C> implements TEM
      * character of each following word capitalized and all other characters of the
      * words lowercase. Characters other than a-Z a-z 0-9 are ignored. t no-op
      */
-    @Override
-    public String sub(String format, boolean b) throws XtumlException {
-        return sub(format, Boolean.toString(b));
-    }
-
-    @Override
-    public String sub(String format, int i) throws XtumlException {
-        return sub(format, Integer.toString(i));
-    }
-
-    @Override
-    public String sub(String format, double d) throws XtumlException {
-        return sub(format, Double.toString(d));
-    }
-
-    @Override
-    public String sub(String format, IXtumlType<?> o) throws XtumlException {
-        return sub(format, o);
-    }
-
     @Override
     public String sub(String format, String s) throws XtumlException {
         if (null != format) {

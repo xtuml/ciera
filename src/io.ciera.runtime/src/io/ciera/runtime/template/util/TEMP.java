@@ -5,8 +5,6 @@ import io.ciera.runtime.summit.types.IXtumlType;
 
 public interface TEMP {
 
-    public void set_output_directory(String dir) throws XtumlException;
-
     public void append(String s) throws XtumlException;
 
     default public void append(boolean b) throws XtumlException {
@@ -33,14 +31,28 @@ public interface TEMP {
 
     public void include(String file, SymbolTable symbolTable) throws XtumlException;
 
-    public String sub(String format, boolean b) throws XtumlException;
+    public void pop_buffer() throws XtumlException;
 
-    public String sub(String format, int i) throws XtumlException;
+    public void push_buffer() throws XtumlException;
 
-    public String sub(String format, double d) throws XtumlException;
+    public void set_output_directory(String dir) throws XtumlException;
 
     public String sub(String format, String s) throws XtumlException;
 
-    public String sub(String format, IXtumlType<?> o) throws XtumlException;
+    default public String sub(String format, boolean b) throws XtumlException {
+        return sub(format, Boolean.toString(b));
+    }
+
+    default public String sub(String format, int i) throws XtumlException {
+        return sub(format, Integer.toString(i));
+    }
+
+    default public String sub(String format, double d) throws XtumlException {
+        return sub(format, Double.toString(d));
+    }
+
+    default public String sub(String format, IXtumlType<?> o) throws XtumlException {
+        return sub(format, o.serialize());
+    }
 
 }
