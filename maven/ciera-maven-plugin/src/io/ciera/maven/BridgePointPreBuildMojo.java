@@ -49,7 +49,7 @@ public class BridgePointPreBuildMojo extends AbstractMojo {
             if ("".equals(workspace.trim())) {
                 getLog().warn("WORKSPACE is unset.");
             }
-            ProcessBuilder pb = new ProcessBuilder(cliExe, "Build", "-project", projectName, "-prebuildOnly").redirectOutput(Redirect.PIPE);
+            ProcessBuilder pb = new ProcessBuilder(cliExe, "Build", "-project", projectName, "-prebuildOnly").redirectOutput(Redirect.PIPE).redirectError(Redirect.PIPE);
             pb.environment().put("WORKSPACE", workspace);
             getLog().info("Performing BridgePoint pre-build (workspace location: " + workspace + ")...");
             getLog().info("");
@@ -59,6 +59,11 @@ public class BridgePointPreBuildMojo extends AbstractMojo {
                 Scanner sc = new Scanner(proc.getInputStream());
                 while (sc.hasNextLine()) {
                     getLog().info(sc.nextLine());
+                }
+                sc.close();
+                sc = new Scanner(proc.getErrorStream());
+                while (sc.hasNextLine()) {
+                    getLog().error(sc.nextLine());
                 }
                 sc.close();
             } catch (IOException e) {
