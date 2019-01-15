@@ -13,13 +13,9 @@
    ```
 3. Build the project with maven
    ```
-   mvn install
+   mvn package
    ```
-4. Launch the GUI
+4. Launch the application
    ```
-   bash gui.sh
-   ```
-5. Launch the application
-   ```
-   bash run.sh
+   bash gen/run.sh
    ```

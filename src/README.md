@@ -1,8 +1,8 @@
-## To build the project:
+## To build the compiler from source:
 
 1. Install BridgePoint and set the `BPHOME` env var to point at the BridgePoint home
    ```
-   wget https://s3.amazonaws.com/xtuml-releases/nightly-build/org.xtuml.bp.product-linux.gtk.x86_64.zip
+   wget https://s3.amazonaws.com/xtuml-releases/10129-build/org.xtuml.bp.product-linux.gtk.x86_64.zip
    unzip org.xtuml.bp.product-linux.gtk.x86_64.zip
    export BPHOME=$PWD/BridgePoint                         # Linux
    export BPHOME=$PWD/BridgePoint.app/Contents/Eclipse    # MacOS
@@ -11,15 +11,7 @@
    ```
    bash create-worspace.sh
    ```
-3. Build the project with maven
+3. Build the projects with maven
    ```
    mvn install
-   ```
-4. Launch the GUI
-   ```
-   bash gui.sh
-   ```
-5. Launch the application
-   ```
-   bash run.sh
    ```
