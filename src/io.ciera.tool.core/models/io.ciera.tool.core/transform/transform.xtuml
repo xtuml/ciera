@@ -94,6 +94,14 @@ for each c_c in c_cs
     ::addStringToImports( file:file, s:comp_inst.comp_package + "." + comp_inst.comp_name + inst_loading_mark.value + "Loader", type:ImportType::IMPL );
   end if;
 
+  select any sim_time_mark from instances of Mark where ( selected.markable_name == "Component" and
+                                                          selected.path == ::containerMarkingPath( pe:c_c_pe ) + "::" + c_c.Name and
+                                                          selected.feature_name == "EnableSimulatedTime" );
+  if (not_empty sim_time_mark)
+    LOG::LogInfo(message:"Enabling simulated time for componenent: " + comp_inst.comp_name);
+    comp_inst.simulated_time = true;
+  end if;
+
   current_comp_inst = comp_inst;
 end for;
 

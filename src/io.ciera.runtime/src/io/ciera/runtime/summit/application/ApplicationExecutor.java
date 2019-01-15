@@ -212,6 +212,11 @@ public class ApplicationExecutor implements Runnable, IRunContext {
         systemTime = time;
     }
 
+    @Override
+    public void enableSimulatedTime(boolean enable) {
+        simulatedTime = enable;
+    }
+
 	@Override
 	public TimerSet getActiveTimers() {
 		return new TimerSet(activeTimers);

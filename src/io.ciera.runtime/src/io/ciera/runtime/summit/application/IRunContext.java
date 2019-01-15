@@ -44,6 +44,8 @@ public interface IRunContext {
     public IEvent getEvent(EventHandle e);
 
     public long time();
+
+    public void enableSimulatedTime(boolean enable);
     
     public void addChange(IModelDelta delta);
     
