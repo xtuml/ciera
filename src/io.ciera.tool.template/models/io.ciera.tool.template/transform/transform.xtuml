@@ -273,10 +273,16 @@ select many act_params related by includes->ActualParameter[R793]->Expression[R7
 select many includes related by act_params->Expression[R776]->ActualParameter[R794]->Invocation[R793];
 select many incl_vars related by includes->Expression[R776]->Statement[R775]->CodeBlock[R450]->Variable[R458];
 for each incl_var in incl_vars
-  select many matching_vars related by includes->Expression[R776]->Statement[R775]->CodeBlock[R450]->Variable[R458]
-    where ( selected.name == incl_var.name and selected.type_name == incl_var.type_name and selected.type_package == incl_var.type_package );
+  matching_count = 0;
+  for each incl in includes
+    select any matching_var related by incl->Expression[R776]->Statement[R775]->CodeBlock[R450]->Variable[R458]
+      where ( selected.name == incl_var.name and selected.type_name == incl_var.type_name and selected.type_package == incl_var.type_package );
+    if (not_empty matching_var)
+      matching_count = matching_count + 1;
+    end if;
+  end for;
   // if there is a variable with this name and type in context _everywhere_ where this template is included, add it to the template context
-  if ( cardinality includes == cardinality matching_vars )
+  if ( cardinality includes == matching_count )
     select any existing_var related by smt->Variable[R457] where ( selected.name == incl_var.name ); // do not allow duplicate variables
     if ( empty existing_var )
       // create new variable
