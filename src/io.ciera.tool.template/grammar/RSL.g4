@@ -76,4 +76,4 @@ literal:                     BOOLEAN_LITERAL |
                              REAL_LITERAL |
                              string_literal;
                              
-string_literal:              QUOTE ( BLOB )? QUOTE;
+string_literal:              QUOTE ( buffer_element )* QUOTE;

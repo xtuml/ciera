@@ -514,9 +514,12 @@ public class XtumlRSLListener extends RSLBaseListener {
     @Override
     public void exitString_literal(RSLParser.String_literalContext ctx) {
         try {
-            Y_StringLiteralImpl.create(population, UniqueId.random(), parentIds.pop(), parentIds.peek(),
-                    null == ctx.QUOTE(0) ? "" : ctx.QUOTE(0).getText(), null == ctx.BLOB() ? "" : ctx.BLOB().getText(),
+            Y_StringLiteral string_literal = Y_StringLiteralImpl.create(population, UniqueId.random(), parentIds.pop(),
+                    parentIds.peek(), null == ctx.QUOTE(0) ? "" : ctx.QUOTE(0).getText(),
                     null == ctx.QUOTE(1) ? "" : ctx.QUOTE(1).getText());
+            for (Y_BufferElement buffer_element : population.Y_BufferElement_instances()
+                    .where((selected) -> selected.getParent_node_id() == string_literal.getNode_id()))
+                population.relate_R3088_Y_BufferElement_Y_StringLiteral(buffer_element, string_literal);
         } catch (XtumlException e) {
             population.getRunContext().getLog().error(e);
         }
