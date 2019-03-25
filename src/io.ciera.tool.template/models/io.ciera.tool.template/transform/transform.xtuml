@@ -852,7 +852,8 @@ if ( "" != format_chars.FORMAT )
   select any parm1 related by invocable->FormalParameter[R429] where ( selected.name == "p_format" );
   relate invoc to parm1 across R793 using act_parm1;
   // named access parameter
-  ::transformRSLNamedAccess( named_access:named_access, smt:smt, expr_number:"1.2.3" );
+  select any null_expr from instances of Expression where false;
+  ::transformRSLNamedAccess( named_access:named_access, smt:smt, expr_number:"1.2.3", expr:null_expr );
   select any access_expr related by smt->Expression[R775] where ( selected.expression_number == "1.2.3" );
   create object instance act_parm2 of ActualParameter;
   relate act_parm2 to access_expr across R794;
@@ -864,7 +865,8 @@ if ( "" != format_chars.FORMAT )
   ::addTypeToImports( file:registry_file, type_to_import:string_type, type:ImportType::IMPL );
 else
   // transform the named access
-  ::transformRSLNamedAccess( named_access:named_access, smt:smt, expr_number:"1.2" );
+  select any null_expr from instances of Expression where false;
+  ::transformRSLNamedAccess( named_access:named_access, smt:smt, expr_number:"1.2", expr:null_expr );
 end if;
 select any expr related by smt->Expression[R775] where ( selected.expression_number == "1.2" );
 ::templateAppend( smt:smt, expr:expr );
@@ -1009,6 +1011,7 @@ INSERT INTO S_SYNC
 	'named_access = param.named_access;
 smt = param.smt;
 expr_number = param.expr_number;
+expr = param.expr;
 
 select one var_access related by named_access->Y_VariableAccess[R3082];
 select one attr_access related by named_access->Y_AttributeAccess[R3083];
@@ -1019,10 +1022,10 @@ if ( not_empty attr_access )
     attr_access = next_attr_access;
     select one next_attr_access related by attr_access->Y_AttributeAccess[R3084.''contains''];
   end while;
-  ::transformRSLAttributeAccess( attr_access:attr_access, smt:smt, expr_number:expr_number );
+  ::transformRSLAttributeAccess( attr_access:attr_access, smt:smt, expr_number:expr_number, expr:expr );
 else
   // create a simple variable access
-  ::transformRSLVariableAccess( var_access:var_access, smt:smt, expr_number:expr_number );
+  ::transformRSLVariableAccess( var_access:var_access, smt:smt, expr_number:expr_number, expr:expr );
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -1062,6 +1065,15 @@ INSERT INTO S_SPARM
 	'',
 	"e9afcb0c-520c-4ad7-b71a-3584420618ea",
 	'');
+INSERT INTO S_SPARM
+	VALUES ("9eb4beb7-3792-49c5-a6ec-d185dd2d8e32",
+	"cf63d9a4-f269-4fc3-b4c8-c6b7253f4855",
+	'expr',
+	"f82d9f89-dd1e-4520-85df-cef79a550939",
+	0,
+	'',
+	"ec529800-42a2-4595-8e4e-57b1a68d18ed",
+	'');
 INSERT INTO PE_PE
 	VALUES ("cf63d9a4-f269-4fc3-b4c8-c6b7253f4855",
 	1,
@@ -1076,14 +1088,16 @@ INSERT INTO S_SYNC
 	'attr_access = param.attr_access;
 smt = param.smt;
 expr_number = param.expr_number;
+expr = param.expr;
 
 // transform base expression
+select any null_expr from instances of Expression where false;
 select one base_attr_access related by attr_access->Y_AttributeAccess[R3084.''contained by''];
 if ( not_empty base_attr_access )
-  ::transformRSLAttributeAccess( attr_access:base_attr_access, smt:smt, expr_number:expr_number + ".1" );
+  ::transformRSLAttributeAccess( attr_access:base_attr_access, smt:smt, expr_number:expr_number + ".1", expr:null_expr );
 else
   select one var_access related by attr_access->Y_NamedAccess[R3083]->Y_VariableAccess[R3082];
-  ::transformRSLVariableAccess( var_access:var_access, smt:smt, expr_number:expr_number + ".1" );
+  ::transformRSLVariableAccess( var_access:var_access, smt:smt, expr_number:expr_number + ".1", expr:null_expr );
 end if;
 select any root_expr related by smt->Expression[R775] where ( selected.expression_number == expr_number + ".1" );
 
@@ -1094,13 +1108,14 @@ if ( empty attr )
 end if;
 
 // create expression
-create object instance expr of Expression;
-relate expr to smt across R775;
-expr.expression_number = expr_number;
-
-// link type
-select one type_ref related by attr->TypeReference[R424];
-relate type_ref to expr across R795;
+if (empty expr)
+  create object instance expr of Expression;
+  relate expr to smt across R775;
+  expr.expression_number = expr_number;
+  // link type
+  select one type_ref related by attr->TypeReference[R424];
+  relate type_ref to expr across R795;
+end if;
 
 // create attribute access
 create object instance acc of AttributeAccess;
@@ -1145,6 +1160,15 @@ INSERT INTO S_SPARM
 	'',
 	"24827452-7052-4b90-9010-14483be6b65f",
 	'');
+INSERT INTO S_SPARM
+	VALUES ("e21212d0-7e7e-468d-bd0a-8396f96d921d",
+	"e37a39b1-e9a9-4e69-8c76-d7d0cf021d62",
+	'expr',
+	"f82d9f89-dd1e-4520-85df-cef79a550939",
+	0,
+	'',
+	"eeb0962c-71b0-46fe-9e7a-87e2ca7da559",
+	'');
 INSERT INTO PE_PE
 	VALUES ("e37a39b1-e9a9-4e69-8c76-d7d0cf021d62",
 	1,
@@ -1158,11 +1182,14 @@ INSERT INTO S_SYNC
 	'',
 	'var_access = param.var_access;
 smt = param.smt;
+expr = param.expr;
 
 // create expression
-create object instance expr of Expression;
-relate expr to smt across R775;
-expr.expression_number = param.expr_number;
+if (empty expr)
+  create object instance expr of Expression;
+  relate expr to smt across R775;
+  expr.expression_number = param.expr_number;
+end if;
 
 // select the referred to variable
 select any var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == var_access.ID );
@@ -1177,6 +1204,10 @@ relate var_ref to expr across R776;
 
 // link type
 select one var_type_ref related by var->TypeReference[R461];
+select one existing_type related by expr->TypeReference[R795];
+if (not_empty existing_type)
+  unrelate existing_type from expr across R795;
+end if;
 relate var_type_ref to expr across R795;
 
 // add the type to the file imports
@@ -1223,6 +1254,15 @@ INSERT INTO S_SPARM
 	0,
 	'',
 	"23d6207b-3861-49a4-a956-c7376047eb81",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("dd717c7e-13ec-4e5f-93c5-261fd76bbb36",
+	"275144d6-f10d-44eb-be5e-b929d82bcc7a",
+	'expr',
+	"f82d9f89-dd1e-4520-85df-cef79a550939",
+	0,
+	'',
+	"7bf6212a-06e1-4030-bf72-9f8c968c4fb5",
 	'');
 INSERT INTO PE_PE
 	VALUES ("275144d6-f10d-44eb-be5e-b929d82bcc7a",
@@ -1840,7 +1880,8 @@ expr_number = param.expr_number;
 
 select one named_access related by term->Y_NamedAccess[R3081];
 if ( not_empty named_access )
-  ::transformRSLNamedAccess( named_access:named_access, smt:smt, expr_number:expr_number );
+  select any null_expr from instances of Expression where false;
+  ::transformRSLNamedAccess( named_access:named_access, smt:smt, expr_number:expr_number, expr:null_expr );
 
 else
 select one paren related by term->Y_Parenthesis[R3079];
@@ -1865,7 +1906,8 @@ select one literal related by term->Y_Literal[R3086];
 if ( not_empty literal )
   select one string_literal related by literal->Y_StringLiteral[R3087];
   if ( not_empty string_literal )
-    ::transformRSLStringLiteral(string_literal: string_literal, smt:smt, expr_number: expr_number);
+    select any null_expr from instances of Expression where false;
+    ::transformRSLStringLiteral(string_literal: string_literal, smt:smt, expr_number:expr_number, expr:null_expr);
   else
     // create expression
     create object instance expr of Expression;
@@ -2633,6 +2675,8 @@ INSERT INTO S_SYNC
 	'string_literal = param.string_literal;
 smt = param.smt;
 expr_number = param.expr_number;
+expr = param.expr;
+create_expr = empty expr;
 
 // transform each buffer element
 select any prev_expr from instances of BinaryOperation where false;
@@ -2644,11 +2688,15 @@ while not done
   // if there are at least 2 more to process, create a binary expression
   if ((cardinality buffer_elements) - num_processed >= 2)
     // create expression
-    create object instance expr of Expression;
-    relate expr to smt across R775;
-    expr.expression_number = expr_number;
-    string_type_ref = TypeReference::getBuiltinTypeReference( name:"String" );
-    relate string_type_ref to expr across R795;
+    if (create_expr)
+      create object instance expr of Expression;
+      relate expr to smt across R775;
+      expr.expression_number = expr_number;
+      string_type_ref = TypeReference::getBuiltinTypeReference( name:"String" );
+      relate string_type_ref to expr across R795;
+    else
+      create_expr = true;
+    end if;
     // create concatenation
     create object instance binary of BinaryOperation;
     relate binary to expr across R776;
@@ -2672,11 +2720,23 @@ while not done
   if ( not_empty current_buffer_element )
     select one blob related by current_buffer_element->Y_Blob[R3057];
     if ( not_empty blob )
-      ::transformRSLBlobForString(blob:blob, smt:smt, expr_number:expr_number);
+      if (create_expr)
+        select any null_expr from instances of Expression where false;
+        ::transformRSLBlobForString(blob:blob, smt:smt, expr_number:expr_number, expr:null_expr);
+      else
+        ::transformRSLBlobForString(blob:blob, smt:smt, expr_number:expr_number, expr:expr);
+        create_expr = true;
+      end if;
     else
     select one sub_var related by current_buffer_element->Y_SubstitutionVar[R3057];
     if ( not_empty sub_var )
-      ::transformRSLSubstitutionVarForString(sub_var:sub_var, smt:smt, expr_number: expr_number);
+      if (create_expr)
+        select any null_expr from instances of Expression where false;
+        ::transformRSLSubstitutionVarForString(sub_var:sub_var, smt:smt, expr_number:expr_number, expr:null_expr);
+      else
+        ::transformRSLSubstitutionVarForString(sub_var:sub_var, smt:smt, expr_number:expr_number, expr:expr);
+        create_expr = true;
+      end if;
     end if; end if;
     current_id = current_buffer_element.node_id;
     num_processed = num_processed + 1;
@@ -2698,15 +2758,17 @@ end while;
 // if there are no buffer elements this is an empty string
 if (empty buffer_elements)
   // create expression
-  create object instance expr of Expression;
-  relate expr to smt across R775;
-  expr.expression_number = expr_number;
+  if (empty expr)
+    create object instance expr of Expression;
+    relate expr to smt across R775;
+    expr.expression_number = expr_number;
+    string_type_ref = TypeReference::getBuiltinTypeReference( name:"String" );
+    relate string_type_ref to expr across R795;
+  end if;
   // create literal
   create object instance lit of Literal;
   relate lit to expr across R776;
   lit.value = "";
-  string_type_ref = TypeReference::getBuiltinTypeReference( name:"String" );
-  relate string_type_ref to expr across R795;
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -2746,6 +2808,15 @@ INSERT INTO S_SPARM
 	'',
 	"8f399d85-42f4-4464-8a4b-2ce6a0e3a93f",
 	'');
+INSERT INTO S_SPARM
+	VALUES ("6922e1ec-ca8d-4385-9a20-cb4814c3a9ab",
+	"18430453-212e-4286-97aa-8fa33e4d644d",
+	'expr',
+	"f82d9f89-dd1e-4520-85df-cef79a550939",
+	0,
+	'',
+	"5af7bc78-20d3-43d1-877b-6c4986e4cf44",
+	'');
 INSERT INTO PE_PE
 	VALUES ("18430453-212e-4286-97aa-8fa33e4d644d",
 	1,
@@ -2760,11 +2831,16 @@ INSERT INTO S_SYNC
 	'blob = param.blob;
 smt = param.smt;
 expr_number = param.expr_number;
+expr = param.expr;
 
 // create expression
-create object instance expr of Expression;
-relate expr to smt across R775;
-expr.expression_number = expr_number;
+if (empty expr)
+  create object instance expr of Expression;
+  relate expr to smt across R775;
+  expr.expression_number = expr_number;
+  string_type_ref = TypeReference::getBuiltinTypeReference( name:"String" );
+  relate string_type_ref to expr across R795;
+end if;
 // create literal
 create object instance lit of Literal;
 relate lit to expr across R776;
@@ -2782,9 +2858,7 @@ while ( -1 != double_dollar_index )
   blob_string = STRING::substr( s:blob_string, begin:0, end:double_dollar_index ) + STRING::substr( s:blob_string, begin:double_dollar_index+1, end:-1 );
   double_dollar_index = STRING::indexof( haystack:blob_string, needle:"$$" );
 end while;
-lit.value = blob_string;
-string_type_ref = TypeReference::getBuiltinTypeReference( name:"String" );
-relate string_type_ref to expr across R795;',
+lit.value = blob_string;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -2816,6 +2890,15 @@ INSERT INTO S_SPARM
 	'',
 	"1b18d878-a6ac-456e-82b4-bb0d2f19c24c",
 	'');
+INSERT INTO S_SPARM
+	VALUES ("8da8ac49-5e92-4f49-a2a9-93e14cc95a24",
+	"1cb94a84-df75-45f9-b1bd-fe139e6e9a0f",
+	'expr',
+	"f82d9f89-dd1e-4520-85df-cef79a550939",
+	0,
+	'',
+	"c0a98092-56de-4299-9538-db016586ab29",
+	'');
 INSERT INTO PE_PE
 	VALUES ("1cb94a84-df75-45f9-b1bd-fe139e6e9a0f",
 	1,
@@ -2830,6 +2913,7 @@ INSERT INTO S_SYNC
 	'sub_var = param.sub_var;
 smt = param.smt;
 expr_number = param.expr_number;
+expr = param.expr;
 
 select one format_chars related by sub_var->Y_FormatChars[R3058];
 select one named_access related by sub_var->Y_NamedAccess[R3085];
@@ -2841,11 +2925,13 @@ if ( "" != format_chars.FORMAT )
     // TODO bad
   end if;
   // create invocation expression
-  create object instance expr of Expression;
-  relate expr to smt across R775;
-  expr.expression_number = expr_number;
   string_type_ref = TypeReference::getBuiltinTypeReference( name:"String" );
-  relate string_type_ref to expr across R795;
+  if (empty expr)
+    create object instance expr of Expression;
+    relate expr to smt across R775;
+    expr.expression_number = expr_number;
+    relate string_type_ref to expr across R795;
+  end if;
   // create invocation
   create object instance invoc of Invocation;
   relate invoc to expr across R776;
@@ -2875,7 +2961,8 @@ if ( "" != format_chars.FORMAT )
   select any parm1 related by invocable->FormalParameter[R429] where ( selected.name == "p_format" );
   relate invoc to parm1 across R793 using act_parm1;
   // named access parameter
-  ::transformRSLNamedAccess( named_access:named_access, smt:smt, expr_number:expr_number + ".3" );
+  select any null_expr from instances of Expression where false;
+  ::transformRSLNamedAccess( named_access:named_access, smt:smt, expr_number:expr_number + ".3", expr:null_expr );
   select any access_expr related by smt->Expression[R775] where ( selected.expression_number == expr_number + ".3" );
   create object instance act_parm2 of ActualParameter;
   relate act_parm2 to access_expr across R794;
@@ -2883,7 +2970,7 @@ if ( "" != format_chars.FORMAT )
   relate invoc to parm2 across R793 using act_parm2;
 else
   // transform the named access
-  ::transformRSLNamedAccess( named_access:named_access, smt:smt, expr_number:expr_number );
+  ::transformRSLNamedAccess( named_access:named_access, smt:smt, expr_number:expr_number, expr:expr );
 end if;
 ',
 	"ba5eda7a-def5-0000-0000-000000000000",
@@ -2917,6 +3004,15 @@ INSERT INTO S_SPARM
 	'',
 	"085547bd-ad01-4826-8d79-bf6b329906b2",
 	'');
+INSERT INTO S_SPARM
+	VALUES ("4cdd562f-61f4-42a9-9cb1-10ae19448634",
+	"35379639-d481-44f8-a696-9b38122039b4",
+	'expr',
+	"f82d9f89-dd1e-4520-85df-cef79a550939",
+	0,
+	'',
+	"f1daab29-efa7-4a4c-8ecf-d1a31fd1e75f",
+	'');
 INSERT INTO PE_PE
 	VALUES ("35379639-d481-44f8-a696-9b38122039b4",
 	1,
@@ -2939,57 +3035,17 @@ for each non_temp_string_literal in non_temp_string_literals
                                                       selected.block_number == non_temp_string_literal.block_number and
                                                       selected.statement_number == non_temp_string_literal.statement_number and
                                                       selected.expression_number == non_temp_string_literal.expression_number);
+  select one smt related by expr->Statement[R775];
   select one lit related by expr->Literal[R776];
   if (not_empty expr and not_empty lit and not_empty string_literal)
-    // create a temporary statement to create the expression
-    select one block related by expr->Statement[R775]->CodeBlock[R450];
-    create object instance smt of Statement;
-    relate smt to block across R450;
-    smt.statement_number = "temp";
-    smt.oal = "";
-    create object instance nullsmt of NullSmt;
-    relate nullsmt to smt across R451;
+    // unhook the old literal from the old expression
+    unrelate lit from expr across R776;
+    delete object instance lit;
     // transform the literal
-    ::transformRSLStringLiteral(string_literal:string_literal, smt:smt, expr_number:expr.expression_number);
-    select any new_expr related by smt->Expression[R775] where (selected.expression_number == expr.expression_number);
-    select one new_binop related by new_expr->BinaryOperation[R776];
-    select one new_invoc related by new_expr->Invocation[R776];
-    select one new_var_ref related by new_expr->VariableReference[R776];
-    select one new_attr_acc related by new_expr->AttributeAccess[R776];
-    if (not_empty new_binop or not_empty new_invoc or not_empty new_var_ref or not_empty new_attr_acc)
-      // unhook the old literal from the old expression
-      unrelate lit from expr across R776;
-      delete object instance lit;
-      // unook the new subtype from the new expression and relate to the old expression
-      if (not_empty new_binop)
-        unrelate new_binop from new_expr across R776;
-        relate new_binop to expr across R776;
-      elif (not_empty new_invoc)
-        unrelate new_invoc from new_expr across R776;
-        relate new_invoc to expr across R776;
-      elif (not_empty new_var_ref)
-        unrelate new_var_ref from new_expr across R776;
-        relate new_var_ref to expr across R776;
-      elif (not_empty new_attr_acc)
-        unrelate new_attr_acc from new_expr across R776;
-        relate new_attr_acc to expr across R776;
-      end if;
-      // dispose the new expression
-      select one new_expr_typeref related by new_expr->TypeReference[R795];
-      unrelate new_expr from new_expr_typeref across R795;
-      unrelate new_expr from smt across R775;
-      delete object instance new_expr;
-      // add this file to the list of affected files
-      file = ::getFileForStatement(smt:smt);
-      affected_files = affected_files | file;
-    else
-      // TODO bad
-    end if;
-    // dispose the temporary statement
-    unrelate nullsmt from smt across R451;
-    delete object instance nullsmt;
-    unrelate smt from block across R450;
-    delete object instance smt;
+    ::transformRSLStringLiteral(string_literal:string_literal, smt:smt, expr_number:expr.expression_number, expr:expr);
+    // add this file to the list of affected files
+    file = ::getFileForStatement(smt:smt);
+    affected_files = affected_files | file;
   else
     // TODO bad
   end if;
