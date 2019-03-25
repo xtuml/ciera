@@ -70,23 +70,27 @@ import io.ciera.tool.templateengine.rsl.impl.Y_SubstitutionVarImpl;
 import io.ciera.tool.templateengine.rsl.impl.Y_TermImpl;
 import io.ciera.tool.templateengine.rsl.impl.Y_VariableAccessImpl;
 
-public class XtumlRSLListener extends RSLBaseListener {
+public class RSLPopulator extends RSLBaseListener {
 
     private static int currentId = 1000;
 
-    private Stack<Integer> parentIds;
     private String filename;
-    private TemplateEngine population;
+    protected Stack<Integer> parentIds;
+    protected TemplateEngine population;
 
-    public XtumlRSLListener(String fn, TemplateEngine population) {
+    public RSLPopulator(String fn, TemplateEngine population) {
         parentIds = new Stack<>();
         filename = fn;
         this.population = population;
     }
+    
+    protected void incrementId() {
+        parentIds.push(currentId++);
+    }
 
     @Override
     public void enterEveryRule(ParserRuleContext ctx) {
-        parentIds.push(currentId++);
+        incrementId();
     }
 
     @Override

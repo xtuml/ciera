@@ -86,6 +86,33 @@ INSERT INTO S_BPARM
 	'',
 	"00000000-0000-0000-0000-000000000000",
 	'');
+INSERT INTO S_BRG
+	VALUES ("614f5961-cee8-4a81-acfe-cfcf42d74a02",
+	"2e5de51a-9839-4d71-8453-8bb26c90d1b1",
+	'process_literal',
+	'',
+	0,
+	"ba5eda7a-def5-0000-0000-000000000000",
+	'',
+	3,
+	'',
+	0);
+INSERT INTO S_BPARM
+	VALUES ("8445eeb3-e6ea-400c-bffd-4a0ccfd92efd",
+	"614f5961-cee8-4a81-acfe-cfcf42d74a02",
+	'expr',
+	"11335641-acc0-4ac1-b2fc-6780595e447b",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("11335641-acc0-4ac1-b2fc-6780595e447b",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Literal>',
+	'',
+	'',
+	'../../../../../../io.ciera.tool.core/models/io.ciera.tool.core/architecture/expression/expression.xtuml');
 INSERT INTO PE_PE
 	VALUES ("2e5de51a-9839-4d71-8453-8bb26c90d1b1",
 	1,
@@ -106,7 +133,6 @@ LOG::LogInfo( message:"  Processing RSL templates..." );
 select any template_dir_mark from instances of Mark where ( selected.markable_name == "*"
                                                             and selected.path == "*"
                                                             and selected.feature_name == "TemplateDir" );
-
 
 ciera = CIERA::getDefaultInstance();
 if ( not_empty template_dir_mark )
@@ -133,6 +159,26 @@ select many registries from instances of Z_TemplateRegistry;
 for each registry in registries
   registry.render();
 end for;
+LOG::LogInfo( message:"  done." );
+LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
+
+// process literal strings
+LOG::LogInfo( message:"  Processing literal strings..." );
+select many literals from instances of Literal;
+for each lit in literals
+  select one type related by lit->Expression[R776]->TypeReference[R795]->Type[R3800];
+  if ("String" == type.name and "" == type.package)
+    if (-1 != STRING::indexof(haystack:lit.value, needle:"$"))
+      TU::process_literal(expr:lit);
+    end if;
+  end if;
+end for;
+LOG::LogInfo( message:"  done." );
+LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
+
+// transform substitutions in literal strings
+LOG::LogInfo( message:"  Transforming literal string substitutions..." );
+::transformLiteralStringSubstitutions();
 LOG::LogInfo( message:"  done." );
 LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
 
