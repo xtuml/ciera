@@ -2856,6 +2856,7 @@ INSERT INTO S_SYNC
 	'invocation = param.invocation;
 parm = param.parm;
 v_par = param.v_par;
+prev_act_parm = param.prev_act_parm;
 expr_number = param.expression_num;
 
 select one smt related by invocation->Expression[R776]->Statement[R775];
@@ -2875,7 +2876,13 @@ if ( not_empty expr )
   // create the actual parameter
   create object instance act_parm of ActualParameter;
   relate act_parm to expr across R794;
-  relate invocation to parm across R793 using act_parm;
+  relate invocation to act_parm across R793;
+  if (not_empty parm)
+    relate act_parm to parm across R3904;
+  end if;
+  if (not_empty prev_act_parm)
+    relate prev_act_parm to act_parm across R3905.''precedes'';
+  end if;
 
 else
   // TODO bad
@@ -2941,6 +2948,22 @@ INSERT INTO S_DT_PROXY
 	'',
 	'',
 	'../../../../../mcooa/models/mcooa/ooaofooa/Value/Value.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("103b4d44-45e0-40db-a6ad-1e01502d048e",
+	"d7b9f3a1-caef-4e9c-bf85-d8acd90adab4",
+	'prev_act_parm',
+	"a6a1ae48-1b2e-4d6c-85dd-28f152e5876b",
+	0,
+	'',
+	"64578700-06f1-47d2-9e70-401ac55ea0bf",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("a6a1ae48-1b2e-4d6c-85dd-28f152e5876b",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Actual Parameter>',
+	'',
+	'',
+	'../../architecture/expression/expression.xtuml');
 INSERT INTO PE_PE
 	VALUES ("d7b9f3a1-caef-4e9c-bf85-d8acd90adab4",
 	1,
@@ -2968,6 +2991,7 @@ end while;
 // transform each parameter
 num = base_num;
 select any v_par from instances of V_PAR where false;
+select any prev_act_parm from instances of ActualParameter where false;
 while ( not_empty parm )
   for each par in v_pars
     if ( "p_" + par.Name == parm.name )
@@ -2975,7 +2999,8 @@ while ( not_empty parm )
       break;
     end if;
   end for;
-  ::transformActualParameter( invocation:invocation, parm:parm, expression_num:expr_number + "." + STRING::itoa( i:num ), v_par:v_par );
+  ::transformActualParameter( invocation:invocation, parm:parm, expression_num:expr_number + "." + STRING::itoa( i:num ), v_par:v_par, prev_act_parm:prev_act_parm );
+  select any prev_act_parm related by invocation->ActualParameter[R793] where (selected.expression_number == expr_number + "." + STRING::itoa( i:num ));
   select one parm related by parm->FormalParameter[R404.''precedes''];
   num = num + 1;
 end while;',
