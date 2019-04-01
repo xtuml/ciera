@@ -106,7 +106,7 @@ while ( i < cardinality referenced_vars )
       current_var = referenced_var;
     end if;
   end for;
-  block.prefix = block.prefix + indent + current_var.type_reference_name + " " + current_var.name + " = (" + current_var.type_reference_name + ")symbolTable.get(" + STRING::itoa( i:i ) + ");\n";
+  block.prefix = block.prefix + indent + current_var.type_reference_name + " " + current_var.name + " = (" + current_var.type_reference_name + ")symbols[" + STRING::itoa( i:i ) + "];\n";
   last_var = current_var;
   select any current_var from instances of Variable where false;
   i = i + 1;
@@ -116,7 +116,6 @@ end while;
 select one comp_file related by comp_def->File[R401];
 ::addFileToImports( file:registry_file, file_to_import:comp_file, type:ImportType::IMPL );
 ::addStringToImports( file:registry_file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL );
-::addStringToImports( file:registry_file, s:"io.ciera.runtime.template.util.SymbolTable", type:ImportType::IMPL );
 ::addStringToImports( file:registry_file, s:"io.ciera.runtime.template.util.Template", type:ImportType::IMPL );',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -521,15 +520,7 @@ for each invocable in invocables
     select many template_invocations related by invocable->CodeBlock[R4000]->Statement[R450]->Expression[R775]->Invocation[R776] where
       ( "TEMP" == selected.invoked_parent_name and "io.ciera.runtime.template.util" == selected.invoked_parent_package and "include" == selected.invoked_name );
     for each template_invocation in template_invocations
-      // get the symbol table parameter
-      select any symtab_param related by template_invocation->ActualParameter[R793] where ( selected.param_name == "p_symbol_table" );
-      select one param_expr related by symtab_param->Expression[R794];
-      select one const_expr related by param_expr->ConstantReference[R776];
-      if ( empty param_expr or empty const_expr )
-        // TODO bad
-      end if;
-      unrelate const_expr from param_expr across R776;
-      delete object instance const_expr;
+      select one smt related by template_invocation->Expression[R776]->Statement[R775];
       // get required variables
       select any file_param related by template_invocation->ActualParameter[R793] where ( selected.param_name == "p_file" );
       select one file_val related by file_param->Expression[R794]->Literal[R776];
@@ -541,35 +532,42 @@ for each invocable in invocables
                                                                        selected.parent_package == temp.registry_package and
                                                                        selected.body_name == temp.name );
       select many required_vars related by var_refs->Variable[R782];
-      var_list = "";
-      sep = "";
       select any last_var from instances of Variable where false;
       select any current_var from instances of Variable where false;
+      prev_act_parm = file_param;
       i = 0;
+      // NOTE the following assumes that the last segment of the previous parameter expresion number is a one digit number
+      subexpr_num = STRING::atoi(s:STRING::substr(s:file_param.expression_number, begin:STRING::strlen(s:file_param.expression_number)-1, end:-1)) + 1;
       while ( i < cardinality required_vars )
         for each required_var in required_vars
           if ( ( empty last_var or last_var.name < required_var.name ) and ( empty current_var or required_var.name < current_var.name ) )
             current_var = required_var;
           end if;
         end for;
-        if ( "self" == current_var.name )
-          var_list = var_list + sep + "self()";
-        else
-          var_list = var_list + sep + current_var.name;
-        end if;
-        sep = ", ";
+        // create variable reference expression
+        create object instance expr of Expression;
+        relate expr to smt across R775;
+        expr.expression_number = template_invocation.expression_number + "." + STRING::itoa(i:subexpr_num);
+        select one type related by current_var->TypeReference[R461];
+        relate type to expr across R795;
+        create object instance var_ref of VariableReference;
+        relate current_var to var_ref across R782;
+        relate var_ref to expr across R776;
+        // create actual parameter
+        create object instance act_parm of ActualParameter;
+        relate act_parm to expr across R794;
+        relate template_invocation to act_parm across R793;
+        relate prev_act_parm to act_parm across R3905.''precedes'';
+        prev_act_parm = act_parm;
+        // update counters
         last_var = current_var;
         select any current_var from instances of Variable where false;
         i = i + 1;
+        subexpr_num = subexpr_num + 1;
       end while;
-      // create new expression to create a symbol table
-      create object instance named_expr of NamedReference;
-      relate named_expr to param_expr across R776;
-      named_expr.name = "new SymbolTable(" + var_list + ")";
       // add to the affected files list
       file = ::getFileForInvocable( invocable:invocable );
       affected_files = affected_files | file;
-      ::addStringToImports( file:file, s:"io.ciera.runtime.template.util.SymbolTable", type:ImportType::IMPL );
     end for;
   end if;
 end for;
@@ -843,7 +841,8 @@ if ( "" != format_chars.FORMAT )
   create object instance act_parm1 of ActualParameter;
   relate act_parm1 to format_chars_expr across R794;
   select any parm1 related by invocable->FormalParameter[R429] where ( selected.name == "p_format" );
-  relate invoc to parm1 across R793 using act_parm1;
+  relate invoc to act_parm1 across R793;
+  relate parm1 to act_parm1 across R3904;
   // named access parameter
   select any null_expr from instances of Expression where false;
   ::transformRSLNamedAccess( named_access:named_access, smt:smt, expr_number:"1.2.3", expr:null_expr );
@@ -851,7 +850,9 @@ if ( "" != format_chars.FORMAT )
   create object instance act_parm2 of ActualParameter;
   relate act_parm2 to access_expr across R794;
   select any parm2 related by invocable->FormalParameter[R429] where ( selected.name == "p_s" );
-  relate invoc to parm2 across R793 using act_parm2;
+  relate invoc to act_parm2 across R793;
+  relate parm2 to act_parm2 across R3904;
+  relate act_parm1 to act_parm2 across R3905.''precedes'';
   // add string type to imports
   select one registry_file related by block->InvocableObject[R4000]->GenericInvocable[R427]->Z_Template[R3053]->Z_TemplateRegistry[R3052]->GeneralFile[R3051]->File[R401];
   select one string_type related by string_type_ref->Type[R3800];
@@ -947,7 +948,8 @@ if ( not_empty utility )
     create object instance act_parm of ActualParameter;
     relate act_parm to expr_arg across R794;
     select any parm related by invocable->FormalParameter[R429];
-    relate invoc to parm across R793 using act_parm;
+    relate invoc to act_parm across R793;
+    relate parm to act_parm across R3904;
   else
     // TODO bad
   end if;
@@ -2952,7 +2954,8 @@ if ( "" != format_chars.FORMAT )
   create object instance act_parm1 of ActualParameter;
   relate act_parm1 to format_chars_expr across R794;
   select any parm1 related by invocable->FormalParameter[R429] where ( selected.name == "p_format" );
-  relate invoc to parm1 across R793 using act_parm1;
+  relate invoc to act_parm1 across R793;
+  relate parm1 to act_parm1 across R3904;
   // named access parameter
   select any null_expr from instances of Expression where false;
   ::transformRSLNamedAccess( named_access:named_access, smt:smt, expr_number:expr_number + ".3", expr:null_expr );
@@ -2960,7 +2963,9 @@ if ( "" != format_chars.FORMAT )
   create object instance act_parm2 of ActualParameter;
   relate act_parm2 to access_expr across R794;
   select any parm2 related by invocable->FormalParameter[R429] where ( selected.name == "p_s" );
-  relate invoc to parm2 across R793 using act_parm2;
+  relate invoc to act_parm2 across R793;
+  relate parm2 to act_parm2 across R3904;
+  relate act_parm1 to act_parm2 across R3905.''precedes'';
 else
   // transform the named access
   ::transformRSLNamedAccess( named_access:named_access, smt:smt, expr_number:expr_number, expr:expr );

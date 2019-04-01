@@ -10,10 +10,8 @@ import java.util.Stack;
 
 import io.ciera.runtime.summit.components.IComponent;
 import io.ciera.runtime.summit.exceptions.XtumlException;
-import io.ciera.runtime.summit.types.IXtumlType;
 import io.ciera.runtime.summit.util.Utility;
 import io.ciera.runtime.template.util.ITemplateRegistry;
-import io.ciera.runtime.template.util.SymbolTable;
 import io.ciera.runtime.template.util.TEMP;
 
 public class TEMPImpl<C extends IComponent<C>> extends Utility<C> implements TEMP {
@@ -26,7 +24,6 @@ public class TEMPImpl<C extends IComponent<C>> extends Utility<C> implements TEM
     public TEMPImpl(C context) {
         super(context);
         rootDir = ".";
-        this.rootDir = rootDir;
         buffers = new Stack<>();
         try {
             Class<?> componentClass = context.getClass();
@@ -83,9 +80,9 @@ public class TEMPImpl<C extends IComponent<C>> extends Utility<C> implements TEM
     }
 
     @Override
-    public void include(String file, SymbolTable symbolTable) throws XtumlException {
+    public void include(String file, Object ... symbols) throws XtumlException {
         if (null != file && null != registry)
-            registry.getTemplate(file).evaluate(null == symbolTable ? new SymbolTable() : symbolTable);
+            registry.getTemplate(file).evaluate(symbols);
     }
 
     @Override

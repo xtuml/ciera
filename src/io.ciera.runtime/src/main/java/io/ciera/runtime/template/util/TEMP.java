@@ -29,7 +29,7 @@ public interface TEMP {
 
     public void emit(String file) throws XtumlException;
 
-    public void include(String file, SymbolTable symbolTable) throws XtumlException;
+    public void include(String file, Object ... symbols) throws XtumlException;
 
     public void pop_buffer() throws XtumlException;
 
