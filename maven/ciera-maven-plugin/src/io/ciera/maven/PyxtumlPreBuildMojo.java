@@ -8,35 +8,37 @@ import org.apache.maven.plugins.annotations.Parameter;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 import java.lang.ProcessBuilder.Redirect;
 
 /**
- * Goal which runs the BridgePoint pre-builder.
+ * Goal which runs the pyxtuml pre-builder.
  */
-@Mojo(name="pre-build", defaultPhase=LifecyclePhase.GENERATE_SOURCES)
-public class BridgePointPreBuildMojo extends AbstractPreBuildMojo {
+@Mojo(name="pyxtuml-pre-build", defaultPhase=LifecyclePhase.GENERATE_SOURCES)
+public class PyxtumlPreBuildMojo extends AbstractPreBuildMojo {
 
-    private static final String BIN_DIR = "tools/mc/bin";
-
-    @Parameter(defaultValue="")
-    private String workspace;
-
-    @Parameter(defaultValue="")
-    private String bpHome;
+    @Parameter
+    private String[] modelDirs;
 
     public void execute() throws MojoExecutionException {
         if (requiresBuild()) {
-            final String workspace = null == this.workspace || "".equals(this.workspace) ? System.getenv("WORKSPACE") : this.workspace;
-            final String bpHome = null == this.bpHome || "".equals(this.bpHome) ? System.getenv("BPHOME") : this.bpHome;
-            final String cliExe = bpHome + File.separator + BIN_DIR + File.separator + "CLI.sh";
-            if ("".equals(workspace.trim())) {
-                getLog().warn("WORKSPACE is unset.");
+            File codeGen = new File(project.getBasedir(), "gen/code_generation");
+            File outputFile = new File(codeGen, projectName + ".sql");
+            codeGen.mkdirs();
+            List<String> cmd = new ArrayList<>();
+            cmd.add("python");
+            cmd.add("-m");
+            cmd.add("bridgepoint.prebuild");
+            cmd.add("-o");
+            cmd.add(outputFile.getAbsolutePath());
+            for (String modelDir : modelDirs) {
+                cmd.add(modelDir);
             }
-            ProcessBuilder pb = new ProcessBuilder(cliExe, "Build", "-project", projectName, "-prebuildOnly").redirectOutput(Redirect.PIPE).redirectError(Redirect.PIPE);
-            pb.environment().put("WORKSPACE", workspace);
-            getLog().info("Performing BridgePoint pre-build (workspace location: " + workspace + ")...");
+            ProcessBuilder pb = new ProcessBuilder(cmd).redirectOutput(Redirect.PIPE).redirectError(Redirect.PIPE);
+            getLog().info("Performing pyxtuml pre-build...");
             getLog().info("");
             printCommand(pb);
             try {
