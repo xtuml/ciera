@@ -9,11 +9,9 @@ import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URL;
-import java.util.Scanner;
 
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
@@ -21,13 +19,9 @@ import javax.swing.JLabel;
 import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
 
-import org.json.JSONObject;
-
 import io.ciera.runtime.summit.exceptions.XtumlException;
 import io.ciera.runtime.summit.interfaces.IMessage;
 import io.ciera.runtime.summit.interfaces.Message;
-import io.ciera.runtime.summit.util.LOG;
-import io.ciera.runtime.summit.util.impl.LOGImpl;
 import tracking.shared.Indicator;
 import tracking.shared.Unit;
 import ui.shared.IUI;
