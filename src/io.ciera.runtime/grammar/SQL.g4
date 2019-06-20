@@ -4,7 +4,7 @@ grammar SQL;
 package io.ciera.runtime.instanceloading.sql.parser;
 }
 
-sql_file:          ( comment | insert_statement )*;
+sql_file:          ( insert_statement )*;
 
 insert_statement:  'INSERT' 'INTO' table_name 'VALUES' LPAREN values RPAREN SEMI;
 
@@ -16,9 +16,7 @@ values:            value |
 
 value:             STRING | REAL | INTEGER;
 
-comment:           COMMENT;
-
-COMMENT:           '--' ~( '\n' )* '\n';
+COMMENT:           '--' ~( '\n' )* '\n' -> skip;
 ID:                [a-zA-Z][a-zA-Z0-9_]*;
 INTEGER:           '-'? [0-9]+;
 REAL:              '-'? [0-9]+ '.' [0-9]+;
