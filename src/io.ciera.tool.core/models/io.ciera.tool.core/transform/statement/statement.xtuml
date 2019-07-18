@@ -3335,13 +3335,19 @@ INSERT INTO S_SYNC
 	'invocable = param.invocable;
 select one act_act related by invocable->ACT_ACT[R432];
 if ( not_empty act_act and not_empty invocable )
-
-  select any upper_block from instances of CodeBlock where false;
-  select one act_blk related by act_act->ACT_BLK[R666];
-  ::transformBlock( invocable:invocable, upper_block:upper_block, act_blk:act_blk, block_number:"1" );
-  
-  // finalize variables referenced from within a where clause
-  ::resloveVariableFinalizations( invocable:invocable );
+    
+  // check if deferred operation
+  select one deferral related by act_act->ACT_OPB[R698]->O_TFR[R696]->O_DEF[R126];
+  if (not_empty deferral)
+    ::transformDeferral(invocable:invocable, deferral:deferral);
+  else
+    select any upper_block from instances of CodeBlock where false;
+    select one act_blk related by act_act->ACT_BLK[R666];
+    ::transformBlock( invocable:invocable, upper_block:upper_block, act_blk:act_blk, block_number:"1" );
+    
+    // finalize variables referenced from within a where clause
+    ::resloveVariableFinalizations( invocable:invocable );
+  end if;
 
 else
   // TODO bad
@@ -4267,6 +4273,211 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("7487e9ae-6e17-4315-b08b-d64801f34fb2",
+	1,
+	"28c6aa17-9b54-4321-916c-a20a5290984e",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("1cc11cf0-a4da-4492-b177-75803fd925f2",
+	"00000000-0000-0000-0000-000000000000",
+	'transformDeferral',
+	'',
+	'invocable = param.invocable;
+deferral = param.deferral;
+
+select one o_tfr related by deferral->O_TFR[R126];
+select one type related by invocable->TypeReference[R428];
+returns_value = "void" != type.type_name;
+select many subtype_invocables related by deferral->R_REL[R126]->R_SUBSUP[R206]->R_SUB[R213]->R_RGO[R205]->R_OIR[R203]->O_OBJ[R201]
+  ->O_TFR[R115]->ACT_OPB[R696]->ACT_ACT[R698]->InvocableObject[R432] where (selected.name == invocable.name);
+
+// create code block
+create object instance block of CodeBlock;
+block.top_level = true;
+block.tab_depth = 1;
+relate block to invocable across R4000;
+block.block_number = "1";
+
+// create an invocation for each subtype
+for each subtype_invocable in subtype_invocables
+
+  // create a select statement
+  create object instance smt of Statement;
+  relate smt to block across R450;
+  smt.statement_number = "1";
+  smt.oal = "";
+  // create expression as statement
+  create object instance eas of ExpressionAsStatement;
+  relate eas to smt across R451;
+  // create main expression
+  create object instance expr of Expression;
+  relate expr to smt across R775;
+  expr.expression_number = "1";
+  // create binary operation and assignment expression
+  create object instance binop of BinaryOperation;
+  relate binop to expr across R776;
+  binop.operator = "=";
+  binop.invocation = false;
+  // relate expression to expression as statement
+  relate eas to expr across R476;
+  // create left operand
+  create object instance l_op of Expression;
+  relate l_op to smt across R775;
+  l_op.expression_number = "1.1";
+  select one select_class related by subtype_invocable->Operation[R427]->Class[R416];
+  select one select_type_def related by select_class->Type[R407];
+  select_type = TypeReference::getInstanceWithDimString(type:select_type_def, dims:"");
+  relate select_type to l_op across R795;
+  // create new variable
+  create object instance select_var of Variable;
+  relate select_var to smt across R457;
+  select_var.name = TEMP::sub(format:"l", s:select_class.name);
+  // link in scope
+  select one block related by smt->CodeBlock[R450];
+  create object instance var_in_scope of VariableInScope;
+  relate select_var to block across R458 using var_in_scope;
+  // link data type
+  relate select_type to select_var across R461;
+  // create variable reference
+  create object instance var_ref of VariableReference;
+  var_ref.declaration = true;
+  relate select_var to var_ref across R782;
+  relate var_ref to l_op across R776;
+  relate l_op to binop across R779;
+  ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:select_type_def, type:ImportType::IMPL );
+  // create right operand
+  create object instance r_op of Expression;
+  relate r_op to smt across R775;
+  r_op.expression_number = "1.2";
+  relate r_op to binop across R778;
+  relate select_type to r_op across R795;
+  // create select expression
+  create object instance sel of SelectExpr;
+  relate sel to r_op across R776;
+  create object instance sel_rel of SelectRelated;
+  relate sel_rel to sel across R789;
+  // create named reference
+  create object instance self_expr of Expression;
+  relate self_expr to smt across R775;
+  self_expr.expression_number = "1.2.1";
+  select one self_class related by invocable->Operation[R427]->Class[R416];
+  select one self_type_def related by self_class->Type[R407];
+  self_type = TypeReference::getInstanceWithDimString(type:self_type_def, dims:"");
+  relate self_type to self_expr across R795;
+  create object instance self_ref of NamedReference;
+  relate self_ref to self_expr across R776;
+  self_ref.name = "self()";
+  relate self_expr to sel_rel across R791;
+  // get the selector
+  select one r_rel related by deferral->R_REL[R126];
+  select any relationship from instances of Relationship where ( selected.num == r_rel.Numb and
+                                                                 selected.form_name == select_class.name and
+                                                                 selected.part_name == self_class.name ); // if no phrase was included, the target and base class must be different
+  selector_name = "R" + STRING::itoa( i:r_rel.Numb ) + "_is_a_" + select_class.name;
+  select any selector related by self_class->InstanceSelector[R442]->Selector[R445] where ( selected.name == selector_name );
+  if ( not_empty selector )
+    relate selector to sel_rel across R797;
+  else
+    // TODO bad
+  end if;
+  // link select type to the main expression
+  relate select_type to expr across R795;
+  
+  // create if statement
+  create object instance smt2 of Statement;
+  relate smt2 to block across R450;
+  smt2.statement_number = "2";
+  relate smt2 to smt across R477.''executes after'';
+  smt2.oal = "";
+  create object instance if_smt of IfSmt;
+  relate if_smt to smt2 across R451;
+  if_smt.is_else_if = false;
+  // translate if expression
+  create object instance if_expr of Expression;
+  relate if_expr to smt2 across R775;
+  if_expr.expression_number = "1";
+  relate if_expr to if_smt across R471;
+  // link type
+  if_type = TypeReference::getBuiltinTypeReference(name:"boolean");
+  relate if_type to if_expr across R795;
+  // create the unary expression
+  create object instance unary of UnaryOperation;
+  relate unary to if_expr across R776;
+  unary.operator = "!";
+  unary.invocation = false;
+  // create ''empty'' expression
+  create object instance if_expr2 of Expression;
+  relate if_expr2 to smt2 across R775;
+  if_expr2.expression_number = "1.1";
+  relate if_expr2 to unary across R777;
+  relate if_type to if_expr2 across R795;
+  create object instance unary2 of UnaryOperation;
+  relate unary2 to if_expr2 across R776;
+  unary2.operator = "isEmpty";
+  unary2.invocation = true;
+  // transform the operand expression
+  create object instance op_expr of Expression;
+  relate op_expr to smt2 across R775;
+  op_expr.expression_number = "1.1.1";
+  // link type
+  relate select_type to op_expr across R795;
+  // create variable reference
+  create object instance op_var_ref of VariableReference;
+  relate select_var to op_var_ref across R782;
+  relate op_var_ref to op_expr across R776;
+  relate op_expr to unary2 across R777;
+  // create then block
+  then_block_number = ::getNextBlockNumber(upper_block:block);
+  create object instance then_block of CodeBlock;
+  then_block.top_level = false;
+  then_block.tab_depth = block.tab_depth + 1;
+  relate then_block to invocable across R4000;
+  then_block.block_number = then_block_number;
+  relate then_block to if_smt across R453;
+  // TODO create invocation
+  // create else block
+  else_block_number = ::getNextBlockNumber(upper_block:block);
+  create object instance else_block of CodeBlock;
+  else_block.top_level = false;
+  else_block.tab_depth = block.tab_depth + 1;
+  relate else_block to invocable across R4000;
+  else_block.block_number = else_block_number;
+  relate else_block to if_smt across R454;
+  
+  block = else_block;
+
+end for;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("0cbc1e40-c834-4625-bf2c-de2a58aace36",
+	"1cc11cf0-a4da-4492-b177-75803fd925f2",
+	'deferral',
+	"b5231088-af9f-42ab-b08b-e1578453a954",
+	0,
+	'',
+	"85b831f9-500e-4690-866e-f101ddb6130c",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("b5231088-af9f-42ab-b08b-e1578453a954",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Deferral>',
+	'',
+	'',
+	'../../../../../mcooa/models/mcooa/ooaofooa/Subsystem/Subsystem.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("85b831f9-500e-4690-866e-f101ddb6130c",
+	"1cc11cf0-a4da-4492-b177-75803fd925f2",
+	'invocable',
+	"30c7a5ba-c6d9-44fd-8e61-f22cde8fdc41",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO PE_PE
+	VALUES ("1cc11cf0-a4da-4492-b177-75803fd925f2",
 	1,
 	"28c6aa17-9b54-4321-916c-a20a5290984e",
 	"00000000-0000-0000-0000-000000000000",
