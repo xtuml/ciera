@@ -15,7 +15,7 @@ import java.lang.ProcessBuilder.Redirect;
 /**
  * Goal which runs the BridgePoint pre-builder.
  */
-@Mojo(name="pre-build", defaultPhase=LifecyclePhase.GENERATE_SOURCES)
+@Mojo(name="bridgepoint-pre-build", defaultPhase=LifecyclePhase.GENERATE_SOURCES)
 public class BridgePointPreBuildMojo extends AbstractPreBuildMojo {
 
     private static final String BIN_DIR = "tools/mc/bin";
@@ -40,6 +40,7 @@ public class BridgePointPreBuildMojo extends AbstractPreBuildMojo {
             getLog().info("");
             printCommand(pb);
             try {
+                long startTime = System.currentTimeMillis();
                 Process proc = pb.start();
                 Scanner sc = new Scanner(proc.getInputStream());
                 while (sc.hasNextLine()) {
@@ -51,6 +52,12 @@ public class BridgePointPreBuildMojo extends AbstractPreBuildMojo {
                     getLog().error(sc.nextLine());
                 }
                 sc.close();
+                int duration = (int)(System.currentTimeMillis() - startTime);
+                int mins = duration / 60000;
+                int secs = (duration % 60000) / 1000;
+                int msecs = duration % 1000;
+                getLog().info("");
+                getLog().info(String.format("Pre-build duration: %d:%d.%03d", mins, secs, msecs));
             } catch (IOException e) {
                 getLog().error("Problem executing pre-builder:", e);
             }

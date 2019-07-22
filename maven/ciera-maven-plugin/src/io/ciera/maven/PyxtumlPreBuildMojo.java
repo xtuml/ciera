@@ -42,6 +42,7 @@ public class PyxtumlPreBuildMojo extends AbstractPreBuildMojo {
             getLog().info("");
             printCommand(pb);
             try {
+                long startTime = System.currentTimeMillis();
                 Process proc = pb.start();
                 Scanner sc = new Scanner(proc.getInputStream());
                 while (sc.hasNextLine()) {
@@ -53,6 +54,12 @@ public class PyxtumlPreBuildMojo extends AbstractPreBuildMojo {
                     getLog().error(sc.nextLine());
                 }
                 sc.close();
+                int duration = (int)(System.currentTimeMillis() - startTime);
+                int mins = duration / 60000;
+                int secs = (duration % 60000) / 1000;
+                int msecs = duration % 1000;
+                getLog().info("");
+                getLog().info(String.format("Pre-build duration: %d:%d.%03d", mins, secs, msecs));
             } catch (IOException e) {
                 getLog().error("Problem executing pre-builder:", e);
             }
