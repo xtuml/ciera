@@ -9,11 +9,15 @@
   <packaging>jar</packaging>
   <version>1.2.0-SNAPSHOT</version>
   <name>io.ciera.tool.core</name>
+  <properties>
+    <bpLoc>${env.HOME}/git/xtuml2/bridgepoint</bpLoc>
+    <mcLoc>${env.HOME}/git/xtuml2/mc</mcLoc>
+  </properties>
   <dependencies>
     <dependency>
       <groupId>io.ciera</groupId>
       <artifactId>io.ciera.runtime</artifactId>
-      <version>1.2.0-SNAPSHOT</version>
+      <version>1.1.2</version>
     </dependency>
   </dependencies>
   <build>
@@ -24,16 +28,20 @@
       <plugin>
         <groupId>io.ciera</groupId>
         <artifactId>ciera-maven-plugin</artifactId>
-        <version>1.1.1</version>
+        <version>1.1.2</version>
         <executions>
           <execution>
             <id>pre-build</id>
             <goals>
-              <goal>pre-build</goal>
+              <goal>pyxtuml-pre-build</goal>
             </goals>
             <configuration>
-              <!--workspace> Location of the Eclipse workspace to build (default is $WORKSPACE) </workspace-->
-              <!--bpHome> Location of the BridgePoint installation directory (default is $BPHOME) </bpHome-->
+              <modelDirs>
+                <param>${bpLoc}/src/org.xtuml.bp.ui.marking/models</param>
+                <param>${mcLoc}/model/mcooa/models</param>
+                <param>${project.basedir}/../io.ciera.runtime/models</param>
+                <param>${project.basedir}/models/</param>
+              </modelDirs>
             </configuration>
           </execution>
           <execution>
