@@ -23,6 +23,9 @@ public class PyxtumlPreBuildMojo extends AbstractPreBuildMojo {
     @Parameter
     private String[] modelDirs;
 
+    @Parameter(defaultValue="false")
+    private boolean includeRuntimeModel;
+
     public void execute() throws MojoExecutionException {
         if (requiresBuild()) {
             File codeGen = new File(project.getBasedir(), "gen/code_generation");
@@ -34,6 +37,9 @@ public class PyxtumlPreBuildMojo extends AbstractPreBuildMojo {
             cmd.add("bridgepoint.prebuild");
             cmd.add("-o");
             cmd.add(outputFile.getAbsolutePath());
+            if (includeRuntimeModel) {
+                cmd.add(getRuntimeJar());
+            }
             for (String modelDir : modelDirs) {
                 cmd.add(modelDir);
             }
@@ -67,6 +73,10 @@ public class PyxtumlPreBuildMojo extends AbstractPreBuildMojo {
         else {
             getLog().info("Pre-build output up to date.");
         }
+    }
+
+    private String getRuntimeJar() {
+        return io.ciera.runtime.Version.class.getProtectionDomain().getCodeSource().getLocation().getPath();
     }
 
 }
