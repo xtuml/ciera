@@ -8,6 +8,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -23,10 +24,23 @@ public class PyxtumlPreBuildMojo extends AbstractPreBuildMojo {
     @Parameter
     private String[] modelDirs;
 
-    @Parameter(defaultValue="false")
+    @Parameter(defaultValue="true")
     private boolean includeRuntimeModel;
 
+    @Parameter(defaultValue="true")
+    private boolean includeLocalModel;
+
     public void execute() throws MojoExecutionException {
+        List<String> resources = new ArrayList<>();
+        if (includeRuntimeModel) {
+            resources.add(getRuntimeJar());
+        }
+        if (includeLocalModel) {
+            resources.add(new File(project.getBasedir(), "models").getPath());
+        }
+        if (null != modelDirs) {
+            resources.addAll(Arrays.asList(modelDirs));
+        }
         if (requiresBuild()) {
             File codeGen = new File(project.getBasedir(), "gen/code_generation");
             File outputFile = new File(codeGen, projectName + ".sql");
@@ -37,15 +51,9 @@ public class PyxtumlPreBuildMojo extends AbstractPreBuildMojo {
             cmd.add("bridgepoint.prebuild");
             cmd.add("-o");
             cmd.add(outputFile.getAbsolutePath());
-            if (includeRuntimeModel) {
-                cmd.add(getRuntimeJar());
-            }
-            for (String modelDir : modelDirs) {
-                cmd.add(modelDir);
-            }
+            cmd.addAll(resources);
             ProcessBuilder pb = new ProcessBuilder(cmd).redirectOutput(Redirect.PIPE).redirectError(Redirect.PIPE);
             getLog().info("Performing pyxtuml pre-build...");
-            getLog().info("");
             printCommand(pb);
             try {
                 long startTime = System.currentTimeMillis();
@@ -64,7 +72,6 @@ public class PyxtumlPreBuildMojo extends AbstractPreBuildMojo {
                 int mins = duration / 60000;
                 int secs = (duration % 60000) / 1000;
                 int msecs = duration % 1000;
-                getLog().info("");
                 getLog().info(String.format("Pre-build duration: %d:%d.%03d", mins, secs, msecs));
             } catch (IOException e) {
                 getLog().error("Problem executing pre-builder:", e);

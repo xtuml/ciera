@@ -20,7 +20,7 @@ public abstract class AbstractPreBuildMojo extends AbstractMojo {
     protected MavenProject project;
 
     protected void printCommand(ProcessBuilder pb) {
-        getLog().info(String.join(" ", pb.command().toArray(new String[0])));
+        getLog().debug(String.join(" ", pb.command().toArray(new String[0])));
     }
 
     protected boolean requiresBuild() {
