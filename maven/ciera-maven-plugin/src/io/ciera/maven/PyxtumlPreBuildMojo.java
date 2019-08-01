@@ -1,17 +1,23 @@
 package io.ciera.maven;
 
+import org.apache.maven.artifact.Artifact;
+import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.plugin.MojoExecutionException;
-
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Scanner;
+import java.util.zip.ZipFile;
+import java.util.zip.ZipEntry;
 
 import java.lang.ProcessBuilder.Redirect;
 
@@ -21,19 +27,22 @@ import java.lang.ProcessBuilder.Redirect;
 @Mojo(name="pyxtuml-pre-build", defaultPhase=LifecyclePhase.GENERATE_SOURCES)
 public class PyxtumlPreBuildMojo extends AbstractPreBuildMojo {
 
+    @Parameter(defaultValue = "${localRepository}", readonly = true, required = true)
+    private ArtifactRepository localRepository;
+
     @Parameter
     private String[] modelDirs;
 
     @Parameter(defaultValue="true")
-    private boolean includeRuntimeModel;
+    private boolean includeDependencyModels;
 
     @Parameter(defaultValue="true")
     private boolean includeLocalModel;
 
     public void execute() throws MojoExecutionException {
         List<String> resources = new ArrayList<>();
-        if (includeRuntimeModel) {
-            resources.add(getRuntimeJar());
+        if (includeDependencyModels) {
+            resources.addAll(getDependencyModels());
         }
         if (includeLocalModel) {
             resources.add(new File(project.getBasedir(), "models").getPath());
@@ -82,8 +91,26 @@ public class PyxtumlPreBuildMojo extends AbstractPreBuildMojo {
         }
     }
 
-    private String getRuntimeJar() {
-        return io.ciera.runtime.Version.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+    private List<String> getDependencyModels() {
+        List<String> dependencyModels = new ArrayList<>();
+        for (Artifact artifact : project.getDependencyArtifacts()) {
+            Path artifactPath = Paths.get(localRepository.getBasedir(), localRepository.pathOf(artifact));
+            ZipFile zipfile = null;
+            try {
+                zipfile = new ZipFile(artifactPath.toFile());
+            } catch (IOException e) { /* do nothing */ }
+            if (null != zipfile) {
+                Enumeration<? extends ZipEntry> entries = zipfile.entries();
+                while (entries.hasMoreElements()) {
+                    ZipEntry entry = entries.nextElement();
+                    if (entry.getName().endsWith(".xtuml")) {
+                        dependencyModels.add(artifactPath.toString());
+                        break;
+                    }
+                }
+            }
+        }
+        return dependencyModels;
     }
 
 }
