@@ -39,6 +39,9 @@ public class PyxtumlPreBuildMojo extends AbstractPreBuildMojo {
     @Parameter(defaultValue="true")
     private boolean includeLocalModel;
 
+    @Parameter(defaultValue="python")
+    private String pythonExecutable;
+
     public void execute() throws MojoExecutionException {
         List<String> resources = new ArrayList<>();
         if (includeDependencyModels) {
@@ -55,7 +58,7 @@ public class PyxtumlPreBuildMojo extends AbstractPreBuildMojo {
             File outputFile = new File(codeGen, projectName + ".sql");
             codeGen.mkdirs();
             List<String> cmd = new ArrayList<>();
-            cmd.add("python");
+            cmd.add(pythonExecutable);
             cmd.add("-m");
             cmd.add("bridgepoint.prebuild");
             cmd.add("-o");
