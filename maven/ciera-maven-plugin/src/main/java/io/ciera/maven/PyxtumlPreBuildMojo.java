@@ -54,15 +54,13 @@ public class PyxtumlPreBuildMojo extends AbstractPreBuildMojo {
             resources.addAll(Arrays.asList(modelDirs));
         }
         if (requiresBuild()) {
-            File codeGen = new File(project.getBasedir(), "gen/code_generation");
-            File outputFile = new File(codeGen, projectName + ".sql");
-            codeGen.mkdirs();
+            new File(project.getBuild().getDirectory()).mkdirs();
             List<String> cmd = new ArrayList<>();
             cmd.add(pythonExecutable);
             cmd.add("-m");
             cmd.add("bridgepoint.prebuild");
             cmd.add("-o");
-            cmd.add(outputFile.getAbsolutePath());
+            cmd.add(outputFile);
             cmd.addAll(resources);
             ProcessBuilder pb = new ProcessBuilder(cmd).redirectOutput(Redirect.PIPE).redirectError(Redirect.PIPE);
             getLog().info("Performing pyxtuml pre-build...");

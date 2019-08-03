@@ -19,16 +19,18 @@ public abstract class AbstractPreBuildMojo extends AbstractMojo {
     @Parameter(readonly=true, defaultValue="${project}")
     protected MavenProject project;
 
+    @Parameter(defaultValue="${project.build.directory}/${project.name}.sql")
+    protected String outputFile;
+
     protected void printCommand(ProcessBuilder pb) {
         getLog().debug(String.join(" ", pb.command().toArray(new String[0])));
     }
 
     protected boolean requiresBuild() {
-        File outputFile = new File(project.getBasedir() + File.separator + "gen/code_generation" + File.separator + project.getName() + ".sql");
-        if (!outputFile.exists()) return true;
+        File outFile = new File(outputFile);
+        if (!outFile.exists()) return true;
         else {
-            File modelsDir = new File(project.getBasedir() + File.separator + "models");
-            return fileIsNewer(outputFile, modelsDir);
+            return fileIsNewer(outFile, new File(project.getBasedir(), "models"));
         }
     }
 

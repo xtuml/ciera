@@ -1,10 +1,16 @@
 package io.ciera.maven;
 
-import org.apache.maven.plugin.AbstractMojo;
-
-import org.apache.maven.project.MavenProject;
+import io.ciera.runtime.summit.application.IApplication;
 
 import java.io.File;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.maven.plugin.AbstractMojo;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.project.MavenProject;
 
 import org.sonatype.plexus.build.incremental.BuildContext;
 
@@ -13,22 +19,57 @@ public abstract class AbstractCieraMojo extends AbstractMojo {
     /** @component */
     private BuildContext buildContext;
 
+    @Parameter(defaultValue="${project.build.directory}/${project.name}.sql")
+    protected String input;
+
+    @Parameter(defaultValue="")
+    protected String output;
+
+    @Parameter(defaultValue="${project.build.directory}/generated-sources/java")
+    protected String genDir;
+
+    @Parameter(readonly=true, defaultValue="${project}")
+    protected MavenProject project;
+
+    public void execute() throws MojoExecutionException {
+        String inFile = null == input ? "" : project.getBasedir().toURI().relativize(new File(input).toURI()).getPath();
+        String outFile = null == output ? "" : project.getBasedir().toURI().relativize(new File(output).toURI()).getPath();
+        String genDirPath = project.getBasedir().toURI().relativize(new File(genDir).toURI()).getPath();
+        IApplication compiler = getTool();
+        List<String> args = new ArrayList<>();
+        args.add("-i");
+        args.add(inFile);
+        args.add("-o");
+        args.add(outFile);
+        args.add("--cwd");
+        args.add(project.getBasedir().getPath());
+        args.add("--gendir");
+        args.add(genDirPath);
+        args.addAll(getAdditionalArguments());
+        compiler.setup(args.toArray(new String[0]), new CieraMavenLogger(getLog()));
+        compiler.initialize();
+        compiler.start();
+        copyCustomCode();
+        addSrcGen();
+        refreshFiles();
+    }
+
+
     public void refreshFiles() {
         if (null != buildContext) {
-            File srcGen = new File(getProject().getBasedir(), "src-gen");
-            buildContext.refresh(srcGen);
+            buildContext.refresh(new File(genDir));
         }
     }
 
     public void addSrcGen() {
-        File srcGen = new File(getProject().getBasedir(), "src-gen");
+        File srcGen = new File(genDir);
         if (srcGen.exists()) {
-            getProject().addCompileSourceRoot(srcGen.getAbsolutePath());
+            project.addCompileSourceRoot(srcGen.getAbsolutePath());
         }
     }
 
     public void copyCustomCode() {
-        copyCustomCode(new File(getProject().getBasedir(), "src"), "");
+        copyCustomCode(new File(project.getBuild().getSourceDirectory()), "");
     }
 
     private void copyCustomCode(File dir, String path) {
@@ -39,8 +80,8 @@ public abstract class AbstractCieraMojo extends AbstractMojo {
                 }
             }
             else {
-                File genFile = new File(getProject().getBasedir(), "src-gen" + File.separator + path);
-                File genFileOrig = new File(getProject().getBasedir(), "src-gen" + File.separator + path + ".orig");
+                File genFile = Paths.get(genDir, path).toFile();
+                File genFileOrig = Paths.get(genDir, path + ".orig").toFile();
                 if (genFile.exists() && !genFile.isDirectory()) {
                     genFile.renameTo(genFileOrig);
                 }
@@ -48,6 +89,10 @@ public abstract class AbstractCieraMojo extends AbstractMojo {
         }
     }
 
-    public abstract MavenProject getProject();
+    protected List<String> getAdditionalArguments() {
+        return new ArrayList<>();
+    }
+
+    protected abstract IApplication getTool();
 
 }
