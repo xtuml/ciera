@@ -550,9 +550,16 @@ for each invocable in invocables
         expr.expression_number = template_invocation.expression_number + "." + STRING::itoa(i:subexpr_num);
         select one type related by current_var->TypeReference[R461];
         relate type to expr across R795;
-        create object instance var_ref of VariableReference;
-        relate current_var to var_ref across R782;
-        relate var_ref to expr across R776;
+        if ("self" == TEMP::sub(format:"l", s:current_var.name)) // reference to self
+          // create named reference
+          create object instance self_ref of NamedReference;
+          relate self_ref to expr across R776;
+          self_ref.name = "self()";
+        else
+          create object instance var_ref of VariableReference;
+          relate current_var to var_ref across R782;
+          relate var_ref to expr across R776;
+        end if;
         // create actual parameter
         create object instance act_parm of ActualParameter;
         relate act_parm to expr across R794;
