@@ -12,16 +12,16 @@ import io.ciera.runtime.summit.components.IComponent;
 import io.ciera.runtime.summit.exceptions.XtumlException;
 import io.ciera.runtime.summit.util.Utility;
 import io.ciera.runtime.template.util.ITemplateRegistry;
-import io.ciera.runtime.template.util.TEMP;
+import io.ciera.runtime.template.util.T;
 
-public class TEMPImpl<C extends IComponent<C>> extends Utility<C> implements TEMP {
+public class TImpl<C extends IComponent<C>> extends Utility<C> implements T {
 
     private Stack<List<String>> buffers;
     private ITemplateRegistry registry;
 
     private String rootDir;
 
-    public TEMPImpl(C context) {
+    public TImpl(C context) {
         super(context);
         rootDir = ".";
         buffers = new Stack<>();

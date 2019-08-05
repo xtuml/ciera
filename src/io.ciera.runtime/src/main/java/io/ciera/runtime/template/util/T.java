@@ -3,7 +3,7 @@ package io.ciera.runtime.template.util;
 import io.ciera.runtime.summit.exceptions.XtumlException;
 import io.ciera.runtime.summit.types.IXtumlType;
 
-public interface TEMP {
+public interface T {
 
     public void append(String s) throws XtumlException;
 
