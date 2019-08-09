@@ -25,8 +25,8 @@ while ( not_empty attribute )
   index = index + 1;
   select any attribute related by self->Attribute[R410] where ( index == selected.order);
 end while;
-attribute_initializers = TEMP::body();
-TEMP::clear();
+attribute_initializers = T::body();
+T::clear();
 
 attribute_list = "";
 attribute_invocation_list = "";
@@ -70,27 +70,27 @@ while ( not_empty attribute )
   index = index + 1;
   select any attribute related by self->Attribute[R410] where ( index == selected.order);
 end while;
-attributes = TEMP::body();
-TEMP::clear();
+attributes = T::body();
+T::clear();
 
 select many class_ops related by self->Operation[R416] where ( selected.is_class_based );
 if ( not_empty class_ops )
   for each operation in class_ops
     operation.render();
   end for;
-  operations = TEMP::body();
-  TEMP::clear();
-  TEMP::include( file:"class/t.operations.static.java", symbol_table:NULL_SYMBOL_TABLE );
+  operations = T::body();
+  T::clear();
+  T::include(file:"class/t.operations.static.java");
 end if;
-static_operations = TEMP::body();
-TEMP::clear();
+static_operations = T::body();
+T::clear();
 
 select many inst_ops related by self->Operation[R416] where ( not selected.is_class_based );
 for each operation in inst_ops
   operation.render();
 end for;
-operations = TEMP::body();
-TEMP::clear();
+operations = T::body();
+T::clear();
 
 initial_state = "";
 initial_state2 = "";
@@ -104,16 +104,16 @@ if ( not_empty sm )
   state_machine_initializer = "        statemachine = new " + sm.name + "(this, context());\n";
   state_machine_initializer2 = "        statemachine = new " + sm.name + "(this, context(), initialState);\n";
   sm.render_decl();
-  state_machine_decl = TEMP::body();
-  TEMP::clear();
+  state_machine_decl = T::body();
+  T::clear();
 end if;
 
 select many evts related by sm->Event[R4752];
 for each evt in evts
   evt.render();
 end for;
-state_machine_events = TEMP::body();
-TEMP::clear();
+state_machine_events = T::body();
+T::clear();
 
 select many selects related by self->InstanceSelector[R442];
 relationship_initializers = "";
@@ -123,11 +123,11 @@ for each selector in selects
   if ( sel.multiplicity == Mult::MANY )
     relationship_initializers = relationship_initializers + "        " + selector.name + "_set = new " + sel.type_reference_name + "Impl();\n";
   else
-    relationship_initializers = relationship_initializers + "        " + selector.name + "_inst = " + sel.type_reference_name + "Impl.EMPTY_" + TEMP::sub( format:"u_", s:sel.type_reference_name ) + ";\n";
+    relationship_initializers = relationship_initializers + "        " + selector.name + "_inst = " + sel.type_reference_name + "Impl.EMPTY_" + T::sub( format:"u_", s:sel.type_reference_name ) + ";\n";
   end if;
 end for;
-selectors = TEMP::body();
-TEMP::clear();
+selectors = T::body();
+T::clear();
 
 index = 0;
 select any attribute related by self->Attribute[R410] where ( index == selected.order);
@@ -139,24 +139,24 @@ while ( not_empty attribute )
   index = index + 1;
   select any attribute related by self->Attribute[R410] where ( index == selected.order);
 end while;
-empty_attributes = TEMP::body();
-TEMP::clear();
+empty_attributes = T::body();
+T::clear();
 
 for each operation in inst_ops
   operation.render_empty();
 end for;
-empty_operations = TEMP::body();
-TEMP::clear();
+empty_operations = T::body();
+T::clear();
 
 for each selector in selects
   selector.render_empty();
 end for;
-empty_selectors = TEMP::body();
-TEMP::clear();
+empty_selectors = T::body();
+T::clear();
 
-TEMP::include( file:"class/t.class.impl.java", symbol_table:NULL_SYMBOL_TABLE );
-TEMP::emit( file:file.path + "/impl/" + self.name + "Impl" + file.extension );
-TEMP::clear();
+T::include(file:"class/t.class.impl.java");
+T::emit( file:file.path + "/impl/" + self.name + "Impl" + file.extension );
+T::clear();
 
 imports = file.getFormattedImports( type:ImportType::INT );
 
@@ -170,24 +170,24 @@ while ( not_empty attribute )
   index = index + 1;
   select any attribute related by self->Attribute[R410] where ( index == selected.order);
 end while;
-attributes = TEMP::body();
-TEMP::clear();
+attributes = T::body();
+T::clear();
 
 for each operation in inst_ops
   operation.render_interface();
 end for;
-operations = TEMP::body();
-TEMP::clear();
+operations = T::body();
+T::clear();
 
 for each selector in selects
   selector.render_interface();
 end for;
-selectors = TEMP::body();
-TEMP::clear();
+selectors = T::body();
+T::clear();
 
-TEMP::include( file:"class/t.class.java", symbol_table:NULL_SYMBOL_TABLE );
-TEMP::emit( file:file.path + "/" + self.name + file.extension );
-TEMP::clear();',
+T::include(file:"class/t.class.java");
+T::emit( file:file.path + "/" + self.name + file.extension );
+T::clear();',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",

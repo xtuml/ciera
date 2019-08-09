@@ -26,19 +26,19 @@ select many event_serializers related by self->Z_InstanceSerializer[R3001]->Even
 for each event_serializer in event_serializers
   event_serializer.render();
 end for;
-instance_serializers = TEMP::body();
-TEMP::clear();
+instance_serializers = T::body();
+T::clear();
 
 select many inst_serializers related by self->Z_InstanceSerializer[R3001];
 for each inst_serializer in inst_serializers
   inst_serializer.render_def();
 end for;
-instance_serializer_definitions = TEMP::body();
+instance_serializer_definitions = T::body();
 
 for each inst_serializer in inst_serializers
   inst_serializer.render_init();
 end for;
-instance_serializer_initializers = TEMP::body();
+instance_serializer_initializers = T::body();
 
 select many class_inst_loaders related by self->Z_InstanceLoader[R3005]->ClassInstanceLoader[R3016]->Z_InstanceLoader[R3016];
 for each class_inst_loader in class_inst_loaders
@@ -52,15 +52,15 @@ select many event_loaders related by self->Z_InstanceLoader[R3005]->EventInstanc
 for each event_loader in event_loaders
   event_loader.render();
 end for;
-instance_loaders = TEMP::body();
-TEMP::clear();
+instance_loaders = T::body();
+T::clear();
 
 select many batch_relates related by self->Z_BatchRelator[R3011];
 for each batch_relator in batch_relates
   batch_relator.render();
 end for;
-batch_relator_definitions = TEMP::body();
-TEMP::clear();
+batch_relator_definitions = T::body();
+T::clear();
 
 batch_relators = "";
 relate_count = "";
@@ -90,9 +90,9 @@ select one general_file related by self->GeneralFile[R3009];
 select one file related by general_file->File[R401];
 imports = file.getFormattedImports( type:ImportType::IMPL );
 
-TEMP::include( file:"loader/t.populationloader.java", symbol_table:NULL_SYMBOL_TABLE );
-general_file.contents = TEMP::body();
-TEMP::clear();
+T::include(file:"loader/t.populationloader.java");
+general_file.contents = T::body();
+T::clear();
 file.render();',
 	1,
 	'',

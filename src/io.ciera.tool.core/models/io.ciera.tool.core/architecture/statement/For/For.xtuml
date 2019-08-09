@@ -14,7 +14,7 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'TEMP::push_buffer();
+	'T::push_buffer();
 
 select one smt related by self->Statement[R451];
 oal = smt.oal;
@@ -25,13 +25,13 @@ iterator_type = iter_type.type_reference_name;
 
 select one iterable_expression related by self->Expression[R478];
 iterable_expression.render();
-iterable_expr = TEMP::body();
-TEMP::clear();
+iterable_expr = T::body();
+T::clear();
 
 select one control_blk related by self->CodeBlock[R455];
 control_blk.render();
-control_block = TEMP::body();
-TEMP::clear();
+control_block = T::body();
+T::clear();
 
 select one enclosing_block related by smt->CodeBlock[R450];
 indent = ::getIndent( tab_depth:enclosing_block.tab_depth + 1 );
@@ -42,8 +42,8 @@ if ( declaration_smt.statement_number == self.statement_number and declaration_s
   prefix = prefix + indent + var_type.type_reference_name + " " + self.iterator_name + ";\n";
 end if;
 
-TEMP::pop_buffer();
-TEMP::include( file:"statement/t.for.java", symbol_table:NULL_SYMBOL_TABLE );',
+T::pop_buffer();
+T::include(file:"statement/t.for.java");',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",
@@ -59,9 +59,9 @@ INSERT INTO O_TFR
 select one enclosing_block related by self->Statement[R451]->CodeBlock[R450];
 indent = ::getIndent( tab_depth:enclosing_block.tab_depth + 2 );
 select one control_blk related by self->CodeBlock[R455];
-TEMP::include( file:"statement/t.for.iter.java", symbol_table:NULL_SYMBOL_TABLE );
-control_blk.prefix = TEMP::body();
-TEMP::clear();',
+T::include(file:"statement/t.for.iter.java");
+control_blk.prefix = T::body();
+T::clear();',
 	1,
 	'',
 	"04d3a1a3-70ed-4969-bbd6-c2c773b8d082",

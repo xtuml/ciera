@@ -131,7 +131,7 @@ relate type to expr across R795;
 // create literal
 create object instance lit of Literal;
 relate lit to expr across R776;
-if ( "true" == TEMP::sub( format:"l", s:v_lbo.Value ) )
+if ( "true" == T::sub( format:"l", s:v_lbo.Value ) )
   lit.value = "true";
 else
   lit.value = "false";
@@ -340,7 +340,7 @@ relate type to expr across R795;
 create object instance enum_ref of EnumeratorReference;
 relate enum_ref to expr across R776;
 select one s_enum related by v_len->S_ENUM[R824];
-select any enumer related by s_enum->S_EDT[R27]->S_DT[R17]->Type[R423]->EnumeratedType[R407]->Enumerator[R415] where ( selected.name == TEMP::sub( format:"u", s:s_enum.Name ) );
+select any enumer related by s_enum->S_EDT[R27]->S_DT[R17]->Type[R423]->EnumeratedType[R407]->Enumerator[R415] where ( selected.name == T::sub( format:"u", s:s_enum.Name ) );
 if ( not_empty enumer )
   select one edt_file related by enumer->EnumeratedType[R415]->File[R401];
   ::addFileToImports( file: ::getFileForStatement( smt:smt ), file_to_import:edt_file, type:ImportType::IMPL );
@@ -493,7 +493,7 @@ relate type to expr across R795;
 
 // if this is the first location, create a new variable
 select one v_var related by v_irf->V_VAR[R808];
-if ( "self" == TEMP::sub( format:"l", s:v_var.Name ) ) // reference to self
+if ( "self" == T::sub( format:"l", s:v_var.Name ) ) // reference to self
   // create named reference
   create object instance self_ref of NamedReference;
   relate self_ref to expr across R776;
@@ -1219,7 +1219,7 @@ relate type to expr across R795;
 create object instance unary of UnaryOperation;
 relate unary to expr across R776;
 select one op_val related by v_uny->V_VAL[R804];
-if ( "not_empty" == TEMP::sub( format:"l", s:v_uny.Operator ) ) // create an additional ''not'' expression before transforming an ''empty'' expression
+if ( "not_empty" == T::sub( format:"l", s:v_uny.Operator ) ) // create an additional ''not'' expression before transforming an ''empty'' expression
   unary.operator = "!";
   unary.invocation = false;
   // create ''empty'' expression
@@ -1238,16 +1238,16 @@ if ( "not_empty" == TEMP::sub( format:"l", s:v_uny.Operator ) ) // create an add
   select any op_expr related by smt->Expression[R775] where ( selected.expression_number == expr2.expression_number + ".1" );
   relate op_expr to unary2 across R777;
 else
-  if ( "not" == TEMP::sub( format:"l", s:v_uny.Operator ) )
+  if ( "not" == T::sub( format:"l", s:v_uny.Operator ) )
     unary.operator = "!";
     unary.invocation = false;
-  elif ( "empty" == TEMP::sub( format:"l", s:v_uny.Operator ) )
+  elif ( "empty" == T::sub( format:"l", s:v_uny.Operator ) )
     unary.operator = "isEmpty";
     unary.invocation = true;
-  elif ( "cardinality" == TEMP::sub( format:"l", s:v_uny.Operator ) )
+  elif ( "cardinality" == T::sub( format:"l", s:v_uny.Operator ) )
     unary.operator = "size";
     unary.invocation = true;
-  elif ( ( "+" == TEMP::sub( format:"l", s:v_uny.Operator ) ) or ( "-" == TEMP::sub( format:"l", s:v_uny.Operator ) ) )
+  elif ( ( "+" == T::sub( format:"l", s:v_uny.Operator ) ) or ( "-" == T::sub( format:"l", s:v_uny.Operator ) ) )
     unary.operator = v_uny.Operator;
     unary.invocation = false;
   else
@@ -1336,21 +1336,21 @@ select one l_set related by l_type->ClassSet[R407];
 // translate the operator
 binary.invocation = false;
 binary.util = false;
-if ( "and" == TEMP::sub( format:"l", s:v_bin.Operator ) )
+if ( "and" == T::sub( format:"l", s:v_bin.Operator ) )
   if ( l_type.primitive() )
     binary.operator = "&&";
   else
     binary.operator = "and";
     binary.invocation = true;
   end if;
-elif ( "or" == TEMP::sub( format:"l", s:v_bin.Operator ) )
+elif ( "or" == T::sub( format:"l", s:v_bin.Operator ) )
   if ( l_type.primitive() )
     binary.operator = "||";
   else
     binary.operator = "or";
     binary.invocation = true;
   end if;
-elif ( "==" == TEMP::sub( format:"l", s:v_bin.Operator ) )
+elif ( "==" == T::sub( format:"l", s:v_bin.Operator ) )
   if ( l_type.primitive() )
     binary.operator = "==";
   else
@@ -1364,7 +1364,7 @@ elif ( "==" == TEMP::sub( format:"l", s:v_bin.Operator ) )
       binary.invocation = true;
     end if;
   end if;
-elif ( "!=" == TEMP::sub( format:"l", s:v_bin.Operator ) )
+elif ( "!=" == T::sub( format:"l", s:v_bin.Operator ) )
   if ( l_type.primitive() )
     binary.operator = "!=";
   else
@@ -1378,7 +1378,7 @@ elif ( "!=" == TEMP::sub( format:"l", s:v_bin.Operator ) )
       binary.invocation = true;
     end if;
   end if;
-elif ( "<" == TEMP::sub( format:"l", s:v_bin.Operator ) )
+elif ( "<" == T::sub( format:"l", s:v_bin.Operator ) )
   if ( l_type.primitive() )
     binary.operator = "<";
   else
@@ -1392,7 +1392,7 @@ elif ( "<" == TEMP::sub( format:"l", s:v_bin.Operator ) )
       binary.invocation = true;
     end if;
   end if;
-elif ( "<=" == TEMP::sub( format:"l", s:v_bin.Operator ) )
+elif ( "<=" == T::sub( format:"l", s:v_bin.Operator ) )
   if ( l_type.primitive() )
     binary.operator = "<=";
   else
@@ -1406,7 +1406,7 @@ elif ( "<=" == TEMP::sub( format:"l", s:v_bin.Operator ) )
       binary.invocation = true;
     end if;
   end if;
-elif ( ">" == TEMP::sub( format:"l", s:v_bin.Operator ) )
+elif ( ">" == T::sub( format:"l", s:v_bin.Operator ) )
   if ( l_type.primitive() )
     binary.operator = ">";
   else
@@ -1420,7 +1420,7 @@ elif ( ">" == TEMP::sub( format:"l", s:v_bin.Operator ) )
       binary.invocation = true;
     end if;
   end if;
-elif ( ">=" == TEMP::sub( format:"l", s:v_bin.Operator ) )
+elif ( ">=" == T::sub( format:"l", s:v_bin.Operator ) )
   if ( l_type.primitive() )
     binary.operator = ">=";
   else
@@ -1434,7 +1434,7 @@ elif ( ">=" == TEMP::sub( format:"l", s:v_bin.Operator ) )
       binary.invocation = true;
     end if;
   end if;
-elif ( "+" == TEMP::sub( format:"l", s:v_bin.Operator ) )
+elif ( "+" == T::sub( format:"l", s:v_bin.Operator ) )
   if ( l_type.primitive() )
     binary.operator = "+";
   else
@@ -1449,7 +1449,7 @@ elif ( "+" == TEMP::sub( format:"l", s:v_bin.Operator ) )
       binary.invocation = true;
     end if;
   end if;
-elif ( "-" == TEMP::sub( format:"l", s:v_bin.Operator ) )
+elif ( "-" == T::sub( format:"l", s:v_bin.Operator ) )
   if ( l_type.primitive() )
     binary.operator = "-";
   else
@@ -1460,34 +1460,34 @@ elif ( "-" == TEMP::sub( format:"l", s:v_bin.Operator ) )
     end if;
     binary.invocation = true;
   end if;
-elif ( "*" == TEMP::sub( format:"l", s:v_bin.Operator ) )
+elif ( "*" == T::sub( format:"l", s:v_bin.Operator ) )
   if ( l_type.primitive() )
     binary.operator = "*";
   else
     binary.operator = "multiply";
     binary.invocation = true;
   end if;
-elif ( "/" == TEMP::sub( format:"l", s:v_bin.Operator ) )
+elif ( "/" == T::sub( format:"l", s:v_bin.Operator ) )
   if ( l_type.primitive() )
     binary.operator = "/";
   else
     binary.operator = "divide";
     binary.invocation = true;
   end if;
-elif ( "%" == TEMP::sub( format:"l", s:v_bin.Operator ) )
+elif ( "%" == T::sub( format:"l", s:v_bin.Operator ) )
   if ( l_type.primitive() )
     binary.operator = "%";
   else
     binary.operator = "remainder";
     binary.invocation = true;
   end if;
-elif ( "|" == TEMP::sub( format:"l", s:v_bin.Operator ) )
+elif ( "|" == T::sub( format:"l", s:v_bin.Operator ) )
   binary.operator = "union";
   binary.invocation = true;
-elif ( "&" == TEMP::sub( format:"l", s:v_bin.Operator ) )
+elif ( "&" == T::sub( format:"l", s:v_bin.Operator ) )
   binary.operator = "intersection";
   binary.invocation = true;
-elif ( "^" == TEMP::sub( format:"l", s:v_bin.Operator ) )
+elif ( "^" == T::sub( format:"l", s:v_bin.Operator ) )
   binary.operator = "disunion";
   binary.invocation = true;
 end if;

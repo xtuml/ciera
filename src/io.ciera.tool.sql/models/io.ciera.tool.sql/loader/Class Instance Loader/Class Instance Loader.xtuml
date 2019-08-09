@@ -14,7 +14,7 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'TEMP::push_buffer();
+	'T::push_buffer();
 
 select any attr_loader related by self->Z_InstanceLoader[R3016]->Z_AttributeLoader[R3006];
 select one prev_attr_loader related by attr_loader->Z_AttributeLoader[R3007.''follows''];
@@ -24,13 +24,13 @@ while ( not_empty prev_attr_loader )
 end while;
 sep = "";
 while ( not_empty attr_loader )
-  TEMP::append( s:sep );
+  T::append( s:sep );
   attr_loader.render();
   sep = ", ";
   select one attr_loader related by attr_loader->Z_AttributeLoader[R3007.''precedes''];
 end while;
-attribute_loaders = TEMP::body();
-TEMP::clear();
+attribute_loaders = T::body();
+T::clear();
 
 select any non_persistent_instance_ids_mark from instances of Mark where ( selected.markable_name == "*" and selected.path == "*" and
                                                                            selected.feature_name == "NonPersistentInstanceIds" );
@@ -39,8 +39,8 @@ if ( not_empty non_persistent_instance_ids_mark )
   attribute_loaders = "UniqueId.random(), " + attribute_loaders;
 end if;
 
-TEMP::pop_buffer();
-TEMP::include( file:"loader/t.classinstanceloader.java", symbol_table:NULL_SYMBOL_TABLE );',
+T::pop_buffer();
+T::include(file:"loader/t.classinstanceloader.java");',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",

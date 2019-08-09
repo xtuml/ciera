@@ -883,7 +883,7 @@ relate eas to smt across R451;
 // that is never read in the body, simply execute the invocation. OAL has
 // a limitation in that you cannot invoke bodies that return a value without
 // assigning the value to something (even if you do not intend to use it).
-// If there is an invocation of TEMP::include anywhere in the body, bail because
+// If there is an invocation of T::include anywhere in the body, bail because
 // the variable might be referenced in the template.
 select one l_val related by act_ai->V_VAL[R689];
 select one r_val related by act_ai->V_VAL[R609];
@@ -1269,7 +1269,7 @@ select one type related by l_op->TypeReference[R795]->Type[R3800];
 // create right operand
 select one where_clause_val related by act_fiw->V_VAL[R610];
 select one where_clause_lbo related by where_clause_val->V_LBO[R801];
-if ( not_empty where_clause_lbo and ( "false" == TEMP::sub( format:"l", s:where_clause_lbo.Value ) ) ) // special case where the where clause is ''false''
+if ( not_empty where_clause_lbo and ( "false" == T::sub( format:"l", s:where_clause_lbo.Value ) ) ) // special case where the where clause is ''false''
   create object instance r_op of Expression;
   relate r_op to smt across R775;
   r_op.expression_number = "1.2";
@@ -1423,7 +1423,7 @@ select one type related by l_op->TypeReference[R795]->Type[R3800];
 // create right operand
 select one where_clause_val related by act_sel->ACT_SRW[R664]->V_VAL[R611];
 select one where_clause_lbo related by where_clause_val->V_LBO[R801];
-if ( not_empty where_clause_lbo and ( "false" == TEMP::sub( format:"l", s:where_clause_lbo.Value ) ) ) // special case where the where clause is ''false''
+if ( not_empty where_clause_lbo and ( "false" == T::sub( format:"l", s:where_clause_lbo.Value ) ) ) // special case where the where clause is ''false''
   create object instance r_op of Expression;
   relate r_op to smt across R775;
   r_op.expression_number = "1.2";
@@ -3782,7 +3782,7 @@ if ( "" == phrase ) // if the phrase is not included, may need to get the phrase
 end if;
 selector_name = "R" + STRING::itoa( i:r_rel.Numb ) + "_";
 if ( "" != phrase )
-  selector_name = selector_name + TEMP::sub( format:"_", s:phrase ) + "_";
+  selector_name = selector_name + T::sub( format:"_", s:phrase ) + "_";
 end if;
 selector_name = selector_name + target_class.name;
 select any selector related by base_class->InstanceSelector[R442]->Selector[R445] where ( selected.name == selector_name );
@@ -3934,10 +3934,10 @@ for each array_var in array_vars
     end for;
     select one var_type related by array_var->TypeReference[R461];
     select one array_index related by earliest_array_ref->Expression[R3901];;
-    TEMP::push_buffer();
+    T::push_buffer();
     array_index.render();
-    smt.prefix = smt.prefix + indent + var_type.type_reference_name + " " + array_var.name + " = new " + var_type.type_name + "[" + TEMP::body() + "+1];\n";
-    TEMP::pop_buffer();
+    smt.prefix = smt.prefix + indent + var_type.type_reference_name + " " + array_var.name + " = new " + var_type.type_name + "[" + T::body() + "+1];\n";
+    T::pop_buffer();
     // no longer need to mark the first reference as a declaration
     select many var_refs related by array_var->VariableReference[R782] where ( selected.block_number == smt.block_number and selected.statement_number == smt.statement_number );
     for each var_ref in var_refs
@@ -4356,7 +4356,7 @@ for each subtype_invocable in subtype_invocables
   // create new variable
   create object instance select_var of Variable;
   relate select_var to smt across R457;
-  select_var.name = TEMP::sub(format:"l", s:select_class.name);
+  select_var.name = T::sub(format:"l", s:select_class.name);
   // link in scope
   select one block related by smt->CodeBlock[R450];
   create object instance var_in_scope of VariableInScope;

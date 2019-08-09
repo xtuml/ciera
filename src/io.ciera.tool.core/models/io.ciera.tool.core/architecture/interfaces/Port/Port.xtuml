@@ -24,8 +24,8 @@ select many inbound_port_msgs related by inbound_msgs->PortMessage[R420] where (
 for each port_msg in inbound_port_msgs
   port_msg.render();
 end for;
-inbound_message_block = TEMP::body();
-TEMP::clear();
+inbound_message_block = T::body();
+T::clear();
 
 // render outbound messages
 select many outbound_msgs related by self->Interface[R418]->Message[R419] where ( ( selected.to_provider and not self.provider ) or
@@ -34,15 +34,15 @@ select many outbound_port_msgs related by outbound_msgs->PortMessage[R420] where
 for each port_msg in outbound_port_msgs
   port_msg.render();
 end for;
-outbound_message_block = TEMP::body();
-TEMP::clear();
+outbound_message_block = T::body();
+T::clear();
 
 // render switch block
 for each msg in inbound_port_msgs
   msg.render_deliver();
 end for;
-message_switch_block = TEMP::body();
-TEMP::clear();
+message_switch_block = T::body();
+T::clear();
 
 // render extra parameters
 extra_parameters = "";
@@ -54,14 +54,14 @@ if ( "HttpPort" == self.base_class )
                                                                selected.path == ::containerMarkingPath( pe:pe ) + "::" + c_c.Name + "::" + c_po.Name and
                                                                selected.feature_name == "HttpEndpoint" );
   endpoint = http_endpoint_mark.value;
-  TEMP::include( file:"interface/t.port.http.java", symbol_table:NULL_SYMBOL_TABLE );
-  extra_parameters = TEMP::body();
-  TEMP::clear();
+  T::include(file:"interface/t.port.http.java");
+  extra_parameters = T::body();
+  T::clear();
 end if;
 
-TEMP::include( file:"interface/t.port.java", symbol_table:NULL_SYMBOL_TABLE );
-TEMP::emit( file:file.path + "/" + self.name + file.extension );
-TEMP::clear();',
+T::include(file:"interface/t.port.java");
+T::emit( file:file.path + "/" + self.name + file.extension );
+T::clear();',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",
@@ -73,7 +73,7 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'TEMP::include( file:"interface/t.portaccessor.java", symbol_table:NULL_SYMBOL_TABLE );',
+	'T::include(file:"interface/t.portaccessor.java");',
 	1,
 	'',
 	"8715738f-ec55-47ca-bfad-af816187cd8b",

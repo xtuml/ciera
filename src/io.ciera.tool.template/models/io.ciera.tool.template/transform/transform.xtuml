@@ -550,7 +550,7 @@ for each invocable in invocables
         expr.expression_number = template_invocation.expression_number + "." + STRING::itoa(i:subexpr_num);
         select one type related by current_var->TypeReference[R461];
         relate type to expr across R795;
-        if ("self" == TEMP::sub(format:"l", s:current_var.name)) // reference to self
+        if ("self" == T::sub(format:"l", s:current_var.name)) // reference to self
           // create named reference
           create object instance self_ref of NamedReference;
           relate self_ref to expr across R776;
@@ -810,7 +810,7 @@ select one format_chars related by sub_var->Y_FormatChars[R3058];
 select one named_access related by sub_var->Y_NamedAccess[R3085];
 if ( "" != format_chars.FORMAT )
   // transform the named access
-  // create an invocation to TEMP::append
+  // create an invocation to T::append
   select any invocable from instances of InvocableObject where ( "sub" == selected.name and "T" == selected.parent_name and "io.ciera.runtime.template.util" == selected.parent_package );
   if ( empty invocable )
     // TODO bad
@@ -920,7 +920,7 @@ INSERT INTO S_SYNC
 	'smt = param.smt;
 expr_arg = param.expr;
 
-// create an invocation to TEMP::append
+// create an invocation to T::append
 select any utility from instances of Utility where ( "T" == selected.name and "io.ciera.runtime.template.util" == selected.package );
 if ( not_empty utility )
   select any util_func related by utility->UtilityFunction[R4559] where ( selected.name == "append" );
@@ -1920,7 +1920,7 @@ if ( not_empty literal )
     relate lit to expr across R776;
 
    if ( "" != literal.BOOLEAN_LITERAL )
-      if ( "true" == TEMP::sub( format:"l", s:literal.BOOLEAN_LITERAL ) )
+      if ( "true" == T::sub( format:"l", s:literal.BOOLEAN_LITERAL ) )
         lit.value = "true";
       else
         lit.value = "false";
@@ -2921,7 +2921,7 @@ select one format_chars related by sub_var->Y_FormatChars[R3058];
 select one named_access related by sub_var->Y_NamedAccess[R3085];
 if ( "" != format_chars.FORMAT )
   // transform the named access
-  // create an invocation to TEMP::append
+  // create an invocation to T::append
   select any invocable from instances of InvocableObject where ( "sub" == selected.name and "T" == selected.parent_name and "io.ciera.runtime.template.util" == selected.parent_package );
   if ( empty invocable )
     // TODO bad

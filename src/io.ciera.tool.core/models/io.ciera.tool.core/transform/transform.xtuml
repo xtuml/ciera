@@ -30,7 +30,7 @@ if ( not_empty app_pkg_mark )
   file.package = app_pkg_mark.value;
   file.path = ::formatPath( path:file.package );
 else
-  file.path = TEMP::sub( format:"l", s:TEMP::sub( format:"r", s:s_sys.Name ) );
+  file.path = T::sub( format:"l", s:T::sub( format:"r", s:s_sys.Name ) );
   file.package = ::pathToPackage( path:file.path );
 end if;
 file.extension = ".java";
@@ -236,21 +236,21 @@ if ( 1 == param.pass )
   // transform ports
   select many c_pos related by c_c->C_PO[R4010];
   for each c_po in c_pos
-    ::transformPort( c_po:c_po, comp_def:comp_def, path:file.path + "/" + TEMP::sub( format:"l", s:c_c.Name ) );
+    ::transformPort( c_po:c_po, comp_def:comp_def, path:file.path + "/" + T::sub( format:"l", s:c_c.Name ) );
   end for;
 
   // transform inner packages
   select many ep_pkgs related by c_c->PE_PE[R8003]->EP_PKG[R8001];
   for each ep_pkg in ep_pkgs
-    ::transformPackage( ep_pkg:ep_pkg, containing_comp_def:comp_def, path:file.path + "/" + TEMP::sub( format:"l", s:c_c.Name ), pass:param.pass );
+    ::transformPackage( ep_pkg:ep_pkg, containing_comp_def:comp_def, path:file.path + "/" + T::sub( format:"l", s:c_c.Name ), pass:param.pass );
   end for;
 
   // transform inner components
   select many inner_c_cs related by c_c->PE_PE[R8003]->C_C[R8001];
   for each inner_c_c in inner_c_cs
-    ::transformComponentDefinition( c_c:inner_c_c, containing_comp_def:comp_def, path:file.path + "/" + TEMP::sub( format:"l", s:c_c.Name ), pass:1 );
-    ::transformComponentDefinition( c_c:inner_c_c, containing_comp_def:comp_def, path:file.path + "/" + TEMP::sub( format:"l", s:c_c.Name ), pass:2 );
-    ::transformComponentDefinition( c_c:inner_c_c, containing_comp_def:comp_def, path:file.path + "/" + TEMP::sub( format:"l", s:c_c.Name ), pass:3 );
+    ::transformComponentDefinition( c_c:inner_c_c, containing_comp_def:comp_def, path:file.path + "/" + T::sub( format:"l", s:c_c.Name ), pass:1 );
+    ::transformComponentDefinition( c_c:inner_c_c, containing_comp_def:comp_def, path:file.path + "/" + T::sub( format:"l", s:c_c.Name ), pass:2 );
+    ::transformComponentDefinition( c_c:inner_c_c, containing_comp_def:comp_def, path:file.path + "/" + T::sub( format:"l", s:c_c.Name ), pass:3 );
   end for;
 
   // transform instance population selectors
@@ -273,8 +273,8 @@ if ( 1 == param.pass )
     create object instance gen_file of GeneralFile;
     relate gen_file to prop_file across R401;
     comp_def.render_version();
-    gen_file.contents = TEMP::body();
-    TEMP::clear();
+    gen_file.contents = T::body();
+    T::clear();
   end if;
   
   // create import block
@@ -299,7 +299,7 @@ elif ( 2 == param.pass )
   // transform inner packages
   select many ep_pkgs related by c_c->PE_PE[R8003]->EP_PKG[R8001];
   for each ep_pkg in ep_pkgs
-    ::transformPackage( ep_pkg:ep_pkg, containing_comp_def:comp_def, path:file.path + "/" + TEMP::sub( format:"l", s:c_c.Name ), pass:param.pass );
+    ::transformPackage( ep_pkg:ep_pkg, containing_comp_def:comp_def, path:file.path + "/" + T::sub( format:"l", s:c_c.Name ), pass:param.pass );
   end for;
 
 else
@@ -310,7 +310,7 @@ else
   // transform inner packages
   select many ep_pkgs related by c_c->PE_PE[R8003]->EP_PKG[R8001];
   for each ep_pkg in ep_pkgs
-    ::transformPackage( ep_pkg:ep_pkg, containing_comp_def:comp_def, path:file.path + "/" + TEMP::sub( format:"l", s:c_c.Name ), pass:param.pass );
+    ::transformPackage( ep_pkg:ep_pkg, containing_comp_def:comp_def, path:file.path + "/" + T::sub( format:"l", s:c_c.Name ), pass:param.pass );
   end for;
 
   // transform relationship population selectors
@@ -423,27 +423,27 @@ if ( 1 == param.pass )
   // transform EEs
   select many s_ees related by pe_pes->S_EE[R8001];
   for each s_ee in s_ees
-    ::transformUtility( s_ee:s_ee, ep_pkg:ep_pkg, containing_comp_def:containing_comp_def, exclude:false, path:path + "/" + TEMP::sub( format:"rl", s:ep_pkg.Name ) );
+    ::transformUtility( s_ee:s_ee, ep_pkg:ep_pkg, containing_comp_def:containing_comp_def, exclude:false, path:path + "/" + T::sub( format:"rl", s:ep_pkg.Name ) );
   end for;
 
   // transform classes
   select many o_objs related by pe_pes->O_OBJ[R8001];
   for each o_obj in o_objs
-    ::transformClass( o_obj:o_obj, containing_comp_def:containing_comp_def, path:path + "/" + TEMP::sub( format:"rl", s:ep_pkg.Name ) );
+    ::transformClass( o_obj:o_obj, containing_comp_def:containing_comp_def, path:path + "/" + T::sub( format:"rl", s:ep_pkg.Name ) );
   end for;
 
   // transform components
   select many c_cs related by pe_pes->C_C[R8001];
   for each c_c in c_cs
-    ::transformComponentDefinition( c_c:c_c, containing_comp_def:containing_comp_def, path:path + "/" + TEMP::sub( format:"rl", s:ep_pkg.Name ), pass:1 );
-    ::transformComponentDefinition( c_c:c_c, containing_comp_def:containing_comp_def, path:path + "/" + TEMP::sub( format:"rl", s:ep_pkg.Name ), pass:2 );
-    ::transformComponentDefinition( c_c:c_c, containing_comp_def:containing_comp_def, path:path + "/" + TEMP::sub( format:"rl", s:ep_pkg.Name ), pass:3 );
+    ::transformComponentDefinition( c_c:c_c, containing_comp_def:containing_comp_def, path:path + "/" + T::sub( format:"rl", s:ep_pkg.Name ), pass:1 );
+    ::transformComponentDefinition( c_c:c_c, containing_comp_def:containing_comp_def, path:path + "/" + T::sub( format:"rl", s:ep_pkg.Name ), pass:2 );
+    ::transformComponentDefinition( c_c:c_c, containing_comp_def:containing_comp_def, path:path + "/" + T::sub( format:"rl", s:ep_pkg.Name ), pass:3 );
   end for;
   
   // transform packages
   select many inner_ep_pkgs related by pe_pes->EP_PKG[R8001];
   for each inner_ep_pkg in inner_ep_pkgs
-    ::transformPackage( ep_pkg:inner_ep_pkg, containing_comp_def:containing_comp_def, path:path + "/" + TEMP::sub( format:"rl", s:ep_pkg.Name ), pass:param.pass );
+    ::transformPackage( ep_pkg:inner_ep_pkg, containing_comp_def:containing_comp_def, path:path + "/" + T::sub( format:"rl", s:ep_pkg.Name ), pass:param.pass );
   end for;
 
 elif ( 2 == param.pass )
@@ -465,7 +465,7 @@ elif ( 2 == param.pass )
   // transform packages
   select many inner_ep_pkgs related by pe_pes->EP_PKG[R8001];
   for each inner_ep_pkg in inner_ep_pkgs
-    ::transformPackage( ep_pkg:inner_ep_pkg, containing_comp_def:containing_comp_def, path:path + "/" + TEMP::sub( format:"rl", s:ep_pkg.Name ), pass:param.pass );
+    ::transformPackage( ep_pkg:inner_ep_pkg, containing_comp_def:containing_comp_def, path:path + "/" + T::sub( format:"rl", s:ep_pkg.Name ), pass:param.pass );
   end for;
   
 else
@@ -495,7 +495,7 @@ else
   // transform packages
   select many inner_ep_pkgs related by pe_pes->EP_PKG[R8001];
   for each inner_ep_pkg in inner_ep_pkgs
-    ::transformPackage( ep_pkg:inner_ep_pkg, containing_comp_def:containing_comp_def, path:path + "/" + TEMP::sub( format:"rl", s:ep_pkg.Name ), pass:param.pass );
+    ::transformPackage( ep_pkg:inner_ep_pkg, containing_comp_def:containing_comp_def, path:path + "/" + T::sub( format:"rl", s:ep_pkg.Name ), pass:param.pass );
   end for;
 
 end if;',
@@ -813,7 +813,7 @@ if ( empty class_exclude_mark )
   else
     // TODO bad
   end if;
-  type.default_value = obj.name + "Impl.EMPTY_" + TEMP::sub( format:"_u", s:obj.name );
+  type.default_value = obj.name + "Impl.EMPTY_" + T::sub( format:"_u", s:obj.name );
   relate type to obj across R407;
 
   // relate to the OOA class
@@ -1249,7 +1249,7 @@ end while;
 value = 0;
 while ( not_empty enumer )
   create object instance e of Enumerator;
-  e.name = TEMP::sub( format:"u", s:enumer.Name );
+  e.name = T::sub( format:"u", s:enumer.Name );
   e.value = value;
   value = value + 1;
   relate e to edt across R415;
@@ -1824,7 +1824,7 @@ if ( empty assoc_exclude_mark )
     create object instance rel of Relationship;
     name = "R" + STRING::itoa( i:r_rel.Numb ) + "_" + form_class.name + "_";
     if ( "" != part_phrase )
-      name = name + TEMP::sub( format:"_", s:part_phrase ) + "_";
+      name = name + T::sub( format:"_", s:part_phrase ) + "_";
     end if;
     name = name + part_class.name;
     rel.name = name;
@@ -1923,7 +1923,7 @@ if ( empty assoc_exclude_mark )
     create object instance rel1 of Relationship;
     name1 = "R" + STRING::itoa( i:r_rel.Numb ) + "_" + form_class.name + "_";
     if ( "" != part_phrase )
-      name1 = name1 + TEMP::sub( format:"_", s:part_phrase ) + "_";
+      name1 = name1 + T::sub( format:"_", s:part_phrase ) + "_";
     end if;
     name1 = name1 + part_class.name;
     rel1.name = name1;
@@ -1969,7 +1969,7 @@ if ( empty assoc_exclude_mark )
     create object instance rel2 of Relationship;
     name2 = "R" + STRING::itoa( i:r_rel.Numb ) + "_" + form_class.name + "_";
     if ( "" != part_phrase )
-      name2 = name2 + TEMP::sub( format:"_", s:part_phrase ) + "_";
+      name2 = name2 + T::sub( format:"_", s:part_phrase ) + "_";
     end if;
     name2 = name2 + part_class.name;
     rel2.name = name2;
@@ -2096,7 +2096,7 @@ other_obj = param.other_obj;
 
 name = "R" + STRING::itoa( i:rel.num ) + "_";
 if ( "" != param.phrase )
-  name = name + TEMP::sub( format:"_", s:param.phrase ) + "_";
+  name = name + T::sub( format:"_", s:param.phrase ) + "_";
 end if;
 name = name + other_obj.name;
 
@@ -3069,7 +3069,7 @@ state.number = number;
 
 // create invocable
 create object instance invocable of InvocableObject;
-invocable.name = TEMP::sub( format:"_", s:sm_state.Name );
+invocable.name = T::sub( format:"_", s:sm_state.Name );
 invocable.parent_name = sm.name;
 invocable.parent_package = sm.package;
 relate state to invocable across R427;
@@ -3155,7 +3155,7 @@ evt.id = id;
 
 // create invocable
 create object instance invocable of InvocableObject;
-invocable.name = TEMP::sub( format:"_", s:sm_evt.Mning );
+invocable.name = T::sub( format:"_", s:sm_evt.Mning );
 invocable.parent_name = sm.name;
 invocable.parent_package = sm.package;
 relate evt to invocable across R427;

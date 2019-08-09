@@ -263,7 +263,7 @@ INSERT INTO S_SYNC
 	'c_cToPath',
 	'',
 	'c_c = param.c_c;
-path = ::formatPath( path:TEMP::sub( format:"l", s:TEMP::sub( format:"r", s:c_c.Name ) ) );
+path = ::formatPath( path:T::sub( format:"l", s:T::sub( format:"r", s:c_c.Name ) ) );
 select one containing_ep_pkg related by c_c->PE_PE[R8001]->EP_PKG[R8000];
 if ( not_empty containing_ep_pkg )
   path = ::ep_pkgToPath( ep_pkg:containing_ep_pkg ) + "/" + path;
@@ -313,7 +313,7 @@ while ( -1 != underscore_index )
   name = left + "  " + right;
   underscore_index = STRING::indexof( haystack:name, needle:"_" );
 end while;
-name = TEMP::sub( format:"c", s:name );
+name = T::sub( format:"c", s:name );
 dblspc_index = STRING::indexof( haystack:name, needle:"  " );
 while ( -1 != dblspc_index )
   left = STRING::substr( s:name, begin:0, end:dblspc_index );
@@ -321,7 +321,7 @@ while ( -1 != dblspc_index )
   name = left + "_" + right;
   dblspc_index = STRING::indexof( haystack:name, needle:"  " );
 end while;
-return TEMP::sub( format:"r", s:name );
+return T::sub( format:"r", s:name );
 // TODO make sure already camel cased does not get destroyed',
 	"ba5eda7a-def5-0000-0000-000000000004",
 	1,
@@ -413,7 +413,7 @@ INSERT INTO S_SYNC
 	'ep_pkgToPath',
 	'',
 	'ep_pkg = param.ep_pkg;
-path = ::formatPath( path:TEMP::sub( format:"l", s:TEMP::sub( format:"r", s:ep_pkg.Name ) ) );
+path = ::formatPath( path:T::sub( format:"l", s:T::sub( format:"r", s:ep_pkg.Name ) ) );
 select one containing_ep_pkg related by ep_pkg->PE_PE[R8001]->EP_PKG[R8000];
 if ( not_empty containing_ep_pkg )
   path = ::ep_pkgToPath( ep_pkg:containing_ep_pkg ) + "/" + path;
@@ -937,9 +937,9 @@ while i < 2
   end if;
   select one v_uny related by val->V_UNY[R801];
   if ( not_empty v_uny )
-    if ( ( "cardinality" == TEMP::sub( format:"l", s:v_uny.Operator ) ) or ( "empty" == TEMP::sub( format:"l", s:v_uny.Operator ) ) or ( "not_empty" == TEMP::sub( format:"l", s:v_uny.Operator ) ) )
+    if ( ( "cardinality" == T::sub( format:"l", s:v_uny.Operator ) ) or ( "empty" == T::sub( format:"l", s:v_uny.Operator ) ) or ( "not_empty" == T::sub( format:"l", s:v_uny.Operator ) ) )
       prec = 6;
-    elif ( ( "not" == TEMP::sub( format:"l", s:v_uny.Operator ) ) or ( "-" == v_uny.Operator ) or ( "+" == v_uny.Operator ) )
+    elif ( ( "not" == T::sub( format:"l", s:v_uny.Operator ) ) or ( "-" == v_uny.Operator ) or ( "+" == v_uny.Operator ) )
       prec = 5;
     end if;
   else
@@ -951,9 +951,9 @@ while i < 2
         prec = 3;
       elif ( ( "==" == v_bin.Operator ) or ( "!=" == v_bin.Operator ) or ( "<" == v_bin.Operator ) or ( ">" == v_bin.Operator ) or ( "<=" == v_bin.Operator ) or ( ">=" == v_bin.Operator ) )
         prec = 2;
-      elif ( "and" == TEMP::sub( format:"l", s:v_bin.Operator ) )
+      elif ( "and" == T::sub( format:"l", s:v_bin.Operator ) )
         prec = 1;
-      elif ( "or" == TEMP::sub( format:"l", s:v_bin.Operator ) )
+      elif ( "or" == T::sub( format:"l", s:v_bin.Operator ) )
         prec = 0;
       end if;
     end if;

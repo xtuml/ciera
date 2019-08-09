@@ -16,7 +16,7 @@ INSERT INTO O_TFR
 	1,
 	'cardinality_check = "        // TODO cardinality check\n";
 
-TEMP::push_buffer();
+T::push_buffer();
 attribute_propagations = "";
 select many refs related by self->Class[R434]->Attribute[R410]->AttributeReference[R4506.''provides value for'']
   where ( selected.rel_num == self.num and selected.form_phrase == self.form_phrase and selected.form_name == self.form_name and
@@ -28,10 +28,10 @@ for each ref in refs
   select any part_accessor related by ref->Attribute[R4506.''has value provided by'']->AttributeAccessor[R4510]
     where ( selected.accessor_type == AttributeAccessorType::GETTER );
   part_accessor_name = part_accessor.getName();
-  TEMP::include( file:"relationship/t.referentialattributeinitialization.java", symbol_table:NULL_SYMBOL_TABLE );
+  T::include(file:"relationship/t.referentialattributeinitialization.java");
 end for;
-attribute_propagations = TEMP::body();
-TEMP::clear();
+attribute_propagations = T::body();
+T::clear();
 
 relationship_setters = "";
 relationship_unsetters = "";
@@ -39,12 +39,12 @@ select one form related by self->Class[R434];
 select one part related by self->Class[R435];
 form_name = "R" + STRING::itoa( i:self.num ) + "_";
 if ( "" != self.form_phrase )
-  form_name = form_name + TEMP::sub( format:"_", s:self.form_phrase ) + "_";
+  form_name = form_name + T::sub( format:"_", s:self.form_phrase ) + "_";
 end if;
 form_name = form_name + part.name;
 part_name = "R" + STRING::itoa( i:self.num ) + "_";
 if ( "" != self.part_phrase )
-  part_name = part_name + TEMP::sub( format:"_", s:self.part_phrase ) + "_";
+  part_name = part_name + T::sub( format:"_", s:self.part_phrase ) + "_";
 end if;
 part_name = part_name + form.name;
 select any form_selector related by form->InstanceSelector[R442]->Selector[R445] where ( selected.name == form_name );
@@ -54,18 +54,18 @@ if ( form_selector.multiplicity == Mult::MANY )
   relationship_unsetters = relationship_unsetters + "            part.remove" + form_selector.name + "(form);\n";
 else
   relationship_setters = relationship_setters + "            part.set" + form_selector.name + "(form);\n";
-  relationship_unsetters = relationship_unsetters + "            part.set" + form_selector.name + "(" + form_selector.type_reference_name + "Impl.EMPTY_" + TEMP::sub( format:"u_", s:form_selector.type_reference_name ) + ");\n";
+  relationship_unsetters = relationship_unsetters + "            part.set" + form_selector.name + "(" + form_selector.type_reference_name + "Impl.EMPTY_" + T::sub( format:"u_", s:form_selector.type_reference_name ) + ");\n";
 end if;
 if ( part_selector.multiplicity == Mult::MANY )
   relationship_setters = relationship_setters + "            form.add" + part_selector.name + "(part);\n";
   relationship_unsetters = relationship_unsetters + "            form.remove" + part_selector.name + "(part);\n";
 else
   relationship_setters = relationship_setters + "            form.set" + part_selector.name + "(part);\n";
-  relationship_unsetters = relationship_unsetters + "            form.set" + part_selector.name + "(" + part_selector.type_reference_name + "Impl.EMPTY_" + TEMP::sub( format:"u_", s:part_selector.type_reference_name ) + ");\n";
+  relationship_unsetters = relationship_unsetters + "            form.set" + part_selector.name + "(" + part_selector.type_reference_name + "Impl.EMPTY_" + T::sub( format:"u_", s:part_selector.type_reference_name ) + ");\n";
 end if;
 
-TEMP::pop_buffer();
-TEMP::include( file:"relationship/t.relationshipmodifiers.java", symbol_table:NULL_SYMBOL_TABLE );',
+T::pop_buffer();
+T::include(file:"relationship/t.relationshipmodifiers.java");',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",
