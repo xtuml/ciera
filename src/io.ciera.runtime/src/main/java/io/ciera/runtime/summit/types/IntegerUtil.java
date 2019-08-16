@@ -16,4 +16,8 @@ public class IntegerUtil {
 		}
 		else throw new XtumlException("Cannot deserialize integer value");
 	}
+
+    public static int compareTo(int a, int b) {
+        return Integer.compare(a, b);
+    }
 }

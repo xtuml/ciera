@@ -24,6 +24,8 @@ public interface IModelInstance<T extends IModelInstance<T, C>, C extends ICompo
 
     public void delete() throws XtumlException;
 
+    public int compareTo(T o);
+
     default public boolean isEmpty() {
         return false;
     }

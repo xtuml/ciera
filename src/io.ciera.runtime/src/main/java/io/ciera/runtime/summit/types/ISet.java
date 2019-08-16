@@ -1,5 +1,6 @@
 package io.ciera.runtime.summit.types;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
@@ -29,9 +30,15 @@ public interface ISet<S extends ISet<S, E>, E> extends Set<E>, IXtumlType<S> {
 
     public E anyWhere(IWhere<E> condition) throws XtumlException;
 
+    public S sorted(Comparator<E> comp) throws XtumlException;
+
+    public S sorted(Comparator<E> comp, boolean ascending) throws XtumlException;
+
     public E nullElement();
 
     public S emptySet();
+
+    public S emptySet(Comparator<? super E> comp);
 
     public List<E> elements();
 

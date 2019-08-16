@@ -1,5 +1,6 @@
 package io.ciera.runtime.summit.classes;
 
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -17,6 +18,14 @@ public abstract class InstanceSet<S extends IInstanceSet<S, E>, E extends IModel
 
     public InstanceSet() {
         super();
+        instanceIdMap = null;
+        id1Map = null;
+        id2Map = null;
+        id3Map = null;
+    }
+
+    public InstanceSet(Comparator<? super E> comp) {
+        super(comp);
         instanceIdMap = null;
         id1Map = null;
         id2Map = null;

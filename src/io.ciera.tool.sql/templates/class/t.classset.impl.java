@@ -4,6 +4,13 @@ ${imports}
 
 public class ${self.name}Impl extends ${self.extends} implements ${self.name} {
 
+    public ${self.name}Impl() {
+    }
+
+    public ${self.name}Impl(Comparator<? super ${self.class_name}> comp) {
+        super(comp);
+    }
+
     // attributes
 ${attributes}
 
@@ -18,6 +25,11 @@ ${selectors}
     @Override
     public ${self.name} emptySet() {
       return new ${self.name}Impl();
+    }
+
+    @Override
+    public ${self.name} emptySet(Comparator<? super ${self.class_name}> comp) {
+      return new ${self.name}Impl(comp);
     }
 
     @Override

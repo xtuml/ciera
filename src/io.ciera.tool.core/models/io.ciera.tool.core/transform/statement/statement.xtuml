@@ -1290,6 +1290,7 @@ else
   create object instance where_expr of WhereExpr;
   relate where_expr to r_op across R776;
   where_expr.multiplicity = act_fiw.cardinality;
+  where_expr.sorted = SortType::NONE;
   // create selection expr
   create object instance sel_expr of Expression;
   relate sel_expr to smt across R775;
@@ -1309,6 +1310,7 @@ else
   ::transformExpression( v_val:where_clause_val, expr_number:"1.2.2", smt:smt );
   select any where_clause_expr related by smt->Expression[R775] where ( selected.expression_number == "1.2.2" );
   relate where_clause_expr to where_expr across R796;
+  ::resolveSortedSelection(where_expr:where_expr);
 end if;
 // link select type to the main expression
 relate select_type to expr across R795;',
@@ -1454,6 +1456,7 @@ else
       create object instance where_expr of WhereExpr;
       relate where_expr to r_op across R776;
       where_expr.multiplicity = act_sel.cardinality;
+      where_expr.sorted = SortType::NONE;
       // select the transformed link, relate it to the where clause
       select any select_expr related by smt->Expression[R775] where ( selected.expression_number == "1.2.1" );
       relate select_expr to where_expr across R790;
@@ -1461,6 +1464,7 @@ else
       ::transformExpression( v_val:where_clause_val, expr_number:"1.2.2", smt:smt );
       select any where_clause_expr related by smt->Expression[R775] where ( selected.expression_number == "1.2.2" );
       relate where_clause_expr to where_expr across R796;
+      ::resolveSortedSelection(where_expr:where_expr);
     else
       create object instance any_expr of AnyExpr;
       relate any_expr to r_op across R776;
@@ -4578,6 +4582,83 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("1cc11cf0-a4da-4492-b177-75803fd925f2",
+	1,
+	"28c6aa17-9b54-4321-916c-a20a5290984e",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("fbfba705-dd93-4e1a-a3e9-f53c250b4b35",
+	"00000000-0000-0000-0000-000000000000",
+	'resolveSortedSelection',
+	'',
+	'where_expr = param.where_expr;
+
+// check if there is an invocation of a SORT bridge in the where expression
+select one where_clause_expr related by where_expr->Expression[R796];
+select any invoc related by where_clause_expr->Statement[R775]->Expression[R775]->Invocation[R776] where 
+  (selected.invoked_parent_name == "SORT" and STRING::indexof(haystack:selected.expression_number, needle:where_clause_expr.expression_number) == 0);
+if (not_empty invoc)
+  sort_type = SortType::NONE;
+  if (invoc.invoked_name == "ascending")
+    sort_type = SortType::ASCENDING;
+  elif (invoc.invoked_name == "descending")
+    sort_type = SortType::DESCENDING;
+  end if;
+  // select the sort attribute
+  select any attr_parm related by invoc->ActualParameter[R793] where (selected.param_name == "p_attr");
+  select one literal related by attr_parm->Expression[R794]->Literal[R776];
+  if (not_empty literal)
+    select one cls related by where_expr->Expression[R776]->TypeReference[R795]->Type[R3800]->Class[R407];
+    if (empty cls)
+      select one cls related by where_expr->Expression[R776]->TypeReference[R795]->Type[R3800]->ClassSet[R407]->Class[R406];
+    end if;
+    select any attr related by cls->Attribute[R410] where (selected.name == "m_" + literal.value or selected.name == "ref_" + literal.value);
+    if (not_empty attr)
+      // relate attribute to where expression
+      where_expr.sorted = sort_type;
+      relate attr to where_expr across R3906;
+      // add util import if necessary
+      select one attr_type related by attr->TypeReference[R424]->Type[R3800];
+      if (attr_type.primitive())
+        select one smt related by where_expr->Expression[R776]->Statement[R775];
+        file = ::getFileForStatement(smt:smt);
+        if ("boolean" == attr_type.name)
+          ::addStringToImports(file:file, s:"io.ciera.runtime.summit.types.BooleanUtil", type:ImportType::BOTH);
+        elif ("int" == attr_type.name)
+          ::addStringToImports(file:file, s:"io.ciera.runtime.summit.types.IntegerUtil", type:ImportType::BOTH);
+        elif ("double" == attr_type.name)
+          ::addStringToImports(file:file, s:"io.ciera.runtime.summit.types.RealUtil", type:ImportType::BOTH);
+        end if;
+      end if;
+    else
+      LOG::LogFailure(message:"Could not find attribute ''" + literal.value + "'' in class ''" + cls.name + "'' for sorting");
+    end if;
+  else
+    LOG::LogFailure(message:"SORT bridges require literal string parameters");
+  end if;
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("c949f482-0842-441e-8a9a-3153b319069a",
+	"fbfba705-dd93-4e1a-a3e9-f53c250b4b35",
+	'where_expr',
+	"da1a9123-28cb-45d9-a9c9-3ac8d397fd19",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("da1a9123-28cb-45d9-a9c9-3ac8d397fd19",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Where>',
+	'',
+	'',
+	'../../architecture/expression/expression.xtuml');
+INSERT INTO PE_PE
+	VALUES ("fbfba705-dd93-4e1a-a3e9-f53c250b4b35",
 	1,
 	"28c6aa17-9b54-4321-916c-a20a5290984e",
 	"00000000-0000-0000-0000-000000000000",

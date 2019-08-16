@@ -16,4 +16,8 @@ public class RealUtil {
 		}
 		else throw new XtumlException("Cannot deserialize real value");
 	}
+
+    public static int compareTo(double a, double b) {
+        return Double.compare(a, b);
+    }
 }
