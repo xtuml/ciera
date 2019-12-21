@@ -14,28 +14,21 @@
     <dependency>
       <groupId>io.ciera</groupId>
       <artifactId>io.ciera.runtime</artifactId>
-      <version>1.1.0</version>
+      <version>1.1.9</version>
     </dependency>
   </dependencies>
   <build>
-    <directory>${project.basedir}/gen/code_generation</directory>
-    <outputDirectory>${project.basedir}/bin</outputDirectory>
-    <sourceDirectory>${project.basedir}/src</sourceDirectory>
     <plugins>
       <plugin>
         <groupId>io.ciera</groupId>
         <artifactId>ciera-maven-plugin</artifactId>
-        <version>1.1.0</version>
+        <version>1.1.9</version>
         <executions>
           <execution>
             <id>pre-build</id>
             <goals>
-              <goal>pre-build</goal>
+              <goal>bridgepoint-pre-build</goal>
             </goals>
-            <configuration>
-              <!--workspace> Location of the Eclipse workspace to build (default is $WORKSPACE) </workspace-->
-              <!--bpHome> Location of the BridgePoint installation directory (default is $BPHOME) </bpHome-->
-            </configuration>
           </execution>
           <execution>
             <id>ciera-core</id>
@@ -44,7 +37,7 @@
             </goals>
             <configuration>
               <input>${project.basedir}/gen/code_generation/pei.sql</input>
-              <output>${project.basedir}/gen/code_generation/b.xtuml</output>
+              <output>${project.build.directory}/b.xtuml</output>
             </configuration>
           </execution>
           <execution>
@@ -53,23 +46,33 @@
               <goal>sql</goal>
             </goals>
             <configuration>
-              <input>${project.basedir}/gen/code_generation/b.xtuml</input>
+              <input>${project.build.directory}/b.xtuml</input>
             </configuration>
           </execution>
         </executions>
       </plugin>
     </plugins>
+    <resources>
+      <resource>
+        <directory>${project.basedir}</directory>
+        <filtering>true</filtering>
+        <includes>
+          <include>models/**/*.xtuml</include>
+          <include>.project</include>
+        </includes>
+      </resource>
+    </resources>
   </build>
   <repositories>
     <repository>
       <id>io.ciera.repo</id>
-      <url>https://s3.amazonaws.com/xtuml-releases/maven</url>
+      <url>https://maven.pkg.github.com/leviathan747/ciera</url>
     </repository>
   </repositories>
   <pluginRepositories>
     <pluginRepository>
       <id>io.ciera.repo</id>
-      <url>https://s3.amazonaws.com/xtuml-releases/maven</url>
+      <url>https://maven.pkg.github.com/leviathan747/ciera</url>
     </pluginRepository>
   </pluginRepositories>
 </project>
