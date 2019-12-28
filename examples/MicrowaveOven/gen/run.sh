@@ -1,3 +1,4 @@
 #!/bin/bash
-CLASSPATH=~/.m2/repository/io/ciera/io.ciera.runtime/1.1.9/io.ciera.runtime-1.1.9.jar:~/.m2/repository/io/ciera/MicrowaveOven/1.0.0-SNAPSHOT/MicrowaveOven-1.0.0-SNAPSHOT.jar
+CIERA_VERSION=1.1.10
+CLASSPATH=~/.m2/repository/io/ciera/runtime/$CIERA_VERSION/runtime-$CIERA_VERSION.jar:~/.m2/repository/io/ciera/MicrowaveOven/1.0.0-SNAPSHOT/MicrowaveOven-1.0.0-SNAPSHOT.jar
 java -cp $CLASSPATH microwaveoven.MicrowaveOvenApplication

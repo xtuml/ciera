@@ -2,7 +2,7 @@
 
 1. Build the project with maven
    ```
-   mvn package
+   mvn install
    ```
 2. Launch the application
    ```
