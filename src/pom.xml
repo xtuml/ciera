@@ -4,7 +4,22 @@
   <artifactId>io.ciera.src</artifactId>
   <packaging>pom</packaging>
   <version>1.1.10-SNAPSHOT</version>
-  <name>Ciera Source Bundle</name>
+  <name>Ciera Model Compiler Collection</name>
+  <description>Java model compiler and tools for xtUML models</description>
+  <url>https://github.com/xtuml/ciera</url>
+  <licenses>
+    <license>
+      <name>Apache License, Version 2.0</name>
+      <url>https://opensource.org/licenses/Apache-2.0</url>
+    </license>
+  </licenses>
+  <developers>
+    <developer>
+      <name>Levi Starrett</name>
+      <email>levi@roxsoftware.com</email>
+      <organization>Brooklyn, LLC</organization>
+    </developer>
+  </developers>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>1.8</maven.compiler.source>
@@ -13,16 +28,81 @@
     <mcLoc>${env.HOME}/git/xtuml2/mc</mcLoc>
   </properties>
   <scm>
-    <connection>scm:git:git@github.com:leviathan747/ciera.git</connection>
-    <developerConnection>scm:git:git@github.com:leviathan747/ciera.git</developerConnection>
+    <connection>scm:git:git@github.com:xtuml/ciera.git</connection>
+    <developerConnection>scm:git:git@github.com:xtuml/ciera.git</developerConnection>
+    <url>https://github.com/xtuml/ciera</url>
     <tag>HEAD</tag>
   </scm>
   <distributionManagement>
+    <snapshotRepository>
+      <id>ossrh</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+    </snapshotRepository>
     <repository>
-      <id>io.ciera.repo</id>
-      <url>https://maven.pkg.github.com/leviathan747/ciera</url>
+      <id>ossrh</id>
+      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
     </repository>
   </distributionManagement>
+  <profiles>
+    <profile>
+      <id>release</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <version>3.1.1</version>
+            <executions>
+              <execution>
+                <id>attach-javadocs</id>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-source-plugin</artifactId>
+            <version>3.2.1</version>
+            <executions>
+              <execution>
+                <id>attach-sources</id>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>1.6</version>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.sonatype.plugins</groupId>
+            <artifactId>nexus-staging-maven-plugin</artifactId>
+            <version>1.6.8</version>
+            <extensions>true</extensions>
+            <configuration>
+              <serverId>ossrh</serverId>
+              <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+              <autoReleaseAfterClose>false</autoReleaseAfterClose>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
   <modules>
     <module>io.ciera.runtime</module>
     <module>io.ciera.tool.core</module>
