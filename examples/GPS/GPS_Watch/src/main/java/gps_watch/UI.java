@@ -1,12 +1,5 @@
 package gps_watch;
 
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.Socket;
-import java.net.SocketTimeoutException;
-import java.net.UnknownHostException;
 import gps_watch.ui.UIUI;
 import io.ciera.runtime.summit.application.IApplication;
 import io.ciera.runtime.summit.application.IRunContext;
@@ -21,6 +14,13 @@ import io.ciera.runtime.summit.interfaces.IMessage;
 import io.ciera.runtime.summit.interfaces.Message;
 import io.ciera.runtime.summit.util.LOG;
 import io.ciera.runtime.summit.util.impl.LOGImpl;
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.Socket;
+import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
 import tracking.shared.Indicator;
 import tracking.shared.Unit;
 import ui.shared.IUI;
