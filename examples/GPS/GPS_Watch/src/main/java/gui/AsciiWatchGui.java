@@ -1,24 +1,22 @@
 package gui;
 
-import tracking.shared.Indicator;
-import tracking.shared.Unit;
 import com.googlecode.lanterna.TerminalPosition;
-import com.googlecode.lanterna.TerminalSize;
+import com.googlecode.lanterna.TextCharacter;
+import com.googlecode.lanterna.graphics.BasicTextImage;
 import com.googlecode.lanterna.graphics.TextGraphics;
 import com.googlecode.lanterna.graphics.TextImage;
-import com.googlecode.lanterna.graphics.BasicTextImage;
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
 import com.googlecode.lanterna.terminal.Terminal;
-import com.googlecode.lanterna.TextCharacter;
-import ui.shared.IUI;
-import java.net.URL;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.io.OutputStream;
-
-import java.util.Scanner;
-import java.util.List;
+import java.io.PrintStream;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
+import tracking.shared.Indicator;
+import tracking.shared.Unit;
+import ui.shared.IUI;
 
 public class AsciiWatchGui implements WatchGui {
 
@@ -67,11 +65,8 @@ public class AsciiWatchGui implements WatchGui {
     private Gui signalHandler;
 
     public AsciiWatchGui(Gui gui) {
-        // send standard error into the ether
-        // TODO print this output nicely below the UI
-        System.setErr(new PrintStream(new OutputStream() {
-            public void write(int b) { /* do nothing */ }
-        }));
+        // set to headless mode
+        System.setProperty("java.awt.headless", "true");
 
         // set the gui connection
         signalHandler = gui;
@@ -80,13 +75,18 @@ public class AsciiWatchGui implements WatchGui {
         numerals = loadNumerals();
         watchFace = loadWatchFace();
 
-        // create terminal
         try {
+            // create terminal
             terminal = new DefaultTerminalFactory().createTerminal();
             terminal.setCursorVisible(false);
             terminal.clearScreen();
+
+            // draw watch graphics
             watchGraphics = terminal.newTextGraphics();
             watchGraphics.drawImage(TerminalPosition.TOP_LEFT_CORNER, watchFace);
+
+            // set standard error to print out beneath the watch
+            System.setErr(new PrintStream(new TerminalOutputStream(terminal, 0, watchFace.getSize().getRows())));
         } catch (IOException e) { /* do nothing */ }
     }
 
@@ -101,18 +101,28 @@ public class AsciiWatchGui implements WatchGui {
                 switch (command) {
                 case 's':
                     signalHandler.sendSignal(new IUI.StartStopPressed());
+                    System.err.println("Sending start/stop");
                     break;
                 case 'r':
                     signalHandler.sendSignal(new IUI.LapResetPressed());
+                    System.err.println("Sending reset/lap");
                     break;
                 case 'm':
                     signalHandler.sendSignal(new IUI.ModePressed());
+                    System.err.println("Sending mode");
                     break;
                 }
             } catch (IOException e) {
                 command = 'x';
             }
         }
+        System.err.println("Exiting...");
+            
+        // clear screen and exit
+        try {
+            terminal.setCursorPosition(0, 0);
+            terminal.clearScreen();
+        } catch (IOException e) { /* do nothing */ }
         System.exit(0);
     }
 
@@ -136,7 +146,7 @@ public class AsciiWatchGui implements WatchGui {
             break;
         case UNIT_MIN_PER_KM:
         case UNIT_MIN_PER_MILE:
-            valueString = String.format("%d", (int)value); // TODO
+            valueString = String.format("%d:%02d", (int)value % 60, (int)(60 * value) % 60);
             break;
         default:
             break;
@@ -217,6 +227,35 @@ public class AsciiWatchGui implements WatchGui {
             }
         }
         return newImage;
+    }
+
+    private class TerminalOutputStream extends OutputStream {
+
+        private int cursorX;
+        private int cursorY;
+        private Terminal terminal;
+
+        public TerminalOutputStream(Terminal t, int x, int y) {
+            terminal = t;
+            cursorX = x;
+            cursorY = y;
+        }
+
+        public void write(int b) {
+            char c = (char)b;
+            try {
+                terminal.setCursorPosition(cursorX, cursorY);
+                terminal.putCharacter(c);
+                if (c == '\n') {
+                    cursorY++;
+                    cursorX = 0;
+                }
+                else {
+                    cursorX++;
+                }
+            } catch (IOException e) { /* do nothing */ }
+        }
+
     }
 
 }

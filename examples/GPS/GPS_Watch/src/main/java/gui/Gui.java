@@ -8,10 +8,14 @@ public class Gui {
     ApplicationConnection server = null;
     ConnectionHandler connHandler = null;
 
-    public void start() {
+    public void start(String[] args) {
         // Create GUI
-        //guiDisplay = new SwingWatchGui(this);
-        guiDisplay = new AsciiWatchGui(this);
+        if (args.length == 1 && "--console".equals(args[0])) {
+            guiDisplay = new AsciiWatchGui(this);
+        }
+        else {
+            guiDisplay = new SwingWatchGui(this);
+        }
 
         // The connection handle lives for the entire duration of this program
         connHandler = new ConnectionHandler(this);
@@ -37,7 +41,7 @@ public class Gui {
 
     public static void main(String[] args) {
         Gui gui = new Gui();
-        gui.start();
+        gui.start(args);
     }
 
 }
