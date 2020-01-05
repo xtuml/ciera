@@ -1,14 +1,68 @@
-## To build/run the project:
+# GPS Watch
 
-1. Build the project with maven
-   ```
-   mvn install
-   ```
-2. Launch the GUI
-   ```
-   bash gui.sh
-   ```
-3. Launch the application
-   ```
-   bash run.sh
-   ```
+Multi-domain example with interdomain communication and interface with hand
+written code.  This example includes a Java Swing GUI application and a
+terminal based (ASCII) GUI.
+
+## To build the project:
+
+Build the project with maven
+```
+mvn install
+```
+
+## To run the project
+
+Launch the GUI (Swing)
+```
+bash gui.sh
+```
+
+_**or**_
+
+Launch the GUI (console)
+```
+bash gui.sh --console
+```
+
+In a new terminal window, aunch the application
+```
+bash run.sh
+```
+
+## To browse/edit the project in BridgePoint
+
+1. Launch a recent version of BridgePoint (download nightly build
+   [here](https://s3.amazonaws.com/xtuml-releases/nightly-build/buildfiles.html))
+2. Import the `io.ciera.runtime` project from the `src` folder of this
+   repository (diasable "Search for nested projects")
+3. Import the `GPS_Watch`, `HeartRateMonitor`, `Location`, `Tracking`, and `UI`
+   projects from this folder (diasable "Search for nested projects")
+
+## GUI (Swing)
+
+![swing.png](swing.png)
+
+## GUI (console)
+
+```
+            ___-----------___
+           /                 \
+          /                   \
+       /\/   ______---______   \/\
+       \/   /               \   \/
+       {   /  0      meters  \   }
+       |  {    _  _   _  _    }  |-,
+       |  |   | || |.| || |   |  | |
+       |  {   |_||_|.|_||_|   }  |-'
+       {   \                 /   }
+       /\   `------___------'   /\
+(m)ode \/\        _____        /\/ (r)eset/lap
+          \   (s)tart/stop    /
+           \     \_____/     /
+            ---___________---
+
+E(x)it
+______________________________________________
+Waiting for connection
+```
