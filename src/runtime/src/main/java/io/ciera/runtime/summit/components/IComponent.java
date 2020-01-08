@@ -23,5 +23,7 @@ public interface IComponent<C extends IComponent<C>>
     public IPopulationLoader getLoader(String key);
 
     public IPopulationLoader getDefaultLoader();
+    
+    public Class<?> getClassByKeyLetters(String keyLetters);
 
 }
