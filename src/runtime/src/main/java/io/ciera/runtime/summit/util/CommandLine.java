@@ -101,8 +101,8 @@ public class CommandLine {
 
     // check whether a string is a valid option name
     private void validateName(String name) throws XtumlException {
-        if (null == name || !Pattern.compile("[a-zA-Z][a-zA-Z_\\-]*").matcher(name).matches())
-            throw new XtumlException("Option name must be one or more alphabetic characters, hyphens, or underscores.");
+        if (null == name || !Pattern.compile("[a-zA-Z][a-zA-Z0-9_\\-]*").matcher(name).matches())
+            throw new XtumlException("Option name must be one or more alphanumeric characters, hyphens, or underscores.");
     }
 
     // assure that no unregistered options are present and that all required options
