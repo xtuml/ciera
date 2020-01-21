@@ -4,7 +4,7 @@ import io.ciera.runtime.summit.exceptions.XtumlException;
 import io.ciera.runtime.summit.types.ISet;
 import io.ciera.runtime.summit.types.UniqueId;
 
-public interface IRelationshipSet extends ISet<IRelationshipSet, IRelationship> {
+public interface IRelationshipSet extends ISet<IRelationship> {
 
     public IRelationshipSet getFormalizing(UniqueId part) throws XtumlException;
 

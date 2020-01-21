@@ -1059,7 +1059,9 @@ if ( not_empty invocable )
       op_type = TypeReference::getInstance( s_dt:s_dt, s_dims:s_dims );
       relate op_type to expr2 across R795;
       // create selected reference
+      select one op_cls related by o_tfr->O_OBJ[R115]->Class[R409];
       create object instance sel of SelectedExpr;
+      sel.cast = op_cls.name;
       relate sel to expr2 across R776;
     end if;
   else // class based operation
@@ -1150,7 +1152,18 @@ relate type to expr across R795;
 
 // create selected reference
 create object instance sel of SelectedExpr;
-relate sel to expr across R776;',
+relate sel to expr across R776;
+
+// this assumes that there is only one select expression per statement (which is currently always true for OAL)
+select any select_expr related by expr->Statement[R775]->Expression[R775]->SelectExpr[R776];
+select one sel_cls related by select_expr->SelectRelated[R789]->Selector[R797]->TypeReference[R446]->Type[R3800]->Class[R407];
+if empty sel_cls
+  select one sel_cls related by select_expr->SelectRelated[R789]->Selector[R797]->TypeReference[R446]->Type[R3800]->ClassSet[R407]->Class[R406];
+  if empty sel_cls
+    select one sel_cls related by select_expr->SelectFromInstances[R789]->InstancePopulationSelector[R799]->Class[R449];
+  end if;
+end if;
+sel.cast = sel_cls.name;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',

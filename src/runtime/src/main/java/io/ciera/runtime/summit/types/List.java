@@ -8,7 +8,7 @@ import java.util.ListIterator;
 import io.ciera.runtime.summit.exceptions.BadArgumentException;
 import io.ciera.runtime.summit.exceptions.XtumlException;
 
-public abstract class List<L extends IList<L, E>, E> implements IList<L, E> {
+public abstract class List<E> implements IList<E> {
 
     private ArrayList<E> internalList;
 
@@ -33,10 +33,10 @@ public abstract class List<L extends IList<L, E>, E> implements IList<L, E> {
     }
 
     @Override
-    public L where(IWhere<E> condition) throws XtumlException {
+    public IList<E> where(IWhere<E> condition) throws XtumlException {
         if (null == condition)
             throw new BadArgumentException("Null condition passed to selection.");
-        L resultList = emptyList();
+        IList<E> resultList = emptyList();
         for (E selected : this) {
             if (condition.evaluate(selected))
                 resultList.add(selected);
@@ -190,9 +190,13 @@ public abstract class List<L extends IList<L, E>, E> implements IList<L, E> {
     }
 
     // XtumlType
-    @Override
-    public boolean equality(L value) throws XtumlException {
-        return containsAll(value) && value.containsAll(this);
+	@Override
+    @SuppressWarnings("unchecked")
+    public boolean equality(IXtumlType value) throws XtumlException {
+    	if (value instanceof IList<?>) {
+    		return containsAll((IList<E>)value) && ((IList<E>)value).containsAll(this);
+    	}
+    	else return false;
     }
 
 }

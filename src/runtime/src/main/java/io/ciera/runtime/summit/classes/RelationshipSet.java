@@ -8,7 +8,7 @@ import io.ciera.runtime.summit.exceptions.XtumlException;
 import io.ciera.runtime.summit.types.Set;
 import io.ciera.runtime.summit.types.UniqueId;
 
-public class RelationshipSet extends Set<IRelationshipSet, IRelationship> implements IRelationshipSet {
+public class RelationshipSet extends Set<IRelationship> implements IRelationshipSet {
 
     public RelationshipSet() {
     }
@@ -19,12 +19,12 @@ public class RelationshipSet extends Set<IRelationshipSet, IRelationship> implem
 
     @Override
     public IRelationshipSet getFormalizing(UniqueId part) throws XtumlException {
-        return where(selected -> selected.getPart().equals(part));
+        return (IRelationshipSet)where(selected -> selected.getPart().equals(part));
     }
 
     @Override
     public IRelationshipSet getParticipating(UniqueId form) throws XtumlException {
-        return where(selected -> selected.getForm().equals(form));
+        return (IRelationshipSet)where(selected -> selected.getForm().equals(form));
     }
 
     @Override
@@ -45,11 +45,6 @@ public class RelationshipSet extends Set<IRelationshipSet, IRelationship> implem
     @Override
     public IRelationshipSet emptySet(Comparator<? super IRelationship> comp) {
         return new RelationshipSet(comp);
-    }
-
-    @Override
-    public RelationshipSet value() {
-        return this;
     }
 
     @Override

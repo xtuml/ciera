@@ -4,7 +4,7 @@ import java.util.UUID;
 
 import io.ciera.runtime.summit.exceptions.XtumlException;
 
-public class UniqueId implements IXtumlType<UniqueId>, Comparable<UniqueId> {
+public class UniqueId implements IXtumlType, Comparable<UniqueId> {
 
     UUID id;
 
@@ -34,11 +34,6 @@ public class UniqueId implements IXtumlType<UniqueId>, Comparable<UniqueId> {
     }
 
     @Override
-    public boolean equality(UniqueId value) throws XtumlException {
-        return equals(value);
-    }
-
-    @Override
     public boolean equals(Object o) {
         return o instanceof UniqueId && id.equals(((UniqueId) o).id);
     }
@@ -54,11 +49,6 @@ public class UniqueId implements IXtumlType<UniqueId>, Comparable<UniqueId> {
             return "null";
         else
             return id.toString();
-    }
-
-    @Override
-    public UniqueId value() {
-        return this;
     }
 
 	@Override

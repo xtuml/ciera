@@ -105,11 +105,6 @@ public abstract class ModelInstance<T extends IModelInstance<T, C>, C extends IC
     }
 
     @Override
-    public boolean equality(T value) throws XtumlException {
-        return equals(value);
-    }
-
-    @Override
     public int compareTo(T o) {
         return instanceId.compareTo(o.getInstanceId());
     }

@@ -2,7 +2,7 @@ package ${self.package};
 
 ${imports}
 
-public enum ${self.name} implements IXtumlType<${self.name}> {
+public enum ${self.name} implements IXtumlType {
 
     UNINITIALIZED_ENUM( -1 )${enumerators}
 
@@ -21,13 +21,11 @@ public enum ${self.name} implements IXtumlType<${self.name}> {
     }
 
     @Override
-    public boolean equality( ${self.name} value ) throws XtumlException {
-        return null != value && this.value == value.getValue();
-    }
-
-    @Override
-    public ${self.name} value() {
-        return this;
+    public boolean equality( IXtumlType value ) throws XtumlException {
+        if (value instanceof ${self.name}) {
+            return null != value && this.value == ((${self.name})value).getValue();
+        }
+        else return false;
     }
 
     @Override

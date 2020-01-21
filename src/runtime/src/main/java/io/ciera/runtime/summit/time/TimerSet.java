@@ -7,7 +7,7 @@ import java.util.List;
 
 import io.ciera.runtime.summit.types.Set;
 
-public class TimerSet extends Set<TimerSet, Timer> {
+public class TimerSet extends Set<Timer> {
 	
 	public TimerSet() {
 	}
@@ -38,11 +38,6 @@ public class TimerSet extends Set<TimerSet, Timer> {
 	@Override
 	public List<Timer> elements() {
         return Arrays.asList(toArray(new Timer[0]));
-	}
-
-	@Override
-	public TimerSet value() {
-		return this;
 	}
 
 }

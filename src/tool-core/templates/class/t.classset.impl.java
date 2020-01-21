@@ -33,11 +33,6 @@ ${selectors}
     }
 
     @Override
-    public ${self.name} value() {
-        return this;
-    }
-
-    @Override
     public List<${self.class_name}> elements() {
 .if ( "" != self.comparator )
         ${self.class_name}[] elements = toArray(new ${self.class_name}[0]);

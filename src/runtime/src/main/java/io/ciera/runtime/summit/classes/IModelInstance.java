@@ -8,7 +8,7 @@ import io.ciera.runtime.summit.types.IXtumlType;
 import io.ciera.runtime.summit.types.UniqueId;
 
 public interface IModelInstance<T extends IModelInstance<T, C>, C extends IComponent<C>>
-        extends IInstanceActionHome<T, C>, IXtumlType<T>, IEventTarget {
+        extends IInstanceActionHome<T, C>, IXtumlType, IEventTarget {
 
     public String getKeyLetters();
 

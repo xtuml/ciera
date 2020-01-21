@@ -10,7 +10,7 @@ import io.ciera.runtime.summit.statemachine.EventHandle;
 import io.ciera.runtime.summit.types.IXtumlType;
 
 public interface IComponent<C extends IComponent<C>>
-        extends IInstancePopulation, IActionHome<C>, IXtumlType<C>, IVersioned {
+        extends IInstancePopulation, IActionHome<C>, IXtumlType, IVersioned {
 
     public void initialize() throws XtumlException;
 

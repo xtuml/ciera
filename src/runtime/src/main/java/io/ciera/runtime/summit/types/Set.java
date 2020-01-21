@@ -1,7 +1,6 @@
 package io.ciera.runtime.summit.types;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.TreeSet;
@@ -9,7 +8,7 @@ import java.util.TreeSet;
 import io.ciera.runtime.summit.exceptions.BadArgumentException;
 import io.ciera.runtime.summit.exceptions.XtumlException;
 
-public abstract class Set<S extends ISet<S, E>, E> implements ISet<S, E> {
+public abstract class Set<E> implements ISet<E> {
 
     private java.util.SortedSet<E> internalSet;
 
@@ -32,59 +31,59 @@ public abstract class Set<S extends ISet<S, E>, E> implements ISet<S, E> {
     }
 
     @Override
-    public S union(S set) {
-        S returnSet = emptySet(internalSet.comparator());
+    public ISet<E> union(ISet<E> set) {
+        ISet<E> returnSet = emptySet(internalSet.comparator());
         returnSet.addAll(this);
         returnSet.addAll(set);
         return returnSet;
     }
 
     @Override
-    public S union(E element) {
-        S returnSet = emptySet(internalSet.comparator());
+    public ISet<E> union(E element) {
+        ISet<E> returnSet = emptySet(internalSet.comparator());
         returnSet.addAll(this);
         returnSet.add(element);
         return returnSet;
     }
 
     @Override
-    public S intersection(S set) {
-        S returnSet = emptySet(internalSet.comparator());
+    public ISet<E> intersection(ISet<E> set) {
+        ISet<E> returnSet = emptySet(internalSet.comparator());
         returnSet.addAll(this);
         returnSet.retainAll(set);
         return returnSet;
     }
 
     @Override
-    public S intersection(E element) {
-        S returnSet = emptySet(internalSet.comparator());
+    public ISet<E> intersection(E element) {
+        ISet<E> returnSet = emptySet(internalSet.comparator());
         if (this.contains(element))
             returnSet.add(element);
         return returnSet;
     }
 
     @Override
-    public S difference(S set) {
-        S returnSet = emptySet(internalSet.comparator());
+    public ISet<E> difference(ISet<E> set) {
+        ISet<E> returnSet = emptySet(internalSet.comparator());
         returnSet.addAll(this);
         returnSet.removeAll(set);
         return returnSet;
     }
 
     @Override
-    public S difference(E element) {
-        S returnSet = emptySet(internalSet.comparator());
+    public ISet<E> difference(E element) {
+        ISet<E> returnSet = emptySet(internalSet.comparator());
         returnSet.addAll(this);
         returnSet.remove(element);
         return returnSet;
     }
 
     @Override
-    public S disunion(S set) {
-        S returnSet = emptySet(internalSet.comparator());
+    public ISet<E> disunion(ISet<E> set) {
+        ISet<E> returnSet = emptySet(internalSet.comparator());
         returnSet.addAll(this);
         returnSet.addAll(set);
-        S returnSet2 = emptySet(internalSet.comparator());
+        ISet<E> returnSet2 = emptySet(internalSet.comparator());
         returnSet2.addAll(this);
         returnSet2.retainAll(set);
         returnSet.removeAll(returnSet2);
@@ -92,8 +91,8 @@ public abstract class Set<S extends ISet<S, E>, E> implements ISet<S, E> {
     }
 
     @Override
-    public S disunion(E element) {
-        S returnSet = emptySet(internalSet.comparator());
+    public ISet<E> disunion(E element) {
+        ISet<E> returnSet = emptySet(internalSet.comparator());
         returnSet.addAll(this);
         returnSet.add(element);
         if (this.contains(element))
@@ -110,10 +109,10 @@ public abstract class Set<S extends ISet<S, E>, E> implements ISet<S, E> {
     }
 
     @Override
-    public S where(IWhere<E> condition) throws XtumlException {
+    public ISet<E> where(IWhere<E> condition) throws XtumlException {
         if (null == condition)
             throw new BadArgumentException("Null condition passed to selection.");
-        S resultSet = emptySet(internalSet.comparator());
+        ISet<E> resultSet = emptySet(internalSet.comparator());
         for (E selected : this) {
             if (condition.evaluate(selected))
                 resultSet.add(selected);
@@ -133,13 +132,13 @@ public abstract class Set<S extends ISet<S, E>, E> implements ISet<S, E> {
     }
 
     @Override
-    public S sorted(Comparator<E> comp) throws XtumlException {
+    public ISet<E> sorted(Comparator<E> comp) throws XtumlException {
         return sorted(comp, true);
     }
 
     @Override
-    public S sorted(Comparator<E> comp, boolean ascending) throws XtumlException {
-        S returnSet = emptySet(ascending ? comp : (a, b) -> comp.compare(a, b) * -1);
+    public ISet<E> sorted(Comparator<E> comp, boolean ascending) throws XtumlException {
+        ISet<E> returnSet = emptySet(ascending ? comp : (a, b) -> comp.compare(a, b) * -1);
         returnSet.addAll(elements());
         return returnSet;
     }
@@ -230,9 +229,13 @@ public abstract class Set<S extends ISet<S, E>, E> implements ISet<S, E> {
         internalSet.clear();
     }
 
-    @Override
-    public boolean equality(S value) throws XtumlException {
-        return containsAll(value) && value.containsAll(this);
+	@Override
+    @SuppressWarnings("unchecked")
+    public boolean equality(IXtumlType value) throws XtumlException {
+    	if (value instanceof ISet<?>) {
+    		return containsAll((ISet<E>)value) && ((ISet<E>)value).containsAll(this);
+    	}
+    	else return false;
     }
 
 }

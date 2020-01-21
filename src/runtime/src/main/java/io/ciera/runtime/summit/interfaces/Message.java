@@ -68,7 +68,7 @@ public abstract class Message implements IMessage, Comparable<IMessage> {
     	JSONArray params = new JSONArray();
     	msg.put("parameterData", params);
     	for (Object param : parameterData) {
-    		if (param instanceof IXtumlType<?>) params.put(((IXtumlType<?>)param).serialize());
+    		if (param instanceof IXtumlType) params.put(((IXtumlType)param).serialize());
     		else params.put(param.toString());
     	}
     	return msg.toString();

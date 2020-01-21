@@ -7,7 +7,7 @@ import java.util.List;
 
 import io.ciera.runtime.summit.types.Set;
 
-public class EventSet extends Set<EventSet, IEvent> {
+public class EventSet extends Set<IEvent> {
 	
 	public EventSet() {
 	}
@@ -38,11 +38,6 @@ public class EventSet extends Set<EventSet, IEvent> {
 	@Override
 	public List<IEvent> elements() {
         return Arrays.asList(toArray(new IEvent[0]));
-	}
-
-	@Override
-	public EventSet value() {
-		return this;
 	}
 
 }

@@ -45,11 +45,6 @@ public abstract class Component<C extends IComponent<C>> implements IComponent<C
     }
 
     @Override
-    public boolean equality(C value) throws XtumlException {
-        return equals(value);
-    }
-
-    @Override
     public void generate(EventHandle e) throws XtumlException {
     	if ( null != e ) {
     		IEvent event = getRunContext().getEvent(e);

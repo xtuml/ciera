@@ -5,7 +5,7 @@ import java.time.Duration;
 import io.ciera.runtime.summit.application.IRunContext;
 import io.ciera.runtime.summit.exceptions.XtumlException;
 
-public class TimeStamp implements IXtumlType<TimeStamp>, Comparable<TimeStamp> {
+public class TimeStamp implements IXtumlType, Comparable<TimeStamp> {
 
     private long timestamp;
 
@@ -32,11 +32,6 @@ public class TimeStamp implements IXtumlType<TimeStamp>, Comparable<TimeStamp> {
     }
 
     @Override
-    public boolean equality(TimeStamp value) throws XtumlException {
-        return equals(value);
-    }
-
-    @Override
     public boolean equals(Object o) {
         return o instanceof TimeStamp && timestamp == ((TimeStamp) o).timestamp;
     }
@@ -49,11 +44,6 @@ public class TimeStamp implements IXtumlType<TimeStamp>, Comparable<TimeStamp> {
     @Override
     public String toString() {
         return Duration.ofMillis(timestamp).toString();
-    }
-
-    @Override
-    public TimeStamp value() {
-        return this;
     }
 
     public static TimeStamp now(IRunContext runContext) {

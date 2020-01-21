@@ -4,7 +4,7 @@ import io.ciera.runtime.summit.exceptions.XtumlException;
 import io.ciera.runtime.summit.types.ISet;
 import io.ciera.runtime.summit.types.UniqueId;
 
-public interface IInstanceSet<S extends IInstanceSet<S, E>, E extends IModelInstance<E, ?>> extends ISet<S, E> {
+public interface IInstanceSet<S extends IInstanceSet<S, E>, E extends IModelInstance<E, ?>> extends ISet<E> {
 
     public E getByInstanceId(UniqueId instanceId) throws XtumlException;
 

@@ -19,7 +19,7 @@ public interface T {
         append(new String(Double.toString(d)));
     }
 
-    default public <T extends IXtumlType<T>> void append(T o) throws XtumlException {
+    default public void append(IXtumlType o) throws XtumlException {
         append(new String(o.toString()));
     }
 
@@ -51,7 +51,7 @@ public interface T {
         return sub(format, Double.toString(d));
     }
 
-    default public String sub(String format, IXtumlType<?> o) throws XtumlException {
+    default public String sub(String format, IXtumlType o) throws XtumlException {
         return sub(format, o.serialize());
     }
 

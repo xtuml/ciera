@@ -6,39 +6,39 @@ import java.util.Set;
 
 import io.ciera.runtime.summit.exceptions.XtumlException;
 
-public interface ISet<S extends ISet<S, E>, E> extends Set<E>, IXtumlType<S> {
+public interface ISet<E> extends Set<E>, IXtumlType {
 
-    public S union(S set);
+    public ISet<E> union(ISet<E> set);
 
-    public S union(E element);
+    public ISet<E> union(E element);
 
-    public S intersection(S set);
+    public ISet<E> intersection(ISet<E> set);
 
-    public S intersection(E element);
+    public ISet<E> intersection(E element);
 
-    public S difference(S set);
+    public ISet<E> difference(ISet<E> set);
 
-    public S difference(E element);
+    public ISet<E> difference(E element);
 
-    public S disunion(S set);
+    public ISet<E> disunion(ISet<E> set);
 
-    public S disunion(E element);
+    public ISet<E> disunion(E element);
 
     public E any();
 
-    public S where(IWhere<E> condition) throws XtumlException;
+    public ISet<E> where(IWhere<E> condition) throws XtumlException;
 
     public E anyWhere(IWhere<E> condition) throws XtumlException;
 
-    public S sorted(Comparator<E> comp) throws XtumlException;
+    public ISet<E> sorted(Comparator<E> comp) throws XtumlException;
 
-    public S sorted(Comparator<E> comp, boolean ascending) throws XtumlException;
+    public ISet<E> sorted(Comparator<E> comp, boolean ascending) throws XtumlException;
 
     public E nullElement();
 
-    public S emptySet();
+    public ISet<E> emptySet();
 
-    public S emptySet(Comparator<? super E> comp);
+    public ISet<E> emptySet(Comparator<? super E> comp);
 
     public List<E> elements();
 

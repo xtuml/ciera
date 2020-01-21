@@ -6,7 +6,7 @@ import io.ciera.runtime.instanceloading.InstanceDeletedDelta;
 import io.ciera.runtime.summit.statemachine.EventHandle;
 import io.ciera.runtime.summit.types.IXtumlType;
 
-public class Timer implements Comparable<Timer>, IXtumlType<Timer> {
+public class Timer implements Comparable<Timer>, IXtumlType {
 
 	private TimerHandle timerId;
 	private int populationId;
@@ -78,11 +78,6 @@ public class Timer implements Comparable<Timer>, IXtumlType<Timer> {
             return timerId.compareTo(o.getId());
     }
 
-    @Override
-    public Timer value() {
-        return this;
-    }
-    
     @Override
     public boolean equals(Object o) {
     	return null != o && null != timerId && timerId.equals(((Timer)o).getId());

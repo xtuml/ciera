@@ -8,7 +8,7 @@ import io.ciera.runtime.summit.exceptions.XtumlException;
 import io.ciera.runtime.summit.types.Set;
 import io.ciera.runtime.summit.types.UniqueId;
 
-public abstract class InstanceSet<S extends IInstanceSet<S, E>, E extends IModelInstance<E, ?>> extends Set<S, E>
+public abstract class InstanceSet<S extends IInstanceSet<S, E>, E extends IModelInstance<E, ?>> extends Set<E>
         implements IInstanceSet<S, E> {
 
     private Map<UniqueId, E> instanceIdMap;
