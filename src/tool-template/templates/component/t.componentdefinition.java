@@ -77,9 +77,4 @@ ${instance_removes}
         return this;
     }
 
-    @Override
-    public ${self.name} value() {
-        return this;
-    }
-
 }

@@ -15,19 +15,26 @@ INSERT INTO O_TFR
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'select one file related by self->File[R401];
-imports = file.getFormattedImports( type:ImportType::IMPL );
 
 extends_type = self.base_type_name;
 select one base_type related by self->Type[R3802];
 if ( base_type.primitive() )
-  if ( "boolean" == self.base_type_name )
-    extends_type = "Object"; // TODO
-  elif ( "int" == self.base_type_name )
-    extends_type = "Object"; // TODO
-  elif ( "double" == self.base_type_name )
-    extends_type = "Object"; // TODO
+  if ("boolean" == self.base_type_name)
+    extends_type = "BooleanUDT";
+    ::addStringToImports(file:file, s:"io.ciera.runtime.summit.types.BooleanUDT", type:ImportType::IMPL);
+  elif ("int" == self.base_type_name)
+    extends_type = "IntegerUDT";
+    ::addStringToImports(file:file, s:"io.ciera.runtime.summit.types.IntegerUDT", type:ImportType::IMPL);
+  elif ("double" == self.base_type_name)
+    extends_type = "RealUDT";
+    ::addStringToImports(file:file, s:"io.ciera.runtime.summit.types.RealUDT", type:ImportType::IMPL);
   end if;
+elif ("String" == self.base_type_name)
+  extends_type = "StringUDT";
+  ::addStringToImports(file:file, s:"io.ciera.runtime.summit.types.StringUDT", type:ImportType::IMPL);
 end if;
+
+imports = file.getFormattedImports( type:ImportType::IMPL );
 
 T::include(file:"type/t.userdefinedtype.java");
 T::emit( file:file.path + "/" + self.name + file.extension );

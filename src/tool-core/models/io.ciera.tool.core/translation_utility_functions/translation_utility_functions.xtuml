@@ -1271,6 +1271,139 @@ INSERT INTO PE_PE
 	"d5206a58-2778-45d8-8709-df1433a1ec8b",
 	"00000000-0000-0000-0000-000000000000",
 	1);
+INSERT INTO S_SYNC
+	VALUES ("aaca963c-4626-427d-8883-2d6356bbd488",
+	"00000000-0000-0000-0000-000000000000",
+	'typeIsBasedOn',
+	'',
+	's_dt = param.type;
+parentType = param.parentType;
+while not_empty s_dt
+  if (s_dt == parentType)
+    return true;
+  elif (s_dt.Name == "real" and parentType.Name == "integer")
+    return true;  // special case: real types can be converted to integer with a simple cast
+  end if;
+  select one s_dt related by s_dt->S_UDT[R17]->S_DT[R18];
+end while;
+return false;',
+	"ba5eda7a-def5-0000-0000-000000000001",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("ab327d9d-0020-4508-84c8-3adbfc971aaa",
+	"aaca963c-4626-427d-8883-2d6356bbd488",
+	'type',
+	"4a90cd45-ece0-4e72-afe7-44996f9d7e1e",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("38d8436a-131d-4f04-810c-86a76316a5c2",
+	"aaca963c-4626-427d-8883-2d6356bbd488",
+	'parentType',
+	"4a90cd45-ece0-4e72-afe7-44996f9d7e1e",
+	0,
+	'',
+	"ab327d9d-0020-4508-84c8-3adbfc971aaa",
+	'');
+INSERT INTO PE_PE
+	VALUES ("aaca963c-4626-427d-8883-2d6356bbd488",
+	1,
+	"d5206a58-2778-45d8-8709-df1433a1ec8b",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("46caf3b5-6073-46d6-aa78-a20f150ca783",
+	"00000000-0000-0000-0000-000000000000",
+	'getParType',
+	'',
+	'v_par = param.v_par;
+
+select any o_tparm related by v_par->ACT_TFM[R627]->O_TFR[R673]->O_TPARM[R117] where (selected.Name == v_par.Name);
+if empty o_tparm
+  select any o_tparm related by v_par->V_TRV[R811]->O_TFR[R829]->O_TPARM[R117] where (selected.Name == v_par.Name);
+end if;
+select one par_s_dt related by o_tparm->S_DT[R118];
+
+if empty par_s_dt
+
+  select any s_bparm related by v_par->ACT_BRG[R628]->S_BRG[R674]->S_BPARM[R21] where (selected.Name == v_par.Name);
+  if empty s_bparm
+    select any s_bparm related by v_par->V_BRV[R810]->S_BRG[R828]->S_BPARM[R21] where (selected.Name == v_par.Name);
+  end if;
+  select one par_s_dt related by s_bparm->S_DT[R22];
+  
+  if empty par_s_dt
+  
+    select any c_pp related by v_par->ACT_SGN[R662]->SPR_RS[R660]->SPR_REP[R4502]->C_EP[R4500]->C_PP[R4006] where (selected.Name == v_par.Name);
+    if empty c_pp
+      select any c_pp related by v_par->ACT_SGN[R662]->SPR_PS[R663]->SPR_PEP[R4503]->C_EP[R4501]->C_PP[R4006] where (selected.Name == v_par.Name);
+      if empty c_pp
+        select any c_pp related by v_par->ACT_IOP[R679]->SPR_RO[R657]->SPR_REP[R4502]->C_EP[R4500]->C_PP[R4006] where (selected.Name == v_par.Name);
+        if empty c_pp
+          select any c_pp related by v_par->ACT_IOP[R679]->SPR_PO[R680]->SPR_PEP[R4503]->C_EP[R4501]->C_PP[R4006] where (selected.Name == v_par.Name);
+          if empty c_pp
+            select any c_pp related by v_par->V_MSV[R842]->SPR_REP[R845]->C_EP[R4500]->C_PP[R4006] where (selected.Name == v_par.Name);
+            if empty c_pp
+              select any c_pp related by v_par->V_MSV[R842]->SPR_PEP[R841]->C_EP[R4501]->C_PP[R4006] where (selected.Name == v_par.Name);
+            end if;
+          end if;
+        end if;
+      end if;
+    end if;
+    select one par_s_dt related by c_pp->S_DT[R4007];
+    
+    if empty par_s_dt
+    
+      select any s_sparm related by v_par->ACT_FNC[R669]->S_SYNC[R675]->S_SPARM[R24] where (selected.Name == v_par.Name);
+      if empty s_sparm
+        select any s_sparm related by v_par->V_FNV[R817]->S_SYNC[R827]->S_SPARM[R24] where (selected.Name == v_par.Name);
+      end if;
+      select one par_s_dt related by s_sparm->S_DT[R26];
+      
+      if empty par_s_dt
+      
+        select any sm_evtdi related by v_par->E_ESS[R700]->E_CES[R701]->E_CSME[R702]->SM_EVT[R706]->SM_EVTDI[R532] where (selected.Name == v_par.Name);
+        if empty sm_evtdi
+          select any sm_evtdi related by v_par->E_ESS[R700]->E_GES[R701]->E_GSME[R703]->SM_EVT[R707]->SM_EVTDI[R532] where (selected.Name == v_par.Name);
+        end if;
+        select one par_s_dt related by sm_evtdi->S_DT[R524];
+      
+      end if;
+    end if;
+  end if;
+end if;
+
+return par_s_dt;',
+	"4a90cd45-ece0-4e72-afe7-44996f9d7e1e",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("3d1f7e3c-0b55-476c-aa82-cb2e000df474",
+	"46caf3b5-6073-46d6-aa78-a20f150ca783",
+	'v_par',
+	"2f2a9dba-8f5a-45a4-8c26-dfe684dbe206",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("2f2a9dba-8f5a-45a4-8c26-dfe684dbe206",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Actual Parameter>',
+	'',
+	'',
+	'../../../../mcooa/models/mcooa/ooaofooa/Value/Value.xtuml');
+INSERT INTO PE_PE
+	VALUES ("46caf3b5-6073-46d6-aa78-a20f150ca783",
+	1,
+	"d5206a58-2778-45d8-8709-df1433a1ec8b",
+	"00000000-0000-0000-0000-000000000000",
+	1);
 INSERT INTO PE_PE
 	VALUES ("d5206a58-2778-45d8-8709-df1433a1ec8b",
 	1,

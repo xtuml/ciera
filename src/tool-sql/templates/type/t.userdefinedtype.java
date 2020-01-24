@@ -2,15 +2,14 @@ package ${self.package};
 
 ${imports}
 
-public class ${self.name} extends ${extends_type}\
-.if ( generic )
-<${self.name}>\
-.end if
- implements IXtumlType<${self.name}> {
+public class ${self.name} extends ${extends_type} implements IXtumlType {
 
-    @Override
-    public ${self.name} value() {
-        return this;
+    public ${self.name}() {
+        super();
+    }
+
+    public ${self.name}(Object value) throws XtumlException {
+        super(value);
     }
 
 }

@@ -1,3 +1,6 @@
+.if ("many" == self.multiplicity)
+((${self.cast})\
+.end if
 ${root_expression_body}\
 .if (sorted)
 ..sorted((a, b) -> {try {int comp = \
@@ -17,5 +20,5 @@ a.${accessor}().compareTo(b.${accessor}())\
 .elif ("any" == self.multiplicity)
 ..anyWhere(selected -> ${where_expression_body})\
 .else
-..where(selected -> ${where_expression_body})\
+..where(selected -> ${where_expression_body}))\
 .end if
