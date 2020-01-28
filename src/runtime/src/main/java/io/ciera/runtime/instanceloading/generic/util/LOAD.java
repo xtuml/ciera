@@ -4,6 +4,8 @@ import io.ciera.runtime.summit.exceptions.XtumlException;
 
 public interface LOAD {
 
+	public Object call_function(String function_name, Object ... args) throws XtumlException;
+
 	public Object create(String key_letters) throws XtumlException;
 
     public void load(String java_class, String[] args) throws XtumlException;
