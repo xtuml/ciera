@@ -199,10 +199,10 @@ index = 0;
 value_index = 0; // needed because of non persistent attributes
 select any prev_attr_loader from instances of Z_AttributeLoader where false;
 select any prev_attr_serializer from instances of Z_AttributeSerializer where false;
+unique_id_type_ref = TypeReference::getBuiltinTypeReference( name:"UniqueId" );
+select one unique_id_type related by unique_id_type_ref->Type[R3800];
 if ( empty non_persistent_instance_ids_mark )
   // create loader and serializer for instance id
-  unique_id_type_ref = TypeReference::getBuiltinTypeReference( name:"UniqueId" );
-  select one unique_id_type related by unique_id_type_ref->Type[R3800];
   if ( not_empty inst_serializer )
     create object instance attr_serializer1 of Z_AttributeSerializer;
     relate inst_serializer to attr_serializer1 across R3002;
@@ -227,7 +227,6 @@ if ( empty non_persistent_instance_ids_mark )
   index = 1;
   value_index = 1;
   index_diff = 1;
-  ::addTypeToImports( file:file, type_to_import:unique_id_type, type:ImportType::IMPL );
 end if;
 
 // create attribute loaders and serializers
@@ -289,6 +288,7 @@ end if;
 // add to the imports
 select one class_file related by obj->File[R401];
 ::addFileToImports( file:file, file_to_import:class_file, type: ImportType::IMPL );
+::addTypeToImports( file:file, type_to_import:unique_id_type, type:ImportType::IMPL );
 ::addStringToImports( file:file, s: ::pathToPackage( path:class_file.path ) + ".impl." + class_file.name + "Impl", type:ImportType::IMPL );',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
