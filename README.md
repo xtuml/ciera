@@ -17,8 +17,8 @@ associated issue from the tracker.
 
 ## Licensing
 
-This project is Open Source Software (OSS) licensed under Apache 2 and Eclipse
-(EPL). Documentation is Creative Commons.
+This project is Open Source Software (OSS) licensed under Apache 2.
+Documentation is Creative Commons.
 
 ## Governance
 
