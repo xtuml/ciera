@@ -1,6 +1,7 @@
 package io.ciera.maven;
 
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
 
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -26,40 +27,48 @@ public class BridgePointPreBuildMojo extends AbstractPreBuildMojo {
     @Parameter(defaultValue="")
     private String bpHome;
 
-    public void execute() throws MojoExecutionException {
+    public void execute() throws MojoExecutionException, MojoFailureException {
         if (requiresBuild()) {
             final String workspace = null == this.workspace || "".equals(this.workspace) ? System.getenv("WORKSPACE") : this.workspace;
             final String bpHome = null == this.bpHome || "".equals(this.bpHome) ? System.getenv("BPHOME") : this.bpHome;
             final String cliExe = bpHome + File.separator + BIN_DIR + File.separator + "CLI.sh";
-            if ("".equals(workspace.trim())) {
-                getLog().warn("WORKSPACE is unset.");
+            if (workspace == null || "".equals(workspace.trim()) || bpHome == null || "".equals(bpHome.trim())) {
+                if (bpHome == null || "".equals(bpHome.trim())) {
+                    getLog().error("BPHOME is unset.");
+                }
+                if (workspace == null || "".equals(workspace.trim())) {
+                    getLog().error("WORKSPACE is unset.");
+                }
+                throw new MojoFailureException("Could not execute pre-build.");
             }
-            ProcessBuilder pb = new ProcessBuilder(cliExe, "Build", "-project", projectName, "-prebuildOnly").redirectOutput(Redirect.PIPE).redirectError(Redirect.PIPE);
-            pb.environment().put("WORKSPACE", workspace);
-            getLog().info("Performing BridgePoint pre-build (workspace location: " + workspace + ")...");
-            getLog().info("");
-            printCommand(pb);
-            try {
-                long startTime = System.currentTimeMillis();
-                Process proc = pb.start();
-                Scanner sc = new Scanner(proc.getInputStream());
-                while (sc.hasNextLine()) {
-                    getLog().info(sc.nextLine());
-                }
-                sc.close();
-                sc = new Scanner(proc.getErrorStream());
-                while (sc.hasNextLine()) {
-                    getLog().error(sc.nextLine());
-                }
-                sc.close();
-                int duration = (int)(System.currentTimeMillis() - startTime);
-                int mins = duration / 60000;
-                int secs = (duration % 60000) / 1000;
-                int msecs = duration % 1000;
+            else {
+                ProcessBuilder pb = new ProcessBuilder(cliExe, "Build", "-project", projectName, "-prebuildOnly").redirectOutput(Redirect.PIPE).redirectError(Redirect.PIPE);
+                pb.environment().put("WORKSPACE", workspace);
+                getLog().info("Performing BridgePoint pre-build (workspace location: " + workspace + ")...");
                 getLog().info("");
-                getLog().info(String.format("Pre-build duration: %d:%d.%03d", mins, secs, msecs));
-            } catch (IOException e) {
-                getLog().error("Problem executing pre-builder:", e);
+                printCommand(pb);
+                try {
+                    long startTime = System.currentTimeMillis();
+                    Process proc = pb.start();
+                    Scanner sc = new Scanner(proc.getInputStream());
+                    while (sc.hasNextLine()) {
+                        getLog().info(sc.nextLine());
+                    }
+                    sc.close();
+                    sc = new Scanner(proc.getErrorStream());
+                    while (sc.hasNextLine()) {
+                        getLog().error(sc.nextLine());
+                    }
+                    sc.close();
+                    int duration = (int)(System.currentTimeMillis() - startTime);
+                    int mins = duration / 60000;
+                    int secs = (duration % 60000) / 1000;
+                    int msecs = duration % 1000;
+                    getLog().info("");
+                    getLog().info(String.format("Pre-build duration: %d:%d.%03d", mins, secs, msecs));
+                } catch (IOException e) {
+                    getLog().error("Problem executing pre-builder:", e);
+                }
             }
         }
         else {

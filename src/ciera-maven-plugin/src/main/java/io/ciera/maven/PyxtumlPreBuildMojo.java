@@ -3,6 +3,7 @@ package io.ciera.maven;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -42,7 +43,7 @@ public class PyxtumlPreBuildMojo extends AbstractPreBuildMojo {
     @Parameter(defaultValue="python")
     private String pythonExecutable;
 
-    public void execute() throws MojoExecutionException {
+    public void execute() throws MojoExecutionException, MojoFailureException {
         List<String> resources = new ArrayList<>();
         if (includeDependencyModels) {
             resources.addAll(getDependencyModels());
@@ -78,13 +79,20 @@ public class PyxtumlPreBuildMojo extends AbstractPreBuildMojo {
                     getLog().error(sc.nextLine());
                 }
                 sc.close();
-                int duration = (int)(System.currentTimeMillis() - startTime);
-                int mins = duration / 60000;
-                int secs = (duration % 60000) / 1000;
-                int msecs = duration % 1000;
-                getLog().info(String.format("Pre-build duration: %d:%d.%03d", mins, secs, msecs));
+                if (proc.exitValue() == 0) {
+                    int duration = (int)(System.currentTimeMillis() - startTime);
+                    int mins = duration / 60000;
+                    int secs = (duration % 60000) / 1000;
+                    int msecs = duration % 1000;
+                    getLog().info(String.format("Pre-build duration: %d:%d.%03d", mins, secs, msecs));
+                }
+                else {
+                    getLog().error(String.format("pyxtuml exited with code %d", proc.exitValue()));
+                    throw new MojoFailureException(String.format("pyxtuml exited with code %d", proc.exitValue()));
+                }
             } catch (IOException e) {
                 getLog().error("Problem executing pre-builder:", e);
+                throw new MojoFailureException("Problem executing pre-builder", e);
             }
         }
         else {
