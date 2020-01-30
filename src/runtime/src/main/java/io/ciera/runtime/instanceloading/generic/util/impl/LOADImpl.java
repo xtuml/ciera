@@ -50,11 +50,17 @@ public class LOADImpl<C extends IComponent<C>> extends Utility<C> implements LOA
     @Override
     public Object create(String key_letters) throws XtumlException {
         try {
-            return context().getClassByKeyLetters(key_letters).getMethod("create", context().getClass()).invoke(null, context());
+            Class<?> modelClass = context().getClassByKeyLetters(key_letters);
+            if (modelClass != null) {
+                return modelClass.getMethod("create", context().getClass()).invoke(null, context());
+            }
+            else {
+                throw new XtumlException(String.format("No class found with key letters '%s'", key_letters));
+            }
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException
                 | NoSuchMethodException | SecurityException e) {
             e.printStackTrace();
-            throw new XtumlException(String.format("Could create instance of class with key letters '%s'", key_letters));
+            throw new XtumlException(String.format("Could not create instance of class with key letters '%s'", key_letters));
         }
     }
 

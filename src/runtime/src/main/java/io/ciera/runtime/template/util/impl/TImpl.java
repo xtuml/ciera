@@ -37,19 +37,19 @@ public class TImpl<C extends IComponent<C>> extends Utility<C> implements T {
     }
 
     @Override
-    public void append(String s) throws XtumlException {
+    public void append(String s) {
         buffers.peek().add(s);
     }
 
     @Override
-    public String body() throws XtumlException {
+    public String body() {
         List<String> strings = buffers.pop();
         push_buffer();
         return String.join("", strings);
     }
 
     @Override
-    public void clear() throws XtumlException {
+    public void clear() {
         pop_buffer();
         push_buffer();
     }
@@ -73,6 +73,7 @@ public class TImpl<C extends IComponent<C>> extends Utility<C> implements T {
                     getRunContext().getLog().info("File: %s REPLACED.", file);
                 else
                     getRunContext().getLog().info("File: %s CREATED.", file);
+                clear();
             } catch (IOException e) {
                 throw new XtumlException("Could not open output file.");
             }
@@ -96,21 +97,12 @@ public class TImpl<C extends IComponent<C>> extends Utility<C> implements T {
     }
 
     @Override
-    public void set_output_directory(String dir) throws XtumlException {
+    public void set_output_directory(String dir) {
         if (null != dir) {
             rootDir = dir;
         }
     }
 
-    /**
-     * u Upper - make all characters upper case c Capitalize - make the first
-     * character of each word capitalized and all other characters of a word
-     * lowercase l Lower - make all characters lowercase _ Underscore - change all
-     * whitespace characters to underscore characters r Remove - remove all
-     * whitespace. o cOrba - make the first word all lowercase, make the first
-     * character of each following word capitalized and all other characters of the
-     * words lowercase. Characters other than a-Z a-z 0-9 are ignored. t no-op
-     */
     @Override
     public String sub(String format, String s) throws XtumlException {
         if (null != format) {
