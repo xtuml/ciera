@@ -1,7 +1,6 @@
 package io.ciera.runtime.summit.util.impl;
 
 import io.ciera.runtime.summit.components.IComponent;
-import io.ciera.runtime.summit.exceptions.XtumlException;
 import io.ciera.runtime.summit.util.MATH;
 import io.ciera.runtime.summit.util.Utility;
 
@@ -12,8 +11,8 @@ public class MATHImpl<C extends IComponent<C>> extends Utility<C> implements MAT
     }
 
 	@Override
-	public double sqrt(double p_x) throws XtumlException {
-		return Math.sqrt(p_x);
+	public double sqrt(final double x) {
+		return Math.sqrt(x);
 	}
 
 }

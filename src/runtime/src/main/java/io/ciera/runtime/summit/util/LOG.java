@@ -2,18 +2,53 @@ package io.ciera.runtime.summit.util;
 
 import io.ciera.runtime.summit.types.TimeStamp;
 
+/**
+ * Standard logging interface.
+ */
 public interface LOG {
 
-    public void LogFailure(String message);
+    /**
+     * Log a failure message.
+     *
+     * @param message the message to log
+     */
+    public void LogFailure(final String message);
 
-    public void LogInfo(String message);
+    /**
+     * Log an information message.
+     *
+     * @param message the message to log
+     */
+    public void LogInfo(final String message);
 
-    public void LogSuccess(String message);
+    /**
+     * Log a success message.
+     *
+     * @param message the message to log
+     */
+    public void LogSuccess(final String message);
 
-    public void LogInteger(int message);
+    /**
+     * Log an integer message.
+     *
+     * @param message the integer to log
+     */
+    public void LogInteger(final int message);
 
-    public void LogReal(String message, double r);
+    /**
+     * Log an real number message.
+     *
+     * @param message the text to log
+     * @param r the real number to log
+     */
+    public void LogReal(final String message, final double r);
 
-    public void LogTime(String message, TimeStamp t);
+    /**
+     * Log an timestamp message.
+     *
+     * @param message the text to log
+     * @param t the timestamp to log
+     */
+    public void LogTime(final String message, final TimeStamp t);
 
 }

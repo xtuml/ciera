@@ -3,28 +3,99 @@ package io.ciera.runtime.summit.util;
 import io.ciera.runtime.summit.exceptions.XtumlException;
 import io.ciera.runtime.summit.types.UniqueId;
 
+/**
+ * Provides implementations for standard string manipulation functions.
+ */
 public interface STRING {
 
-    public String itoa(final int p_i) throws XtumlException;
+    /**
+     * Convert an integer to a string.
+     *
+     * @param i the integer to convert
+     * @return the string representation of the input integer
+     */
+    public String itoa(final int i);
 
-    public int atoi(final String p_s) throws XtumlException;
+    /**
+     * Convert a string to an integer.
+     *
+     * @param s the string to parse
+     * @return the integer representation of the input string
+     * @throws XtumlException if the string cannot be parsed to an integer.
+     */
+    public int atoi(final String s) throws XtumlException;
 
-    public String substr(final String p_s, final int p_begin, final int p_end) throws XtumlException;
+    /**
+     * Get a substring of an input string from {@code begin} (inclusive) to
+     * {@code end} (exclusive). If {@code begin < 0}, the result is a substring
+     * starting at the beginning of {@code s}.  If {@code begin >} the length
+     * of {@code s - 1}, the result is an empty string.  If {@code end < 0} or
+     * {@code >} the length of {@code s}, the result is a substring starting at
+     * {@code begin} to the end of {@code s}.  If {@code end <= begin}, the
+     * result is an empty string.
+     *
+     * @param s the input string
+     * @param begin the start index of the substring (inclusive)
+     * @param end the end index of the substring (exclusive)
+     * @return the substring of {@code s} from {@code begin} (inclusive) to
+     * {@code end} (exclusive)
+     */
+    public String substr(final String s, final int begin, final int end);
 
-    public int strlen(final String p_s) throws XtumlException;
+    /**
+     * Get the length of a string
+     *
+     * @param s the input string
+     * @return the length of the input string
+     */
+    public int strlen(final String s);
 
-    public int indexof(final String p_haystack, final String p_needle) throws XtumlException;
+    /**
+     * Gets the index of the first occurance of {@code needle} in {@code
+     * haystack}.  Returns -1 if {@code needle} is not contained in {@code
+     * haystack}.
+     *
+     * @param haystack the string to search
+     * @param needle the string pattern to search for
+     * @return the index of the first occurance of {@code needle} in {@code
+     * haystack}
+     */
+    public int indexof(final String haystack, final String needle);
 
-    public String getword(final String p_s, final int p_i, final int p_j) throws XtumlException;
+    /**
+     * Trim whitespace from the start and end of a string.
+     *
+     * @param s the input string
+     * @return the input string with all leading and trailing whitespace
+     * removed.
+     */
+    public String trim(final String s);
 
-    public String trim(final String p_s) throws XtumlException;
+    /**
+     * Return a literal double quote.
+     *
+     * @return a literal double quote
+     */
+    public String quote();
 
-    public String quote() throws XtumlException;
+    /**
+     * Replace all single quotes with two single quotes for escaping SQL insert
+     * statements.
+     *
+     * @param s the input string
+     * @return the input string with all single quotes replaced with two single
+     * quotes
+     */
+    public String escapetics(final String s);
 
-    public String escapetics(final String p_s) throws XtumlException;
-
-    public String unescapetics(final String p_s) throws XtumlException;
-
-    public String idtoa(final String p_a, final UniqueId p_id) throws XtumlException;
+    /**
+     * Replace all occurances of two adjacent single quotes with one single
+     * quote for unescaping SQL insert statements.
+     *
+     * @param s the input string
+     * @return the input string with all occurances of two adjacent single
+     * quotes replaced with one single quote
+     */
+    public String unescapetics(final String s);
 
 }

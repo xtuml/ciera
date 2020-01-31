@@ -1,9 +1,16 @@
 package io.ciera.runtime.summit.util;
 
-import io.ciera.runtime.summit.exceptions.XtumlException;
-
+/**
+ * Provides implementations for standard math functions
+ */
 public interface MATH {
 
-    public double sqrt(final double p_x) throws XtumlException;
+    /**
+     * Compute the square root of a number
+     *
+     * @param x the number to compute the square root for
+     * @return the square root of x
+     */
+    public double sqrt(final double x);
 
 }

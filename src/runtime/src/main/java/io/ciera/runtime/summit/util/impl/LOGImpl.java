@@ -12,32 +12,32 @@ public class LOGImpl<C extends IComponent<C>> extends Utility<C> implements LOG 
     }
 
     @Override
-    public void LogFailure(String message) {
+    public void LogFailure(final String message) {
         getRunContext().getLog().error(message);
     }
 
     @Override
-    public void LogInfo(String message) {
+    public void LogInfo(final String message) {
         getRunContext().getLog().info(message);
     }
 
     @Override
-    public void LogSuccess(String message) {
+    public void LogSuccess(final String message) {
         getRunContext().getLog().info(message);
     }
 
     @Override
-    public void LogInteger(int message) {
+    public void LogInteger(final int message) {
         getRunContext().getLog().info("%d", message);
     }
 
     @Override
-    public void LogReal(String message, double r) {
+    public void LogReal(final String message, final double r) {
         getRunContext().getLog().info("%s %f", message, r);
     }
 
     @Override
-    public void LogTime(String message, TimeStamp t) {
+    public void LogTime(final String message, final TimeStamp t) {
         getRunContext().getLog().info("%s %s", message, t);
     }
 

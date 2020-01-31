@@ -15,13 +15,13 @@ public class CMDImpl<C extends IComponent<C>> extends Utility<C> implements CMD 
         cmd = new CommandLine(context.getRunContext().args());
     }
     @Override
-    public boolean get_flag(String p_name) throws XtumlException {
-    	return cmd.get_flag(p_name);
+    public boolean get_flag(final String name) throws XtumlException {
+    	return cmd.get_flag(name);
     }
 
     @Override
-    public String get_value(String p_name) throws XtumlException {
-    	return cmd.get_value(p_name);
+    public String get_value(final String name) throws XtumlException {
+    	return cmd.get_value(name);
     }
 
     @Override
@@ -30,14 +30,14 @@ public class CMDImpl<C extends IComponent<C>> extends Utility<C> implements CMD 
     }
 
     @Override
-    public void register_flag(String p_name, String p_usage) throws XtumlException {
-    	cmd.register_flag(p_name, p_usage);
+    public void register_flag(final String name, final String usage) throws XtumlException {
+    	cmd.register_flag(name, usage);
     }
 
     @Override
-    public void register_value(String p_name, String p_value_name, String p_usage, String p_default, boolean p_required)
+    public void register_value(final String name, final String value_name, final String usage, final String default_value, final boolean required)
             throws XtumlException {
-    	cmd.register_value(p_name, p_value_name, p_usage, p_default, p_required);
+    	cmd.register_value(name, value_name, usage, default_value, required);
     }
 
 }

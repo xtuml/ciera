@@ -1,6 +1,5 @@
 package io.ciera.runtime.summit.util;
 
-import io.ciera.runtime.summit.exceptions.XtumlException;
 import io.ciera.runtime.summit.statemachine.EventHandle;
 import io.ciera.runtime.summit.time.TimerHandle;
 import io.ciera.runtime.summit.types.Date;
@@ -8,34 +7,146 @@ import io.ciera.runtime.summit.types.TimeStamp;
 
 public interface TIM {
 
-    public Date create_date(int day, int hour, int minute, int month, int second, int year) throws XtumlException;
+    /**
+     * Create a new {@link io.ciera.runtime.summit.types.Date Date} object from
+     * the input parameters.
+     *
+     * @param year the year A.D.
+     * @param month the month of the year
+     * @param day the day of the month
+     * @param hour the hour of the day
+     * @param minute the minute of the hour
+     * @param second the second of the minute
+     * @return a new {@link io.ciera.runtime.summit.types.Date Date} object from
+     * the input parameters
+     */
+    public Date create_date(final int year, final int month, final int day, final int hour, final int minute, final int second);
 
-    public TimeStamp current_clock() throws XtumlException;
+    /**
+     * Get the current system time.
+     *
+     * @return the current time
+     */
+    public TimeStamp current_clock();
 
-    public Date current_date() throws XtumlException;
+    /**
+     * Get the current date.
+     *
+     * @return the current date
+     */
+    public Date current_date();
 
-    public int get_day(Date date) throws XtumlException;
+    /**
+     * Get the day of the month from a date object.
+     *
+     * @param date the input date
+     * @return the day of the month for the input date
+     */
+    public int get_day(final Date date);
 
-    public int get_month(Date date) throws XtumlException;
+    /**
+     * Get the month of the year from a date object.
+     *
+     * @param date the input date
+     * @return the month of the year for the input date
+     */
+    public int get_month(final Date date);
 
-    public int get_year(Date date) throws XtumlException;
+    /**
+     * Get year from a date object.
+     *
+     * @param date the input date
+     * @return the year for the input date
+     */
+    public int get_year(final Date date);
 
-    public int get_hour(Date date) throws XtumlException;
+    /**
+     * Get hour of the day from a date object.
+     *
+     * @param date the input date
+     * @return the hour of the day for the input date
+     */
+    public int get_hour(final Date date);
 
-    public int get_minute(Date date) throws XtumlException;
+    /**
+     * Get minute of the hour from a date object.
+     *
+     * @param date the input date
+     * @return the minute of the hour for the input date
+     */
+    public int get_minute(final Date date);
 
-    public int get_second(Date date) throws XtumlException;
+    /**
+     * Get second of the minute from a date object.
+     *
+     * @param date the input date
+     * @return the second of the minute for the input date
+     */
+    public int get_second(final Date date);
 
-    public boolean timer_add_time(int microseconds, TimerHandle timer_inst_ref) throws XtumlException;
+    /**
+     * Add time to a running timer.
+     *
+     * @param microseconds the time to add in microseconds
+     * @param timer_inst_ref the timer handle to add time to
+     * @return {@literal true} if successful, {@literal false} otherwise
+     */
+    public boolean timer_add_time(final int microseconds, final TimerHandle timer_inst_ref);
 
-    public boolean timer_cancel(TimerHandle timer_inst_ref) throws XtumlException;
+    /**
+     * Cancel a running timer.
+     *
+     * @param timer_inst_ref the timer handle to cancel
+     * @return {@literal true} if successful, {@literal false} otherwise
+     */
+    public boolean timer_cancel(final TimerHandle timer_inst_ref);
 
-    public int timer_remaining_time(TimerHandle timer_inst_ref) throws XtumlException;
+    /**
+     * Get the remaining time of a running timer in microseconds.
+     *
+     * @param timer_inst_ref the timer handle to inspect
+     * @return the remaining time of the timer in microseconds
+     */
+    public int timer_remaining_time(final TimerHandle timer_inst_ref);
 
-    public boolean timer_reset_time(int microseconds, TimerHandle timer_inst_ref) throws XtumlException;
+    /**
+     * Reset the timer and set a new duration from the current system time.
+     *
+     * @param microseconds the new duration from the current system time to set
+     * in microseconds
+     * @param timer_inst_ref the timer handle to reset
+     * @return {@literal true} if successful, {@literal false} otherwise
+     */
+    public boolean timer_reset_time(final int microseconds, final TimerHandle timer_inst_ref);
 
-    public TimerHandle timer_start(EventHandle event_inst, int microseconds) throws XtumlException;
+    /**
+     * Start a new timer to wake in {@code microseconds} microseconds from the
+     * current system time. The architecture does not guarantee the timer will
+     * wake in exactly {@code microseconds} microseconds, however it does
+     * guarantee that it will be at least that long. When the timer wakes, the
+     * {@code event_inst} will be added to the system event queue.
+     *
+     * @param event_inst the event to generate when the timer wakes
+     * @param microseconds the duration from the current system time to set in
+     * microseconds
+     * @return a handle to the newly created timer
+     */
+    public TimerHandle timer_start(final EventHandle event_inst, final int microseconds);
 
-    public TimerHandle timer_start_recurring(EventHandle event_inst, int microseconds) throws XtumlException;
+    /**
+     * Start a new recurring timer to wake in {@code microseconds} microseconds
+     * from the current system time. The architecture does not guarantee the
+     * timer will wake in exactly {@code microseconds} microseconds, however it
+     * does guarantee that it will be at least that long. When the timer wakes,
+     * the {@code event_inst} will be added to the system event queue. The timer
+     * will then be reset to wake again at {@code microseconds} after the system
+     * time when the timer event was last generated.
+     *
+     * @param event_inst the event to generate when the timer wakes
+     * @param microseconds the duration from the current system time to set in
+     * microseconds
+     * @return a handle to the newly created timer
+     */
+    public TimerHandle timer_start_recurring(final EventHandle event_inst, final int microseconds);
 
 }

@@ -38,29 +38,27 @@ public class CommandLine {
 
     }
 
-    public boolean get_flag(String p_name) throws XtumlException {
+    public boolean get_flag(String name) throws XtumlException {
         if (null == flags || null == values)
             throw new XtumlException("Commandline has not been loaded.");
-        validateName(p_name);
-        if (!options.containsKey(p_name))
-            throw new XtumlException("Option '" + p_name + "' has not been registered.");
-        if (options.get(p_name).type != Option.FLAG)
-            throw new XtumlException("Option '" + p_name + "' requires a value.");
-        return flags.contains(p_name);
+        if (!options.containsKey(name))
+            throw new XtumlException("Option '" + name + "' has not been registered.");
+        if (options.get(name).type != Option.FLAG)
+            throw new XtumlException("Option '" + name + "' requires a value.");
+        return flags.contains(name);
     }
 
-    public String get_value(String p_name) throws XtumlException {
+    public String get_value(String name) throws XtumlException {
         if (null == flags || null == values)
             throw new XtumlException("Commandline has not been loaded.");
-        validateName(p_name);
-        if (!options.containsKey(p_name))
-            throw new XtumlException("Option '" + p_name + "' has not been registered.");
-        if (options.get(p_name).type != Option.VALUE)
-            throw new XtumlException("Option '" + p_name + "' does not carry a value.");
-        if (values.containsKey(p_name))
-            return values.get(p_name);
+        if (!options.containsKey(name))
+            throw new XtumlException("Option '" + name + "' has not been registered.");
+        if (options.get(name).type != Option.VALUE)
+            throw new XtumlException("Option '" + name + "' does not carry a value.");
+        if (values.containsKey(name))
+            return values.get(name);
         else
-            return options.get(p_name).defaultValue;
+            return options.get(name).defaultValue;
     }
 
     public void read_command_line() throws XtumlException {
@@ -69,45 +67,48 @@ public class CommandLine {
         validateCommandLine();
     }
 
-    public void register_flag(String p_name, String p_usage) throws XtumlException {
+    public void register_flag(String name, String usage) throws XtumlException {
         if (null != flags && null != values)
             throw new XtumlException("Commandline is already loaded.");
-        validateName(p_name);
+        validateName(name);
         Option flag = new Option();
         flag.type = Option.FLAG;
-        flag.name = p_name;
-        flag.usage = null != p_usage ? p_usage : "";
-        if (options.containsKey(p_name))
-            throw new XtumlException("Option '" + p_name + "' already registered.");
-        options.put(p_name, flag);
+        flag.name = name;
+        flag.usage = null != usage ? usage : "";
+        if (options.containsKey(name))
+            throw new XtumlException("Option '" + name + "' already registered.");
+        options.put(name, flag);
     }
 
-    public void register_value(String p_name, String p_value_name, String p_usage, String p_default, boolean p_required)
+    public void register_value(String name, String value_name, String usage, String default_value, boolean required)
             throws XtumlException {
         if (null != flags && null != values)
             throw new XtumlException("Commandline is already loaded.");
-        validateName(p_name);
+        validateName(name);
         Option value = new Option();
         value.type = Option.VALUE;
-        value.name = p_name;
-        value.value_name = null != p_value_name ? p_value_name : "";
-        value.usage = null != p_usage ? p_usage : "";
-        value.defaultValue = null != p_default ? p_default : "";
-        value.required = p_required;
-        if (options.containsKey(p_name))
-            throw new XtumlException("Option '" + p_name + "' already registered.");
-        options.put(p_name, value);
+        value.name = name;
+        value.value_name = null != value_name ? value_name : "";
+        value.usage = null != usage ? usage : "";
+        value.defaultValue = null != default_value ? default_value : "";
+        value.required = required;
+        if (options.containsKey(name))
+            throw new XtumlException("Option '" + name + "' already registered.");
+        options.put(name, value);
     }
 
     // check whether a string is a valid option name
     private void validateName(String name) throws XtumlException {
         if (null == name || !Pattern.compile("[a-zA-Z][a-zA-Z0-9_\\-]*").matcher(name).matches())
             throw new XtumlException("Option name must be one or more alphanumeric characters, hyphens, or underscores.");
+        else if ("h".equals(name) || "help".equals(name)) {
+            throw new XtumlException(String.format("Cannot register reserved flag '%s'.", name));
+        }
     }
 
     // assure that no unregistered options are present and that all required options
     // are present
-    private void validateCommandLine() throws XtumlException {
+    private void validateCommandLine() throws XtumlInterruptedException {
         boolean errors = false;
         if (null == flags || null == values)
             errors = parseCommandLine();
