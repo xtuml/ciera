@@ -34,8 +34,8 @@ bash run.sh
 
 1. Launch a recent version of BridgePoint (download nightly build
    [here](https://s3.amazonaws.com/xtuml-releases/nightly-build/buildfiles.html))
-2. Import the `io.ciera.runtime` project from the `src` folder of this
-   repository (diasable "Search for nested projects")
+2. Import the `runtime` project from the
+   `$HOME/.m2/repository/io/ciera/runtime/1.1.11/runtime-1.1.11.jar` file.
 3. Import the `GPS_Watch`, `HeartRateMonitor`, `Location`, `Tracking`, and `UI`
    projects from this folder (diasable "Search for nested projects")
 

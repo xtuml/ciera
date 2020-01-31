@@ -21,6 +21,7 @@ import java.io.InputStreamReader;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
+import java.util.Properties;
 import tracking.shared.Indicator;
 import tracking.shared.Unit;
 import ui.shared.IUI;
@@ -103,6 +104,23 @@ public class UI extends Component<UI> {
 		else {
 			getRunContext().execute(new HaltExecutionTask());
 		}
+    }
+
+    @Override
+    public String getVersion() {
+        Properties prop = new Properties();
+        try {
+            prop.load(getClass().getResourceAsStream("UIProperties.properties"));
+        } catch (IOException e) { /* do nothing */ }
+        return prop.getProperty("version", "Unknown");
+    }
+    @Override
+    public String getVersionDate() {
+        Properties prop = new Properties();
+        try {
+            prop.load(getClass().getResourceAsStream("UIProperties.properties"));
+        } catch (IOException e) { /* do nothing */ }
+        return prop.getProperty("version_date", "Unknown");
     }
 
     @Override
