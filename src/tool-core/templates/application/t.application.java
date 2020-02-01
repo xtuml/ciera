@@ -13,6 +13,13 @@ public class ${self.name} implements IApplication {
     }
 
     @Override
+    public void run() {
+        for (ApplicationExecutor executor : executors) {
+            executor.run();
+        }
+    }
+
+    @Override
     public void setup( String[] args, ILogger logger ) {
         for ( int i = 0; i < executors.length; i++ ) {
             if ( null != logger ) {
@@ -24,6 +31,7 @@ public class ${self.name} implements IApplication {
         }
 ${component_instantiations}${component_satisfactions}    }
 
+${component_getters}
     @Override
     public void initialize() {
         for ( IComponent<?> component : components ) {

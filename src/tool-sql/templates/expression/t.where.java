@@ -3,13 +3,13 @@
 .end if
 ${root_expression_body}\
 .if (sorted)
-..sorted((a, b) -> {try {int comp = \
+..sorted((_a, _b) -> {try {int comp = \
   .if (use_util)
-${util_name}.compareTo(a.${accessor}(), b.${accessor}())\
+${util_name}.compareTo(_a.${accessor}(), _b.${accessor}())\
   .else
-a.${accessor}().compareTo(b.${accessor}())\
+_a.${accessor}().compareTo(_b.${accessor}())\
   .end if
-;return comp == 0 ? a.compareTo(b) : comp;} catch (XtumlException e) {return 0;}}
+;return comp == 0 ? _a.compareTo(_b) : comp;} catch (XtumlException _e) {return 0;}}
   .if (sort_descending)
 , false\
   .end if

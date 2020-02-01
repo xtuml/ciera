@@ -4,11 +4,15 @@ ${imports}
 
 public class ${self.name} extends ${self.extends} {
 
+    private Map<String, Class<?>> classDirectory;
+
     public ${self.name}(IApplication app, IRunContext runContext, int populationId) {
         super(app, runContext, populationId);
 ${instance_extent_initializers}
 ${relationship_extent_initializers}
 ${utility_initializers}
+        classDirectory = new TreeMap<>();
+${class_directory}
     }
 
     // domain functions
@@ -75,6 +79,11 @@ ${instance_removes}
     @Override
     public ${self.name} context() {
         return this;
+    }
+
+    @Override
+    public Class<?> getClassByKeyLetters(String keyLetters) {
+        return classDirectory.get(keyLetters);
     }
 
 }

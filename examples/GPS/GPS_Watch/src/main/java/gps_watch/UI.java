@@ -142,11 +142,6 @@ public class UI extends Component<UI> {
         return this;
     }
 
-    @Override
-    public UI value() {
-        return this;
-    }
-    
     public void listen() throws XtumlException {
         int signal_no = poll();
         switch (signal_no) {

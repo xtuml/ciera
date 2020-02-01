@@ -1,6 +1,6 @@
 package io.ciera.runtime.summit.application;
 
-public interface IApplication {
+public interface IApplication extends Runnable {
     
     public void setup(String[] args, ILogger logger);
 
@@ -15,7 +15,7 @@ public interface IApplication {
     public void initialize();
 
     public void start();
-    
+
     public void stop();
 
     public void printVersions();
