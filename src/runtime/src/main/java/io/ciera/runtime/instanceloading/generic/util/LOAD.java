@@ -41,43 +41,43 @@ public interface LOAD {
 
     /**
      * Relate two xtUML instances together across the given relationship. For
-     * non-reflexive relationships, {@code form} and {@code part} are
+     * non-reflexive relationships, {@code inst1} and {@code inst2} are
      * interchangeable and the value of {@code phrase} has no effect. It may be
-     * {@code null}. For reflexive relationships, {@code form} and {@code part}
+     * {@code null}. For reflexive relationships, {@code inst1} and {@code inst2}
      * will "read across" according to the value of {@code phrase} with the same
      * semantics as OAL.
      *
-     * @param form the first instance to relate
-     * @param part the second instance to relate
+     * @param inst1 the first instance to relate
+     * @param inst2 the second instance to relate
      * @param rel_num the relationship number to create
      * @param phrase the text phrase used to disambiguate relates of reflexive
      * relationships
      * @throws XtumlException if the relationship specified does not exist
-     * between form and part or if the act of relating the instances results in
+     * between inst1 and inst2 or if the act of relating the instances results in
      * a model integrity violation
      */
-    public void relate(Object form, Object part, int rel_num, String phrase) throws XtumlException;
+    public void relate(Object inst1, Object inst2, int rel_num, String phrase) throws XtumlException;
 
     /**
      *
      * Relate three xtUML instances together across the given associative
-     * relationship. For non-reflexive relationships, {@code form} and {@code
-     * part} are interchangeable and the value of {@code phrase} has no effect.
-     * It may be {@code null}. For reflexive relationships, {@code form} and
-     * {@code part} will "read across" according to the value of {@code phrase}
+     * relationship. For non-reflexive relationships, {@code inst1} and {@code
+     * inst2} are interchangeable and the value of {@code phrase} has no effect.
+     * It may be {@code null}. For reflexive relationships, {@code inst1} and
+     * {@code inst2} will "read across" according to the value of {@code phrase}
      * with the same semantics as OAL.
      *
-     * @param form the first instance to relate
-     * @param part the second instance to relate
+     * @param inst1 the first instance to relate
+     * @param inst2 the second instance to relate
      * @param link the associative instance to relate
      * @param rel_num the relationship number to create
      * @param phrase the text phrase used to disambiguate relates of reflexive
      * relationships
      * @throws XtumlException if the relationship specified does not exist
-     * between form and part or if the act of relating the instances results in
+     * between inst1 and inst2 or if the act of relating the instances results in
      * a model integrity violation
      */
-    public void relate_using(Object form, Object part, Object link, int rel_num, String phrase) throws XtumlException;
+    public void relate_using(Object inst1, Object inst2, Object link, int rel_num, String phrase) throws XtumlException;
 
     /**
      * Set the value of an attribute on an instance of an xtUML class.

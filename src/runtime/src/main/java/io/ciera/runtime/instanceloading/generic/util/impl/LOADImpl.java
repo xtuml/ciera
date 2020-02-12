@@ -9,6 +9,9 @@ import io.ciera.runtime.summit.components.IComponent;
 import io.ciera.runtime.summit.exceptions.XtumlException;
 import io.ciera.runtime.summit.util.Utility;
 
+
+// TODO null checks on all inputs
+
 public class LOADImpl<C extends IComponent<C>> extends Utility<C> implements LOAD {
 
     public LOADImpl(C context) {
@@ -77,13 +80,71 @@ public class LOADImpl<C extends IComponent<C>> extends Utility<C> implements LOA
     }
 
     @Override
-    public void relate(Object form, Object part, int rel_num, String phrase) throws XtumlException {
-        System.out.printf("relate form to part across R%d.%s\n", rel_num, phrase);
-        // TODO
+    public void relate(Object inst1, Object inst2, int rel_num, String phrase) throws XtumlException {
+        if (inst1 == null || inst2 == null) {
+            throw new XtumlException("Invalid arguments to relate");
+        }
+        for (Method relator : context().getClass().getMethods()) {
+            if (relator.getName().startsWith(String.format("relate_R%d", rel_num)) && relator.getParameterCount() == 2) {
+                Class<?>[] parameterTypes = relator.getParameterTypes();
+                Object form;
+                Object part;
+                // non-reflexive binary
+                if (!parameterTypes[0].equals(parameterTypes[1])) {
+                    // types match in the order given
+                    if (parameterTypes[0].isInstance(inst1) && parameterTypes[1].isInstance(inst2)) {
+                        form = inst1;
+                        part = inst2;
+                    }
+                    // types match if flipped
+                    else if (parameterTypes[0].isInstance(inst2) && parameterTypes[1].isInstance(inst1)) {
+                        form = inst2;
+                        part = inst1;
+                    }
+                    // types do not match
+                    else {
+                        continue;
+                    }
+                }
+                // reflexive binary
+                else if (parameterTypes[0].isInstance(inst1)) {
+                    if (phrase == null) {
+                        throw new XtumlException("Invalid arguments to relate");
+                    }
+                    // the phrase is found in the relator name, this means the order is as given
+                    if (relator.getName().indexOf(phrase.replaceAll("\\s", "_")) >= 0) {
+                        form = inst1;
+                        part = inst2;
+                    }
+                    // order must bbe flipped
+                    else {
+                        form = inst2;
+                        part = inst1;
+                    }
+                }
+                else {
+                    throw new XtumlException(String.format("Expected instances of types '%s' and '%s', but recieved incompatible types '%s' and '%s' for 'R%d' in component '%s'.",
+                                                           parameterTypes[0].getName(), parameterTypes[1].getName(), inst1.getClass().getName(), inst2.getClass().getName(),
+                                                           rel_num, context().getClass().getName()));
+                }
+                // perform relate
+                try {
+                    relator.invoke(context(), form, part);
+                    return;  // early return here to break out of loop and avoid throwing an exception
+                } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+                    e.printStackTrace();
+                    throw new XtumlException(String.format("Could not relate instances across 'R%d' in component '%s'.", rel_num, context().getClass().getName()));
+                }
+     
+            }
+        }
+        // if it gets this far, a matching relate function was not found
+        throw new XtumlException(String.format("Could not relate instances of types '%s' and '%s' across 'R%d' in component '%s'.",
+                                               inst1.getClass().getName(), inst2.getClass().getName(), rel_num, context().getClass().getName()));
     }
 
     @Override
-    public void relate_using(Object form, Object part, Object link, int rel_num, String phrase) throws XtumlException {
+    public void relate_using(Object inst1, Object inst2, Object link, int rel_num, String phrase) throws XtumlException {
         System.out.printf("relate_using one to other across R%d.%s using assoc", rel_num, phrase);
         // TODO
     }
