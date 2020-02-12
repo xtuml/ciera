@@ -145,8 +145,9 @@ public class LOADImpl<C extends IComponent<C>> extends Utility<C> implements LOA
 
     @Override
     public void relate_using(Object inst1, Object inst2, Object link, int rel_num, String phrase) throws XtumlException {
-        System.out.printf("relate_using one to other across R%d.%s using assoc", rel_num, phrase);
-        // TODO
+        // TODO does not work for reflexive associatives
+        relate(inst1, link, rel_num, phrase);
+        relate(link, inst2, rel_num, phrase);
     }
 
     @Override
