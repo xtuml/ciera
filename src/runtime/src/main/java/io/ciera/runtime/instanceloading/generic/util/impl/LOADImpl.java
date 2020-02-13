@@ -10,9 +10,6 @@ import io.ciera.runtime.summit.components.IComponent;
 import io.ciera.runtime.summit.exceptions.XtumlException;
 import io.ciera.runtime.summit.util.Utility;
 
-
-// TODO null checks on all inputs
-
 public class LOADImpl<C extends IComponent<C>> extends Utility<C> implements LOAD {
 
     public LOADImpl(C context) {
@@ -107,11 +104,15 @@ public class LOADImpl<C extends IComponent<C>> extends Utility<C> implements LOA
 
     @Override
     public void relate(Object inst1, Object inst2, int rel_num, String phrase) throws XtumlException {
+        relate(inst1, inst2, rel_num, phrase, false);
+    }
+
+    private void relate(Object inst1, Object inst2, int rel_num, String phrase, boolean other_phrase) throws XtumlException {
         if (inst1 == null || inst2 == null) {
             throw new XtumlException("Invalid arguments to 'relate'");
         }
         for (Method relator : context().getClass().getMethods()) {
-            if (relator.getName().startsWith(String.format("relate_R%d", rel_num)) && relator.getParameterCount() == 2) {
+            if (relator.getName().startsWith(String.format("relate_R%d_", rel_num)) && relator.getParameterCount() == 2) {
                 Class<?>[] parameterTypes = relator.getParameterTypes();
                 Object form;
                 Object part;
@@ -121,6 +122,10 @@ public class LOADImpl<C extends IComponent<C>> extends Utility<C> implements LOA
                     if (parameterTypes[0].isInstance(inst1) && parameterTypes[1].isInstance(inst2)) {
                         form = inst1;
                         part = inst2;
+                        if (phrase != null && (relator.getName().indexOf(phrase.replaceAll("\\s", "_")) < 0 ^ other_phrase)) {
+                            // If a phrase is provided, reject it if it does not match the relator
+                            continue;
+                        }
                     }
                     // types match if flipped
                     else if (parameterTypes[0].isInstance(inst2) && parameterTypes[1].isInstance(inst1)) {
@@ -138,7 +143,7 @@ public class LOADImpl<C extends IComponent<C>> extends Utility<C> implements LOA
                         throw new XtumlException("Invalid arguments to relate");
                     }
                     // the phrase is found in the relator name, this means the order is as given
-                    if (relator.getName().indexOf(phrase.replaceAll("\\s", "_")) >= 0) {
+                    if (relator.getName().indexOf(phrase.replaceAll("\\s", "_")) >= 0 ^ other_phrase) {
                         form = inst1;
                         part = inst2;
                     }
@@ -173,9 +178,8 @@ public class LOADImpl<C extends IComponent<C>> extends Utility<C> implements LOA
 
     @Override
     public void relate_using(Object inst1, Object inst2, Object link, int rel_num, String phrase) throws XtumlException {
-        // TODO does not work for reflexive associatives
-        relate(inst1, link, rel_num, phrase);
-        relate(link, inst2, rel_num, phrase);
+        relate(link, inst1, rel_num, phrase, true);
+        relate(link, inst2, rel_num, phrase, false);
     }
 
     @Override
