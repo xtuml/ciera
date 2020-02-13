@@ -30,11 +30,27 @@ public class LOADImpl<C extends IComponent<C>> extends Utility<C> implements LOA
                     Object[] parameterList = new Object[args.length];
                     for (int i = 0; i < args.length; i++) {
                         try {
-                            Constructor<?> valueConstructor = domainFunction.getParameterTypes()[i].getConstructor(Object.class);
+                            // try the constructor with the same type as the passed value
+                            Constructor<?> valueConstructor = domainFunction.getParameterTypes()[i].getConstructor(args[i].getClass());
                             parameterList[i] = valueConstructor.newInstance(args[i]);
                         }
-                        catch (NoSuchMethodException e) {
-                            parameterList[i] = args[i];
+                        catch (NoSuchMethodException e1) {
+                            try {
+                                // try the constructor with the same generic Object type
+                                Constructor<?> valueConstructor = domainFunction.getParameterTypes()[i].getConstructor(Object.class);
+                                parameterList[i] = valueConstructor.newInstance(args[i]);
+                            }
+                            catch (NoSuchMethodException e2) {
+                                try {
+                                    // try to find the deserialize method
+                                    Method deserialize = domainFunction.getParameterTypes()[i].getMethod("deserialize", Object.class);
+                                    parameterList[i] = deserialize.invoke(null, args[i]);
+                                }
+                                catch (NoSuchMethodException e3) {
+                                    // no casting
+                                    parameterList[i] = args[i];
+                                }
+                            }
                         }
                     }
                     return domainFunction.invoke(context(), parameterList);
@@ -172,11 +188,27 @@ public class LOADImpl<C extends IComponent<C>> extends Utility<C> implements LOA
                 && setter.getParameterCount() == 1) {
                 try {
                     try {
-                        Constructor<?> valueConstructor = setter.getParameterTypes()[0].getConstructor(Object.class);
+                        // try the constructor with the same type as the passed value
+                        Constructor<?> valueConstructor = setter.getParameterTypes()[0].getConstructor(value.getClass());
                         setter.invoke(instance, valueConstructor.newInstance(value));
                     }
-                    catch (NoSuchMethodException e) {
-                        setter.invoke(instance, value);
+                    catch (NoSuchMethodException e1) {
+                        try {
+                            // try the constructor with the same generic Object type
+                            Constructor<?> valueConstructor = setter.getParameterTypes()[0].getConstructor(Object.class);
+                            setter.invoke(instance, valueConstructor.newInstance(value));
+                        }
+                        catch (NoSuchMethodException e2) {
+                            try {
+                                // try to find the deserialize method
+                                Method deserialize = setter.getParameterTypes()[0].getMethod("deserialize", Object.class);
+                                setter.invoke(instance, deserialize.invoke(null, value));
+                            }
+                            catch (NoSuchMethodException e3) {
+                                // no casting
+                                setter.invoke(instance, value);
+                            }
+                        }
                     }
                     return;
                 } catch (IllegalAccessException | IllegalArgumentException | InstantiationException | InvocationTargetException | SecurityException e) {
