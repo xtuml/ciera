@@ -1,0 +1,346 @@
+-- BP 7.1.6 content: ModelClass syschar: 3 persistence-version: 7.1.6
+
+INSERT INTO O_OBJ
+	VALUES ("b5de937b-55ee-48e4-8e91-d9d73c3f0fab",
+	'Type',
+	1,
+	'Type',
+	'Represents a type that can be applied to typed objects.',
+	"00000000-0000-0000-0000-000000000000");
+INSERT INTO O_TFR
+	VALUES ("12ce1746-ca93-4f76-9666-c69d5e6b3214",
+	"b5de937b-55ee-48e4-8e91-d9d73c3f0fab",
+	'addToImports',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'if ( "" != self.package )//and self.package != file.package );
+  ::addStringToImports( file:param.file, s:self.package + "." + self.name, type:param.type );
+end if;',
+	1,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	0);
+INSERT INTO O_TPARM
+	VALUES ("f7efc991-55ae-4eb0-a925-1d323c8aa04d",
+	"12ce1746-ca93-4f76-9666-c69d5e6b3214",
+	'file',
+	"133d5e7b-5ad2-41dd-b534-afe8f7cf56a8",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("133d5e7b-5ad2-41dd-b534-afe8f7cf56a8",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<File>',
+	'',
+	'',
+	'../../file/file.xtuml');
+INSERT INTO O_TPARM
+	VALUES ("2251b2c8-52c1-42c9-b62c-04e4adf21f65",
+	"12ce1746-ca93-4f76-9666-c69d5e6b3214",
+	'type',
+	"0216eb17-fbe4-49fc-b32f-fa5387d53466",
+	0,
+	'',
+	"f7efc991-55ae-4eb0-a925-1d323c8aa04d",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("0216eb17-fbe4-49fc-b32f-fa5387d53466",
+	"00000000-0000-0000-0000-000000000000",
+	'ImportType',
+	'',
+	'',
+	'../../../types/types.xtuml');
+INSERT INTO O_TFR
+	VALUES ("f461d089-804a-4f8f-b01a-4c93ffcc002e",
+	"b5de937b-55ee-48e4-8e91-d9d73c3f0fab",
+	'dispose',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'// unresolved
+// builtin
+// class
+// class set
+// enum
+select one unresolved_type related by self->UnresolvedType[R407];
+if ( not_empty unresolved_type )
+  unresolved_type.dispose();
+end if;
+select one obj related by self->Class[R407];
+if ( not_empty obj )
+  unrelate self from obj across R407;
+end if;
+select one objset related by self->ClassSet[R407];
+if ( not_empty objset )
+  unrelate self from objset across R407;
+end if;
+select one edt related by self->EnumeratedType[R407];
+if ( not_empty edt )
+  unrelate self from edt across R407;
+end if;
+select one builtin related by self->BuiltInType[R407];
+if ( not_empty builtin )
+  unrelate self from builtin across R407;
+end if;
+
+select many type_refs related by self->TypeReference[R3800];
+for each type_ref in type_refs
+  select one basic_ref related by type_ref->BasicTypeReference[R3801];
+  if ( not_empty basic_ref )
+    unrelate type_ref from basic_ref across R3801;
+    delete object instance basic_ref;
+  end if;
+  select one array_ref related by type_ref->ArrayTypeReference[R3801];
+  if ( not_empty array_ref )
+    unrelate type_ref from array_ref across R3801;
+    delete object instance array_ref;
+  end if;
+  unrelate self from type_ref across R3800;
+  delete object instance type_ref;
+end for;
+
+delete object instance self;',
+	1,
+	'',
+	"12ce1746-ca93-4f76-9666-c69d5e6b3214",
+	0);
+INSERT INTO O_TFR
+	VALUES ("1f12226e-5862-4f7b-b690-4a955327d691",
+	"b5de937b-55ee-48e4-8e91-d9d73c3f0fab",
+	'primitive',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000001",
+	1,
+	'primitive = false;
+select one builtin related by self->BuiltInType[R407];
+if ( not_empty builtin )
+  primitive = builtin.primitive;
+end if;
+return primitive;',
+	1,
+	'',
+	"f461d089-804a-4f8f-b01a-4c93ffcc002e",
+	0);
+INSERT INTO O_TFR
+	VALUES ("89690c94-da17-43cb-b88e-165cde11c3f6",
+	"b5de937b-55ee-48e4-8e91-d9d73c3f0fab",
+	'resolve',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	's_dt = param.s_dt;
+select one unresolved_type related by s_dt->Type[R423]->UnresolvedType[R407];
+if ( not_empty unresolved_type )
+  select one old_type related by unresolved_type->Type[R407];
+  
+  // unrelate old types and hook up the new types
+  select many old_type_refs related by old_type->TypeReference[R3800];
+  for each old_type_ref in old_type_refs
+    // get the corresponding new type ref
+    select any self_ref related by self->TypeReference[R3800] where false;
+    select one old_basic_ref related by old_type_ref->BasicTypeReference[R3801];
+    if ( not_empty old_basic_ref )
+      self_ref = TypeReference::getInstanceWithDimString( type:self, dims:"" );
+    else
+    select one old_array_ref related by old_type_ref->ArrayTypeReference[R3801];
+    if ( not_empty old_array_ref )
+      self_ref = TypeReference::getInstanceWithDimString( type:self, dims:old_array_ref.dims );
+    end if; end if;
+    // replace types
+    select many attrs related by old_type_ref->Attribute[R424];
+    for each attr in attrs
+      unrelate old_type_ref from attr across R424;
+      relate self_ref to attr across R424;
+    end for;
+    select many invocables related by old_type_ref->InvocableObject[R428];
+    for each invocable in invocables
+      unrelate old_type_ref from invocable across R428;
+      relate self_ref to invocable across R428;
+    end for;
+    select many parms related by old_type_ref->FormalParameter[R431];
+    for each parm in parms
+      unrelate old_type_ref from parm across R431;
+      relate self_ref to parm across R431;
+    end for;
+    select many selectors related by old_type_ref->Selector[R446];
+    for each selector in selectors
+      unrelate old_type_ref from selector across R446;
+      relate self_ref to selector across R446;
+    end for;
+    select many expressions related by old_type_ref->Expression[R795];
+    for each expression in expressions
+      unrelate old_type_ref from expression across R795;
+      relate self_ref to expression across R795;
+    end for;
+  end for;
+
+  unrelate old_type from s_dt across R423;
+  relate self to s_dt across R423;
+  old_type.dispose();
+
+elif ( not_empty s_dt )
+  relate self to s_dt across R423;
+else
+  // TODO bad
+end if;',
+	1,
+	'',
+	"1f12226e-5862-4f7b-b690-4a955327d691",
+	0);
+INSERT INTO O_TPARM
+	VALUES ("a96a2768-7ac4-433e-8e74-86f0e8f534ad",
+	"89690c94-da17-43cb-b88e-165cde11c3f6",
+	's_dt',
+	"4a90cd45-ece0-4e72-afe7-44996f9d7e1e",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("4a90cd45-ece0-4e72-afe7-44996f9d7e1e",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Data Type>',
+	'',
+	'',
+	'../../../../../../mcooa/models/mcooa/ooaofooa/Domain/Domain.xtuml');
+INSERT INTO O_NBATTR
+	VALUES ("864744e7-2f4c-4f9f-b744-73335f8defd3",
+	"b5de937b-55ee-48e4-8e91-d9d73c3f0fab");
+INSERT INTO O_BATTR
+	VALUES ("864744e7-2f4c-4f9f-b744-73335f8defd3",
+	"b5de937b-55ee-48e4-8e91-d9d73c3f0fab");
+INSERT INTO O_ATTR
+	VALUES ("864744e7-2f4c-4f9f-b744-73335f8defd3",
+	"b5de937b-55ee-48e4-8e91-d9d73c3f0fab",
+	"00000000-0000-0000-0000-000000000000",
+	'name',
+	'',
+	'',
+	'name',
+	0,
+	"ba5eda7a-def5-0000-0000-000000000004",
+	'',
+	'');
+INSERT INTO O_NBATTR
+	VALUES ("f44b46d8-90bf-4603-93b9-9beb6bd0fe62",
+	"b5de937b-55ee-48e4-8e91-d9d73c3f0fab");
+INSERT INTO O_BATTR
+	VALUES ("f44b46d8-90bf-4603-93b9-9beb6bd0fe62",
+	"b5de937b-55ee-48e4-8e91-d9d73c3f0fab");
+INSERT INTO O_ATTR
+	VALUES ("f44b46d8-90bf-4603-93b9-9beb6bd0fe62",
+	"b5de937b-55ee-48e4-8e91-d9d73c3f0fab",
+	"864744e7-2f4c-4f9f-b744-73335f8defd3",
+	'package',
+	'',
+	'',
+	'package',
+	0,
+	"ba5eda7a-def5-0000-0000-000000000004",
+	'',
+	'');
+INSERT INTO O_NBATTR
+	VALUES ("86022ab1-51ed-4913-b935-ee3c17aa27a7",
+	"b5de937b-55ee-48e4-8e91-d9d73c3f0fab");
+INSERT INTO O_BATTR
+	VALUES ("86022ab1-51ed-4913-b935-ee3c17aa27a7",
+	"b5de937b-55ee-48e4-8e91-d9d73c3f0fab");
+INSERT INTO O_ATTR
+	VALUES ("86022ab1-51ed-4913-b935-ee3c17aa27a7",
+	"b5de937b-55ee-48e4-8e91-d9d73c3f0fab",
+	"f44b46d8-90bf-4603-93b9-9beb6bd0fe62",
+	'default_value',
+	'',
+	'',
+	'default_value',
+	0,
+	"ba5eda7a-def5-0000-0000-000000000004",
+	'',
+	'');
+INSERT INTO O_REF
+	VALUES ("b5de937b-55ee-48e4-8e91-d9d73c3f0fab",
+	"b23d48f2-7281-4a18-8944-41a4182b7ce1",
+	0,
+	"5cdd7449-254e-495b-9dc3-1eeb34212190",
+	"4523c521-4f91-406b-aba0-fca6419b2dd4",
+	"344196a9-77a0-4d7f-b04e-d09264e9259b",
+	"37b56c0f-1279-477e-a309-0230a416a1cf",
+	"a47dcf38-33ab-45b7-9f16-bd0d315f79a9",
+	"a674cf78-802e-42e2-9e5f-ca86e2fb85be",
+	"00000000-0000-0000-0000-000000000000",
+	0,
+	'',
+	'Data Type',
+	'DT_ID',
+	'R423.''is basis for''');
+INSERT INTO R_RGO_PROXY
+	VALUES ("b5de937b-55ee-48e4-8e91-d9d73c3f0fab",
+	"4523c521-4f91-406b-aba0-fca6419b2dd4",
+	"344196a9-77a0-4d7f-b04e-d09264e9259b",
+	'../type.xtuml');
+INSERT INTO O_RTIDA_PROXY
+	VALUES ("5cdd7449-254e-495b-9dc3-1eeb34212190",
+	"b23d48f2-7281-4a18-8944-41a4182b7ce1",
+	0,
+	"4523c521-4f91-406b-aba0-fca6419b2dd4",
+	"37b56c0f-1279-477e-a309-0230a416a1cf",
+	'../type.xtuml');
+INSERT INTO O_RATTR
+	VALUES ("a47dcf38-33ab-45b7-9f16-bd0d315f79a9",
+	"b5de937b-55ee-48e4-8e91-d9d73c3f0fab",
+	"41dd50fe-c407-44c8-bb3d-913f6bb68dd0",
+	"e7378c46-7ebc-4b9f-a934-91d48b1a4774",
+	1,
+	'Element_ID');
+INSERT INTO O_BATTR_PROXY
+	VALUES ("41dd50fe-c407-44c8-bb3d-913f6bb68dd0",
+	"e7378c46-7ebc-4b9f-a934-91d48b1a4774",
+	'../../../../../../mcooa/models/mcooa/ooaofooa/Packageable Element/Packageable Element/Packageable Element.xtuml');
+INSERT INTO O_ATTR
+	VALUES ("a47dcf38-33ab-45b7-9f16-bd0d315f79a9",
+	"b5de937b-55ee-48e4-8e91-d9d73c3f0fab",
+	"86022ab1-51ed-4913-b935-ee3c17aa27a7",
+	'DT_ID',
+	'',
+	'',
+	'DT_ID',
+	0,
+	"ba5eda7a-def5-0000-0000-000000000007",
+	'',
+	'');
+INSERT INTO O_ID
+	VALUES (0,
+	"b5de937b-55ee-48e4-8e91-d9d73c3f0fab");
+INSERT INTO O_OIDA
+	VALUES ("864744e7-2f4c-4f9f-b744-73335f8defd3",
+	"b5de937b-55ee-48e4-8e91-d9d73c3f0fab",
+	0,
+	'name');
+INSERT INTO O_OIDA
+	VALUES ("f44b46d8-90bf-4603-93b9-9beb6bd0fe62",
+	"b5de937b-55ee-48e4-8e91-d9d73c3f0fab",
+	0,
+	'package');
+INSERT INTO O_ID
+	VALUES (1,
+	"b5de937b-55ee-48e4-8e91-d9d73c3f0fab");
+INSERT INTO O_ID
+	VALUES (2,
+	"b5de937b-55ee-48e4-8e91-d9d73c3f0fab");
+INSERT INTO PE_PE
+	VALUES ("b5de937b-55ee-48e4-8e91-d9d73c3f0fab",
+	1,
+	"6c030477-ff07-4e5d-a9e3-82b3b5d9465b",
+	"00000000-0000-0000-0000-000000000000",
+	4);
+INSERT INTO EP_PKG_PROXY
+	VALUES ("6c030477-ff07-4e5d-a9e3-82b3b5d9465b",
+	"00000000-0000-0000-0000-000000000000",
+	"9092a4a9-91f5-4e59-984b-3ca72917240d",
+	'type',
+	'',
+	0,
+	'../type.xtuml');
