@@ -1,0 +1,163 @@
+-- BP 7.1.6 content: Package syschar: 3 persistence-version: 7.1.6
+
+INSERT INTO EP_PKG
+	VALUES ("b63eedd0-68a0-47d5-9b56-0f249d13ff46",
+	"00000000-0000-0000-0000-000000000000",
+	"654f2273-90dd-487f-aef0-4050978eaf0e",
+	'translate',
+	'',
+	0);
+INSERT INTO GD_MD
+	VALUES ("8c5d58e7-813e-48df-80c6-16c34201b2ff",
+	112,
+	"b63eedd0-68a0-47d5-9b56-0f249d13ff46",
+	108,
+	0,
+	0,
+	1,
+	1,
+	1,
+	12,
+	1,
+	0,
+	0,
+	0,
+	0,
+	0,
+	'',
+	'tool-sql::io.ciera.tool::sql::translate');
+INSERT INTO DIM_DIA
+	VALUES ("8c5d58e7-813e-48df-80c6-16c34201b2ff",
+	'',
+	1.000000,
+	0.000000,
+	0.000000,
+	"00000000-0000-0000-0000-000000000000");
+INSERT INTO S_SYNC
+	VALUES ("0a7266e4-c1a1-4b9b-a9c3-1ccf33ad99e2",
+	"00000000-0000-0000-0000-000000000000",
+	'init',
+	'',
+	'// set up command line options
+CMD::register_value( name:"cwd", value_name:"root_dir", usage:"base working directory", default_value:".", required:false );
+CMD::register_value( name:"i", value_name:"input_file", usage:"input file", default_value:"", required:false );
+CMD::register_value( name:"o", value_name:"output_file", usage:"output file", default_value:"", required:false );
+CMD::register_value( name:"gendir", value_name:"gen_dir", usage:"generated output directory", default_value:".", required:false );
+CMD::read_command_line();
+
+CIERA::setprojectroot( value:CMD::get_value( name:"cwd" ) );
+ciera = CIERA::getDefaultInstance();
+
+T::set_output_directory(dir:ciera.projectroot + "/" + CMD::get_value(name:"gendir"));
+
+// load up instances
+input_file = CMD::get_value( name:"i" );
+if ( "" != input_file )
+  SQL::load_file( file:ciera.projectroot + "/" + input_file );
+
+  // preprocess
+  ::preprocess();
+
+  // translate
+  ::translate();
+
+  // dump instances
+  output_file = CMD::get_value( name:"o" );
+  if ( "" != output_file )
+    SQL::serialize_file( file:ciera.projectroot + "/" + output_file );
+  end if;
+else
+  LOG::LogInfo( message:"No input file." );
+end if;
+
+// exit
+control stop;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO PE_PE
+	VALUES ("0a7266e4-c1a1-4b9b-a9c3-1ccf33ad99e2",
+	1,
+	"b63eedd0-68a0-47d5-9b56-0f249d13ff46",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("02917204-af4a-4633-9353-031ae6adcc9b",
+	"00000000-0000-0000-0000-000000000000",
+	'translate',
+	'',
+	'start_time = TIM::current_clock();
+
+LOG::LogInfo( message:"Translating..." );
+
+// translate root package
+LOG::LogInfo( message:"  Translating application package..." );
+select any root_package_mark from instances of Mark where ( selected.markable_name == "*"
+                                                            and selected.path == "*"
+                                                            and selected.feature_name == "RootPackage" );
+if ( not_empty root_package_mark )
+  select any root_package from instances of EP_PKG where false;
+  select many s_syss from instances of S_SYS;
+  for each s_sys in s_syss
+    select any root_package related by s_sys->EP_PKG[R1401] where ( root_package_mark.value == s_sys.Name + "::" + selected.Name );
+    if ( not_empty root_package )
+      break;
+    end if;
+  end for;
+  if ( not_empty root_package )
+    ::transformSQLLoaders();
+  else
+    LOG::LogInfo( message:"No root package found" );
+  end if;
+else
+  LOG::LogInfo( message:"No root package specified" );
+end if;
+LOG::LogInfo( message:"  done." );
+LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
+
+// render all instance pop_loaders
+LOG::LogInfo( message:"  Rendering instance population loaders..." );
+select many pop_loaders from instances of Z_PopulationLoader;
+for each pop_loader in pop_loaders
+  pop_loader.render();
+end for;
+LOG::LogInfo( message:"  done." );
+LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
+
+LOG::LogInfo( message:"Done." );
+
+elapsed_time = TIM::current_clock() - start_time;
+LOG::LogTime( message:"Elapsed time:", t:elapsed_time );',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO PE_PE
+	VALUES ("02917204-af4a-4633-9353-031ae6adcc9b",
+	1,
+	"b63eedd0-68a0-47d5-9b56-0f249d13ff46",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO PE_PE
+	VALUES ("b63eedd0-68a0-47d5-9b56-0f249d13ff46",
+	1,
+	"00000000-0000-0000-0000-000000000000",
+	"c431dcdb-836a-4783-ad4f-798482018f1b",
+	7);
+INSERT INTO C_C_PROXY
+	VALUES ("c431dcdb-836a-4783-ad4f-798482018f1b",
+	"00000000-0000-0000-0000-000000000000",
+	"00000000-0000-0000-0000-000000000000",
+	'sql',
+	'',
+	0,
+	"00000000-0000-0000-0000-000000000000",
+	0,
+	'',
+	'../sql.xtuml');
+INSERT INTO S_SYS_PROXY
+	VALUES ("654f2273-90dd-487f-aef0-4050978eaf0e",
+	'tool-sql',
+	1,
+	'../../../tool-sql.xtuml');

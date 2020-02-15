@@ -1,0 +1,1333 @@
+-- BP 7.1.6 content: Package syschar: 3 persistence-version: 7.1.6
+
+INSERT INTO EP_PKG
+	VALUES ("393d1b5b-5425-48d1-901b-df557c6670b6",
+	"654f2273-90dd-487f-aef0-4050978eaf0e",
+	"654f2273-90dd-487f-aef0-4050978eaf0e",
+	'transform',
+	'',
+	0);
+INSERT INTO GD_MD
+	VALUES ("a00f667e-b961-49d6-871b-528a9aea411b",
+	112,
+	"393d1b5b-5425-48d1-901b-df557c6670b6",
+	108,
+	0,
+	0,
+	1,
+	1,
+	1,
+	12,
+	1,
+	0,
+	0,
+	0,
+	0,
+	0,
+	'',
+	'tool-sql::transform');
+INSERT INTO DIM_DIA
+	VALUES ("a00f667e-b961-49d6-871b-528a9aea411b",
+	'',
+	1.000000,
+	0.000000,
+	0.000000,
+	"00000000-0000-0000-0000-000000000000");
+INSERT INTO S_SYNC
+	VALUES ("5eb5f351-69d3-4e05-a887-b48c7c75cabc",
+	"00000000-0000-0000-0000-000000000000",
+	'transformAttributeComparison',
+	'',
+	'attr_ref = param.attr_ref;
+batch_relator = param.batch_relator;
+prev_attr_comp = param.prev_attr_comp;
+
+// create attribute comparison
+create object instance attr_comp of Z_AttributeComparison;
+relate attr_comp to batch_relator across R3012;
+attr_comp.part_attr_name = attr_ref.referred_to_attribute_name;
+if ( not_empty prev_attr_comp )
+  relate prev_attr_comp to attr_comp across R3018.''precedes'';
+end if;
+
+select any form_accessor related by attr_ref->Attribute[R4506.''provides value for'']->AttributeAccessor[R4510] where ( selected.accessor_type == AttributeAccessorType::GETTER );
+attr_comp.form_accessor = form_accessor.getName() + "()";
+
+select any part_accessor related by attr_ref->Attribute[R4506.''has value provided by'']->AttributeAccessor[R4510] where ( selected.accessor_type == AttributeAccessorType::GETTER );
+attr_comp.part_accessor = part_accessor.getName() + "()";
+
+select one type_ref related by attr_ref->Attribute[R4506.''has value provided by'']->TypeReference[R424];
+select one type related by type_ref->Type[R3800];
+attr_comp.primitive = type.primitive();
+select one basic_ref related by type_ref->BasicTypeReference[R3801];
+attr_comp.is_string = ( not_empty basic_ref and "String" == type.name and "" == type.package );
+if ( attr_comp.is_string and 0 == batch_relator.id_num )
+  select one file related by batch_relator->Z_PopulationLoader[R3011]->GeneralFile[R3009]->File[R401];
+  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.StringUtil", type:ImportType::IMPL );
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("870f9c22-fd17-498d-9434-990a5e5d9fff",
+	"5eb5f351-69d3-4e05-a887-b48c7c75cabc",
+	'attr_ref',
+	"e7bb2dc3-764a-49e4-a742-b9bd94482ad7",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("e7bb2dc3-764a-49e4-a742-b9bd94482ad7",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Attribute Reference>',
+	'',
+	'',
+	'../../../../tool-core/models/tool-core/architecture/classes/classes.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("442b91d9-8951-4973-a200-196044ef2039",
+	"5eb5f351-69d3-4e05-a887-b48c7c75cabc",
+	'batch_relator',
+	"1dc2c943-128f-47cc-932a-845c5c01d6b2",
+	0,
+	'',
+	"870f9c22-fd17-498d-9434-990a5e5d9fff",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("1dc2c943-128f-47cc-932a-845c5c01d6b2",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Batch Relator>',
+	'',
+	'',
+	'../loader/loader.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("5e5f5241-56be-4e10-96ed-306a81d1a7fc",
+	"5eb5f351-69d3-4e05-a887-b48c7c75cabc",
+	'prev_attr_comp',
+	"b0e301d7-f241-4f41-a56e-e5d987027789",
+	0,
+	'',
+	"442b91d9-8951-4973-a200-196044ef2039",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("b0e301d7-f241-4f41-a56e-e5d987027789",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Attribute Comparison>',
+	'',
+	'',
+	'../loader/loader.xtuml');
+INSERT INTO PE_PE
+	VALUES ("5eb5f351-69d3-4e05-a887-b48c7c75cabc",
+	1,
+	"393d1b5b-5425-48d1-901b-df557c6670b6",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("572fcf23-4cc0-4ba6-ba43-8543d59c246a",
+	"00000000-0000-0000-0000-000000000000",
+	'transformAttributeLoader',
+	'',
+	'attr = param.attr;
+inst_loader = param.inst_loader;
+prev_attr_loader = param.prev_attr_loader;
+non_persistent = param.non_persistent;
+value_index = param.value_index;
+
+select one file related by inst_loader->Z_PopulationLoader[R3005]->GeneralFile[R3009]->File[R401];
+
+// create the loader
+create object instance attr_loader of Z_AttributeLoader;
+relate inst_loader to attr_loader across R3006;
+if (empty prev_attr_loader )
+  attr_loader.index = 0;
+else
+  relate prev_attr_loader to attr_loader across R3007.''precedes'';
+  attr_loader.index = prev_attr_loader.index + 1;
+end if;
+attr_loader.attr_name = attr.name;
+attr_loader.value_index = value_index;
+
+if ( not_empty non_persistent )
+
+  create object instance general_loader of Z_GeneralLoader;
+  relate general_loader to attr_loader across R3008;
+  select one type related by attr->TypeReference[R424]->Type[R3800];
+  relate type to general_loader across R3013;
+  ::addTypeToImports( file:file, type_to_import:type, type:ImportType::IMPL );
+  general_loader.load_value = (non_persistent.value == "load_only");
+
+else
+
+  // get the attribute type
+  select one type related by attr->TypeReference[R424]->Type[R3800];
+  select one builtin related by type->BuiltInType[R407];
+  if ( not_empty builtin )
+    if ( "boolean" == builtin.name )
+      create object instance boolean_loader of Z_BooleanLoader;
+      relate boolean_loader to attr_loader across R3008;
+    elif ( "int" == builtin.name )
+      create object instance int_loader of Z_IntegerLoader;
+      int_loader.is_long = false;
+      relate int_loader to attr_loader across R3008;
+    elif ( "double" == builtin.name )
+      create object instance real_loader of Z_RealLoader;
+      relate real_loader to attr_loader across R3008;
+    elif ( "String" == builtin.name )
+      create object instance string_loader of Z_StringLoader;
+      relate string_loader to attr_loader across R3008;
+    else
+      create object instance general_loader of Z_GeneralLoader;
+      relate general_loader to attr_loader across R3008;
+      relate type to general_loader across R3013;
+      ::addTypeToImports( file:file, type_to_import:type, type:ImportType::IMPL );
+      general_loader.load_value = true;
+    end if;
+  else
+    select one edt related by type->EnumeratedType[R407];
+    if ( not_empty edt )
+      create object instance enumerator_loader of Z_EnumeratorLoader;
+      relate enumerator_loader to attr_loader across R3008;
+      relate edt to enumerator_loader across R3010;
+      select one edt_file related by edt->File[R401];
+      ::addFileToImports( file:file, file_to_import:edt_file, type: ImportType::IMPL );
+    else
+      select one udt related by type->UserDefinedType[R407];
+      if ( not_empty udt )
+        create object instance general_loader of Z_GeneralLoader;
+        relate general_loader to attr_loader across R3008;
+        relate type to general_loader across R3013;
+        ::addTypeToImports( file:file, type_to_import:type, type:ImportType::IMPL );
+        general_loader.load_value = true;
+      else
+        // TODO bad cannot load instance or structured types
+      end if;
+    end if;
+  end if;
+
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("6d424b63-2071-4743-9723-b5abe3049d87",
+	"572fcf23-4cc0-4ba6-ba43-8543d59c246a",
+	'attr',
+	"e17709ec-4b1d-4eba-a8cc-1ab57778dd31",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("e17709ec-4b1d-4eba-a8cc-1ab57778dd31",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Attribute>',
+	'',
+	'',
+	'../../../../tool-core/models/tool-core/architecture/classes/classes.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("aaeb47b2-d629-4509-9ea7-f7941197e262",
+	"572fcf23-4cc0-4ba6-ba43-8543d59c246a",
+	'inst_loader',
+	"7cc81c66-4208-4364-b2b3-6a6e0b3bbd6f",
+	0,
+	'',
+	"6d424b63-2071-4743-9723-b5abe3049d87",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("7cc81c66-4208-4364-b2b3-6a6e0b3bbd6f",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Instance Loader>',
+	'',
+	'',
+	'../loader/loader.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("83b9e580-37bf-480b-895e-8ac0064e639c",
+	"572fcf23-4cc0-4ba6-ba43-8543d59c246a",
+	'prev_attr_loader',
+	"fb3eaa19-7754-4fae-aca0-356ca9ab8a6e",
+	0,
+	'',
+	"aaeb47b2-d629-4509-9ea7-f7941197e262",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("fb3eaa19-7754-4fae-aca0-356ca9ab8a6e",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Attribute Loader>',
+	'',
+	'',
+	'../loader/loader.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("e5805611-7fc3-4c75-a47f-57a5b5e8a3c0",
+	"572fcf23-4cc0-4ba6-ba43-8543d59c246a",
+	'non_persistent',
+	"401fe5b0-5de4-43ba-9db0-de05f9b422f7",
+	0,
+	'',
+	"83b9e580-37bf-480b-895e-8ac0064e639c",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("401fe5b0-5de4-43ba-9db0-de05f9b422f7",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Mark>',
+	'',
+	'',
+	'../../../../org.xtuml.bp.ui.marking/models/org.xtuml.bp.ui.marking/ooaofmarking/ooaofmarking.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("fc10ea9e-584d-4e08-a597-5b2aea26050a",
+	"572fcf23-4cc0-4ba6-ba43-8543d59c246a",
+	'value_index',
+	"ba5eda7a-def5-0000-0000-000000000002",
+	0,
+	'',
+	"e5805611-7fc3-4c75-a47f-57a5b5e8a3c0",
+	'');
+INSERT INTO PE_PE
+	VALUES ("572fcf23-4cc0-4ba6-ba43-8543d59c246a",
+	1,
+	"393d1b5b-5425-48d1-901b-df557c6670b6",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("c4e507d7-1283-4285-979f-3734d335a58b",
+	"00000000-0000-0000-0000-000000000000",
+	'transformAttributeSerializer',
+	'',
+	'attr = param.attr;
+inst_serializer = param.inst_serializer;
+prev_attr_serializer = param.prev_attr_serializer;
+
+// create the serializer
+create object instance attr_serializer of Z_AttributeSerializer;
+relate inst_serializer to attr_serializer across R3002;
+attr_serializer.attr_name = attr.name;
+attr_serializer.cast = "";
+if ( not_empty prev_attr_serializer )
+  relate prev_attr_serializer to attr_serializer across R3003.''precedes'';
+end if;
+
+// get the accessor name
+select any accessor related by attr->AttributeAccessor[R4510] where ( selected.accessor_type == AttributeAccessorType::GETTER );
+accessor_name = accessor.getName() + "()";
+
+select one type related by attr->TypeReference[R424]->Type[R3800];
+select one builtin related by type->BuiltInType[R407];
+if ( not_empty builtin )
+  if ( "boolean" == builtin.name )
+    create object instance int_serializer of BooleanSerializer;
+    relate int_serializer to attr_serializer across R3004;
+    int_serializer.value = accessor_name;
+  elif ( "int" == builtin.name )
+    create object instance int_serializer of Z_IntegerSerializer;
+    relate int_serializer to attr_serializer across R3004;
+    int_serializer.value = accessor_name;
+    int_serializer.value2 = "";
+  elif ( "double" == builtin.name )
+    create object instance real_serializer of Z_RealSerializer;
+    relate real_serializer to attr_serializer across R3004;
+    real_serializer.value = accessor_name;
+  elif ( "String" == builtin.name )
+    create object instance string_serializer of Z_StringSerializer;
+    relate string_serializer to attr_serializer across R3004;
+    string_serializer.value = accessor_name;
+  elif ( "UniqueId" == builtin.name or "EventHandle" == builtin.name or "TimerHandle" == builtin.name )
+    create object instance uniqueid_serializer of UniqueIDSerializer;
+    relate uniqueid_serializer to attr_serializer across R3004;
+    uniqueid_serializer.value = accessor_name;
+  else
+    create object instance general_serializer of Z_GeneralSerializer;
+    relate general_serializer to attr_serializer across R3004;
+    general_serializer.value = accessor_name;
+    relate type to general_serializer across R3014;
+  end if;
+else
+  select one edt related by type->EnumeratedType[R407];
+  if ( not_empty edt )
+    create object instance int_serializer of Z_IntegerSerializer;
+    relate int_serializer to attr_serializer across R3004;
+    int_serializer.value = accessor_name + ".getValue()";
+    int_serializer.value2 = "";
+  else
+    select one udt related by type->UserDefinedType[R407];
+    if ( not_empty udt )
+      create object instance general_serializer of Z_GeneralSerializer;
+      relate general_serializer to attr_serializer across R3004;
+      general_serializer.value = accessor_name;
+      relate type to general_serializer across R3014;
+    else
+      // TODO bad cannot serialize instance or structured types
+    end if;
+  end if;
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("aae4eae8-ed21-4141-b855-0d88706c57b6",
+	"c4e507d7-1283-4285-979f-3734d335a58b",
+	'attr',
+	"e17709ec-4b1d-4eba-a8cc-1ab57778dd31",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("419e7b29-68e1-455e-bb64-d79d42fce130",
+	"c4e507d7-1283-4285-979f-3734d335a58b",
+	'inst_serializer',
+	"33d4ef09-757b-4f0a-993c-5aa11e00fbbc",
+	0,
+	'',
+	"aae4eae8-ed21-4141-b855-0d88706c57b6",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("33d4ef09-757b-4f0a-993c-5aa11e00fbbc",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Instance Serializer>',
+	'',
+	'',
+	'../loader/loader.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("6645d07b-9ed7-4497-a84e-36258ddbe600",
+	"c4e507d7-1283-4285-979f-3734d335a58b",
+	'prev_attr_serializer',
+	"de3301b4-7a90-4209-a900-34a100151fc9",
+	0,
+	'',
+	"419e7b29-68e1-455e-bb64-d79d42fce130",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("de3301b4-7a90-4209-a900-34a100151fc9",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Attribute Serializer>',
+	'',
+	'',
+	'../loader/loader.xtuml');
+INSERT INTO PE_PE
+	VALUES ("c4e507d7-1283-4285-979f-3734d335a58b",
+	1,
+	"393d1b5b-5425-48d1-901b-df557c6670b6",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("2cb4c89e-9508-44e9-84a1-d513bf6ed78d",
+	"00000000-0000-0000-0000-000000000000",
+	'transformBatchRelator',
+	'',
+	'rel = param.rel;
+pop_loader = param.pop_loader;
+
+// create batch relator
+create object instance batch_relator of Z_BatchRelator;
+relate batch_relator to pop_loader across R3011;
+batch_relator.rel_name = rel.name;
+batch_relator.form_name = rel.form_name;
+batch_relator.part_name = rel.part_name;
+batch_relator.unconditional = Cond::UNCONDITIONAL == rel.part_cond;
+batch_relator.id_num = rel.id_num;
+
+index = 0;
+select any prev_attr_comp from instances of Z_AttributeComparison where false;
+select any attribute related by rel->AttributeReference[R4511]->Attribute[R4506.''has value provided by'']->Class[R410]->Attribute[R410] where (index == selected.order);
+select many attr_refs related by rel->AttributeReference[R4511];
+while ( not_empty attribute ) 
+  for each attr_ref in attr_refs
+    select one attr related by attr_ref->Attribute[R4506.''has value provided by''];
+    if ( attribute.class_name == attr.class_name and attribute.class_package == attr.class_package and attribute.name == attr.name )
+      ::transformAttributeComparison( attr_ref:attr_ref, batch_relator:batch_relator, prev_attr_comp:prev_attr_comp );
+      if ( empty prev_attr_comp )
+        select any prev_attr_comp related by batch_relator->Z_AttributeComparison[R3012];
+      else
+        select one prev_attr_comp related by prev_attr_comp->Z_AttributeComparison[R3018.''precedes''];
+      end if;
+      break;
+    end if;
+  end for;
+  index = index + 1;
+  select any attribute related by rel->AttributeReference[R4511]->Attribute[R4506.''has value provided by'']->Class[R410]->Attribute[R410] where (index == selected.order);
+end while;
+
+select one file related by pop_loader->GeneralFile[R3009]->File[R401];
+::addStringToImports( file:file, s:"io.ciera.runtime.summit.classes.InstanceIdentifier", type:ImportType::IMPL );',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("03e248c2-8aac-4f66-9743-c50d2f906e06",
+	"2cb4c89e-9508-44e9-84a1-d513bf6ed78d",
+	'rel',
+	"b82caf35-37bb-463a-8633-3bf3bb615c43",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("b82caf35-37bb-463a-8633-3bf3bb615c43",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Class Relationship>',
+	'',
+	'',
+	'../../../../tool-core/models/tool-core/architecture/relationship/relationship.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("fa4a1db5-d443-4612-86c7-ad37bd0c5be5",
+	"2cb4c89e-9508-44e9-84a1-d513bf6ed78d",
+	'pop_loader',
+	"6b220e4e-1f35-4631-a0b4-89a2f4a0e8b2",
+	0,
+	'',
+	"03e248c2-8aac-4f66-9743-c50d2f906e06",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("6b220e4e-1f35-4631-a0b4-89a2f4a0e8b2",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Population Loader>',
+	'',
+	'',
+	'../loader/loader.xtuml');
+INSERT INTO PE_PE
+	VALUES ("2cb4c89e-9508-44e9-84a1-d513bf6ed78d",
+	1,
+	"393d1b5b-5425-48d1-901b-df557c6670b6",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("ff027fcc-f906-452b-88e4-c3a120acbadf",
+	"00000000-0000-0000-0000-000000000000",
+	'transformClassInstanceLoaderSerializer',
+	'',
+	'obj = param.obj;
+pop_loader = param.pop_loader;
+select one pe related by obj->O_OBJ[R409]->PE_PE[R8001];
+select one file related by pop_loader->GeneralFile[R3009]->File[R401];
+
+// create the loader
+create object instance inst_loader of Z_InstanceLoader;
+relate pop_loader to inst_loader across R3005;
+inst_loader.class_name = obj.name;
+create object instance class_inst_loader of ClassInstanceLoader;
+class_inst_loader.class_package = obj.package;
+class_inst_loader.class_key_letters = obj.key_letters;
+relate class_inst_loader to inst_loader across R3016;
+
+// create the serializer
+select any inst_serializer from instances of Z_InstanceSerializer where false;
+select any do_not_serialize_mark from instances of Mark where ( selected.markable_name == "Package" and
+                                                                selected.path == ::containerMarkingPath( pe:pe ) and
+                                                                selected.feature_name == "DoNotSerialize" );
+if ( empty do_not_serialize_mark )
+  create object instance inst_serializer of Z_InstanceSerializer;
+  relate pop_loader to inst_serializer across R3001;
+  inst_serializer.class_name = obj.name;
+  create object instance class_inst_serializer of ClassInstanceSerializer;
+  class_inst_serializer.class_package = obj.package;
+  class_inst_serializer.class_key_letters = obj.key_letters;
+  relate class_inst_serializer to inst_serializer across R3015;
+end if;
+
+select any non_persistent_instance_ids_mark from instances of Mark where ( selected.markable_name == "*" and selected.path == "*" and
+                                                                           selected.feature_name == "NonPersistentInstanceIds" );
+                                                                           
+index_diff = 0;
+index = 0;
+value_index = 0; // needed because of non persistent attributes
+select any prev_attr_loader from instances of Z_AttributeLoader where false;
+select any prev_attr_serializer from instances of Z_AttributeSerializer where false;
+unique_id_type_ref = TypeReference::getBuiltinTypeReference( name:"UniqueId" );
+select one unique_id_type related by unique_id_type_ref->Type[R3800];
+if ( empty non_persistent_instance_ids_mark )
+  // create loader and serializer for instance id
+  if ( not_empty inst_serializer )
+    create object instance attr_serializer1 of Z_AttributeSerializer;
+    relate inst_serializer to attr_serializer1 across R3002;
+    attr_serializer1.attr_name = "instanceId";
+    attr_serializer1.cast = "";
+    create object instance uniqueid_serializer1 of UniqueIDSerializer;
+    relate uniqueid_serializer1 to attr_serializer1 across R3004;
+    uniqueid_serializer1.value = "getInstanceId()";
+    uniqueid_serializer1.primary_key = true;
+    prev_attr_serializer = attr_serializer1;
+  end if;
+  create object instance attr_loader1 of Z_AttributeLoader;
+  relate inst_loader to attr_loader1 across R3006;
+  attr_loader1.attr_name = "instanceId";
+  attr_loader1.index = 0;
+  attr_loader1.value_index = 0;
+  create object instance general_loader1 of Z_GeneralLoader;
+  relate general_loader1 to attr_loader1 across R3008;
+  relate general_loader1 to unique_id_type across R3013;
+  general_loader1.load_value = true;
+  prev_attr_loader = attr_loader1;
+  index = 1;
+  value_index = 1;
+  index_diff = 1;
+end if;
+
+// create attribute loaders and serializers
+select any attribute related by obj->Attribute[R410] where (index-index_diff == selected.order);
+while ( not_empty attribute ) 
+  // check if the attribute is persistent
+  select one o_attr related by attribute->O_ATTR[R414];
+  select one o_obj related by o_attr->O_OBJ[R102];
+  select one pe related by o_obj->PE_PE[R8001];
+  marking_path = ::containerMarkingPath( pe:pe ) + "::" + o_obj.Name + "::" + o_attr.Name;
+  select any non_persistent_mark from instances of Mark where ( selected.markable_name == "Attribute" and
+                                                                selected.path == marking_path and
+                                                                selected.feature_name == "NonPersistent" );
+  if ( empty non_persistent_mark and not_empty inst_serializer )
+    ::transformAttributeSerializer( attr:attribute, inst_serializer:inst_serializer, prev_attr_serializer:prev_attr_serializer );
+    select any prev_attr_serializer related by inst_serializer->Z_AttributeSerializer[R3002] where ( selected.attr_name == attribute.name );
+  end if;
+  ::transformAttributeLoader( attr:attribute, inst_loader:inst_loader, prev_attr_loader:prev_attr_loader, non_persistent:non_persistent_mark, value_index:value_index );
+  if ( empty non_persistent_mark or non_persistent_mark.value == "load_only" )
+    value_index = value_index + 1;
+  end if;
+  select any prev_attr_loader related by inst_loader->Z_AttributeLoader[R3006] where ( selected.index == index );
+  index = index + 1;
+  select any attribute related by obj->Attribute[R410] where (index-index_diff == selected.order);
+end while;
+
+// create a loader and serializer for current_state
+select one sm related by obj->StateMachine[R4750];
+if ( not_empty sm )
+  if ( not_empty inst_serializer )
+    // create the serializer
+    create object instance attr_serializer of Z_AttributeSerializer;
+    relate inst_serializer to attr_serializer across R3002;
+    attr_serializer.attr_name = "currentState";
+    attr_serializer.cast = "";
+    if ( not_empty prev_attr_serializer )
+      relate prev_attr_serializer to attr_serializer across R3003.''precedes'';
+    end if;
+    accessor_name = "getCurrentState()";
+    create object instance int_serializer of Z_IntegerSerializer;
+    relate int_serializer to attr_serializer across R3004;
+    int_serializer.value = accessor_name;
+    int_serializer.value2 = "";
+  end if;
+  // create the loader
+  create object instance attr_loader of Z_AttributeLoader;
+  relate inst_loader to attr_loader across R3006;
+  attr_loader.attr_name = "currentState";
+  if (not_empty prev_attr_loader )
+    relate prev_attr_loader to attr_loader across R3007.''precedes'';
+    attr_loader.index = prev_attr_loader.index + 1;
+  end if;
+  attr_loader.value_index = value_index;
+  create object instance int_loader of Z_IntegerLoader;
+  int_loader.is_long = false;
+  relate int_loader to attr_loader across R3008;
+end if;
+
+// add to the imports
+select one class_file related by obj->File[R401];
+::addFileToImports( file:file, file_to_import:class_file, type: ImportType::IMPL );
+::addTypeToImports( file:file, type_to_import:unique_id_type, type:ImportType::IMPL );
+::addStringToImports( file:file, s: ::pathToPackage( path:class_file.path ) + ".impl." + class_file.name + "Impl", type:ImportType::IMPL );',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("36143df8-e439-4f4e-8b64-6f6ae0c91597",
+	"ff027fcc-f906-452b-88e4-c3a120acbadf",
+	'obj',
+	"a519e323-b117-4a03-9435-b88e56c2443d",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("a519e323-b117-4a03-9435-b88e56c2443d",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Model Inst>',
+	'',
+	'',
+	'../../../../tool-core/models/tool-core/architecture/classes/classes.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("2f3439b9-c996-4803-80f8-2d16cb8d8f51",
+	"ff027fcc-f906-452b-88e4-c3a120acbadf",
+	'pop_loader',
+	"6b220e4e-1f35-4631-a0b4-89a2f4a0e8b2",
+	0,
+	'',
+	"36143df8-e439-4f4e-8b64-6f6ae0c91597",
+	'');
+INSERT INTO PE_PE
+	VALUES ("ff027fcc-f906-452b-88e4-c3a120acbadf",
+	1,
+	"393d1b5b-5425-48d1-901b-df557c6670b6",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("4e53861c-ca4f-48e5-bb5d-e4ce6432c0bd",
+	"00000000-0000-0000-0000-000000000000",
+	'transformEventDataLoader',
+	'',
+	'parameter = param.parameter;
+inst_loader = param.inst_loader;
+prev_attr_loader = param.prev_attr_loader;
+
+select one file related by inst_loader->Z_PopulationLoader[R3005]->GeneralFile[R3009]->File[R401];
+
+// create the loader
+create object instance attr_loader of Z_AttributeLoader;
+relate inst_loader to attr_loader across R3006;
+if (empty prev_attr_loader )
+  attr_loader.index = 0;
+else
+  relate prev_attr_loader to attr_loader across R3007.''precedes'';
+  attr_loader.index = prev_attr_loader.index + 1;
+end if;
+attr_loader.attr_name = parameter.name;
+attr_loader.value_index = attr_loader.index;
+
+// get the attribute type
+select one type related by parameter->TypeReference[R431]->Type[R3800];
+select one builtin related by type->BuiltInType[R407];
+if ( not_empty builtin )
+  if ( "boolean" == builtin.name )
+    create object instance boolean_loader of Z_BooleanLoader;
+    relate boolean_loader to attr_loader across R3008;
+  elif ( "int" == builtin.name )
+    create object instance int_loader of Z_IntegerLoader;
+    int_loader.is_long = false;
+    relate int_loader to attr_loader across R3008;
+  elif ( "double" == builtin.name )
+    create object instance real_loader of Z_RealLoader;
+    relate real_loader to attr_loader across R3008;
+  elif ( "String" == builtin.name )
+    create object instance string_loader of Z_StringLoader;
+    relate string_loader to attr_loader across R3008;
+  else
+    create object instance general_loader of Z_GeneralLoader;
+    relate general_loader to attr_loader across R3008;
+    relate type to general_loader across R3013;
+    ::addTypeToImports( file:file, type_to_import:type, type:ImportType::IMPL );
+    general_loader.load_value = true;
+  end if;
+else
+  select one edt related by type->EnumeratedType[R407];
+  if ( not_empty edt )
+    create object instance enumerator_loader of Z_EnumeratorLoader;
+    relate enumerator_loader to attr_loader across R3008;
+    relate edt to enumerator_loader across R3010;
+    select one edt_file related by edt->File[R401];
+    ::addFileToImports( file:file, file_to_import:edt_file, type: ImportType::IMPL );
+  else
+    select one udt related by type->UserDefinedType[R407];
+    if ( not_empty udt )
+      create object instance general_loader of Z_GeneralLoader;
+      relate general_loader to attr_loader across R3008;
+      relate type to general_loader across R3013;
+      ::addTypeToImports( file:file, type_to_import:type, type:ImportType::IMPL );
+      general_loader.load_value = true;
+    else
+      // TODO bad cannot load instance or structured types
+    end if;
+  end if;
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("9e254227-4387-4257-8c12-405ee221c059",
+	"4e53861c-ca4f-48e5-bb5d-e4ce6432c0bd",
+	'parameter',
+	"4f106c1b-2473-4622-9798-816c7eb93613",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("4f106c1b-2473-4622-9798-816c7eb93613",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Formal Parameter>',
+	'',
+	'',
+	'../../../../tool-core/models/tool-core/architecture/invocable/invocable.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("10924056-911a-47d2-8c40-97da17aa32a7",
+	"4e53861c-ca4f-48e5-bb5d-e4ce6432c0bd",
+	'inst_loader',
+	"7cc81c66-4208-4364-b2b3-6a6e0b3bbd6f",
+	0,
+	'',
+	"9e254227-4387-4257-8c12-405ee221c059",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("5674cbd3-a6a7-4a2c-9f8b-fb09b4656a11",
+	"4e53861c-ca4f-48e5-bb5d-e4ce6432c0bd",
+	'prev_attr_loader',
+	"fb3eaa19-7754-4fae-aca0-356ca9ab8a6e",
+	0,
+	'',
+	"10924056-911a-47d2-8c40-97da17aa32a7",
+	'');
+INSERT INTO PE_PE
+	VALUES ("4e53861c-ca4f-48e5-bb5d-e4ce6432c0bd",
+	1,
+	"393d1b5b-5425-48d1-901b-df557c6670b6",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("9b85545f-4c1e-4b8d-9282-d3f9ce4be8c4",
+	"00000000-0000-0000-0000-000000000000",
+	'transformEventDataSerializer',
+	'',
+	'parameter = param.parameter;
+inst_serializer = param.inst_serializer;
+prev_attr_serializer = param.prev_attr_serializer;
+
+// create the serializer
+create object instance attr_serializer of Z_AttributeSerializer;
+relate inst_serializer to attr_serializer across R3002;
+attr_serializer.attr_name = parameter.name;
+attr_serializer.cast = "";
+if ( not_empty prev_attr_serializer )
+  relate prev_attr_serializer to attr_serializer across R3003.''precedes'';
+end if;
+
+// get the accessor name
+index = -3; // start at -3 to account for the first three serializers for event handle, population id, and instance handle
+while ( not_empty prev_attr_serializer )
+  index = index + 1;
+  select one prev_attr_serializer related by prev_attr_serializer->Z_AttributeSerializer[R3003.''follows''];
+end while;
+accessor_name = "get(" + STRING::itoa( i:index ) + ")";
+
+select one type related by parameter->TypeReference[R431]->Type[R3800];
+select one builtin related by type->BuiltInType[R407];
+if ( not_empty builtin )
+  if ( "boolean" == builtin.name )
+    create object instance int_serializer of BooleanSerializer;
+    relate int_serializer to attr_serializer across R3004;
+    int_serializer.value = accessor_name;
+  elif ( "int" == builtin.name )
+    create object instance int_serializer of Z_IntegerSerializer;
+    relate int_serializer to attr_serializer across R3004;
+    int_serializer.value = accessor_name;
+    int_serializer.value2 = "";
+  elif ( "double" == builtin.name )
+    create object instance real_serializer of Z_RealSerializer;
+    relate real_serializer to attr_serializer across R3004;
+    real_serializer.value = accessor_name;
+  elif ( "String" == builtin.name )
+    create object instance string_serializer of Z_StringSerializer;
+    relate string_serializer to attr_serializer across R3004;
+    string_serializer.value = accessor_name;
+  elif ( "UniqueId" == builtin.name or "EventHandle" == builtin.name or "TimerHandle" == builtin.name )
+    create object instance uniqueid_serializer of UniqueIDSerializer;
+    relate uniqueid_serializer to attr_serializer across R3004;
+    uniqueid_serializer.value = accessor_name;
+  else
+    create object instance general_serializer of Z_GeneralSerializer;
+    relate general_serializer to attr_serializer across R3004;
+    general_serializer.value = accessor_name;
+    attr_serializer.cast = "(" + type.name + ")";
+    relate type to general_serializer across R3014;
+  end if;
+else
+  select one edt related by type->EnumeratedType[R407];
+  if ( not_empty edt )
+    create object instance int_serializer of Z_IntegerSerializer;
+    relate int_serializer to attr_serializer across R3004;
+    int_serializer.value = accessor_name;
+    int_serializer.value2 = "getValue()";
+    attr_serializer.cast = "(" + type.name + ")";
+  else
+    select one udt related by type->UserDefinedType[R407];
+    if ( not_empty udt )
+      create object instance general_serializer of Z_GeneralSerializer;
+      relate general_serializer to attr_serializer across R3004;
+      general_serializer.value = accessor_name;
+      attr_serializer.cast = "(" + type.name + ")";
+      relate type to general_serializer across R3014;
+    else
+      // TODO bad cannot serialize instance or structured types
+    end if;
+  end if;
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("4f0ff7ee-f8f1-43b7-a872-65c2efd6dac0",
+	"9b85545f-4c1e-4b8d-9282-d3f9ce4be8c4",
+	'parameter',
+	"4f106c1b-2473-4622-9798-816c7eb93613",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("ff32eecb-0b76-45c9-b330-69bd219082d2",
+	"9b85545f-4c1e-4b8d-9282-d3f9ce4be8c4",
+	'inst_serializer',
+	"33d4ef09-757b-4f0a-993c-5aa11e00fbbc",
+	0,
+	'',
+	"4f0ff7ee-f8f1-43b7-a872-65c2efd6dac0",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("7dd78d43-e02a-48ad-8f62-b961a609c030",
+	"9b85545f-4c1e-4b8d-9282-d3f9ce4be8c4",
+	'prev_attr_serializer',
+	"de3301b4-7a90-4209-a900-34a100151fc9",
+	0,
+	'',
+	"ff32eecb-0b76-45c9-b330-69bd219082d2",
+	'');
+INSERT INTO PE_PE
+	VALUES ("9b85545f-4c1e-4b8d-9282-d3f9ce4be8c4",
+	1,
+	"393d1b5b-5425-48d1-901b-df557c6670b6",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("a272d35f-b17a-4e5f-ba4a-a492ff048f41",
+	"00000000-0000-0000-0000-000000000000",
+	'transformEventInstanceLoaderSerializer',
+	'',
+	'evt = param.evt;
+pop_loader = param.pop_loader;
+select one obj related by evt->StateMachine[R4752]->Class[R4750];
+
+// create the loader
+create object instance inst_loader of Z_InstanceLoader;
+relate pop_loader to inst_loader across R3005;
+inst_loader.class_name = obj.name + "_" + evt.name;
+create object instance evt_inst_loader of EventInstanceLoader;
+relate evt_inst_loader to inst_loader across R3016;
+relate evt_inst_loader to obj across R3017;
+
+// create the serializer
+create object instance inst_serializer of Z_InstanceSerializer;
+relate pop_loader to inst_serializer across R3001;
+inst_serializer.class_name = obj.name + "_" + evt.name;
+create object instance evt_inst_serializer of EventInstanceSerializer;
+relate evt_inst_serializer to inst_serializer across R3015;
+
+// create loader and serializer for event handle
+event_handle_type_ref = TypeReference::getBuiltinTypeReference( name:"EventHandle" );
+select one event_handle_type related by event_handle_type_ref->Type[R3800];
+create object instance attr_serializer1 of Z_AttributeSerializer;
+relate inst_serializer to attr_serializer1 across R3002;
+attr_serializer1.attr_name = "instanceId";
+attr_serializer1.cast = "";
+create object instance uniqueid_serializer1 of UniqueIDSerializer;
+relate uniqueid_serializer1 to attr_serializer1 across R3004;
+uniqueid_serializer1.value = "getEventHandle()";
+uniqueid_serializer1.primary_key = true;
+create object instance attr_loader1 of Z_AttributeLoader;
+relate inst_loader to attr_loader1 across R3006;
+attr_loader1.attr_name = "instanceId";
+attr_loader1.index = 0;
+attr_loader1.value_index = 0;
+create object instance general_loader1 of Z_GeneralLoader;
+relate general_loader1 to attr_loader1 across R3008;
+relate general_loader1 to event_handle_type across R3013;
+general_loader1.load_value = true;
+
+// create a loader and serializer for population id
+create object instance attr_serializer2 of Z_AttributeSerializer;
+relate inst_serializer to attr_serializer2 across R3002;
+attr_serializer2.attr_name = "populationId";
+attr_serializer2.cast = "";
+relate attr_serializer1 to attr_serializer2 across R3003.''precedes'';
+create object instance int_serializer2 of Z_IntegerSerializer;
+relate int_serializer2 to attr_serializer2 across R3004;
+int_serializer2.value = "getPopulationId()";
+create object instance attr_loader2 of Z_AttributeLoader;
+relate inst_loader to attr_loader2 across R3006;
+relate attr_loader1 to attr_loader2 across R3007.''precedes'';
+attr_loader2.attr_name = "populationId";
+attr_loader2.index = attr_loader1.index + 1;
+attr_loader2.value_index = attr_loader1.index + 1;
+create object instance int_loader2 of Z_IntegerLoader;
+int_loader2.is_long = false;
+relate int_loader2 to attr_loader2 across R3008;
+
+// create loader and serializer for event target
+unique_id_type_ref = TypeReference::getBuiltinTypeReference( name:"UniqueId" );
+select one unique_id_type related by unique_id_type_ref->Type[R3800];
+create object instance attr_serializer3 of Z_AttributeSerializer;
+relate inst_serializer to attr_serializer3 across R3002;
+attr_serializer3.attr_name = "eventTarget";
+attr_serializer3.cast = "";
+relate attr_serializer2 to attr_serializer3 across R3003.''precedes'';
+create object instance uniqueid_serializer3 of UniqueIDSerializer;
+relate uniqueid_serializer3 to attr_serializer3 across R3004;
+uniqueid_serializer3.value = "getTarget().getInstanceId()";
+create object instance attr_loader3 of Z_AttributeLoader;
+relate inst_loader to attr_loader3 across R3006;
+relate attr_loader2 to attr_loader3 across R3007.''precedes'';
+attr_loader3.attr_name = "eventTarget";
+attr_loader3.index = attr_loader2.index + 1;
+attr_loader3.value_index = attr_loader2.index + 1;
+create object instance general_loader3 of Z_GeneralLoader;
+relate general_loader3 to attr_loader3 across R3008;
+relate general_loader3 to unique_id_type across R3013;
+general_loader3.load_value = true;
+
+// create attribute loaders and serializers
+index = attr_loader3.index + 1;
+select any data_item related by evt->InvocableObject[R427]->FormalParameter[R429];
+select one prev_data_item related by data_item->FormalParameter[R404.''follows''];
+while ( not_empty prev_data_item )
+  data_item = prev_data_item;
+  select one prev_data_item related by data_item->FormalParameter[R404.''follows''];
+end while;
+prev_attr_loader = attr_loader3;
+prev_attr_serializer = attr_serializer3;
+while ( not_empty data_item ) 
+  ::transformEventDataSerializer( parameter:data_item, inst_serializer:inst_serializer, prev_attr_serializer:prev_attr_serializer );
+  select any prev_attr_serializer related by inst_serializer->Z_AttributeSerializer[R3002] where ( selected.attr_name == data_item.name );
+  ::transformEventDataLoader( parameter:data_item, inst_loader:inst_loader, prev_attr_loader:prev_attr_loader );
+  select any prev_attr_loader related by inst_loader->Z_AttributeLoader[R3006] where ( selected.index == index );
+  index = index + 1;
+  select one data_item related by data_item->FormalParameter[R404.''precedes''];
+end while;
+
+// add to the imports
+select one file related by pop_loader->GeneralFile[R3009]->File[R401];
+::addStringToImports( file:file, s:"io.ciera.runtime.summit.statemachine.IEvent", type:ImportType::IMPL );',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("2992bae4-5eac-4d85-b06f-5a6e17ba4470",
+	"a272d35f-b17a-4e5f-ba4a-a492ff048f41",
+	'evt',
+	"6f9d5490-60e9-489c-a2c7-507dc913da72",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("6f9d5490-60e9-489c-a2c7-507dc913da72",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Event>',
+	'',
+	'',
+	'../../../../tool-core/models/tool-core/architecture/statemachine/statemachine.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("8a5833e5-df93-4a5b-a626-8f6ea90915c8",
+	"a272d35f-b17a-4e5f-ba4a-a492ff048f41",
+	'pop_loader',
+	"6b220e4e-1f35-4631-a0b4-89a2f4a0e8b2",
+	0,
+	'',
+	"2992bae4-5eac-4d85-b06f-5a6e17ba4470",
+	'');
+INSERT INTO PE_PE
+	VALUES ("a272d35f-b17a-4e5f-ba4a-a492ff048f41",
+	1,
+	"393d1b5b-5425-48d1-901b-df557c6670b6",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("d6afec25-9ea9-4800-b965-900b374a8a01",
+	"00000000-0000-0000-0000-000000000000",
+	'transformSQLLoader',
+	'',
+	'comp_def = param.comp_def;
+select one comp_def_file related by comp_def->File[R401];
+
+// create the file
+create object instance file of File;
+file.name = comp_def.name + "SqlLoader";
+file.path = comp_def_file.path;
+file.package = ::pathToPackage( path:file.path );
+file.extension = ".java";
+file.exclude = false;
+
+// create the general file
+create object instance general_file of GeneralFile;
+relate general_file to file across R401;
+
+// create the instance population loader
+create object instance pop_loader of Z_PopulationLoader;
+relate pop_loader to general_file across R3009;
+pop_loader.comp_name = comp_def.name;
+
+// create loaders and serializers for classes
+select many objs related by comp_def->Class[R408];
+for each obj in objs
+  // check if the class is persistent
+  select one o_obj related by obj->O_OBJ[R409];
+  select one pe related by o_obj->PE_PE[R8001];
+  marking_path = ::containerMarkingPath( pe:pe ) + "::" + o_obj.Name;
+  select any non_persistent_mark from instances of Mark where ( selected.markable_name == "Model Class" and
+                                                                selected.path == marking_path and
+                                                                selected.feature_name == "NonPersistent" );
+  if ( empty non_persistent_mark )
+    ::transformClassInstanceLoaderSerializer( obj:obj, pop_loader:pop_loader );
+  end if;
+end for;
+
+select many evts related by objs->StateMachine[R4750]->Event[R4752];
+if ( not_empty evts )
+
+  // create loader serializer for timers
+  ::transformTimerLoaderSerializer( pop_loader:pop_loader );
+  
+  // create loaders and serializers for events
+  for each evt in evts
+    ::transformEventInstanceLoaderSerializer( evt:evt, pop_loader:pop_loader );
+  end for;
+
+end if;
+
+// create batch relators for relationships
+select many rels related by comp_def->Relationship[R448];
+for each rel in rels
+  select one part_o_obj related by rel->Class[R434]->O_OBJ[R409];
+  select one part_pe related by part_o_obj->PE_PE[R8001];
+  select any part_non_persistent_mark from instances of Mark where ( selected.markable_name == "Model Class" and
+                                                                     selected.path == ::containerMarkingPath( pe:part_pe ) + "::" + part_o_obj.Name and
+                                                                     selected.feature_name == "NonPersistent" );
+  select one form_o_obj related by rel->Class[R435]->O_OBJ[R409];
+  select one form_pe related by form_o_obj->PE_PE[R8001];
+  select any form_non_persistent_mark from instances of Mark where ( selected.markable_name == "Model Class" and
+                                                                     selected.path == ::containerMarkingPath( pe:form_pe ) + "::" + form_o_obj.Name and
+                                                                     selected.feature_name == "NonPersistent" );
+  if ( empty part_non_persistent_mark and empty form_non_persistent_mark )
+    ::transformBatchRelator( rel:rel, pop_loader:pop_loader );
+  end if;
+end for;
+
+// create import block
+::addStringToImports( file:file, s:"io.ciera.runtime.instanceloading.sql.SqlLoader", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"java.io.PrintStream", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"java.util.List", type:ImportType::IMPL );',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("bbd22efe-8ba6-4504-b9a9-ce322ccb35bc",
+	"d6afec25-9ea9-4800-b965-900b374a8a01",
+	'comp_def',
+	"109e90cb-1d66-46ee-88db-a568044879d0",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("109e90cb-1d66-46ee-88db-a568044879d0",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Component Definition>',
+	'',
+	'',
+	'../../../../tool-core/models/tool-core/architecture/component/component.xtuml');
+INSERT INTO PE_PE
+	VALUES ("d6afec25-9ea9-4800-b965-900b374a8a01",
+	1,
+	"393d1b5b-5425-48d1-901b-df557c6670b6",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("9d5e8824-fc72-410e-8d7b-bd207bd37277",
+	"00000000-0000-0000-0000-000000000000",
+	'transformSQLLoaders',
+	'',
+	'select many comp_defs from instances of ComponentDefinition;
+for each comp_def in comp_defs
+  select any obj related by comp_def->Class[R408];
+  if ( not_empty obj )  // only create population loader if there are classes
+    ::transformSQLLoader( comp_def:comp_def );
+  end if;
+end for;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO PE_PE
+	VALUES ("9d5e8824-fc72-410e-8d7b-bd207bd37277",
+	1,
+	"393d1b5b-5425-48d1-901b-df557c6670b6",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("e0859b50-3b2f-4eab-ba84-7f063637217c",
+	"00000000-0000-0000-0000-000000000000",
+	'transformTimerLoaderSerializer',
+	'',
+	'pop_loader = param.pop_loader;
+
+// create the loader
+create object instance inst_loader of Z_InstanceLoader;
+relate pop_loader to inst_loader across R3005;
+inst_loader.class_name = "CIERA_TIMER";
+create object instance timer_inst_loader of TimerInstanceLoader;
+relate timer_inst_loader to inst_loader across R3016;
+
+// create the serializer
+create object instance inst_serializer of Z_InstanceSerializer;
+relate pop_loader to inst_serializer across R3001;
+inst_serializer.class_name = "CIERA_TIMER";
+create object instance timer_inst_serializer of TimerInstanceSerializer;
+relate timer_inst_serializer to inst_serializer across R3015;
+
+// create a loader and serializer for timer handle
+timer_handle_type_ref = TypeReference::getBuiltinTypeReference( name:"TimerHandle" );
+select one timer_handle_type related by timer_handle_type_ref->Type[R3800];
+create object instance attr_serializer1 of Z_AttributeSerializer;
+relate inst_serializer to attr_serializer1 across R3002;
+attr_serializer1.attr_name = "instanceId";
+attr_serializer1.cast = "";
+create object instance uniqueid_serializer1 of UniqueIDSerializer;
+relate uniqueid_serializer1 to attr_serializer1 across R3004;
+uniqueid_serializer1.value = "getId()";
+uniqueid_serializer1.primary_key = true;
+create object instance attr_loader1 of Z_AttributeLoader;
+relate inst_loader to attr_loader1 across R3006;
+attr_loader1.attr_name = "instanceId";
+attr_loader1.index = 0;
+attr_loader1.value_index = 0;
+create object instance general_loader1 of Z_GeneralLoader;
+relate general_loader1 to attr_loader1 across R3008;
+relate general_loader1 to timer_handle_type across R3013;
+general_loader1.load_value = true;
+
+// create a loader and serializer for population id
+create object instance attr_serializer2 of Z_AttributeSerializer;
+relate inst_serializer to attr_serializer2 across R3002;
+attr_serializer2.attr_name = "populationId";
+attr_serializer2.cast = "";
+relate attr_serializer1 to attr_serializer2 across R3003.''precedes'';
+create object instance int_serializer2 of Z_IntegerSerializer;
+relate int_serializer2 to attr_serializer2 across R3004;
+int_serializer2.value = "getPopulationId()";
+create object instance attr_loader2 of Z_AttributeLoader;
+relate inst_loader to attr_loader2 across R3006;
+relate attr_loader1 to attr_loader2 across R3007.''precedes'';
+attr_loader2.attr_name = "populationId";
+attr_loader2.index = attr_loader1.index + 1;
+attr_loader2.value_index = attr_loader1.index + 1;
+create object instance int_loader2 of Z_IntegerLoader;
+int_loader2.is_long = false;
+relate int_loader2 to attr_loader2 across R3008;
+
+// create a loader and serializer for event handle
+event_handle_type_ref = TypeReference::getBuiltinTypeReference( name:"EventHandle" );
+select one event_handle_type related by event_handle_type_ref->Type[R3800];
+create object instance attr_serializer3 of Z_AttributeSerializer;
+relate inst_serializer to attr_serializer3 across R3002;
+attr_serializer3.attr_name = "eventToGenerate";
+attr_serializer3.cast = "";
+relate attr_serializer2 to attr_serializer3 across R3003.''precedes'';
+create object instance uniqueid_serializer3 of UniqueIDSerializer;
+relate uniqueid_serializer3 to attr_serializer3 across R3004;
+uniqueid_serializer3.value = "getEventToGenerate()";
+create object instance attr_loader3 of Z_AttributeLoader;
+relate inst_loader to attr_loader3 across R3006;
+relate attr_loader2 to attr_loader3 across R3007.''precedes'';
+attr_loader3.attr_name = "eventToGenerate";
+attr_loader3.index = attr_loader2.index + 1;
+attr_loader3.value_index = attr_loader2.index + 1;
+create object instance general_loader3 of Z_GeneralLoader;
+relate general_loader3 to attr_loader3 across R3008;
+relate general_loader3 to event_handle_type across R3013;
+general_loader3.load_value = true;
+
+// create a loader and serializer for wakeup time
+create object instance attr_serializer4 of Z_AttributeSerializer;
+relate inst_serializer to attr_serializer4 across R3002;
+attr_serializer4.attr_name = "wakeUpTime";
+attr_serializer4.cast = "";
+relate attr_serializer3 to attr_serializer4 across R3003.''precedes'';
+create object instance int_serializer4 of Z_IntegerSerializer;
+relate int_serializer4 to attr_serializer4 across R3004;
+int_serializer4.value = "getWakeUpTime()";
+int_serializer4.value2 = "";
+create object instance attr_loader4 of Z_AttributeLoader;
+relate inst_loader to attr_loader4 across R3006;
+relate attr_loader3 to attr_loader4 across R3007.''precedes'';
+attr_loader4.attr_name = "wakeUpTime";
+attr_loader4.index = attr_loader3.index + 1;
+attr_loader4.value_index = attr_loader3.index + 1;
+create object instance int_loader4 of Z_IntegerLoader;
+int_loader4.is_long = true;
+relate int_loader4 to attr_loader4 across R3008;
+
+// create a loader and serializer for period
+create object instance attr_serializer5 of Z_AttributeSerializer;
+relate inst_serializer to attr_serializer5 across R3002;
+attr_serializer5.attr_name = "period";
+attr_serializer5.cast = "";
+relate attr_serializer4 to attr_serializer5 across R3003.''precedes'';
+create object instance int_serializer5 of Z_IntegerSerializer;
+relate int_serializer5 to attr_serializer5 across R3004;
+int_serializer5.value = "getPeriod()";
+int_serializer5.value2 = "";
+create object instance attr_loader5 of Z_AttributeLoader;
+relate inst_loader to attr_loader5 across R3006;
+relate attr_loader4 to attr_loader5 across R3007.''precedes'';
+attr_loader5.attr_name = "period";
+attr_loader5.index = attr_loader4.index + 1;
+attr_loader5.value_index = attr_loader4.index + 1;
+create object instance int_loader5 of Z_IntegerLoader;
+int_loader5.is_long = false;
+relate int_loader5 to attr_loader5 across R3008;
+
+// create a loader and serializer for recurring
+create object instance attr_serializer6 of Z_AttributeSerializer;
+relate inst_serializer to attr_serializer6 across R3002;
+attr_serializer6.attr_name = "recurring";
+attr_serializer6.cast = "";
+relate attr_serializer5 to attr_serializer6 across R3003.''precedes'';
+create object instance bool_serializer6 of BooleanSerializer;
+relate bool_serializer6 to attr_serializer6 across R3004;
+bool_serializer6.value = "isRecurring()";
+create object instance attr_loader6 of Z_AttributeLoader;
+relate inst_loader to attr_loader6 across R3006;
+relate attr_loader5 to attr_loader6 across R3007.''precedes'';
+attr_loader6.attr_name = "recurring";
+attr_loader6.index = attr_loader5.index + 1;
+attr_loader6.value_index = attr_loader5.index + 1;
+create object instance bool_loader6 of Z_BooleanLoader;
+relate bool_loader6 to attr_loader6 across R3008;
+
+// add to the imports
+select one file related by pop_loader->GeneralFile[R3009]->File[R401];
+::addStringToImports( file:file, s:"io.ciera.runtime.summit.statemachine.EventHandle", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.runtime.summit.time.Timer", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.runtime.summit.time.TimerHandle", type:ImportType::IMPL );',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("6fd3d81d-9d08-46cf-9d1a-e3207b76e232",
+	"e0859b50-3b2f-4eab-ba84-7f063637217c",
+	'pop_loader',
+	"6b220e4e-1f35-4631-a0b4-89a2f4a0e8b2",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO PE_PE
+	VALUES ("e0859b50-3b2f-4eab-ba84-7f063637217c",
+	1,
+	"393d1b5b-5425-48d1-901b-df557c6670b6",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO PE_PE
+	VALUES ("393d1b5b-5425-48d1-901b-df557c6670b6",
+	1,
+	"00000000-0000-0000-0000-000000000000",
+	"00000000-0000-0000-0000-000000000000",
+	7);
+INSERT INTO S_SYS_PROXY
+	VALUES ("654f2273-90dd-487f-aef0-4050978eaf0e",
+	'tool-sql',
+	1,
+	'../tool-sql.xtuml');
