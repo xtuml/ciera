@@ -1,4 +1,4 @@
-.if ("many" == self.multiplicity)
+.if (("many" == self.multiplicity) or ("one" == self.multiplicity))
 ((${self.cast})\
 .end if
 ${root_expression_body}\
@@ -16,7 +16,7 @@ _a.${accessor}().compareTo(_b.${accessor}())\
 )\
 .end if
 .if ("one" == self.multiplicity)
-..oneWhere(selected -> ${where_expression_body})\
+..oneWhere(selected -> ${where_expression_body}))\
 .elif ("any" == self.multiplicity)
 ..anyWhere(selected -> ${where_expression_body})\
 .else
