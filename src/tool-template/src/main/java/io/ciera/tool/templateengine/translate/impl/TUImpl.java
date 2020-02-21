@@ -99,8 +99,7 @@ public class TUImpl<C extends IComponent<C>> extends Utility<C> implements TU {
                     RSLParser parser = new RSLParser(tokens);
                     RSLParser.BodyContext ctx = parser.body();
                     ParseTreeWalker walker = new ParseTreeWalker();
-                    RSLPopulator listener = new RSLPopulator(relativePath + File.separator + f.getName(),
-                            population);
+                    RSLPopulator listener = new RSLPopulator("".equals(relativePath) ? f.getName() : relativePath + File.separator + f.getName(), population);
                     walker.walk(listener, ctx);
                 } catch (IOException e) {
                     /* do nothing */ }
