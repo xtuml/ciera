@@ -37,17 +37,23 @@ public enum ${self.name} implements IXtumlType {
         if (o instanceof ${self.name}) {
             return (${self.name})o;
         }
-        else {
-            int value;
-            if (o instanceof Integer) {
-                value = (int)o;
-            }
-            else if (o instanceof String) {
-                value = Integer.parseInt((String)o);
-            }
-            else throw new XtumlException("Cannot deserialize value");
-            return valueOf(value);
+        else if (o instanceof Integer) {
+            return valueOf((int)o);
         }
+        else if (o instanceof String) {
+            try {
+                return valueOf(Integer.parseInt((String)o));
+            }
+            catch (NumberFormatException e1) {
+                Matcher m = Pattern.compile("([A-Za-z_]+)::([A-Za-z_]+)").matcher((String)o);
+                if (m.matches() && "$l{self.name}".equals(m.group(1).toLowerCase())) {
+                    try {
+                        return Enum.valueOf(${self.name}.class, m.group(2).toUpperCase());
+                    } catch (IllegalArgumentException e2) {/* do nothing */}
+                }
+            }
+        }
+        throw new XtumlException("Cannot deserialize value");
     }
 
     public static ${self.name} valueOf(int value) {
