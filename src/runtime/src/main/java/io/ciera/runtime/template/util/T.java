@@ -28,7 +28,7 @@ public interface T {
      * @param o the object to append
      */
     default public void append(Object o) {
-        append(new String(o.toString()));
+        append(o.toString());
     }
 
     /**

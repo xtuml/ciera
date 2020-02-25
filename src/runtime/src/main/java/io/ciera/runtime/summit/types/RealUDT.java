@@ -2,9 +2,11 @@ package io.ciera.runtime.summit.types;
 
 import io.ciera.runtime.summit.exceptions.XtumlException;
 
-public class RealUDT implements IXtumlType {
+import java.util.function.BinaryOperator;
 
-    private double value;
+public class RealUDT implements IXtumlType, Comparable<RealUDT> {
+
+    protected double value;
 
     public RealUDT() {
         value = 0.0;
@@ -28,8 +30,82 @@ public class RealUDT implements IXtumlType {
         return (int)value;
     }
 
+    public boolean lessThan(RealUDT o) throws XtumlException {
+        if (o != null) {
+            return value < o.value;
+        }
+        throw new XtumlException("Bad arguments");
+    }
+
+    public boolean lessThanOrEqual(RealUDT o) throws XtumlException {
+        if (o != null) {
+            return value <= o.value;
+        }
+        throw new XtumlException("Bad arguments");
+    }
+
+    public boolean greaterThan(RealUDT o) throws XtumlException {
+        if (o != null) {
+            return value > o.value;
+        }
+        throw new XtumlException("Bad arguments");
+    }
+
+    public boolean greaterThanOrEqual(RealUDT o) throws XtumlException {
+        if (o != null) {
+            return value >= o.value;
+        }
+        throw new XtumlException("Bad arguments");
+    }
+
+    public <T extends RealUDT> T add(T o) throws XtumlException {
+        return binop(o, (a, b) -> a + b);
+    }
+
+    public <T extends RealUDT> T subtract(T o) throws XtumlException {
+        return binop(o, (a, b) -> a - b);
+    }
+
+    public <T extends RealUDT> T multiply(T o) throws XtumlException {
+        return binop(o, (a, b) -> a * b);
+    }
+
+    public <T extends RealUDT> T divide(T o) throws XtumlException {
+        return binop(o, (a, b) -> a / b);
+    }
+
+    public <T extends RealUDT> T remainder(T o) throws XtumlException {
+        return binop(o, (a, b) -> a % b);
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T extends RealUDT> T binop(T o, BinaryOperator<Double> op) throws XtumlException {
+        if (o != null) {
+            try {
+                return ((Class<T>)o.getClass()).getConstructor(Object.class).newInstance(op.apply(value, o.value));
+            }
+            catch (Exception e) {
+                throw new XtumlException("Instance initialization error", e);
+            }
+        }
+        throw new XtumlException("Bad arguments");
+    }
+
+    @Override
+    public int compareTo(RealUDT o) {
+        if (o != null) {
+            return Double.compare(value, o.value);
+        }
+        return 0;
+    }
+
     @Override
     public String serialize() throws XtumlException {
+        return toString();
+    }
+
+    @Override
+    public String toString() {
         return Double.toString(value);
     }
 

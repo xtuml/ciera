@@ -2,7 +2,7 @@ package io.ciera.runtime.summit.types;
 
 import io.ciera.runtime.summit.exceptions.XtumlException;
 
-public class BooleanUDT implements IXtumlType {
+public class BooleanUDT implements IXtumlType, Comparable<BooleanUDT> {
 
     private boolean value;
 
@@ -24,8 +24,35 @@ public class BooleanUDT implements IXtumlType {
         return value;
     }
 
+    public boolean or(BooleanUDT o) throws XtumlException {
+        if (o != null) {
+            return value || o.value;
+        }
+        throw new XtumlException("Bad arguments");
+    }
+
+    public boolean and(BooleanUDT o) throws XtumlException {
+        if (o != null) {
+            return value && o.value;
+        }
+        throw new XtumlException("Bad arguments");
+    }
+
+    @Override
+    public int compareTo(BooleanUDT o) {
+        if (o != null) {
+            return Boolean.compare(value, o.value);
+        }
+        return 0;
+    }
+
     @Override
     public String serialize() throws XtumlException {
+        return toString();
+    }
+
+    @Override
+    public String toString() {
         return Boolean.toString(value);
     }
 
