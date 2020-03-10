@@ -2,62 +2,17 @@ package io.ciera.runtime.summit.types;
 
 import io.ciera.runtime.summit.exceptions.XtumlException;
 
-import java.util.function.BinaryOperator;
-
-public class IntegerUDT implements IXtumlType, Comparable<IntegerUDT> {
-
-    protected int value;
+public abstract class IntegerUDT extends UDT<Integer> {
 
     public IntegerUDT() {
-        value = 0;
+        super(0);
     }
 
-    public IntegerUDT(Object value) throws XtumlException {
-        if (value instanceof Integer) {
-            this.value = (int)value;
-        }
-        else if (value instanceof Double) {
-            this.value = (int)((double)value);
-        }
-        else {
-            throw new XtumlException("Could not promote type.");
-        }
- 
+    public IntegerUDT(Object o) throws XtumlException {
+        super(castInteger(o));
     }
 
-    public int castInteger() {
-        return value;
-    }
-
-    public boolean lessThan(IntegerUDT o) throws XtumlException {
-        if (o != null) {
-            return value < o.value;
-        }
-        throw new XtumlException("Bad arguments");
-    }
-
-    public boolean lessThanOrEqual(IntegerUDT o) throws XtumlException {
-        if (o != null) {
-            return value <= o.value;
-        }
-        throw new XtumlException("Bad arguments");
-    }
-
-    public boolean greaterThan(IntegerUDT o) throws XtumlException {
-        if (o != null) {
-            return value > o.value;
-        }
-        throw new XtumlException("Bad arguments");
-    }
-
-    public boolean greaterThanOrEqual(IntegerUDT o) throws XtumlException {
-        if (o != null) {
-            return value >= o.value;
-        }
-        throw new XtumlException("Bad arguments");
-    }
-
-    public <T extends IntegerUDT> T add(T o) throws XtumlException {
+    public <T extends IntegerUDT> T add(Object o) throws XtumlException {
         return binop(o, (a, b) -> a + b);
     }
 
@@ -77,44 +32,49 @@ public class IntegerUDT implements IXtumlType, Comparable<IntegerUDT> {
         return binop(o, (a, b) -> a % b);
     }
 
-    @SuppressWarnings("unchecked")
-    private <T extends IntegerUDT> T binop(T o, BinaryOperator<Integer> op) throws XtumlException {
-        if (o != null) {
-            try {
-                return ((Class<T>)o.getClass()).getConstructor(Object.class).newInstance(op.apply(value, o.value));
-            }
-            catch (Exception e) {
-                throw new XtumlException("Instance initialization error", e);
-            }
+    @Override
+    public Integer cast(Object o) throws XtumlException {
+        return castInteger(o);
+    }
+
+    public static Integer castInteger(Object o) throws XtumlException {
+        if (o instanceof Integer) {
+            return (Integer)o;
         }
-        throw new XtumlException("Bad arguments");
+        else if (o instanceof Double) {
+            return (int)((double)o);
+        }
+        else if (o instanceof IntegerUDT) {
+            return ((IntegerUDT)o).cast();
+        }
+        else {
+            throw new XtumlException("Could not promote type.");
+        }
     }
 
     @Override
-    public int compareTo(IntegerUDT o) {
-        if (o != null) {
-            return value - o.value;
+    public int compareTo(Object o) {
+        if (o instanceof IntegerUDT) {
+            return compareTo(((IntegerUDT)o).cast());
+        }
+        else if (o instanceof Integer) {
+            return cast().compareTo((Integer)o);
         }
         return 0;
     }
 
     @Override
-    public String serialize() throws XtumlException {
-        return toString();
-    }
-
-    @Override
     public String toString() {
-        return Integer.toString(value);
+        return cast().toString();
     }
 
     @Override
     public boolean equals(Object o) {
         if (o instanceof Integer) {
-            return value == ((int)o);
+            return cast().equals(o);
         }
         else {
-            return o instanceof IntegerUDT && value == ((IntegerUDT)o).value;
+            return o instanceof IntegerUDT && cast().equals(((IntegerUDT)o).cast());
         }
     }
 

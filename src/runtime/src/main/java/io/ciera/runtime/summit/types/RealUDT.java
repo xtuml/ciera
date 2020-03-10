@@ -2,63 +2,17 @@ package io.ciera.runtime.summit.types;
 
 import io.ciera.runtime.summit.exceptions.XtumlException;
 
-import java.util.function.BinaryOperator;
-
-public class RealUDT implements IXtumlType, Comparable<RealUDT> {
-
-    protected double value;
+public abstract class RealUDT extends UDT<Double> {
 
     public RealUDT() {
-        value = 0.0;
+        super(0d);
     }
 
-    public RealUDT(Object value) throws XtumlException {
-        if (value instanceof Double) {
-            this.value = (double)value;
-        }
-        else {
-            throw new XtumlException("Could not promote type.");
-        }
- 
+    public RealUDT(Object o) throws XtumlException {
+        super(castReal(o));
     }
 
-    public double castDouble() {
-        return value;
-    }
-
-    public int castInteger() {
-        return (int)value;
-    }
-
-    public boolean lessThan(RealUDT o) throws XtumlException {
-        if (o != null) {
-            return value < o.value;
-        }
-        throw new XtumlException("Bad arguments");
-    }
-
-    public boolean lessThanOrEqual(RealUDT o) throws XtumlException {
-        if (o != null) {
-            return value <= o.value;
-        }
-        throw new XtumlException("Bad arguments");
-    }
-
-    public boolean greaterThan(RealUDT o) throws XtumlException {
-        if (o != null) {
-            return value > o.value;
-        }
-        throw new XtumlException("Bad arguments");
-    }
-
-    public boolean greaterThanOrEqual(RealUDT o) throws XtumlException {
-        if (o != null) {
-            return value >= o.value;
-        }
-        throw new XtumlException("Bad arguments");
-    }
-
-    public <T extends RealUDT> T add(T o) throws XtumlException {
+    public <T extends RealUDT> T add(Object o) throws XtumlException {
         return binop(o, (a, b) -> a + b);
     }
 
@@ -78,44 +32,46 @@ public class RealUDT implements IXtumlType, Comparable<RealUDT> {
         return binop(o, (a, b) -> a % b);
     }
 
-    @SuppressWarnings("unchecked")
-    private <T extends RealUDT> T binop(T o, BinaryOperator<Double> op) throws XtumlException {
-        if (o != null) {
-            try {
-                return ((Class<T>)o.getClass()).getConstructor(Object.class).newInstance(op.apply(value, o.value));
-            }
-            catch (Exception e) {
-                throw new XtumlException("Instance initialization error", e);
-            }
+    @Override
+    public Double cast(Object o) throws XtumlException {
+        return castReal(o);
+    }
+
+    public static Double castReal(Object o) throws XtumlException {
+        if (o instanceof Double) {
+            return (Double)o;
         }
-        throw new XtumlException("Bad arguments");
+        else if (o instanceof RealUDT) {
+            return ((RealUDT)o).cast();
+        }
+        else {
+            throw new XtumlException("Could not promote type.");
+        }
     }
 
     @Override
-    public int compareTo(RealUDT o) {
-        if (o != null) {
-            return Double.compare(value, o.value);
+    public int compareTo(Object o) {
+        if (o instanceof RealUDT) {
+            return compareTo(((RealUDT)o).cast());
+        }
+        else if (o instanceof Double) {
+            return cast().compareTo((Double)o);
         }
         return 0;
     }
 
     @Override
-    public String serialize() throws XtumlException {
-        return toString();
-    }
-
-    @Override
     public String toString() {
-        return Double.toString(value);
+        return cast().toString();
     }
 
     @Override
     public boolean equals(Object o) {
         if (o instanceof Double) {
-            return value == ((double)o);
+            return cast().equals(o);
         }
         else {
-            return o instanceof RealUDT && value == ((RealUDT)o).value;
+            return o instanceof RealUDT && cast().equals(((RealUDT)o).cast());
         }
     }
 

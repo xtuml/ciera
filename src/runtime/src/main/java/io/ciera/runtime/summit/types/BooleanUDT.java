@@ -2,67 +2,64 @@ package io.ciera.runtime.summit.types;
 
 import io.ciera.runtime.summit.exceptions.XtumlException;
 
-public class BooleanUDT implements IXtumlType, Comparable<BooleanUDT> {
-
-    private boolean value;
+public abstract class BooleanUDT extends UDT<Boolean> {
 
     public BooleanUDT() {
-        value = false;
+        super(false);
     }
 
-    public BooleanUDT(Object value) throws XtumlException {
-        if (value instanceof Boolean) {
-            this.value = (boolean)value;
+    public BooleanUDT(Object o) throws XtumlException {
+        super(castBoolean(o));
+    }
+
+    public boolean or(Object o) throws XtumlException {
+        return cast() || cast(o);
+    }
+
+    public boolean and(Object o) throws XtumlException {
+        return cast() && cast(o);
+    }
+
+    @Override
+    public Boolean cast(Object o) throws XtumlException {
+        return castBoolean(o);
+    }
+
+    private static Boolean castBoolean(Object o) throws XtumlException {
+        if (o instanceof Boolean) {
+            return (Boolean)o;
+        }
+        else if (o instanceof BooleanUDT) {
+            return ((BooleanUDT)o).cast();
         }
         else {
             throw new XtumlException("Could not promote type.");
         }
- 
-    }
-
-    public boolean castBoolean() {
-        return value;
-    }
-
-    public boolean or(BooleanUDT o) throws XtumlException {
-        if (o != null) {
-            return value || o.value;
-        }
-        throw new XtumlException("Bad arguments");
-    }
-
-    public boolean and(BooleanUDT o) throws XtumlException {
-        if (o != null) {
-            return value && o.value;
-        }
-        throw new XtumlException("Bad arguments");
     }
 
     @Override
-    public int compareTo(BooleanUDT o) {
-        if (o != null) {
-            return Boolean.compare(value, o.value);
+    public int compareTo(Object o) {
+        if (o instanceof BooleanUDT) {
+            return compareTo(((BooleanUDT)o).cast());
+        }
+        else if (o instanceof Boolean) {
+            return cast().compareTo((Boolean)o);
         }
         return 0;
     }
 
     @Override
-    public String serialize() throws XtumlException {
-        return toString();
-    }
-
-    @Override
     public String toString() {
-        return Boolean.toString(value);
+        return cast().toString();
     }
 
     @Override
     public boolean equals(Object o) {
         if (o instanceof Boolean) {
-            return value == ((boolean)o);
+            return cast().equals(o);
         }
         else {
-            return o instanceof BooleanUDT && value == ((BooleanUDT)o).value;
+            return o instanceof BooleanUDT && cast().equals(((BooleanUDT)o).cast());
         }
     }
 

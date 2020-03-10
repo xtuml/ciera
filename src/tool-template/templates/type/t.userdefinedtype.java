@@ -12,4 +12,9 @@ public class ${self.name} extends ${extends_type} implements IXtumlType {
         super(value);
     }
 
+    @SuppressWarnings("unchecked")
+    public ${self.name} promote(Object o) throws XtumlException {
+        return new ${self.name}(cast(o));
+    }
+
 }

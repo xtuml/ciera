@@ -2,100 +2,60 @@ package io.ciera.runtime.summit.types;
 
 import io.ciera.runtime.summit.exceptions.XtumlException;
 
-import java.util.function.BinaryOperator;
-
-public class StringUDT implements IXtumlType, Comparable<StringUDT> {
-
-    protected String value;
+public abstract class StringUDT extends UDT<String> {
 
     public StringUDT() {
-        value = "";
+        super("");
     }
 
-    public StringUDT(Object value) throws XtumlException {
-        if (value instanceof String) {
-            this.value = (String)value;
+    public StringUDT(Object o) throws XtumlException {
+        super(castString(o));
+    }
+
+    public <T extends StringUDT> T add(Object o) throws XtumlException {
+        return binop(o, (a, b) -> a + b);
+    }
+
+    @Override
+    public String cast(Object o) throws XtumlException {
+        return castString(o);
+    }
+
+    public static String castString(Object o) throws XtumlException {
+        if (o instanceof String) {
+            return (String)o;
+        }
+        else if (o instanceof StringUDT) {
+            return ((StringUDT)o).cast();
         }
         else {
             throw new XtumlException("Could not promote type.");
         }
- 
-    }
-
-    public String castString() {
-        return value;
-    }
-
-    public boolean lessThan(StringUDT o) throws XtumlException {
-        if (o != null) {
-            return StringUtil.lessThan(value, o.value);
-        }
-        throw new XtumlException("Bad arguments");
-    }
-
-    public boolean lessThanOrEqual(StringUDT o) throws XtumlException {
-        if (o != null) {
-            return StringUtil.lessThanOrEqual(value, o.value);
-        }
-        throw new XtumlException("Bad arguments");
-    }
-
-    public boolean greaterThan(StringUDT o) throws XtumlException {
-        if (o != null) {
-            return StringUtil.greaterThan(value, o.value);
-        }
-        throw new XtumlException("Bad arguments");
-    }
-
-    public boolean greaterThanOrEqual(StringUDT o) throws XtumlException {
-        if (o != null) {
-            return StringUtil.greaterThanOrEqual(value, o.value);
-        }
-        throw new XtumlException("Bad arguments");
-    }
-
-    public <T extends StringUDT> T add(T o) throws XtumlException {
-        return binop(o, (a, b) -> a + b);
-    }
-
-    @SuppressWarnings("unchecked")
-    private <T extends StringUDT> T binop(T o, BinaryOperator<String> op) throws XtumlException {
-        if (o != null) {
-            try {
-                return ((Class<T>)o.getClass()).getConstructor(Object.class).newInstance(op.apply(value, o.value));
-            }
-            catch (Exception e) {
-                throw new XtumlException("Instance initialization error", e);
-            }
-        }
-        throw new XtumlException("Bad arguments");
     }
 
     @Override
-    public int compareTo(StringUDT o) {
-        if (o != null) {
-            return value.compareTo(o.value);
+    public int compareTo(Object o) {
+        if (o instanceof StringUDT) {
+            return compareTo(((StringUDT)o).cast());
+        }
+        else if (o instanceof String) {
+            return cast().compareTo((String)o);
         }
         return 0;
     }
 
     @Override
-    public String serialize() throws XtumlException {
-        return toString();
-    }
-
-    @Override
     public String toString() {
-        return value;
+        return cast().toString();
     }
 
     @Override
     public boolean equals(Object o) {
         if (o instanceof String) {
-            return value.equals(o);
+            return cast().equals(o);
         }
         else {
-            return o instanceof StringUDT && value.equals(((StringUDT)o).value);
+            return o instanceof StringUDT && cast().equals(((StringUDT)o).cast());
         }
     }
 
