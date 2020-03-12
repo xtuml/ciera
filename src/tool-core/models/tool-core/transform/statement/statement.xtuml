@@ -3435,7 +3435,7 @@ if ( not_empty act_act and not_empty invocable )
     
   // check if deferred operation
   select one deferral related by act_act->ACT_OPB[R698]->O_TFR[R696]->O_DEF[R126];
-  if (not_empty deferral)
+  if (not_empty deferral and STRING::indexof(haystack:invocable.name, needle:"_supertype_") != 0)
     ::transformDeferral(invocable:invocable, deferral:deferral);
   else
     select any upper_block from instances of CodeBlock where false;
@@ -4385,8 +4385,7 @@ deferral = param.deferral;
 select one o_tfr related by deferral->O_TFR[R126];
 select one type related by invocable->TypeReference[R428];
 returns_value = "void" != type.type_name;
-select many subtype_invocables related by deferral->R_REL[R126]->R_SUBSUP[R206]->R_SUB[R213]->R_RGO[R205]->R_OIR[R203]->O_OBJ[R201]
-  ->O_TFR[R115]->ACT_OPB[R696]->ACT_ACT[R698]->InvocableObject[R432] where (selected.name == invocable.name);
+select many subtypes related by deferral->R_REL[R126]->R_SUBSUP[R206]->R_SUB[R213]->R_RGO[R205]->R_OIR[R203]->O_OBJ[R201];
 
 // create code block
 create object instance block of CodeBlock;
@@ -4396,7 +4395,7 @@ relate block to invocable across R4000;
 block.block_number = "1";
 
 // create an invocation for each subtype
-for each subtype_invocable in subtype_invocables
+for each subtype in subtypes
 
   // create a select statement
   create object instance smt of Statement;
@@ -4421,7 +4420,14 @@ for each subtype_invocable in subtype_invocables
   create object instance l_op of Expression;
   relate l_op to smt across R775;
   l_op.expression_number = "1.1";
-  select one select_class related by subtype_invocable->Operation[R427]->Class[R416];
+  select any subtype_invocable related by subtype->O_TFR[R115]->ACT_OPB[R696]->ACT_ACT[R698]->InvocableObject[R432] where (selected.name == invocable.name);
+  target_invocable = subtype_invocable;
+  if (empty subtype_invocable and deferral.required == 1)  // deferral is optional
+    select any target_invocable related by invocable->Operation[R427]->Class[R416]->Operation[R416]->InvocableObject[R427] where (selected.name == "_supertype_" + invocable.name);
+  elif (empty subtype_invocable and deferral.required != 1)
+    LOG::LogFailure(message:"Could not find matching operation: " + invocable.name + " for subtype: " + subtype.Name);
+  end if;
+  select one select_class related by subtype->Class[R409];
   select one select_type_def related by select_class->Type[R407];
   select_type = TypeReference::getInstanceWithDimString(type:select_type_def, dims:"");
   relate select_type to l_op across R795;
@@ -4546,19 +4552,31 @@ for each subtype_invocable in subtype_invocables
   // create invocation
   create object instance invoc of Invocation;
   relate invoc to invoc_expr across R776;
-  relate invoc to subtype_invocable across R792;
-  // create variable reference expression
-  create object instance invoc_expr2 of Expression;
-  relate invoc_expr2 to smt3 across R775;
-  invoc_expr2.expression_number = "1.1";
-  relate invoc_expr2 to invoc across R798;
-  relate select_type to invoc_expr2 across R795;
-  create object instance invoc_var_ref of VariableReference;
-  relate select_var to invoc_var_ref across R782;
-  relate invoc_var_ref to invoc_expr2 across R776;
+  relate invoc to target_invocable across R792;
+  if (empty subtype_invocable and deferral.required == 1)  // deferral is optional
+    // create named reference
+    create object instance self_expr of Expression;
+    relate self_expr to smt3 across R775;
+    self_expr.expression_number = "1.1";
+    relate self_type to self_expr across R795;
+    relate self_expr to invoc across R798;
+    create object instance self_ref of NamedReference;
+    relate self_ref to self_expr across R776;
+    self_ref.name = "self()";
+  else
+    // create variable reference expression
+    create object instance invoc_expr2 of Expression;
+    relate invoc_expr2 to smt3 across R775;
+    invoc_expr2.expression_number = "1.1";
+    relate invoc_expr2 to invoc across R798;
+    relate select_type to invoc_expr2 across R795;
+    create object instance invoc_var_ref of VariableReference;
+    relate select_var to invoc_var_ref across R782;
+    relate invoc_var_ref to invoc_expr2 across R776;
+  end if;
   // transform actual parameters
   base_num = 2;
-  select many formal_parameters related by subtype_invocable->FormalParameter[R429];
+  select many formal_parameters related by target_invocable->FormalParameter[R429];
   for each formal_parameter in formal_parameters
     // create parameter reference
     select any referenced_formal_parameter related by invocable->FormalParameter[R429] where (selected.name == formal_parameter.name);
