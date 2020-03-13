@@ -4576,8 +4576,14 @@ for each subtype in subtypes
   end if;
   // transform actual parameters
   base_num = 2;
-  select many formal_parameters related by target_invocable->FormalParameter[R429];
-  for each formal_parameter in formal_parameters
+  select any prev_actual_parameter from instances of ActualParameter where false;
+  select any formal_parameter related by target_invocable->FormalParameter[R429];
+  select one prev_formal_parameter related by formal_parameter->FormalParameter[R404.''follows''];
+  while (not_empty prev_formal_parameter)
+    formal_parameter = prev_formal_parameter;
+    select one prev_formal_parameter related by formal_parameter->FormalParameter[R404.''follows''];
+  end while;
+  while (not_empty formal_parameter)
     // create parameter reference
     select any referenced_formal_parameter related by invocable->FormalParameter[R429] where (selected.name == formal_parameter.name);
     create object instance param_ref_expr of Expression;
@@ -4593,8 +4599,13 @@ for each subtype in subtypes
     relate act_parm to param_ref_expr across R794;
     relate invoc to act_parm across R793;
     relate formal_parameter to act_parm across R3904;
+    if (not_empty prev_actual_parameter)
+      relate prev_actual_parameter to act_parm across R3905.''precedes'';
+    end if;
     base_num = base_num + 1;
-  end for;
+    prev_actual_parameter = act_parm;
+    select one formal_parameter related by formal_parameter->FormalParameter[R404.''precedes''];
+  end while;
   if (returns_value)
     // create return statement
     create object instance ret_smt of ReturnSmt;
