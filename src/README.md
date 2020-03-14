@@ -120,6 +120,8 @@ If no `<workspace_location>` is provided, a temporary directory shall be created
    ```
    `<version>` should be the next SNAPSHOT version. As the default, increment
    the third number from the release version and add "-SNAPSHOT".
+6. Update the user guide as appropriate. Find and replace all instances of the
+   latest version ID.
 
 ### Publishing the API docs
 
