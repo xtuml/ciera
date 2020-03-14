@@ -1,5 +1,5 @@
 #!/bin/bash
-CIERA_VERSION=2.0.1-SNAPSHOT
+CIERA_VERSION=2.1.0
 if [[ -z ${BPHOME+x} ]]; then
   echo "BPHOME environment variable not set"
   exit 1
