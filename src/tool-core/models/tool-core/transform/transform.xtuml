@@ -2147,9 +2147,9 @@ if ( op.is_class_based )
 end if;
 ::addStringToImports( file:class_file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::BOTH );
 
-// if this is a deferred operation, create a second operation for the supertype implementation
+// if this is an optional deferred operation, create a second operation for the supertype implementation
 select one o_def related by o_tfr->O_DEF[R126];
-if not_empty o_def
+if (not_empty o_def and o_def.required == 1)
 
   // create operation object
   create object instance op of Operation;
@@ -2204,6 +2204,14 @@ if not_empty o_def
     ::addStringToImports( file:class_file, s:"io.ciera.runtime.summit.application.ActionHome", type:ImportType::IMPL );
   end if;
 
+// if this is an required deferred operation with no body (unparsed), create an empty body
+// so that the deferral will get created correctly
+elif (not_empty o_def and o_def.required == 0 and empty act_act)
+  create object instance act_act of ACT_ACT;
+  create object instance act_opb of ACT_OPB;
+  relate act_act to act_opb across R698;
+  relate act_opb to o_tfr across R696;
+  relate act_act to invocable across R432;
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
