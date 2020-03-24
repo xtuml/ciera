@@ -25,7 +25,7 @@ Launch the GUI (console)
 bash gui.sh --console
 ```
 
-In a new terminal window, aunch the application
+In a new terminal window, launch the application
 ```
 bash run.sh
 ```
