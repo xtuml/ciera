@@ -1457,6 +1457,7 @@ elif ( "+" == T::sub( format:"l", s:v_bin.Operator ) )
     if ( not_empty l_set ) // set type
       binary.operator = "union";
       binary.invocation = true;
+      binary.cast = l_type.name;
     elif ( "String" == l_type.name and "" == l_type.package )
       binary.operator = "+";
     else
@@ -1470,6 +1471,7 @@ elif ( "-" == T::sub( format:"l", s:v_bin.Operator ) )
   else
     if ( not_empty l_set ) // set type
       binary.operator = "difference";
+      binary.cast = l_type.name;
     else
       binary.operator = "subtract";
     end if;
@@ -1499,12 +1501,15 @@ elif ( "%" == T::sub( format:"l", s:v_bin.Operator ) )
 elif ( "|" == T::sub( format:"l", s:v_bin.Operator ) )
   binary.operator = "union";
   binary.invocation = true;
+  binary.cast = l_type.name;
 elif ( "&" == T::sub( format:"l", s:v_bin.Operator ) )
   binary.operator = "intersection";
   binary.invocation = true;
+  binary.cast = l_type.name;
 elif ( "^" == T::sub( format:"l", s:v_bin.Operator ) )
   binary.operator = "disunion";
   binary.invocation = true;
+  binary.cast = l_type.name;
 end if;
 // translate the left operand
 if ( ::precedenceCheck( val1:l_val, val2:v_val ) <= 0 ) // if the left operand is lower precedence than the current operator, force it to be evaluated first with parentheses
