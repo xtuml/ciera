@@ -1,20 +1,25 @@
-.if ( is_getter )
+.if (is_getter)
     @Override
     public ${type_name} ${name}() throws XtumlException {
         checkLiving();
-        ${attribute_derivation}        return ${self.attribute_name};
+  .if ("" != attribute_derivation)
+        ${attribute_derivation}\
+  .end if
+        return ${self.attribute_name};
     }
 .else
     @Override
-    public void ${name}( ${type_name} ${self.attribute_name} ) throws XtumlException {
+    public void ${name}(${type_name} ${self.attribute_name}) throws XtumlException {
         checkLiving();
-  .if ( primitive )
-        if ( ${self.attribute_name} != this.${self.attribute_name} ) {
+  .if (primitive)
+        if (${self.attribute_name} != this.${self.attribute_name}) {
   .else
-    .if ( is_string )
-        if ( StringUtil.inequality( ${self.attribute_name}, this.${self.attribute_name} ) ) {
+    .if (is_array)
+        if (ArrayUtil.inequality(${self.attribute_name}, this.${self.attribute_name})) {
+    .elif (is_string)
+        if (StringUtil.inequality(${self.attribute_name}, this.${self.attribute_name})) {
     .else
-        if ( ${self.attribute_name}.inequality( this.${self.attribute_name} ) ) {
+        if (${self.attribute_name}.inequality( this.${self.attribute_name})) {
     .end if
   .end if
             final ${type_name} oldValue = this.${self.attribute_name};

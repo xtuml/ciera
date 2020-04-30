@@ -1,1 +1,1 @@
-    private ${self.type_name} ${self.name};
+    private ${self.type_reference_name} ${self.name};

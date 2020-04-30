@@ -1327,7 +1327,7 @@ INSERT INTO S_SYNC
 smt = param.smt;
 expr_number = param.expr_number;
 
-file = ::getFileForStatement( smt:smt );
+file = ::getFileForStatement(smt:smt);
 
 // create expression
 create object instance expr of Expression;
@@ -1338,7 +1338,8 @@ expr.expression_number = expr_number;
 select one v_val related by v_bin->V_VAL[R801];
 select one s_dt related by v_val->S_DT[R820];
 select many s_dims from instances of S_DIM where false;
-type = TypeReference::getInstance( s_dt:s_dt, s_dims:s_dims );
+type = TypeReference::getInstance(s_dt:s_dt, s_dims:s_dims);
+select one array_type related by type->ArrayTypeReference[R3801];
 relate type to expr across R795;
 
 // create the binary expression
@@ -1352,124 +1353,154 @@ select one l_set related by l_type->ClassSet[R407];
 // translate the operator
 binary.invocation = false;
 binary.util = false;
-if ( "and" == T::sub( format:"l", s:v_bin.Operator ) )
-  if ( l_type.primitive() )
+if ("and" == T::sub(format:"l", s:v_bin.Operator))
+  if (l_type.primitive())
     binary.operator = "&&";
   else
     binary.operator = "and";
     binary.invocation = true;
   end if;
-elif ( "or" == T::sub( format:"l", s:v_bin.Operator ) )
-  if ( l_type.primitive() )
+elif ("or" == T::sub(format:"l", s:v_bin.Operator))
+  if (l_type.primitive())
     binary.operator = "||";
   else
     binary.operator = "or";
     binary.invocation = true;
   end if;
-elif ( "==" == T::sub( format:"l", s:v_bin.Operator ) )
-  if ( l_type.primitive() )
+elif ("==" == T::sub(format:"l", s:v_bin.Operator))
+  if (l_type.primitive())
     binary.operator = "==";
   else
-    if ( "String" == l_type.name and "" == l_type.package )
+    if (not_empty array_type)
+      binary.operator = "ArrayUtil.equality";
+      binary.invocation = true;
+      binary.util = true;
+      ::addStringToImports(file:file, s:"io.ciera.runtime.summit.types.ArrayUtil", type:ImportType::IMPL);
+    elif ("String" == l_type.name and "" == l_type.package)
       binary.operator = "StringUtil.equality";
       binary.invocation = true;
       binary.util = true;
-      ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.StringUtil", type:ImportType::IMPL );
+      ::addStringToImports(file:file, s:"io.ciera.runtime.summit.types.StringUtil", type:ImportType::IMPL);
     else
       binary.operator = "equality";
       binary.invocation = true;
     end if;
   end if;
-elif ( "!=" == T::sub( format:"l", s:v_bin.Operator ) )
-  if ( l_type.primitive() )
+elif ("!=" == T::sub(format:"l", s:v_bin.Operator))
+  if (l_type.primitive())
     binary.operator = "!=";
   else
-    if ( "String" == l_type.name and "" == l_type.package )
+    if (not_empty array_type)
+      binary.operator = "ArrayUtil.inequality";
+      binary.invocation = true;
+      binary.util = true;
+      ::addStringToImports(file:file, s:"io.ciera.runtime.summit.types.ArrayUtil", type:ImportType::IMPL);
+    elif ("String" == l_type.name and "" == l_type.package)
       binary.operator = "StringUtil.inequality";
       binary.invocation = true;
       binary.util = true;
-      ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.StringUtil", type:ImportType::IMPL );
+      ::addStringToImports(file:file, s:"io.ciera.runtime.summit.types.StringUtil", type:ImportType::IMPL);
     else
       binary.operator = "inequality";
       binary.invocation = true;
     end if;
   end if;
-elif ( "<" == T::sub( format:"l", s:v_bin.Operator ) )
-  if ( l_type.primitive() )
+elif ("<" == T::sub(format:"l", s:v_bin.Operator))
+  if (l_type.primitive())
     binary.operator = "<";
   else
-    if ( "String" == l_type.name and "" == l_type.package )
+    if (not_empty array_type)
+      binary.operator = "ArrayUtil.lessThan";
+      binary.invocation = true;
+      binary.util = true;
+      ::addStringToImports(file:file, s:"io.ciera.runtime.summit.types.ArrayUtil", type:ImportType::IMPL);
+    elif ("String" == l_type.name and "" == l_type.package)
       binary.operator = "StringUtil.lessThan";
       binary.invocation = true;
       binary.util = true;
-      ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.StringUtil", type:ImportType::IMPL );
+      ::addStringToImports(file:file, s:"io.ciera.runtime.summit.types.StringUtil", type:ImportType::IMPL);
     else
       binary.operator = "lessThan";
       binary.invocation = true;
     end if;
   end if;
-elif ( "<=" == T::sub( format:"l", s:v_bin.Operator ) )
-  if ( l_type.primitive() )
+elif ("<=" == T::sub(format:"l", s:v_bin.Operator))
+  if (l_type.primitive())
     binary.operator = "<=";
   else
-    if ( "String" == l_type.name and "" == l_type.package )
+    if (not_empty array_type)
+      binary.operator = "ArrayUtil.lessThanOrEqual";
+      binary.invocation = true;
+      binary.util = true;
+      ::addStringToImports(file:file, s:"io.ciera.runtime.summit.types.ArrayUtil", type:ImportType::IMPL);
+    elif ("String" == l_type.name and "" == l_type.package)
       binary.operator = "StringUtil.lessThanOrEqual";
       binary.invocation = true;
       binary.util = true;
-      ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.StringUtil", type:ImportType::IMPL );
+      ::addStringToImports(file:file, s:"io.ciera.runtime.summit.types.StringUtil", type:ImportType::IMPL);
     else
       binary.operator = "lessThanOrEqual";
       binary.invocation = true;
     end if;
   end if;
-elif ( ">" == T::sub( format:"l", s:v_bin.Operator ) )
-  if ( l_type.primitive() )
+elif (">" == T::sub(format:"l", s:v_bin.Operator))
+  if (l_type.primitive())
     binary.operator = ">";
   else
-    if ( "String" == l_type.name and "" == l_type.package )
+    if (not_empty array_type)
+      binary.operator = "ArrayUtil.greaterThan";
+      binary.invocation = true;
+      binary.util = true;
+      ::addStringToImports(file:file, s:"io.ciera.runtime.summit.types.ArrayUtil", type:ImportType::IMPL);
+    elif ("String" == l_type.name and "" == l_type.package)
       binary.operator = "StringUtil.greaterThan";
       binary.invocation = true;
       binary.util = true;
-      ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.StringUtil", type:ImportType::IMPL );
+      ::addStringToImports(file:file, s:"io.ciera.runtime.summit.types.StringUtil", type:ImportType::IMPL);
     else
       binary.operator = "greaterThan";
       binary.invocation = true;
     end if;
   end if;
-elif ( ">=" == T::sub( format:"l", s:v_bin.Operator ) )
-  if ( l_type.primitive() )
+elif (">=" == T::sub(format:"l", s:v_bin.Operator))
+  if (l_type.primitive())
     binary.operator = ">=";
   else
-    if ( "String" == l_type.name and "" == l_type.package )
+    if (not_empty array_type)
+      binary.operator = "ArrayUtil.greaterThanOrEqual";
+      binary.invocation = true;
+      binary.util = true;
+      ::addStringToImports(file:file, s:"io.ciera.runtime.summit.types.ArrayUtil", type:ImportType::IMPL);
+    elif ("String" == l_type.name and "" == l_type.package)
       binary.operator = "StringUtil.greaterThanOrEqual";
       binary.invocation = true;
       binary.util = true;
-      ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.StringUtil", type:ImportType::IMPL );
+      ::addStringToImports(file:file, s:"io.ciera.runtime.summit.types.StringUtil", type:ImportType::IMPL);
     else
       binary.operator = "greaterThanOrEqual";
       binary.invocation = true;
     end if;
   end if;
-elif ( "+" == T::sub( format:"l", s:v_bin.Operator ) )
-  if ( l_type.primitive() )
+elif ("+" == T::sub(format:"l", s:v_bin.Operator))
+  if (l_type.primitive())
     binary.operator = "+";
   else
-    if ( not_empty l_set ) // set type
+    if (not_empty l_set) // set type
       binary.operator = "union";
       binary.invocation = true;
       binary.cast = l_type.name;
-    elif ( "String" == l_type.name and "" == l_type.package )
+    elif ("String" == l_type.name and "" == l_type.package)
       binary.operator = "+";
     else
       binary.operator = "add";
       binary.invocation = true;
     end if;
   end if;
-elif ( "-" == T::sub( format:"l", s:v_bin.Operator ) )
-  if ( l_type.primitive() )
+elif ("-" == T::sub(format:"l", s:v_bin.Operator))
+  if (l_type.primitive())
     binary.operator = "-";
   else
-    if ( not_empty l_set ) // set type
+    if (not_empty l_set) // set type
       binary.operator = "difference";
       binary.cast = l_type.name;
     else
@@ -1477,45 +1508,45 @@ elif ( "-" == T::sub( format:"l", s:v_bin.Operator ) )
     end if;
     binary.invocation = true;
   end if;
-elif ( "*" == T::sub( format:"l", s:v_bin.Operator ) )
-  if ( l_type.primitive() )
+elif ("*" == T::sub(format:"l", s:v_bin.Operator))
+  if (l_type.primitive())
     binary.operator = "*";
   else
     binary.operator = "multiply";
     binary.invocation = true;
   end if;
-elif ( "/" == T::sub( format:"l", s:v_bin.Operator ) )
-  if ( l_type.primitive() )
+elif ("/" == T::sub(format:"l", s:v_bin.Operator))
+  if (l_type.primitive())
     binary.operator = "/";
   else
     binary.operator = "divide";
     binary.invocation = true;
   end if;
-elif ( "%" == T::sub( format:"l", s:v_bin.Operator ) )
-  if ( l_type.primitive() )
+elif ("%" == T::sub(format:"l", s:v_bin.Operator))
+  if (l_type.primitive())
     binary.operator = "%";
   else
     binary.operator = "remainder";
     binary.invocation = true;
   end if;
-elif ( "|" == T::sub( format:"l", s:v_bin.Operator ) )
+elif ("|" == T::sub(format:"l", s:v_bin.Operator))
   binary.operator = "union";
   binary.invocation = true;
   binary.cast = l_type.name;
-elif ( "&" == T::sub( format:"l", s:v_bin.Operator ) )
+elif ("&" == T::sub(format:"l", s:v_bin.Operator))
   binary.operator = "intersection";
   binary.invocation = true;
   binary.cast = l_type.name;
-elif ( "^" == T::sub( format:"l", s:v_bin.Operator ) )
+elif ("^" == T::sub(format:"l", s:v_bin.Operator))
   binary.operator = "disunion";
   binary.invocation = true;
   binary.cast = l_type.name;
 end if;
 // translate the left operand
-if ( ::precedenceCheck( val1:l_val, val2:v_val ) <= 0 ) // if the left operand is lower precedence than the current operator, force it to be evaluated first with parentheses
+if (::precedenceCheck(val1:l_val, val2:v_val) <= 0) // if the left operand is lower precedence than the current operator, force it to be evaluated first with parentheses
   // transform the left hand expression
-  ::transformExpression( v_val:l_val, expr_number:expr.expression_number + ".1.1", smt:smt );
-  select any paren_expr related by smt->Expression[R775] where ( selected.expression_number == expr.expression_number + ".1.1" );
+  ::transformExpression(v_val:l_val, expr_number:expr.expression_number + ".1.1", smt:smt);
+  select any paren_expr related by smt->Expression[R775] where (selected.expression_number == expr.expression_number + ".1.1");
   // create the parenthesis
   create object instance l_expr of Expression;
   relate l_expr to smt across R775;
@@ -1528,15 +1559,15 @@ if ( ::precedenceCheck( val1:l_val, val2:v_val ) <= 0 ) // if the left operand i
   relate paren_expr to l_paren across R784;
 else
   // transform the left hand expression
-  ::transformExpression( v_val:l_val, expr_number:expr.expression_number + ".1", smt:smt );
-  select any l_expr related by smt->Expression[R775] where ( selected.expression_number == expr.expression_number + ".1" );
+  ::transformExpression(v_val:l_val, expr_number:expr.expression_number + ".1", smt:smt);
+  select any l_expr related by smt->Expression[R775] where (selected.expression_number == expr.expression_number + ".1");
   relate l_expr to binary across R779;
 end if;
 // translate the right operand
-if ( ::precedenceCheck( val1:r_val, val2:v_val ) <= 0 ) // if the right operand is lower precedence than the current operator, force it to be evaluated first with parentheses
+if (::precedenceCheck(val1:r_val, val2:v_val) <= 0) // if the right operand is lower precedence than the current operator, force it to be evaluated first with parentheses
   // transform the right hand expression
-  ::transformExpression( v_val:r_val, expr_number:expr.expression_number + ".2.1", smt:smt );
-  select any paren_expr related by smt->Expression[R775] where ( selected.expression_number == expr.expression_number + ".2.1" );
+  ::transformExpression(v_val:r_val, expr_number:expr.expression_number + ".2.1", smt:smt);
+  select any paren_expr related by smt->Expression[R775] where (selected.expression_number == expr.expression_number + ".2.1");
   // create the parenthesis
   create object instance r_expr of Expression;
   relate r_expr to smt across R775;
@@ -1549,8 +1580,8 @@ if ( ::precedenceCheck( val1:r_val, val2:v_val ) <= 0 ) // if the right operand 
   relate paren_expr to r_paren across R784;
 else
   // transform the right hand expression
-  ::transformExpression( v_val:r_val, expr_number:expr.expression_number + ".2", smt:smt );
-  select any r_expr related by smt->Expression[R775] where ( selected.expression_number == expr.expression_number + ".2" );
+  ::transformExpression(v_val:r_val, expr_number:expr.expression_number + ".2", smt:smt);
+  select any r_expr related by smt->Expression[R775] where (selected.expression_number == expr.expression_number + ".2");
   relate r_expr to binary across R778;
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",

@@ -874,7 +874,8 @@ if ( empty s_dt )
   // TODO bad
 end if;
 select many s_dims related by o_attr->S_DIM[R120];
-type = TypeReference::getInstance( s_dt:s_dt, s_dims:s_dims );
+type = TypeReference::getInstance(s_dt:s_dt, s_dims:s_dims);
+select one array_type related by type->ArrayTypeReference[R3801];
 relate type to attr across R424;
 
 // set default value for unique id attributes
@@ -919,7 +920,9 @@ select one file related by obj->File[R401];
 ::addStringToImports( file:file, s:"io.ciera.runtime.instanceloading.AttributeChangedDelta", type:ImportType::IMPL );
 ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::BOTH );
 ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.EmptyInstanceException", type:ImportType::IMPL );
-if ( "String" == type.type_name and "" == type.type_package )
+if (not_empty array_type)
+  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.ArrayUtil", type:ImportType::IMPL );
+elif ("String" == type.type_name and "" == type.type_package)
   ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.StringUtil", type:ImportType::IMPL );
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",

@@ -26,10 +26,16 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'select one type related by self->TypeReference[R424]->Type[R3800];
+	'select one type_reference related by self->TypeReference[R424];
+select one type related by type_reference->Type[R3800];
 initializer = self.default_value;
-if ( "" == initializer )
-  initializer = type.default_value;
+if ("" == initializer)
+  select one array_type related by type_reference->ArrayTypeReference[R3801];
+  if (not_empty array_type)
+    initializer = "new " + type_reference.type_reference_name + " {}";
+  else
+    initializer = type.default_value;
+  end if;
 end if;
 T::include(file:"class/t.attributeinitializer.java");',
 	1,
