@@ -25,6 +25,8 @@ ${state_declarations}
 
 ${state_actions}
 
+${txn_actions}
+
     @Override
     public ITransition[][] getStateEventMatrix() {
         return new ITransition[][] {

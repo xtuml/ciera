@@ -3052,7 +3052,6 @@ INSERT INTO S_SYNC
 obj = param.obj;
 
 // TODO support polymorphic events
-// TODO support transition actions
 
 // create the state machine file
 create object instance file of File;
@@ -3128,9 +3127,31 @@ for each state in states
       if ( not_empty event_ignored )
         cell.transition_type = TransitionType::IGNORE;
       else
-        select one dest_state related by sm_seme->SM_NSTXN[R504]->SM_TXN[R507]->SM_STATE[R506]->State[R4758];
-        relate dest_state to cell across R4757;
+        // create transition
+        create object instance txn of Transition;
+        select one sm_txn related by sm_seme->SM_NSTXN[R504]->SM_TXN[R507];
+        select one dest_state related by sm_txn->SM_STATE[R506]->State[R4758];
+        relate dest_state to cell across R4757 using txn;
         cell.transition_type = TransitionType::TRANSITION;
+
+        // create invocable
+        create object instance invocable of InvocableObject;
+        invocable.name = state.name + "_txn_" + dest_state.name;
+        invocable.parent_name = sm.name;
+        invocable.parent_package = sm.package;
+        relate txn to invocable across R427;
+        select one sm_act related by sm_txn->SM_TAH[R530]->SM_AH[R513]->SM_ACT[R514];
+        invocable.oal = sm_act.Action_Semantics_internal;
+        
+        // relate the body
+        select one act_act related by sm_act->ACT_TAB[R688]->ACT_ACT[R698];
+        if ( not_empty act_act )
+          relate act_act to invocable across R432;
+        end if;
+        
+        // link type
+        type = TypeReference::getBuiltinTypeReference( name:"void" );
+        relate type to invocable across R428;
       end if;
     end if;
 
