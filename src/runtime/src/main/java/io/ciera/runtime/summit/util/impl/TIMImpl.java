@@ -1,6 +1,12 @@
 package io.ciera.runtime.summit.util.impl;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.Calendar;
+import java.util.TimeZone;
 
 import io.ciera.runtime.summit.application.IRunContext;
 import io.ciera.runtime.summit.components.IComponent;
@@ -29,7 +35,7 @@ public class TIMImpl<C extends IComponent<C>> extends Utility<C> implements TIM 
     public Date create_date(final int day, final int hour, final int minute, final int month, final int second, final int year) throws XtumlException {
         Calendar cal = Calendar.getInstance();
         cal.set(year, month - 1, day, hour, minute, second);
-        return new Date(cal.getTimeInMillis());
+        return new Date(cal.getTimeInMillis() * 1000L);
     }
 
     @Override
@@ -79,17 +85,31 @@ public class TIMImpl<C extends IComponent<C>> extends Utility<C> implements TIM 
 
     @Override
     public void set_epoch(final int day, final int month, final int year) {
-        // TODO panda
+        Calendar cal = Calendar.getInstance();
+        cal.set(year, month - 1, day);
+        getRunContext().setEpoch(Instant.ofEpochMilli(cal.getTimeInMillis()));
     }
 
     @Override
     public long set_time(final int year, final int month, final int day, final int hour, final int minute, final int second, final int microsecond) {
-        return 0L;  // TODO panda
+        IRunContext executor = getRunContext();
+        Calendar cal = Calendar.getInstance();
+        cal.set(year, month - 1, day, hour, minute, second);
+        long unixMicros = (cal.getTimeInMillis() * 1000L) + microsecond;
+        long systemMicros = unixMicros - Instant.EPOCH.until(executor.getEpoch(), ChronoUnit.MICROS);
+        executor.setTime(systemMicros);
+        return executor.time();
     }
 
     @Override
     public long time_of_day(final long timeval) {
-        return 0L;  // TODO panda
+        IRunContext executor = getRunContext();
+        long unixMicros = executor.time() - executor.getEpoch().until(Instant.EPOCH, ChronoUnit.MICROS);
+        Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        return unixMicros - (cal.getTimeInMillis() * 1000L);
     }
 
     @Override
@@ -148,11 +168,15 @@ public class TIMImpl<C extends IComponent<C>> extends Utility<C> implements TIM 
     }
 
     public String timestamp_format(final long ts, final String format) {
-        return "";  // TODO panda
+        IRunContext executor = getRunContext();
+        long unixNanos = (executor.time() - executor.getEpoch().until(Instant.EPOCH, ChronoUnit.MICROS)) * 1000L;
+        return LocalDateTime.ofEpochSecond(unixNanos / 1000000000L, (int)(unixNanos % 1000000000L), ZoneOffset.UTC).format(DateTimeFormatter.ofPattern(format));
     }
 
     public String timestamp_to_string(final long timestamp) {
-        return ""; // TODO panda
+        IRunContext executor = getRunContext();
+        long unixNanos = (executor.time() - executor.getEpoch().until(Instant.EPOCH, ChronoUnit.MICROS)) * 1000L;
+        return Instant.ofEpochSecond(unixNanos / 1000000000L, unixNanos % 1000000000L).toString();
     }
 
 }

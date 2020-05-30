@@ -51,6 +51,8 @@ public interface IRunContext {
 
     public void setEpoch(Instant newEpoch);
 
+    public Instant getEpoch();
+
     public void enableSimulatedTime(boolean enable);
     
     public void addChange(IModelDelta delta);

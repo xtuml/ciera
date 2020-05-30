@@ -219,7 +219,13 @@ public class ApplicationExecutor implements Runnable, IRunContext {
 
     @Override
     public void setEpoch(Instant newEpoch) {
+        systemTime -= epoch.until(newEpoch, ChronoUnit.MICROS);  // adjust system time as the epoch changes
         epoch = newEpoch;
+    }
+
+    @Override
+    public Instant getEpoch() {
+        return epoch;
     }
 
     @Override
