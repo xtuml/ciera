@@ -1,11 +1,13 @@
 package io.ciera.runtime.summit.types;
 
+import java.time.Duration;
 import java.util.Calendar;
 
 import io.ciera.runtime.summit.application.IRunContext;
 
-public class Date extends TimeStamp {
+public class Date implements IXtumlType, Comparable<Date> {
 
+    private long timestamp;  // microseconds
     private Calendar cal;
 
     public Date() {
@@ -13,9 +15,9 @@ public class Date extends TimeStamp {
     }
 
     public Date(long timestamp) {
-        super(timestamp);
+        this.timestamp = timestamp;
         cal = Calendar.getInstance();
-        cal.setTimeInMillis(timestamp);
+        cal.setTimeInMillis(timestamp / 1000L);
     }
 
     public int getYear() {
@@ -43,7 +45,43 @@ public class Date extends TimeStamp {
     }
 
     public static Date now(IRunContext runContext) {
-        return new Date(runContext.time() / 1000L);
+        return new Date(runContext.time());
+    }
+
+    @Override
+    public int compareTo(Date o) {
+        return timestamp == o.timestamp ? 0 : timestamp < o.timestamp ? -1 : 1;
+    }
+
+    public boolean lessThan(Date o) {
+        return compareTo(o) < 0;
+    }
+
+    public boolean lessThanOrEqual(Date o) {
+        return compareTo(o) <= 0;
+    }
+
+    public boolean greaterThan(Date o) {
+        return compareTo(o) > 0;
+    }
+
+    public boolean greaterThanOrEqual(Date o) {
+        return compareTo(o) >= 0;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return o instanceof Date && timestamp == ((Date) o).timestamp;
+    }
+
+    @Override
+    public int hashCode() {
+        return Long.hashCode(timestamp);
+    }
+
+    @Override
+    public String toString() {
+        return Duration.ofMillis(timestamp).toString();
     }
 
 }

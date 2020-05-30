@@ -2,12 +2,13 @@ package io.ciera.runtime.summit.util.impl;
 
 import java.util.Calendar;
 
+import io.ciera.runtime.summit.application.IRunContext;
 import io.ciera.runtime.summit.components.IComponent;
+import io.ciera.runtime.summit.exceptions.XtumlException;
 import io.ciera.runtime.summit.statemachine.EventHandle;
 import io.ciera.runtime.summit.time.Timer;
 import io.ciera.runtime.summit.time.TimerHandle;
 import io.ciera.runtime.summit.types.Date;
-import io.ciera.runtime.summit.types.TimeStamp;
 import io.ciera.runtime.summit.util.TIM;
 import io.ciera.runtime.summit.util.Utility;
 
@@ -18,13 +19,32 @@ public class TIMImpl<C extends IComponent<C>> extends Utility<C> implements TIM 
     }
 
     @Override
-    public TimeStamp current_clock() {
-        return TimeStamp.now(getRunContext());
+    public long advance_time(final int microseconds) throws XtumlException {
+        IRunContext executor = getRunContext();
+        executor.setTime(executor.time() + microseconds);
+        return executor.time();
     }
 
     @Override
-    public Date current_date() {
+    public Date create_date(final int day, final int hour, final int minute, final int month, final int second, final int year) throws XtumlException {
+        Calendar cal = Calendar.getInstance();
+        cal.set(year, month - 1, day, hour, minute, second);
+        return new Date(cal.getTimeInMillis());
+    }
+
+    @Override
+    public long current_clock() throws XtumlException {
+        return getRunContext().time();
+    }
+
+    @Override
+    public Date current_date() throws XtumlException {
         return Date.now(getRunContext());
+    }
+
+    @Override
+    public int current_seconds() throws XtumlException {
+        return (int)(current_clock() / 1000000L);
     }
 
     @Override
@@ -58,10 +78,18 @@ public class TIMImpl<C extends IComponent<C>> extends Utility<C> implements TIM 
     }
 
     @Override
-    public Date create_date(final int day, final int hour, final int minute, final int month, final int second, final int year) {
-        Calendar cal = Calendar.getInstance();
-        cal.set(year, month - 1, day, hour, minute, second);
-        return new Date(cal.getTimeInMillis());
+    public void set_epoch(final int day, final int month, final int year) {
+        // TODO panda
+    }
+
+    @Override
+    public long set_time(final int year, final int month, final int day, final int hour, final int minute, final int second, final int microsecond) {
+        return 0L;  // TODO panda
+    }
+
+    @Override
+    public long time_of_day(final long timeval) {
+        return 0L;  // TODO panda
     }
 
     @Override
@@ -117,6 +145,14 @@ public class TIMImpl<C extends IComponent<C>> extends Utility<C> implements TIM 
         Timer timer = new Timer(context().getId(), event_inst, microseconds, true);
         timer.reset(getRunContext().time());
         return getRunContext().addTimer(timer);
+    }
+
+    public String timestamp_format(final long ts, final String format) {
+        return "";  // TODO panda
+    }
+
+    public String timestamp_to_string(final long timestamp) {
+        return ""; // TODO panda
     }
 
 }

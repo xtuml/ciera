@@ -1,11 +1,16 @@
 package io.ciera.runtime.summit.util;
 
+import io.ciera.runtime.summit.exceptions.XtumlException;
 import io.ciera.runtime.summit.statemachine.EventHandle;
 import io.ciera.runtime.summit.time.TimerHandle;
 import io.ciera.runtime.summit.types.Date;
-import io.ciera.runtime.summit.types.TimeStamp;
 
 public interface TIM {
+
+    /**
+     * TODO panda
+     */
+    public long advance_time(final int microseconds) throws XtumlException;
 
     /**
      * Create a new {@link io.ciera.runtime.summit.types.Date Date} object from
@@ -20,21 +25,28 @@ public interface TIM {
      * @return a new {@link io.ciera.runtime.summit.types.Date Date} object from
      * the input parameters
      */
-    public Date create_date(final int year, final int month, final int day, final int hour, final int minute, final int second);
+    public Date create_date(final int year, final int month, final int day, final int hour, final int minute, final int second) throws XtumlException;
 
     /**
-     * Get the current system time.
+     * Get the current system time in microseconds since the epoch.
      *
      * @return the current time
      */
-    public TimeStamp current_clock();
+    public long current_clock() throws XtumlException;
 
     /**
      * Get the current date.
      *
      * @return the current date
      */
-    public Date current_date();
+    public Date current_date() throws XtumlException;
+
+    /**
+     * Get the current time in seconds since the epoch.
+     *
+     * @return the current seconds
+     */
+    public int current_seconds() throws XtumlException;
 
     /**
      * Get the day of the month from a date object.
@@ -83,6 +95,21 @@ public interface TIM {
      * @return the second of the minute for the input date
      */
     public int get_second(final Date date);
+
+    /**
+     * TODO panda
+     */
+    public void set_epoch(final int day, final int month, final int year);
+
+    /**
+     * TODO panda
+     */
+    public long set_time(final int year, final int month, final int day, final int hour, final int minute, final int second, final int microsecond);
+
+    /**
+     * TODO panda
+     */
+    public long time_of_day(final long timeval);
 
     /**
      * Add time to a running timer.
@@ -148,5 +175,15 @@ public interface TIM {
      * @return a handle to the newly created timer
      */
     public TimerHandle timer_start_recurring(final EventHandle event_inst, final int microseconds);
+
+    /**
+     * TODO panda
+     */
+    public String timestamp_format(final long ts, final String format);
+
+    /**
+     * TODO panda
+     */
+    public String timestamp_to_string(final long timestamp);
 
 }

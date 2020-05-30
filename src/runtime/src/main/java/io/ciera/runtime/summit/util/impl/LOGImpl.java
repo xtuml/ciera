@@ -1,7 +1,6 @@
 package io.ciera.runtime.summit.util.impl;
 
 import io.ciera.runtime.summit.components.IComponent;
-import io.ciera.runtime.summit.types.TimeStamp;
 import io.ciera.runtime.summit.util.LOG;
 import io.ciera.runtime.summit.util.Utility;
 
@@ -37,7 +36,8 @@ public class LOGImpl<C extends IComponent<C>> extends Utility<C> implements LOG 
     }
 
     @Override
-    public void LogTime(final String message, final TimeStamp t) {
+    public void LogTime(final String message, final long t) {
+        // TODO panda
         getRunContext().getLog().info("%s %s", message, t);
     }
 

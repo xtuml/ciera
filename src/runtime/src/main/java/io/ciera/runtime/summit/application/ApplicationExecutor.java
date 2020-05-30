@@ -1,5 +1,7 @@
 package io.ciera.runtime.summit.application;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.PriorityQueue;
@@ -36,7 +38,8 @@ public class ApplicationExecutor implements Runnable, IRunContext {
     private Queue<Timer> activeTimers;
     private Map<EventHandle, IEvent> activeEvents;
 
-    private long systemTime;  // current system time in microseconds
+    private Instant epoch;
+    private long systemTime;  // current system time in microseconds since the configured epoch
     private boolean simulatedTime;
     
     private ILogger logger;
@@ -60,7 +63,8 @@ public class ApplicationExecutor implements Runnable, IRunContext {
         activeEvents = new HashMap<>();
         running = false;
         changeLog = null;
-        systemTime = 0;
+        epoch = Instant.EPOCH;
+        systemTime = System.currentTimeMillis();
         simulatedTime = false;
         this.logger = logger;
         this.args = args;
@@ -204,12 +208,18 @@ public class ApplicationExecutor implements Runnable, IRunContext {
     // Get system time in microseconds
     @Override
     public long time() {
-        if (!simulatedTime) systemTime = System.currentTimeMillis() * 1000L;
+        if (!simulatedTime) systemTime = (System.currentTimeMillis() * 1000L) - Instant.EPOCH.until(epoch, ChronoUnit.MICROS);
         return systemTime;
     }
 
-    private void setTime(long time) {
+    @Override
+    public void setTime(long time) {
         systemTime = time;
+    }
+
+    @Override
+    public void setEpoch(Instant newEpoch) {
+        epoch = newEpoch;
     }
 
     @Override

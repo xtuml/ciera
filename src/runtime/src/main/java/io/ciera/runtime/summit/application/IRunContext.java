@@ -1,5 +1,7 @@
 package io.ciera.runtime.summit.application;
 
+import java.time.Instant;
+
 import io.ciera.runtime.instanceloading.IChangeLog;
 import io.ciera.runtime.instanceloading.IModelDelta;
 import io.ciera.runtime.summit.statemachine.EventHandle;
@@ -44,6 +46,10 @@ public interface IRunContext {
     public IEvent getEvent(EventHandle e);
 
     public long time();
+
+    public void setTime(long time);
+
+    public void setEpoch(Instant newEpoch);
 
     public void enableSimulatedTime(boolean enable);
     
