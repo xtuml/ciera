@@ -1,7 +1,10 @@
 package io.ciera.runtime.summit.types;
 
 import java.time.Duration;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Calendar;
+import java.util.TimeZone;
 
 import io.ciera.runtime.summit.application.IRunContext;
 
@@ -17,6 +20,7 @@ public class Date implements IXtumlType, Comparable<Date> {
     public Date(long timestamp) {
         this.timestamp = timestamp;
         cal = Calendar.getInstance();
+        cal.setTimeZone(TimeZone.getTimeZone("UTC"));
         cal.setTimeInMillis(timestamp / 1000L);
     }
 
@@ -45,7 +49,8 @@ public class Date implements IXtumlType, Comparable<Date> {
     }
 
     public static Date now(IRunContext runContext) {
-        return new Date(runContext.time());
+        long unixMicros = runContext.time() - runContext.getEpoch().until(Instant.EPOCH, ChronoUnit.MICROS);
+        return new Date(unixMicros);
     }
 
     @Override

@@ -60,4 +60,18 @@ public class C_UTILImpl<C extends IComponent<C>> extends Utility<C> implements C
         }
     }
 
+    public boolean isLong(final String p_int_string) {
+        try {
+            Integer.parseInt(p_int_string);
+            return false;
+        } catch (NumberFormatException e1) {
+            try {
+                Long.parseLong(p_int_string);
+                return true;
+            } catch (NumberFormatException e2) {
+                return false;
+            }
+        }
+    }
+
 }

@@ -40,6 +40,7 @@ public class ApplicationExecutor implements Runnable, IRunContext {
 
     private Instant epoch;
     private long systemTime;  // current system time in microseconds since the configured epoch
+    private long lastSystemTime;
     private boolean simulatedTime;
     
     private ILogger logger;
@@ -64,7 +65,8 @@ public class ApplicationExecutor implements Runnable, IRunContext {
         running = false;
         changeLog = null;
         epoch = Instant.EPOCH;
-        systemTime = System.currentTimeMillis();
+        lastSystemTime = System.currentTimeMillis();
+        systemTime = lastSystemTime * 1000L;
         simulatedTime = false;
         this.logger = logger;
         this.args = args;
@@ -208,7 +210,11 @@ public class ApplicationExecutor implements Runnable, IRunContext {
     // Get system time in microseconds
     @Override
     public long time() {
-        if (!simulatedTime) systemTime = (System.currentTimeMillis() * 1000L) - Instant.EPOCH.until(epoch, ChronoUnit.MICROS);
+        if (!simulatedTime) {
+            long now = System.currentTimeMillis();
+            systemTime += (now - lastSystemTime) * 1000L;
+            lastSystemTime = now;
+        }
         return systemTime;
     }
 

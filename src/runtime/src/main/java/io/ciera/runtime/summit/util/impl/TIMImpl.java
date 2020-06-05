@@ -25,7 +25,7 @@ public class TIMImpl<C extends IComponent<C>> extends Utility<C> implements TIM 
     }
 
     @Override
-    public long advance_time(final int microseconds) throws XtumlException {
+    public long advance_time(final long microseconds) throws XtumlException {
         IRunContext executor = getRunContext();
         executor.setTime(executor.time() + microseconds);
         return executor.time();
@@ -86,7 +86,9 @@ public class TIMImpl<C extends IComponent<C>> extends Utility<C> implements TIM 
     @Override
     public void set_epoch(final int day, final int month, final int year) {
         Calendar cal = Calendar.getInstance();
-        cal.set(year, month - 1, day);
+        cal.setTimeZone(TimeZone.getTimeZone("UTC"));
+        cal.set(year, month - 1, day, 0, 0, 0);
+        cal.set(Calendar.MILLISECOND, 0);
         getRunContext().setEpoch(Instant.ofEpochMilli(cal.getTimeInMillis()));
     }
 
@@ -94,7 +96,9 @@ public class TIMImpl<C extends IComponent<C>> extends Utility<C> implements TIM 
     public long set_time(final int year, final int month, final int day, final int hour, final int minute, final int second, final int microsecond) {
         IRunContext executor = getRunContext();
         Calendar cal = Calendar.getInstance();
+        cal.setTimeZone(TimeZone.getTimeZone("UTC"));
         cal.set(year, month - 1, day, hour, minute, second);
+        cal.set(Calendar.MILLISECOND, 0);
         long unixMicros = (cal.getTimeInMillis() * 1000L) + microsecond;
         long systemMicros = unixMicros - Instant.EPOCH.until(executor.getEpoch(), ChronoUnit.MICROS);
         executor.setTime(systemMicros);
@@ -167,16 +171,14 @@ public class TIMImpl<C extends IComponent<C>> extends Utility<C> implements TIM 
         return getRunContext().addTimer(timer);
     }
 
-    public String timestamp_format(final long ts, final String format) {
+    public String timestamp_format(final long timestamp, final String format) {
         IRunContext executor = getRunContext();
         long unixNanos = (executor.time() - executor.getEpoch().until(Instant.EPOCH, ChronoUnit.MICROS)) * 1000L;
         return LocalDateTime.ofEpochSecond(unixNanos / 1000000000L, (int)(unixNanos % 1000000000L), ZoneOffset.UTC).format(DateTimeFormatter.ofPattern(format));
     }
 
     public String timestamp_to_string(final long timestamp) {
-        IRunContext executor = getRunContext();
-        long unixNanos = (executor.time() - executor.getEpoch().until(Instant.EPOCH, ChronoUnit.MICROS)) * 1000L;
-        return Instant.ofEpochSecond(unixNanos / 1000000000L, unixNanos % 1000000000L).toString();
+        return Long.toString(timestamp);
     }
 
 }

@@ -10,7 +10,7 @@ public interface TIM {
     /**
      * TODO panda
      */
-    public long advance_time(final int microseconds) throws XtumlException;
+    public long advance_time(final long microseconds) throws XtumlException;
 
     /**
      * Create a new {@link io.ciera.runtime.summit.types.Date Date} object from
@@ -179,7 +179,7 @@ public interface TIM {
     /**
      * TODO panda
      */
-    public String timestamp_format(final long ts, final String format);
+    public String timestamp_format(final long timestamp, final String format);
 
     /**
      * TODO panda
