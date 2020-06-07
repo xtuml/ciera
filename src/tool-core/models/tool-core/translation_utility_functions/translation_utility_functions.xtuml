@@ -1398,6 +1398,8 @@ while not_empty s_dt
     return true;
   elif (s_dt.Name == "real" and parentType.Name == "integer")
     return true;  // special case: real types can be converted to integer with a simple cast
+  elif (s_dt.Name == "timestamp" and parentType.Name == "integer")
+    return true;  // special case: timestamp (long) can be converted to integer with a simple cast
   end if;
   select one s_dt related by s_dt->S_UDT[R17]->S_DT[R18];
 end while;
@@ -1426,6 +1428,49 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("44793d4c-db6c-4bb1-8ee6-2b6bfff4361e",
+	1,
+	"5c0e4147-5dfb-48d3-a70d-1020d78fa1e2",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("5371c110-4c98-4780-9faa-a41d42fbe12b",
+	"00000000-0000-0000-0000-000000000000",
+	'getReturnType',
+	'',
+	'act_act = param.act_act;
+select one s_dt related by act_act->ACT_FNB[R698]->S_SYNC[R695]->S_DT[R25];
+if (empty s_dt)
+  select one s_dt related by act_act->ACT_OPB[R698]->O_TFR[R696]->S_DT[R116];
+  if (empty s_dt)
+    select one s_dt related by act_act->ACT_BRB[R698]->S_BRG[R697]->S_DT[R20];
+    if (empty s_dt)
+      select one s_dt related by act_act->ACT_DAB[R698]->O_DBATTR[R693]->O_BATTR[R107]->O_ATTR[R106]->S_DT[R114];
+    end if;
+  end if;
+end if;
+return s_dt;',
+	"4a90cd45-ece0-4e72-afe7-44996f9d7e1e",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("5ca2f4d2-777d-4c7e-9161-d168b4dd56d8",
+	"5371c110-4c98-4780-9faa-a41d42fbe12b",
+	'act_act',
+	"2916519f-66f5-47c2-9e5d-9beb4c945efc",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("2916519f-66f5-47c2-9e5d-9beb4c945efc",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Body>',
+	'',
+	'',
+	'../../../../mcooa/models/mcooa/ooaofooa/Body/Body.xtuml');
+INSERT INTO PE_PE
+	VALUES ("5371c110-4c98-4780-9faa-a41d42fbe12b",
 	1,
 	"5c0e4147-5dfb-48d3-a70d-1020d78fa1e2",
 	"00000000-0000-0000-0000-000000000000",

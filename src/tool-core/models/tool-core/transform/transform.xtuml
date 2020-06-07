@@ -874,7 +874,8 @@ if ( empty s_dt )
   // TODO bad
 end if;
 select many s_dims related by o_attr->S_DIM[R120];
-type = TypeReference::getInstance( s_dt:s_dt, s_dims:s_dims );
+type = TypeReference::getInstance(s_dt:s_dt, s_dims:s_dims);
+select one array_type related by type->ArrayTypeReference[R3801];
 relate type to attr across R424;
 
 // set default value for unique id attributes
@@ -919,7 +920,9 @@ select one file related by obj->File[R401];
 ::addStringToImports( file:file, s:"io.ciera.runtime.instanceloading.AttributeChangedDelta", type:ImportType::IMPL );
 ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::BOTH );
 ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.EmptyInstanceException", type:ImportType::IMPL );
-if ( "String" == type.type_name and "" == type.type_package )
+if (not_empty array_type)
+  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.ArrayUtil", type:ImportType::IMPL );
+elif ("String" == type.type_name and "" == type.type_package)
   ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.StringUtil", type:ImportType::IMPL );
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
@@ -1068,9 +1071,9 @@ for each s_dt in s_dts
       type_package = "";
       type_default_value = STRING::quote() + STRING::quote();
     elif ( "timestamp" == s_dt.Name )
-      type_name = "TimeStamp";
-      type_package = "io.ciera.runtime.summit.types";
-      type_default_value = "new TimeStamp()";
+      type_name = "long";
+      type_primitive = true;
+      type_default_value = "0L";
     elif ( "unique_id" == s_dt.Name )
       type_name = "UniqueId";
       type_package = "io.ciera.runtime.summit.types";
@@ -3049,7 +3052,6 @@ INSERT INTO S_SYNC
 obj = param.obj;
 
 // TODO support polymorphic events
-// TODO support transition actions
 
 // create the state machine file
 create object instance file of File;
@@ -3125,9 +3127,31 @@ for each state in states
       if ( not_empty event_ignored )
         cell.transition_type = TransitionType::IGNORE;
       else
-        select one dest_state related by sm_seme->SM_NSTXN[R504]->SM_TXN[R507]->SM_STATE[R506]->State[R4758];
-        relate dest_state to cell across R4757;
+        // create transition
+        create object instance txn of Transition;
+        select one sm_txn related by sm_seme->SM_NSTXN[R504]->SM_TXN[R507];
+        select one dest_state related by sm_txn->SM_STATE[R506]->State[R4758];
+        relate dest_state to cell across R4757 using txn;
         cell.transition_type = TransitionType::TRANSITION;
+
+        // create invocable
+        create object instance invocable of InvocableObject;
+        invocable.name = state.name + "_txn_" + dest_state.name;
+        invocable.parent_name = sm.name;
+        invocable.parent_package = sm.package;
+        relate txn to invocable across R427;
+        select one sm_act related by sm_txn->SM_TAH[R530]->SM_AH[R513]->SM_ACT[R514];
+        invocable.oal = sm_act.Action_Semantics_internal;
+        
+        // relate the body
+        select one act_act related by sm_act->ACT_TAB[R688]->ACT_ACT[R698];
+        if ( not_empty act_act )
+          relate act_act to invocable across R432;
+        end if;
+        
+        // link type
+        type = TypeReference::getBuiltinTypeReference( name:"void" );
+        relate type to invocable across R428;
       end if;
     end if;
 

@@ -17,9 +17,14 @@ located in a directory called `git` in your home directory.
 
 #### pypy
 
-The Ciera build uses the `pypy` Python interpreter for its prebuilds. `pypy` is
-significantly faster than standard CPython and saves a lot of time in builds.
-`pypy` installation is optional.
+The Ciera build can use the `pypy` Python interpreter for its prebuilds. `pypy`
+is significantly faster than standard CPython and saves a lot of time in
+builds. `pypy` installation is optional.
+
+Consider using [pyenv](https://github.com/pyenv/pyenv) to install an manage
+`pypy`.
+
+Alternatively, you can install `pypy` using the following:
 
 To install on Linux:
 ```
@@ -32,12 +37,14 @@ To install on Mac:
 brew install pypy
 ```
 
-If you choose to use CPython, you must remove the line:
+If you choose to use install `pypy` this way, you must add the line:
 ```
 <pythonExecutable>pypy</pythonExecutable>
 ```
 
-from `src/tool-core/pom.xml`, `src/tool-sql/pom.xml`, and `src/tool-template/pom.xml`
+to `src/tool-core/pom.xml`, `src/tool-sql/pom.xml`, and
+`src/tool-template/pom.xml` in the coniguration secion of the
+`pyxtuml-pre-build` goal.
 
 #### pyxtuml
 

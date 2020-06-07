@@ -1,7 +1,5 @@
 package io.ciera.runtime.summit.util;
 
-import io.ciera.runtime.summit.types.TimeStamp;
-
 /**
  * Standard logging interface.
  */
@@ -49,6 +47,6 @@ public interface LOG {
      * @param message the text to log
      * @param t the timestamp to log
      */
-    public void LogTime(final String message, final TimeStamp t);
+    public void LogTime(final String message, final long t);
 
 }
