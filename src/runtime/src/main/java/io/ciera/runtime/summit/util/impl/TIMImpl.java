@@ -25,31 +25,31 @@ public class TIMImpl<C extends IComponent<C>> extends Utility<C> implements TIM 
     }
 
     @Override
-    public long advance_time(final long microseconds) throws XtumlException {
+    public long advance_time(final long microseconds) {
         IRunContext executor = getRunContext();
         executor.setTime(executor.time() + microseconds);
         return executor.time();
     }
 
     @Override
-    public Date create_date(final int day, final int hour, final int minute, final int month, final int second, final int year) throws XtumlException {
+    public Date create_date(final int day, final int hour, final int minute, final int month, final int second, final int year) {
         Calendar cal = Calendar.getInstance();
         cal.set(year, month - 1, day, hour, minute, second);
         return new Date(cal.getTimeInMillis() * 1000L);
     }
 
     @Override
-    public long current_clock() throws XtumlException {
+    public long current_clock() {
         return getRunContext().time();
     }
 
     @Override
-    public Date current_date() throws XtumlException {
+    public Date current_date() {
         return Date.now(getRunContext());
     }
 
     @Override
-    public int current_seconds() throws XtumlException {
+    public int current_seconds() {
         return (int)(current_clock() / 1000000L);
     }
 
