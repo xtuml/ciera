@@ -5,12 +5,20 @@ import io.ciera.runtime.summit.statemachine.EventHandle;
 import io.ciera.runtime.summit.time.TimerHandle;
 import io.ciera.runtime.summit.types.Date;
 
+/**
+ * Time manipulaiton utilities and utilites for setting and modifiying timers.
+ */
 public interface TIM {
 
     /**
-     * TODO panda
+     * Advance the system clock by the specified number of microseconds. All
+     * timers that have expiration times earlier than the resulting time will
+     * immediately be fired.
+     *
+     * @param microseconds number of microseconds to advance the clock
+     * @return the system clock time after it has been advanced
      */
-    public long advance_time(final long microseconds) throws XtumlException;
+    public long advance_time(final long microseconds);
 
     /**
      * Create a new {@link io.ciera.runtime.summit.types.Date Date} object from
@@ -25,28 +33,28 @@ public interface TIM {
      * @return a new {@link io.ciera.runtime.summit.types.Date Date} object from
      * the input parameters
      */
-    public Date create_date(final int year, final int month, final int day, final int hour, final int minute, final int second) throws XtumlException;
+    public Date create_date(final int year, final int month, final int day, final int hour, final int minute, final int second);
 
     /**
      * Get the current system time in microseconds since the epoch.
      *
      * @return the current time
      */
-    public long current_clock() throws XtumlException;
+    public long current_clock();
 
     /**
      * Get the current date.
      *
      * @return the current date
      */
-    public Date current_date() throws XtumlException;
+    public Date current_date();
 
     /**
      * Get the current time in seconds since the epoch.
      *
      * @return the current seconds
      */
-    public int current_seconds() throws XtumlException;
+    public int current_seconds();
 
     /**
      * Get the day of the month from a date object.
@@ -97,17 +105,41 @@ public interface TIM {
     public int get_second(final Date date);
 
     /**
-     * TODO panda
+     * Set the instant in time from which the system clock counts. If {@code
+     * set_epoch} is not called, the system clock will initialize at the
+     * current number of microseconds from the January 1, 1970 00:00:00 UTC and
+     * count up. Setting the epoch will change this reference instant to {@code
+     * month}, {@code day}, {@code year} 00:00:00 UTC.
+     *
+     * Note: this call may result in unexpected timer behavior as the
+     * expiration times will shift by the difference in epoch.
+     *
+     * @param day the day of the month of the new epoch
+     * @param month the month of the year of the new epoch
+     * @param year the year of the new epoch
      */
     public void set_epoch(final int day, final int month, final int year);
 
     /**
-     * TODO panda
+     * Set the system clock time. All timers that have expiration times earlier
+     * than the resulting time will immediately be fired.
+     *
+     * @param year the new system time year
+     * @param month the new system time month of the year
+     * @param day the new system time day of the month
+     * @param hour the new system time hour of the day
+     * @param minute the new system time minute of the hour
+     * @param second the new system time second of the minute
+     * @param microsecond the new system time microsecond of the second
+     * @return the new system time in microseconds since the current epoch
      */
     public long set_time(final int year, final int month, final int day, final int hour, final int minute, final int second, final int microsecond);
 
     /**
-     * TODO panda
+     * Get the number of microseconds since the beginning of the current day.
+     *
+     * @param timeval timestamp value
+     * @return the number of microseconds since 00:00:00 UTC of the current day
      */
     public long time_of_day(final long timeval);
 
@@ -177,12 +209,21 @@ public interface TIM {
     public TimerHandle timer_start_recurring(final EventHandle event_inst, final int microseconds);
 
     /**
-     * TODO panda
+     * Format a timestamp according to a format string. This implementation
+     * follows the format documented in {@link java.time.format.DateTimeFormatter}.
+     *
+     * @param timestamp the timestamp to format
+     * @param format the format string
+     * @return a formatted string representing the timestamp
      */
     public String timestamp_format(final long timestamp, final String format);
 
     /**
-     * TODO panda
+     * Format a timestamp as a string representing the number of microseconds
+     * since the current epoch.
+     *
+     * @param timestamp the timestamp to format
+     * @return the string representation of microseconds
      */
     public String timestamp_to_string(final long timestamp);
 
