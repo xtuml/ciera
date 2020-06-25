@@ -48,6 +48,21 @@ end if;
 select any entry_action related by end_state->InvocableObject[R427]->CodeBlock[R4000];
 has_entry_action = not_empty entry_action;
 
+// check same data rule
+// do not pass event data to state entry actions if same data rule is violated
+state_parameter_list = parameter_list;
+same_data_ok = true;
+select many evt_invocables related by end_state->TransitionTableCell[R4757]->Event[R4756]->InvocableObject[R427];
+for each evt_invocable in evt_invocables
+  if (evt_invocable.get_signature() != invocable.get_signature())
+    same_data_ok = false;
+    break;
+  end if;
+end for;
+if (not same_data_ok)
+  state_parameter_list = "";
+end if;
+
 T::include(file:"statemachine/t.transitiontablecell.java");',
 	1,
 	'',
