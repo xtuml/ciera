@@ -3,7 +3,7 @@ package ooaofooa.datatypes;
 import io.ciera.runtime.summit.exceptions.XtumlException;
 import io.ciera.runtime.summit.types.IXtumlType;
 
-public class Long extends Object implements IXtumlType<Long> {
+public class Long extends Object implements IXtumlType {
 
     private long value;
 
@@ -13,11 +13,6 @@ public class Long extends Object implements IXtumlType<Long> {
 
     public Long(long value) {
         this.value = value;
-    }
-
-    @Override
-    public Long value() {
-        return this;
     }
 
     public long getValue() {
