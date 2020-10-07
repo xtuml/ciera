@@ -58,7 +58,6 @@ public class PyxtumlPreBuildMojo extends AbstractPreBuildMojo {
 
     public void execute() throws MojoExecutionException, MojoFailureException {
         String loggingArgument = loggingLevelToVerbosityParam();
-        getLog().info("loggingLevel set to: " + loggingLevel + " logginArgument set to: " + loggingArgument);
         List<String> resources = new ArrayList<>();
         if (includeDependencyModels) {
             resources.addAll(getDependencyModels());
