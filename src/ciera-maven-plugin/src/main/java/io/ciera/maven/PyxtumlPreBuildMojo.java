@@ -118,7 +118,7 @@ public class PyxtumlPreBuildMojo extends AbstractPreBuildMojo {
     }
 
     private String loggingLevelToVerbosityParam() {
-        switch (loggingLevel) {
+        switch (loggingLevel == null ? "" : loggingLevel) {
             case "WARN":
                 return "-v";
             case "INFO":
