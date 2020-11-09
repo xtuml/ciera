@@ -1,9 +1,11 @@
 package ooaofooa.datatypes;
 
+import io.ciera.runtime.summit.exceptions.XtumlException;
 import io.ciera.runtime.summit.types.IXtumlType;
 import io.ciera.runtime.summit.types.InstRefMapping;
+import io.ciera.runtime.summit.types.UDT;
 
-public class ReentrantLock extends InstRefMapping<ReentrantLock> implements IXtumlType<ReentrantLock> {
+public class ReentrantLock extends InstRefMapping implements IXtumlType {
 
     private Object obj;
 
@@ -15,17 +17,17 @@ public class ReentrantLock extends InstRefMapping<ReentrantLock> implements IXtu
         obj = o;
     }
 
-    @Override
-    public ReentrantLock value() {
-        return this;
-    }
-
     public Object getObj() {
         return obj;
     }
 
     public static ReentrantLock deserialize(Object o) {
     	return new ReentrantLock(o);
+    }
+
+    @SuppressWarnings("unchecked")
+    public ReentrantLock promote(Object o) throws XtumlException {
+        return new ReentrantLock(cast(o));
     }
 
 }

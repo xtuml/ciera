@@ -1,9 +1,11 @@
 package ooaofooa.datatypes;
 
+import io.ciera.runtime.summit.exceptions.XtumlException;
 import io.ciera.runtime.summit.types.IXtumlType;
 import io.ciera.runtime.summit.types.InstRefMapping;
+import io.ciera.runtime.summit.types.UDT;
 
-public class Instance extends InstRefMapping<Instance> implements IXtumlType<Instance> {
+public class Instance extends InstRefMapping implements IXtumlType {
 
     private Object obj;
 
@@ -14,12 +16,7 @@ public class Instance extends InstRefMapping<Instance> implements IXtumlType<Ins
     public Instance(Object o) {
         obj = o;
     }
-
-    @Override
-    public Instance value() {
-        return this;
-    }
-
+    
     public Object getObj() {
         return obj;
     }
@@ -33,6 +30,11 @@ public class Instance extends InstRefMapping<Instance> implements IXtumlType<Ins
 
     public static Instance deserialize(Object o) {
     	return new Instance(o);
+    }
+
+    @SuppressWarnings("unchecked")
+    public Instance promote(Object o) throws XtumlException {
+        return new Instance(cast(o));
     }
 
 }
