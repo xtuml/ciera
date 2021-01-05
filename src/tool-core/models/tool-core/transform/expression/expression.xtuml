@@ -1066,6 +1066,9 @@ if ( not_empty invocable )
       create object instance sel of SelectedExpr;
       sel.cast = op_cls.name;
       relate sel to expr2 across R776;
+      // add import
+      select one sel_type related by op_cls->Type[R407];
+      ::addTypeToImports(file: ::getFileForStatement(smt:smt), type_to_import:sel_type, type:ImportType::IMPL);
     end if;
   else // class based operation
     // create named reference expression
@@ -1169,7 +1172,12 @@ if empty sel_cls
     select one sel_cls related by select_expr->SelectFromInstances[R789]->InstancePopulationSelector[R799]->Class[R449];
   end if;
 end if;
-sel.cast = sel_cls.name;',
+sel.cast = sel_cls.name;
+
+// add import
+select one sel_type related by sel_cls->Type[R407];
+file = ::getFileForStatement(smt:smt);
+::addTypeToImports(file:file, type_to_import:sel_type, type: ImportType::IMPL);',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
