@@ -18,7 +18,8 @@ INSERT INTO O_TFR
 event_ignored = self.transition_type == TransitionType::IGNORE;
 
 parameter_list = "";
-select one invocable related by self->Event[R4756]->InvocableObject[R427];
+select one evt related by self->Event[R4756];
+select one invocable related by evt->InvocableObject[R427];
 select any parm from instances of FormalParameter where false;
 select any prev_parm related by invocable->FormalParameter[R429];
 while ( not_empty prev_parm )
@@ -38,6 +39,7 @@ end while;
 select one end_state related by self->State[R4757];
 select any txn_action related by self->Transition[R4757]->InvocableObject[R427]->CodeBlock[R4000];
 has_txn_action = not_empty txn_action;
+evt_name = evt.name;
 end_state_name = "";
 if (not_empty end_state)
   end_state_name = end_state.name;
@@ -45,6 +47,21 @@ end if;
 
 select any entry_action related by end_state->InvocableObject[R427]->CodeBlock[R4000];
 has_entry_action = not_empty entry_action;
+
+// check same data rule
+// do not pass event data to state entry actions if same data rule is violated
+state_parameter_list = parameter_list;
+same_data_ok = true;
+select many evt_invocables related by end_state->TransitionTableCell[R4757]->Event[R4756]->InvocableObject[R427];
+for each evt_invocable in evt_invocables
+  if (evt_invocable.get_signature() != invocable.get_signature())
+    same_data_ok = false;
+    break;
+  end if;
+end for;
+if (not same_data_ok)
+  state_parameter_list = "";
+end if;
 
 T::include(file:"statemachine/t.transitiontablecell.java");',
 	1,

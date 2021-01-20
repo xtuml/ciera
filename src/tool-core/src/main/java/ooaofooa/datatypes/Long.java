@@ -1,27 +1,24 @@
 package ooaofooa.datatypes;
 
+
 import io.ciera.runtime.summit.exceptions.XtumlException;
 import io.ciera.runtime.summit.types.IXtumlType;
+import io.ciera.runtime.summit.types.IntegerUDT;
 
-public class Long extends Object implements IXtumlType<Long> {
 
-    private long value;
+public class Long extends IntegerUDT implements IXtumlType {
 
     public Long() {
-        value = 0l;
+        super();
     }
 
-    public Long(long value) {
-        this.value = value;
+    public Long(Object value) throws XtumlException {
+        super(value);
     }
 
-    @Override
-    public Long value() {
-        return this;
-    }
-
-    public long getValue() {
-        return value;
+    @SuppressWarnings("unchecked")
+    public Long promote(Object o) throws XtumlException {
+        return new Long(cast(o));
     }
 
     public static Long deserialize(Object o) throws XtumlException {

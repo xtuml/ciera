@@ -94,6 +94,12 @@ bash create-workspace.sh <workspace_location>
 
 If no `<workspace_location>` is provided, a temporary directory shall be created.
 
+### Updating projects to use the latest Ciera version
+
+```
+mvn versions:use-latest-versions
+```
+
 ### Creating a release
 
 1. Set release version

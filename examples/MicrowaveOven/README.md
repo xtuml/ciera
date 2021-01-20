@@ -35,6 +35,6 @@ bash run.sh
 1. Launch a recent version of BridgePoint (download nightly build
    [here](https://s3.amazonaws.com/xtuml-releases/nightly-build/buildfiles.html))
 2. Import the `runtime` project from the
-   `$HOME/.m2/repository/io/ciera/runtime/2.1.0/runtime-2.1.0.jar` file.
+   `$HOME/.m2/repository/io/ciera/runtime/2.4.0/runtime-2.4.0.jar` file.
 3. Import the `MicrowaveOven` from this folder (diasable "Search for nested
    projects")
