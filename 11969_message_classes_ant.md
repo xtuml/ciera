@@ -30,7 +30,7 @@ Each data member is of type 'String' to support JSON serialization.
 
 ### 4. Requirements
 
-1. Provision of a mark to identify an interfaces for which a Java message class corresponding to each signal be generated.
+1. Provision of a mark to identify an interface for which a Java message class corresponding to each signal shall be generated.
 2. For each marked interface, a set of separate files, one for each signal, shall be generated in a suitable package.
 3. Each generated class shall be given a 'messageName' data member of type String.
 4. Each message parameter shall be represented by a corresponding data member of type String with a lower case initial letter.
