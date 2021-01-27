@@ -30,17 +30,17 @@ Each data member is of type 'String' to support JSON serialization.
 
 ### 4. Requirements
 
-4.1 Provision of a mark to identify an interfaces for which a Java message class corresponding to each signal be generated.
-4.2 For each marked interface, a set of separate files, one for each signal, shall be generated in a suitable package.
-4.2 Each generated class shall be given a 'messageName' data member of type String.
-4.4 Each message parameter shall be represented by a corresponding data member of type String with a lower case initial letter.
+4.1. Provision of a mark to identify an interfaces for which a Java message class corresponding to each signal be generated.
+4.2. For each marked interface, a set of separate files, one for each signal, shall be generated in a suitable package.
+4.2. Each generated class shall be given a 'messageName' data member of type String.
+4.4. Each message parameter shall be represented by a corresponding data member of type String with a lower case initial letter.
 
 ### 5. Analysis
 
 It must be possible for an Interface message to be associated with an output file; a change to tool-core::architecture::file. 
 Marking should determine which interface messages are associated with an appropriately named file.
 Message rendering will require templates to guide message class generation.
-Message rendering should generate a messageName attribute, derived from each parameter name, with a lowewr case initial name.
+Message rendering should generate a messageName attribute, derived from each parameter name, with a lower case initial name.
 
 ### Testing
 
