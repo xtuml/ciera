@@ -37,14 +37,14 @@ Each data member is of type 'String' to support JSON serialization.
 
 ### 5. Analysis
 
-It must be possible for an Interface message to be associated with an output file; a change to tool-core::architecture::file. 
-Marking should determine which interface messages are associated with an appropriately named file.
-Message rendering will require templates to guide message class generation.
-Message rendering should generate a messageName attribute, derived from each parameter name, with a lower case initial name.
+1. It must be possible for an Interface message to be associated with an output file; a change to tool-core::architecture::file. 
+2. Marking should determine which interface messages are associated with an appropriately named file.
+3. Message rendering will require templates to guide message class generation.
+4. Message rendering should generate a messageName attribute, derived from each parameter name, with a lower case initial name.
 
 ### Testing
 
 It should be simple to replace the hand-coded message classes in the existing applications and validate behavior.
 
 
-
+### End
