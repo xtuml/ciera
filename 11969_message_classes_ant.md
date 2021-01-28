@@ -20,27 +20,25 @@ These classes are needed to support Web-based messaging such as clent-server com
 ### 3. Background
 
 Two applications, CarPark and PilotPayroll, have been developed using Spring framework support for client-server.
-This required some measure of hand-written code. One of the more tedious tasks was the creation of a Java class for each 
-message. This is especially tedious because, out of some misconception of what is Object Orientation, Spring requires 
-that each data member have separate 'get; and 'set' methods and a constructor that takes no arguments.
-Clearly, a marking could be developed which would selectively generate message classes for a marked interface.
-The class data member names are derived from message parameter names with care to make the first letter lower case.
-Each data member is of type 'String' to support JSON serialization.
-
+This required some measure of hand-written code. One of the more tedious tasks was the creation of a Java class to convey each 
+interface message. This is especially tedious because Spring requires that each data member have separate 'get' and 'set' methods 
+and a constructor that takes no arguments.
+Clearly, a capability could be developed which would selectively generate message classes for selected port messages.
 
 ### 4. Requirements
 
-1. Provision of a mark to identify an interface for which a Java message class corresponding to each signal shall be generated.
-2. For each marked interface, a set of separate files, one for each signal, shall be generated in a suitable package.
+1. Provision of a means to identify those messages for which a Java message class be generated.
+2. For each suych message, a separate file shall be generated in a suitable package.
 3. Each generated class shall be given a 'messageName' data member of type String.
-4. Each message parameter shall be represented by a corresponding data member of type String with a lower case initial letter.
+4. Each message parameter shall be represented by a corresponding data member of type String.
+5. Each message data member shall be 'camelCase' formatted with a lower case initial letter.
 
 ### 5. Analysis
 
 1. It must be possible for an Interface message to be associated with an output file; a change to tool-core::architecture::file. 
-2. Marking should determine which interface messages are associated with an appropriately named file.
+2. Marking may be used to determine which interface messages are associated with an appropriately named file.
 3. Message rendering will require templates to guide message class generation.
-4. Message rendering should generate a messageName attribute, derived from each parameter name, with a lower case initial name.
+4. Message rendering should generate an appropriately formatted messageName attribute, derived from each parameter name.
 
 ### Testing
 
