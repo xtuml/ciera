@@ -28,17 +28,19 @@ Clearly, a capability could be developed which would selectively generate messag
 ### 4. Requirements
 
 1. Provision of a means to identify those messages for which a Java message class be generated.
-2. For each suych message, a separate file shall be generated in a suitable package.
+2. For each such message, a separate file shall be generated in a suitable package.
 3. Each generated class shall be given a 'messageName' data member of type String.
 4. Each message parameter shall be represented by a corresponding data member of type String.
-5. Each message data member shall be 'camelCase' formatted with a lower case initial letter.
+5. Each message data member name shall be 'camelCase' formatted with a lower case initial letter.
 
 ### 5. Analysis
 
 1. It must be possible for an Interface message to be associated with an output file; a change to tool-core::architecture::file. 
 2. Marking may be used to determine which interface messages are associated with an appropriately named file.
-3. Message rendering will require templates to guide message class generation.
-4. Message rendering should generate an appropriately formatted messageName attribute, derived from each parameter name.
+3. An appropriate destination package may be derived from the corresponding port package information.
+4. Message rendering will require templates to guide message class generation.
+5. Message rendering should generate an appropriately formatted messageName attribute, derived from each parameter name.
+
 
 ### Testing
 
