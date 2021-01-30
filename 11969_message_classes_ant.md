@@ -36,6 +36,7 @@ Clearly, a capability could be developed which would selectively generate messag
 ### 5. Analysis
 
 1. It must be possible for an Interface message to be associated with an output file; a change to tool-core::architecture::file. 
+    ( edit: if the classes are generated in the same package as the Port, the same package and path can be used; no change required. )
 2. Marking may be used to determine which interface messages are associated with an appropriately named file.
 3. An appropriate destination package may be derived from the corresponding port package information.
 4. Message rendering will require templates to guide message class generation.
