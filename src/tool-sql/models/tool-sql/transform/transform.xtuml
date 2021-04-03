@@ -568,6 +568,7 @@ end if;
 // create attribute loaders and serializers
 select any attribute related by obj->Attribute[R410] where (index-index_diff == selected.order);
 while ( not_empty attribute ) 
+  LOG::LogInfo( message:" am++ attr serializer: " + attribute.name + " type: " + attribute.type_name );
   // check if the attribute is persistent
   select one o_attr related by attribute->O_ATTR[R414];
   select one o_obj related by o_attr->O_OBJ[R102];
@@ -588,6 +589,11 @@ while ( not_empty attribute )
   index = index + 1;
   select any attribute related by obj->Attribute[R410] where (index-index_diff == selected.order);
 end while;
+
+select many selectors related by obj->InstanceSelector[R442.''selects instances through''];
+for each selector in selectors
+  LOG::LogInfo( message:" am++ instance selector name: " + selector.name );
+end for;
 
 // create a loader and serializer for current_state
 select one sm related by obj->StateMachine[R4750];
