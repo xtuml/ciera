@@ -577,7 +577,6 @@ while ( not_empty attribute )
                                                                 selected.path == marking_path and
                                                                 selected.feature_name == "NonPersistent" );
   if ( empty non_persistent_mark and not_empty inst_serializer )
-    LOG::LogInfo( message:" am++ invoking transformAttributeSerializer: " + attribute.name + " type: " + attribute.type_name );
     ::transformAttributeSerializer( attr:attribute, inst_serializer:inst_serializer, prev_attr_serializer:prev_attr_serializer );
     select any prev_attr_serializer related by inst_serializer->Z_AttributeSerializer[R3002] where ( selected.attr_name == attribute.name );
   end if;
@@ -590,14 +589,8 @@ while ( not_empty attribute )
   select any attribute related by obj->Attribute[R410] where (index-index_diff == selected.order);
 end while;
 
-select many iselectors related by obj->InstanceSelector[R442]
- where ( selected.formalizer );
-for each iselector in iselectors
-  select one selector related by iselector->Selector[R445];
-  if ( selector.multiplicity == Mult::ONE )
-    LOG::LogInfo( message:" am++ create selector serializer: " + iselector.name + " for " + obj.key_letters );
-  end if;
-end for; 
+//LOG::LogInfo( message:"Evaluating association loader/serializer needed for " + obj.key_letters );
+::transformAssociationLoaderSerializer( obj:obj, pop_loader:param.pop_loader );
 
 // create a loader and serializer for current_state
 select one sm related by obj->StateMachine[R4750];
@@ -1077,7 +1070,10 @@ for each obj in objs
                                                                 selected.path == marking_path and
                                                                 selected.feature_name == "NonPersistent" );
   if ( empty non_persistent_mark )
+//  	LOG::LogInfo( message:" am++ in tool-sql transformSQLLoader, create loader for class: " + obj.name );
     ::transformClassInstanceLoaderSerializer( obj:obj, pop_loader:pop_loader );
+  else
+//  	LOG::LogInfo( message:" am++ in tool-sql transformSQLLoader, non-persistent class: " + obj.name );
   end if;
 end for;
 
@@ -1326,6 +1322,63 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("e0859b50-3b2f-4eab-ba84-7f063637217c",
+	1,
+	"393d1b5b-5425-48d1-901b-df557c6670b6",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("e38ea822-4941-4421-a460-fe7069ad1795",
+	"00000000-0000-0000-0000-000000000000",
+	'transformAssociationLoaderSerializer',
+	'',
+	'obj = param.obj;
+select many iselectors related by obj->InstanceSelector[R442]
+ where ( selected.formalizer );
+for each iselector in iselectors
+  select one selector related by iselector->Selector[R445];
+  select one relation related by selector->Relationship[R4512];
+  select one peer related by relation->Relationship[R436.''is one half of associative''];
+  if ( not empty peer )	// relation and peer represent a decomposed associative relationship.
+    select one p1 related by relation->Class[R434];
+  	select one p2 related by peer->Class[R434];
+  	if ( not_empty p1 ) and ( not_empty p2 )
+  	  LOG::LogInfo( message:" am++ add associative triplet link serializer: " + p1.key_letters + " " + p2.key_letters + " " + obj.key_letters );
+  	else
+  	  LOG::LogInfo( message:" am++ could not find participants for " + relation.name );
+  	end if;
+  else;
+    if ( selector.multiplicity == Mult::ONE )
+      LOG::LogInfo( message:" am++ add single valued link serializer for " + selector.name );
+    else
+      LOG::LogInfo( message:" am++ add multi-valued (set) link serializer for " + selector.name );
+    end if;
+  end if;
+//  LOG::LogInteger( message:relation.num );
+end for; ',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO S_SPARM
+	VALUES ("26eba11e-8b26-4684-9080-691044cc21b0",
+	"e38ea822-4941-4421-a460-fe7069ad1795",
+	'obj',
+	"a519e323-b117-4a03-9435-b88e56c2443d",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("b5cf3148-8317-4c91-bd16-bd91a01581aa",
+	"e38ea822-4941-4421-a460-fe7069ad1795",
+	'pop_loader',
+	"6b220e4e-1f35-4631-a0b4-89a2f4a0e8b2",
+	0,
+	'',
+	"26eba11e-8b26-4684-9080-691044cc21b0",
+	'');
+INSERT INTO PE_PE
+	VALUES ("e38ea822-4941-4421-a460-fe7069ad1795",
 	1,
 	"393d1b5b-5425-48d1-901b-df557c6670b6",
 	"00000000-0000-0000-0000-000000000000",
