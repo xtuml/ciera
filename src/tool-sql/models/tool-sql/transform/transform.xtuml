@@ -1331,7 +1331,11 @@ INSERT INTO S_SYNC
 	"00000000-0000-0000-0000-000000000000",
 	'transformAssociationLoaderSerializer',
 	'',
-	'obj = param.obj;
+	'// Build serializers for any persistable associations that this class participates in.
+// If this persistent class represents an associative, then presume that both ''ends'' are persistent.
+// Otherwise, check for non-persistent marking of the associated class.
+
+obj = param.obj;
 select many iselectors related by obj->InstanceSelector[R442]
  where ( selected.formalizer );
 for each iselector in iselectors
@@ -1347,13 +1351,23 @@ for each iselector in iselectors
   	  LOG::LogInfo( message:" am++ could not find participants for " + relation.name );
   	end if;
   else;
-    if ( selector.multiplicity == Mult::ONE )
-      LOG::LogInfo( message:" am++ add single valued link serializer for " + selector.name );
-    else
-      LOG::LogInfo( message:" am++ add multi-valued (set) link serializer for " + selector.name );
+  	select one partclass related by relation->Class[R434];
+    select one o_obj related by partclass->O_OBJ[R409];
+    select one pe related by o_obj->PE_PE[R8001];
+    marking_path = ::containerMarkingPath( pe:pe ) + "::" + o_obj.Name;
+    select any non_persistent_mark from instances of Mark where ( selected.markable_name == "Model Class" and
+                                                                selected.path == marking_path and
+                                                                selected.feature_name == "NonPersistent" );
+    If ( empty non_persistent_mark )
+      if ( selector.multiplicity == Mult::ONE )
+        LOG::LogInfo( message:" am++ add single valued link serializer for " + selector.name );
+      else
+        LOG::LogInfo( message:" am++ add multi-valued (set) link serializer for " + selector.name );
+      end if;
+    else 
+      LOG::LogInfo( message:" am++ not persisting association " + relation.name );  //@TODO
     end if;
   end if;
-//  LOG::LogInteger( message:relation.num );
 end for; ',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
