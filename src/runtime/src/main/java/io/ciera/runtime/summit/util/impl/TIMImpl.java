@@ -173,7 +173,7 @@ public class TIMImpl<C extends IComponent<C>> extends Utility<C> implements TIM 
 
     public String timestamp_format(final long timestamp, final String format) {
         IRunContext executor = getRunContext();
-        long unixNanos = (executor.time() - executor.getEpoch().until(Instant.EPOCH, ChronoUnit.MICROS)) * 1000L;
+        long unixNanos = (timestamp - executor.getEpoch().until(Instant.EPOCH, ChronoUnit.MICROS)) * 1000L;
         return LocalDateTime.ofEpochSecond(unixNanos / 1000000000L, (int)(unixNanos % 1000000000L), ZoneOffset.UTC).format(DateTimeFormatter.ofPattern(format));
     }
 

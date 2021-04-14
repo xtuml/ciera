@@ -1,37 +1,27 @@
 package ooaofooa.datatypes;
 
+
+import io.ciera.runtime.summit.exceptions.XtumlException;
 import io.ciera.runtime.summit.types.IXtumlType;
 import io.ciera.runtime.summit.types.InstRefMapping;
 
-public class Instance extends InstRefMapping<Instance> implements IXtumlType<Instance> {
 
-    private Object obj;
+public class Instance extends InstRefMapping implements IXtumlType {
 
     public Instance() {
-        obj = null;
+        super();
     }
 
-    public Instance(Object o) {
-        obj = o;
+    public Instance(Object value) throws XtumlException {
+        super(value);
     }
 
-    @Override
-    public Instance value() {
-        return this;
+    @SuppressWarnings("unchecked")
+    public Instance promote(Object o) throws XtumlException {
+        return new Instance(cast(o));
     }
 
-    public Object getObj() {
-        return obj;
-    }
-
-    public String serialize() {
-        if ("".equals(obj))
-            return "";
-        else
-            return obj.toString();
-    }
-
-    public static Instance deserialize(Object o) {
+    public static Instance deserialize(Object o) throws XtumlException {
     	return new Instance(o);
     }
 

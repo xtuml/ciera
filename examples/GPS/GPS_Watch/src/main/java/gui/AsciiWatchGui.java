@@ -121,6 +121,7 @@ public class AsciiWatchGui implements WatchGui {
         // clear screen and exit
         try {
             terminal.setCursorPosition(0, 0);
+            terminal.setCursorVisible(true);
             terminal.clearScreen();
         } catch (IOException e) { /* do nothing */ }
         System.exit(0);

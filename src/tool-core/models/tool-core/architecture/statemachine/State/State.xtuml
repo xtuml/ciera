@@ -18,7 +18,19 @@ INSERT INTO O_TFR
 parameter_list = "";
 select any evt_invocable related by self->TransitionTableCell[R4757]->Event[R4756]->InvocableObject[R427];
 if ( not_empty evt_invocable )
-  parameter_list = evt_invocable.parameter_list();
+  // check same data rule
+  // do not pass event data to state entry actions if same data rule is violated
+  same_data_ok = true;
+  select many evt_invocables related by self->TransitionTableCell[R4757]->Event[R4756]->InvocableObject[R427];
+  for each other_evt_invocable in evt_invocables
+    if (evt_invocable.get_signature() != other_evt_invocable.get_signature())
+      same_data_ok = false;
+      break;
+    end if;
+  end for;
+  if (same_data_ok)
+    parameter_list = evt_invocable.parameter_list();
+  end if;
 end if;
 select one invocable related by self->InvocableObject[R427];
 body = invocable.body();

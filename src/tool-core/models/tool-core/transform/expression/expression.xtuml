@@ -1066,6 +1066,9 @@ if ( not_empty invocable )
       create object instance sel of SelectedExpr;
       sel.cast = op_cls.name;
       relate sel to expr2 across R776;
+      // add import
+      select one sel_type related by op_cls->Type[R407];
+      ::addTypeToImports(file: ::getFileForStatement(smt:smt), type_to_import:sel_type, type:ImportType::IMPL);
     end if;
   else // class based operation
     // create named reference expression
@@ -1169,7 +1172,12 @@ if empty sel_cls
     select one sel_cls related by select_expr->SelectFromInstances[R789]->InstancePopulationSelector[R799]->Class[R449];
   end if;
 end if;
-sel.cast = sel_cls.name;',
+sel.cast = sel_cls.name;
+
+// add import
+select one sel_type related by sel_cls->Type[R407];
+file = ::getFileForStatement(smt:smt);
+::addTypeToImports(file:file, type_to_import:sel_type, type: ImportType::IMPL);',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -1882,7 +1890,12 @@ relate type to expr across R795;
 create object instance const_ref of ConstantReference;
 relate const_ref to expr across R776;
 select one cnst_lsc related by v_scv->CNST_SYC[R850]->CNST_LFSC[R1502]->CNST_LSC[R1503];
-const_ref.value = cnst_lsc.Value;',
+const_ref.value = cnst_lsc.Value;
+
+// check if it is a long constant
+if (type.type_reference_name == "long")
+  const_ref.value = const_ref.value + "L";
+end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
