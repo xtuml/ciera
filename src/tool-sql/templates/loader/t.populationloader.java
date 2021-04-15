@@ -29,9 +29,14 @@ ${batch_relator_definitions}
     @Override
     public void serialize() throws XtumlException {
         PrintStream out = new PrintStream(getOut());
-${instance_serializers}        out.flush();
+${instance_serializers}
+        //  association data
+${link_serializers}
+        out.flush();
     }
 
 ${instance_serializer_definitions}
+
+${link_serializer_definitions}
 
 }

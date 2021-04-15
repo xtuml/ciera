@@ -1336,8 +1336,12 @@ INSERT INTO S_SYNC
 // Otherwise, check for non-persistent marking of the associated class.
 
 obj = param.obj;
+pop_loader = param.pop_loader;
 select many iselectors related by obj->InstanceSelector[R442]
  where ( selected.formalizer );
+if ( not_empty iselectors )
+  LOG::LogInfo( message:" am++ exploring selectors for " + obj.key_letters );
+end if;
 for each iselector in iselectors
   select one selector related by iselector->Selector[R445];
   select one relation related by selector->Relationship[R4512];
@@ -1346,7 +1350,7 @@ for each iselector in iselectors
     select one p1 related by relation->Class[R434];
   	select one p2 related by peer->Class[R434];
   	if ( not_empty p1 ) and ( not_empty p2 )
-  	  LOG::LogInfo( message:" am++ add associative triplet link serializer: " + p1.key_letters + " " + p2.key_letters + " " + obj.key_letters );
+  	  LOG::LogInfo( message:" am++ add associative triplet link serializer: " + p1.key_letters + " " + p2.key_letters + " " + obj.key_letters + " for " + relation.name );
   	else
   	  LOG::LogInfo( message:" am++ could not find participants for " + relation.name );
   	end if;
@@ -1361,11 +1365,18 @@ for each iselector in iselectors
     If ( empty non_persistent_mark )
       if ( selector.multiplicity == Mult::ONE )
         LOG::LogInfo( message:" am++ add single valued link serializer for " + selector.name );
+        create object instance aserializer of LinkSerializer;
+        relate aserializer to pop_loader across R3019;
+        aserializer.association_number = relation.num;
+        create object instance slink of SingleLinkSerializer;
+        relate slink to aserializer across R3020;
+        slink.form_key_letters = obj.key_letters;
+        slink.link_name = selector.name;
       else
         LOG::LogInfo( message:" am++ add multi-valued (set) link serializer for " + selector.name );
       end if;
     else 
-      LOG::LogInfo( message:" am++ not persisting association " + relation.name );  //@TODO
+      LOG::LogInfo( message:" am++ !! NOT persisting association " + relation.name );  //@TODO
     end if;
   end if;
 end for; ',

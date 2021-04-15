@@ -86,6 +86,21 @@ if ( not_empty event_serializers )
   sep = " + ";
 end if;
 
+select many slinks related by self->LinkSerializer[R3019]->SingleLinkSerializer[R3020];
+for each slink in slinks
+	LOG::LogInfo( message:" am++ rendering slink for: " + slink.form_key_letters );
+	slink.render();
+end for;
+link_serializers = T::body();
+T::clear();
+
+select many slinks related by self->LinkSerializer[R3019]->SingleLinkSerializer[R3020];
+for each slink in slinks
+	slink.render_def();
+end for;
+link_serializer_definitions = T::body();
+T::clear();
+
 select one general_file related by self->GeneralFile[R3009];
 select one file related by general_file->File[R401];
 imports = file.getFormattedImports( type:ImportType::IMPL );
