@@ -1341,6 +1341,9 @@ select many iselectors related by obj->InstanceSelector[R442]
  where ( selected.formalizer );
 if ( not_empty iselectors )
   LOG::LogInfo( message:" am++ exploring selectors for " + obj.key_letters );
+  for each iselector in iselectors
+    LOG::LogInfo( message:" am++ " + iselector.name );
+  end for;
 end if;
 for each iselector in iselectors
   select one selector related by iselector->Selector[R445];
@@ -1355,6 +1358,12 @@ for each iselector in iselectors
   	  LOG::LogInfo( message:" am++ could not find participants for " + relation.name );
   	end if;
   else;
+    select one selector related by iselector->Selector[R445];
+    select one relation related by selector->Relationship[R4512];
+    select one peer related by relation->Relationship[R436.''is other half of associative''];
+    if ( not_empty peer )  // do not evaluate associative triplet twice!
+      continue;
+    end if;
   	select one partclass related by relation->Class[R434];
     select one o_obj related by partclass->O_OBJ[R409];
     select one pe related by o_obj->PE_PE[R8001];
@@ -1367,7 +1376,6 @@ for each iselector in iselectors
         LOG::LogInfo( message:" am++ add single valued link serializer for " + selector.name );
         create object instance aserializer of LinkSerializer;
         relate aserializer to pop_loader across R3019;
-        aserializer.association_number = relation.num;
         create object instance slink of SingleLinkSerializer;
         relate slink to aserializer across R3020;
         slink.form_key_letters = obj.key_letters;
