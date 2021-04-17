@@ -86,27 +86,25 @@ if ( not_empty event_serializers )
   sep = " + ";
 end if;
 
-// uncomment this and Ciera 2.4.0 will crash
-//select many testlinks related by self->linktest[R3033];
 
-select many slinks related by self->LinkSerializer[R3019]->SingleLinkSerializer[R3020];
-for each slink in slinks
-	LOG::LogInfo( message:" am++ rendering slink for: " + slink.form_key_letters );
-	slink.render();
+select many links related by self->LinkSerializer[R3019]->DuoLinkSerializer[R3020];
+for each link in links
+	LOG::LogInfo( message:" am++ rendering slink for: " + link.form_key_letters );
+	link.render();
 end for;
 link_serializers = T::body();
 T::clear();
 
-select many slinks related by self->LinkSerializer[R3019]->SingleLinkSerializer[R3020];
-for each slink in slinks
-	slink.render_def();
+select many links related by self->LinkSerializer[R3019]->DuoLinkSerializer[R3020];
+for each link in links
+	link.render_def();
 end for;
 link_serializer_definitions = T::body();
 T::clear();
 
 select one general_file related by self->GeneralFile[R3009];
 select one file related by general_file->File[R401];
-imports = file.getFormattedImports( type:ImportType::IMPL );
+imports = file.getFormattedImports( type:ImportType::BOTH );  // @TODO both?
 
 T::include(file:"loader/t.populationloader.java");
 general_file.contents = T::body();

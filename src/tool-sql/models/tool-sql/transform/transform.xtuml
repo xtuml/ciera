@@ -589,7 +589,7 @@ while ( not_empty attribute )
   select any attribute related by obj->Attribute[R410] where (index-index_diff == selected.order);
 end while;
 
-//LOG::LogInfo( message:"Evaluating association loader/serializer needed for " + obj.key_letters );
+LOG::LogInfo( message:" am++ Evaluating association loader/serializer needed for " + obj.key_letters );
 ::transformAssociationLoaderSerializer( obj:obj, pop_loader:param.pop_loader );
 
 // create a loader and serializer for current_state
@@ -1111,6 +1111,7 @@ end for;
 // create import block
 ::addStringToImports( file:file, s:"io.ciera.runtime.instanceloading.sql.SqlLoader", type:ImportType::IMPL );
 ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.runtime.summit.classes.IInstanceSet", type:ImportType::INT );  // @TODO - I added this
 ::addStringToImports( file:file, s:"java.io.PrintStream", type:ImportType::IMPL );
 ::addStringToImports( file:file, s:"java.util.List", type:ImportType::IMPL );',
 	"ba5eda7a-def5-0000-0000-000000000000",
@@ -1347,6 +1348,7 @@ if ( not_empty iselectors )
 end if;
 for each iselector in iselectors
   select one selector related by iselector->Selector[R445];
+  LOG::LogInfo( message:" am++ selector type: " + selector.type_name );
   select one relation related by selector->Relationship[R4512];
   select one peer related by relation->Relationship[R436.''is one half of associative''];
   if ( not empty peer )	// relation and peer represent a decomposed associative relationship.
@@ -1372,15 +1374,24 @@ for each iselector in iselectors
                                                                 selected.path == marking_path and
                                                                 selected.feature_name == "NonPersistent" );
     If ( empty non_persistent_mark )
+      create object instance aserializer of LinkSerializer;
+      relate aserializer to pop_loader across R3019;
+      create object instance dlink of DuoLinkSerializer;
+      relate dlink to aserializer across R3020;
+      dlink.form_key_letters = obj.key_letters;
+      dlink.link_name = relation.name;
+      dlink.sel_name = selector.name;
       if ( selector.multiplicity == Mult::ONE )
+      	dlink.set_type_name = "";
         LOG::LogInfo( message:" am++ add single valued link serializer for " + selector.name );
-        create object instance aserializer of LinkSerializer;
-        relate aserializer to pop_loader across R3019;
-        create object instance slink of SingleLinkSerializer;
-        relate slink to aserializer across R3020;
-        slink.form_key_letters = obj.key_letters;
-        slink.link_name = selector.name;
       else
+      	select one p1 related by relation->Class[R434];
+      	dlink.ref_name = p1.name;
+      	select one set_typ related by selector->TypeReference[R446];
+      	dlink.set_type_name = set_typ.type_name;
+      	select one file related by pop_loader->GeneralFile[R3009]->File[R401];
+        ::addStringToImports( file:file, s:set_typ.type_package + "." + set_typ.type_name, type:ImportType::INT );
+        ::addStringToImports( file:file, s:set_typ.type_package + ".impl." + set_typ.type_name + "Impl", type:ImportType::IMPL );
         LOG::LogInfo( message:" am++ add multi-valued (set) link serializer for " + selector.name );
       end if;
     else 
