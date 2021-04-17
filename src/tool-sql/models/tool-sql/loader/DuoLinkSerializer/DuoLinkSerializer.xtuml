@@ -15,15 +15,11 @@ INSERT INTO O_TFR
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'// Render an invocation of a serialization method for a single-valued referential (which may not be formalized).
-select any obj from instances of Class
- where ( selected.key_letters == self.form_key_letters );  
-if ( not_empty obj )
-  class_name = obj.name;
-  sel_name = self.sel_name;
-  T::include(file:"loader/t.linkserializer.java");
-else
-  LOG::LogInfo( message:" am++ cannot find class for link serialization " + self.form_key_letters );
-end if;',
+
+class_name = self.class_name;
+selector_name = self.selector_name;
+T::include(file:"loader/t.linkserializer.java");
+',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",
@@ -35,23 +31,20 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'// Render the definition of the method which serializes an association.
-select any obj from instances of Class
- where ( selected.key_letters == self.form_key_letters );
-if ( not_empty obj )
-  class_name = obj.name;
-  rel_name = self.link_name;
-  sel_name = self.sel_name;
-  if ( self.set_type_name != "" )  // this is a multi-valued (set) referential
-  	set_type = self.set_type_name;
-  	ref_name = self.ref_name;
-    T::include(file:"loader/t.mlinkserializer.def.java");
-  else 
-    T::include(file:"loader/t.slinkserializer.def.java");
-  end if; 
-else
-  LOG::LogInfo( message:" am++ cannot find class for link serialization " + self.form_key_letters );
-end if;',
+	'// Render the definition of the method which serializes a binary association.
+// The method may have to emit multiple links if the ''formalizer'' is ''Many'' valued.
+
+class_name = self.class_name;
+rnum_str = self.rnum_str;
+selector_name = self.selector_name;
+if ( self.set_type_name != "" )  // this is a multi-valued (set) referential
+  set_type_name = self.set_type_name;
+  referred_name = self.referred_name;
+  T::include(file:"loader/t.mlinkserializer.def.java");
+else 
+  T::include(file:"loader/t.slinkserializer.def.java");
+end if; 
+',
 	1,
 	'',
 	"d5cca29a-da6e-4dec-bcd6-9a8647fb3353",
@@ -66,10 +59,10 @@ INSERT INTO O_ATTR
 	VALUES ("5fe03bcb-be71-4e14-96ee-00e0cf3bd621",
 	"44b9eea8-1acf-4571-b441-6f628978878d",
 	"0691dc91-0766-467a-8533-f2ac76bc29e2",
-	'form_key_letters',
+	'class_name',
 	'The key letters of the class that was deemed the formalizer of the association to be persisted.',
 	'',
-	'form_key_letters',
+	'class_name',
 	0,
 	"ba5eda7a-def5-0000-0000-000000000004",
 	'',
@@ -84,10 +77,10 @@ INSERT INTO O_ATTR
 	VALUES ("6ec37b10-53f1-4297-84e8-93b76ae378ef",
 	"44b9eea8-1acf-4571-b441-6f628978878d",
 	"5fe03bcb-be71-4e14-96ee-00e0cf3bd621",
-	'link_name',
+	'rnum_str',
 	'',
 	'',
-	'link_name',
+	'rnum_str',
 	0,
 	"ba5eda7a-def5-0000-0000-000000000004",
 	'',
@@ -217,10 +210,10 @@ INSERT INTO O_ATTR
 	VALUES ("c2741505-8af7-4163-9ba4-34227e501139",
 	"44b9eea8-1acf-4571-b441-6f628978878d",
 	"ea8b000e-52f4-4aec-9bb2-228461947ecd",
-	'ref_name',
+	'referred_name',
 	'',
 	'',
-	'ref_name',
+	'referred_name',
 	0,
 	"ba5eda7a-def5-0000-0000-000000000004",
 	'',
@@ -235,10 +228,10 @@ INSERT INTO O_ATTR
 	VALUES ("2f3cbbbb-aecb-4d3a-809c-245b97653741",
 	"44b9eea8-1acf-4571-b441-6f628978878d",
 	"c2741505-8af7-4163-9ba4-34227e501139",
-	'sel_name',
+	'selector_name',
 	'',
 	'',
-	'sel_name',
+	'selector_name',
 	0,
 	"ba5eda7a-def5-0000-0000-000000000004",
 	'',
