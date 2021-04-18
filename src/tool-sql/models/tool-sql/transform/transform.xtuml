@@ -589,7 +589,7 @@ while ( not_empty attribute )
   select any attribute related by obj->Attribute[R410] where (index-index_diff == selected.order);
 end while;
 
-LOG::LogInfo( message:" am++ Evaluating association loader/serializer needed for " + obj.key_letters );
+// Create serializers for associations that this class participates in.
 ::transformAssociationLoaderSerializer( obj:obj, pop_loader:param.pop_loader );
 
 // create a loader and serializer for current_state
@@ -1070,10 +1070,7 @@ for each obj in objs
                                                                 selected.path == marking_path and
                                                                 selected.feature_name == "NonPersistent" );
   if ( empty non_persistent_mark )
-//  	LOG::LogInfo( message:" am++ in tool-sql transformSQLLoader, create loader for class: " + obj.name );
     ::transformClassInstanceLoaderSerializer( obj:obj, pop_loader:pop_loader );
-  else
-//  	LOG::LogInfo( message:" am++ in tool-sql transformSQLLoader, non-persistent class: " + obj.name );
   end if;
 end for;
 
@@ -1333,9 +1330,10 @@ INSERT INTO S_SYNC
 	'transformAssociationLoaderSerializer',
 	'',
 	'// Build serializers for any persistable associations that this class participates in.
-// Process only selectors chosen as ''formalizer''.
-// If this persistent class represents an associative, then presume that both ''ends'' are persistent.
-// Otherwise, check for non-persistent marking of the associated class.
+// Process only selectors (private referential attributes) chosen as ''formalizer'' of the association.
+// If this persistent class represents an associative class, then presume that both ''ends'' are persistent.
+// Otherwise, check for non-persistent marking of the referred-to class before proceeding.
+// Ensure that imports are added to the loader generator to support any set manipulation needed.
 
 obj = param.obj;
 pop_loader = param.pop_loader;
