@@ -2,9 +2,9 @@
 
 INSERT INTO O_OBJ
 	VALUES ("44b9eea8-1acf-4571-b441-6f628978878d",
-	'DuoLinkSerializer',
+	'CoupletLinkSerializer',
 	3028,
-	'DuoLinkSerializer',
+	'CoupletLinkSerializer',
 	'Instances of this class will use templates to define and invoke methods which serialize binary associations.
 It can support serialization of 1: single-valued reference, or a M: multi-valued (set-type) reference.
 Each association instance serialization emits a pair of instance identifiers.',
@@ -25,6 +25,7 @@ T::include(file:"loader/t.linkserializer.java");
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",
+	0,
 	0);
 INSERT INTO O_TFR
 	VALUES ("6d664092-7811-4042-bc34-4c9def5e52e3",
@@ -36,6 +37,23 @@ INSERT INTO O_TFR
 	'// Render the definition of the method which serializes a binary association.
 // The method may have to emit multiple links if the ''formalizer'' is ''Many'' valued.
 
+select any inst_serializer related by self->LinkSerializer[R3020]
+                                          ->Z_PopulationLoader[R3019.''renders for'']
+                                          ->Z_InstanceSerializer[R3001.''serializes population using'']
+ where (selected.class_name == self.class_name );
+select any serializer related by inst_serializer->Z_AttributeSerializer[R3002.''serializes data value using'']
+                                                ->UniqueIDSerializer[R3004];
+form_accessor_value = serializer.value;
+
+select any inst_serializer related by self->LinkSerializer[R3020]
+                                          ->Z_PopulationLoader[R3019.''renders for'']
+                                          ->Z_InstanceSerializer[R3001.''serializes population using'']
+ where (selected.class_name == self.referred_name );
+select any serializer related by inst_serializer->Z_AttributeSerializer[R3002.''serializes data value using'']
+                                                ->UniqueIDSerializer[R3004];
+
+part_accessor_value = serializer.value;
+
 class_name = self.class_name;
 rnum_str = self.rnum_str;
 selector_name = self.selector_name;
@@ -43,13 +61,24 @@ if ( self.set_type_name != "" )  // this is a multi-valued (set) referential
   set_type_name = self.set_type_name;
   referred_name = self.referred_name;
   T::include(file:"loader/t.mlinkserializer.def.java");
-else 
+else
+  T::push_buffer();
+  UniqueIDSerializer::do_render( class_name:class_name, accessor_name:form_accessor_value );
+  form_out = T::body();
+  T::pop_buffer();
+  T::push_buffer();
+  selector = selector_name + "().";
+  UniqueIDSerializer::do_render( class_name:class_name, accessor_name:selector + part_accessor_value );
+  part_out = T::body();
+  T::pop_buffer();
   T::include(file:"loader/t.slinkserializer.def.java");
 end if; 
+
 ',
 	1,
 	'',
 	"d5cca29a-da6e-4dec-bcd6-9a8647fb3353",
+	0,
 	0);
 INSERT INTO O_NBATTR
 	VALUES ("5fe03bcb-be71-4e14-96ee-00e0cf3bd621",

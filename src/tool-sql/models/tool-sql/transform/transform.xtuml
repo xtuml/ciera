@@ -1376,16 +1376,16 @@ for each iselector in iselectors
     If ( empty non_persistent_mark )
       create object instance aserializer of LinkSerializer;
       relate aserializer to pop_loader across R3019;
-      create object instance dlink of DuoLinkSerializer;
+      create object instance dlink of CoupletLinkSerializer;
       relate dlink to aserializer across R3020;
       dlink.class_name = obj.name;
+      dlink.referred_name = part1class.name;
       dlink.rnum_str = rnum_str;
       dlink.selector_name = selector.name;
       if ( selector.multiplicity == Mult::ONE )
       	dlink.set_type_name = "";
         LOG::LogInfo( message:" am++ add single valued link serializer for " + selector.name );
       else
-      	dlink.referred_name = part1class.name;
       	select one set_typ related by selector->TypeReference[R446];
       	dlink.set_type_name = set_typ.type_name;
       	select one file related by pop_loader->GeneralFile[R3009]->File[R401];
