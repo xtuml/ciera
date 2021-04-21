@@ -1,1 +1,1 @@
-        out.printf( "${quote}%s${quote}", $l{self.class_name}_inst.${self.value}.serialize() );
+        out.printf( "${quote}%s${quote}", $l{class_name}_inst.${value}.serialize() );
