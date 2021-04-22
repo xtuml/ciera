@@ -1,0 +1,232 @@
+-- BP 7.1.6 content: ModelClass syschar: 3 persistence-version: 7.1.6
+
+INSERT INTO O_OBJ
+	VALUES ("27803e63-3de3-4e47-8db6-021243061e02",
+	'CoupletLinkSerializer',
+	2,
+	'CoupletLinkSerializer',
+	'Instances of this class will use templates to define and invoke methods which serialize binary associations.
+It can support serialization of 1: single-valued reference, or a M: multi-valued (set-type) reference.
+Each association instance serialization emits a pair of instance identifiers.',
+	"00000000-0000-0000-0000-000000000000");
+INSERT INTO O_TFR
+	VALUES ("d16745cb-cae4-4186-bddb-8e30d843b903",
+	"27803e63-3de3-4e47-8db6-021243061e02",
+	'render',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'// Render an invocation of a serialization method for the ''formalizer'' side of a binary association.
+
+select one link_serializer related by self->LinkSerializer[R3020];
+class_name = link_serializer.class_name;
+selector_name = self.selector_name;
+T::include(file:"loader/t.linkserializer.java");
+',
+	1,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	0,
+	0);
+INSERT INTO O_TFR
+	VALUES ("3fd57d25-42a2-4da3-8b3a-bc4e035d250d",
+	"27803e63-3de3-4e47-8db6-021243061e02",
+	'render_def',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'// Render the definition of the method which serializes a binary association.
+// The method may have to emit multiple links if the ''formalizer'' is ''Many'' valued.
+
+select one link_serializer related by self->LinkSerializer[R3020];
+class_name = link_serializer.class_name;
+select any inst_serializer related by link_serializer->Z_PopulationLoader[R3019]->Z_InstanceSerializer[R3001]
+ where ( selected.class_name == class_name );
+select any serializer related by inst_serializer->Z_AttributeSerializer[R3002]
+                                                ->UniqueIDSerializer[R3004];
+form_accessor_value = serializer.value;
+
+select one link_serializer related by self->LinkSerializer[R3020];
+select any inst_serializer related by link_serializer->Z_PopulationLoader[R3019]->Z_InstanceSerializer[R3001]
+ where ( selected.class_name == self.referred_name );
+select any serializer related by inst_serializer->Z_AttributeSerializer[R3002]
+                                                ->UniqueIDSerializer[R3004];
+
+part_accessor_value = serializer.value;
+
+rnum_str = self.rnum_str;
+selector_name = self.selector_name;
+if ( self.set_type_name != "" )  // this is a multi-valued (set) referential
+  set_type_name = self.set_type_name;
+  referred_name = self.referred_name;
+  T::include(file:"loader/t.mlinkserializer.def.java");
+else
+  T::push_buffer();
+  UniqueIDSerializer::do_render( class_name:class_name, accessor_name:form_accessor_value );
+  form_out = T::body();
+  T::pop_buffer();
+  T::push_buffer();
+  selector = selector_name + "().";
+  UniqueIDSerializer::do_render( class_name:class_name, accessor_name:selector + part_accessor_value );
+  part_out = T::body();
+  T::pop_buffer();
+  T::include(file:"loader/t.slinkserializer.def.java");
+end if; 
+
+',
+	1,
+	'',
+	"d16745cb-cae4-4186-bddb-8e30d843b903",
+	0,
+	0);
+INSERT INTO O_NBATTR
+	VALUES ("6016d39d-c47b-4cc2-8eba-e74c862821a8",
+	"27803e63-3de3-4e47-8db6-021243061e02");
+INSERT INTO O_BATTR
+	VALUES ("6016d39d-c47b-4cc2-8eba-e74c862821a8",
+	"27803e63-3de3-4e47-8db6-021243061e02");
+INSERT INTO O_ATTR
+	VALUES ("6016d39d-c47b-4cc2-8eba-e74c862821a8",
+	"27803e63-3de3-4e47-8db6-021243061e02",
+	"149b163e-8229-46a1-a433-57967f81db23",
+	'rnum_str',
+	'The stringified number of the relationship (association) being serialized.',
+	'',
+	'rnum_str',
+	0,
+	"ba5eda7a-def5-0000-0000-000000000004",
+	'',
+	'');
+INSERT INTO O_NBATTR
+	VALUES ("e7472d38-dfbc-4501-8a5d-37c575ee1c72",
+	"27803e63-3de3-4e47-8db6-021243061e02");
+INSERT INTO O_BATTR
+	VALUES ("e7472d38-dfbc-4501-8a5d-37c575ee1c72",
+	"27803e63-3de3-4e47-8db6-021243061e02");
+INSERT INTO O_ATTR
+	VALUES ("e7472d38-dfbc-4501-8a5d-37c575ee1c72",
+	"27803e63-3de3-4e47-8db6-021243061e02",
+	"6016d39d-c47b-4cc2-8eba-e74c862821a8",
+	'set_type_name',
+	'If this represents an M: relationship, this is the name of the set of referred-to instances.',
+	'',
+	'set_type_name',
+	0,
+	"ba5eda7a-def5-0000-0000-000000000004",
+	'',
+	'');
+INSERT INTO O_NBATTR
+	VALUES ("458ca2a1-0f88-4d8c-92e8-54bbd9f214ed",
+	"27803e63-3de3-4e47-8db6-021243061e02");
+INSERT INTO O_BATTR
+	VALUES ("458ca2a1-0f88-4d8c-92e8-54bbd9f214ed",
+	"27803e63-3de3-4e47-8db6-021243061e02");
+INSERT INTO O_ATTR
+	VALUES ("458ca2a1-0f88-4d8c-92e8-54bbd9f214ed",
+	"27803e63-3de3-4e47-8db6-021243061e02",
+	"e7472d38-dfbc-4501-8a5d-37c575ee1c72",
+	'referred_name',
+	'The name of the referred-to class - only required for M: to allow looping over instances.',
+	'',
+	'referred_name',
+	0,
+	"ba5eda7a-def5-0000-0000-000000000004",
+	'',
+	'');
+INSERT INTO O_NBATTR
+	VALUES ("6fd0d813-f0db-426f-9255-22b39c96a70c",
+	"27803e63-3de3-4e47-8db6-021243061e02");
+INSERT INTO O_BATTR
+	VALUES ("6fd0d813-f0db-426f-9255-22b39c96a70c",
+	"27803e63-3de3-4e47-8db6-021243061e02");
+INSERT INTO O_ATTR
+	VALUES ("6fd0d813-f0db-426f-9255-22b39c96a70c",
+	"27803e63-3de3-4e47-8db6-021243061e02",
+	"458ca2a1-0f88-4d8c-92e8-54bbd9f214ed",
+	'selector_name',
+	'The name of the ''selector'' - a private attribute holding referential data.',
+	'',
+	'selector_name',
+	0,
+	"ba5eda7a-def5-0000-0000-000000000004",
+	'',
+	'');
+INSERT INTO O_REF
+	VALUES ("27803e63-3de3-4e47-8db6-021243061e02",
+	"4ee77a1c-599d-4ea8-93ac-82e28ec6a0fe",
+	1,
+	"30d8fde0-3666-4a19-a2be-1ae8834842a2",
+	"21643ad9-6295-4e73-826d-9e7cc93c4fc6",
+	"bf24d508-bae5-490c-b61e-f47fe185d2e9",
+	"a63622ca-4eca-4a31-8f98-608836a3b4fc",
+	"149b163e-8229-46a1-a433-57967f81db23",
+	"ac0ff7d8-a8bf-4ba9-88b4-72973b3e29d2",
+	"00000000-0000-0000-0000-000000000000",
+	0,
+	'',
+	'LinkSerializer',
+	'rel_num',
+	'R3020');
+INSERT INTO R_RGO_PROXY
+	VALUES ("27803e63-3de3-4e47-8db6-021243061e02",
+	"21643ad9-6295-4e73-826d-9e7cc93c4fc6",
+	"bf24d508-bae5-490c-b61e-f47fe185d2e9",
+	'../linkloader.xtuml');
+INSERT INTO O_RTIDA_PROXY
+	VALUES ("30d8fde0-3666-4a19-a2be-1ae8834842a2",
+	"4ee77a1c-599d-4ea8-93ac-82e28ec6a0fe",
+	1,
+	"21643ad9-6295-4e73-826d-9e7cc93c4fc6",
+	"a63622ca-4eca-4a31-8f98-608836a3b4fc",
+	'../linkloader.xtuml');
+INSERT INTO O_RATTR
+	VALUES ("149b163e-8229-46a1-a433-57967f81db23",
+	"27803e63-3de3-4e47-8db6-021243061e02",
+	"30d8fde0-3666-4a19-a2be-1ae8834842a2",
+	"4ee77a1c-599d-4ea8-93ac-82e28ec6a0fe",
+	1,
+	'rel_num');
+INSERT INTO O_BATTR_PROXY
+	VALUES ("30d8fde0-3666-4a19-a2be-1ae8834842a2",
+	"4ee77a1c-599d-4ea8-93ac-82e28ec6a0fe",
+	'../LinkSerializer/LinkSerializer.xtuml');
+INSERT INTO O_ATTR
+	VALUES ("149b163e-8229-46a1-a433-57967f81db23",
+	"27803e63-3de3-4e47-8db6-021243061e02",
+	"00000000-0000-0000-0000-000000000000",
+	'rel_num',
+	'',
+	'',
+	'rel_num',
+	0,
+	"ba5eda7a-def5-0000-0000-000000000007",
+	'',
+	'');
+INSERT INTO O_ID
+	VALUES (0,
+	"27803e63-3de3-4e47-8db6-021243061e02");
+INSERT INTO O_OIDA
+	VALUES ("149b163e-8229-46a1-a433-57967f81db23",
+	"27803e63-3de3-4e47-8db6-021243061e02",
+	0,
+	'rel_num');
+INSERT INTO O_ID
+	VALUES (1,
+	"27803e63-3de3-4e47-8db6-021243061e02");
+INSERT INTO O_ID
+	VALUES (2,
+	"27803e63-3de3-4e47-8db6-021243061e02");
+INSERT INTO PE_PE
+	VALUES ("27803e63-3de3-4e47-8db6-021243061e02",
+	1,
+	"78d04a20-e30c-4807-be87-809afebf1430",
+	"00000000-0000-0000-0000-000000000000",
+	4);
+INSERT INTO EP_PKG_PROXY
+	VALUES ("78d04a20-e30c-4807-be87-809afebf1430",
+	"654f2273-90dd-487f-aef0-4050978eaf0e",
+	"654f2273-90dd-487f-aef0-4050978eaf0e",
+	'linkloader',
+	'',
+	0,
+	'../linkloader.xtuml');
