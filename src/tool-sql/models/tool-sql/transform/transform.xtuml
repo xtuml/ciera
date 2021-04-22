@@ -1340,21 +1340,37 @@ INSERT INTO S_SYNC
 	"00000000-0000-0000-0000-000000000000",
 	'transformAssociationLoaderSerializer',
 	'',
-	'// Build serializers for any persistable associations that this class participates in.
-// Process only selectors (private referential attributes) chosen as ''formalizer'' of the association.
-// If this persistent class represents an associative class, then presume that both ''ends'' are persistent.
+	'// Build serializers for any persistable associations that this persistent class participates in.
+// Attach serializers to the component population loader (serializer/loader, really) for subsequent rendering.
+// Preferentially, process selectors (private referential attributes) chosen as ''formalizer'' of the association.
+// ( But, as a precaution against future traversal optimization, process an ''unpaired'' non-formalizing selector )
+// If this persistent class represents an associative class, then presume that both ''ends'' are persistent classes.
 // Otherwise, check for non-persistent marking of the referred-to class before proceeding.
 // Ensure that imports are added to the loader generator to support any set manipulation needed.
 
-obj = param.obj;
+// Note: parser refuses to allow relationship phrases - 4/22/2021
+
+obj = param.obj;    // tentatively..
+formalizer_first = true;
 pop_loader = param.pop_loader;
-select many iselectors related by obj->InstanceSelector[R442]
- where ( selected.formalizer );
+select many iselectors related by obj->InstanceSelector[R442];
 for each iselector in iselectors
   select one selector related by iselector->Selector[R445];
   select one relation related by selector->Relationship[R4512];
-  rnum_str = STRING::itoa( i:relation.num );
   select one part1class related by relation->Class[R434];
+  // Optimization check: ensure that this association is represented even if formalizing selector is omitted
+  if ( not iselector.formalizer )
+  	select any formalizer related by relation->Selector[R4512]->InstanceSelector[R445]
+  	 where ( selected.formalizer );
+  	if ( not_empty formalizer )
+      continue;  // formalizing selector will/has take(n) care of this association.
+    else
+      formalizer_first = false;
+      select one part1class related by relation->Class[R435];  // the ''other side'' is actually the formalizer class.
+  	end if;
+  end if;
+  // Associative relationships are, currently, decomposed into two simple (binary) associations - related reflexively.
+  // If this case is detected, create a triplet serializer capturing the three classes involved.
   select one peer related by relation->Relationship[R436.''is one half of associative''];
   if ( not empty peer )	// relation and peer represent a decomposed associative relationship.
   	select one part2class related by peer->Class[R434];
@@ -1362,10 +1378,12 @@ for each iselector in iselectors
   	  LOG::LogInfo( message:" am++ add associative triplet link serializer: " + part1class.key_letters + " " + part2class.key_letters + " " + obj.key_letters + " for " + relation.name );
   	end if;
   else;
+  	// Check that this is not the other selector in an associative class, already handled above.
     select one peer related by relation->Relationship[R436.''is other half of associative''];
     if ( not_empty peer )  // do not evaluate associative triplet twice!
       continue;
     end if;
+    // This selector represents a simple binary association
     // Check that referred_to class is not marked as non-persistent.
     select one o_obj related by part1class->O_OBJ[R409];
     select one pe related by o_obj->PE_PE[R8001];
@@ -1374,14 +1392,20 @@ for each iselector in iselectors
                                                                 selected.path == marking_path and
                                                                 selected.feature_name == "NonPersistent" );
     If ( empty non_persistent_mark )
+      // Populate a serializer in the correct order - ''formalizer'' first.
       create object instance link_serializer of LinkSerializer;
       relate link_serializer to pop_loader across R3019;
-      link_serializer.class_name = obj.name;
+      if ( formalizer_first )
+        link_serializer.first_name = obj.name;
+        link_serializer.second_name = part1class.name;
+      else
+        link_serializer.first_name = part1class.name;
+        link_serializer.second_name = obj.name;
+      end if;
+      link_serializer.reference_name = selector.name;
+      link_serializer.rel_num = relation.num;
       create object instance couplet of CoupletLinkSerializer;
       relate couplet to link_serializer across R3020;
-      couplet.referred_name = part1class.name;
-      couplet.rnum_str = rnum_str;
-      couplet.selector_name = selector.name;
       if ( selector.multiplicity == Mult::ONE )
       	couplet.set_type_name = "";
         LOG::LogInfo( message:" am++ add single valued link serializer for " + selector.name );
