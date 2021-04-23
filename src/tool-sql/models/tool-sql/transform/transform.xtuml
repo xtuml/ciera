@@ -1404,6 +1404,19 @@ for each iselector in iselectors
       end if;
       link_serializer.reference_name = selector.name;
       link_serializer.rel_num = relation.num;
+
+/*       
+      // Navigate to the instance serializers for UniquId and retrieve the accessor method names.
+      select any inst_serializer related by pop_loader->Z_InstanceSerializer[R3001]
+       where ( selected.class_name == link_serializer.first_name );
+      select any serializer related by inst_serializer->Z_AttributeSerializer[R3002]->UniqueIDSerializer[R3004];
+      link_serializer.first_id_accessor = serializer.value;
+
+      select any inst_serializer related by pop_loader->Z_InstanceSerializer[R3001]
+       where ( selected.class_name == link_serializer.second_name );
+      select any serializer related by inst_serializer->Z_AttributeSerializer[R3002]->UniqueIDSerializer[R3004];
+      link_serializer.second_id_accessor = serializer.value;
+*/
       create object instance couplet of CoupletLinkSerializer;
       relate couplet to link_serializer across R3020;
       if ( selector.multiplicity == Mult::ONE )

@@ -21,15 +21,18 @@ INSERT INTO O_TFR
 
 select one link_serializer related by self->LinkSerializer[R3020];
 class_name = link_serializer.first_name;
+
+//@TODO - pretend these were set up at serializer creation, when deferred to post-instance serialize
 select any inst_serializer related by link_serializer->Z_PopulationLoader[R3019]->Z_InstanceSerializer[R3001]
  where ( selected.class_name == class_name );
 select any serializer related by inst_serializer->Z_AttributeSerializer[R3002]->UniqueIDSerializer[R3004];
-first_accessor_value = serializer.value;
+link_serializer.first_id_accessor = serializer.value;
 
 select any inst_serializer related by link_serializer->Z_PopulationLoader[R3019]->Z_InstanceSerializer[R3001]
  where ( selected.class_name == link_serializer.second_name );
 select any serializer related by inst_serializer->Z_AttributeSerializer[R3002]->UniqueIDSerializer[R3004];
-second_accessor_value = serializer.value;
+link_serializer.second_id_accessor = serializer.value;
+
 
 rnum_str =  STRING::itoa( i: link_serializer.rel_num );
 selector_name = link_serializer.reference_name;
@@ -39,12 +42,14 @@ if ( self.set_type_name != "" )  // this is a multi-valued (set) referential
   T::include(file:"loader/t.mlinkserializer.def.java");
 else
   T::push_buffer();
-  UniqueIDSerializer::do_render( class_name:link_serializer.first_name, accessor_name:first_accessor_value );
+  UniqueIDSerializer::do_render( class_name:link_serializer.first_name, 
+                                 accessor_name:link_serializer.first_id_accessor );
   first_out = T::body();
   T::pop_buffer();
   T::push_buffer();
   selector = selector_name + "().";
-  UniqueIDSerializer::do_render( class_name:link_serializer.first_name, accessor_name:selector + second_accessor_value );
+  UniqueIDSerializer::do_render( class_name:link_serializer.first_name, 
+                                 accessor_name:selector + link_serializer.second_id_accessor );
   second_out = T::body();
   T::pop_buffer();
   T::include(file:"loader/t.slinkserializer.def.java");
