@@ -1109,6 +1109,7 @@ for each rel in rels
                                                                      selected.path == ::containerMarkingPath( pe:form_pe ) + "::" + form_o_obj.Name and
                                                                      selected.feature_name == "NonPersistent" );
   if ( empty part_non_persistent_mark and empty form_non_persistent_mark )
+  	::transformLinkSerializer( rel:rel, pop_loader: pop_loader );
     ::transformBatchRelator( rel:rel, pop_loader:pop_loader );
   end if;
 end for;
@@ -1452,6 +1453,88 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("e38ea822-4941-4421-a460-fe7069ad1795",
+	1,
+	"393d1b5b-5425-48d1-901b-df557c6670b6",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("17d24049-21ef-4eeb-a70b-6cda6b167a20",
+	"00000000-0000-0000-0000-000000000000",
+	'transformLinkSerializer',
+	'',
+	'pop_loader = param.pop_loader;
+relation = param.rel;
+
+select one formclass related by relation->Class[R435];
+select one partclass related by relation->Class[R434];
+
+// Associative relationships are, currently, decomposed into two simple (binary) associations - related reflexively.
+// If this case is detected, create a triplet serializer capturing the three classes involved.
+select one peer related by relation->Relationship[R436.''is one half of associative''];
+if ( not empty peer )	// relation and peer represent a decomposed associative relationship.
+  select one otherpartclass related by peer->Class[R434];
+  // If this is reflexive, a choice has to be made as to ordering.
+  if ( otherpartclass.name == partclass.name )
+  	// swap the order of the participants at each end of associative.
+  	if ( relation.form_phrase < peer.form_phrase )
+  	  partclass = otherpartclass;
+  	  select one otherpartclass related by relation->Class[R434];
+  	end if;
+  end if;
+
+  // The associative class is the formalizer - see transformAssociation().
+  // Use the formalizing selector, which belongs to the associative class
+
+  select any iselector related by relation->Selector[R4512]->InstanceSelector[R445]
+   where ( selected.formalizer );
+  select one selector related by iselector->Selector[R445];
+  
+  // Populate a serializer in the correct order - ''formalizer'' first.
+  create object instance link_serializer of LinkSerializer;
+  link_serializer.rel_num = relation.num;
+  relate link_serializer to pop_loader across R3019;
+  link_serializer.first_name = formclass.name;
+  link_serializer.second_name = partclass.name;
+  link_serializer.reference_name = selector.name;
+  
+  create object instance triplet of TripletSerializer;
+  relate triplet to link_serializer across R3020;
+  triplet.third_name = otherpartclass.name;
+
+  // Find the formalizing selector for the other half of the asssociative
+  select any iselector related by peer->Selector[R4512]->InstanceSelector[R445]
+   where ( selected.formalizer );
+  select one selector related by iselector->Selector[R445];
+  triplet.reference_name = selector.name;
+end if;
+
+
+',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	1);
+INSERT INTO S_SPARM
+	VALUES ("c9ae5a8d-7f99-4e0a-a78a-021a1a6ca367",
+	"17d24049-21ef-4eeb-a70b-6cda6b167a20",
+	'rel',
+	"de621c98-0a90-469f-ae15-5039dd46e5e2",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("06284292-fe82-461b-b3bc-41efbed294f8",
+	"17d24049-21ef-4eeb-a70b-6cda6b167a20",
+	'pop_loader',
+	"6b220e4e-1f35-4631-a0b4-89a2f4a0e8b2",
+	0,
+	'',
+	"c9ae5a8d-7f99-4e0a-a78a-021a1a6ca367",
+	'');
+INSERT INTO PE_PE
+	VALUES ("17d24049-21ef-4eeb-a70b-6cda6b167a20",
 	1,
 	"393d1b5b-5425-48d1-901b-df557c6670b6",
 	"00000000-0000-0000-0000-000000000000",

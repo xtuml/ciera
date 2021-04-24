@@ -7,6 +7,48 @@ INSERT INTO O_OBJ
 	'TripletSerializer',
 	'',
 	"00000000-0000-0000-0000-000000000000");
+INSERT INTO O_TFR
+	VALUES ("6fd03f14-a903-41a2-bbd8-1f4e23855ff5",
+	"17f5c054-510f-4e1f-80a0-9d6a951db148",
+	'render_def',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'// Render the definition of the method which serializes a single instance of binary association.
+
+select one link_serializer related by self->LinkSerializer[R3020];
+class_name = link_serializer.first_name;
+referred_name = link_serializer.second_name;
+
+rnum_str =  STRING::itoa( i: link_serializer.rel_num );
+selector_name = link_serializer.reference_name;
+
+
+T::push_buffer();
+UniqueIDSerializer::do_render( class_name:class_name, 
+                               accessor_name:link_serializer.get_id_accessor( class_name:class_name ));
+first_out = T::body();
+T::pop_buffer();
+T::push_buffer();
+selector = selector_name + "().";
+UniqueIDSerializer::do_render( class_name:class_name, 
+                               accessor_name:selector + link_serializer.get_id_accessor( class_name: link_serializer.second_name ) );
+second_out = T::body();
+T::pop_buffer();
+
+T::push_buffer();
+selector = self.reference_name + "().";
+UniqueIDSerializer::do_render( class_name:class_name, 
+                               accessor_name:selector + link_serializer.get_id_accessor( class_name:self.third_name ) );
+third_out = T::body();
+T::pop_buffer();
+T::include(file:"loader/t.tlinkserializer.def.java");
+',
+	1,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	0,
+	1);
 INSERT INTO O_REF
 	VALUES ("17f5c054-510f-4e1f-80a0-9d6a951db148",
 	"4ee77a1c-599d-4ea8-93ac-82e28ec6a0fe",
@@ -56,6 +98,42 @@ INSERT INTO O_ATTR
 	'rel_num',
 	0,
 	"ba5eda7a-def5-0000-0000-000000000007",
+	'',
+	'');
+INSERT INTO O_NBATTR
+	VALUES ("6c8a818d-e13b-4198-a4eb-afaf26e5f5a9",
+	"17f5c054-510f-4e1f-80a0-9d6a951db148");
+INSERT INTO O_BATTR
+	VALUES ("6c8a818d-e13b-4198-a4eb-afaf26e5f5a9",
+	"17f5c054-510f-4e1f-80a0-9d6a951db148");
+INSERT INTO O_ATTR
+	VALUES ("6c8a818d-e13b-4198-a4eb-afaf26e5f5a9",
+	"17f5c054-510f-4e1f-80a0-9d6a951db148",
+	"69d194c5-461a-4471-b6dc-f828eaf1d74f",
+	'third_name',
+	'',
+	'',
+	'third_name',
+	0,
+	"ba5eda7a-def5-0000-0000-000000000004",
+	'',
+	'');
+INSERT INTO O_NBATTR
+	VALUES ("69d0dc34-b56c-49a6-92a1-4bb5d25af318",
+	"17f5c054-510f-4e1f-80a0-9d6a951db148");
+INSERT INTO O_BATTR
+	VALUES ("69d0dc34-b56c-49a6-92a1-4bb5d25af318",
+	"17f5c054-510f-4e1f-80a0-9d6a951db148");
+INSERT INTO O_ATTR
+	VALUES ("69d0dc34-b56c-49a6-92a1-4bb5d25af318",
+	"17f5c054-510f-4e1f-80a0-9d6a951db148",
+	"6c8a818d-e13b-4198-a4eb-afaf26e5f5a9",
+	'reference_name',
+	'',
+	'',
+	'reference_name',
+	0,
+	"ba5eda7a-def5-0000-0000-000000000004",
 	'',
 	'');
 INSERT INTO O_ID
