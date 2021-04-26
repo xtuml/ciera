@@ -18,12 +18,17 @@ INSERT INTO O_TFR
 	1,
 	'// Render an invocation of a association serialization method.
 
-class_name = self.first_name;
-selector_name = self.reference_name;
+class_name = self.form_name;
+selector_name = self.reference_name;  // for compatibility, for now
+select any first_ref related by self->Reference[R3023.''has in order'']
+ where ( selected.seq_num == 1 );
+if ( not_empty first_ref )
+  selector_name = first_ref.reference_name;
+end if;
 T::include(file:"loader/t.linkserializer.java");',
 	1,
 	'',
-	"00000000-0000-0000-0000-000000000000",
+	"d776feff-1873-426f-b7fb-0547d7f3366a",
 	0,
 	0);
 INSERT INTO O_TFR
@@ -47,7 +52,7 @@ Return the name of the method which is invoked to ''get'' the identifier value.'
  end if;',
 	1,
 	'',
-	"0018c1ec-9a6a-4909-a667-d2c71f1b9f70",
+	"00000000-0000-0000-0000-000000000000",
 	0,
 	1);
 INSERT INTO O_TPARM
@@ -66,7 +71,49 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'select one single_couplet related by self->CoupletLinkSerializer[R3020]->SingleCoupletSerializer[R3021];
+	'select any ref related by self->Reference[R3023.''has in order'']
+ where ( selected.seq_num == 1 );
+select any ref2 related by self->Reference[R3023.''has in order'']
+ where ( selected.seq_num == 2 );
+self.link_type = "LINK2 ";
+if ( not_empty ref2 )
+  self.link_type = "LINK3 ";
+end if;
+rnum_str =  STRING::itoa( i: self.rel_num );
+if ( not_empty ref)  // just until they are all done this way @TODO
+  select one singleref related by ref->SingleReference[R3022];
+  init = "//";
+  if ( not_empty singleref )
+  	T::push_buffer();
+  	singleref.render_init();
+  	init = T::body();
+  	T::pop_buffer();
+  else
+  end if;
+
+  T::push_buffer();
+  UniqueIDSerializer::do_render( class_name:self.form_name, 
+                               accessor_name:self.get_id_accessor( class_name:self.form_name ));
+  self_serialize = T::body();
+  T::pop_buffer();
+
+  T::push_buffer();
+  ref.render_def();
+  select any ref2 related by self->Reference[R3023.''has in order'']
+   where ( selected.seq_num == 2 );
+  if ( not_empty ref2 )
+  	ref2.render_def();
+  end if;
+  links = T::body();
+  T::pop_buffer();
+
+  class_name = self.form_name;
+  selector_name = ref.reference_name;
+  T::include(file:"loader/t.linkserializer.def.java");
+  return;
+end if;
+
+select one single_couplet related by self->CoupletLinkSerializer[R3020]->SingleCoupletSerializer[R3021];
 if ( not_empty single_couplet )
   single_couplet.render_def();
 else
@@ -80,7 +127,7 @@ else
 end if;',
 	1,
 	'',
-	"d776feff-1873-426f-b7fb-0547d7f3366a",
+	"0018c1ec-9a6a-4909-a667-d2c71f1b9f70",
 	0,
 	2);
 INSERT INTO O_REF
@@ -208,10 +255,10 @@ INSERT INTO O_ATTR
 	VALUES ("ec9edbc3-3605-47d1-965a-8f15e78c89cc",
 	"4ee77a1c-599d-4ea8-93ac-82e28ec6a0fe",
 	"30d8fde0-3666-4a19-a2be-1ae8834842a2",
-	'first_name',
+	'form_name',
 	'The name of the class whose identifier is first in order in persisted link data.',
 	'',
-	'first_name',
+	'form_name',
 	0,
 	"ba5eda7a-def5-0000-0000-000000000004",
 	'',
@@ -248,6 +295,24 @@ INSERT INTO O_ATTR
 	'The name of the class whose identifier is second in order in persisted link data.',
 	'',
 	'second_name',
+	0,
+	"ba5eda7a-def5-0000-0000-000000000004",
+	'',
+	'');
+INSERT INTO O_NBATTR
+	VALUES ("4adc8bf1-6588-4762-8406-179c4fae10a1",
+	"4ee77a1c-599d-4ea8-93ac-82e28ec6a0fe");
+INSERT INTO O_BATTR
+	VALUES ("4adc8bf1-6588-4762-8406-179c4fae10a1",
+	"4ee77a1c-599d-4ea8-93ac-82e28ec6a0fe");
+INSERT INTO O_ATTR
+	VALUES ("4adc8bf1-6588-4762-8406-179c4fae10a1",
+	"4ee77a1c-599d-4ea8-93ac-82e28ec6a0fe",
+	"3da4858b-1142-407d-ae38-8e08b3063647",
+	'link_type',
+	'',
+	'',
+	'link_type',
 	0,
 	"ba5eda7a-def5-0000-0000-000000000004",
 	'',

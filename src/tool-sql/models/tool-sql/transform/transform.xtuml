@@ -1397,10 +1397,10 @@ for each iselector in iselectors
       create object instance link_serializer of LinkSerializer;
       relate link_serializer to pop_loader across R3019;
       if ( formalizer_first )
-        link_serializer.first_name = obj.name;
+        link_serializer.form_name = obj.name;
         link_serializer.second_name = part1class.name;
       else
-        link_serializer.first_name = part1class.name;
+        link_serializer.form_name = part1class.name;
         link_serializer.second_name = obj.name;
       end if;
       link_serializer.reference_name = selector.name;
@@ -1493,19 +1493,35 @@ if ( not empty peer )	// relation and peer represent a decomposed associative re
   create object instance link_serializer of LinkSerializer;
   link_serializer.rel_num = relation.num;
   relate link_serializer to pop_loader across R3019;
-  link_serializer.first_name = formclass.name;
-  link_serializer.second_name = partclass.name;
-  link_serializer.reference_name = selector.name;
+  link_serializer.form_name = formclass.name;
+//  link_serializer.second_name = partclass.name;
+//  link_serializer.reference_name = selector.name;
+  create object instance first_ref of Reference;
+  first_ref.seq_num = 1;
+  relate link_serializer to first_ref across R3023;
+  first_ref.reference_name = selector.name;
+  first_ref.participant_class_name = partclass.name;
+  create object instance single of SingleReference;
+  relate single to first_ref across R3022;
   
-  create object instance triplet of TripletSerializer;
-  relate triplet to link_serializer across R3020;
-  triplet.third_name = otherpartclass.name;
+//  create object instance triplet of TripletSerializer;
+//  relate triplet to link_serializer across R3020;
+//  triplet.third_name = otherpartclass.name;
 
   // Find the formalizing selector for the other half of the asssociative
   select any iselector related by peer->Selector[R4512]->InstanceSelector[R445]
    where ( selected.formalizer );
   select one selector related by iselector->Selector[R445];
-  triplet.reference_name = selector.name;
+//  triplet.reference_name = selector.name;
+
+  create object instance second_ref of Reference;
+  second_ref.seq_num = 2;
+  relate link_serializer to second_ref across R3023;
+  second_ref.reference_name = selector.name;
+  second_ref.participant_class_name = otherpartclass.name;
+  create object instance single of SingleReference;
+  relate single to second_ref across R3022;
+  
 end if;
 
 
