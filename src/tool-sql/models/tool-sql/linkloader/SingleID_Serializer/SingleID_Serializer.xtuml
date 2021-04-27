@@ -5,7 +5,7 @@ INSERT INTO O_OBJ
 	'SingleID_Serializer',
 	7,
 	'SingleID_Serializer',
-	'A reference to a single instance of a participating class.',
+	'Generates code to follow a reference to a single instance of a participating class and serialize its ID.',
 	"00000000-0000-0000-0000-000000000000");
 INSERT INTO O_TFR
 	VALUES ("7d92dae4-8f07-43fb-9c3e-f067ff8ef7a9",
@@ -16,10 +16,10 @@ INSERT INTO O_TFR
 	1,
 	'// Render part of a serialization method: serialize the id of an instance of a referred-to class.
 
-select one ref related by self->Reference[R3022];
-selector_name = ref.reference_name;
-select one link_serializer related by ref->LinkSerializer[R3023.''is referred to by''];
-class_name = link_serializer.form_name;
+select one class related by self->ReferencedID_serializer[R3025]->Participant[R3024.''refers to''];
+select one link_serializer related by class->LinkSerializer[R3023.''has instance identifiers serialized by''];
+class_name = class.class_name;
+select any refered_class related by class->Participant[R3024.''refers to'']; // need to soecify number
 /*
 link_type = link_serializer.link_type;
 
@@ -30,9 +30,9 @@ form_serialize = T::body();
 T::pop_buffer();
 */
 T::push_buffer();
-selector = selector_name + "().";
+selector = self.reference_name + "().";
 UniqueIDSerializer::do_render( class_name:class_name, 
-                               accessor_name:selector + link_serializer.get_id_accessor( class_name:ref.participant_class_name ) );
+                               accessor_name:selector + link_serializer.get_id_accessor( class_name:refered_class.class_name ) );
 ref_out = T::body();
 T::pop_buffer();
 T::include(file:"loader/t.slinkserializer.def2.java");',
@@ -41,6 +41,15 @@ T::include(file:"loader/t.slinkserializer.def2.java");',
 	"00000000-0000-0000-0000-000000000000",
 	0,
 	1);
+INSERT INTO O_TPARM
+	VALUES ("bce87ab1-fad5-44ce-8ca0-9abeba64d1f9",
+	"7d92dae4-8f07-43fb-9c3e-f067ff8ef7a9",
+	'seq_num',
+	"ba5eda7a-def5-0000-0000-000000000002",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
 INSERT INTO O_TFR
 	VALUES ("a904bce2-3b22-41a2-825b-90beacb2d2bc",
 	"0dc876a1-4112-4afd-b496-d2d898fbc3ec",
@@ -48,8 +57,9 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'select one class related by self->link_segment[R3025]->Participant[R3024.''is linked from''];
-select one link_serializer related by class->LinkSerializer[R3023.''has links serialized by''];
+	'
+select one class related by self->ReferencedID_serializer[R3025]->Participant[R3024.''refers to''];
+select one link_serializer related by class->LinkSerializer[R3023.''has instance identifiers serialized by''];
 selector_name = self.reference_name;
 class_name = class.class_name;;
 link_type = link_serializer.link_type;
@@ -60,24 +70,6 @@ T::include(file:"loader/t.slinkserializer.init.def.java");',
 	"7d92dae4-8f07-43fb-9c3e-f067ff8ef7a9",
 	0,
 	2);
-INSERT INTO O_NBATTR
-	VALUES ("a0142725-958f-4342-9b10-91875ad24aca",
-	"0dc876a1-4112-4afd-b496-d2d898fbc3ec");
-INSERT INTO O_BATTR
-	VALUES ("a0142725-958f-4342-9b10-91875ad24aca",
-	"0dc876a1-4112-4afd-b496-d2d898fbc3ec");
-INSERT INTO O_ATTR
-	VALUES ("a0142725-958f-4342-9b10-91875ad24aca",
-	"0dc876a1-4112-4afd-b496-d2d898fbc3ec",
-	"00000000-0000-0000-0000-000000000000",
-	'reference_name',
-	'',
-	'',
-	'reference_name',
-	0,
-	"ba5eda7a-def5-0000-0000-000000000002",
-	'',
-	'');
 INSERT INTO O_ID
 	VALUES (0,
 	"0dc876a1-4112-4afd-b496-d2d898fbc3ec");
