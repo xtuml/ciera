@@ -17,14 +17,14 @@ INSERT INTO O_TFR
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'// Render an invocation of a association serialization method.
-select any first related by self->Participant[R3023.''serializes instance identifiers for'']
- where ( selected.ID_order == 1 );
-class_name = first.class_name;
-select any second related by self->Participant[R3023.''serializes instance identifiers for'']
- where ( selected.ID_order == 2 );
-select one ref related by second->ReferencedID_serializer[R3024.''is referred to''];
-selector_name = ref.reference_name;  // for compatibility, for now
-rnum_str =  STRING::itoa( i: self.rel_num );
+
+class_name = self.form_name;
+selector_name = self.reference_name;  // for compatibility, for now
+select any first_ref related by self->Reference[R3023.''has in order'']
+ where ( selected.seq_num == 1 );
+if ( not_empty first_ref )
+  selector_name = first_ref.reference_name;
+end if;
 T::include(file:"loader/t.linkserializer.java");',
 	1,
 	'',
