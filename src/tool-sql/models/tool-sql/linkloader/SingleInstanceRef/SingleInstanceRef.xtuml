@@ -16,10 +16,11 @@ INSERT INTO O_TFR
 	1,
 	'// Render part of a serialization method: serialize the id of an instance of a referred-to class.
 
-select one class related by self->ReferencedID_serializer[R3025]->Participant[R3024.''refers to''];
-select one link_serializer related by class->LinkSerializer[R3023.''has instance identifiers serialized by''];
-class_name = class.class_name;
-select any refered_class related by class->Participant[R3024.''refers to'']; // need to soecify number
+select one ref related by self->ParticipantReference[R3028];
+select one serializer related by ref->AssociationSerializer[R3023.''provides 2nd id emitted  by''];
+if ( empty serializer )
+  select one serializer related by ref->AssociationSerializer[R3027.''provides 3rd id emitted by''];
+end if;
 /*
 link_type = link_serializer.link_type;
 
@@ -30,9 +31,9 @@ form_serialize = T::body();
 T::pop_buffer();
 */
 T::push_buffer();
-selector = self.reference_name + "().";
-UniqueIDSerializer::do_render( class_name:class_name, 
-                               accessor_name:selector + link_serializer.get_id_accessor( class_name:refered_class.class_name ) );
+selector = ref.reference_name + "().";
+UniqueIDSerializer::do_render( class_name:serializer.formalizing_class_name, 
+                               accessor_name:selector + serializer.get_id_accessor( class_name:ref.class_name ) );
 ref_out = T::body();
 T::pop_buffer();
 T::include(file:"loader/t.slinkserializer.def2.java");',
@@ -49,12 +50,15 @@ INSERT INTO O_TFR
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'
-select one class related by self->ReferencedID_serializer[R3025]->Participant[R3024.''refers to''];
-select one link_serializer related by class->LinkSerializer[R3023.''has instance identifiers serialized by''];
-selector_name = self.reference_name;
-class_name = class.class_name;;
-link_type = link_serializer.link_type;
-rnum_str =  STRING::itoa( i: link_serializer.rel_num );
+select one ref related by self->ParticipantReference[R3028];
+select one serializer related by ref->AssociationSerializer[R3023.''provides 2nd id emitted  by''];
+if ( empty serializer )
+  select one serializer related by ref->AssociationSerializer[R3027.''provides 3rd id emitted by''];
+end if;
+selector_name = ref.reference_name;
+class_name = serializer.formalizing_class_name;
+link_type = serializer.link_statement;
+rnum_str =  STRING::itoa( i: serializer.rel_num );
 T::include(file:"loader/t.slinkserializer.init.def.java");',
 	1,
 	'',

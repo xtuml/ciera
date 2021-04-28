@@ -27,12 +27,18 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'select one class related by self->link_segment[R3025]->Participant[R3024.''is linked from''];
-select one link_serializer related by class->LinkSerializer[R3023.''has links serialized by''];
-selector_name = self.set_type_name;
-class_name = class.class_name;;
-link_type = link_serializer.link_type;
-rnum_str =  STRING::itoa( i: link_serializer.rel_num );
+	'
+select one ref related by self->ParticipantReference[R3028];
+select one serializer related by ref->AssociationSerializer[R3023.''provides 2nd id emitted  by''];
+if ( empty serializer )
+  select one serializer related by ref->AssociationSerializer[R3027.''provides 3rd id emitted by''];
+end if;
+selector_name = ref.reference_name;
+set_type_name = self.set_type_name;
+class_name = serializer.formalizing_class_name;
+iterator = ref.class_name;
+link_type = serializer.link_statement;
+rnum_str =  STRING::itoa( i: serializer.rel_num );
 T::include(file:"loader/t.mlinkserializer.init.def.java");',
 	1,
 	'',

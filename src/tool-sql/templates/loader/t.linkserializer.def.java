@@ -1,4 +1,4 @@
-    public void serialize_${selector_name}( ${class_name} $l{class_name}_inst, PrintStream out ) throws XtumlException {
+    public void serialize_${rnum_str}( ${class_name} $l{class_name}_inst, PrintStream out ) throws XtumlException {
         ${init}
         ${self_serialize}
 ${links} \

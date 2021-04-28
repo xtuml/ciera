@@ -1351,6 +1351,7 @@ INSERT INTO S_SYNC
 
 // Note: parser refuses to allow relationship phrases - 4/22/2021
 
+/*
 obj = param.obj;    // tentatively..
 formalizer_first = true;
 pop_loader = param.pop_loader;
@@ -1427,7 +1428,8 @@ for each iselector in iselectors
       LOG::LogInfo( message:" am++ !! NOT persisting association " + relation.name );  //@TODO
     end if;
   end if;
-end for; ',
+end for; 
+*/',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -1490,19 +1492,19 @@ if ( not empty peer )	// relation and peer represent a decomposed associative re
   select one selector related by iselector->Selector[R445];
   
   // Populate a serializer in the correct order - ''formalizer'' first.
-  create object instance link_serializer of LinkSerializer;
+  create object instance link_serializer of AssociationSerializer ;
   link_serializer.rel_num = relation.num;
   relate link_serializer to pop_loader across R3019;
-  link_serializer.form_name = formclass.name;
+  link_serializer.formalizing_class_name = formclass.name;
 //  link_serializer.second_name = partclass.name;
 //  link_serializer.reference_name = selector.name;
-  create object instance first_ref of Reference;
-  first_ref.seq_num = 1;
-  relate link_serializer to first_ref across R3023;
-  first_ref.reference_name = selector.name;
-  first_ref.participant_class_name = partclass.name;
-  create object instance single of SingleReference;
-  relate single to first_ref across R3022;
+  create object instance ref2 of ParticipantReference;
+
+  relate link_serializer to ref2 across R3023;
+  ref2.reference_name = selector.name;
+  ref2.class_name = partclass.name;
+  create object instance single of SingleInstanceRef;
+  relate single to ref2 across R3028;
   
 //  create object instance triplet of TripletSerializer;
 //  relate triplet to link_serializer across R3020;
@@ -1514,13 +1516,12 @@ if ( not empty peer )	// relation and peer represent a decomposed associative re
   select one selector related by iselector->Selector[R445];
 //  triplet.reference_name = selector.name;
 
-  create object instance second_ref of Reference;
-  second_ref.seq_num = 2;
-  relate link_serializer to second_ref across R3023;
-  second_ref.reference_name = selector.name;
-  second_ref.participant_class_name = otherpartclass.name;
-  create object instance single of SingleReference;
-  relate single to second_ref across R3022;
+  create object instance ref3 of ParticipantReference;
+  relate link_serializer to ref3 across R3027;
+  ref3.reference_name = selector.name;
+  ref3.class_name = otherpartclass.name;
+  create object instance single of SingleInstanceRef;
+  relate single to ref3 across R3028; 
   
 end if;
 
