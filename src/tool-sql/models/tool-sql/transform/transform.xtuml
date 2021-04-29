@@ -593,9 +593,6 @@ while ( not_empty attribute )
   select any attribute related by obj->Attribute[R410] where (index-index_diff == selected.order);
 end while;
 
-// Create serializers for associations that this class participates in.
-//::transformAssociationLoaderSerializer( obj:obj, pop_loader:param.pop_loader ); @TODO
-
 // create a loader and serializer for current_state
 select one sm related by obj->StateMachine[R4750];
 if ( not_empty sm )
@@ -1337,129 +1334,6 @@ INSERT INTO PE_PE
 	"00000000-0000-0000-0000-000000000000",
 	1);
 INSERT INTO S_SYNC
-	VALUES ("e38ea822-4941-4421-a460-fe7069ad1795",
-	"00000000-0000-0000-0000-000000000000",
-	'transformAssociationLoaderSerializer',
-	'',
-	'// Build serializers for any persistable associations that this persistent class participates in.
-// Attach serializers to the component population loader (serializer/loader, really) for subsequent rendering.
-// Preferentially, process selectors (private referential attributes) chosen as ''formalizer'' of the association.
-// ( But, as a precaution against future traversal optimization, process an ''unpaired'' non-formalizing selector )
-// If this persistent class represents an associative class, then presume that both ''ends'' are persistent classes.
-// Otherwise, check for non-persistent marking of the referred-to class before proceeding.
-// Ensure that imports are added to the loader generator to support any set manipulation needed.
-
-// Note: parser refuses to allow relationship phrases - 4/22/2021
-
-/*
-obj = param.obj;    // tentatively..
-formalizer_first = true;
-pop_loader = param.pop_loader;
-select many iselectors related by obj->InstanceSelector[R442];
-for each iselector in iselectors
-  select one selector related by iselector->Selector[R445];
-  select one relation related by selector->Relationship[R4512];
-  select one part1class related by relation->Class[R434];
-  // Optimization check: ensure that this association is represented even if formalizing selector is omitted
-  if ( not iselector.formalizer )
-  	select any formalizer related by relation->Selector[R4512]->InstanceSelector[R445]
-  	 where ( selected.formalizer );
-  	if ( not_empty formalizer )
-      continue;  // formalizing selector will/has take(n) care of this association.
-    else
-      formalizer_first = false;
-      select one part1class related by relation->Class[R435];  // the ''other side'' is actually the formalizer class.
-  	end if;
-  end if;
-  // Associative relationships are, currently, decomposed into two simple (binary) associations - related reflexively.
-  // If this case is detected, create a triplet serializer capturing the three classes involved.
-  select one peer related by relation->Relationship[R436.''is one half of associative''];
-  if ( not empty peer )	// relation and peer represent a decomposed associative relationship.
-  	select one part2class related by peer->Class[R434];
-  	if ( not_empty part1class ) and ( not_empty part2class )
-  	  LOG::LogInfo( message:" am++ add associative triplet link serializer: " + part1class.key_letters + " " + part2class.key_letters + " " + obj.key_letters + " for " + relation.name );
-  	end if;
-  else;
-  	// Check that this is not the other selector in an associative class, already handled above.
-    select one peer related by relation->Relationship[R436.''is other half of associative''];
-    if ( not_empty peer )  // do not evaluate associative triplet twice!
-      continue;
-    end if;
-    // This selector represents a simple binary association
-    // Check that referred_to class is not marked as non-persistent.
-    select one o_obj related by part1class->O_OBJ[R409];
-    select one pe related by o_obj->PE_PE[R8001];
-    marking_path = ::containerMarkingPath( pe:pe ) + "::" + o_obj.Name;
-    select any non_persistent_mark from instances of Mark where ( selected.markable_name == "Model Class" and
-                                                                selected.path == marking_path and
-                                                                selected.feature_name == "NonPersistent" );
-    If ( empty non_persistent_mark )
-      // Populate a serializer in the correct order - ''formalizer'' first.
-      create object instance link_serializer of LinkSerializer;
-      relate link_serializer to pop_loader across R3019;
-      if ( formalizer_first )
-        link_serializer.form_name = obj.name;
-        link_serializer.second_name = part1class.name;
-      else
-        link_serializer.form_name = part1class.name;
-        link_serializer.second_name = obj.name;
-      end if;
-      link_serializer.reference_name = selector.name;
-      link_serializer.rel_num = relation.num;
-      
-      // Determine whether an iterating serializer, for a set-type selector, is needed.
-      create object instance couplet of CoupletLinkSerializer;
-      relate couplet to link_serializer across R3020;
-      if ( selector.multiplicity == Mult::ONE )
-      	create object instance single_couplet of SingleCoupletSerializer;
-      	relate single_couplet to couplet across R3021;
-        LOG::LogInfo( message:" am++ add single valued link serializer for " + selector.name );
-      else
-      	select one set_typ related by selector->TypeReference[R446];
-      	create object instance multi_couplet of MultiCoupletSerializer;
-      	relate multi_couplet to couplet across R3021;
-       	multi_couplet.set_type_name = set_typ.type_name;
-      	select one file related by pop_loader->GeneralFile[R3009]->File[R401];
-        ::addStringToImports( file:file, s:set_typ.type_package + "." + set_typ.type_name, type:ImportType::INT );
-        ::addStringToImports( file:file, s:set_typ.type_package + ".impl." + set_typ.type_name + "Impl", type:ImportType::IMPL );
-        LOG::LogInfo( message:" am++ add multi-valued (set) link serializer for " + selector.name );
-      end if;
-    else 
-      LOG::LogInfo( message:" am++ !! NOT persisting association " + relation.name );  //@TODO
-    end if;
-  end if;
-end for; 
-*/',
-	"ba5eda7a-def5-0000-0000-000000000000",
-	1,
-	'',
-	0,
-	0);
-INSERT INTO S_SPARM
-	VALUES ("26eba11e-8b26-4684-9080-691044cc21b0",
-	"e38ea822-4941-4421-a460-fe7069ad1795",
-	'obj',
-	"a519e323-b117-4a03-9435-b88e56c2443d",
-	0,
-	'',
-	"00000000-0000-0000-0000-000000000000",
-	'');
-INSERT INTO S_SPARM
-	VALUES ("b5cf3148-8317-4c91-bd16-bd91a01581aa",
-	"e38ea822-4941-4421-a460-fe7069ad1795",
-	'pop_loader',
-	"6b220e4e-1f35-4631-a0b4-89a2f4a0e8b2",
-	0,
-	'',
-	"26eba11e-8b26-4684-9080-691044cc21b0",
-	'');
-INSERT INTO PE_PE
-	VALUES ("e38ea822-4941-4421-a460-fe7069ad1795",
-	1,
-	"393d1b5b-5425-48d1-901b-df557c6670b6",
-	"00000000-0000-0000-0000-000000000000",
-	1);
-INSERT INTO S_SYNC
 	VALUES ("17d24049-21ef-4eeb-a70b-6cda6b167a20",
 	"00000000-0000-0000-0000-000000000000",
 	'transformLinkSerializer',
@@ -1477,39 +1351,46 @@ pop_loader = param.pop_loader;
 select one formclass related by relation->Class[R435];  // Deemed formalizer
 select one partclass related by relation->Class[R434];  // First ( and only? ) participant
 
-// Check first for the ''difficult'', tri-part, associative case.
+// Associative relationships are, currently, architecturally, decomposed into two binary relationships, reflexively peer-related.
+// If this case is detected, configure a triplet serializer, capturing all three classes involved.
+
 select one peer related by relation->Relationship[R436.''is one half of associative''];
-if ( not empty peer )	// relation and peer represent a decomposed associative relationship.
-  // Associative relationships are, currently, architecturally, decomposed into two binary relationships, reflexively peer-related.
-  // If this case is detected, configure a triplet serializer, capturing all three classes involved.
+if ( not empty peer )
+
   // Start with the associative class: choose the order of the two selectors as follows:
-  // The ordering, in a non-reflexive case, is decided by traversal of the peer-reflexive in a determined direction.
-  // That distinguishes one of the ''end'' participants.
+  // For a non-reflexive case, order by traversal of the peer-reflexive in a specific direction - "is one half..", above.
+  // That determines the first of the ''end'' participants.
   // In the reflexive case - the same participant at each ''end'' - use an arbitrary discriminant.
+
   select one otherpartclass related by peer->Class[R434];
-  // If this is reflexive, an arbitrary choice has to be made as to ordering; use lexical ordering of relationship phrases.
   if ( otherpartclass.name == partclass.name )
-  	// decide on the emitted order of the participants at each end of the reflexive associative.
+    // This association is reflexive: an arbitrary choice has to be made as to ordering:
+  	// use lexical ordering of the relationship phrases to determine the emitted order of the participant IDs.
   	if ( relation.form_phrase < peer.form_phrase )
   	  partclass = otherpartclass;
   	  select one otherpartclass related by relation->Class[R434];
   	end if;
   end if;
+
+  // Create a serializer for this association; add it to the population serializing data structure.
+  
+  create object instance assoc_serializer of AssociationSerializer ;
+  assoc_serializer.rel_num = relation.num;
+  assoc_serializer.formalizing_class_name = formclass.name;
+  relate assoc_serializer to pop_loader across R3019;
+
   // The associative class is the formalizer - see transformAssociation().
-  // Configure the ''first'' - chosen, as above - formalizing selector from the associative class.
+  // Configure the ''first'' reference - chosen, as above - using the ''selector'' from the associative class.
+  // Note: both references in the associative class are single-valued.
+
   select any iselector related by relation->Selector[R4512]->InstanceSelector[R445]
    where ( selected.formalizer );
   select one selector related by iselector->Selector[R445];
 
-  create object instance assoc_serializer of AssociationSerializer ;
-  assoc_serializer.rel_num = relation.num;
-  relate assoc_serializer to pop_loader across R3019;
-  assoc_serializer.formalizing_class_name = formclass.name;
   create object instance ref2 of ParticipantReference;
-
-  relate assoc_serializer to ref2 across R3023;
   ref2.reference_name = selector.name;
   ref2.class_name = partclass.name;
+  relate ref2 to assoc_serializer across R3023;
   create object instance single of SingleInstanceRef;
   relate single to ref2 across R3028;
   
@@ -1518,11 +1399,11 @@ if ( not empty peer )	// relation and peer represent a decomposed associative re
    where ( selected.formalizer );
   select one selector related by iselector->Selector[R445];
 
-  // Add a paricipant reference for this ''end'' of the associative relationship.
+  // Add a participant reference for this ''end'' of the associative relationship.
   create object instance ref3 of ParticipantReference;
-  relate assoc_serializer to ref3 across R3027;
   ref3.reference_name = selector.name;
   ref3.class_name = otherpartclass.name;
+  relate ref3 to assoc_serializer across R3027;
   create object instance single of SingleInstanceRef;
   relate single to ref3 across R3028;
 else
@@ -1535,19 +1416,20 @@ else
   
   // Configure a serializer for a binary association, starting with the ''formalizing'' class
   // Configure the serializer for either a single referenced instance or a set of instance references.
+  
+  create object instance assoc_serializer of AssociationSerializer ;
+  assoc_serializer.rel_num = relation.num;
+  assoc_serializer.formalizing_class_name = formclass.name;
+  relate assoc_serializer to pop_loader across R3019;
+
   select any iselector related by relation->Selector[R4512]->InstanceSelector[R445]
    where ( selected.formalizer );
   select one selector related by iselector->Selector[R445];
 
-  create object instance assoc_serializer of AssociationSerializer ;
-  assoc_serializer.rel_num = relation.num;
-  relate assoc_serializer to pop_loader across R3019;
-  assoc_serializer.formalizing_class_name = formclass.name;
   create object instance ref2 of ParticipantReference;
-
-  relate assoc_serializer to ref2 across R3023;
   ref2.reference_name = selector.name;
   ref2.class_name = partclass.name;
+  relate ref2 to assoc_serializer across R3023;
   
   // Provide an appropriate code renderer for the reference - single, or multiple (set).
   if ( selector.multiplicity == Mult::ONE )

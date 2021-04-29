@@ -17,11 +17,11 @@ INSERT INTO O_TFR
 	'// Render the code in the loop iterating over the set of references held in the ''selector''.
 
 select one ref related by self->ParticipantReference[R3028];
-
 select one serializer related by ref->AssociationSerializer[R3023.''provides 2nd id emitted  by''];
 if ( empty serializer )
   select one serializer related by ref->AssociationSerializer[R3027.''provides 3rd id emitted by''];
 end if;
+
 class_name = serializer.formalizing_class_name;
 referred_name = ref.class_name;
 selector_name = ref.reference_name;
@@ -32,7 +32,8 @@ UniqueIDSerializer::do_render( class_name:iterator,
                                accessor_name:serializer.get_id_accessor( class_name:referred_name ) );
 ref_out = T::body();
 T::pop_buffer();
-T::include(file:"loader/t.linkserializer.ref.java");',
+
+T::include(file:"loader/t.linkserializer.reference.java");',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",
@@ -48,19 +49,19 @@ INSERT INTO O_TFR
 	'// Render the code to set up a loop iterating over the set of references held in the ''selector''.
 
 select one ref related by self->ParticipantReference[R3028];
-
 select one serializer related by ref->AssociationSerializer[R3023.''provides 2nd id emitted  by''];
 if ( empty serializer )
   select one serializer related by ref->AssociationSerializer[R3027.''provides 3rd id emitted by''];
 end if;
+
 class_name = serializer.formalizing_class_name;
-selector_name = ref.reference_name;
+selector_name = ref.reference_name;  // the ''selector'' is the reference in the referring class.
 set_type_name = self.set_type_name;
 referred_name = ref.class_name;
 iterator = "link";
 link_type = serializer.link_statement;
 rnum_str =  STRING::itoa( i: serializer.rel_num );
-T::include(file:"loader/t.mlinkserializer.init.java");',
+T::include(file:"loader/t.multilinkserializer.init.java");',
 	1,
 	'',
 	"77880b15-9b29-4d96-a8de-d24fbd059f45",
