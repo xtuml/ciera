@@ -594,7 +594,7 @@ while ( not_empty attribute )
 end while;
 
 // Create serializers for associations that this class participates in.
-::transformAssociationLoaderSerializer( obj:obj, pop_loader:param.pop_loader );
+//::transformAssociationLoaderSerializer( obj:obj, pop_loader:param.pop_loader ); @TODO
 
 // create a loader and serializer for current_state
 select one sm related by obj->StateMachine[R4750];
@@ -1464,18 +1464,30 @@ INSERT INTO S_SYNC
 	"00000000-0000-0000-0000-000000000000",
 	'transformLinkSerializer',
 	'',
-	'pop_loader = param.pop_loader;
+	'// Populate an instance of a serializer which will render serialization code for this relationship.
+// Configure the serializer, as required, to hold the data needed to populate the appropriate code generation templates.
+// These serializers will form part of those needed to serialize all population data- instances and associations - see pop_loader.
+// Associations are serialized by emitting the IDs of the participating classes in a determined order.
+// The current implementation requires that the ID of the nominated ''formalizer'' class be first.
+// For binary associations that is a simple decision; tri-part (associative) are more complex.
+
 relation = param.rel;
+pop_loader = param.pop_loader;
 
 select one formclass related by relation->Class[R435];
 select one partclass related by relation->Class[R434];
 
-// Associative relationships are, currently, decomposed into two simple (binary) associations - related reflexively.
-// If this case is detected, create a triplet serializer capturing the three classes involved.
+// Check first for the ''difficult'', tri-part, associative case.
 select one peer related by relation->Relationship[R436.''is one half of associative''];
 if ( not empty peer )	// relation and peer represent a decomposed associative relationship.
+  // Associative relationships are, currently, decomposed into two simple (binary) associations - peer-related reflexively.
+  // If this case is detected, create a triplet serializer capturing the three classes involved.
+  // Start with the associative class: choose the order of the trwo selectors as follows:
+  // The ordering, in a non-reflexive case, is decided by traversal of the peer-reflexive in a determined direction.
+  // That distinguishes one of the ''end'' participants.
+  // In the reflexive case - the same participant at each ''end'' - use an arbitrary discriminant; the ''direction'' phrase.
   select one otherpartclass related by peer->Class[R434];
-  // If this is reflexive, a choice has to be made as to ordering.
+  // If this is reflexive, an arbitrary choice has to be made as to ordering; use lexical ordering of relationship phrases.
   if ( otherpartclass.name == partclass.name )
   	// swap the order of the participants at each end of associative.
   	if ( relation.form_phrase < peer.form_phrase )
@@ -1483,21 +1495,16 @@ if ( not empty peer )	// relation and peer represent a decomposed associative re
   	  select one otherpartclass related by relation->Class[R434];
   	end if;
   end if;
-
   // The associative class is the formalizer - see transformAssociation().
-  // Use the formalizing selector, which belongs to the associative class
-
+  // Configure the ''first'' - chosen, as above - formalizing selector from the associative class
   select any iselector related by relation->Selector[R4512]->InstanceSelector[R445]
    where ( selected.formalizer );
   select one selector related by iselector->Selector[R445];
-  
-  // Populate a serializer in the correct order - ''formalizer'' first.
+
   create object instance link_serializer of AssociationSerializer ;
   link_serializer.rel_num = relation.num;
   relate link_serializer to pop_loader across R3019;
   link_serializer.formalizing_class_name = formclass.name;
-//  link_serializer.second_name = partclass.name;
-//  link_serializer.reference_name = selector.name;
   create object instance ref2 of ParticipantReference;
 
   relate link_serializer to ref2 across R3023;
@@ -1506,25 +1513,52 @@ if ( not empty peer )	// relation and peer represent a decomposed associative re
   create object instance single of SingleInstanceRef;
   relate single to ref2 across R3028;
   
-//  create object instance triplet of TripletSerializer;
-//  relate triplet to link_serializer across R3020;
-//  triplet.third_name = otherpartclass.name;
-
   // Find the formalizing selector for the other half of the asssociative
   select any iselector related by peer->Selector[R4512]->InstanceSelector[R445]
    where ( selected.formalizer );
   select one selector related by iselector->Selector[R445];
-//  triplet.reference_name = selector.name;
 
+  // Add a paricipant reference for this ''end'' of the associative relationship.
   create object instance ref3 of ParticipantReference;
   relate link_serializer to ref3 across R3027;
   ref3.reference_name = selector.name;
   ref3.class_name = otherpartclass.name;
   create object instance single of SingleInstanceRef;
-  relate single to ref3 across R3028; 
-  
-end if;
+  relate single to ref3 across R3028;
+else
+  select one peer related by relation->Relationship[R436.''is other half of associative''];
+  if ( not_empty peer )
+  	return;  // this is the ''other'' side of an associative; ignore: the ''first'' side takes care of serialization
+  end if;
+  // Configure a serializer for a binary association.
+  // Configure serializer for either a single referenced instance or an instance set reference
+ 
+  select any iselector related by relation->Selector[R4512]->InstanceSelector[R445]
+   where ( selected.formalizer );
+  select one selector related by iselector->Selector[R445];
 
+  create object instance link_serializer of AssociationSerializer ;
+  link_serializer.rel_num = relation.num;
+  relate link_serializer to pop_loader across R3019;
+  link_serializer.formalizing_class_name = formclass.name;
+  create object instance ref2 of ParticipantReference;
+
+  relate link_serializer to ref2 across R3023;
+  ref2.reference_name = selector.name;
+  ref2.class_name = partclass.name;
+  if ( selector.multiplicity == Mult::ONE )
+    create object instance single of SingleInstanceRef;
+    relate single to ref2 across R3028;
+  else
+  	create object instance multi of MultiInstanceRef;
+    select one set_typ related by selector->TypeReference[R446];
+  	multi.set_type_name = set_typ.type_name;
+  	relate multi to ref2 across R3028;
+      	select one file related by pop_loader->GeneralFile[R3009]->File[R401];
+        ::addStringToImports( file:file, s:set_typ.type_package + "." + set_typ.type_name, type:ImportType::INT );
+        ::addStringToImports( file:file, s:set_typ.type_package + ".impl." + set_typ.type_name + "Impl", type:ImportType::IMPL );
+  end if;
+end if;
 
 ',
 	"ba5eda7a-def5-0000-0000-000000000000",

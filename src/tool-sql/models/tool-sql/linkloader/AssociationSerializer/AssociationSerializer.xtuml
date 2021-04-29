@@ -66,37 +66,42 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'select one ref2 related by self->ParticipantReference[R3023.''finds 2nd id to emit using''];
+	'// Rendere the method 
+
+select one ref2 related by self->ParticipantReference[R3023.''finds 2nd id to emit using''];
 select one ref3 related by self->ParticipantReference[R3027.''finds 3rd id to emit using''];
 self.link_statement = "LINK2 ";
 if ( not_empty ref3 )
   self.link_statement = "LINK3 ";
 end if;
+
 rnum_str =  STRING::itoa( i: self.rel_num );
-if ( not_empty ref2)  // just until they are all done this way @TODO
-  T::push_buffer();
-  ref2.render_init();
-  init = T::body();
-  T::pop_buffer();
 
-  T::push_buffer();
-  UniqueIDSerializer::do_render( class_name:self.formalizing_class_name, 
+// Render the initialization of the method: either an if-not-null test, or a loop set-up.
+T::push_buffer();
+ref2.render_init();
+init = T::body();   // note this fragment
+T::pop_buffer();
+
+// Render the code to emit the id of the instance of the formalizing class.
+T::push_buffer();
+UniqueIDSerializer::do_render( class_name:self.formalizing_class_name, 
                                accessor_name:self.get_id_accessor( class_name:self.formalizing_class_name ));
-  self_serialize = T::body();
-  T::pop_buffer();
+self_serialize = T::body();  // note this fragment
+T::pop_buffer();
 
-  T::push_buffer();
-  ref2.render_serialization();
-  if ( not_empty ref3 )
-  	ref3.render_serialization();
-  end if;
-  links = T::body();
-  T::pop_buffer();
-
-  class_name = self.formalizing_class_name;
-  T::include(file:"loader/t.linkserializer.def.java");
-  return;
+// Render the code to emit the particpant references(s)
+T::push_buffer();
+ref2.render_serialization();
+if ( not_empty ref3 )
+  ref3.render_serialization();
 end if;
+links = T::body();  // note this fragment
+T::pop_buffer();
+
+// Render the method
+class_name = self.formalizing_class_name;
+T::include(file:"loader/t.linkserializer.def.java");
 ',
 	1,
 	'',
