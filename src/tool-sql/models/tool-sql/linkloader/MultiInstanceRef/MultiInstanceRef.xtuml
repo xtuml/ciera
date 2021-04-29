@@ -14,7 +14,25 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'',
+	'// Render the code in the loop iterating over the set of references held in the ''selector''.
+
+select one ref related by self->ParticipantReference[R3028];
+
+select one serializer related by ref->AssociationSerializer[R3023.''provides 2nd id emitted  by''];
+if ( empty serializer )
+  select one serializer related by ref->AssociationSerializer[R3027.''provides 3rd id emitted by''];
+end if;
+class_name = serializer.formalizing_class_name;
+referred_name = ref.class_name;
+selector_name = ref.reference_name;
+iterator = "link";
+
+T::push_buffer();
+UniqueIDSerializer::do_render( class_name:iterator, 
+                               accessor_name:serializer.get_id_accessor( class_name:referred_name ) );
+ref_out = T::body();
+T::pop_buffer();
+T::include(file:"loader/t.linkserializer.ref.java");',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",
@@ -27,19 +45,22 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'
+	'// Render the code to set up a loop iterating over the set of references held in the ''selector''.
+
 select one ref related by self->ParticipantReference[R3028];
+
 select one serializer related by ref->AssociationSerializer[R3023.''provides 2nd id emitted  by''];
 if ( empty serializer )
   select one serializer related by ref->AssociationSerializer[R3027.''provides 3rd id emitted by''];
 end if;
+class_name = serializer.formalizing_class_name;
 selector_name = ref.reference_name;
 set_type_name = self.set_type_name;
-class_name = serializer.formalizing_class_name;
-iterator = ref.class_name;
+referred_name = ref.class_name;
+iterator = "link";
 link_type = serializer.link_statement;
 rnum_str =  STRING::itoa( i: serializer.rel_num );
-T::include(file:"loader/t.mlinkserializer.init.def.java");',
+T::include(file:"loader/t.mlinkserializer.init.java");',
 	1,
 	'',
 	"77880b15-9b29-4d96-a8de-d24fbd059f45",
@@ -56,16 +77,72 @@ INSERT INTO O_ATTR
 	"7e1a7b05-086b-4241-ba93-108ea0f41991",
 	"00000000-0000-0000-0000-000000000000",
 	'set_type_name',
-	'If this represents an M: relationship, this is the name of the set of referred-to instances.',
+	'As this represents an M: relationship, this is the name of the set of referred-to instances.',
 	'',
 	'set_type_name',
 	0,
 	"ba5eda7a-def5-0000-0000-000000000004",
 	'',
 	'');
+INSERT INTO O_REF
+	VALUES ("7e1a7b05-086b-4241-ba93-108ea0f41991",
+	"77e6323b-cb89-4cc9-a176-7a026870d048",
+	0,
+	"9e1b40e3-efb4-41a0-883b-af4ac698b4dc",
+	"b872ce99-6d48-486d-9f4f-3da98986a3ac",
+	"f71dcc59-a86e-4d2f-b4f7-4ca5b9882ae5",
+	"6259310f-305f-46bc-8787-32e43e28115a",
+	"9f82f6b0-0599-433c-8faf-7b7f3a4234ba",
+	"d78fd167-f946-4d0e-bd01-34257a447cd1",
+	"00000000-0000-0000-0000-000000000000",
+	0,
+	'',
+	'ParticipantReference',
+	'rel_num',
+	'R3028');
+INSERT INTO R_RGO_PROXY
+	VALUES ("7e1a7b05-086b-4241-ba93-108ea0f41991",
+	"b872ce99-6d48-486d-9f4f-3da98986a3ac",
+	"f71dcc59-a86e-4d2f-b4f7-4ca5b9882ae5",
+	'../linkloader.xtuml');
+INSERT INTO O_RTIDA_PROXY
+	VALUES ("9e1b40e3-efb4-41a0-883b-af4ac698b4dc",
+	"77e6323b-cb89-4cc9-a176-7a026870d048",
+	0,
+	"b872ce99-6d48-486d-9f4f-3da98986a3ac",
+	"6259310f-305f-46bc-8787-32e43e28115a",
+	'../linkloader.xtuml');
+INSERT INTO O_RATTR
+	VALUES ("9f82f6b0-0599-433c-8faf-7b7f3a4234ba",
+	"7e1a7b05-086b-4241-ba93-108ea0f41991",
+	"30d8fde0-3666-4a19-a2be-1ae8834842a2",
+	"4ee77a1c-599d-4ea8-93ac-82e28ec6a0fe",
+	1,
+	'rel_num');
+INSERT INTO O_BATTR_PROXY
+	VALUES ("30d8fde0-3666-4a19-a2be-1ae8834842a2",
+	"4ee77a1c-599d-4ea8-93ac-82e28ec6a0fe",
+	'../AssociationSerializer/AssociationSerializer.xtuml');
+INSERT INTO O_ATTR
+	VALUES ("9f82f6b0-0599-433c-8faf-7b7f3a4234ba",
+	"7e1a7b05-086b-4241-ba93-108ea0f41991",
+	"978047aa-b076-47c0-a690-3330d7e24018",
+	'rel_num',
+	'',
+	'',
+	'rel_num',
+	0,
+	"ba5eda7a-def5-0000-0000-000000000007",
+	'',
+	'');
 INSERT INTO O_ID
 	VALUES (0,
 	"7e1a7b05-086b-4241-ba93-108ea0f41991");
+INSERT INTO O_OIDA
+	VALUES ("9f82f6b0-0599-433c-8faf-7b7f3a4234ba",
+	"7e1a7b05-086b-4241-ba93-108ea0f41991",
+	0,
+	'rel_num');
 INSERT INTO O_ID
 	VALUES (1,
 	"7e1a7b05-086b-4241-ba93-108ea0f41991");
