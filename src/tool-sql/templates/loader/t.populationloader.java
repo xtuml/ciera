@@ -22,6 +22,7 @@ ${instance_loaders}        default:
 
     @Override
     public void link2(Integer relNumber, List<Object> instids) throws XtumlException {
+    	System.out.printf("LINK  %d, ID1 = %s, ID2 = %s \n", relNumber, (String)instids.get(0), (String)instids.get(1) );
     }
     @Override
     public void link3(Integer relNumber, List<Object> instids) throws XtumlException {

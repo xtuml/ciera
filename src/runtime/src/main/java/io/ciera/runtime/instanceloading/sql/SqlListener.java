@@ -11,6 +11,7 @@ import io.ciera.runtime.instanceloading.sql.parser.SQLParser.ValueContext;
 import io.ciera.runtime.instanceloading.sql.parser.SQLParser.Link2_statementContext;
 import io.ciera.runtime.instanceloading.sql.parser.SQLParser.Link3_statementContext;
 import io.ciera.runtime.instanceloading.sql.parser.SQLParser.Rel_numberContext;
+import io.ciera.runtime.instanceloading.sql.parser.SQLParser.IdContext;
 import io.ciera.runtime.summit.application.IRunContext;
 import io.ciera.runtime.summit.exceptions.XtumlException;
 
@@ -129,6 +130,14 @@ public class SqlListener extends SQLBaseListener {
         	}
         } else {
             runContext.getLog().error("This is bad"); // TODO
+        }
+    }
+
+    @Override
+    public void exitId(IdContext ctx) {
+        if (null != ctx.STRING()) {
+            String text = ctx.STRING().getText();
+            instids.add(text.substring(1, text.length() - 1).replaceAll("''", "'"));
         }
     }
 }
