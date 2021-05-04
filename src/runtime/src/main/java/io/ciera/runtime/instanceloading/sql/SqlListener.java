@@ -34,13 +34,13 @@ public class SqlListener extends SQLBaseListener {
 
     @Override
     public void exitSql_file(Sql_fileContext ctx) {
-        try {
+/*        try {
             loader.batchRelate();
         } catch (XtumlException e) {
             runContext.getLog().error(e);
             System.exit(1);
             // TODO
-        }
+        } */
     }
 
     @Override
@@ -67,7 +67,7 @@ public class SqlListener extends SQLBaseListener {
     @Override
     public void exitLink2_statement(Link2_statementContext ctx) {
         try {
-//        	System.out.printf("Link $s : %s\n", instids.get(0), instids.get(1) );
+        	System.out.printf("Link %d, $s : %s\n", relNumber, instids.get(0), instids.get(1) );
             loader.link2(relNumber, instids);
         } catch (XtumlException e) {
             runContext.getLog().error(e);

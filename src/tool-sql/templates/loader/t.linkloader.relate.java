@@ -1,3 +1,4 @@
 case ${rnum_str}:
-  ${relates}
+	System.out.printf( "Relating %s\n", ${rnum_str} );
+  ${relates} \
   break;
