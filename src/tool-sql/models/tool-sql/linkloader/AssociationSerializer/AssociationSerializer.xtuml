@@ -46,7 +46,7 @@ Return the name of the method which is invoked to ''get'' the identifier value.'
  end if;',
 	1,
 	'',
-	"00000000-0000-0000-0000-000000000000",
+	"d1909840-553f-4778-89c4-541a2713b91d",
 	0,
 	1);
 INSERT INTO O_TPARM
@@ -111,6 +111,90 @@ T::include(file:"loader/t.linkserializer.method.java");
 	"0018c1ec-9a6a-4909-a667-d2c71f1b9f70",
 	0,
 	2);
+INSERT INTO O_TFR
+	VALUES ("d1909840-553f-4778-89c4-541a2713b91d",
+	"4ee77a1c-599d-4ea8-93ac-82e28ec6a0fe",
+	'create',
+	'',
+	"31bc5737-013c-4254-abcd-60317d8bbe7b",
+	0,
+	'// Create a serializer instance and attach it to the population serializer/loader instance for this component. 
+create object instance assoc_serializer of AssociationSerializer ;
+assoc_serializer.rel_num = param.rel_num;
+assoc_serializer.formalizing_class_name = param.class;
+loader = param.addto;
+relate assoc_serializer to loader across R3019.''renders for'';
+return assoc_serializer;',
+	1,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	0,
+	3);
+INSERT INTO O_TPARM
+	VALUES ("60bbd11d-c629-42ea-9533-21605d05a16a",
+	"d1909840-553f-4778-89c4-541a2713b91d",
+	'rel_num',
+	"ba5eda7a-def5-0000-0000-000000000002",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'The relationship number this serializer is being created for.');
+INSERT INTO O_TPARM
+	VALUES ("770d89d6-cb60-43a1-8d25-b475f5fb83f6",
+	"d1909840-553f-4778-89c4-541a2713b91d",
+	'class',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"60bbd11d-c629-42ea-9533-21605d05a16a",
+	'The name of the class which is deemed to be the formalizer of the relationship.
+The ID of this class will appear first in the emitted IDs in the LINK statement.');
+INSERT INTO O_TPARM
+	VALUES ("e1b8f969-e1aa-4ea2-836b-3f335fee8666",
+	"d1909840-553f-4778-89c4-541a2713b91d",
+	'addto',
+	"6b220e4e-1f35-4631-a0b4-89a2f4a0e8b2",
+	0,
+	'',
+	"770d89d6-cb60-43a1-8d25-b475f5fb83f6",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("6b220e4e-1f35-4631-a0b4-89a2f4a0e8b2",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Population Loader>',
+	'',
+	'',
+	'../../loader/loader.xtuml');
+INSERT INTO S_DT_PROXY
+	VALUES ("31bc5737-013c-4254-abcd-60317d8bbe7b",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<AssociationSerializer>',
+	'',
+	'',
+	'../linkloader.xtuml');
+INSERT INTO O_TFR
+	VALUES ("97b93e3e-02a9-49b0-8b86-364fec50e29e",
+	"4ee77a1c-599d-4ea8-93ac-82e28ec6a0fe",
+	'render_relate',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'rnum_str =  STRING::itoa( i: self.rel_num );
+select one ref2 related by self->ParticipantReference[R3023.''finds 2nd id to emit using''];
+T::push_buffer();
+ref2.render_relate();
+select one ref3 related by self->ParticipantReference[R3023.''finds 2nd id to emit using''];
+if ( not_empty ref3 )
+  ref3.render_relate();
+end if;
+relates = T::body();
+T::pop_buffer();
+T::include(file:"loader/t.linkloader.relate.java");',
+	1,
+	'',
+	"dbdc8771-aae3-4730-896e-68831936d269",
+	0,
+	4);
 INSERT INTO O_NBATTR
 	VALUES ("30d8fde0-3666-4a19-a2be-1ae8834842a2",
 	"4ee77a1c-599d-4ea8-93ac-82e28ec6a0fe");
