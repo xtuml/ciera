@@ -8,8 +8,7 @@ import io.ciera.runtime.instanceloading.sql.parser.SQLParser.Insert_statementCon
 import io.ciera.runtime.instanceloading.sql.parser.SQLParser.Sql_fileContext;
 import io.ciera.runtime.instanceloading.sql.parser.SQLParser.Table_nameContext;
 import io.ciera.runtime.instanceloading.sql.parser.SQLParser.ValueContext;
-import io.ciera.runtime.instanceloading.sql.parser.SQLParser.Link2_statementContext;
-import io.ciera.runtime.instanceloading.sql.parser.SQLParser.Link3_statementContext;
+import io.ciera.runtime.instanceloading.sql.parser.SQLParser.Link_statementContext;
 import io.ciera.runtime.instanceloading.sql.parser.SQLParser.Rel_numberContext;
 import io.ciera.runtime.instanceloading.sql.parser.SQLParser.IdContext;
 import io.ciera.runtime.summit.application.IRunContext;
@@ -60,32 +59,14 @@ public class SqlListener extends SQLBaseListener {
     }
  
     @Override
-    public void enterLink2_statement(Link2_statementContext ctx) {
+    public void enterLink_statement(Link_statementContext ctx) {
         instids = new ArrayList<>();
     }
 
     @Override
-    public void exitLink2_statement(Link2_statementContext ctx) {
+    public void exitLink_statement(Link_statementContext ctx) {
         try {
-        	System.out.printf("Link %d, $s : %s\n", relNumber, instids.get(0), instids.get(1) );
-            loader.link2(relNumber, instids);
-        } catch (XtumlException e) {
-            runContext.getLog().error(e);
-            System.exit(1);
-            // TODO
-        }
-    }
-
-    @Override
-    public void enterLink3_statement(Link3_statementContext ctx) {
-        instids = new ArrayList<>();
-    }
-
-    @Override
-    public void exitLink3_statement(Link3_statementContext ctx) {
-        try {
-//        	System.out.printf("Link $s : %s\n", instids.get(0), instids.get(1) );
-            loader.link3(relNumber, instids);
+            loader.link(relNumber, instids);
         } catch (XtumlException e) {
             runContext.getLog().error(e);
             System.exit(1);

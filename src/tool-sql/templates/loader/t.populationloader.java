@@ -21,15 +21,12 @@ ${instance_loaders}        default:
     }
 
     @Override
-    public void link2(Integer relNumber, List<Object> instids) throws XtumlException {
+    public void link(Integer relNumber, List<Object> instids) throws XtumlException {
     	switch ( relNumber ) {
 ${link_serializer_relates} default:
             //throw new XtumlException( "Cannot relate instances." );
             break;
         }
-    }
-    public void link3(Integer relNumber, List<Object> instids) throws XtumlException {
-
     }
 
     @Override
