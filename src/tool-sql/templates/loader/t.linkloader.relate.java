@@ -1,3 +1,3 @@
-case ${rnum_str}:
-${relates} \
-   break;
+        case ${rnum_str}:
+${relates}\
+            break;
