@@ -5,12 +5,16 @@ INSERT INTO O_OBJ
 	'ParticipantReference',
 	6,
 	'ParticipantReference',
-	'This class captures data about a class that is a participant in the association to be serialized.
-Specifically, it holds the name of the referential attribute in the formalizing class which references 
-a participating class along with the name of the participant class. These values will be used to 
-generate code which traverses an association and emits code which serializes relationship instances.
-Binary associations have oinly one participant class; associatives have two, referenced from the 
-associative class. The subtypes provide for single-valued or multi-valued (set) references.',
+	'This class captures data about a class that is a participant in a persistable association.
+Specifically, it holds the name of the architecture-supplied reference in the deemed formalizing 
+class which references a participating class along with the name of that participant class.
+It also holds the architecture-assigned name of a ''relate'' method which can reinstate an association. 
+These values will be used to generate code which traverses an association and emits code which can:
+a) serialize relationship instance identifiers into persistant data.
+b) invoke ''relate'' methods to reinstate associations using retrieved instance identifiers.
+Binary associations have only one participant class, referenced from the formalizing class.
+Associatives have two, both referenced from the associative class, which is deemed the formalizer.
+The subtypes provide support for single-valued or multi-valued (set) reference serialization.',
 	"00000000-0000-0000-0000-000000000000");
 INSERT INTO O_TFR
 	VALUES ("c3260792-aa51-4afa-b0be-d3ef57901696",
@@ -115,11 +119,11 @@ INSERT INTO O_TFR
 	'// Render a ''relate'' invocation.
 index = 1;
 newvar = TRUE;
-select one serializer related by self->AssociationSerializer[R3023.''provides 2nd id emitted  by''];
+select one serializer related by self->AssociationSerializer[R3023.''processes 2nd id position for''];
 if ( empty serializer )
   index = 2;
-  select one serializer related by self->AssociationSerializer[R3027.''provides 3rd id emitted by''];
-  select one ref2 related by serializer->ParticipantReference[R3023.''finds 2nd id to emit using''];
+  select one serializer related by self->AssociationSerializer[R3027.''processes 3rd id position for''];
+  select one ref2 related by serializer->ParticipantReference[R3023.''renders code for 2nd id position using''];
   if ( self.class_name == ref2.class_name )
   	newvar = FALSE;
   end if;
@@ -146,7 +150,7 @@ INSERT INTO O_BATTR
 INSERT INTO O_ATTR
 	VALUES ("22c1210f-f648-4899-a062-a54560370836",
 	"77e6323b-cb89-4cc9-a176-7a026870d048",
-	"9e1b40e3-efb4-41a0-883b-af4ac698b4dc",
+	"60d81c16-dc4d-4e38-9325-ded9010b7705",
 	'class_name',
 	'The name of the participating class represented by this reference.',
 	'',
@@ -173,87 +177,6 @@ INSERT INTO O_ATTR
 	"ba5eda7a-def5-0000-0000-000000000004",
 	'',
 	'');
-INSERT INTO O_REF
-	VALUES ("77e6323b-cb89-4cc9-a176-7a026870d048",
-	"4ee77a1c-599d-4ea8-93ac-82e28ec6a0fe",
-	1,
-	"30d8fde0-3666-4a19-a2be-1ae8834842a2",
-	"ca1dd037-521e-4bdb-8552-8b17597dd4ee",
-	"566b196e-5a0e-46b7-b2c1-dee9e4ec89f9",
-	"d0892a70-6ef5-4697-9153-a659399b181a",
-	"9e1b40e3-efb4-41a0-883b-af4ac698b4dc",
-	"86ccea6b-a89d-4c16-8d7f-4faad150abed",
-	"00000000-0000-0000-0000-000000000000",
-	0,
-	'',
-	'AssociationSerializer',
-	'rel_num',
-	'R3023.''provides 2nd id emitted  by''');
-INSERT INTO R_RGO_PROXY
-	VALUES ("77e6323b-cb89-4cc9-a176-7a026870d048",
-	"ca1dd037-521e-4bdb-8552-8b17597dd4ee",
-	"566b196e-5a0e-46b7-b2c1-dee9e4ec89f9",
-	'../linkloader.xtuml');
-INSERT INTO O_RTIDA_PROXY
-	VALUES ("30d8fde0-3666-4a19-a2be-1ae8834842a2",
-	"4ee77a1c-599d-4ea8-93ac-82e28ec6a0fe",
-	1,
-	"ca1dd037-521e-4bdb-8552-8b17597dd4ee",
-	"d0892a70-6ef5-4697-9153-a659399b181a",
-	'../linkloader.xtuml');
-INSERT INTO O_REF
-	VALUES ("77e6323b-cb89-4cc9-a176-7a026870d048",
-	"4ee77a1c-599d-4ea8-93ac-82e28ec6a0fe",
-	1,
-	"30d8fde0-3666-4a19-a2be-1ae8834842a2",
-	"08e499d1-5671-47cb-9889-766145ccf8d7",
-	"4612f300-b58a-4966-a16e-994880c1b61a",
-	"e9e35d94-663b-4fca-a9de-203e1a2b6594",
-	"9e1b40e3-efb4-41a0-883b-af4ac698b4dc",
-	"4c28b073-d288-4164-8645-8629ed54a2cf",
-	"86ccea6b-a89d-4c16-8d7f-4faad150abed",
-	0,
-	'',
-	'AssociationSerializer',
-	'rel_num',
-	'R3027.''provides 3rd id emitted by''');
-INSERT INTO R_RGO_PROXY
-	VALUES ("77e6323b-cb89-4cc9-a176-7a026870d048",
-	"08e499d1-5671-47cb-9889-766145ccf8d7",
-	"4612f300-b58a-4966-a16e-994880c1b61a",
-	'../linkloader.xtuml');
-INSERT INTO O_RTIDA_PROXY
-	VALUES ("30d8fde0-3666-4a19-a2be-1ae8834842a2",
-	"4ee77a1c-599d-4ea8-93ac-82e28ec6a0fe",
-	1,
-	"08e499d1-5671-47cb-9889-766145ccf8d7",
-	"e9e35d94-663b-4fca-a9de-203e1a2b6594",
-	'../linkloader.xtuml');
-INSERT INTO O_RATTR
-	VALUES ("9e1b40e3-efb4-41a0-883b-af4ac698b4dc",
-	"77e6323b-cb89-4cc9-a176-7a026870d048",
-	"30d8fde0-3666-4a19-a2be-1ae8834842a2",
-	"4ee77a1c-599d-4ea8-93ac-82e28ec6a0fe",
-	1,
-	'rel_num');
-INSERT INTO O_BATTR_PROXY
-	VALUES ("30d8fde0-3666-4a19-a2be-1ae8834842a2",
-	"4ee77a1c-599d-4ea8-93ac-82e28ec6a0fe",
-	'../AssociationSerializer/AssociationSerializer.xtuml');
-INSERT INTO O_ATTR
-	VALUES ("9e1b40e3-efb4-41a0-883b-af4ac698b4dc",
-	"77e6323b-cb89-4cc9-a176-7a026870d048",
-	"00000000-0000-0000-0000-000000000000",
-	'rel_num',
-	'
-
-',
-	'',
-	'rel_num',
-	0,
-	"ba5eda7a-def5-0000-0000-000000000007",
-	'',
-	'');
 INSERT INTO O_NBATTR
 	VALUES ("799268d5-1b99-4e57-a055-67b37a880ba1",
 	"77e6323b-cb89-4cc9-a176-7a026870d048");
@@ -272,11 +195,92 @@ INSERT INTO O_ATTR
 	"ba5eda7a-def5-0000-0000-000000000004",
 	'',
 	'');
+INSERT INTO O_REF
+	VALUES ("77e6323b-cb89-4cc9-a176-7a026870d048",
+	"4ee77a1c-599d-4ea8-93ac-82e28ec6a0fe",
+	1,
+	"30d8fde0-3666-4a19-a2be-1ae8834842a2",
+	"ca1dd037-521e-4bdb-8552-8b17597dd4ee",
+	"566b196e-5a0e-46b7-b2c1-dee9e4ec89f9",
+	"d0892a70-6ef5-4697-9153-a659399b181a",
+	"60d81c16-dc4d-4e38-9325-ded9010b7705",
+	"444022e1-8f67-4ca9-a6e3-8bca67d5e82c",
+	"00000000-0000-0000-0000-000000000000",
+	0,
+	'',
+	'AssociationSerializer',
+	'rel_num',
+	'R3023.''processes 2nd id position for''');
+INSERT INTO R_RGO_PROXY
+	VALUES ("77e6323b-cb89-4cc9-a176-7a026870d048",
+	"ca1dd037-521e-4bdb-8552-8b17597dd4ee",
+	"566b196e-5a0e-46b7-b2c1-dee9e4ec89f9",
+	'../linkloader.xtuml');
+INSERT INTO O_RTIDA_PROXY
+	VALUES ("30d8fde0-3666-4a19-a2be-1ae8834842a2",
+	"4ee77a1c-599d-4ea8-93ac-82e28ec6a0fe",
+	1,
+	"ca1dd037-521e-4bdb-8552-8b17597dd4ee",
+	"d0892a70-6ef5-4697-9153-a659399b181a",
+	'../linkloader.xtuml');
+INSERT INTO O_REF
+	VALUES ("77e6323b-cb89-4cc9-a176-7a026870d048",
+	"4ee77a1c-599d-4ea8-93ac-82e28ec6a0fe",
+	1,
+	"30d8fde0-3666-4a19-a2be-1ae8834842a2",
+	"08e499d1-5671-47cb-9889-766145ccf8d7",
+	"4612f300-b58a-4966-a16e-994880c1b61a",
+	"e9e35d94-663b-4fca-a9de-203e1a2b6594",
+	"60d81c16-dc4d-4e38-9325-ded9010b7705",
+	"946eb109-289f-4875-b7bb-cdefa367eac2",
+	"444022e1-8f67-4ca9-a6e3-8bca67d5e82c",
+	0,
+	'',
+	'AssociationSerializer',
+	'rel_num',
+	'R3027.''processes 3rd id position for''');
+INSERT INTO R_RGO_PROXY
+	VALUES ("77e6323b-cb89-4cc9-a176-7a026870d048",
+	"08e499d1-5671-47cb-9889-766145ccf8d7",
+	"4612f300-b58a-4966-a16e-994880c1b61a",
+	'../linkloader.xtuml');
+INSERT INTO O_RTIDA_PROXY
+	VALUES ("30d8fde0-3666-4a19-a2be-1ae8834842a2",
+	"4ee77a1c-599d-4ea8-93ac-82e28ec6a0fe",
+	1,
+	"08e499d1-5671-47cb-9889-766145ccf8d7",
+	"e9e35d94-663b-4fca-a9de-203e1a2b6594",
+	'../linkloader.xtuml');
+INSERT INTO O_RATTR
+	VALUES ("60d81c16-dc4d-4e38-9325-ded9010b7705",
+	"77e6323b-cb89-4cc9-a176-7a026870d048",
+	"30d8fde0-3666-4a19-a2be-1ae8834842a2",
+	"4ee77a1c-599d-4ea8-93ac-82e28ec6a0fe",
+	1,
+	'rel_num');
+INSERT INTO O_BATTR_PROXY
+	VALUES ("30d8fde0-3666-4a19-a2be-1ae8834842a2",
+	"4ee77a1c-599d-4ea8-93ac-82e28ec6a0fe",
+	'../AssociationSerializer/AssociationSerializer.xtuml');
+INSERT INTO O_ATTR
+	VALUES ("60d81c16-dc4d-4e38-9325-ded9010b7705",
+	"77e6323b-cb89-4cc9-a176-7a026870d048",
+	"00000000-0000-0000-0000-000000000000",
+	'rel_num',
+	'
+
+',
+	'',
+	'rel_num',
+	0,
+	"ba5eda7a-def5-0000-0000-000000000007",
+	'',
+	'');
 INSERT INTO O_ID
 	VALUES (0,
 	"77e6323b-cb89-4cc9-a176-7a026870d048");
 INSERT INTO O_OIDA
-	VALUES ("9e1b40e3-efb4-41a0-883b-af4ac698b4dc",
+	VALUES ("60d81c16-dc4d-4e38-9325-ded9010b7705",
 	"77e6323b-cb89-4cc9-a176-7a026870d048",
 	0,
 	'rel_num');

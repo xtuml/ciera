@@ -1338,12 +1338,13 @@ INSERT INTO S_SYNC
 	"00000000-0000-0000-0000-000000000000",
 	'transformLinkSerializer',
 	'',
-	'// Populate an instance of a serializer which will render serialization code for this relationship.
-// Configure the serializer, as required, to hold the data needed to populate the appropriate code generation templates.
-// These serializers will form part of those needed to serialize all population data- instances and associations - see pop_loader.
+	'// Populate an instance of a serializer-loader which will render code supporting relationship persistence.
+// Configure the instance to hold the data needed to populate the appropriate code generation templates.
+// These instances augment those which support persistence for population instance data - see pop_loader.
 // Associations are serialized by emitting the IDs of the participating classes in a determined order.
 // The current implementation mandates that the ID of the deemed ''formalizer'' class be first.
 // For binary associations that is a simple decision; ID ordering for tri-part (associative) relationships is more complex.
+// On load, association ''relate'' methods will be invoked with instances identified by ID resolution.
 
 relation = param.rel;
 pop_loader = param.pop_loader;
@@ -1352,7 +1353,7 @@ select one formclass related by relation->Class[R435];  // Deemed formalizer
 select one partclass related by relation->Class[R434];  // First ( and only? ) participant
 
 // Associative relationships are, currently, architecturally, decomposed into two binary relationships, reflexively peer-related.
-// If this case is detected, configure a triplet serializer, capturing all three classes involved.
+// If this case is detected, configure a triplet serializer-loader, capturing all three classes involved.
 
 select one peer related by relation->Relationship[R436.''is one half of associative''];
 if ( not empty peer )
@@ -1372,7 +1373,7 @@ if ( not empty peer )
   	end if;
   end if;
 
-  // Create a serializer for this association; add it to the population serializing data structure.
+  // Create a serializer-loader for this association; add it to the population data structure.
   serializer = AssociationSerializer::create( rel_num:relation.num, class:formclass.name, addto:pop_loader );
 
   // The associative class is the formalizer - see transformAssociation().
@@ -1406,12 +1407,9 @@ else
   	return;  // !! This is the ''other'' side of an associative; ignore: the ''first'' side takes care of serialization
   end if;
   
-  // Configure a serializer for a binary association, starting with the ''formalizing'' class
-  // Configure the serializer for either a single referenced instance or a set of instance references.
-  
+  // Configure a serializer-loader for a binary association, starting with the ''formalizing'' class
+  // Configure for either a single referenced instance or a set of instance references.
   serializer = AssociationSerializer::create( rel_num:relation.num, class:formclass.name, addto:pop_loader );
-  // Also, configure a loader which will re-establish the association between loaded instances.
-  loader = AssociationLoader::create( rel_num:relation.num, addto:pop_loader ); 
 
   select any iselector related by relation->Selector[R4512]->InstanceSelector[R445]
    where ( selected.formalizer );
@@ -1424,17 +1422,13 @@ else
   if ( selector.multiplicity == Mult::ONE )
     create object instance single of SingleInstanceRef;
     relate single to ref2 across R3028;
-    // create a complementary binary association loader
-    create object instance couplet of BinaryLoader;
-    relate couplet to loader across R3029;
-    couplet.relation_name = relation.name;
   else
   	create object instance multi of MultiInstanceRef;
-  	// The set type of this reference will be needed by the rendering template
+  	// The set type of this reference will be needed for iteration by the serializing template
     select one set_typ related by selector->TypeReference[R446];
   	multi.set_type_name = set_typ.type_name;
   	relate multi to ref2 across R3028;
-  	// Imports to support the set manipulation are required in the generated method.
+  	// Imports to support the set manipulation required in the generated serializing method.
     select one file related by pop_loader->GeneralFile[R3009]->File[R401];
     ::addStringToImports( file:file, s:set_typ.type_package + "." + set_typ.type_name, type:ImportType::INT );
     ::addStringToImports( file:file, s:set_typ.type_package + ".impl." + set_typ.type_name + "Impl", type:ImportType::IMPL );
