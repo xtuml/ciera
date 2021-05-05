@@ -34,7 +34,7 @@ else
 end if;',
 	1,
 	'',
-	"b4cb8f0f-ae9f-46d9-928e-136c2c282273",
+	"5dc99b52-393d-4c87-b008-97310b2ad363",
 	0,
 	2);
 INSERT INTO O_TFR
@@ -127,17 +127,17 @@ INSERT INTO O_TFR
 index = 1;      // indicate that the 2nd ID ( in a 0-based list ) is the participant.
 newvar = TRUE;  // indicate that a variable declaration is required.
 
-select one serializer related by self->AssociationSerializer[R3023.''processes 2nd id position for''];
-if ( empty serializer )  // this must represent the 3rd ID in an associative relationship.
+select one deserializer related by self->AssociationSerializer[R3023.''processes 2nd id position for''];
+if ( empty deserializer )  // this must represent the 3rd ID in an associative relationship.
   index = 2;
-  select one serializer related by self->AssociationSerializer[R3027.''processes 3rd id position for''];
-  select one ref2 related by serializer->ParticipantReference[R3023.''renders code for 2nd id position using''];
+  select one deserializer related by self->AssociationSerializer[R3027.''processes 3rd id position for''];
+  select one ref2 related by deserializer->ParticipantReference[R3023.''renders code for 2nd id position using''];
   if ( self.class_name == ref2.class_name )
   	newvar = FALSE;  // reflexive - do not re-declare participant.
   end if;
 end if;
 
-form_class = serializer.formalizing_class_name;
+form_class = deserializer.formalizing_class_name;
 formvar = form_class + STRING::itoa( i: self.rel_num );
 part_class = self.class_name;
 partvar = part_class +  STRING::itoa( i: self.rel_num ) + "_p";  // distinguish participant variable.
@@ -149,6 +149,31 @@ T::include(file:"loader/t.linkloader.ref.relate.java");',
 	"3df2c5af-7188-4391-b92b-2022650ddff5",
 	0,
 	4);
+INSERT INTO O_TFR
+	VALUES ("5dc99b52-393d-4c87-b008-97310b2ad363",
+	"77e6323b-cb89-4cc9-a176-7a026870d048",
+	'get_serializer',
+	'',
+	"31bc5737-013c-4254-abcd-60317d8bbe7b",
+	1,
+	'// Find the related serializer-loader.
+select one serializer related by self->AssociationSerializer[R3023.''processes 2nd id position for''];
+if ( empty serializer )
+  select one serializer related by self->AssociationSerializer[R3027.''processes 3rd id position for''];
+end if;
+return serializer;',
+	1,
+	'',
+	"b4cb8f0f-ae9f-46d9-928e-136c2c282273",
+	0,
+	5);
+INSERT INTO S_DT_PROXY
+	VALUES ("31bc5737-013c-4254-abcd-60317d8bbe7b",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<AssociationSerializer>',
+	'',
+	'',
+	'../linkloader.xtuml');
 INSERT INTO O_NBATTR
 	VALUES ("22c1210f-f648-4899-a062-a54560370836",
 	"77e6323b-cb89-4cc9-a176-7a026870d048");
@@ -274,7 +299,7 @@ INSERT INTO O_BATTR_PROXY
 INSERT INTO O_ATTR
 	VALUES ("60d81c16-dc4d-4e38-9325-ded9010b7705",
 	"77e6323b-cb89-4cc9-a176-7a026870d048",
-	"00000000-0000-0000-0000-000000000000",
+	"742efea0-3df5-41c7-81f2-5a2d1fa8faf6",
 	'rel_num',
 	'
 
@@ -285,14 +310,32 @@ INSERT INTO O_ATTR
 	"ba5eda7a-def5-0000-0000-000000000007",
 	'',
 	'');
+INSERT INTO O_NBATTR
+	VALUES ("742efea0-3df5-41c7-81f2-5a2d1fa8faf6",
+	"77e6323b-cb89-4cc9-a176-7a026870d048");
+INSERT INTO O_BATTR
+	VALUES ("742efea0-3df5-41c7-81f2-5a2d1fa8faf6",
+	"77e6323b-cb89-4cc9-a176-7a026870d048");
+INSERT INTO O_ATTR
+	VALUES ("742efea0-3df5-41c7-81f2-5a2d1fa8faf6",
+	"77e6323b-cb89-4cc9-a176-7a026870d048",
+	"00000000-0000-0000-0000-000000000000",
+	'id',
+	'Added for association formalization, temporarily required for persistence.',
+	'',
+	'id',
+	0,
+	"ba5eda7a-def5-0000-0000-000000000005",
+	'',
+	'');
 INSERT INTO O_ID
 	VALUES (0,
 	"77e6323b-cb89-4cc9-a176-7a026870d048");
 INSERT INTO O_OIDA
-	VALUES ("60d81c16-dc4d-4e38-9325-ded9010b7705",
+	VALUES ("742efea0-3df5-41c7-81f2-5a2d1fa8faf6",
 	"77e6323b-cb89-4cc9-a176-7a026870d048",
 	0,
-	'rel_num');
+	'id');
 INSERT INTO O_ID
 	VALUES (1,
 	"77e6323b-cb89-4cc9-a176-7a026870d048");
