@@ -65,7 +65,9 @@ INSERT INTO O_TFR
 	'',
 	"b2899d84-c794-464f-a8eb-c8ee359fe154",
 	0,
-	'create object instance ref of ParticipantReference;
+	'// Create an instance.
+
+create object instance ref of ParticipantReference;
 ref.reference_name = param.refname;
 ref.class_name = param.class;
 ref.rel_name = param.rel_name;
@@ -101,7 +103,7 @@ INSERT INTO O_TPARM
 	0,
 	'',
 	"8d55a27d-9d4f-4ccc-bd77-506252df4a46",
-	'');
+	'The architecture-assigned name of the relationship.');
 INSERT INTO S_DT_PROXY
 	VALUES ("b2899d84-c794-464f-a8eb-c8ee359fe154",
 	"00000000-0000-0000-0000-000000000000",
@@ -116,23 +118,29 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'// Render a ''relate'' invocation.
-index = 1;
-newvar = TRUE;
+	'// Render ''relate'' invocation(s) to reconstruct a persisted association.
+// A binary association requires only one method.
+// An associative must relate each participant to the formalizing associative instance.
+// Care must be taken to generate unique names for the participant variables in the rendered code.
+// An association may be reflexive; differentiate between formalizer and participant variables.
+// 
+index = 1;      // indicate that the 2nd ID ( in a 0-based list ) is the participant.
+newvar = TRUE;  // indicate that a variable declaration is required.
+
 select one serializer related by self->AssociationSerializer[R3023.''processes 2nd id position for''];
-if ( empty serializer )
+if ( empty serializer )  // this must represent the 3rd ID in an associative relationship.
   index = 2;
   select one serializer related by self->AssociationSerializer[R3027.''processes 3rd id position for''];
   select one ref2 related by serializer->ParticipantReference[R3023.''renders code for 2nd id position using''];
   if ( self.class_name == ref2.class_name )
-  	newvar = FALSE;
+  	newvar = FALSE;  // reflexive - do not re-declare participant.
   end if;
 end if;
 
 form_class = serializer.formalizing_class_name;
 formvar = form_class + STRING::itoa( i: self.rel_num );
 part_class = self.class_name;
-partvar = part_class +  STRING::itoa( i: self.rel_num ) + "_p";
+partvar = part_class +  STRING::itoa( i: self.rel_num ) + "_p";  // distinguish participant variable.
 rel_name = self.rel_name;
 
 T::include(file:"loader/t.linkloader.ref.relate.java");',
@@ -188,7 +196,8 @@ INSERT INTO O_ATTR
 	"77e6323b-cb89-4cc9-a176-7a026870d048",
 	"dfcdaa3d-db6c-488d-8d46-b4b1c4171e9c",
 	'rel_name',
-	'',
+	'The architecture-generated name of the represented relationship.
+This identifies the ''relate'' method to be invoked when re-instating the association.',
 	'',
 	'rel_name',
 	0,
