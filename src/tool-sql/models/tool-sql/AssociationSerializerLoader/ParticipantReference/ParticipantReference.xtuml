@@ -123,28 +123,17 @@ INSERT INTO O_TFR
 // An associative must relate each participant to the formalizing associative instance.
 // Care must be taken to generate unique names for the participant variables in the rendered code.
 // An association may be reflexive; differentiate between formalizer and participant variables.
+// For an associative reflexive, the participant variable must not be re-declared.
 // 
-index = 1;      // indicate that the 2nd ID ( in a 0-based list ) is the participant - tentatively.
-newvar = TRUE;  // indicate that a variable declaration is required.
-
-select one deserializer related by self->AssociationSerializerLoader[R3023.''processes 2nd id position for''];
-if ( empty deserializer )  // this must represent the 3rd ID in an associative relationship.
-  index = 2;
-  select one deserializer related by self->AssociationSerializerLoader[R3027.''processes 3rd id position for''];
-  select one ref2 related by deserializer->ParticipantReference[R3023.''renders code for 2nd id position using''];
-  if ( self.class_name == ref2.class_name )
-  	newvar = FALSE;  // reflexive - do not re-declare participant.
-  end if;
-end if;
-
-form_class = deserializer.formalizing_class_name;
+form_class = param.form;
 formvar = form_class + STRING::itoa( i: self.rel_num );
 part_class = self.class_name;
 partvar = part_class +  STRING::itoa( i: self.rel_num ) + "_p";  // distinguish participant variable.
 vtyp = part_class + " ";
-if ( not newvar )
-  vtyp = "";
+if ( not param.declare_type )
+  vtyp = "";	      // supress re-declaration of the participant variable for the 2nd relate.
 end if;
+index = param.index;  // ID position in 0-based list from link statement parse.
 rel_name = self.rel_name;
 
 T::include(file:"loader/t.linkloader.ref.relate.java");',
@@ -153,6 +142,34 @@ T::include(file:"loader/t.linkloader.ref.relate.java");',
 	"3df2c5af-7188-4391-b92b-2022650ddff5",
 	0,
 	4);
+INSERT INTO O_TPARM
+	VALUES ("3f0ff3d3-1715-4708-86c8-0d4742eab728",
+	"93bb4e59-a29f-44de-95ec-f24d3a9102ef",
+	'form',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'The name of the association formalizing class.');
+INSERT INTO O_TPARM
+	VALUES ("31a854e8-bea6-46b4-8fe5-f5f74deb69f0",
+	"93bb4e59-a29f-44de-95ec-f24d3a9102ef",
+	'index',
+	"ba5eda7a-def5-0000-0000-000000000002",
+	0,
+	'',
+	"3f0ff3d3-1715-4708-86c8-0d4742eab728",
+	'The position - in a 0-based list - of the participant ID to be related.');
+INSERT INTO O_TPARM
+	VALUES ("ffb66987-d2e2-4f21-aa4a-c19b495c8937",
+	"93bb4e59-a29f-44de-95ec-f24d3a9102ef",
+	'declare_type',
+	"ba5eda7a-def5-0000-0000-000000000001",
+	0,
+	'',
+	"31a854e8-bea6-46b4-8fe5-f5f74deb69f0",
+	'If true, the rendered participant variable needs a type declaration.
+');
 INSERT INTO O_TFR
 	VALUES ("5dc99b52-393d-4c87-b008-97310b2ad363",
 	"77e6323b-cb89-4cc9-a176-7a026870d048",

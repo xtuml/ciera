@@ -185,10 +185,14 @@ INSERT INTO O_TFR
 
 select one ref2 related by self->ParticipantReference[R3023.''renders code for 2nd id position using''];
 T::push_buffer();
-ref2.render_relate();
+ref2.render_relate( form:self.formalizing_class_name, index:1, declare_type:true );
 select one ref3 related by self->ParticipantReference[R3027.''renders code for 3rd id position using''];
 if ( not_empty ref3 )
-  ref3.render_relate();
+  declare = true;  // assumed...
+  if ( ref3.class_name == ref2.class_name )  // reflexive associative relationship.
+  	declare = false;
+  end if;
+  ref3.render_relate( form:self.formalizing_class_name, index:2, declare_type:declare );
 end if;
 relates = T::body();
 T::pop_buffer();
