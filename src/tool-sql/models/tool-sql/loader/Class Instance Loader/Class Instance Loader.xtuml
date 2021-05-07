@@ -34,8 +34,9 @@ T::clear();
 
 select any non_persistent_instance_ids_mark from instances of Mark where ( selected.markable_name == "*" and selected.path == "*" and
                                                                            selected.feature_name == "NonPersistentInstanceIds" );
-if ( not_empty non_persistent_instance_ids_mark )
+//if ( not_empty non_persistent_instance_ids_mark )
   // if instance id is not being loaded, it must be created
+if ( self.loader_name == "CoreSqlLoader" ) // @TODO - needs a mark
   attribute_loaders = "UniqueId.random(), " + attribute_loaders;
 end if;
 
@@ -44,6 +45,7 @@ T::include(file:"loader/t.classinstanceloader.java");',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",
+	0,
 	0);
 INSERT INTO O_REF
 	VALUES ("5946ec73-e425-41fb-b467-c4edc9f05c1d",
