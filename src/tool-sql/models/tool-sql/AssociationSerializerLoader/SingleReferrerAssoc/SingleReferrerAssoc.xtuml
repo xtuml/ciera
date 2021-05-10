@@ -1,0 +1,194 @@
+-- BP 7.1.6 content: ModelClass syschar: 3 persistence-version: 7.1.6
+
+INSERT INTO O_OBJ
+	VALUES ("181cd0fd-c3c7-4e50-a4bb-255b048bfaf4",
+	'SingleReferrerAssoc',
+	9,
+	'SingleReferrerAssoc',
+	'',
+	"00000000-0000-0000-0000-000000000000");
+INSERT INTO O_TFR
+	VALUES ("25948250-6fb4-4b59-9ce4-f44f184e2256",
+	"181cd0fd-c3c7-4e50-a4bb-255b048bfaf4",
+	'render_relate',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'// Render code which invokes the ''relate'' method(s) which re-instantiate a serialized association.
+// Binary associations have a single method.
+// Associative relationships must link both participating instances to the associative instance.
+
+select one ref2 related by self->ReferredToClassProxy[R3030.''renders code for 2nd ID position using''];
+T::push_buffer();
+ref2.render_relate( index:1, declare_type:true );
+select one ref3 related by self->ReferredToClassProxy[R3035.''renders code for 3rd ID position using''];
+if ( not_empty ref3 )
+  declare = true;  // assumed...
+  if ( ref3.referred_to_class_name == ref2.referred_to_class_name )  // reflexive associative relationship.
+  	declare = false;
+  end if;
+  ref3.render_relate( index:2, declare_type:declare );
+end if;
+relates = T::body();
+T::pop_buffer();
+rnum_str =  STRING::itoa( i: self.rel_num );
+T::include(file:"loader/t.linkloader.relate.java");',
+	1,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	0,
+	1);
+INSERT INTO O_TFR
+	VALUES ("8eb58b3d-166b-41ad-b9d7-a32989b0f90c",
+	"181cd0fd-c3c7-4e50-a4bb-255b048bfaf4",
+	'render_serialize',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'// Render a serialization method for an association for which this class represents the deemed formalizer.
+// This may be either an ID couplet, for a binary, or triplet for an associative relationship.
+// The formalizing class ID - represented here - is followed by 2nd and, possibly, 3rd ID''s of participants.
+// Invoke render methods for components of the method body; each result is a code fragment, captured as T::body();
+// Finally, supply the named result fragments to the complete method template.
+
+link_statement = "LINK2 ";
+select one ref2 related by self->ReferredToClassProxy[R3030.''renders code for 2nd ID position using''];
+select one ref3 related by self->ReferredToClassProxy[R3035.''renders code for 3rd ID position using''];
+if ( not_empty ref3 )
+  link_statement = "LINK3 ";
+end if;
+select one serializer related by self->AssociationSerializerLoader[R3029];                       
+rnum_str =  STRING::itoa( i: self.rel_num );
+
+// Render the initialization of the method: either an ''if-not-null'' test, or a loop set-up.
+T::push_buffer();
+ref2.render_init( link_type: link_statement );
+init = T::body();   // note this fragment
+T::pop_buffer();
+
+// Render the code to emit the id of the instance of the formalizing class.
+T::push_buffer();
+UniqueIDSerializer::do_render( class_name:self.referring_class_name,
+                               accessor_name:serializer.get_id_accessor( class_name:self.referring_class_name ) );
+self_serialize = T::body();  // note this fragment
+T::pop_buffer();
+
+// Render the code to emit the participant reference ID(s)
+T::push_buffer();
+ref2.render_serialization();
+if ( not_empty ref3 )
+  ref3.render_serialization();
+end if;
+referred_ids = T::body();  // note this fragment
+T::pop_buffer();
+
+// Render the method
+class_name = self.referring_class_name;
+T::include(file:"loader/t.linkserializer.method.java");
+',
+	1,
+	'',
+	"25948250-6fb4-4b59-9ce4-f44f184e2256",
+	0,
+	2);
+INSERT INTO O_REF
+	VALUES ("181cd0fd-c3c7-4e50-a4bb-255b048bfaf4",
+	"4ee77a1c-599d-4ea8-93ac-82e28ec6a0fe",
+	1,
+	"30d8fde0-3666-4a19-a2be-1ae8834842a2",
+	"668c4339-116b-430e-b890-bd78b43907d0",
+	"819a99e3-a9ee-4920-9e18-df8ba7c06e61",
+	"be1643c6-253d-4b23-8f5d-6d5586fa9818",
+	"de0ca5b5-958a-4b1d-bc01-9a3ec162e1d4",
+	"59089d87-7dea-4e34-8745-bc23c2cd2937",
+	"00000000-0000-0000-0000-000000000000",
+	0,
+	'',
+	'AssociationSerializerLoader',
+	'rel_num',
+	'R3029');
+INSERT INTO R_RGO_PROXY
+	VALUES ("181cd0fd-c3c7-4e50-a4bb-255b048bfaf4",
+	"668c4339-116b-430e-b890-bd78b43907d0",
+	"819a99e3-a9ee-4920-9e18-df8ba7c06e61",
+	'../AssociationSerializerLoader.xtuml');
+INSERT INTO O_RTIDA_PROXY
+	VALUES ("30d8fde0-3666-4a19-a2be-1ae8834842a2",
+	"4ee77a1c-599d-4ea8-93ac-82e28ec6a0fe",
+	1,
+	"668c4339-116b-430e-b890-bd78b43907d0",
+	"be1643c6-253d-4b23-8f5d-6d5586fa9818",
+	'../AssociationSerializerLoader.xtuml');
+INSERT INTO O_RATTR
+	VALUES ("de0ca5b5-958a-4b1d-bc01-9a3ec162e1d4",
+	"181cd0fd-c3c7-4e50-a4bb-255b048bfaf4",
+	"30d8fde0-3666-4a19-a2be-1ae8834842a2",
+	"4ee77a1c-599d-4ea8-93ac-82e28ec6a0fe",
+	1,
+	'rel_num');
+INSERT INTO O_BATTR_PROXY
+	VALUES ("30d8fde0-3666-4a19-a2be-1ae8834842a2",
+	"4ee77a1c-599d-4ea8-93ac-82e28ec6a0fe",
+	'../AssociationSerializerLoader/AssociationSerializerLoader.xtuml');
+INSERT INTO O_ATTR
+	VALUES ("de0ca5b5-958a-4b1d-bc01-9a3ec162e1d4",
+	"181cd0fd-c3c7-4e50-a4bb-255b048bfaf4",
+	"00000000-0000-0000-0000-000000000000",
+	'rel_num',
+	'',
+	'',
+	'rel_num',
+	0,
+	"ba5eda7a-def5-0000-0000-000000000007",
+	'',
+	'');
+INSERT INTO O_NBATTR
+	VALUES ("3baf7c5c-6ee9-44a5-b3ec-0c62172fbc15",
+	"181cd0fd-c3c7-4e50-a4bb-255b048bfaf4");
+INSERT INTO O_BATTR
+	VALUES ("3baf7c5c-6ee9-44a5-b3ec-0c62172fbc15",
+	"181cd0fd-c3c7-4e50-a4bb-255b048bfaf4");
+INSERT INTO O_ATTR
+	VALUES ("3baf7c5c-6ee9-44a5-b3ec-0c62172fbc15",
+	"181cd0fd-c3c7-4e50-a4bb-255b048bfaf4",
+	"de0ca5b5-958a-4b1d-bc01-9a3ec162e1d4",
+	'referring_class_name',
+	'',
+	'',
+	'referring_class_name',
+	0,
+	"ba5eda7a-def5-0000-0000-000000000004",
+	'',
+	'');
+INSERT INTO O_ID
+	VALUES (0,
+	"181cd0fd-c3c7-4e50-a4bb-255b048bfaf4");
+INSERT INTO O_OIDA
+	VALUES ("de0ca5b5-958a-4b1d-bc01-9a3ec162e1d4",
+	"181cd0fd-c3c7-4e50-a4bb-255b048bfaf4",
+	0,
+	'rel_num');
+INSERT INTO O_ID
+	VALUES (1,
+	"181cd0fd-c3c7-4e50-a4bb-255b048bfaf4");
+INSERT INTO O_ID
+	VALUES (2,
+	"181cd0fd-c3c7-4e50-a4bb-255b048bfaf4");
+INSERT INTO PE_PE
+	VALUES ("181cd0fd-c3c7-4e50-a4bb-255b048bfaf4",
+	1,
+	"78d04a20-e30c-4807-be87-809afebf1430",
+	"00000000-0000-0000-0000-000000000000",
+	4);
+INSERT INTO EP_PKG_PROXY
+	VALUES ("78d04a20-e30c-4807-be87-809afebf1430",
+	"654f2273-90dd-487f-aef0-4050978eaf0e",
+	"654f2273-90dd-487f-aef0-4050978eaf0e",
+	'AssociationSerializerLoader',
+	'This package supplements the ''loader'' package, adding support for persistence of associations.
+The classes defined here hold information about the referential attributes which maintain associations.
+The instances are populated as part of the ''transform'' from the architectural model to persistence support.
+The transform process scans the architectural model and saves data which will later be used to generate code.
+The data stored in these instances will be used to ''fill'' various templates which render save/restore method code.',
+	0,
+	'../AssociationSerializerLoader.xtuml');

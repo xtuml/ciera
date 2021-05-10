@@ -2,9 +2,9 @@
 
 INSERT INTO O_OBJ
 	VALUES ("77e6323b-cb89-4cc9-a176-7a026870d048",
-	'ClassReference',
+	'ReferredToClassProxy',
 	6,
-	'ClassReference',
+	'ReferredToClassProxy',
 	'This class captures data about a class that is a participant in a persistable association.
 Specifically, it holds the name of the architecture-supplied reference in the deemed formalizing 
 class which references a participating class along with the name of that participant class.
@@ -27,16 +27,25 @@ INSERT INTO O_TFR
 
 select one sref related by self->SingleInstanceRef[R3028];
 if ( not_empty sref )
-  sref.render_init();
+  sref.render_init( link_type:param.link_type );
 else
   select one mref related by self->MultiInstanceRef[R3028];
-  mref.render_init();
+  mref.render_init( link_type:param.link_type );
 end if;',
 	1,
 	'',
 	"5dc99b52-393d-4c87-b008-97310b2ad363",
 	0,
 	2);
+INSERT INTO O_TPARM
+	VALUES ("29ea5ef0-0294-4732-bfef-61a744ff8694",
+	"c3260792-aa51-4afa-b0be-d3ef57901696",
+	'link_type',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
 INSERT INTO O_TFR
 	VALUES ("3df2c5af-7188-4391-b92b-2022650ddff5",
 	"77e6323b-cb89-4cc9-a176-7a026870d048",
@@ -67,9 +76,9 @@ INSERT INTO O_TFR
 	0,
 	'// Create an instance.
 
-create object instance ref of ClassReference;
+create object instance ref of ReferredToClassProxy;
 ref.reference_name = param.refname;
-ref.class_name = param.class;
+ref.referred_to_class_name = param.class;
 ref.rel_name = param.rel_name;
 return ref;',
 	1,
@@ -107,7 +116,7 @@ INSERT INTO O_TPARM
 INSERT INTO S_DT_PROXY
 	VALUES ("b2899d84-c794-464f-a8eb-c8ee359fe154",
 	"00000000-0000-0000-0000-000000000000",
-	'inst_ref<ClassReference>',
+	'inst_ref<ReferredToClassProxy>',
 	'',
 	'',
 	'../AssociationSerializerLoader.xtuml');
@@ -125,10 +134,11 @@ INSERT INTO O_TFR
 // An association may be reflexive; differentiate between formalizer and participant variables.
 // For an associative reflexive, the participant variable must not be re-declared.
 // 
-form_class = param.form;
-formvar = form_class + STRING::itoa( i: self.rel_num );
-part_class = self.class_name;
-partvar = part_class +  STRING::itoa( i: self.rel_num ) + "_p";  // distinguish participant variable.
+serializer = self.get_serializer();
+form_class = self.get_referring_class();
+formvar = form_class + STRING::itoa( i: serializer.rel_num );
+part_class = self.referred_to_class_name;
+partvar = part_class +  STRING::itoa( i: serializer.rel_num ) + "_p";  // distinguish participant variable.
 vtyp = part_class + " ";
 if ( not param.declare_type )
   vtyp = "";	      // supress re-declaration of the participant variable for the 2nd relate.
@@ -136,21 +146,12 @@ end if;
 index = param.index;  // ID position in 0-based list from link statement parse.
 rel_name = self.rel_name;
 
-T::include(file:"loader/t.linkloader.ref.relate.java");',
+T::include(file:"loader/t.linkloader.ref.relate.java"); ',
 	1,
 	'',
 	"3df2c5af-7188-4391-b92b-2022650ddff5",
 	0,
 	4);
-INSERT INTO O_TPARM
-	VALUES ("3f0ff3d3-1715-4708-86c8-0d4742eab728",
-	"93bb4e59-a29f-44de-95ec-f24d3a9102ef",
-	'form',
-	"ba5eda7a-def5-0000-0000-000000000004",
-	0,
-	'',
-	"00000000-0000-0000-0000-000000000000",
-	'The name of the association formalizing class.');
 INSERT INTO O_TPARM
 	VALUES ("31a854e8-bea6-46b4-8fe5-f5f74deb69f0",
 	"93bb4e59-a29f-44de-95ec-f24d3a9102ef",
@@ -158,7 +159,7 @@ INSERT INTO O_TPARM
 	"ba5eda7a-def5-0000-0000-000000000002",
 	0,
 	'',
-	"3f0ff3d3-1715-4708-86c8-0d4742eab728",
+	"00000000-0000-0000-0000-000000000000",
 	'The position - in a 0-based list - of the participant ID to be related.');
 INSERT INTO O_TPARM
 	VALUES ("ffb66987-d2e2-4f21-aa4a-c19b495c8937",
@@ -177,15 +178,16 @@ INSERT INTO O_TFR
 	'',
 	"31bc5737-013c-4254-abcd-60317d8bbe7b",
 	1,
-	'// Find the related serializer-loader.
-select one serializer related by self->AssociationSerializerLoader[R3023.''processes 2nd id position for''];
+	'// Find the related serializer-loader; this is used to navigate to UniqueId serializer.
+
+select one serializer related by self->SingleReferrerAssoc[R3030.''processes 2nd ID for'']->AssociationSerializerLoader[R3029];
 if ( empty serializer )
-  select one serializer related by self->AssociationSerializerLoader[R3027.''processes 3rd id position for''];
+  select one serializer related by self->SingleReferrerAssoc[R3035.''processes 3rd ID for'']->AssociationSerializerLoader[R3029];
 end if;
 return serializer;',
 	1,
 	'',
-	"b4cb8f0f-ae9f-46d9-928e-136c2c282273",
+	"edd15e81-0696-4ce1-8434-fc4d8106824f",
 	0,
 	5);
 INSERT INTO S_DT_PROXY
@@ -195,6 +197,25 @@ INSERT INTO S_DT_PROXY
 	'',
 	'',
 	'../AssociationSerializerLoader.xtuml');
+INSERT INTO O_TFR
+	VALUES ("edd15e81-0696-4ce1-8434-fc4d8106824f",
+	"77e6323b-cb89-4cc9-a176-7a026870d048",
+	'get_referring_class',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	1,
+	'// Retrieve the name of the referring class.
+
+select one referrer related by self->SingleReferrerAssoc[R3030.''processes 2nd ID for''];
+if ( empty referrer )
+  select one referrer related by self->SingleReferrerAssoc[R3035.''processes 3rd ID for''];
+end if;
+return referrer.referring_class_name;',
+	1,
+	'',
+	"b4cb8f0f-ae9f-46d9-928e-136c2c282273",
+	0,
+	6);
 INSERT INTO O_NBATTR
 	VALUES ("22c1210f-f648-4899-a062-a54560370836",
 	"77e6323b-cb89-4cc9-a176-7a026870d048");
@@ -204,11 +225,12 @@ INSERT INTO O_BATTR
 INSERT INTO O_ATTR
 	VALUES ("22c1210f-f648-4899-a062-a54560370836",
 	"77e6323b-cb89-4cc9-a176-7a026870d048",
-	"60d81c16-dc4d-4e38-9325-ded9010b7705",
-	'class_name',
-	'The name of the participating class represented by this reference.',
+	"742efea0-3df5-41c7-81f2-5a2d1fa8faf6",
+	'referred_to_class_name',
+	'The name of the referred_to class represented by this proxy.
+',
 	'',
-	'class_name',
+	'referred_to_class_name',
 	0,
 	"ba5eda7a-def5-0000-0000-000000000004",
 	'',
@@ -248,87 +270,6 @@ This identifies the ''relate'' method to be invoked when re-instating the associ
 	'rel_name',
 	0,
 	"ba5eda7a-def5-0000-0000-000000000004",
-	'',
-	'');
-INSERT INTO O_REF
-	VALUES ("77e6323b-cb89-4cc9-a176-7a026870d048",
-	"4ee77a1c-599d-4ea8-93ac-82e28ec6a0fe",
-	1,
-	"30d8fde0-3666-4a19-a2be-1ae8834842a2",
-	"ca1dd037-521e-4bdb-8552-8b17597dd4ee",
-	"566b196e-5a0e-46b7-b2c1-dee9e4ec89f9",
-	"d0892a70-6ef5-4697-9153-a659399b181a",
-	"60d81c16-dc4d-4e38-9325-ded9010b7705",
-	"444022e1-8f67-4ca9-a6e3-8bca67d5e82c",
-	"00000000-0000-0000-0000-000000000000",
-	0,
-	'',
-	'AssociationSerializerLoader',
-	'rel_num',
-	'R3023.''processes 2nd id position for''');
-INSERT INTO R_RGO_PROXY
-	VALUES ("77e6323b-cb89-4cc9-a176-7a026870d048",
-	"ca1dd037-521e-4bdb-8552-8b17597dd4ee",
-	"566b196e-5a0e-46b7-b2c1-dee9e4ec89f9",
-	'../AssociationSerializerLoader.xtuml');
-INSERT INTO O_RTIDA_PROXY
-	VALUES ("30d8fde0-3666-4a19-a2be-1ae8834842a2",
-	"4ee77a1c-599d-4ea8-93ac-82e28ec6a0fe",
-	1,
-	"ca1dd037-521e-4bdb-8552-8b17597dd4ee",
-	"d0892a70-6ef5-4697-9153-a659399b181a",
-	'../AssociationSerializerLoader.xtuml');
-INSERT INTO O_REF
-	VALUES ("77e6323b-cb89-4cc9-a176-7a026870d048",
-	"4ee77a1c-599d-4ea8-93ac-82e28ec6a0fe",
-	1,
-	"30d8fde0-3666-4a19-a2be-1ae8834842a2",
-	"08e499d1-5671-47cb-9889-766145ccf8d7",
-	"4612f300-b58a-4966-a16e-994880c1b61a",
-	"e9e35d94-663b-4fca-a9de-203e1a2b6594",
-	"60d81c16-dc4d-4e38-9325-ded9010b7705",
-	"946eb109-289f-4875-b7bb-cdefa367eac2",
-	"444022e1-8f67-4ca9-a6e3-8bca67d5e82c",
-	0,
-	'',
-	'AssociationSerializerLoader',
-	'rel_num',
-	'R3027.''processes 3rd id position for''');
-INSERT INTO R_RGO_PROXY
-	VALUES ("77e6323b-cb89-4cc9-a176-7a026870d048",
-	"08e499d1-5671-47cb-9889-766145ccf8d7",
-	"4612f300-b58a-4966-a16e-994880c1b61a",
-	'../AssociationSerializerLoader.xtuml');
-INSERT INTO O_RTIDA_PROXY
-	VALUES ("30d8fde0-3666-4a19-a2be-1ae8834842a2",
-	"4ee77a1c-599d-4ea8-93ac-82e28ec6a0fe",
-	1,
-	"08e499d1-5671-47cb-9889-766145ccf8d7",
-	"e9e35d94-663b-4fca-a9de-203e1a2b6594",
-	'../AssociationSerializerLoader.xtuml');
-INSERT INTO O_RATTR
-	VALUES ("60d81c16-dc4d-4e38-9325-ded9010b7705",
-	"77e6323b-cb89-4cc9-a176-7a026870d048",
-	"30d8fde0-3666-4a19-a2be-1ae8834842a2",
-	"4ee77a1c-599d-4ea8-93ac-82e28ec6a0fe",
-	1,
-	'rel_num');
-INSERT INTO O_BATTR_PROXY
-	VALUES ("30d8fde0-3666-4a19-a2be-1ae8834842a2",
-	"4ee77a1c-599d-4ea8-93ac-82e28ec6a0fe",
-	'../AssociationSerializerLoader/AssociationSerializerLoader.xtuml');
-INSERT INTO O_ATTR
-	VALUES ("60d81c16-dc4d-4e38-9325-ded9010b7705",
-	"77e6323b-cb89-4cc9-a176-7a026870d048",
-	"742efea0-3df5-41c7-81f2-5a2d1fa8faf6",
-	'rel_num',
-	'
-
-',
-	'',
-	'rel_num',
-	0,
-	"ba5eda7a-def5-0000-0000-000000000007",
 	'',
 	'');
 INSERT INTO O_NBATTR

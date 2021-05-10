@@ -16,14 +16,15 @@ INSERT INTO O_TFR
 	1,
 	'// Render part of a serialization method to serialize the id of an instance of a referred-to class.
 
-select one ref related by self->ClassReference[R3028];
+select one ref related by self->ReferredToClassProxy[R3028];
 serializer = ref.get_serializer();
+referring_class = ref.get_referring_class();
 
 T::push_buffer();
 selector = ref.reference_name + "().";
 // Retrieve the appropriate ''get'' accessor method by navigating to the class UniqueId serializer.
-UniqueIDSerializer::do_render( class_name:serializer.class_name, 
-                               accessor_name:selector + serializer.get_id_accessor( class_name:ref.class_name ) );
+UniqueIDSerializer::do_render( class_name:referring_class,
+                               accessor_name:selector + serializer.get_id_accessor( class_name:ref.referred_to_class_name ) );
 ref_out = T::body();
 T::pop_buffer();
 T::include(file:"loader/t.linkserializer.reference.java");',
@@ -42,12 +43,11 @@ INSERT INTO O_TFR
 	'// Render a test for a null value of the reference, to precede any evaluation.
 // Note: only one test required for reference from an associative class - either none or both have values.
 //
-select one ref related by self->ClassReference[R3028];
+select one ref related by self->ReferredToClassProxy[R3028];
 serializer = ref.get_serializer();
-
-class_name = serializer.class_name;
+class_name = ref.get_referring_class();
 selector_name = ref.reference_name;  // the ''selector'' is the reference in the referring class.
-link_type = serializer.link_statement;
+link_type = param.link_type;
 rnum_str =  STRING::itoa( i: serializer.rel_num );
 T::include(file:"loader/t.singlelinkserializer.init.java");',
 	1,
@@ -55,6 +55,15 @@ T::include(file:"loader/t.singlelinkserializer.init.java");',
 	"00000000-0000-0000-0000-000000000000",
 	0,
 	2);
+INSERT INTO O_TPARM
+	VALUES ("f5bcfaaf-bf6a-443d-9423-0a65382c8789",
+	"a904bce2-3b22-41a2-825b-90beacb2d2bc",
+	'link_type',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
 INSERT INTO O_REF
 	VALUES ("0dc876a1-4112-4afd-b496-d2d898fbc3ec",
 	"77e6323b-cb89-4cc9-a176-7a026870d048",
@@ -68,7 +77,7 @@ INSERT INTO O_REF
 	"00000000-0000-0000-0000-000000000000",
 	0,
 	'',
-	'ClassReference',
+	'ReferredToClassProxy',
 	'id',
 	'R3028');
 INSERT INTO R_RGO_PROXY
@@ -93,7 +102,7 @@ INSERT INTO O_RATTR
 INSERT INTO O_BATTR_PROXY
 	VALUES ("742efea0-3df5-41c7-81f2-5a2d1fa8faf6",
 	"77e6323b-cb89-4cc9-a176-7a026870d048",
-	'../ClassReference/ClassReference.xtuml');
+	'../ReferredToClassProxy/ReferredToClassProxy.xtuml');
 INSERT INTO O_ATTR
 	VALUES ("9434722e-d751-4719-b7fb-02912d30bef5",
 	"0dc876a1-4112-4afd-b496-d2d898fbc3ec",
