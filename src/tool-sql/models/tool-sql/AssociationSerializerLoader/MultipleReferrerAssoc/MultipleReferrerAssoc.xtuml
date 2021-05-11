@@ -14,7 +14,28 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'',
+	'// Render a relate method for a subtype-supertype association.
+// This method must invoke an individual ''relate'' method determined by the subype. 
+// Invoke render methods for components of the method body; each result is a code fragment, captured as T::body();
+// Finally, supply the named result fragments to the complete method template.
+
+rnum_str =  STRING::itoa( i: self.rel_num );
+select one deserializer related by self->AssociationSerializerLoader[R3029];
+declare = true;                      
+T::push_buffer();
+select many refs related by self->ReferringClassProxy[R3036.''renders code for 1st position ID''];
+for each ref in refs
+  form_class = ref.referring_class_name;
+  formvar = form_class + STRING::itoa( i: self.rel_num );
+  part_class = self.referred_to_class_name;
+  partvar = part_class +  rnum_str + "_p";  // distinguish referred_to variable.
+  rel_name = ref.rel_name;
+  T::include(file:"loader/t.linkloader.multi.relate.java");
+  declare = false;
+end for;
+relates = T::body();
+T::pop_buffer();
+T::include(file:"loader/t.linkloader.relate.java");',
 	1,
 	'',
 	"5b5bcfeb-6b30-4ed6-98bd-f7e871a09276",
@@ -27,11 +48,12 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'// Render a serialization method for a subtype-supertype  association.
-/// Invoke render methods for components of the method body; each result is a code fragment, captured as T::body();
+	'// Render the serialization methods for a subtype-supertype association.
+// Each subtype is a formalizer for the asociation; each will need a serializer using the apporpiate reference name.
+// Invoke render methods for components of the method body; each result is a code fragment, captured as T::body();
 // Finally, supply the named result fragments to the complete method template.
 
-link_statement = "LINK2 ";
+link_type = "LINK2 ";
 rnum_str =  STRING::itoa( i: self.rel_num );
 select one serializer related by self->AssociationSerializerLoader[R3029];                       
 
@@ -41,7 +63,6 @@ for each ref in refs
   T::push_buffer();
   class_name = ref.referring_class_name;
   selector_name = ref.reference_name;  // the ''selector'' is the reference in the referring class.
-  link_type = "LINK2";
   T::include(file:"loader/t.singlelinkserializer.init.java");    
   init = T::body();   // note this fragment
   T::pop_buffer();
@@ -56,16 +77,20 @@ for each ref in refs
   T::push_buffer();
   selector = ref.reference_name + "().";
   // Retrieve the appropriate ''get'' accessor method by navigating to the class UniqueId serializer.
+  T::push_buffer();
   UniqueIDSerializer::do_render( class_name:ref.referring_class_name,
                                  accessor_name:selector + serializer.get_id_accessor( class_name:self.referred_to_class_name ) );
+  
+  ref_out = T::body();
+  T::pop_buffer();
+  T::include(file:"loader/t.linkserializer.reference.java");
   referred_ids = T::body();
   T::pop_buffer();
 
   // Render the method
   class_name = ref.referring_class_name;
   T::include(file:"loader/t.linkserializer.method.java");
-end for;
-',
+end for;',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",

@@ -1419,21 +1419,24 @@ else
   	select any ss_asl related by pop_loader->AssociationSerializerLoader[R3019]
   	 where ( selected.rel_num == relation.num );
   	if ( empty ss_asl )
-    ss_asl = AssociationSerializerLoader::create( rel_num:relation.num, addto:pop_loader );
-    create object instance mrefferer of MultipleReferrerAssoc;
-    mrefferer.referred_to_class_name = partclass.name;
-    relate mrefferer to ss_asl across R3029;
-    for each srel in relations
-      select one formclass related by srel->Class[R435];  // the subtype - which is the formalizer
-      select any iselector related by srel->Selector[R4512]->InstanceSelector[R445]
-       where ( selected.formalizer );
-      select one selector related by iselector->Selector[R445];
-      create object instance referrer of ReferringClassProxy;
-      relate referrer to mrefferer across R3036;
-      referrer.referring_class_name = formclass.name;
-      referrer.reference_name = selector.name;
-    end for;
+      ss_asl = AssociationSerializerLoader::create( rel_num:relation.num, addto:pop_loader );
+      create object instance mrefferer of MultipleReferrerAssoc;
+      mrefferer.referred_to_class_name = partclass.name;
+      relate mrefferer to ss_asl across R3029;
+      for each srel in relations
+        select one formclass related by srel->Class[R435];  // the subtype - which is the formalizer
+        select any iselector related by srel->Selector[R4512]->InstanceSelector[R445]
+         where ( selected.formalizer );
+        select one selector related by iselector->Selector[R445];
+        create object instance referrer of ReferringClassProxy;
+        relate referrer to mrefferer across R3036;
+        referrer.referring_class_name = formclass.name;
+        referrer.reference_name = selector.name;
+        referrer.rel_name = srel.name;
+      end for;
     end if; 
+    select one file related by pop_loader->GeneralFile[R3009]->File[R401];
+    ::addStringToImports( file:file, s:"io.ciera.runtime.summit.classes.ModelInstance", type:ImportType::IMPL );
     return;  // ugly - but we''re all done with transforming thia association; get out now.
   end if;
 
