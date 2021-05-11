@@ -27,42 +27,43 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'// Render a serialization method for an association for which this class represents the deemed formalizer.
-// This may be either an ID couplet, for a binary, or triplet for an associative relationship.
-// The formalizing class ID - represented here - is followed by 2nd and, possibly, 3rd ID''s of participants.
-// Invoke render methods for components of the method body; each result is a code fragment, captured as T::body();
+	'// Render a serialization method for a subtype-supertype  association.
+/// Invoke render methods for components of the method body; each result is a code fragment, captured as T::body();
 // Finally, supply the named result fragments to the complete method template.
 
 link_statement = "LINK2 ";
-select one serializer related by self->AssociationSerializerLoader[R3029];                       
-select many refs related by self->ReferringClassProxy[R3036.''renders code for 1st position ID''];
-
 rnum_str =  STRING::itoa( i: self.rel_num );
+select one serializer related by self->AssociationSerializerLoader[R3029];                       
+
+select many refs related by self->ReferringClassProxy[R3036.''renders code for 1st position ID''];
 for each ref in refs
-/*
-  // Render the initialization of the method: either an ''if-not-null'' test, or a loop set-up.
+  // Render an if-not-null test as initialization of the method.
   T::push_buffer();
-  ref.render_init( link_type: link_statement );
+  class_name = ref.referring_class_name;
+  selector_name = ref.reference_name;  // the ''selector'' is the reference in the referring class.
+  link_type = "LINK2";
+  T::include(file:"loader/t.singlelinkserializer.init.java");    
   init = T::body();   // note this fragment
   T::pop_buffer();
-
+  
   // Render the code to emit the id of the instance of the formalizing class.
   T::push_buffer();
-  UniqueIDSerializer::do_render( class_name:self.class_name,
-                               accessor_name:serializer.get_id_accessor( class_name:self.class_name ));
+  UniqueIDSerializer::do_render( class_name:ref.referring_class_name,
+                                 accessor_name:serializer.get_id_accessor( class_name:ref.referring_class_name ));
   self_serialize = T::body();  // note this fragment
   T::pop_buffer();
 
-  // Render the code to emit the participant reference ID(s)
   T::push_buffer();
-  ref.render_serialization();
-  referred_ids = T::body();  // note this fragment
+  selector = ref.reference_name + "().";
+  // Retrieve the appropriate ''get'' accessor method by navigating to the class UniqueId serializer.
+  UniqueIDSerializer::do_render( class_name:ref.referring_class_name,
+                                 accessor_name:selector + serializer.get_id_accessor( class_name:self.referred_to_class_name ) );
+  referred_ids = T::body();
   T::pop_buffer();
 
   // Render the method
-  class_name = ref.class_name;
+  class_name = ref.referring_class_name;
   T::include(file:"loader/t.linkserializer.method.java");
-*/
 end for;
 ',
 	1,

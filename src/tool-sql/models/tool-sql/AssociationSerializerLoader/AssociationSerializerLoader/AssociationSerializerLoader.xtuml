@@ -15,11 +15,23 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'// Render an invocation of a serialization method for an association for which this class represents the deemed formalizer.
-select one srefferer related by self->SingleReferrerAssoc[R3029];
-class_name = srefferer.referring_class_name;
+	'// Render invocation of serialization method(s) for an association.
+
 rnum_str =  STRING::itoa( i: self.rel_num );
-T::include(file:"loader/t.linkserializer.invoke.java");',
+
+select one srefferer related by self->SingleReferrerAssoc[R3029];
+if ( not_empty srefferer )
+  class_name = srefferer.referring_class_name;
+  T::include(file:"loader/t.linkserializer.invoke.java");
+else
+  // subtypes each need a serialization method.
+  select one mrefferer related by self->MultipleReferrerAssoc[R3029];
+  select many referrers related by mrefferer->ReferringClassProxy[R3036.''renders code for 1st position ID''];
+  for each referrer in referrers
+    class_name = referrer.referring_class_name;
+    T::include(file:"loader/t.linkserializer.invoke.java");
+  end for;
+end if;',
 	1,
 	'',
 	"d776feff-1873-426f-b7fb-0547d7f3366a",
