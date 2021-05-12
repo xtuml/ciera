@@ -1372,10 +1372,8 @@ if ( not empty peer )
   	  select one otherpartclass related by relation->Class[R434];
   	end if;
   end if;
-
-  // Create a serializer-loader for this association; add it to the population data structure.
-  serializer = AssociationSerializerLoader::create( rel_num:relation.num, class:formclass.name, addto:pop_loader );
-
+  
+  // Configure a serializer-loader for this associative relationship
   // The associative class is the formalizer - see transformAssociation().
   // Configure the ''first'' reference - chosen, as above - using the ''selector'' from the associative class.
   // Note: both references in the associative class are single-valued.
@@ -1384,8 +1382,9 @@ if ( not empty peer )
    where ( selected.formalizer );
   select one selector related by iselector->Selector[R445];
 
-  ref2 = ParticipantReference::create( refname:selector.name, class:partclass.name, rel_name:relation.name );
-  relate ref2 to serializer across R3023;
+  sreferrer = SingleReferrerAssoc::create( rel_num:relation.num, ref_class:formclass.name, addto:pop_loader );
+  ref2 = ReferredToClassProxy::create( refname:selector.name, class:partclass.name, rel_name:relation.name );
+  relate ref2 to sreferrer across R3030;
   create object instance single of SingleInstanceRef;
   relate single to ref2 across R3028;
   
@@ -1395,8 +1394,8 @@ if ( not empty peer )
   select one selector related by iselector->Selector[R445];
 
   // Add a participant reference for this ''end'' of the associative relationship.
-  ref3 = ParticipantReference::create( refname:selector.name, class:otherpartclass.name, rel_name:peer.name );
-  relate ref3 to serializer across R3027;
+  ref3 = ReferredToClassProxy::create( refname:selector.name, class:otherpartclass.name, rel_name:peer.name );
+  relate ref3 to sreferrer across R3035;
   create object instance single of SingleInstanceRef;
   relate single to ref3 across R3028;
 else
@@ -1406,17 +1405,50 @@ else
   if ( not_empty peer )
   	return;  // !! This is the ''other'' side of an associative; ignore: the ''first'' side takes care of serialization
   end if;
+
+  // Treat super/subtype associations: in these cases, the subtype acts as the ''formalizer''.
+  // Create a serializer-loader for the relationship, configured for muliple subtypes and on supertype.
+  // Create a referring proxy for each formalizer subtype; relate them to the supertype ''participant''
+  // This association is processed entirely on encountering the first occurrence.
+  // Subsequent invocations with an already processed relation number are ignored.
   
+  select many relations from instances of Relationship
+   where ( selected.num == relation.num );
+  if ( cardinality relations > 1 )          // This is a supertype-subtype association.
+  	select any ss_asl related by pop_loader->AssociationSerializerLoader[R3019]
+  	 where ( selected.rel_num == relation.num );
+  	if ( empty ss_asl )
+      ss_asl = AssociationSerializerLoader::create( rel_num:relation.num, addto:pop_loader );
+      create object instance mrefferer of MultipleReferrerAssoc;
+      mrefferer.referred_to_class_name = partclass.name;
+      relate mrefferer to ss_asl across R3029;
+      for each srel in relations
+        select one formclass related by srel->Class[R435];  // the subtype - which is the ''formalizer''
+        select any iselector related by srel->Selector[R4512]->InstanceSelector[R445]
+         where ( selected.formalizer );
+        select one selector related by iselector->Selector[R445];
+        create object instance referrer of ReferringClassProxy;
+        relate referrer to mrefferer across R3036;
+        referrer.referring_class_name = formclass.name;
+        referrer.reference_name = selector.name;
+        referrer.rel_name = srel.name;
+      end for;
+    end if; 
+    select one file related by pop_loader->GeneralFile[R3009]->File[R401];
+    ::addStringToImports( file:file, s:"io.ciera.runtime.summit.classes.ModelInstance", type:ImportType::IMPL );
+    return;  // ugly - but we''re all done with transforming thia association; get out now.
+  end if;
+
   // Configure a serializer-loader for a binary association, starting with the ''formalizing'' class
   // Configure for either a single referenced instance or a set of instance references.
-  serializer = AssociationSerializerLoader::create( rel_num:relation.num, class:formclass.name, addto:pop_loader );
 
   select any iselector related by relation->Selector[R4512]->InstanceSelector[R445]
    where ( selected.formalizer );
   select one selector related by iselector->Selector[R445];
 
-  ref2 = ParticipantReference::create( refname:selector.name, class:partclass.name, rel_name:relation.name );
-  relate ref2 to serializer across R3023;
+  sreferrer = SingleReferrerAssoc::create( rel_num:relation.num, ref_class:formclass.name, addto: pop_loader );
+  ref2 = ReferredToClassProxy::create( refname:selector.name, class:partclass.name, rel_name:relation.name );
+  relate ref2 to sreferrer across R3030;
   
   // Provide an appropriate code renderer for the reference - single, or multiple (set).
   if ( selector.multiplicity == Mult::ONE )
