@@ -66,6 +66,7 @@ public class SqlListener extends SQLBaseListener {
     @Override
     public void exitLink_statement(Link_statementContext ctx) {
         try {
+        	System.out.printf( " link %d\n", relNumber );
             loader.link(relNumber, instids);
         } catch (XtumlException e) {
             runContext.getLog().error(e);
