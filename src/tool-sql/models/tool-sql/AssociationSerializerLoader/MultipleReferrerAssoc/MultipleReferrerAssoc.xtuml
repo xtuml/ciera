@@ -72,18 +72,14 @@ for each ref in refs
   
   // Render the code to emit the id of the instance of the formalizing class.
   T::push_buffer();
-  UniqueIDSerializer::do_render( class_name:ref.referring_class_name,
-                                 accessor_name:serializer.get_id_accessor( class_name:ref.referring_class_name ));
+  UniqueIDSerializer::do_render( class_name:ref.referring_class_name, accessor_name:"getInstanceId()" );
   self_serialize = T::body();  // note this fragment
   T::pop_buffer();
 
   T::push_buffer();
   selector = ref.reference_name + "().";
-  // Retrieve the appropriate ''get'' accessor method by navigating to the class UniqueId serializer.
   T::push_buffer();
-  UniqueIDSerializer::do_render( class_name:ref.referring_class_name,
-                                 accessor_name:selector + serializer.get_id_accessor( class_name:self.referred_to_class_name ) );
-  
+  UniqueIDSerializer::do_render( class_name:ref.referring_class_name, accessor_name:selector + "getInstanceId()" );
   ref_out = T::body();
   T::pop_buffer();
   T::include(file:"loader/t.linkserializer.reference.java");
