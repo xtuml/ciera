@@ -1,2 +1,2 @@
-        if ( $l{class_name}_inst.${selector_name}() != null ) {
+        if ( !$l{class_name}_inst.${selector_name}().isEmpty() ) {
             out.print( "${link_type} ${rnum_str} IDS(" ); \
