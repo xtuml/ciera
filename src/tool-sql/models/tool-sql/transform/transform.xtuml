@@ -554,20 +554,28 @@ if ( empty non_persistent_instance_ids_mark )
     uniqueid_serializer1.primary_key = true;
     prev_attr_serializer = attr_serializer1;
   end if;
-  if ( pop_loader.name != "CoreSqlLoader" )
-  create object instance attr_loader1 of Z_AttributeLoader;
-  relate inst_loader to attr_loader1 across R3006;
-  attr_loader1.attr_name = "instanceId";
-  attr_loader1.index = 0;
-  attr_loader1.value_index = 0;
-  create object instance general_loader1 of Z_GeneralLoader;
-  relate general_loader1 to attr_loader1 across R3008;
-  relate general_loader1 to unique_id_type across R3013;
-  general_loader1.load_value = true;
-  prev_attr_loader = attr_loader1;
-  index = 1;
-  value_index = 1;
-  index_diff = 1;
+  // SQL files from the BP editor do not contain the architectural instanceIDs needed for association sereialization.
+  select any comp_def from instances of ComponentDefinition
+   where ( selected.name == pop_loader.comp_name );
+  select one c_c related by comp_def->C_C[R4573];
+  select one c_c_pe related by c_c->PE_PE[R8001];
+  select any no_instanceId_mark from instances of Mark where ( selected.markable_name == "Component" and
+                                                               selected.path == ::containerMarkingPath( pe:c_c_pe ) + "::" + c_c.Name and
+                                                               selected.feature_name == "NoInstanceIdsForLoad" );
+  if ( empty no_instanceId_mark )
+    create object instance attr_loader1 of Z_AttributeLoader;
+    relate inst_loader to attr_loader1 across R3006;
+    attr_loader1.attr_name = "instanceId";
+    attr_loader1.index = 0;
+    attr_loader1.value_index = 0;
+    create object instance general_loader1 of Z_GeneralLoader;
+    relate general_loader1 to attr_loader1 across R3008;
+    relate general_loader1 to unique_id_type across R3013;
+    general_loader1.load_value = true;
+    prev_attr_loader = attr_loader1;
+    index = 1;
+    value_index = 1;
+    index_diff = 1;
   end if;
 end if;
 

@@ -58,8 +58,14 @@ T::clear();
 batch_relator_definitions = "";
 batch_relators = "";
 
-if ( self.name == "CoreSqlLoader" )  // @TODO - needs component mark
-
+select any comp_def from instances of ComponentDefinition
+ where ( selected.name == self.comp_name );
+select one c_c related by comp_def->C_C[R4573];
+select one c_c_pe related by c_c->PE_PE[R8001];
+select any no_batch_relate_mark from instances of Mark where ( selected.markable_name == "Component" and
+                                                              selected.path == ::containerMarkingPath( pe:c_c_pe ) + "::" + c_c.Name and
+                                                              selected.feature_name == "SuppressBatchRelate" );
+if ( empty no_batch_relate_mark )
   select many batch_relates related by self->Z_BatchRelator[R3011];
   for each batch_relator in batch_relates
     batch_relator.render();
@@ -74,7 +80,6 @@ if ( self.name == "CoreSqlLoader" )  // @TODO - needs component mark
     relate_count = relate_count + sep +"population." + batch_relator.form_name + "_instances().size()";
     sep = " + ";
   end for;
-
 end if;
 
 instance_count = "";
