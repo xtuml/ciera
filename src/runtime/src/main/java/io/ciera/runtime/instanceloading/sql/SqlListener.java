@@ -33,13 +33,13 @@ public class SqlListener extends SQLBaseListener {
 
     @Override
     public void exitSql_file(Sql_fileContext ctx) {
-/*        try {
+        try {
             loader.batchRelate();
         } catch (XtumlException e) {
             runContext.getLog().error(e);
             System.exit(1);
             // TODO
-        } */
+        }
     }
 
     @Override
