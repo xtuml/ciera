@@ -57,6 +57,7 @@ T::clear();
 
 batch_relator_definitions = "";
 batch_relators = "";
+select many assoc_serializers related by self->AssociationSerializerLoader[R3019];
 link_serializers = "";
 link_serializer_definitions = "";
 link_serializer_relates = "";
@@ -88,29 +89,29 @@ if ( not empty non_persistent_instance_ids_mark ) or ( not empty instance_ids_ma
     sep = " + ";
   end for;
 else
-
-// Render serializer invocations for association data.
-select many assoc_serializers related by self->AssociationSerializerLoader[R3019];
-for each assocserializer in assoc_serializers
-	assocserializer.render_invocation();
-end for;
-link_serializers = T::body();
-T::clear();
-
-// Render the serializer method definitions.
-for each assocserializer in assoc_serializers
-	assocserializer.render_serialize();
-end for;
-link_serializer_definitions = T::body();
-T::clear();
-
-// Render the loader relate method invocations.
-for each assocserializer in assoc_serializers
+  // Render the loader relate method invocations, using instance Ids, rather than batch_relates.
+  for each assocserializer in assoc_serializers
 	assocserializer.render_relate();
-end for;
-link_serializer_relates = T::body();
-T::clear();
+  end for;
+  link_serializer_relates = T::body();
+  T::clear();
+end if;
 
+// Unless persistent instance ids are suppressed, render the LINK-based serialization support
+if ( empty non_persistent_instance_ids_mark )
+  // Render serializer invocations for association data.
+  for each assocserializer in assoc_serializers
+	assocserializer.render_invocation();
+  end for;
+  link_serializers = T::body();
+  T::clear();
+
+  // Render the serializer method definitions.
+  for each assocserializer in assoc_serializers
+	assocserializer.render_serialize();
+  end for;
+  link_serializer_definitions = T::body();
+  T::clear();
 end if;
 
 instance_count = "";
