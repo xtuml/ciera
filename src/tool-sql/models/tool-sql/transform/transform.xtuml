@@ -1102,7 +1102,7 @@ if ( not_empty evts )
 
 end if;
 
-// create batch relators for relationships
+// create batch relators/ link serializers for relationships which are persistent.
 select many rels related by comp_def->Relationship[R448];
 for each rel in rels
   select one part_o_obj related by rel->Class[R434]->O_OBJ[R409];
@@ -1116,6 +1116,7 @@ for each rel in rels
                                                                      selected.path == ::containerMarkingPath( pe:form_pe ) + "::" + form_o_obj.Name and
                                                                      selected.feature_name == "NonPersistent" );
   if ( empty part_non_persistent_mark and empty form_non_persistent_mark )
+  	// transform both mechanisms: marking will later determine what of these transforms is full rendered by PopulationLoader.
   	::transformLinkSerializer( rel:rel, pop_loader: pop_loader );
     ::transformBatchRelator( rel:rel, pop_loader:pop_loader );
   end if;
@@ -1375,7 +1376,7 @@ if ( not empty peer )
 
   select one otherpartclass related by peer->Class[R434];
   if ( otherpartclass.name == partclass.name )
-    // This association is reflexive: an arbitrary choice has to be made as to ordering:
+    // This association is reflexive: an arbitrary choice has to be made as to ordering the emitted IDs:
   	// use lexical ordering of the relationship phrases to determine the emitted order of the participant IDs.
   	if ( relation.form_phrase < peer.form_phrase )
   	  partclass = otherpartclass;
@@ -1413,11 +1414,11 @@ else
   // Do not generate code for the ''other side'' of an associative; it has/will be handled by the chosen traversal
   select one peer related by relation->Relationship[R436.''is other half of associative''];
   if ( not_empty peer )
-  	return;  // !! This is the ''other'' side of an associative; ignore: the ''first'' side takes care of serialization
+  	return;  // !! This is the ''other'' side of an associative; ignore: the ''first'' side takes care of all serialization.
   end if;
 
-  // Treat super/subtype associations: in these cases, the subtype acts as the ''formalizer''.
-  // Create a serializer-loader for the relationship, configured for muliple subtypes and on supertype.
+  // Treat super/subtype associations: in these cases, each subtype acts as a ''formalizer''.
+  // Create a serializer-loader for the relationship, configured for muliple subtypes and one supertype.
   // Create a referring proxy for each formalizer subtype; relate them to the supertype ''participant''
   // This association is processed entirely on encountering the first occurrence.
   // Subsequent invocations with an already processed relation number are ignored.
@@ -1446,10 +1447,11 @@ else
     end if; 
     select one file related by pop_loader->GeneralFile[R3009]->File[R401];
     ::addStringToImports( file:file, s:"io.ciera.runtime.summit.classes.ModelInstance", type:ImportType::IMPL );
-    return;  // ugly - but we''re all done with transforming thia association; get out now.
+    return;  // ugly - but we''re all done with transforming thia sub/supertype association; get out now.
   end if;
 
-  // Configure a serializer-loader for a binary association, starting with the ''formalizing'' class
+  // If we get this far, what remains is the case of a simple binary association.
+  // Configure a serializer-loader, starting with the ''formalizing'' class - which may be 1:x or M:x.
   // Configure for either a single referenced instance or a set of instance references.
 
   select any iselector related by relation->Selector[R4512]->InstanceSelector[R445]
