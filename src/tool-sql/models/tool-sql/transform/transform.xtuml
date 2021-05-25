@@ -1422,10 +1422,8 @@ else
   // Create a referring proxy for each formalizer subtype; relate them to the supertype ''participant''
   // This association is processed entirely on encountering the first occurrence.
   // Subsequent invocations with an already processed relation number are ignored.
-  
-  select many relations from instances of Relationship
-   where ( selected.num == relation.num );
-  if ( cardinality relations > 1 )          // This is a supertype-subtype association.
+
+  if ( relation.rel_type == "supersub" )  
   	select any ss_asl related by pop_loader->AssociationSerializerLoader[R3019]
   	 where ( selected.rel_num == relation.num );
   	if ( empty ss_asl )
@@ -1433,6 +1431,8 @@ else
       create object instance mrefferer of MultipleReferrerAssoc;
       mrefferer.referred_to_class_name = partclass.name;
       relate mrefferer to ss_asl across R3029;
+      select many relations from instances of Relationship
+       where ( selected.num == relation.num );
       for each srel in relations
         select one formclass related by srel->Class[R435];  // the subtype - which is the ''formalizer''
         select any iselector related by srel->Selector[R4512]->InstanceSelector[R445]
