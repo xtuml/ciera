@@ -1363,94 +1363,8 @@ pop_loader = param.pop_loader;
 select one formclass related by relation->Class[R435];  // Deemed formalizer
 select one partclass related by relation->Class[R434];  // First ( and only? ) participant
 
-// Associative relationships are, currently, architecturally, decomposed into two binary relationships, reflexively peer-related.
-// If this case is detected, configure a triplet serializer-loader, capturing all three classes involved.
+if ( relation.rel_type == RelationshipType::Binary )
 
-select one peer related by relation->Relationship[R436.''is one half of associative''];
-if ( not empty peer )
-
-  // Start with the associative class: choose the order of the two selectors as follows:
-  // For a non-reflexive case, order by traversal of the peer-reflexive in a specific direction - "is one half..", above.
-  // That determines the first of the ''end'' participants.
-  // In the reflexive case - the same participant at each ''end'' - use an arbitrary discriminant.
-
-  select one otherpartclass related by peer->Class[R434];
-  if ( otherpartclass.name == partclass.name )
-    // This association is reflexive: an arbitrary choice has to be made as to ordering the emitted IDs:
-  	// use lexical ordering of the relationship phrases to determine the emitted order of the participant IDs.
-  	if ( relation.form_phrase < peer.form_phrase )
-  	  partclass = otherpartclass;
-  	  select one otherpartclass related by relation->Class[R434];
-  	end if;
-  end if;
-  
-  // Configure a serializer-loader for this associative relationship
-  // The associative class is the formalizer - see transformAssociation().
-  // Configure the ''first'' reference - chosen, as above - using the ''selector'' from the associative class.
-  // Note: both references in the associative class are single-valued.
-
-  select any iselector related by relation->Selector[R4512]->InstanceSelector[R445]
-   where ( selected.formalizer );
-  select one selector related by iselector->Selector[R445];
-
-  sreferrer = SingleReferrerAssoc::create( rel_num:relation.num, ref_class:formclass.name, addto:pop_loader );
-  ref2 = ReferredToClassProxy::create( refname:selector.name, class:partclass.name, rel_name:relation.name );
-  relate ref2 to sreferrer across R3030;
-  create object instance single of SingleInstanceRef;
-  relate single to ref2 across R3028;
-  
-  // Find the formalizing selector for the other half of the asssociative
-  select any iselector related by peer->Selector[R4512]->InstanceSelector[R445]
-   where ( selected.formalizer );
-  select one selector related by iselector->Selector[R445];
-
-  // Add a participant reference for this ''end'' of the associative relationship.
-  ref3 = ReferredToClassProxy::create( refname:selector.name, class:otherpartclass.name, rel_name:peer.name );
-  relate ref3 to sreferrer across R3035;
-  create object instance single of SingleInstanceRef;
-  relate single to ref3 across R3028;
-else
-
-  // Do not generate code for the ''other side'' of an associative; it has/will be handled by the chosen traversal
-  select one peer related by relation->Relationship[R436.''is other half of associative''];
-  if ( not_empty peer )
-  	return;  // !! This is the ''other'' side of an associative; ignore: the ''first'' side takes care of all serialization.
-  end if;
-
-  // Treat super/subtype associations: in these cases, each subtype acts as a ''formalizer''.
-  // Create a serializer-loader for the relationship, configured for muliple subtypes and one supertype.
-  // Create a referring proxy for each formalizer subtype; relate them to the supertype ''participant''
-  // This association is processed entirely on encountering the first occurrence.
-  // Subsequent invocations with an already processed relation number are ignored.
-
-  if ( relation.rel_type == "supersub" )  
-  	select any ss_asl related by pop_loader->AssociationSerializerLoader[R3019]
-  	 where ( selected.rel_num == relation.num );
-  	if ( empty ss_asl )
-      ss_asl = AssociationSerializerLoader::create( rel_num:relation.num, addto:pop_loader );
-      create object instance mrefferer of MultipleReferrerAssoc;
-      mrefferer.referred_to_class_name = partclass.name;
-      relate mrefferer to ss_asl across R3029;
-      select many relations from instances of Relationship
-       where ( selected.num == relation.num );
-      for each srel in relations
-        select one formclass related by srel->Class[R435];  // the subtype - which is the ''formalizer''
-        select any iselector related by srel->Selector[R4512]->InstanceSelector[R445]
-         where ( selected.formalizer );
-        select one selector related by iselector->Selector[R445];
-        create object instance referrer of ReferringClassProxy;
-        relate referrer to mrefferer across R3036;
-        referrer.referring_class_name = formclass.name;
-        referrer.reference_name = selector.name;
-        referrer.rel_name = srel.name;
-      end for;
-    end if; 
-    select one file related by pop_loader->GeneralFile[R3009]->File[R401];
-    ::addStringToImports( file:file, s:"io.ciera.runtime.summit.classes.ModelInstance", type:ImportType::IMPL );
-    return;  // ugly - but we''re all done with transforming thia sub/supertype association; get out now.
-  end if;
-
-  // If we get this far, what remains is the case of a simple binary association.
   // Configure a serializer-loader, starting with the ''formalizing'' class - which may be 1:x or M:x.
   // Configure for either a single referenced instance or a set of instance references.
 
@@ -1477,6 +1391,95 @@ else
     ::addStringToImports( file:file, s:set_typ.type_package + "." + set_typ.type_name, type:ImportType::INT );
     ::addStringToImports( file:file, s:set_typ.type_package + ".impl." + set_typ.type_name + "Impl", type:ImportType::IMPL );
   end if;
+
+elif ( relation.rel_type == RelationshipType::Associative )
+
+  // Associative relationships are, currently, architecturally, decomposed into two binary relationships, reflexively peer-related.
+  // In this case, configure a triplet serializer-loader, capturing all three classes involved.
+  // Note: only configure a serializer/loader where the peer is selected across the one relationship phrase below; ignore the converse.
+  // This is important to maintain determined ordering of emitted IDs.
+  
+  select one peer related by relation->Relationship[R436.''is one half of associative''];
+  if ( not empty peer )
+
+    // Start with the associative class: choose the order of the two selectors as follows:
+    // For a non-reflexive case, order by traversal of the peer-reflexive in a specific direction - "is one half..", above.
+    // That determines the first of the ''end'' participants.
+    // In the reflexive case - the same participant at each ''end'' - use an arbitrary discriminant.
+
+    select one otherpartclass related by peer->Class[R434];
+    if ( otherpartclass.name == partclass.name )
+      // This association is reflexive: an arbitrary choice has to be made as to ordering the emitted IDs:
+  	  // Use lexical ordering of the relationship phrases to determine the emitted order of the participant IDs.
+      if ( relation.form_phrase < peer.form_phrase )
+        partclass = otherpartclass;
+  	    select one otherpartclass related by relation->Class[R434];
+  	  end if;
+    end if;
+  
+    // Configure a serializer-loader for this associative relationship
+    // The associative class is the formalizer - see transformAssociation().
+    // Configure the ''first'' reference - chosen, as above - using the ''selector'' from the associative class.
+    // Note: both references in the associative class are single-valued.
+
+    select any iselector related by relation->Selector[R4512]->InstanceSelector[R445]
+     where ( selected.formalizer );
+    select one selector related by iselector->Selector[R445];
+
+    sreferrer = SingleReferrerAssoc::create( rel_num:relation.num, ref_class:formclass.name, addto:pop_loader );
+    ref2 = ReferredToClassProxy::create( refname:selector.name, class:partclass.name, rel_name:relation.name );
+    relate ref2 to sreferrer across R3030;
+    create object instance single of SingleInstanceRef;
+    relate single to ref2 across R3028;
+  
+    // Find the formalizing selector for the other half of the asssociative
+    select any iselector related by peer->Selector[R4512]->InstanceSelector[R445]
+     where ( selected.formalizer );
+    select one selector related by iselector->Selector[R445];
+
+    // Add a participant reference for this ''end'' of the associative relationship.
+    ref3 = ReferredToClassProxy::create( refname:selector.name, class:otherpartclass.name, rel_name:peer.name );
+    relate ref3 to sreferrer across R3035;
+    create object instance single of SingleInstanceRef;
+    relate single to ref3 across R3028;
+
+  end if;  // ..configuring associative based on navigation of reflexive in chosen direction, only.
+
+elif ( relation.rel_type == RelationshipType::SuperSubtype )  
+
+  // Treat super/subtype associations: in these cases, each subtype acts as a ''formalizer''.
+  // Create a serializer-loader for the relationship, configured for muliple subtypes and one supertype.
+  // Create a referring proxy for each formalizer subtype; relate them to the supertype ''participant''
+  // This association is processed entirely on encountering the first occurrence.
+  // Subsequent invocations with an already processed relation number are ignored.
+
+  select any ss_asl related by pop_loader->AssociationSerializerLoader[R3019]
+   where ( selected.rel_num == relation.num );
+  if ( empty ss_asl )
+
+  	// First time this relationship number encountered: configure serializer/loader for all instances.
+    ss_asl = AssociationSerializerLoader::create( rel_num:relation.num, addto:pop_loader );
+    create object instance mrefferer of MultipleReferrerAssoc;
+    mrefferer.referred_to_class_name = partclass.name;
+    relate mrefferer to ss_asl across R3029;
+    select many relations from instances of Relationship
+     where ( selected.num == relation.num );
+    for each srel in relations
+      select one formclass related by srel->Class[R435];  // the subtype - which is the ''formalizer''
+      select any iselector related by srel->Selector[R4512]->InstanceSelector[R445]
+       where ( selected.formalizer );
+      select one selector related by iselector->Selector[R445];
+      create object instance referrer of ReferringClassProxy;
+      relate referrer to mrefferer across R3036;
+      referrer.referring_class_name = formclass.name;
+      referrer.reference_name = selector.name;
+      referrer.rel_name = srel.name;
+    end for;
+    select one file related by pop_loader->GeneralFile[R3009]->File[R401];
+    ::addStringToImports( file:file, s:"io.ciera.runtime.summit.classes.ModelInstance", type:ImportType::IMPL );
+
+  end if;  // ..first encounter configures for all subtype instances.
+
 end if;
 
 ',
