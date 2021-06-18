@@ -37,7 +37,7 @@ bash run.sh
 2. Import the `runtime` project from the
    `$HOME/.m2/repository/io/ciera/runtime/2.4.0/runtime-2.4.0.jar` file.
 3. Import the `GPS_Watch`, `HeartRateMonitor`, `Location`, `Tracking`, and `UI`
-   projects from this folder (diasable "Search for nested projects")
+   projects from this folder (disable "Search for nested projects")
 
 ## GUI (Swing)
 
