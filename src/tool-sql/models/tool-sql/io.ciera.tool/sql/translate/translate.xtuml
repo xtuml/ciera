@@ -24,7 +24,7 @@ INSERT INTO GD_MD
 	0,
 	0,
 	0,
-	'',
+	'4.1.17',
 	'tool-sql::io.ciera.tool::sql::translate');
 INSERT INTO DIM_DIA
 	VALUES ("8c5d58e7-813e-48df-80c6-16c34201b2ff",
@@ -53,6 +53,7 @@ T::set_output_directory(dir:ciera.projectroot + "/" + CMD::get_value(name:"gendi
 // load up instances
 input_file = CMD::get_value( name:"i" );
 if ( "" != input_file )
+  LOG::LogInfo( message:"tool-sql SQL load file: " + input_file );
   SQL::load_file( file:ciera.projectroot + "/" + input_file );
 
   // preprocess
@@ -64,6 +65,7 @@ if ( "" != input_file )
   // dump instances
   output_file = CMD::get_value( name:"o" );
   if ( "" != output_file )
+    LOG::LogInfo( message:"tool-sql SQL serialize file: " + output_file );
     SQL::serialize_file( file:ciera.projectroot + "/" + output_file );
   end if;
 else
@@ -75,6 +77,7 @@ control stop;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO PE_PE
 	VALUES ("0a7266e4-c1a1-4b9b-a9c3-1ccf33ad99e2",
@@ -89,7 +92,7 @@ INSERT INTO S_SYNC
 	'',
 	'start_time = TIM::current_clock();
 
-LOG::LogInfo( message:"Translating..." );
+LOG::LogInfo( message:"Translating in tool-sql..." );
 
 // translate root package
 LOG::LogInfo( message:"  Translating application package..." );
@@ -120,6 +123,7 @@ LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
 LOG::LogInfo( message:"  Rendering instance population loaders..." );
 select many pop_loaders from instances of Z_PopulationLoader;
 for each pop_loader in pop_loaders
+  LOG::LogInfo( message:"Rendering: " + pop_loader.comp_name + ": " + pop_loader.name );
   pop_loader.render();
 end for;
 LOG::LogInfo( message:"  done." );
@@ -132,6 +136,7 @@ LOG::LogTime( message:"Elapsed time:", t:elapsed_time );',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO PE_PE
 	VALUES ("02917204-af4a-4633-9353-031ae6adcc9b",
@@ -154,6 +159,7 @@ INSERT INTO C_C_PROXY
 	0,
 	"00000000-0000-0000-0000-000000000000",
 	0,
+	'',
 	'',
 	'../sql.xtuml');
 INSERT INTO S_SYS_PROXY

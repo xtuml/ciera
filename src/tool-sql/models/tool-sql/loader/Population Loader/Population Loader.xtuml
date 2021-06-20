@@ -55,21 +55,65 @@ end for;
 instance_loaders = T::body();
 T::clear();
 
-select many batch_relates related by self->Z_BatchRelator[R3011];
-for each batch_relator in batch_relates
-  batch_relator.render();
-end for;
-batch_relator_definitions = T::body();
-T::clear();
-
+// Prepare to render either batch relator or link serialization support, depending on markings.
+batch_relator_definitions = "";
 batch_relators = "";
-relate_count = "";
-sep = "";
-for each batch_relator in batch_relates
-  batch_relators = batch_relators + "        batch_relate_" + batch_relator.rel_name + "();\n";
-  relate_count = relate_count + sep +"population." + batch_relator.form_name + "_instances().size()";
-  sep = " + ";
-end for;
+select many assoc_serializers related by self->AssociationSerializerLoader[R3019];
+link_serializers = "";
+link_serializer_definitions = "";
+link_serializer_relates = "";
+
+// The following mark, if found, implies batch_relate
+select any non_persistent_instance_ids_mark from instances of Mark where ( selected.markable_name == "*" and selected.path == "*" and
+                                                                           selected.feature_name == "NonPersistentInstanceIds" );
+// The following mark, if found, means no link serialization available; batch_relate required to restore formalized associations.
+select any comp_def from instances of ComponentDefinition
+ where ( selected.name == self.comp_name );
+select one c_c related by comp_def->C_C[R4573];
+select one c_c_pe related by c_c->PE_PE[R8001];
+select any instance_ids_mark from instances of Mark where ( selected.markable_name == "Component" and
+                                                              selected.path == ::containerMarkingPath( pe:c_c_pe ) + "::" + c_c.Name and
+                                                              selected.feature_name == "NoInstanceIdsForLoad" );
+if ( not empty non_persistent_instance_ids_mark ) or ( not empty instance_ids_mark )
+  select many batch_relates related by self->Z_BatchRelator[R3011];
+  for each batch_relator in batch_relates
+    batch_relator.render();
+  end for;
+  batch_relator_definitions = T::body();
+  T::clear();
+
+  relate_count = "";
+  sep = "";
+  for each batch_relator in batch_relates
+    batch_relators = batch_relators + "        batch_relate_" + batch_relator.rel_name + "();\n";
+    relate_count = relate_count + sep +"population." + batch_relator.form_name + "_instances().size()";
+    sep = " + ";
+  end for;
+else
+  // Render the loader relate method invocations, using instance Ids, rather than batch_relates.
+  for each assocserializer in assoc_serializers
+    assocserializer.render_relate();
+  end for;
+  link_serializer_relates = T::body();
+  T::clear();
+end if;
+
+// Unless persistent instance ids are suppressed, render the LINK-based serialization support
+if ( empty non_persistent_instance_ids_mark )
+  // Render serializer invocations for association data.
+  for each assocserializer in assoc_serializers
+    assocserializer.render_invocation();
+  end for;
+  link_serializers = T::body();
+  T::clear();
+
+  // Render the serializer method definitions.
+  for each assocserializer in assoc_serializers
+    assocserializer.render_serialize();
+  end for;
+  link_serializer_definitions = T::body();
+  T::clear();
+end if;
 
 instance_count = "";
 sep = "";
@@ -86,9 +130,10 @@ if ( not_empty event_serializers )
   sep = " + ";
 end if;
 
+// Render the loader: at a minimum empty methods may be rendered to satisfy parser/listener invocatiions for batch/link methods.
 select one general_file related by self->GeneralFile[R3009];
 select one file related by general_file->File[R401];
-imports = file.getFormattedImports( type:ImportType::IMPL );
+imports = file.getFormattedImports( type:ImportType::BOTH );
 
 T::include(file:"loader/t.populationloader.java");
 general_file.contents = T::body();
@@ -97,6 +142,7 @@ file.render();',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",
+	0,
 	0);
 INSERT INTO O_NBATTR
 	VALUES ("63ffff76-7488-4a8a-891e-6141f949165e",
