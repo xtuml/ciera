@@ -124,7 +124,7 @@ mvn versions:use-latest-versions
 4. Create github release
    - In Github, edit the tag and copy in the link to the Redmine release from
      the issue tracker.
-5. Set next development verion
+5. Set next development version
    ```
    mvn versions:set -DnewVersion=<version> -DgenerateBackupPoms=false
    git add .
