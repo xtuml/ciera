@@ -7,6 +7,8 @@ import java.util.Calendar;
 import java.util.TimeZone;
 
 import io.ciera.runtime.summit.application.IRunContext;
+import io.ciera.runtime.summit.exceptions.XtumlException;
+
 
 public class Date implements IXtumlType, Comparable<Date> {
 
@@ -86,7 +88,21 @@ public class Date implements IXtumlType, Comparable<Date> {
 
     @Override
     public String toString() {
-        return Duration.ofMillis(timestamp).toString();
+    	return Long.toString(timestamp/1000L);
     }
 
+    @Override
+    public String serialize() {
+    	return toString();
+    }
+    
+	public static Date deserialize(Object o) throws XtumlException {
+		if (o instanceof Date) {
+			return (Date) o;
+		}
+		else if (o instanceof String) {
+			return new Date(Long.parseLong((String)o) * 1000L);
+		}
+		else throw new XtumlException("Cannot deserialize date value");
+	}
 }
