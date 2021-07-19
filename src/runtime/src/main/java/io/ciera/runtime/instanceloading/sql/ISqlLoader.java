@@ -11,6 +11,8 @@ public interface ISqlLoader extends IPopulationLoader {
 	
 	public void insert(String tableName, List<Object> values) throws XtumlException;
 
+	public void link(Integer relnum, List<Object> instids) throws XtumlException;
+
 	public void batchRelate() throws XtumlException;
 	
 	public void setIn(InputStream in);

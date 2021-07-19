@@ -68,6 +68,7 @@ end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("870f9c22-fd17-498d-9434-990a5e5d9fff",
@@ -209,6 +210,7 @@ end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("6d424b63-2071-4743-9723-b5abe3049d87",
@@ -363,6 +365,7 @@ end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("aae4eae8-ed21-4141-b855-0d88706c57b6",
@@ -454,23 +457,24 @@ select one file related by pop_loader->GeneralFile[R3009]->File[R401];
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("03e248c2-8aac-4f66-9743-c50d2f906e06",
 	"2cb4c89e-9508-44e9-84a1-d513bf6ed78d",
 	'rel',
-	"b82caf35-37bb-463a-8633-3bf3bb615c43",
+	"de621c98-0a90-469f-ae15-5039dd46e5e2",
 	0,
 	'',
 	"00000000-0000-0000-0000-000000000000",
 	'');
 INSERT INTO S_DT_PROXY
-	VALUES ("b82caf35-37bb-463a-8633-3bf3bb615c43",
+	VALUES ("de621c98-0a90-469f-ae15-5039dd46e5e2",
 	"00000000-0000-0000-0000-000000000000",
 	'inst_ref<Class Relationship>',
 	'',
 	'',
-	'../../../../tool-core/models/tool-core/architecture/relationship/relationship.xtuml');
+	'../../../../tool-core/models/tool-core/architecture/classes/classes.xtuml');
 INSERT INTO S_SPARM
 	VALUES ("fa4a1db5-d443-4612-86c7-ad37bd0c5be5",
 	"2cb4c89e-9508-44e9-84a1-d513bf6ed78d",
@@ -550,19 +554,29 @@ if ( empty non_persistent_instance_ids_mark )
     uniqueid_serializer1.primary_key = true;
     prev_attr_serializer = attr_serializer1;
   end if;
-  create object instance attr_loader1 of Z_AttributeLoader;
-  relate inst_loader to attr_loader1 across R3006;
-  attr_loader1.attr_name = "instanceId";
-  attr_loader1.index = 0;
-  attr_loader1.value_index = 0;
-  create object instance general_loader1 of Z_GeneralLoader;
-  relate general_loader1 to attr_loader1 across R3008;
-  relate general_loader1 to unique_id_type across R3013;
-  general_loader1.load_value = true;
-  prev_attr_loader = attr_loader1;
-  index = 1;
-  value_index = 1;
-  index_diff = 1;
+  // SQL files from the BP editor do not contain the architectural instanceIDs needed for association serialization.
+  select any comp_def from instances of ComponentDefinition
+   where ( selected.name == pop_loader.comp_name );
+  select one c_c related by comp_def->C_C[R4573];
+  select one c_c_pe related by c_c->PE_PE[R8001];
+  select any no_instanceId_mark from instances of Mark where ( selected.markable_name == "Component" and
+                                                               selected.path == ::containerMarkingPath( pe:c_c_pe ) + "::" + c_c.Name and
+                                                               selected.feature_name == "NoInstanceIdsForLoad" );
+  if ( empty no_instanceId_mark )
+    create object instance attr_loader1 of Z_AttributeLoader;
+    relate inst_loader to attr_loader1 across R3006;
+    attr_loader1.attr_name = "instanceId";
+    attr_loader1.index = 0;
+    attr_loader1.value_index = 0;
+    create object instance general_loader1 of Z_GeneralLoader;
+    relate general_loader1 to attr_loader1 across R3008;
+    relate general_loader1 to unique_id_type across R3013;
+    general_loader1.load_value = true;
+    prev_attr_loader = attr_loader1;
+    index = 1;
+    value_index = 1;
+    index_diff = 1;
+  end if;
 end if;
 
 // create attribute loaders and serializers
@@ -629,6 +643,7 @@ select one class_file related by obj->File[R401];
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("36143df8-e439-4f4e-8b64-6f6ae0c91597",
@@ -732,6 +747,7 @@ end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("9e254227-4387-4257-8c12-405ee221c059",
@@ -854,6 +870,7 @@ end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("4f0ff7ee-f8f1-43b7-a872-65c2efd6dac0",
@@ -999,6 +1016,7 @@ select one file related by pop_loader->GeneralFile[R3009]->File[R401];
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("2992bae4-5eac-4d85-b06f-5a6e17ba4470",
@@ -1084,7 +1102,7 @@ if ( not_empty evts )
 
 end if;
 
-// create batch relators for relationships
+// create batch relators/ link serializers for relationships which are persistent.
 select many rels related by comp_def->Relationship[R448];
 for each rel in rels
   select one part_o_obj related by rel->Class[R434]->O_OBJ[R409];
@@ -1098,6 +1116,8 @@ for each rel in rels
                                                                      selected.path == ::containerMarkingPath( pe:form_pe ) + "::" + form_o_obj.Name and
                                                                      selected.feature_name == "NonPersistent" );
   if ( empty part_non_persistent_mark and empty form_non_persistent_mark )
+  	// transform both mechanisms: marking will later determine what of these transforms is full rendered by PopulationLoader.
+  	::transformLinkSerializer( rel:rel, pop_loader: pop_loader );
     ::transformBatchRelator( rel:rel, pop_loader:pop_loader );
   end if;
 end for;
@@ -1105,11 +1125,13 @@ end for;
 // create import block
 ::addStringToImports( file:file, s:"io.ciera.runtime.instanceloading.sql.SqlLoader", type:ImportType::IMPL );
 ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.runtime.summit.classes.IInstanceSet", type:ImportType::INT );
 ::addStringToImports( file:file, s:"java.io.PrintStream", type:ImportType::IMPL );
 ::addStringToImports( file:file, s:"java.util.List", type:ImportType::IMPL );',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("bbd22efe-8ba6-4504-b9a9-ce322ccb35bc",
@@ -1148,6 +1170,7 @@ end for;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO PE_PE
 	VALUES ("9d5e8824-fc72-410e-8d7b-bd207bd37277",
@@ -1304,6 +1327,7 @@ select one file related by pop_loader->GeneralFile[R3009]->File[R401];
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("6fd3d81d-9d08-46cf-9d1a-e3207b76e232",
@@ -1316,6 +1340,174 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("e0859b50-3b2f-4eab-ba84-7f063637217c",
+	1,
+	"393d1b5b-5425-48d1-901b-df557c6670b6",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("17d24049-21ef-4eeb-a70b-6cda6b167a20",
+	"00000000-0000-0000-0000-000000000000",
+	'transformLinkSerializer',
+	'',
+	'// Populate an instance of a serializer-loader which will render code supporting relationship persistence.
+// Configure the instance to hold the data needed to populate the appropriate code generation templates.
+// These instances augment those which support persistence for population instance data - see pop_loader.
+// Associations are serialized by emitting the IDs of the participating classes in a determined order.
+// The current implementation mandates that the ID of the deemed ''formalizer'' class be first.
+// For binary associations that is a simple decision; ID ordering for tri-part (associative) relationships is more complex.
+// On load, association ''relate'' methods will be invoked with instances identified by ID resolution.
+
+relation = param.rel;
+pop_loader = param.pop_loader;
+
+select one formclass related by relation->Class[R435];  // Deemed formalizer
+select one partclass related by relation->Class[R434];  // First ( and only? ) participant
+
+if ( relation.rel_type == RelationshipType::Binary )
+
+  // Configure a serializer-loader, starting with the ''formalizing'' class - which may be 1:x or M:x.
+  // Configure for either a single referenced instance or a set of instance references.
+
+  select any iselector related by relation->Selector[R4512]->InstanceSelector[R445]
+   where ( selected.formalizer );
+  select one selector related by iselector->Selector[R445];
+
+  sreferrer = SingleReferrerAssoc::create( rel_num:relation.num, ref_class:formclass.name, addto: pop_loader );
+  ref2 = ReferredToClassProxy::create( refname:selector.name, class:partclass.name, rel_name:relation.name );
+  relate ref2 to sreferrer across R3030;
+  
+  // Provide an appropriate code renderer for the reference - single, or multiple (set).
+  if ( selector.multiplicity == Mult::ONE )
+    create object instance single of SingleInstanceRef;
+    relate single to ref2 across R3028;
+  else
+  	create object instance multi of MultiInstanceRef;
+  	// The set type of this reference will be needed for iteration by the serializing template
+    select one set_typ related by selector->TypeReference[R446];
+  	multi.set_type_name = set_typ.type_name;
+  	relate multi to ref2 across R3028;
+  	// Imports to support the set manipulation required in the generated serializing method.
+    select one file related by pop_loader->GeneralFile[R3009]->File[R401];
+    ::addStringToImports( file:file, s:set_typ.type_package + "." + set_typ.type_name, type:ImportType::INT );
+    ::addStringToImports( file:file, s:set_typ.type_package + ".impl." + set_typ.type_name + "Impl", type:ImportType::IMPL );
+  end if;
+
+elif ( relation.rel_type == RelationshipType::Associative )
+
+  // Associative relationships are, currently, architecturally, decomposed into two binary relationships, reflexively peer-related.
+  // In this case, configure a triplet serializer-loader, capturing all three classes involved.
+  // Note: only configure a serializer/loader where the peer is selected across the one relationship phrase below; ignore the converse.
+  // This is important to maintain determined ordering of emitted IDs.
+  
+  select one peer related by relation->Relationship[R436.''is one half of associative''];
+  if ( not empty peer )
+
+    // Start with the associative class: choose the order of the two selectors as follows:
+    // For a non-reflexive case, order by traversal of the peer-reflexive in a specific direction - "is one half..", above.
+    // That determines the first of the ''end'' participants.
+    // In the reflexive case - the same participant at each ''end'' - use an arbitrary discriminant.
+
+    select one otherpartclass related by peer->Class[R434];
+    if ( otherpartclass.name == partclass.name )
+      // This association is reflexive: an arbitrary choice has to be made as to ordering the emitted IDs:
+  	  // Use lexical ordering of the relationship phrases to determine the emitted order of the participant IDs.
+      if ( relation.form_phrase < peer.form_phrase )
+        partclass = otherpartclass;
+  	    select one otherpartclass related by relation->Class[R434];
+  	  end if;
+    end if;
+  
+    // Configure a serializer-loader for this associative relationship
+    // The associative class is the formalizer - see transformAssociation().
+    // Configure the ''first'' reference - chosen, as above - using the ''selector'' from the associative class.
+    // Note: both references in the associative class are single-valued.
+
+    select any iselector related by relation->Selector[R4512]->InstanceSelector[R445]
+     where ( selected.formalizer );
+    select one selector related by iselector->Selector[R445];
+
+    sreferrer = SingleReferrerAssoc::create( rel_num:relation.num, ref_class:formclass.name, addto:pop_loader );
+    ref2 = ReferredToClassProxy::create( refname:selector.name, class:partclass.name, rel_name:relation.name );
+    relate ref2 to sreferrer across R3030;
+    create object instance single of SingleInstanceRef;
+    relate single to ref2 across R3028;
+  
+    // Find the formalizing selector for the other half of the asssociative
+    select any iselector related by peer->Selector[R4512]->InstanceSelector[R445]
+     where ( selected.formalizer );
+    select one selector related by iselector->Selector[R445];
+
+    // Add a participant reference for this ''end'' of the associative relationship.
+    ref3 = ReferredToClassProxy::create( refname:selector.name, class:otherpartclass.name, rel_name:peer.name );
+    relate ref3 to sreferrer across R3035;
+    create object instance single of SingleInstanceRef;
+    relate single to ref3 across R3028;
+
+  end if;  // ..configuring associative based on navigation of reflexive in chosen direction, only.
+
+elif ( relation.rel_type == RelationshipType::SuperSubtype )  
+
+  // Treat super/subtype associations: in these cases, each subtype acts as a ''formalizer''.
+  // Create a serializer-loader for the relationship, configured for muliple subtypes and one supertype.
+  // Create a referring proxy for each formalizer subtype; relate them to the supertype ''participant''
+  // This association is processed entirely on encountering the first occurrence.
+  // Subsequent invocations with an already processed relation number are ignored.
+
+  select any ss_asl related by pop_loader->AssociationSerializerLoader[R3019]
+   where ( selected.rel_num == relation.num );
+  if ( empty ss_asl )
+
+  	// First time this relationship number encountered: configure serializer/loader for all instances.
+    ss_asl = AssociationSerializerLoader::create( rel_num:relation.num, addto:pop_loader );
+    create object instance mrefferer of MultipleReferrerAssoc;
+    mrefferer.referred_to_class_name = partclass.name;
+    relate mrefferer to ss_asl across R3029;
+    select many relations from instances of Relationship
+     where ( selected.num == relation.num );
+    for each srel in relations
+      select one formclass related by srel->Class[R435];  // the subtype - which is the ''formalizer''
+      select any iselector related by srel->Selector[R4512]->InstanceSelector[R445]
+       where ( selected.formalizer );
+      select one selector related by iselector->Selector[R445];
+      create object instance referrer of ReferringClassProxy;
+      relate referrer to mrefferer across R3036;
+      referrer.referring_class_name = formclass.name;
+      referrer.reference_name = selector.name;
+      referrer.rel_name = srel.name;
+    end for;
+    select one file related by pop_loader->GeneralFile[R3009]->File[R401];
+    ::addStringToImports( file:file, s:"io.ciera.runtime.summit.classes.ModelInstance", type:ImportType::IMPL );
+
+  end if;  // ..first encounter configures for all subtype instances.
+
+end if;
+
+',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	1);
+INSERT INTO S_SPARM
+	VALUES ("c9ae5a8d-7f99-4e0a-a78a-021a1a6ca367",
+	"17d24049-21ef-4eeb-a70b-6cda6b167a20",
+	'rel',
+	"de621c98-0a90-469f-ae15-5039dd46e5e2",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("06284292-fe82-461b-b3bc-41efbed294f8",
+	"17d24049-21ef-4eeb-a70b-6cda6b167a20",
+	'pop_loader',
+	"6b220e4e-1f35-4631-a0b4-89a2f4a0e8b2",
+	0,
+	'',
+	"c9ae5a8d-7f99-4e0a-a78a-021a1a6ca367",
+	'');
+INSERT INTO PE_PE
+	VALUES ("17d24049-21ef-4eeb-a70b-6cda6b167a20",
 	1,
 	"393d1b5b-5425-48d1-901b-df557c6670b6",
 	"00000000-0000-0000-0000-000000000000",

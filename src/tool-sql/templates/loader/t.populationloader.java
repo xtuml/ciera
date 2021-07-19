@@ -21,6 +21,15 @@ ${instance_loaders}        default:
     }
 
     @Override
+    public void link(Integer relNumber, List<Object> instids) throws XtumlException {
+    	switch ( relNumber ) {
+${link_serializer_relates}        default:
+            //throw new XtumlException( "Cannot relate instances." );
+            break;
+        }
+    }
+
+    @Override
     public void batchRelate() throws XtumlException {
 ${batch_relators}    }
 
@@ -29,9 +38,14 @@ ${batch_relator_definitions}
     @Override
     public void serialize() throws XtumlException {
         PrintStream out = new PrintStream(getOut());
-${instance_serializers}        out.flush();
+${instance_serializers}
+        //  association data
+${link_serializers}
+        out.flush();
     }
 
 ${instance_serializer_definitions}
+
+${link_serializer_definitions}
 
 }
