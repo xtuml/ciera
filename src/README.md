@@ -37,13 +37,13 @@ To install on Mac:
 brew install pypy
 ```
 
-If you choose to use install `pypy` this way, you must add the line:
+If you choose to install `pypy` this way, you must add the line:
 ```
 <pythonExecutable>pypy</pythonExecutable>
 ```
 
 to `src/tool-core/pom.xml`, `src/tool-sql/pom.xml`, and
-`src/tool-template/pom.xml` in the coniguration secion of the
+`src/tool-template/pom.xml` in the configuration secion of the
 `pyxtuml-pre-build` goal.
 
 #### pyxtuml
