@@ -191,7 +191,10 @@ end if;
 select one body related by block->InvocableObject[R4000];
 smt.oal = ::getOalStatement( body:body.oal, line_num:act_smt.LineNumber );
 
-if ( not_empty body )
+select one s_sync related by act_fnc->S_SYNC[R675];
+containing_comp_def = ::getCompDefForStatement( smt:smt );
+select any invocable related by containing_comp_def->Function[R405]->InvocableObject[R427] where ( selected.name == s_sync.Name );
+if ( not_empty invocable )
   // create expression as statement
   create object instance eas of ExpressionAsStatement;
   relate eas to smt across R451;
@@ -204,7 +207,7 @@ if ( not_empty body )
   // create invocation
   create object instance invoc of Invocation;
   relate invoc to expr across R776;
-  relate invoc to body across R792;
+  relate invoc to invocable across R792;
   // relate expression to expression as statement
   relate eas to expr across R476;
   // create named reference expression
