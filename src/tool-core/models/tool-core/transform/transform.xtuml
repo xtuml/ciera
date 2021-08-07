@@ -1228,7 +1228,7 @@ if ( empty class_exclude_mark )
   // transform the state machine
   select one sm related by o_obj->SM_ISM[R518]->SM_SM[R517];
   if ( not_empty sm )
-    ::transformStateMachine( sm_sm:sm, obj:obj );
+    ::transformStateMachine( sm_sm:sm, obj:obj, containing_comp_def:containing_comp_def );
     ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL );
     ::addStringToImports( file:file, s:"io.ciera.runtime.summit.statemachine.IEvent", type:ImportType::IMPL );
     select any evt related by obj->StateMachine[R4750]->Event[R4752];
@@ -2375,7 +2375,7 @@ else
   select many o_objs related by pe_pes->O_OBJ[R8001];
   select many objs related by o_objs->Class[R409];
   for each obj in objs
-    ::transformSelectors( obj:obj );
+    ::transformSelectors( obj:obj, containing_comp_def: containing_comp_def );
   end for;
 
   // transform attribute references
@@ -2747,6 +2747,7 @@ INSERT INTO S_SYNC
 	'obj = param.obj;
 rel = param.rel;
 other_obj = param.other_obj;
+containing_comp_def = param.containing_comp_def;
  
 // This function creates selectors for the class and set for a single path
 // through a relationship. For single instances, a selectOne or selectMany
@@ -2853,7 +2854,7 @@ select one set_file related by obj_set->File[R401];
 ::addStringToImports( file:set_file, s:set_type.type_package + ".impl." + set_type.type_name + "Impl", type:ImportType::IMPL );
 
 // add imports to component file
-select one comp_file related by obj->ComponentDefinition[R408]->File[R401];
+select one comp_file related by containing_comp_def->File[R401];
 if ( Mult::MANY != param.mult )
   ::addStringToImports( file:comp_file, s:class_type.type_package + ".impl." + class_type.type_name + "Impl", type:ImportType::IMPL );
 end if;',
@@ -2946,6 +2947,15 @@ INSERT INTO S_SPARM
 	'',
 	"f7102e2d-bf92-4885-8331-809899ca54c2",
 	'');
+INSERT INTO S_SPARM
+	VALUES ("2d65df66-b16d-4962-a220-89a0ffeb620b",
+	"70b77a96-efe5-4504-a7c8-6e3b43562e61",
+	'containing_comp_def',
+	"109e90cb-1d66-46ee-88db-a568044879d0",
+	0,
+	'',
+	"f32b91c5-08fb-40d1-8d14-eee526de6b03",
+	'');
 INSERT INTO PE_PE
 	VALUES ("70b77a96-efe5-4504-a7c8-6e3b43562e61",
 	1,
@@ -2958,6 +2968,7 @@ INSERT INTO S_SYNC
 	'transformSelectors',
 	'',
 	'obj = param.obj;
+containing_comp_def = param.containing_comp_def;
 
 // transform selectors for associations
 // form to part
@@ -2965,14 +2976,16 @@ select many form_to_part_rels related by obj->Relationship[R435];
 for each rel in form_to_part_rels
   select one part_obj related by rel->Class[R434];
   ::transformSelector( obj:obj, rel:rel, phrase:rel.part_phrase, cond:rel.part_cond,
-                       mult:rel.part_mult, formalizer:true, other_obj:part_obj );
+                       mult:rel.part_mult, formalizer:true, other_obj:part_obj,
+                       containing_comp_def:containing_comp_def );
 end for;
 // part to form
 select many part_to_form_rels related by obj->Relationship[R434];
 for each rel in part_to_form_rels
   select one form_obj related by rel->Class[R435];
   ::transformSelector( obj:obj, rel:rel, phrase:rel.form_phrase, cond:rel.form_cond,
-                       mult:rel.form_mult, formalizer:false, other_obj:form_obj );
+                       mult:rel.form_mult, formalizer:false, other_obj:form_obj,
+                       containing_comp_def:containing_comp_def );
 end for;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -2987,6 +3000,15 @@ INSERT INTO S_SPARM
 	0,
 	'',
 	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("c64b99d6-8f3a-48b4-bd96-f73acac47d0e",
+	"f54fc649-5256-4bae-bb5d-c0a1c9a45cd5",
+	'containing_comp_def',
+	"109e90cb-1d66-46ee-88db-a568044879d0",
+	0,
+	'',
+	"1bf64a54-abc0-4b9f-9015-8be52c113bef",
 	'');
 INSERT INTO PE_PE
 	VALUES ("f54fc649-5256-4bae-bb5d-c0a1c9a45cd5",
@@ -3082,6 +3104,7 @@ INSERT INTO S_SYNC
 	'',
 	'sm_sm = param.sm_sm;
 obj = param.obj;
+containing_comp_def = param.containing_comp_def;
 
 // TODO support polymorphic events
 
@@ -3197,7 +3220,7 @@ end for;
 ::addStringToImports( file:file, s:"io.ciera.runtime.summit.statemachine.StateMachine", type:ImportType::IMPL );
 
 select one class_file related by obj->File[R401];
-select one comp_file related by obj->ComponentDefinition[R408]->File[R401];
+select one comp_file related by containing_comp_def->File[R401];
 ::addFileToImports( file:file, file_to_import:class_file, type:ImportType::IMPL );
 ::addFileToImports( file:file, file_to_import:comp_file, type:ImportType::IMPL );
 ',
@@ -3230,6 +3253,15 @@ INSERT INTO S_SPARM
 	0,
 	'',
 	"52462f5f-c541-4d6a-884e-fcfacb4de247",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("508f7fa3-e519-42d6-be07-2df66838df91",
+	"cb20fa01-e4b7-4d9c-a8aa-ff49e5763228",
+	'containing_comp_def',
+	"109e90cb-1d66-46ee-88db-a568044879d0",
+	0,
+	'',
+	"5f45583f-5aa4-4ba1-a0db-bef2a7a9a239",
 	'');
 INSERT INTO PE_PE
 	VALUES ("cb20fa01-e4b7-4d9c-a8aa-ff49e5763228",
