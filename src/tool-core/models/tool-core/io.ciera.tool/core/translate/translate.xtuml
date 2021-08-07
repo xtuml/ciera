@@ -121,12 +121,16 @@ LOG::LogInfo( message:"  Translating application package..." );
 select any root_package_mark from instances of Mark where ( selected.markable_name == "*"
                                                             and selected.path == "*"
                                                             and selected.feature_name == "RootPackage" );
+select any root_package from instances of EP_PKG where false;
+root_package_specified = false;
+root_package_found = false;                                                           
 if ( not_empty root_package_mark )
-  select any root_package from instances of EP_PKG where false;
+  root_package_specified = true;
   select many s_syss from instances of S_SYS;
   for each s_sys in s_syss
     select any root_package related by s_sys->EP_PKG[R1401] where ( root_package_mark.value == s_sys.Name + "::" + selected.Name );
     if ( not_empty root_package )
+      root_package_found = true;
       break;
     end if;
   end for;
@@ -153,15 +157,24 @@ LOG::LogInfo( message:"  Resolving user defined types..." );
 LOG::LogInfo( message:"  done." );
 LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
 
-// translate bodies
-LOG::LogInfo( message:"  Translating OAL bodies..." );
-select many invocables from instances of InvocableObject;
-for each invocable in invocables
-  LOG::LogInfo( message:"  Translating ''" + invocable.parent_package + "." + invocable.parent_name + "#" + invocable.name + "'' ..." );
-  ::transformBody( invocable:invocable );
-end for;
-LOG::LogInfo( message:"  done." );
-LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
+// translate bodies, once for each component
+if ( root_package_specified and root_package_found )
+  LOG::LogInfo( message:"  Translating OAL bodies..." );
+  select many comp_defs from instances of ComponentDefinition;
+  for each comp_def in comp_defs
+    select many invocables from instances of InvocableObject;
+    for each invocable in invocables
+      relate invocable to comp_def across R4001;
+      LOG::LogInfo( message:"  Translating ''" + invocable.parent_package + "." + invocable.parent_name + "#" + invocable.name + "'' ..." );
+      ::transformBody( invocable:invocable );
+      unrelate invocable from comp_def across R4001;
+    end for;
+  end for;
+  LOG::LogInfo( message:"  done." );
+  LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
+else
+  LOG::LogInfo( message:"  Root package not specified or not found.  Skipping OAL bodies..." );
+end if;
 
 // render all files
 LOG::LogInfo( message:"  Rendering application..." );
