@@ -19,14 +19,16 @@ INSERT INTO O_TFR
 select one file related by self->File[R401];
 imports = file.getFormattedImports( type:ImportType::IMPL );
 
+select one compIndClass related by self->Class[R408];
+
 // Attributes
 // TODO select ordered by
 index = 0;
-select any attribute related by self->Attribute[R410] where ( index == selected.order);
+select any attribute related by compIndClass->Attribute[R410] where ( index == selected.order);
 while ( not_empty attribute ) 
   attribute.render_initializer();
   index = index + 1;
-  select any attribute related by self->Attribute[R410] where ( index == selected.order);
+  select any attribute related by compIndClass->Attribute[R410] where ( index == selected.order);
 end while;
 attribute_initializers = T::body();
 T::clear();
@@ -35,13 +37,13 @@ attribute_list = "";
 attribute_invocation_list = "";
 attribute_initializers2 = "";
 index = 0;
-select any attribute related by self->Attribute[R410] where ( index == selected.order);
+select any attribute related by compIndClass->Attribute[R410] where ( index == selected.order);
 while ( not_empty attribute ) 
   attribute_list = attribute_list + ", " + attribute.type_reference_name + " " + attribute.name;
   attribute_invocation_list = attribute_invocation_list + ", " + attribute.name;
   attribute_initializers2 = attribute_initializers2 + "        this." + attribute.name + " = " + attribute.name + ";\n";
   index = index + 1;
-  select any attribute related by self->Attribute[R410] where ( index == selected.order);
+  select any attribute related by compIndClass->Attribute[R410] where ( index == selected.order);
 end while;
 
 id1_attributes = "";
@@ -51,7 +53,7 @@ sep1 = "";
 sep2 = "";
 sep3 = "";
 index = 0;
-select any attribute related by self->Attribute[R410] where ( index == selected.order);
+select any attribute related by compIndClass->Attribute[R410] where ( index == selected.order);
 while ( not_empty attribute ) 
   attribute.render();
   select many accessors related by attribute->AttributeAccessor[R4510];
@@ -71,13 +73,13 @@ while ( not_empty attribute )
     end if;
   end for;
   index = index + 1;
-  select any attribute related by self->Attribute[R410] where ( index == selected.order);
+  select any attribute related by compIndClass->Attribute[R410] where ( index == selected.order);
 end while;
 attributes = T::body();
 T::clear();
 
 // Class-based Operations
-select many class_ops related by self->Operation[R416] where ( selected.is_class_based );
+select many class_ops related by compIndClass->Operation[R416] where ( selected.is_class_based );
 if ( not_empty class_ops )
   for each operation in class_ops
     operation.render();
@@ -90,7 +92,7 @@ static_operations = T::body();
 T::clear();
 
 // Instance-based Operations
-select many inst_ops related by self->Operation[R416] where ( not selected.is_class_based );
+select many inst_ops related by compIndClass->Operation[R416] where ( not selected.is_class_based );
 for each operation in inst_ops
   operation.render();
 end for;
@@ -103,7 +105,7 @@ initial_state2 = "";
 state_machine_initializer = "";
 state_machine_initializer2 = "";
 state_machine_decl = "";
-select one sm related by self->StateMachine[R4750];
+select one sm related by compIndClass->StateMachine[R4750];
 if ( not_empty sm )
   initial_state = ", int initialState";
   initial_state2 = ", initialState";
@@ -123,7 +125,7 @@ state_machine_events = T::body();
 T::clear();
 
 // Associations (selections)
-select many selects related by self->InstanceSelector[R442];
+select many selects related by compIndClass->InstanceSelector[R442];
 relationship_initializers = "";
 for each selector in selects
   selector.render();
@@ -139,14 +141,14 @@ T::clear();
 
 // Attribute Accessors
 index = 0;
-select any attribute related by self->Attribute[R410] where ( index == selected.order);
+select any attribute related by compIndClass->Attribute[R410] where ( index == selected.order);
 while ( not_empty attribute ) 
   select many accessors related by attribute->AttributeAccessor[R4510];
   for each accessor in accessors
     accessor.render_empty();
   end for;
   index = index + 1;
-  select any attribute related by self->Attribute[R410] where ( index == selected.order);
+  select any attribute related by compIndClass->Attribute[R410] where ( index == selected.order);
 end while;
 empty_attributes = T::body();
 T::clear();
@@ -172,14 +174,14 @@ imports = file.getFormattedImports( type:ImportType::INT );
 
 // Attribute accessors
 index = 0;
-select any attribute related by self->Attribute[R410] where ( index == selected.order);
+select any attribute related by compIndClass->Attribute[R410] where ( index == selected.order);
 while ( not_empty attribute ) 
   select many accessors related by attribute->AttributeAccessor[R4510];
   for each accessor in accessors
     accessor.render_interface();
   end for;
   index = index + 1;
-  select any attribute related by self->Attribute[R410] where ( index == selected.order);
+  select any attribute related by compIndClass->Attribute[R410] where ( index == selected.order);
 end while;
 attributes = T::body();
 T::clear();
@@ -197,6 +199,10 @@ for each selector in selects
 end for;
 selectors = T::body();
 T::clear();
+
+// Determine whether this class is defined outside a component
+select one compIndInterfaceFile related by compIndClass->File[R401];
+compIndep = not compIndInterfaceFile.exclude;
 
 T::include(file:"class/t.classincomponent.java");
 T::emit( file:file.path + "/" + self.name + file.extension );

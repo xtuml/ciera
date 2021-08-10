@@ -1164,26 +1164,40 @@ if ( empty class_exclude_mark )
   select any class_name_mark from instances of Mark where ( selected.markable_name == "Model Class" and
                                                             selected.path == ::containerMarkingPath( pe:pe ) + "::" + o_obj.Name and
                                                             selected.feature_name == "UseKeyLettersForName" );
-  // create the object file
+                                                            
+  // create the component-independent interface file, rendered only if the class is defined outside a component
   create object instance file of File;
   if ( empty class_name_mark )
     file.name = ::camelCaseName( name:o_obj.Name, start_lower:false );
   else
     file.name = o_obj.Key_Lett;
   end if;
-  file.path = path;
+  select one pkg related by o_obj->PE_PE[R8001]->EP_PKG[R8000];
+  file.path = ::ep_pkgToPath( ep_pkg:pkg );
   file.package = ::pathToPackage( path:file.path );
   file.extension = ".java";
-  file.exclude = false;
+  file.exclude = ::packageInComponent( ep_pkg:pkg );
 
-  // create the object
+  // create the object (instance of Class)
   create object instance obj of Class;
   relate obj to file across R401;
   obj.key_letters = o_obj.Key_Lett;
   obj.extends = "ModelInstance<" + obj.name + "," + containing_comp_def.name + ">";
-
-  // add the class to the component
+  
+  // create the class in component instance and its file
   create object instance classInComponent of ClassInComponent;
+  create object instance cic_file of File;
+  if ( empty class_name_mark )
+    cic_file.name = ::camelCaseName( name:o_obj.Name, start_lower:false );
+  else
+    cic_file.name = o_obj.Key_Lett;
+  end if;
+  cic_file.path = path;
+  cic_file.package = ::pathToPackage( path:cic_file.path );
+  cic_file.extension = ".java";
+  cic_file.exclude = false;
+
+  // add the class to the defining or referring component
   relate obj to containing_comp_def across R408 using classInComponent;
 
   // create the instance type
