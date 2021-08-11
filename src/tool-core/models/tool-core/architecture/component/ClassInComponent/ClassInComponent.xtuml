@@ -21,6 +21,10 @@ imports = file.getFormattedImports( type:ImportType::IMPL );
 
 select one compIndClass related by self->Class[R408];
 
+// Provide component name to templates
+select one component related by self->ComponentDefinition[R408];
+comp_name = component.name;
+
 // Attributes
 // TODO select ordered by
 index = 0;
@@ -105,7 +109,7 @@ initial_state2 = "";
 state_machine_initializer = "";
 state_machine_initializer2 = "";
 state_machine_decl = "";
-select one sm related by compIndClass->StateMachine[R4750];
+select one sm related by self->StateMachine[R4750];
 if ( not_empty sm )
   initial_state = ", int initialState";
   initial_state2 = ", initialState";
@@ -203,6 +207,10 @@ T::clear();
 // Determine whether this class is defined outside a component
 select one compIndInterfaceFile related by compIndClass->File[R401];
 compIndep = not compIndInterfaceFile.exclude;
+
+// Supply package and name of component-independent interface to template
+select one compIndepClass related by self->Class[R408];
+compIndepInterface = compIndepClass.package + "." + compIndepClass.name;
 
 T::include(file:"class/t.classincomponent.java");
 T::emit( file:file.path + "/" + self.name + file.extension );
