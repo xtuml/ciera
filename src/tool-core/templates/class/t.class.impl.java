@@ -2,9 +2,9 @@ package ${self.package}.impl;
 
 ${imports}
 
-public class ${self.name}Impl extends ${self.extends} implements ${self.name} {
+public class ${self.name}Impl extends ${extends} implements ${self.name} {
 
-    public static final String KEY_LETTERS = "${self.key_letters}";
+    public static final String KEY_LETTERS = "${key_letters}";
     public static final ${self.name} EMPTY_$u_{self.name} = new Empty${self.name}();
 
     private ${comp_name} context;
@@ -139,7 +139,7 @@ ${selectors}
 
 }
 
-class Empty${self.name} extends ${self.extends} implements ${self.name} {
+class Empty${self.name} extends ${extends} implements ${self.name} {
 
     // attributes
 ${empty_attributes}
