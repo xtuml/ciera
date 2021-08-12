@@ -1185,7 +1185,6 @@ if ( empty class_exclude_mark )
   obj.extends = "ModelInstance<" + obj.name + "," + containing_comp_def.name + ">";
   
   // create the class in component instance and its file
-  create object instance classInComponent of ClassInComponent;
   create object instance cic_file of File;
   if ( empty class_name_mark )
     cic_file.name = ::camelCaseName( name:o_obj.Name, start_lower:false );
@@ -1196,6 +1195,8 @@ if ( empty class_exclude_mark )
   cic_file.package = ::pathToPackage( path:cic_file.path );
   cic_file.extension = ".java";
   cic_file.exclude = false;
+  create object instance classInComponent of ClassInComponent;
+  relate classInComponent to cic_file across R401;
 
   // add the class to the defining or referring component
   relate obj to containing_comp_def across R408 using classInComponent;
