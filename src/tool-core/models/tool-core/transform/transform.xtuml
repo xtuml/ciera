@@ -1150,8 +1150,7 @@ INSERT INTO S_SYNC
 	'transformClass',
 	'',
 	'o_obj = param.o_obj;
-containing_comp_def = param.containing_comp_def;
-path = param.path;
+
 select one ep_pkg related by o_obj->PE_PE[R8001]->EP_PKG[R8000];
 
 // get exclude mark
@@ -1164,8 +1163,10 @@ if ( empty class_exclude_mark )
   select any class_name_mark from instances of Mark where ( selected.markable_name == "Model Class" and
                                                             selected.path == ::containerMarkingPath( pe:pe ) + "::" + o_obj.Name and
                                                             selected.feature_name == "UseKeyLettersForName" );
-                                                            
-  // create the component-independent interface file, rendered only if the class is defined outside a component
+
+  // create the component-independent instance of Class to represent this modeled class,
+  // and create the associated instance of File
+  // the file is rendered only if the class is defined outside a component
   create object instance file of File;
   if ( empty class_name_mark )
     file.name = ::camelCaseName( name:o_obj.Name, start_lower:false );
@@ -1177,31 +1178,11 @@ if ( empty class_exclude_mark )
   file.package = ::pathToPackage( path:file.path );
   file.extension = ".java";
   file.exclude = ::packageInComponent( ep_pkg:pkg );
-
-  // create the object (instance of Class)
   create object instance obj of Class;
   relate obj to file across R401;
   obj.key_letters = o_obj.Key_Lett;
-  obj.extends = "ModelInstance<" + obj.name + "," + containing_comp_def.name + ">";
-  
-  // create the class in component instance and its file
-  create object instance cic_file of File;
-  if ( empty class_name_mark )
-    cic_file.name = ::camelCaseName( name:o_obj.Name, start_lower:false );
-  else
-    cic_file.name = o_obj.Key_Lett;
-  end if;
-  cic_file.path = path;
-  cic_file.package = ::pathToPackage( path:cic_file.path );
-  cic_file.extension = ".java";
-  cic_file.exclude = false;
-  create object instance classInComponent of ClassInComponent;
-  relate classInComponent to cic_file across R401;
 
-  // add the class to the defining or referring component
-  relate obj to containing_comp_def across R408 using classInComponent;
-
-  // create the instance type
+ // create the instance type
   create object instance type of Type;
   type.name = obj.name;
   type.package = obj.package;
@@ -1240,33 +1221,7 @@ if ( empty class_exclude_mark )
     ::transformOperation( o_tfr:o_tfr, obj:obj );
   end for;
   
-  // transform the state machine
-  select one sm related by o_obj->SM_ISM[R518]->SM_SM[R517];
-  if ( not_empty sm )
-    ::transformStateMachine( sm_sm:sm, obj:obj, containing_comp_def:containing_comp_def );
-    ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL );
-    ::addStringToImports( file:file, s:"io.ciera.runtime.summit.statemachine.IEvent", type:ImportType::IMPL );
-    select any evt related by obj->ClassInComponent[R408]->StateMachine[R4750]->Event[R4752];
-    if ( not_empty evt )
-      ::addStringToImports( file:file, s:"io.ciera.runtime.summit.statemachine.Event", type:ImportType::IMPL );
-    end if;
-  end if;
-
-  // transform the set object
-  ::transformClassSet( obj:obj, ep_pkg:ep_pkg, path:path );
-
-  // add to the containing component imports
-  select one component_file related by containing_comp_def->File[R401];
-  select one set_file related by obj->ClassSet[R406]->File[R401];
-  ::addFileToImports( file:component_file, file_to_import:file, type:ImportType::IMPL );
-  ::addFileToImports( file:component_file, file_to_import:set_file, type:ImportType::IMPL );
-  ::addStringToImports( file:component_file, s: ::pathToPackage( path:file.path ) + ".impl." + file.name + "Impl", type:ImportType::IMPL );
-  ::addStringToImports( file:component_file, s: ::pathToPackage( path:set_file.path ) + ".impl." + set_file.name + "Impl", type:ImportType::IMPL );
-  ::addStringToImports( file:component_file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL );
-
   // create the import block
-  ::addFileToImports( file:file, file_to_import:component_file, type:ImportType::BOTH );
-
   ::addFileToImports( file:file, file_to_import:file, type:ImportType::IMPL );
   ::addStringToImports( file:file, s:"io.ciera.runtime.summit.application.IRunContext", type:ImportType::IMPL );
   ::addStringToImports( file:file, s:"io.ciera.runtime.summit.classes.InstanceIdentifier", type:ImportType::IMPL );
@@ -1279,7 +1234,7 @@ if ( empty class_exclude_mark )
   ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.IXtumlType", type:ImportType::IMPL );
   ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.UniqueId", type:ImportType::IMPL );
   ::addStringToImports( file:file, s:"io.ciera.runtime.instanceloading.InstanceCreatedDelta", type:ImportType::IMPL );
-  
+
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -1302,24 +1257,6 @@ INSERT INTO S_DT_PROXY
 	'',
 	'',
 	'../../../../mcooa/models/mcooa/ooaofooa/Subsystem/Subsystem.xtuml');
-INSERT INTO S_SPARM
-	VALUES ("96e1d0a0-83fa-41e1-8dd7-e063f484c257",
-	"39485529-37f5-43d9-bbd1-92027e9dd6d6",
-	'containing_comp_def',
-	"109e90cb-1d66-46ee-88db-a568044879d0",
-	0,
-	'',
-	"78d79a4b-aa7c-4f92-8c2b-c122c556f1af",
-	'');
-INSERT INTO S_SPARM
-	VALUES ("c865d293-ea6c-4aea-b9f2-d168c5534554",
-	"39485529-37f5-43d9-bbd1-92027e9dd6d6",
-	'path',
-	"ba5eda7a-def5-0000-0000-000000000004",
-	0,
-	'',
-	"96e1d0a0-83fa-41e1-8dd7-e063f484c257",
-	'');
 INSERT INTO PE_PE
 	VALUES ("39485529-37f5-43d9-bbd1-92027e9dd6d6",
 	1,
