@@ -3465,6 +3465,130 @@ INSERT INTO PE_PE
 	"302d02ea-52a7-489d-a14b-18b29f3c8d86",
 	"00000000-0000-0000-0000-000000000000",
 	1);
+INSERT INTO S_SYNC
+	VALUES ("b0a793d9-1b3d-4e51-9ca9-a135e3ce274c",
+	"00000000-0000-0000-0000-000000000000",
+	'transformClassInComponent',
+	'',
+	'o_obj = param.o_obj;
+containing_comp_def = param.containing_comp_def;
+path = param.path;
+select one ep_pkg related by o_obj->PE_PE[R8001]->EP_PKG[R8000];
+
+// get exclude mark
+select one pe related by o_obj->PE_PE[R8001];
+select any class_exclude_mark from instances of Mark where ( selected.markable_name == "Model Class" and
+                                                            selected.path == ::containerMarkingPath( pe:pe ) + "::" + o_obj.Name and
+                                                            selected.feature_name == "Exclude" );
+if ( empty class_exclude_mark )
+  // get mark for naming
+  select any class_name_mark from instances of Mark where ( selected.markable_name == "Model Class" and
+                                                            selected.path == ::containerMarkingPath( pe:pe ) + "::" + o_obj.Name and
+                                                            selected.feature_name == "UseKeyLettersForName" );
+
+  // if necessary, transform the component-independent instance of Class
+  select one obj related by o_obj->Class[R409];
+  if ( empty obj )
+    ::transformClass( o_obj: o_obj );
+  end if;
+
+  // create the class in component instance and its file
+  create object instance file of File;
+  if ( empty class_name_mark )
+    file.name = ::camelCaseName( name:o_obj.Name, start_lower:false );
+  else
+    file.name = o_obj.Key_Lett;
+  end if;
+  file.path = path;
+  file.package = ::pathToPackage( path:file.path );
+  file.extension = ".java";
+  file.exclude = false;
+  create object instance classInComponent of ClassInComponent;
+  relate classInComponent to file across R401;
+  classInComponent.extends = "ModelInstance<" + obj.name + "," + containing_comp_def.name + ">";
+  
+  // add the class to the defining or referring component
+  relate obj to containing_comp_def across R408 using classInComponent;
+
+  // transform the state machine
+  select one sm related by o_obj->SM_ISM[R518]->SM_SM[R517];
+  if ( not_empty sm )
+    ::transformStateMachine( sm_sm:sm, obj:obj, containing_comp_def:containing_comp_def );
+    ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL );
+    ::addStringToImports( file:file, s:"io.ciera.runtime.summit.statemachine.IEvent", type:ImportType::IMPL );
+    select any evt related by obj->ClassInComponent[R408]->StateMachine[R4750]->Event[R4752];
+    if ( not_empty evt )
+      ::addStringToImports( file:file, s:"io.ciera.runtime.summit.statemachine.Event", type:ImportType::IMPL );
+    end if;
+  end if;
+
+  // transform the set object
+  ::transformClassSet( obj:obj, ep_pkg:ep_pkg, path:path );
+
+  // add to the containing component imports
+  select one component_file related by containing_comp_def->File[R401];
+  select one set_file related by obj->ClassSet[R406]->File[R401];
+  ::addFileToImports( file:component_file, file_to_import:file, type:ImportType::IMPL );
+  ::addFileToImports( file:component_file, file_to_import:set_file, type:ImportType::IMPL );
+  ::addStringToImports( file:component_file, s: ::pathToPackage( path:file.path ) + ".impl." + file.name + "Impl", type:ImportType::IMPL );
+  ::addStringToImports( file:component_file, s: ::pathToPackage( path:set_file.path ) + ".impl." + set_file.name + "Impl", type:ImportType::IMPL );
+  ::addStringToImports( file:component_file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL );
+
+  // create the import block
+  ::addFileToImports( file:file, file_to_import:component_file, type:ImportType::BOTH );
+
+  ::addFileToImports( file:file, file_to_import:file, type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.application.IRunContext", type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.classes.InstanceIdentifier", type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.classes.IInstanceIdentifier", type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.classes.IModelInstance", type:ImportType::INT );
+  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.classes.ModelInstance", type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.InstancePopulationException", type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.IWhere", type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.IXtumlType", type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.UniqueId", type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"io.ciera.runtime.instanceloading.InstanceCreatedDelta", type:ImportType::IMPL );
+
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	1);
+INSERT INTO S_SPARM
+	VALUES ("1260730e-bbda-440d-945f-10cd4e6fa29b",
+	"b0a793d9-1b3d-4e51-9ca9-a135e3ce274c",
+	'o_obj',
+	"63f4ff99-f127-443b-a678-30ace41da702",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("6ef83140-1f10-412a-b167-695259c808b4",
+	"b0a793d9-1b3d-4e51-9ca9-a135e3ce274c",
+	'containing_comp_def',
+	"109e90cb-1d66-46ee-88db-a568044879d0",
+	0,
+	'',
+	"1260730e-bbda-440d-945f-10cd4e6fa29b",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("8327bbed-2710-41b5-8d23-c89fbfebd345",
+	"b0a793d9-1b3d-4e51-9ca9-a135e3ce274c",
+	'path',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"6ef83140-1f10-412a-b167-695259c808b4",
+	'');
+INSERT INTO PE_PE
+	VALUES ("b0a793d9-1b3d-4e51-9ca9-a135e3ce274c",
+	1,
+	"302d02ea-52a7-489d-a14b-18b29f3c8d86",
+	"00000000-0000-0000-0000-000000000000",
+	1);
 INSERT INTO PE_PE
 	VALUES ("302d02ea-52a7-489d-a14b-18b29f3c8d86",
 	1,
