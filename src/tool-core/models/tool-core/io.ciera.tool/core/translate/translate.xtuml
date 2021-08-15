@@ -137,10 +137,10 @@ if ( not_empty root_package_mark )
   if ( not_empty root_package )
     ::transformApplication( root_package:root_package, path: ::ep_pkgToPath( ep_pkg:root_package ) );
   else
-    LOG::LogInfo( message:"No root package found" );
+    LOG::LogInfo( message:"ERROR:  No root package found" );
   end if;
 else
-  LOG::LogInfo( message:"No root package specified" );
+  LOG::LogInfo( message:"ERROR:  No root package specified" );
 end if;
 LOG::LogInfo( message:"  done." );
 LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
@@ -157,23 +157,19 @@ LOG::LogInfo( message:"  Resolving user defined types..." );
 LOG::LogInfo( message:"  done." );
 LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
 
-// translate bodies, once for each component
+// translate bodies
 if ( root_package_specified and root_package_found )
   LOG::LogInfo( message:"  Translating OAL bodies..." );
-  select many comp_defs from instances of ComponentDefinition;
-  for each comp_def in comp_defs
-    select many invocables from instances of InvocableObject;
-    for each invocable in invocables
-      relate invocable to comp_def across R4001;
-      LOG::LogInfo( message:"  Translating ''" + invocable.parent_package + "." + invocable.parent_name + "#" + invocable.name + "'' ..." );
-      ::transformBody( invocable:invocable );
-      unrelate invocable from comp_def across R4001;
-    end for;
+  select many invocableInComps from instances of InvocableInComponent;
+  for each invocableInComp in invocableInComps
+  	select one invocable related by invocableInComp->InvocableObject[R4001];
+    LOG::LogInfo( message:"  Translating ''" + invocable.parent_package + "." + invocable.parent_name + "#" + invocable.name + "'' ..." );
+    ::transformBody( invocableInComp:invocableInComp );
   end for;
   LOG::LogInfo( message:"  done." );
   LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
 else
-  LOG::LogInfo( message:"  Root package not specified or not found.  Skipping OAL bodies..." );
+  LOG::LogInfo( message:"  ERROR:  Root package not specified or not found.  Skipping OAL bodies..." );
 end if;
 
 // render all files
