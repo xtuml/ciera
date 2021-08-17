@@ -882,7 +882,7 @@ if ( not_empty prev_smt )
 else
   smt.statement_number = "1";
 end if;
-select one body related by block->InvocableObject[R4000];
+select one body related by block->InvocableInComponent[R4000]->InvocableObject[R4001];
 smt.oal = ::getOalStatement( body:body.oal, line_num:act_smt.LineNumber );
 
 // create expression as statement
@@ -3180,7 +3180,8 @@ INSERT INTO S_SYNC
 act_blk = param.act_blk;
 if ( not_empty act_blk )
 
-  invocable = param.invocable;
+  invocableInComp = param.invocableInComp;
+  select one invocable related by invocableInComp->InvocableObject[R4001];
 
   // create code block
   create object instance block of CodeBlock;
@@ -3201,11 +3202,11 @@ if ( not_empty act_blk )
       block.tab_depth = 2; // increase the tab depth by one for bodies which belong to derived attributes and class based operations
     end if;
   else
-    select one invocable related by upper_block->InvocableObject[R4000];
+    select one invocable related by upper_block->InvocableInComponent[R4000]->InvocableObject[R4001];
     block.top_level = false;
     block.tab_depth = upper_block.tab_depth + 1;
   end if;
-  relate block to invocable across R4000;
+  relate block to invocableInComp across R4000;
   block.block_number = param.block_number;
 
   // copy visibile variables from upper block
@@ -3233,7 +3234,7 @@ INSERT INTO S_SPARM
 	"60d4da0e-4cbe-4620-8c16-4e1dba1c6b8d",
 	0,
 	'',
-	"af2f4c5c-5579-48a7-afc9-c6d816d71299",
+	"00000000-0000-0000-0000-000000000000",
 	'');
 INSERT INTO S_SPARM
 	VALUES ("48703f0c-67e0-473b-aede-2525092b2198",
@@ -3261,18 +3262,18 @@ INSERT INTO S_SPARM
 	"48703f0c-67e0-473b-aede-2525092b2198",
 	'');
 INSERT INTO S_SPARM
-	VALUES ("af2f4c5c-5579-48a7-afc9-c6d816d71299",
+	VALUES ("98163c1d-46c5-45d1-96af-242557384710",
 	"c98ed204-d0e1-49ac-b3b8-6a8518c35bfb",
-	'invocable',
-	"3ab44839-4426-4754-b12a-0a00ce4dae1a",
+	'invocableInComp',
+	"15275e26-b9be-4723-81b7-a823b206a5bb",
 	0,
 	'',
-	"00000000-0000-0000-0000-000000000000",
+	"47463209-70cd-45f6-8be8-763363b0cfe6",
 	'');
 INSERT INTO S_DT_PROXY
-	VALUES ("3ab44839-4426-4754-b12a-0a00ce4dae1a",
+	VALUES ("15275e26-b9be-4723-81b7-a823b206a5bb",
 	"00000000-0000-0000-0000-000000000000",
-	'inst_ref<Invocable Object>',
+	'inst_ref<InvocableInComponent>',
 	'',
 	'',
 	'../../architecture/invocable/invocable.xtuml');
@@ -3483,11 +3484,11 @@ if ( not_empty act_act and not_empty invocable )
   // check if deferred operation
   select one deferral related by act_act->ACT_OPB[R698]->O_TFR[R696]->O_DEF[R126];
   if (not_empty deferral and STRING::indexof(haystack:invocable.name, needle:"_supertype_") != 0)
-    ::transformDeferral(invocable:invocable, deferral:deferral);
+    ::transformDeferral(invocableInComp:invocableInComp, deferral:deferral);
   else
     select any upper_block from instances of CodeBlock where false;
     select one act_blk related by act_act->ACT_BLK[R666];
-    ::transformBlock( invocable:invocable, upper_block:upper_block, act_blk:act_blk, block_number:"1" );
+    ::transformBlock( invocableInComp:invocableInComp, upper_block:upper_block, act_blk:act_blk, block_number:"1" );
     
     // finalize variables referenced from within a where clause
     ::resloveVariableFinalizations( invocable:invocable );
@@ -3510,13 +3511,6 @@ INSERT INTO S_SPARM
 	'',
 	"00000000-0000-0000-0000-000000000000",
 	'');
-INSERT INTO S_DT_PROXY
-	VALUES ("15275e26-b9be-4723-81b7-a823b206a5bb",
-	"00000000-0000-0000-0000-000000000000",
-	'inst_ref<InvocableInComponent>',
-	'',
-	'',
-	'../../architecture/invocable/invocable.xtuml');
 INSERT INTO PE_PE
 	VALUES ("e45b0c87-1160-45d1-89dc-89f8f9c8a3c2",
 	1,
@@ -4025,6 +4019,13 @@ INSERT INTO S_SPARM
 	'',
 	"00000000-0000-0000-0000-000000000000",
 	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("3ab44839-4426-4754-b12a-0a00ce4dae1a",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Invocable Object>',
+	'',
+	'',
+	'../../architecture/invocable/invocable.xtuml');
 INSERT INTO PE_PE
 	VALUES ("9887c09e-f8cb-4d54-9f3d-44f6d220145c",
 	1,
@@ -4442,9 +4443,10 @@ INSERT INTO S_SYNC
 	"00000000-0000-0000-0000-000000000000",
 	'transformDeferral',
 	'',
-	'invocable = param.invocable;
+	'invocableInComp = param.invocableInComp;
 deferral = param.deferral;
 
+select one invocable related by invocableInComp->InvocableObject[R4001];
 select one o_tfr related by deferral->O_TFR[R126];
 select one type related by invocable->TypeReference[R428];
 returns_value = "void" != type.type_name;
@@ -4454,7 +4456,7 @@ select many subtypes related by deferral->R_REL[R126]->R_SUBSUP[R206]->R_SUB[R21
 create object instance block of CodeBlock;
 block.top_level = true;
 block.tab_depth = 1;
-relate block to invocable across R4000;
+relate block to invocableInComp across R4000;
 block.block_number = "1";
 
 // create an invocation for each subtype
@@ -4597,7 +4599,7 @@ for each subtype in subtypes
   create object instance then_block of CodeBlock;
   then_block.top_level = false;
   then_block.tab_depth = block.tab_depth + 1;
-  relate then_block to invocable across R4000;
+  relate then_block to invocableInComp across R4000;
   then_block.block_number = then_block_number;
   relate then_block to if_smt across R453;
   // create invocation
@@ -4685,7 +4687,7 @@ for each subtype in subtypes
   create object instance else_block of CodeBlock;
   else_block.top_level = false;
   else_block.tab_depth = block.tab_depth + 1;
-  relate else_block to invocable across R4000;
+  relate else_block to invocableInComp across R4000;
   else_block.block_number = else_block_number;
   relate else_block to if_smt across R454;
   
@@ -4723,7 +4725,7 @@ INSERT INTO S_SPARM
 	"b5231088-af9f-42ab-b08b-e1578453a954",
 	0,
 	'',
-	"ea06b63f-8eb7-49ef-9a4e-cb5781f398ad",
+	"00000000-0000-0000-0000-000000000000",
 	'');
 INSERT INTO S_DT_PROXY
 	VALUES ("b5231088-af9f-42ab-b08b-e1578453a954",
@@ -4733,13 +4735,13 @@ INSERT INTO S_DT_PROXY
 	'',
 	'../../../../../mcooa/models/mcooa/ooaofooa/Subsystem/Subsystem.xtuml');
 INSERT INTO S_SPARM
-	VALUES ("ea06b63f-8eb7-49ef-9a4e-cb5781f398ad",
+	VALUES ("e1e11b27-7829-4ff3-a0e0-eb0a79054e63",
 	"56dd991f-2c16-4b8a-9f82-b3dd99c25611",
-	'invocable',
-	"3ab44839-4426-4754-b12a-0a00ce4dae1a",
+	'invocableInComp',
+	"15275e26-b9be-4723-81b7-a823b206a5bb",
 	0,
 	'',
-	"00000000-0000-0000-0000-000000000000",
+	"29cc6813-0b74-4cfe-899d-8def3337814c",
 	'');
 INSERT INTO PE_PE
 	VALUES ("56dd991f-2c16-4b8a-9f82-b3dd99c25611",
