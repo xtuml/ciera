@@ -3303,7 +3303,7 @@ end if;
 // transform each utility function
 select many s_brgs related by s_ee->S_BRG[R19];
 for each s_brg in s_brgs
-  ::transformUtilityFunction( s_brg:s_brg, utility:utility );
+  ::transformUtilityFunction( s_brg:s_brg, utility:utility, containing_comp_def:containing_comp_def );
 end for;
 
 // create import block
@@ -3380,6 +3380,7 @@ INSERT INTO S_SYNC
 	'',
 	's_brg = param.s_brg;
 utility = param.utility;
+containing_comp_def = param.containing_comp_def;
 
 // create utility function object
 create object instance util_func of UtilityFunction;
@@ -3392,6 +3393,10 @@ invocable.parent_name = utility.name;
 invocable.parent_package = utility.package;
 relate util_func to invocable across R427;
 invocable.oal = s_brg.Action_Semantics_internal;
+
+// create component-specific invocable
+create object instance invocableInComp of InvocableInComponent;
+relate invocable to containing_comp_def across R4001 using invocableInComp;
 
 // link type
 select one s_dt related by s_brg->S_DT[R20];
@@ -3459,6 +3464,15 @@ INSERT INTO S_DT_PROXY
 	'',
 	'',
 	'../../../../mcooa/models/mcooa/ooaofooa/Domain/Domain.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("18e5173d-5332-4cac-8e66-e44a739406b3",
+	"7987d2a8-0081-4942-a0f1-09509ae9f755",
+	'containing_comp_def',
+	"109e90cb-1d66-46ee-88db-a568044879d0",
+	0,
+	'',
+	"42373b64-8fb9-4a71-b28d-d88fab9d5a5e",
+	'');
 INSERT INTO PE_PE
 	VALUES ("7987d2a8-0081-4942-a0f1-09509ae9f755",
 	1,
