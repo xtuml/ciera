@@ -14,7 +14,18 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'select one invocable related by self->InvocableObject[R427];
+	'containing_comp_def = param.containing_comp_def;
+
+select one invocable related by self->InvocableObject[R427];
+// find the one, component-specific InvocableInComponent representing this instance
+// of operation; final select statement is required to convert an 
+// instance set containing a single instance handle into an instance handle that can be used
+// to invoke an operation -- if only OAL had a ''select'' complement to ''relate...using''
+select many invocableInComps_invocable related by invocable->InvocableInComponent[R4001];
+select many invocableInComps_component related by containing_comp_def->InvocableInComponent[R4001];
+invocableInComps = invocableInComps_invocable & invocableInComps_component;
+select any invocableInComp related by invocableInComps->InvocableObject[R4001]->InvocableInComponent[R4001];
+
 modifiers = invocable.modifiers();
 
 select one type related by self->InvocableObject[R427]->TypeReference[R428];
@@ -22,7 +33,7 @@ type_name = type.type_reference_name;
 
 T::push_buffer();
 parameter_list = invocable.parameter_list();
-body = invocable.body();
+body = invocableInComp.body();
 T::pop_buffer();
 
 T::include(file:"class/t.operation.java");',
