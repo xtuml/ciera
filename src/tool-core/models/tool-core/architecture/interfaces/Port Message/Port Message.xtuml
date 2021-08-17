@@ -16,13 +16,26 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'select one port related by self->Port[R420];
+	'containing_comp_def = param.containing_comp_def;
+
+select one port related by self->Port[R420];
 select one message related by self->Message[R420];
 
 T::push_buffer();
 select one invocable related by self->InvocableObject[R427];
 parameter_list = invocable.parameter_list();
-body = invocable.body();
+
+// find the one, component-specific InvocableInComponent representing this instance
+// of port message; final select statement is required to convert an 
+// instance set containing a single instance handle into an instance handle that can be used
+// to invoke an operation -- https://support.onefact.net/issues/12231
+select many invocableInComps_invocable related by invocable->InvocableInComponent[R4001];
+select many invocableInComps_component related by containing_comp_def->InvocableInComponent[R4001];
+invocableInComps = invocableInComps_invocable & invocableInComps_component;
+select any invocableInComp related by invocableInComps->InvocableObject[R4001]->InvocableInComponent[R4001];
+body = invocableInComp.body();
+
+body = invocableInComp.body();
 T::pop_buffer();
 
 invocation_parameter_list = "";
@@ -45,7 +58,24 @@ T::include(file:"interface/t.portmessage.java");',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",
+	0,
 	0);
+INSERT INTO O_TPARM
+	VALUES ("e095a6da-d2e8-4d52-925c-5d4f33e424c4",
+	"ebb83977-1afb-439f-99ff-6fcf7a82d93c",
+	'containing_comp_def',
+	"109e90cb-1d66-46ee-88db-a568044879d0",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("109e90cb-1d66-46ee-88db-a568044879d0",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Component Definition>',
+	'',
+	'',
+	'../../component/component.xtuml');
 INSERT INTO O_TFR
 	VALUES ("0b094dc4-af53-4c8f-8ee7-2d014dfe2d49",
 	"f324607b-67c6-4abd-90c0-9dfb3d9e8e63",
@@ -84,6 +114,7 @@ T::include(file:"interface/t.message.deliver.java");',
 	1,
 	'',
 	"ebb83977-1afb-439f-99ff-6fcf7a82d93c",
+	0,
 	0);
 INSERT INTO O_REF
 	VALUES ("f324607b-67c6-4abd-90c0-9dfb3d9e8e63",

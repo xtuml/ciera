@@ -14,7 +14,9 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'select one file related by self->File[R401];
+	'select one containing_comp_def related by self->File[R401]->ComponentDefinition[R403];
+
+select one file related by self->File[R401];
 imports = file.getFormattedImports( type:ImportType::IMPL );
 
 // render inbound messages
@@ -22,7 +24,7 @@ select many inbound_msgs related by self->Interface[R418]->Message[R419] where (
                                                                                  ( selected.to_provider and self.provider ) );
 select many inbound_port_msgs related by inbound_msgs->PortMessage[R420] where ( selected.port_name == self.name );
 for each port_msg in inbound_port_msgs
-  port_msg.render();
+  port_msg.render( containing_comp_def:containing_comp_def );
 end for;
 inbound_message_block = T::body();
 T::clear();
@@ -32,7 +34,7 @@ select many outbound_msgs related by self->Interface[R418]->Message[R419] where 
                                                                                   ( not selected.to_provider and self.provider ) );
 select many outbound_port_msgs related by outbound_msgs->PortMessage[R420] where ( selected.port_name == self.name );
 for each port_msg in outbound_port_msgs
-  port_msg.render();
+  port_msg.render( containing_comp_def:containing_comp_def );
 end for;
 outbound_message_block = T::body();
 T::clear();
@@ -65,6 +67,7 @@ T::clear();',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",
+	0,
 	0);
 INSERT INTO O_TFR
 	VALUES ("7776c784-fbf8-4369-9cd5-84c095894790",
@@ -77,6 +80,7 @@ INSERT INTO O_TFR
 	1,
 	'',
 	"a8cd2a5e-e4c5-4db2-b940-626a586c3f07",
+	0,
 	0);
 INSERT INTO O_NBATTR
 	VALUES ("0b8a6150-198d-4c91-af5c-396d50582215",
