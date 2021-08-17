@@ -25,16 +25,7 @@ T::push_buffer();
 select one invocable related by self->InvocableObject[R427];
 parameter_list = invocable.parameter_list();
 
-// find the one, component-specific InvocableInComponent representing this instance
-// of port message; final select statement is required to convert an 
-// instance set containing a single instance handle into an instance handle that can be used
-// to invoke an operation -- https://support.onefact.net/issues/12231
-select many invocableInComps_invocable related by invocable->InvocableInComponent[R4001];
-select many invocableInComps_component related by containing_comp_def->InvocableInComponent[R4001];
-invocableInComps = invocableInComps_invocable & invocableInComps_component;
-select any invocableInComp related by invocableInComps->InvocableObject[R4001]->InvocableInComponent[R4001];
-body = invocableInComp.body();
-
+invocableInComp = ::getInvocableInComponent( invocable:invocable, component:containing_comp_def );
 body = invocableInComp.body();
 T::pop_buffer();
 

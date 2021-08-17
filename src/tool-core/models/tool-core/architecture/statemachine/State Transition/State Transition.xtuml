@@ -21,15 +21,9 @@ if ( not_empty evt_invocable )
   parameter_list = evt_invocable.parameter_list();
 end if;
 
-// find the one, component-specific InvocableInComponent representing this instance
-// of transition; final select statement is required to convert an 
-// instance set containing a single instance handle into an instance handle that can be used
-// to invoke an operation -- https://support.onefact.net/issues/12231
-select many invocableInComps_invocable related by evt_invocable->InvocableInComponent[R4001];
-select many invocableInComps_component related by self->State[R4757]->StateMachine[R4751]->
-  ClassInComponent[R4750]->ComponentDefinition[R408]->InvocableInComponent[R4001];
-invocableInComps = invocableInComps_invocable & invocableInComps_component;
-select any invocableInComp related by invocableInComps->InvocableObject[R4001]->InvocableInComponent[R4001];
+select one component related by self->State[R4757]->StateMachine[R4751]->
+  ClassInComponent[R4750]->ComponentDefinition[R408];
+invocableInComp = ::getInvocableInComponent( invocable:evt_invocable, component:component );
 body = invocableInComp.body();
 
 T::pop_buffer();

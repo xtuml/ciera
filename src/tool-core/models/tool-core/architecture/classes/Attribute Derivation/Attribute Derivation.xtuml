@@ -16,14 +16,8 @@ INSERT INTO O_TFR
 	1,
 	'containing_comp_def = param.containing_comp_def;
 
-// find the one, component-specific InvocableInComponent representing this instance
-// of attribute derivation; final select statement is required to convert an 
-// instance set containing a single instance handle into an instance handle that can be used
-// to invoke an operation -- https://support.onefact.net/issues/12231
-select many invocableInComps_invocable related by self->InvocableObject[R427]->InvocableInComponent[R4001];
-select many invocableInComps_component related by containing_comp_def->InvocableInComponent[R4001];
-invocableInComps = invocableInComps_invocable & invocableInComps_component;
-select any invocableInComp related by invocableInComps->InvocableObject[R4001]->InvocableInComponent[R4001];
+select one invocable related by self->InvocableObject[R427];
+invocableInComp = ::getInvocableInComponent( invocable:invocable, component:containing_comp_def );
 
 body = invocableInComp.body();
 T::include(file:"class/t.attributederivation.java");',
