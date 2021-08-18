@@ -852,6 +852,7 @@ INSERT INTO S_SYNC
 	'',
 	'o_attr = param.o_attr;
 obj = param.obj;
+containing_comp_def = param.containing_comp_def;
 
 // create the attribute
 create object instance attr of Attribute;
@@ -917,6 +918,9 @@ if ( not_empty o_dbattr )
   invocable.parent_package = attr.class_package;
   relate deriv to invocable across R427;
   invocable.oal = o_dbattr.Action_Semantics_internal;
+  create object instance invocableInComp of InvocableInComponent;
+  relate invocable to containing_comp_def across R4001 using invocableInComp;
+  
   // link type
   relate type to invocable across R428;
   // relate the body
@@ -981,6 +985,15 @@ INSERT INTO S_SPARM
 	0,
 	'',
 	"60f99308-e7f2-4418-9f3c-a851d15b500e",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("c6fa766c-a468-4a21-b5f7-28b4b592c835",
+	"bf960a33-3c3c-4839-89d3-7979cebc4f42",
+	'containing_comp_def',
+	"109e90cb-1d66-46ee-88db-a568044879d0",
+	0,
+	'',
+	"fc68f878-a11f-4847-b767-3532e44408f6",
 	'');
 INSERT INTO PE_PE
 	VALUES ("bf960a33-3c3c-4839-89d3-7979cebc4f42",
@@ -1199,28 +1212,6 @@ if ( empty class_exclude_mark )
   // relate to the OOA class
   relate obj to o_obj across R409;
 
-  // transform attributes
-  select any o_attr related by o_obj->O_ATTR[R102];
-  select one prev_attr related by o_attr->O_ATTR[R103.''succeeds''];
-  while ( not_empty prev_attr )
-    o_attr = prev_attr;
-    select one prev_attr related by o_attr->O_ATTR[R103.''succeeds''];
-  end while;
-  index = 0;
-  while ( not_empty o_attr )
-    if ( "current_state" != o_attr.Name )
-      ::transformAttribute( o_attr:o_attr, obj:obj, index:index );
-      index = index + 1;
-    end if;
-    select one o_attr related by o_attr->O_ATTR[R103.''precedes''];
-  end while;
-
-  // transform operations
-  select many o_tfrs related by o_obj->O_TFR[R115];
-  for each o_tfr in o_tfrs
-    ::transformOperation( o_tfr:o_tfr, obj:obj );
-  end for;
-  
   // create the import block
   ::addFileToImports( file:file, file_to_import:file, type:ImportType::IMPL );
   ::addStringToImports( file:file, s:"io.ciera.runtime.summit.application.IRunContext", type:ImportType::IMPL );
@@ -1670,6 +1661,9 @@ invocable.parent_name = sm.name;
 invocable.parent_package = sm.package;
 relate evt to invocable across R427;
 invocable.oal = "";
+select one component related by evt->StateMachine[R4752]->File[R401]->ComponentDefinition[R403];
+create object instance invocableInComp of InvocableInComponent;
+relate invocable to component across R4001 using invocableInComp;
 
 // link type
 type = TypeReference::getBuiltinTypeReference( name:"void" );
@@ -2071,6 +2065,7 @@ INSERT INTO S_SYNC
 	'',
 	'o_tfr = param.o_tfr;
 obj = param.obj;
+containing_comp_def = param.containing_comp_def;
 
 // create operation object
 create object instance op of Operation;
@@ -2142,6 +2137,8 @@ if (not_empty o_def and o_def.required == 1)
   invocable.parent_package = op.class_package;
   relate op to invocable across R427;
   invocable.oal = o_tfr.Action_Semantics_internal;
+  create object instance invocableInComp of InvocableInComponent;
+  relate invocable to containing_comp_def across R4001 using invocableInComp;
   
   // link type
   select one s_dt related by o_tfr->S_DT[R116];
@@ -2221,6 +2218,15 @@ INSERT INTO S_SPARM
 	0,
 	'',
 	"33e8c652-ca5f-4d36-a0c9-f60ddeef159e",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("65f7b97d-1031-45d7-99ed-7cf7bb3a6d3c",
+	"74257fe5-db1d-468b-b7b2-b0405455e5ac",
+	'containing_comp_def',
+	"109e90cb-1d66-46ee-88db-a568044879d0",
+	0,
+	'',
+	"870faa2c-f3c4-4326-b164-18a2f8a53d80",
 	'');
 INSERT INTO PE_PE
 	VALUES ("74257fe5-db1d-468b-b7b2-b0405455e5ac",
@@ -3523,6 +3529,28 @@ if ( empty class_exclude_mark )
   
   // add the class to the defining or referring component
   relate obj to containing_comp_def across R408 using classInComponent;
+  
+  // transform attributes
+  select any o_attr related by o_obj->O_ATTR[R102];
+  select one prev_attr related by o_attr->O_ATTR[R103.''succeeds''];
+  while ( not_empty prev_attr )
+    o_attr = prev_attr;
+    select one prev_attr related by o_attr->O_ATTR[R103.''succeeds''];
+  end while;
+  index = 0;
+  while ( not_empty o_attr )
+    if ( "current_state" != o_attr.Name )
+      ::transformAttribute( o_attr:o_attr, obj:obj, index:index, containing_comp_def:containing_comp_def );
+      index = index + 1;
+    end if;
+    select one o_attr related by o_attr->O_ATTR[R103.''precedes''];
+  end while;
+
+  // transform operations
+  select many o_tfrs related by o_obj->O_TFR[R115];
+  for each o_tfr in o_tfrs
+    ::transformOperation( o_tfr:o_tfr, obj:obj, containing_comp_def:containing_comp_def );
+  end for;
 
   // transform the state machine
   select one sm related by o_obj->SM_ISM[R518]->SM_SM[R517];
