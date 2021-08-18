@@ -854,91 +854,101 @@ INSERT INTO S_SYNC
 obj = param.obj;
 containing_comp_def = param.containing_comp_def;
 
-// create the attribute
-create object instance attr of Attribute;
-select one rattr related by o_attr->O_RATTR[R106];
-if ( not_empty rattr )
-  attr.name = "ref_" + o_attr.Name;
+select one attr related by o_attr->Attribute[R414];
+if ( empty attr )
+	// create the attribute
+	create object instance attr of Attribute;
+	select one rattr related by o_attr->O_RATTR[R106];
+	if ( not_empty rattr )
+	  attr.name = "ref_" + o_attr.Name;
+	else
+	  attr.name = "m_" + o_attr.Name;
+	end if;
+	attr.base_name = o_attr.Name;
+	attr.order = param.index;
+	attr.default_value = "";
+	relate attr to obj across R410;
+	
+	// set part of identifier
+	attr.identifier = 0;
+	select many inst_ids related by o_attr->O_ID[R105];
+	for each inst_id in inst_ids
+	  if ( inst_id.Oid_ID == 0 )   attr.identifier = attr.identifier + 1;
+	  elif ( inst_id.Oid_ID == 1 ) attr.identifier = attr.identifier + 2;
+	  elif ( inst_id.Oid_ID == 2 ) attr.identifier = attr.identifier + 4;
+	  end if;
+	end for;
+	
+	// set the type
+	select one s_dt related by o_attr->S_DT[R114];
+	if ( "same_as<Base_Attribute>" == s_dt.Name )
+	  select one s_dt related by o_attr->O_RATTR[R106]->O_BATTR[R113]->O_ATTR[R106]->S_DT[R114];
+	end if;
+	if ( empty s_dt )
+	  // TODO bad
+	end if;
+	select many s_dims related by o_attr->S_DIM[R120];
+	type = TypeReference::getInstance(s_dt:s_dt, s_dims:s_dims);
+	select one array_type related by type->ArrayTypeReference[R3801];
+	relate type to attr across R424;
+	
+	// set default value for unique id attributes
+	if ( "UniqueId" == type.type_name )
+	  attr.default_value = "UniqueId.random()";
+	end if;
+	
+	// link OOA attribute
+	relate o_attr to attr across R414;
+	
+	// create accessors
+	create object instance getter of AttributeAccessor;
+	getter.accessor_type = AttributeAccessorType::GETTER;
+	relate getter to attr across R4510;
+	create object instance setter of AttributeAccessor;
+	setter.accessor_type = AttributeAccessorType::SETTER;
+	relate setter to attr across R4510;
+	
+	// transform derivation
+	select one o_dbattr related by o_attr->O_BATTR[R106]->O_DBATTR[R107];
+	if ( not_empty o_dbattr )
+	  create object instance deriv of AttributeDerivation;
+	  relate deriv to getter across R441;
+	  // create invocable
+	  create object instance invocable of InvocableObject;
+	  invocable.name = attr.name;
+	  invocable.parent_name = attr.class_name;
+	  invocable.parent_package = attr.class_package;
+	  relate deriv to invocable across R427;
+	  invocable.oal = o_dbattr.Action_Semantics_internal;
+	  InvocableInComponent::populate( invocable:invocable, component:containing_comp_def );
+	  
+	  // link type
+	  relate type to invocable across R428;
+	  // relate the body
+	  select one act_act related by o_dbattr->ACT_DAB[R693]->ACT_ACT[R698];
+	  if ( not_empty act_act )
+	    relate act_act to invocable across R432;
+	  end if;
+	end if;
+	
+	// add import to object file
+	select one file related by obj->File[R401];
+	::addStringToImports( file:file, s:"io.ciera.runtime.instanceloading.AttributeChangedDelta", type:ImportType::IMPL );
+	::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::BOTH );
+	::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.EmptyInstanceException", type:ImportType::IMPL );
+	if (not_empty array_type)
+	  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.ArrayUtil", type:ImportType::IMPL );
+	elif ("String" == type.type_name and "" == type.type_package)
+	  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.StringUtil", type:ImportType::IMPL );
+	end if;
 else
-  attr.name = "m_" + o_attr.Name;
-end if;
-attr.base_name = o_attr.Name;
-attr.order = param.index;
-attr.default_value = "";
-relate attr to obj across R410;
-
-// set part of identifier
-attr.identifier = 0;
-select many inst_ids related by o_attr->O_ID[R105];
-for each inst_id in inst_ids
-  if ( inst_id.Oid_ID == 0 )   attr.identifier = attr.identifier + 1;
-  elif ( inst_id.Oid_ID == 1 ) attr.identifier = attr.identifier + 2;
-  elif ( inst_id.Oid_ID == 2 ) attr.identifier = attr.identifier + 4;
-  end if;
-end for;
-
-// set the type
-select one s_dt related by o_attr->S_DT[R114];
-if ( "same_as<Base_Attribute>" == s_dt.Name )
-  select one s_dt related by o_attr->O_RATTR[R106]->O_BATTR[R113]->O_ATTR[R106]->S_DT[R114];
-end if;
-if ( empty s_dt )
-  // TODO bad
-end if;
-select many s_dims related by o_attr->S_DIM[R120];
-type = TypeReference::getInstance(s_dt:s_dt, s_dims:s_dims);
-select one array_type related by type->ArrayTypeReference[R3801];
-relate type to attr across R424;
-
-// set default value for unique id attributes
-if ( "UniqueId" == type.type_name )
-  attr.default_value = "UniqueId.random()";
-end if;
-
-// link OOA attribute
-relate o_attr to attr across R414;
-
-// create accessors
-create object instance getter of AttributeAccessor;
-getter.accessor_type = AttributeAccessorType::GETTER;
-relate getter to attr across R4510;
-create object instance setter of AttributeAccessor;
-setter.accessor_type = AttributeAccessorType::SETTER;
-relate setter to attr across R4510;
-
-// transform derivation
-select one o_dbattr related by o_attr->O_BATTR[R106]->O_DBATTR[R107];
-if ( not_empty o_dbattr )
-  create object instance deriv of AttributeDerivation;
-  relate deriv to getter across R441;
-  // create invocable
-  create object instance invocable of InvocableObject;
-  invocable.name = attr.name;
-  invocable.parent_name = attr.class_name;
-  invocable.parent_package = attr.class_package;
-  relate deriv to invocable across R427;
-  invocable.oal = o_dbattr.Action_Semantics_internal;
-  create object instance invocableInComp of InvocableInComponent;
-  relate invocable to containing_comp_def across R4001 using invocableInComp;
-  
-  // link type
-  relate type to invocable across R428;
-  // relate the body
-  select one act_act related by o_dbattr->ACT_DAB[R693]->ACT_ACT[R698];
-  if ( not_empty act_act )
-    relate act_act to invocable across R432;
-  end if;
-end if;
-
-// add import to object file
-select one file related by obj->File[R401];
-::addStringToImports( file:file, s:"io.ciera.runtime.instanceloading.AttributeChangedDelta", type:ImportType::IMPL );
-::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::BOTH );
-::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.EmptyInstanceException", type:ImportType::IMPL );
-if (not_empty array_type)
-  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.ArrayUtil", type:ImportType::IMPL );
-elif ("String" == type.type_name and "" == type.type_package)
-  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.StringUtil", type:ImportType::IMPL );
+  // component-independent Attribute already exists, 
+  // so create only an InvocableInComponent if this is a derived attribute
+  select any deriv related by attr->AttributeAccessor[R4510]->AttributeDerivation[R441];
+  if ( not empty deriv )
+  	select one invocable related by deriv->InvocableObject[R427];
+  	InvocableInComponent::populate( invocable:invocable, component:containing_comp_def );
+  end if;  
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -2067,127 +2077,143 @@ INSERT INTO S_SYNC
 obj = param.obj;
 containing_comp_def = param.containing_comp_def;
 
-// create operation object
-create object instance op of Operation;
-op.is_class_based = Scope::Class == o_tfr.Instance_Based;
-relate op to obj across R416;
-
-// create invocable
-create object instance invocable of InvocableObject;
-invocable.name = o_tfr.Name;
-invocable.parent_name = op.class_name;
-invocable.parent_package = op.class_package;
-relate op to invocable across R427;
-invocable.oal = o_tfr.Action_Semantics_internal;
-
-// link type
-select one s_dt related by o_tfr->S_DT[R116];
-select many s_dims related by o_tfr->S_DIM[R122];
-type = TypeReference::getInstance( s_dt:s_dt, s_dims:s_dims );
-relate type to invocable across R428;
-
-// create parameters
-select any o_tparm related by o_tfr->O_TPARM[R117];
-prev_o_tparm = o_tparm;
-// select first parameter
-while ( not_empty prev_o_tparm )
-  o_tparm = prev_o_tparm;
-  select one prev_o_tparm related by o_tparm->O_TPARM[R124.''succeeds''];
-end while;
-while ( not_empty o_tparm )
-  // create parameter
-  create object instance parm of FormalParameter;
-  parm.name = "p_" + o_tparm.Name;
-  parm.by_ref = ( 1 == o_tparm.By_Ref );
-  select one parm_dt related by o_tparm->S_DT[R118];
-  select many s_dims related by o_tparm->S_DIM[R121];
-  parm_type = TypeReference::getInstance( s_dt:parm_dt, s_dims:s_dims );
-  relate parm_type to parm across R431;
-  ::linkParameter( invocable:invocable, parameter:parm );
-  select one o_tparm related by o_tparm->O_TPARM[R124.''precedes''];
-end while;
-
-// relate the body
-select one act_act related by o_tfr->ACT_OPB[R696]->ACT_ACT[R698];
-if ( not_empty act_act )
-  relate act_act to invocable across R432;
-end if;
-
-// add imports
-select one class_file related by obj->File[R401];
-::addStringToImports( file:class_file, s:"io.ciera.runtime.summit.exceptions.EmptyInstanceException", type:ImportType::IMPL );
-if ( op.is_class_based )
-  ::addStringToImports( file:class_file, s:"io.ciera.runtime.summit.application.ActionHome", type:ImportType::IMPL );
-end if;
-::addStringToImports( file:class_file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::BOTH );
-
-// if this is an optional deferred operation, create a second operation for the supertype implementation
-select one o_def related by o_tfr->O_DEF[R126];
-if (not_empty o_def and o_def.required == 1)
-
-  // create operation object
-  create object instance op of Operation;
-  op.is_class_based = Scope::Class == o_tfr.Instance_Based;
-  relate op to obj across R416;
+select any op related by obj->Operation[R416] 
+  where ( selected.name == o_tfr.Name );
+if ( empty op )
+	// create operation object
+	create object instance op of Operation;
+	op.is_class_based = Scope::Class == o_tfr.Instance_Based;
+	relate op to obj across R416;
+	
+	// create invocable
+	create object instance invocable of InvocableObject;
+	invocable.name = o_tfr.Name;
+	invocable.parent_name = op.class_name;
+	invocable.parent_package = op.class_package;
+	relate op to invocable across R427;
+	invocable.oal = o_tfr.Action_Semantics_internal;
+	InvocableInComponent::populate( invocable:invocable, component:containing_comp_def );
+	
+	// link type
+	select one s_dt related by o_tfr->S_DT[R116];
+	select many s_dims related by o_tfr->S_DIM[R122];
+	type = TypeReference::getInstance( s_dt:s_dt, s_dims:s_dims );
+	relate type to invocable across R428;
+	
+	// create parameters
+	select any o_tparm related by o_tfr->O_TPARM[R117];
+	prev_o_tparm = o_tparm;
+	// select first parameter
+	while ( not_empty prev_o_tparm )
+	  o_tparm = prev_o_tparm;
+	  select one prev_o_tparm related by o_tparm->O_TPARM[R124.''succeeds''];
+	end while;
+	while ( not_empty o_tparm )
+	  // create parameter
+	  create object instance parm of FormalParameter;
+	  parm.name = "p_" + o_tparm.Name;
+	  parm.by_ref = ( 1 == o_tparm.By_Ref );
+	  select one parm_dt related by o_tparm->S_DT[R118];
+	  select many s_dims related by o_tparm->S_DIM[R121];
+	  parm_type = TypeReference::getInstance( s_dt:parm_dt, s_dims:s_dims );
+	  relate parm_type to parm across R431;
+	  ::linkParameter( invocable:invocable, parameter:parm );
+	  select one o_tparm related by o_tparm->O_TPARM[R124.''precedes''];
+	end while;
+	
+	// relate the body
+	select one act_act related by o_tfr->ACT_OPB[R696]->ACT_ACT[R698];
+	if ( not_empty act_act )
+	  relate act_act to invocable across R432;
+	end if;
+	
+	// add imports
+	select one class_file related by obj->File[R401];
+	::addStringToImports( file:class_file, s:"io.ciera.runtime.summit.exceptions.EmptyInstanceException", type:ImportType::IMPL );
+	if ( op.is_class_based )
+	  ::addStringToImports( file:class_file, s:"io.ciera.runtime.summit.application.ActionHome", type:ImportType::IMPL );
+	end if;
+	::addStringToImports( file:class_file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::BOTH );
+	
+	// if this is an optional deferred operation, create a second operation for the supertype implementation
+	select one o_def related by o_tfr->O_DEF[R126];
+	if (not_empty o_def and o_def.required == 1)
+	
+	  // create operation object
+	  create object instance op of Operation;
+	  op.is_class_based = Scope::Class == o_tfr.Instance_Based;
+	  relate op to obj across R416;
+	  
+	  // create invocable
+	  create object instance invocable of InvocableObject;
+	  invocable.name = "_supertype_" + o_tfr.Name;
+	  invocable.parent_name = op.class_name;
+	  invocable.parent_package = op.class_package;
+	  relate op to invocable across R427;
+	  invocable.oal = o_tfr.Action_Semantics_internal;
+	  InvocableInComponent::populate( invocable:invocable, component:containing_comp_def );
+	  
+	  // link type
+	  select one s_dt related by o_tfr->S_DT[R116];
+	  select many s_dims related by o_tfr->S_DIM[R122];
+	  type = TypeReference::getInstance( s_dt:s_dt, s_dims:s_dims );
+	  relate type to invocable across R428;
+	  
+	  // create parameters
+	  select any o_tparm related by o_tfr->O_TPARM[R117];
+	  prev_o_tparm = o_tparm;
+	  // select first parameter
+	  while ( not_empty prev_o_tparm )
+	    o_tparm = prev_o_tparm;
+	    select one prev_o_tparm related by o_tparm->O_TPARM[R124.''succeeds''];
+	  end while;
+	  while ( not_empty o_tparm )
+	    // create parameter
+	    create object instance parm of FormalParameter;
+	    parm.name = "p_" + o_tparm.Name;
+	    parm.by_ref = ( 1 == o_tparm.By_Ref );
+	    select one parm_dt related by o_tparm->S_DT[R118];
+	    select many s_dims related by o_tparm->S_DIM[R121];
+	    parm_type = TypeReference::getInstance( s_dt:parm_dt, s_dims:s_dims );
+	    relate parm_type to parm across R431;
+	    ::linkParameter( invocable:invocable, parameter:parm );
+	    select one o_tparm related by o_tparm->O_TPARM[R124.''precedes''];
+	  end while;
+	  
+	  // relate the body
+	  select one act_act related by o_tfr->ACT_OPB[R696]->ACT_ACT[R698];
+	  if ( not_empty act_act )
+	    relate act_act to invocable across R432;
+	  end if;
+	  
+	  // add imports
+	  select one class_file related by obj->File[R401];
+	  ::addStringToImports( file:class_file, s:"io.ciera.runtime.summit.exceptions.EmptyInstanceException", type:ImportType::IMPL );
+	  if ( op.is_class_based )
+	    ::addStringToImports( file:class_file, s:"io.ciera.runtime.summit.application.ActionHome", type:ImportType::IMPL );
+	  end if;
+	
+	// if this is a required deferred operation with no body (unparsed), create an empty body
+	// so that the deferral will get created correctly
+	elif (not_empty o_def and o_def.required == 0 and empty act_act)
+	  create object instance act_act of ACT_ACT;
+	  create object instance act_opb of ACT_OPB;
+	  relate act_act to act_opb across R698;
+	  relate act_opb to o_tfr across R696;
+	  relate act_act to invocable across R432;
+	end if;
+else
+  // component-independent Operation already exists, so create only
+  // the InvocableInComponent instances required
+  select one invocable related by op->InvocableObject[R427];
+  InvocableInComponent::populate( invocable:invocable, component:containing_comp_def );
   
-  // create invocable
-  create object instance invocable of InvocableObject;
-  invocable.name = "_supertype_" + o_tfr.Name;
-  invocable.parent_name = op.class_name;
-  invocable.parent_package = op.class_package;
-  relate op to invocable across R427;
-  invocable.oal = o_tfr.Action_Semantics_internal;
-  create object instance invocableInComp of InvocableInComponent;
-  relate invocable to containing_comp_def across R4001 using invocableInComp;
-  
-  // link type
-  select one s_dt related by o_tfr->S_DT[R116];
-  select many s_dims related by o_tfr->S_DIM[R122];
-  type = TypeReference::getInstance( s_dt:s_dt, s_dims:s_dims );
-  relate type to invocable across R428;
-  
-  // create parameters
-  select any o_tparm related by o_tfr->O_TPARM[R117];
-  prev_o_tparm = o_tparm;
-  // select first parameter
-  while ( not_empty prev_o_tparm )
-    o_tparm = prev_o_tparm;
-    select one prev_o_tparm related by o_tparm->O_TPARM[R124.''succeeds''];
-  end while;
-  while ( not_empty o_tparm )
-    // create parameter
-    create object instance parm of FormalParameter;
-    parm.name = "p_" + o_tparm.Name;
-    parm.by_ref = ( 1 == o_tparm.By_Ref );
-    select one parm_dt related by o_tparm->S_DT[R118];
-    select many s_dims related by o_tparm->S_DIM[R121];
-    parm_type = TypeReference::getInstance( s_dt:parm_dt, s_dims:s_dims );
-    relate parm_type to parm across R431;
-    ::linkParameter( invocable:invocable, parameter:parm );
-    select one o_tparm related by o_tparm->O_TPARM[R124.''precedes''];
-  end while;
-  
-  // relate the body
-  select one act_act related by o_tfr->ACT_OPB[R696]->ACT_ACT[R698];
-  if ( not_empty act_act )
-    relate act_act to invocable across R432;
+  // if this is an optional deferred operation, create an InvocableInComponent for the supertype
+  select one supertypeInvocable related by op->InvocableObject[R427] 
+    where ( selected.name == "_supertype_" + o_tfr.Name );
+  if ( not empty supertypeInvocable )
+    InvocableInComponent::populate( invocable:supertypeInvocable, component:containing_comp_def );
   end if;
-  
-  // add imports
-  select one class_file related by obj->File[R401];
-  ::addStringToImports( file:class_file, s:"io.ciera.runtime.summit.exceptions.EmptyInstanceException", type:ImportType::IMPL );
-  if ( op.is_class_based )
-    ::addStringToImports( file:class_file, s:"io.ciera.runtime.summit.application.ActionHome", type:ImportType::IMPL );
-  end if;
-
-// if this is an required deferred operation with no body (unparsed), create an empty body
-// so that the deferral will get created correctly
-elif (not_empty o_def and o_def.required == 0 and empty act_act)
-  create object instance act_act of ACT_ACT;
-  create object instance act_opb of ACT_OPB;
-  relate act_act to act_opb across R698;
-  relate act_opb to o_tfr across R696;
-  relate act_act to invocable across R432;
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
