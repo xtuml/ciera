@@ -1672,8 +1672,7 @@ invocable.parent_package = sm.package;
 relate evt to invocable across R427;
 invocable.oal = "";
 select one component related by evt->StateMachine[R4752]->File[R401]->ComponentDefinition[R403];
-create object instance invocableInComp of InvocableInComponent;
-relate invocable to component across R4001 using invocableInComp;
+InvocableInComponent::populate( invocable:invocable, component:component );
 
 // link type
 type = TypeReference::getBuiltinTypeReference( name:"void" );
@@ -1773,6 +1772,7 @@ invocable.parent_name = comp_def.name;
 invocable.parent_package = comp_def.package;
 relate func to invocable across R427;
 invocable.oal = s_sync.Action_Semantics_internal;
+InvocableInComponent::populate( invocable:invocable, component:comp_def );
 
 // link type
 select one s_dt related by s_sync->S_DT[R25];
@@ -2567,6 +2567,8 @@ invocable.name = msg.name;
 invocable.parent_name = port.name;
 invocable.parent_package = port.package;
 relate port_msg to invocable across R427;
+select one component related by port->ComponentDefinition[R417];
+InvocableInComponent::populate( invocable:invocable, component:component );
 
 // populate the OAL
 invocable.oal = "";
@@ -3023,6 +3025,8 @@ invocable.parent_package = sm.package;
 relate state to invocable across R427;
 select one sm_act related by sm_state->SM_MOAH[R511]->SM_AH[R513]->SM_ACT[R514];
 invocable.oal = sm_act.Action_Semantics_internal;
+select one component related by sm->File[R401]->ComponentDefinition[R403];
+InvocableInComponent::populate( invocable:invocable, component:component );
 
 // relate the body
 select one act_act related by sm_act->ACT_SAB[R691]->ACT_ACT[R698];
@@ -3087,24 +3091,21 @@ INSERT INTO S_SYNC
 	'transformStateMachine',
 	'',
 	'sm_sm = param.sm_sm;
-obj = param.obj;
-containing_comp_def = param.containing_comp_def;
+classInComp = param.classInComp;
 
 // TODO support polymorphic events
 
 // create the state machine file
 create object instance file of File;
-file.name = obj.name + "StateMachine";
-file.path = ::formatPath( path:obj.package );
-file.package = obj.package;
+file.name = classInComp.name + "StateMachine";
+file.path = ::formatPath( path:classInComp.package );
+file.package = classInComp.package;
 file.extension = ".java";
 file.exclude = false;
 
 // create the object
 create object instance sm of StateMachine;
 relate sm to file across R401;
-select any classInComp related by obj->ComponentDefinition[R408]->ClassInComponent[R408];
-relate sm to classInComp across R4750;
 
 // transform the first state (the state with the lowest number must have state id 0)
 select many sm_states related by sm_sm->SM_STATE[R501];
@@ -3204,8 +3205,8 @@ end for;
 ::addStringToImports( file:file, s:"io.ciera.runtime.summit.statemachine.ITransition", type:ImportType::IMPL );
 ::addStringToImports( file:file, s:"io.ciera.runtime.summit.statemachine.StateMachine", type:ImportType::IMPL );
 
-select one class_file related by obj->File[R401];
-select one comp_file related by containing_comp_def->File[R401];
+select one class_file related by classInComp->File[R401];
+select one comp_file related by classInComp->ComponentDefinition[R408]->File[R401];
 ::addFileToImports( file:file, file_to_import:class_file, type:ImportType::IMPL );
 ::addFileToImports( file:file, file_to_import:comp_file, type:ImportType::IMPL );
 ',
@@ -3231,23 +3232,21 @@ INSERT INTO S_DT_PROXY
 	'',
 	'../../../../mcooa/models/mcooa/ooaofooa/State Machine/State Machine.xtuml');
 INSERT INTO S_SPARM
-	VALUES ("5f45583f-5aa4-4ba1-a0db-bef2a7a9a239",
+	VALUES ("8caf0b25-ae42-427f-aecd-ad6ac0059907",
 	"cb20fa01-e4b7-4d9c-a8aa-ff49e5763228",
-	'obj',
-	"a519e323-b117-4a03-9435-b88e56c2443d",
+	'classInComp',
+	"53e504e6-9b65-4f56-a685-839b95582a5e",
 	0,
 	'',
 	"52462f5f-c541-4d6a-884e-fcfacb4de247",
 	'');
-INSERT INTO S_SPARM
-	VALUES ("508f7fa3-e519-42d6-be07-2df66838df91",
-	"cb20fa01-e4b7-4d9c-a8aa-ff49e5763228",
-	'containing_comp_def',
-	"109e90cb-1d66-46ee-88db-a568044879d0",
-	0,
+INSERT INTO S_DT_PROXY
+	VALUES ("53e504e6-9b65-4f56-a685-839b95582a5e",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<ClassInComponent>',
 	'',
-	"5f45583f-5aa4-4ba1-a0db-bef2a7a9a239",
-	'');
+	'',
+	'../architecture/component/component.xtuml');
 INSERT INTO PE_PE
 	VALUES ("cb20fa01-e4b7-4d9c-a8aa-ff49e5763228",
 	1,
@@ -3425,10 +3424,7 @@ invocable.parent_name = utility.name;
 invocable.parent_package = utility.package;
 relate util_func to invocable across R427;
 invocable.oal = s_brg.Action_Semantics_internal;
-
-// create component-specific invocable
-create object instance invocableInComp of InvocableInComponent;
-relate invocable to containing_comp_def across R4001 using invocableInComp;
+InvocableInComponent::populate( invocable:invocable, component:containing_comp_def );
 
 // link type
 select one s_dt related by s_brg->S_DT[R20];
@@ -3581,7 +3577,7 @@ if ( empty class_exclude_mark )
   // transform the state machine
   select one sm related by o_obj->SM_ISM[R518]->SM_SM[R517];
   if ( not_empty sm )
-    ::transformStateMachine( sm_sm:sm, obj:obj, containing_comp_def:containing_comp_def );
+    ::transformStateMachine( sm_sm:sm, classInComp:classInComponent );
     ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL );
     ::addStringToImports( file:file, s:"io.ciera.runtime.summit.statemachine.IEvent", type:ImportType::IMPL );
     select any evt related by obj->ClassInComponent[R408]->StateMachine[R4750]->Event[R4752];
