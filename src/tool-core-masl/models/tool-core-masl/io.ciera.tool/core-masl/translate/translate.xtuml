@@ -1,0 +1,129 @@
+-- BP 7.1.6 content: Package syschar: 3 persistence-version: 7.1.6
+
+INSERT INTO EP_PKG
+	VALUES ("71959823-0e17-46fb-8e33-a2062e470c4c",
+	"00000000-0000-0000-0000-000000000000",
+	"ff182108-eff3-4cdc-81dd-efdc6098874b",
+	'translate',
+	'',
+	0);
+INSERT INTO GD_MD
+	VALUES ("96995aa5-01ea-4ed8-b4ec-89d24fe875a6",
+	112,
+	"71959823-0e17-46fb-8e33-a2062e470c4c",
+	108,
+	0,
+	0,
+	1,
+	1,
+	1,
+	12,
+	1,
+	0,
+	0,
+	0,
+	0,
+	0,
+	'',
+	'tool-core-masl::io.ciera.tool::core-masl::translate');
+INSERT INTO DIM_DIA
+	VALUES ("96995aa5-01ea-4ed8-b4ec-89d24fe875a6",
+	'',
+	1.000000,
+	0.000000,
+	0.000000,
+	"00000000-0000-0000-0000-000000000000");
+INSERT INTO S_SYNC
+	VALUES ("c7526c7f-0b4d-4cf5-850f-9fc2a19d5676",
+	"00000000-0000-0000-0000-000000000000",
+	'init',
+	'',
+	'// set up command line options
+CMD::register_value( name:"cwd", value_name:"root_dir", usage:"base working directory", default_value:".", required:false );
+CMD::register_value( name:"i", value_name:"input_file", usage:"input file", default_value:"", required:false );
+CMD::register_value( name:"o", value_name:"output_file", usage:"output file", default_value:"", required:false );
+CMD::register_value( name:"gendir", value_name:"gen_dir", usage:"generated output directory", default_value:".", required:false );
+CMD::register_value( name:"use-version", value_name:"use_version", usage:"version identifier for generated components", default_value:"", required:false );
+CMD::read_command_line();
+
+CIERA::setprojectroot( value:CMD::get_value( name:"cwd" ) );
+CIERA::setversion( value:CMD::get_value( name:"use-version" ) );
+ciera = CIERA::getDefaultInstance();
+
+T::set_output_directory(dir:ciera.projectroot + "/" + CMD::get_value(name:"gendir"));
+
+// load up instances
+input_file = CMD::get_value( name:"i" );
+if ( "" != input_file )
+  SQL::load_file( file:ciera.projectroot + "/" + input_file );
+
+  // preprocess
+  ::preprocess();
+
+  // translate
+  ::translate();
+
+  // dump instances
+  output_file = CMD::get_value( name:"o" );
+  if ( "" != output_file )
+    SQL::serialize_file( file:ciera.projectroot + "/" + output_file );
+  end if;
+else
+  LOG::LogInfo( message:"No input file." );
+end if;
+
+// exit
+control stop;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO PE_PE
+	VALUES ("c7526c7f-0b4d-4cf5-850f-9fc2a19d5676",
+	1,
+	"71959823-0e17-46fb-8e33-a2062e470c4c",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("7d5ab1db-be04-4119-8c06-85236906e57b",
+	"00000000-0000-0000-0000-000000000000",
+	'translate',
+	'',
+	'start_time = TIM::current_clock();
+
+LOG::LogInfo( message:"Translating..." );
+
+elapsed_time = TIM::current_clock() - start_time;
+LOG::LogTime( message:"Elapsed time:", t:elapsed_time );',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0);
+INSERT INTO PE_PE
+	VALUES ("7d5ab1db-be04-4119-8c06-85236906e57b",
+	1,
+	"71959823-0e17-46fb-8e33-a2062e470c4c",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO PE_PE
+	VALUES ("71959823-0e17-46fb-8e33-a2062e470c4c",
+	1,
+	"00000000-0000-0000-0000-000000000000",
+	"baf875eb-9ae3-4548-af50-f9f236daf369",
+	7);
+INSERT INTO C_C_PROXY
+	VALUES ("baf875eb-9ae3-4548-af50-f9f236daf369",
+	"00000000-0000-0000-0000-000000000000",
+	"00000000-0000-0000-0000-000000000000",
+	'core-masl',
+	'',
+	0,
+	"00000000-0000-0000-0000-000000000000",
+	0,
+	'',
+	'../core-masl.xtuml');
+INSERT INTO S_SYS_PROXY
+	VALUES ("ff182108-eff3-4cdc-81dd-efdc6098874b",
+	'tool-core-masl',
+	1,
+	'../../../tool-core-masl.xtuml');
