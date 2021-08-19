@@ -2,6 +2,12 @@
 
 ### Dependencies
 
+old name:       ebee0940-ead1-490b-bffa-71d1742b4409
+old package:    0255fe6d-5592-479c-b00b-3326adaceedd
+
+new name:       806662a9-c6c3-44fd-ba0f-49e7e8fa5f4a
+new package:    02273349-14ab-4026-8fbd-3e8730c6a059
+
 #### pypy
 
 The Ciera build can use the `pypy` Python interpreter for its prebuilds. `pypy`

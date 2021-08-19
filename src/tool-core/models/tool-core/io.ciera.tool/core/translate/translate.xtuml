@@ -46,20 +46,31 @@ CMD::register_value( name:"gendir", value_name:"gen_dir", usage:"generated outpu
 CMD::register_value( name:"use-version", value_name:"use_version", usage:"version identifier for generated components", default_value:"", required:false );
 CMD::read_command_line();
 
-CIERA::setprojectroot( value:CMD::get_value( name:"cwd" ) );
-CIERA::setversion( value:CMD::get_value( name:"use-version" ) );
-ciera = CIERA::getDefaultInstance();
+// set up available marks
+::configure_features();
 
-T::set_output_directory(dir:ciera.projectroot + "/" + CMD::get_value(name:"gendir"));
+// set project root and version
+select any universal_markable from instances of Markable where selected.name == "*";
+select any project_root_feature related by universal_markable->Feature[R2822] where selected.name == "ProjectRoot";
+create object instance project_root of Mark;
+project_root.path = "*";
+project_root.value = CMD::get_value(name:"cwd");
+relate project_root_feature to universal_markable across R2821 using project_root;
+select any use_version_feature related by universal_markable->Feature[R2822] where selected.name == "UseVersion";
+create object instance use_version of Mark;
+use_version.path = "*";
+use_version.value = CMD::get_value(name:"use-version");
+relate use_version_feature to universal_markable across R2821 using use_version;
+
+T::set_output_directory(dir:project_root.value + "/" + CMD::get_value(name:"gendir"));
 
 // load up instances
 input_file = CMD::get_value( name:"i" );
 if ( "" != input_file )
-  LOG::LogInfo( message:"tool-core SQL load file: " + input_file );
-  SQL::load_file( file:ciera.projectroot + "/" + input_file );
+  SQL::load_file( file:project_root.value + "/" + input_file );
 
-  // preprocess
-  ::preprocess();
+  // load application marks
+  ::load_marks();
 
   // translate
   ::translate();
@@ -67,8 +78,7 @@ if ( "" != input_file )
   // dump instances
   output_file = CMD::get_value( name:"o" );
   if ( "" != output_file )
-    LOG::LogInfo( message:"tool-core SQL serialize file: " + output_file );
-    SQL::serialize_file( file:ciera.projectroot + "/" + output_file );
+    SQL::serialize_file( file:project_root.value + "/" + output_file );
   end if;
 else
   LOG::LogInfo( message:"No input file." );
@@ -185,6 +195,95 @@ LOG::LogTime( message:"Elapsed time:", t:elapsed_time );',
 	0);
 INSERT INTO PE_PE
 	VALUES ("f5475029-60d5-4c1a-9fee-d4a103d3ba60",
+	1,
+	"19444ed2-55f0-47aa-a9a5-52d7c785ba6f",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("6fbda431-b9b6-448f-8e57-6fb535d8b1c8",
+	"00000000-0000-0000-0000-000000000000",
+	'configure_features',
+	'',
+	'// create markable element types
+create object instance universal_markable of Markable;
+universal_markable.name = "*";
+
+create object instance assoc_markable of Markable;
+assoc_markable.name = "Association";
+
+create object instance comp_markable of Markable;
+comp_markable.name = "Component";
+
+create object instance class_markable of Markable;
+class_markable.name = "Model Class";
+
+create object instance port_markable of Markable;
+port_markable.name = "Port";
+
+// create available features
+create object instance app_name of Feature;
+app_name.name = "ApplicationName";
+relate app_name to universal_markable across R2822;
+
+create object instance app_package of Feature;
+app_package.name = "ApplicationPackage";
+relate app_package to universal_markable across R2822;
+
+create object instance async_app of Feature;
+async_app.name = "AsyncApplication";
+relate async_app to universal_markable across R2822;
+
+create object instance root_package of Feature;
+root_package.name = "RootPackage";
+relate root_package to universal_markable across R2822;
+
+create object instance project_root of Feature;
+project_root.name = "ProjectRoot";
+relate project_root to universal_markable across R2822;
+
+create object instance use_version of Feature;
+use_version.name = "UseVersion";
+relate use_version to universal_markable across R2822;
+
+create object instance sort_comparator of Feature;
+sort_comparator.name = "SortComparator";
+relate sort_comparator to universal_markable across R2822;
+
+create object instance sim_time of Feature;
+sim_time.name = "EnableSimulatedTime";
+relate sim_time to comp_markable across R2822;
+
+create object instance init_function of Feature;
+init_function.name = "InitFunction";
+relate init_function to comp_markable across R2822;
+
+create object instance inst_loading of Feature;
+inst_loading.name = "InstanceLoading";
+relate inst_loading to comp_markable across R2822;
+
+create object instance version of Feature;
+version.name = "Version";
+relate version to comp_markable across R2822;
+
+create object instance exclude of Feature;
+exclude.name = "Exclude";
+relate exclude to class_markable across R2822;
+relate exclude to assoc_markable across R2822;
+
+create object instance use_key_letters of Feature;
+use_key_letters.name = "UseKeyLettersForName";
+relate use_key_letters to class_markable across R2822;
+
+create object instance base_class of Feature;
+base_class.name = "BaseClass";
+relate base_class to port_markable across R2822;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	1);
+INSERT INTO PE_PE
+	VALUES ("6fbda431-b9b6-448f-8e57-6fb535d8b1c8",
 	1,
 	"19444ed2-55f0-47aa-a9a5-52d7c785ba6f",
 	"00000000-0000-0000-0000-000000000000",

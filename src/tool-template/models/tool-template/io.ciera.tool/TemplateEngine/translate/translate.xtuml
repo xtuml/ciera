@@ -112,7 +112,7 @@ INSERT INTO S_DT_PROXY
 	'inst_ref<Literal>',
 	'',
 	'',
-	'../../../../../../tool-core/models/tool-core/architecture/expression/expression.xtuml');
+	'../../../../../../core-architecture/models/core-architecture/architecture/expression/expression.xtuml');
 INSERT INTO PE_PE
 	VALUES ("8fa4f0c9-dff7-4c07-91e8-a0251cf94095",
 	1,
@@ -131,18 +131,26 @@ CMD::register_value( name:"o", value_name:"output_file", usage:"output file", de
 CMD::register_value( name:"gendir", value_name:"gen_dir", usage:"generated output directory", default_value:".", required:false );
 CMD::read_command_line();
 
-CIERA::setprojectroot( value:CMD::get_value( name:"cwd" ) );
-ciera = CIERA::getDefaultInstance();
+// set up available marks
+::configure_features();
 
-T::set_output_directory(dir:ciera.projectroot + "/" + CMD::get_value(name:"gendir"));
+// set project root and version
+select any universal_markable from instances of Markable where selected.name == "*";
+select any project_root_feature related by universal_markable->Feature[R2822] where selected.name == "ProjectRoot";
+create object instance project_root of Mark;
+project_root.path = "*";
+project_root.value = CMD::get_value(name:"cwd");
+relate project_root_feature to universal_markable across R2821 using project_root;
+
+T::set_output_directory(dir:project_root.value + "/" + CMD::get_value(name:"gendir"));
 
 // load up instances
 input_file = CMD::get_value( name:"i" );
 if ( "" != input_file )
-  SQL::load_file( file:ciera.projectroot + "/" + input_file );
+  SQL::load_file( file:project_root.value + "/" + input_file );
 
   // preprocess
-  ::preprocess();
+  ::load_marks();
 
   // translate
   ::translate();
@@ -150,7 +158,7 @@ if ( "" != input_file )
   // dump instances
   output_file = CMD::get_value( name:"o" );
   if ( "" != output_file )
-    SQL::serialize_file( file:ciera.projectroot + "/" + output_file );
+    SQL::serialize_file( file:project_root.value + "/" + output_file );
   end if;
 else
   LOG::LogInfo( message:"No input file." );
@@ -161,6 +169,7 @@ control stop;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO PE_PE
 	VALUES ("ec052031-5a64-424c-9252-bc4ff4098910",
@@ -182,10 +191,14 @@ LOG::LogInfo( message:"  Processing RSL templates..." );
 select any template_dir_mark from instances of Mark where ( selected.markable_name == "*"
                                                             and selected.path == "*"
                                                             and selected.feature_name == "TemplateDir" );
+select any project_root_mark from instances of Mark where ( selected.markable_name == "*"
+                                                            and selected.path == "*"
+                                                            and selected.feature_name == "ProjectRoot" );
 
-ciera = CIERA::getDefaultInstance();
 if ( not_empty template_dir_mark )
-  TU::process_templates( root_folder:ciera.projectroot + "/" + template_dir_mark.value );
+  TU::process_templates(root_folder:project_root_mark.value + "/" + template_dir_mark.value);
+else
+  TU::process_templates(root_folder:"");
 end if;
 LOG::LogInfo( message:"  done." );
 LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
@@ -238,9 +251,42 @@ LOG::LogTime( message:"Elapsed time:", t:elapsed_time );',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO PE_PE
 	VALUES ("bb9c5758-309a-40d1-99a0-6c58c601b784",
+	1,
+	"89b99d43-5a68-4db3-917d-ce3be7770fab",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("d27a9aa9-6335-4848-9bfe-d80ec5dbeb64",
+	"00000000-0000-0000-0000-000000000000",
+	'configure_features',
+	'',
+	'// create markable element types
+create object instance universal_markable of Markable;
+universal_markable.name = "*";
+
+// create available features
+create object instance template_dir of Feature;
+template_dir.name = "TemplateDir";
+relate template_dir to universal_markable across R2822;
+
+create object instance project_root of Feature;
+project_root.name = "ProjectRoot";
+relate project_root to universal_markable across R2822;
+
+create object instance root_package of Feature;
+root_package.name = "RootPackage";
+relate root_package to universal_markable across R2822;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	1);
+INSERT INTO PE_PE
+	VALUES ("d27a9aa9-6335-4848-9bfe-d80ec5dbeb64",
 	1,
 	"89b99d43-5a68-4db3-917d-ce3be7770fab",
 	"00000000-0000-0000-0000-000000000000",
@@ -260,6 +306,7 @@ INSERT INTO C_C_PROXY
 	0,
 	"00000000-0000-0000-0000-000000000000",
 	0,
+	'',
 	'',
 	'../TemplateEngine.xtuml');
 INSERT INTO S_SYS_PROXY

@@ -1,0 +1,750 @@
+-- BP 7.1.6 content: Package syschar: 3 persistence-version: 7.1.6
+
+INSERT INTO EP_PKG
+	VALUES ("2e49e10f-3016-47ee-8a39-12e683e7075e",
+	"21d38790-b93a-4ad6-b0a2-e3ba56baed8a",
+	"21d38790-b93a-4ad6-b0a2-e3ba56baed8a",
+	'translation_utility_functions',
+	'',
+	0);
+INSERT INTO GD_MD
+	VALUES ("b2b245c7-5fd4-4503-ad35-c12f55262f9a",
+	112,
+	"2e49e10f-3016-47ee-8a39-12e683e7075e",
+	108,
+	0,
+	0,
+	1,
+	1,
+	1,
+	12,
+	1,
+	0,
+	0,
+	0,
+	0,
+	0,
+	'',
+	'core-architecture::translation_utility_functions');
+INSERT INTO DIM_DIA
+	VALUES ("b2b245c7-5fd4-4503-ad35-c12f55262f9a",
+	'',
+	1.000000,
+	0.000000,
+	0.000000,
+	"00000000-0000-0000-0000-000000000000");
+INSERT INTO S_SYNC
+	VALUES ("32ee8604-1a4b-4c2a-b800-bc33049960ff",
+	"00000000-0000-0000-0000-000000000000",
+	'load_marks',
+	'',
+	'select any project_root from instances of Mark where selected.markable_name == "*" and selected.path == "*" and selected.feature_name == "ProjectRoot";
+if ( "" != project_root.value )
+  i = 0; values[7] = "";
+  while ( i < 8 )
+  values[i] = "                                                                                                                                                                                          ";
+  i = i + 1;
+  end while;
+  LOG::LogInfo( message:"Loading marking data." );
+  //Feature::load( filename:project_root.value + "/gen/features.mark", values:values );
+  Mark::load( filename:project_root.value + "/gen/application.mark", values:values );
+else
+  LOG::LogInfo( message:"No project root specified." );
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	0);
+INSERT INTO PE_PE
+	VALUES ("32ee8604-1a4b-4c2a-b800-bc33049960ff",
+	1,
+	"2e49e10f-3016-47ee-8a39-12e683e7075e",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("893fe17a-2708-45fc-8d4c-b1dfcb2c1b26",
+	"00000000-0000-0000-0000-000000000000",
+	'addStringToImports',
+	'',
+	'file = param.file;
+if ( "" != param.s )
+  select any import_ref related by file->TypeImportReference[R402] where ( selected.fully_qualified_name == param.s and selected.type == param.type );
+  if ( empty import_ref )
+    type_import = TypeImport::get_import( import:param.s );
+    create object instance import_ref of TypeImportReference;
+    import_ref.type = param.type;
+    relate type_import to file across R402 using import_ref;
+  end if;
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	0);
+INSERT INTO S_SPARM
+	VALUES ("e4468e5f-b8ad-406f-b5bd-c438faf8835c",
+	"893fe17a-2708-45fc-8d4c-b1dfcb2c1b26",
+	'file',
+	"133d5e7b-5ad2-41dd-b534-afe8f7cf56a8",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("133d5e7b-5ad2-41dd-b534-afe8f7cf56a8",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<File>',
+	'',
+	'',
+	'../architecture/file/file.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("63af2a4f-4236-459e-8b9f-bfe183719113",
+	"893fe17a-2708-45fc-8d4c-b1dfcb2c1b26",
+	's',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"e4468e5f-b8ad-406f-b5bd-c438faf8835c",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("153fe0e1-5376-4ecc-83d1-3241358e9a35",
+	"893fe17a-2708-45fc-8d4c-b1dfcb2c1b26",
+	'type',
+	"0216eb17-fbe4-49fc-b32f-fa5387d53466",
+	0,
+	'',
+	"63af2a4f-4236-459e-8b9f-bfe183719113",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("0216eb17-fbe4-49fc-b32f-fa5387d53466",
+	"00000000-0000-0000-0000-000000000000",
+	'ImportType',
+	'',
+	'',
+	'../types/types.xtuml');
+INSERT INTO PE_PE
+	VALUES ("893fe17a-2708-45fc-8d4c-b1dfcb2c1b26",
+	1,
+	"2e49e10f-3016-47ee-8a39-12e683e7075e",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("51845e8d-99a8-4d1e-977f-e5e30d1d2713",
+	"00000000-0000-0000-0000-000000000000",
+	'getIndent',
+	'',
+	'select any tab_width_mark from instances of Mark where ( selected.markable_name == "*" and selected.path == "*" and selected.feature_name == "TabWidth" );
+indent = "";
+default_tab_width = 4;
+tab_width = 0;
+if ( not_empty tab_width_mark )
+  tab_width = STRING::atoi( s:tab_width_mark.value );
+else
+  tab_width = default_tab_width;
+end if;
+i = 0;
+while ( i < param.tab_depth )
+  j = 0;
+  while ( j < tab_width )
+    indent = indent + " ";
+    j = j + 1;
+  end while;
+  i = i + 1;
+end while;
+return indent;',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	1,
+	'',
+	0,
+	0);
+INSERT INTO S_SPARM
+	VALUES ("20303735-ad9a-46fb-8e65-3f4bb32e834f",
+	"51845e8d-99a8-4d1e-977f-e5e30d1d2713",
+	'tab_depth',
+	"ba5eda7a-def5-0000-0000-000000000002",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO PE_PE
+	VALUES ("51845e8d-99a8-4d1e-977f-e5e30d1d2713",
+	1,
+	"2e49e10f-3016-47ee-8a39-12e683e7075e",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("8e70831b-822c-41fa-b1ab-30ffbe0553ca",
+	"00000000-0000-0000-0000-000000000000",
+	'TypeReference_getBuiltinTypeReference',
+	'',
+	'select any type_ref from instances of TypeReference where false;
+select any builtin_type from instances of BuiltInType where ( selected.name == param.name );
+if ( not_empty builtin_type )
+  select any type_ref related by builtin_type->Type[R407]->TypeReference[R3800]->BasicTypeReference[R3801]->TypeReference[R3801];
+  if ( empty type_ref )
+    select one type related by builtin_type->Type[R407];
+    create object instance type_ref of TypeReference;
+    type_ref.type_reference_name = type.name;
+    create object instance basic_type_ref of BasicTypeReference;
+    relate type_ref to type across R3800;
+    relate type_ref to basic_type_ref across R3801;
+  end if;
+end if;
+return type_ref;',
+	"096d9dad-f227-4793-bb43-a1915881b825",
+	1,
+	'',
+	0,
+	2);
+INSERT INTO S_SPARM
+	VALUES ("2b974823-4404-4577-adce-3793dff08c14",
+	"8e70831b-822c-41fa-b1ab-30ffbe0553ca",
+	'name',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO PE_PE
+	VALUES ("8e70831b-822c-41fa-b1ab-30ffbe0553ca",
+	1,
+	"2e49e10f-3016-47ee-8a39-12e683e7075e",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_DT_PROXY
+	VALUES ("096d9dad-f227-4793-bb43-a1915881b825",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Type Reference>',
+	'',
+	'',
+	'../architecture/type/type.xtuml');
+INSERT INTO S_SYNC
+	VALUES ("8fd1a3e1-3dd7-4653-b00c-a30a7e7c56d4",
+	"00000000-0000-0000-0000-000000000000",
+	'pathToPackage',
+	'',
+	's = param.path;
+slash_index = STRING::indexof( haystack:s, needle:"/" );
+while ( -1 != slash_index )
+  left = STRING::substr( s:s, begin:0, end:slash_index );
+  right = STRING::substr( s:s, begin:slash_index + 1, end:-1 );
+  s = left + "." + right;
+  slash_index = STRING::indexof( haystack:s, needle:"/" );
+end while;
+return s;',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	1,
+	'',
+	0,
+	0);
+INSERT INTO S_SPARM
+	VALUES ("93086f25-6b8a-4be7-843f-99fd09581b89",
+	"8fd1a3e1-3dd7-4653-b00c-a30a7e7c56d4",
+	'path',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO PE_PE
+	VALUES ("8fd1a3e1-3dd7-4653-b00c-a30a7e7c56d4",
+	1,
+	"2e49e10f-3016-47ee-8a39-12e683e7075e",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("193d0602-2bc2-4d0e-bc91-442b8824b6d4",
+	"00000000-0000-0000-0000-000000000000",
+	'addTypeToImports',
+	'',
+	'type_to_import = param.type_to_import;
+if ( not type_to_import.primitive() and "" != type_to_import.package )
+  ::addStringToImports( file:param.file, s:type_to_import.package + "." + type_to_import.name, type:param.type );
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	0);
+INSERT INTO S_SPARM
+	VALUES ("2804a425-af7c-4724-a2c3-a3f41717f91d",
+	"193d0602-2bc2-4d0e-bc91-442b8824b6d4",
+	'file',
+	"133d5e7b-5ad2-41dd-b534-afe8f7cf56a8",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("5e9b4daa-a5b5-4d39-9e6a-565f188c6e06",
+	"193d0602-2bc2-4d0e-bc91-442b8824b6d4",
+	'type_to_import',
+	"b4a754cc-b0a5-4777-ae98-df570434ea2a",
+	0,
+	'',
+	"2804a425-af7c-4724-a2c3-a3f41717f91d",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("b4a754cc-b0a5-4777-ae98-df570434ea2a",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Type>',
+	'',
+	'',
+	'../architecture/type/type.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("349808d1-2cd9-463f-9d15-0fe63e0416a6",
+	"193d0602-2bc2-4d0e-bc91-442b8824b6d4",
+	'type',
+	"0216eb17-fbe4-49fc-b32f-fa5387d53466",
+	0,
+	'',
+	"5e9b4daa-a5b5-4d39-9e6a-565f188c6e06",
+	'');
+INSERT INTO PE_PE
+	VALUES ("193d0602-2bc2-4d0e-bc91-442b8824b6d4",
+	1,
+	"2e49e10f-3016-47ee-8a39-12e683e7075e",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("b6e1087e-e023-4cd3-af04-614b483c7703",
+	"00000000-0000-0000-0000-000000000000",
+	'addFileToImports',
+	'',
+	'file_to_import = param.file_to_import;
+import_string = ::pathToPackage( path:file_to_import.path ) + "." + file_to_import.name;
+::addStringToImports( file:param.file, s:import_string, type:param.type );',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	0);
+INSERT INTO S_SPARM
+	VALUES ("68b3d79a-2aaa-4d07-8b3e-03441b522ad0",
+	"b6e1087e-e023-4cd3-af04-614b483c7703",
+	'file',
+	"133d5e7b-5ad2-41dd-b534-afe8f7cf56a8",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("a9334681-bb5a-4b4a-8796-839cb819ceb2",
+	"b6e1087e-e023-4cd3-af04-614b483c7703",
+	'file_to_import',
+	"133d5e7b-5ad2-41dd-b534-afe8f7cf56a8",
+	0,
+	'',
+	"68b3d79a-2aaa-4d07-8b3e-03441b522ad0",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("cd05c505-c80c-41fd-ba6c-9d2a66c20fb4",
+	"b6e1087e-e023-4cd3-af04-614b483c7703",
+	'type',
+	"0216eb17-fbe4-49fc-b32f-fa5387d53466",
+	0,
+	'',
+	"a9334681-bb5a-4b4a-8796-839cb819ceb2",
+	'');
+INSERT INTO PE_PE
+	VALUES ("b6e1087e-e023-4cd3-af04-614b483c7703",
+	1,
+	"2e49e10f-3016-47ee-8a39-12e683e7075e",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("c9724af4-e561-417c-8dfa-1a3a570f4f7a",
+	"00000000-0000-0000-0000-000000000000",
+	'camelCaseName',
+	'',
+	'name = param.name;
+underscore_index = STRING::indexof( haystack:name, needle:"_" );
+while ( -1 != underscore_index )
+  left = STRING::substr( s:name, begin:0, end:underscore_index );
+  right = STRING::substr( s:name, begin:underscore_index + 1, end:-1 );
+  name = left + "  " + right;
+  underscore_index = STRING::indexof( haystack:name, needle:"_" );
+end while;
+name = T::sub( format:"c", s:name );
+dblspc_index = STRING::indexof( haystack:name, needle:"  " );
+while ( -1 != dblspc_index )
+  left = STRING::substr( s:name, begin:0, end:dblspc_index );
+  right = STRING::substr( s:name, begin:dblspc_index + 1, end:-1 );
+  name = left + "_" + right;
+  dblspc_index = STRING::indexof( haystack:name, needle:"  " );
+end while;
+if ( param.start_lower )
+  left = STRING::substr( s:name, begin:0, end:1 );
+  right = STRING::substr( s:name, begin:1, end:-1 );
+  name = T::sub( format:"l", s:left ) + right;
+end if;
+return T::sub( format:"r", s:name );
+// TODO make sure already camel cased does not get destroyed',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	1,
+	'',
+	0,
+	0);
+INSERT INTO S_SPARM
+	VALUES ("f8fc42c5-1da5-48dd-9ea5-f10817552941",
+	"c9724af4-e561-417c-8dfa-1a3a570f4f7a",
+	'name',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("d559dd9d-354d-4a97-a14a-75a81d5fe90f",
+	"c9724af4-e561-417c-8dfa-1a3a570f4f7a",
+	'start_lower',
+	"ba5eda7a-def5-0000-0000-000000000001",
+	0,
+	'',
+	"f8fc42c5-1da5-48dd-9ea5-f10817552941",
+	'');
+INSERT INTO PE_PE
+	VALUES ("c9724af4-e561-417c-8dfa-1a3a570f4f7a",
+	1,
+	"2e49e10f-3016-47ee-8a39-12e683e7075e",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("fb49b3c5-ba10-462e-966c-52bd055950f5",
+	"00000000-0000-0000-0000-000000000000",
+	'formatPath',
+	'',
+	's = param.path;
+dot_index = STRING::indexof( haystack:s, needle:"." );
+while ( -1 != dot_index )
+  left = STRING::substr( s:s, begin:0, end:dot_index );
+  right = STRING::substr( s:s, begin:dot_index + 1, end:-1 );
+  s = left + "/" + right;
+  dot_index = STRING::indexof( haystack:s, needle:"." );
+end while;
+return s;',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	1,
+	'',
+	0,
+	0);
+INSERT INTO S_SPARM
+	VALUES ("a68e6a47-8233-4957-9446-5ba7a2c80f1d",
+	"fb49b3c5-ba10-462e-966c-52bd055950f5",
+	'path',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO PE_PE
+	VALUES ("fb49b3c5-ba10-462e-966c-52bd055950f5",
+	1,
+	"2e49e10f-3016-47ee-8a39-12e683e7075e",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("100a2264-8337-48da-8aea-0e725b5f586a",
+	"00000000-0000-0000-0000-000000000000",
+	'getFileForInvocable',
+	'',
+	'invocable = param.invocable;
+select one file related by invocable->Function[R427]->ComponentDefinition[R405]->File[R401];
+if ( empty file )
+  select one file related by invocable->PortMessage[R427]->Port[R420]->File[R401];
+  if ( empty file )
+    select one file related by invocable->Operation[R427]->Class[R416]->File[R401];
+    if ( empty file )
+      select one file related by invocable->AttributeDerivation[R427]->AttributeAccessor[R441]->Attribute[R4510]->Class[R410]->File[R401];
+      if ( empty file )
+        select one file related by invocable->UtilityFunction[R427]->Utility[R4559]->File[R401];
+        if ( empty file )
+          select one file related by invocable->State[R427]->StateMachine[R4751]->File[R401];
+          if ( empty file )
+            select one file related by invocable->Transition[R427]->State[R4757]->StateMachine[R4751]->File[R401];
+          end if;
+        end if;
+      end if;
+    end if;
+  end if;
+end if;
+return file;',
+	"133d5e7b-5ad2-41dd-b534-afe8f7cf56a8",
+	1,
+	'',
+	0,
+	0);
+INSERT INTO S_SPARM
+	VALUES ("0ee07d5c-04a9-46a9-8e1d-6b8804a09e30",
+	"100a2264-8337-48da-8aea-0e725b5f586a",
+	'invocable',
+	"3ab44839-4426-4754-b12a-0a00ce4dae1a",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("3ab44839-4426-4754-b12a-0a00ce4dae1a",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Invocable Object>',
+	'',
+	'',
+	'../architecture/invocable/invocable.xtuml');
+INSERT INTO PE_PE
+	VALUES ("100a2264-8337-48da-8aea-0e725b5f586a",
+	1,
+	"2e49e10f-3016-47ee-8a39-12e683e7075e",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("6b44b744-1fa6-4210-be2e-c95d3dce87e3",
+	"00000000-0000-0000-0000-000000000000",
+	'resolveTypeImports',
+	'',
+	'select many types from instances of Type;
+for each type in types
+  select many impl_files from instances of File where false;
+  select many both_files from instances of File where false;
+
+  // find files
+  select many files related by type->TypeReference[R3800]->Attribute[R424]->Class[R410]->File[R401];
+  both_files = both_files | files;
+
+  select many files related by type->TypeReference[R3800]->Attribute[R424]->Class[R410]->ClassSet[R406]->File[R401];
+  both_files = both_files | files;
+
+  select many files related by type->TypeReference[R3800]->FormalParameter[R431]->InvocableObject[R429]->Function[R427]->ComponentDefinition[R405]->File[R401];
+  both_files = both_files | files;
+
+  select many inst_ops related by type->TypeReference[R3800]->FormalParameter[R431]->InvocableObject[R429]->Operation[R427] where ( not selected.is_class_based );
+  select many files related by inst_ops->Class[R416]->File[R401];
+  both_files = both_files | files;
+
+  select many class_ops related by type->TypeReference[R3800]->FormalParameter[R431]->InvocableObject[R429]->Operation[R427] where ( selected.is_class_based );
+  select many files related by class_ops->Class[R416]->File[R401];
+  impl_files = impl_files | files;
+
+  select many files related by type->TypeReference[R3800]->FormalParameter[R431]->InvocableObject[R429]->PortMessage[R427]->Message[R420]->Interface[R419]->File[R401];
+  both_files = both_files | files;
+
+  select many files related by type->TypeReference[R3800]->FormalParameter[R431]->InvocableObject[R429]->PortMessage[R427]->Port[R420]->File[R401];
+  both_files = both_files | files;
+
+  select many files related by type->TypeReference[R3800]->FormalParameter[R431]->InvocableObject[R429]->UtilityFunction[R427]->Utility[R4559]->File[R401];
+  both_files = both_files | files;
+
+  select many files related by type->TypeReference[R3800]->FormalParameter[R431]->InvocableObject[R429]->Event[R427]->TransitionTableCell[R4756]->State[R4757]->StateMachine[R4751]->File[R401];
+  both_files = both_files | files;
+
+  select many files related by type->TypeReference[R3800]->FormalParameter[R431]->InvocableObject[R429]->Event[R427]->StateMachine[R4752]->Class[R4750]->File[R401];
+  impl_files = impl_files | files;
+
+  select many inst_ops related by type->TypeReference[R3800]->InvocableObject[R428]->Operation[R427] where ( not selected.is_class_based );
+  select many files related by inst_ops->Class[R416]->File[R401];
+  both_files = both_files | files;
+
+  select many class_ops related by type->TypeReference[R3800]->InvocableObject[R428]->Operation[R427] where ( selected.is_class_based );
+  select many files related by class_ops->Class[R416]->File[R401];
+  impl_files = impl_files | files;
+
+  select many files related by type->TypeReference[R3800]->InvocableObject[R428]->PortMessage[R427]->Message[R420]->Interface[R419]->File[R401];
+  both_files = both_files | files;
+
+  select many files related by type->TypeReference[R3800]->InvocableObject[R428]->PortMessage[R427]->Port[R420]->File[R401];
+  both_files = both_files | files;
+
+  select many files related by type->TypeReference[R3800]->InvocableObject[R428]->UtilityFunction[R427]->Utility[R4559]->File[R401];
+  both_files = both_files | files;
+
+  select many files related by type->TypeReference[R3800]->Selector[R446]->InstanceSelector[R445]->Class[R442]->File[R401];
+  both_files = both_files | files;
+
+  select many files related by type->TypeReference[R3800]->Selector[R446]->SetSelector[R445]->ClassSet[R444]->File[R401];
+  both_files = both_files | files;
+
+  // add to imports
+  for each file in impl_files
+    type.addToImports( file:file, type:ImportType::IMPL );
+  end for;
+  for each file in both_files
+    type.addToImports( file:file, type:ImportType::BOTH );
+  end for;
+end for;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	0);
+INSERT INTO PE_PE
+	VALUES ("6b44b744-1fa6-4210-be2e-c95d3dce87e3",
+	1,
+	"2e49e10f-3016-47ee-8a39-12e683e7075e",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("3e30a3db-097a-483d-9e1b-bf92d1fe2b4d",
+	"00000000-0000-0000-0000-000000000000",
+	'getFileForStatement',
+	'',
+	'smt = param.smt;
+select one invocable related by smt->CodeBlock[R450]->InvocableObject[R4000];
+return ::getFileForInvocable( invocable:invocable );',
+	"133d5e7b-5ad2-41dd-b534-afe8f7cf56a8",
+	1,
+	'',
+	0,
+	0);
+INSERT INTO S_SPARM
+	VALUES ("257c3572-296a-4026-bb69-d762e987f204",
+	"3e30a3db-097a-483d-9e1b-bf92d1fe2b4d",
+	'smt',
+	"b586ec7e-41fe-4d50-9cf3-27b173e9848a",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("b586ec7e-41fe-4d50-9cf3-27b173e9848a",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Statement>',
+	'',
+	'',
+	'../architecture/statement/statement.xtuml');
+INSERT INTO PE_PE
+	VALUES ("3e30a3db-097a-483d-9e1b-bf92d1fe2b4d",
+	1,
+	"2e49e10f-3016-47ee-8a39-12e683e7075e",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("19b73a57-21bb-4ff4-9333-32fb6edbbe45",
+	"00000000-0000-0000-0000-000000000000",
+	'getNextBlockNumber',
+	'',
+	'upper_block = param.upper_block;
+
+select many then_blocks related by upper_block->Statement[R450]->IfSmt[R451]->CodeBlock[R453];
+select many else_blocks related by upper_block->Statement[R450]->IfSmt[R451]->CodeBlock[R454];
+select many while_blocks related by upper_block->Statement[R450]->WhileSmt[R451]->CodeBlock[R456];
+select many for_blocks related by upper_block->Statement[R450]->ForSmt[R451]->CodeBlock[R455];
+
+child_blocks = then_blocks + else_blocks + while_blocks + for_blocks;
+
+// find the most recent child block
+block_number = "0";
+int_block_number = 0;
+if ( not_empty child_blocks )
+  for each child_block in child_blocks
+    child_block_number = STRING::atoi( s:STRING::substr( s:child_block.block_number, begin:STRING::strlen( s:upper_block.block_number ) + 1, end:-1 ) );
+    if ( child_block_number > int_block_number )
+      int_block_number = child_block_number;
+    end if;
+  end for;
+  // increment
+  block_number = upper_block.block_number + "." + STRING::itoa( i:int_block_number + 1 );
+else
+  block_number = upper_block.block_number + ".1";;
+end if;
+
+return block_number;',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	1,
+	'',
+	0,
+	0);
+INSERT INTO S_SPARM
+	VALUES ("1d44099c-5397-484a-a67c-3dac465e9971",
+	"19b73a57-21bb-4ff4-9333-32fb6edbbe45",
+	'upper_block',
+	"60d4da0e-4cbe-4620-8c16-4e1dba1c6b8d",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("60d4da0e-4cbe-4620-8c16-4e1dba1c6b8d",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Code Block>',
+	'',
+	'',
+	'../architecture/invocable/invocable.xtuml');
+INSERT INTO PE_PE
+	VALUES ("19b73a57-21bb-4ff4-9333-32fb6edbbe45",
+	1,
+	"2e49e10f-3016-47ee-8a39-12e683e7075e",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("0c360182-681e-4852-95ef-402bb0030132",
+	"00000000-0000-0000-0000-000000000000",
+	'TypeReference_getInstanceWithDimString',
+	'',
+	'type = param.type;
+dims = param.dims;
+select any type_ref from instances of TypeReference where false;
+if ( not_empty type )
+  if ( "" != dims )
+    select any array_type_ref related by type->TypeReference[R3800]->ArrayTypeReference[R3801] where ( selected.dims == dims );
+    select one type_ref related by array_type_ref->TypeReference[R3801];
+    if ( empty array_type_ref )
+      create object instance type_ref of TypeReference;
+      type_ref.type_reference_name = type.name + dims;
+      create object instance array_type_ref of ArrayTypeReference;
+      array_type_ref.dims = dims;
+      relate type_ref to type across R3800;
+      relate type_ref to array_type_ref across R3801;
+    end if;
+  else
+    // basic type reference
+    select any type_ref related by type->TypeReference[R3800]->BasicTypeReference[R3801]->TypeReference[R3801];
+    if ( empty type_ref )
+      create object instance type_ref of TypeReference;
+      type_ref.type_reference_name = type.name;
+      create object instance basic_type_ref of BasicTypeReference;
+      relate type_ref to type across R3800;
+      relate type_ref to basic_type_ref across R3801;
+    end if;
+  end if;
+end if;
+return type_ref;',
+	"096d9dad-f227-4793-bb43-a1915881b825",
+	1,
+	'',
+	0,
+	3);
+INSERT INTO S_SPARM
+	VALUES ("c76e103e-ce4b-4376-9cb3-7bb701d809fa",
+	"0c360182-681e-4852-95ef-402bb0030132",
+	'type',
+	"b4a754cc-b0a5-4777-ae98-df570434ea2a",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("0d8cc9da-5c25-4000-987e-c0974ed8a696",
+	"0c360182-681e-4852-95ef-402bb0030132",
+	'dims',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"c76e103e-ce4b-4376-9cb3-7bb701d809fa",
+	'');
+INSERT INTO PE_PE
+	VALUES ("0c360182-681e-4852-95ef-402bb0030132",
+	1,
+	"2e49e10f-3016-47ee-8a39-12e683e7075e",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO PE_PE
+	VALUES ("2e49e10f-3016-47ee-8a39-12e683e7075e",
+	1,
+	"00000000-0000-0000-0000-000000000000",
+	"00000000-0000-0000-0000-000000000000",
+	7);
+INSERT INTO S_SYS_PROXY
+	VALUES ("21d38790-b93a-4ad6-b0a2-e3ba56baed8a",
+	'core-architecture',
+	1,
+	'../core-architecture.xtuml');
