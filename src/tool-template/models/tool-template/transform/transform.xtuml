@@ -39,11 +39,11 @@ INSERT INTO S_SYNC
 	'resolveTemplateHooks',
 	'',
 	'select many affected_files from instances of File where false;
-select many invocables from instances of InvocableObject;
-for each invocable in invocables
-  select one generic_invoc related by invocable->GenericInvocable[R427];
+select many invocableInComps from instances of InvocableInComponent;
+for each invocableInComp in invocableInComps
+  select one generic_invoc related by invocableInComp->InvocableObject[R4001]->GenericInvocable[R427];
   if ( empty generic_invoc )
-    select many template_invocations related by invocable->CodeBlock[R4000]->Statement[R450]->Expression[R775]->Invocation[R776] where
+    select many template_invocations related by invocableInComp->CodeBlock[R4000]->Statement[R450]->Expression[R775]->Invocation[R776] where
       ( "T" == selected.invoked_parent_name and "io.ciera.runtime.template.util" == selected.invoked_parent_package and "include" == selected.invoked_name );
     for each template_invocation in template_invocations
       select one smt related by template_invocation->Expression[R776]->Statement[R775];
@@ -99,7 +99,7 @@ for each invocable in invocables
         subexpr_num = subexpr_num + 1;
       end while;
       // add to the affected files list
-      file = ::getFileForInvocable( invocable:invocable );
+      file = ::getFileForInvocable( invocableInComp:invocableInComp );
       affected_files = affected_files | file;
     end for;
   end if;
@@ -1047,7 +1047,7 @@ INSERT INTO S_SYNC
 smt = param.smt;
 expr_number = param.expr_number;
 
-select one file related by smt->CodeBlock[R450]->InvocableObject[R4000]->GenericInvocable[R427]->Z_Template[R3053]->Z_TemplateRegistry[R3052]->GeneralFile[R3051]->File[R401];
+select one file related by smt->CodeBlock[R450]->InvocableInComponent[R4000]->InvocableObject[R4001]->GenericInvocable[R427]->Z_Template[R3053]->Z_TemplateRegistry[R3052]->GeneralFile[R3051]->File[R401];
 
 // transform the left operand
 select any l_comp_op from instances of Y_ComparisonOperation where false;
@@ -1561,14 +1561,14 @@ end if;
 select one block related by if_smt->Statement[R451]->CodeBlock[R450];
 // create else block
 create object instance else_block of CodeBlock;
-select one invocable related by block->InvocableObject[R4000];
+select one invocableInComp related by block->InvocableInComponent[R4000];
 else_block.top_level = false;
 if ( is_else_if )
   else_block.tab_depth = block.tab_depth;
 else
   else_block.tab_depth = block.tab_depth + 1;
 end if;
-relate else_block to invocable across R4000;
+relate else_block to invocableInComp across R4000;
 else_block.block_number = ::getNextBlockNumber( upper_block:block );
 // copy visibile variables from upper block
 select many vars related by block->Variable[R458];
@@ -1700,10 +1700,10 @@ select any if_expr related by smt->Expression[R775] where ( selected.expression_
 relate if_expr to if_smt across R471;
 // create then block
 create object instance then_block of CodeBlock;
-select one invocable related by block->InvocableObject[R4000];
+select one invocableInComp related by block->InvocableInComponent[R4000];
 then_block.top_level = false;
 then_block.tab_depth = block.tab_depth + 1;
-relate then_block to invocable across R4000;
+relate then_block to invocableInComp across R4000;
 then_block.block_number = ::getNextBlockNumber( upper_block:block );
 // copy visibile variables from upper block
 select many vars related by block->Variable[R458];
@@ -2513,7 +2513,7 @@ if ( "" != format_chars.FORMAT )
   relate parm2 to act_parm2 across R3904;
   relate act_parm1 to act_parm2 across R3905.''precedes'';
   // add string type to imports
-  select one registry_file related by block->InvocableObject[R4000]->GenericInvocable[R427]->Z_Template[R3053]->Z_TemplateRegistry[R3052]->GeneralFile[R3051]->File[R401];
+  select one registry_file related by block->InvocableInComponent[R4000]->InvocableObject[R4001]->GenericInvocable[R427]->Z_Template[R3053]->Z_TemplateRegistry[R3052]->GeneralFile[R3051]->File[R401];
   select one string_type related by string_type_ref->Type[R3800];
   ::addTypeToImports( file:registry_file, type_to_import:string_type, type:ImportType::IMPL );
 else
@@ -2832,7 +2832,7 @@ end if;
 relate var_type_ref to expr across R795;
 
 // add the type to the file imports
-select one file related by smt->CodeBlock[R450]->InvocableObject[R4000]->GenericInvocable[R427]->Z_Template[R3053]->Z_TemplateRegistry[R3052]->GeneralFile[R3051]->File[R401];
+select one file related by smt->CodeBlock[R450]->InvocableInComponent[R4000]->InvocableObject[R4001]->GenericInvocable[R427]->Z_Template[R3053]->Z_TemplateRegistry[R3052]->GeneralFile[R3051]->File[R401];
 if (empty file)
   file = ::getFileForStatement(smt:smt);
 end if;
