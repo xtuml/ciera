@@ -114,6 +114,7 @@ end for;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO PE_PE
 	VALUES ("85946a53-e34b-4e86-a172-5be46fa0b534",
@@ -175,6 +176,7 @@ end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("fe2605b6-4801-4d9f-948e-f658a14fc0ac",
@@ -262,6 +264,7 @@ end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("9e057d3f-8023-4eb4-83d2-2da0036be3ad",
@@ -335,6 +338,7 @@ end for;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO PE_PE
 	VALUES ("a1a59583-ec76-4c2f-8b77-824d2cbcb2c7",
@@ -368,6 +372,7 @@ end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("b400cce3-3b70-4444-9fba-1343411a3013",
@@ -487,6 +492,7 @@ end if;
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("e38663f5-037e-4ac3-9cef-92a5c6f7d0e0",
@@ -573,6 +579,7 @@ relate attr to acc across R788;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("b4651786-cdd0-4a9d-9666-234585ca0771",
@@ -702,6 +709,7 @@ blob_string = blob_string + blob_suffix;
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("ff7ba474-9d7f-4731-b4fb-833f1471ca78",
@@ -773,6 +781,7 @@ lit.value = blob_string;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("e3c79aa8-83cf-4f9b-bb53-2351c45070a5",
@@ -822,13 +831,13 @@ INSERT INTO S_SYNC
 	'transformRSLBody',
 	'',
 	'body = param.body;
-invocable = param.invocable;
+invocableInComp = param.invocableInComp;
 
 // create code block
 create object instance block of CodeBlock;
 block.top_level = true;
 block.tab_depth = 4;
-relate block to invocable across R4000;
+relate block to invocableInComp across R4000;
 block.block_number = "1";
 
 // create a null statement to hold variable declarations for all locals in context
@@ -873,9 +882,10 @@ for each incl_var in incl_vars
 end for;
 
 // link the class context if it exists
+select one invocable related by invocableInComp->InvocableObject[R4001];
 select many template_invocations from instances of Invocation where ( "T" == selected.invoked_parent_name and "io.ciera.runtime.template.util" == selected.invoked_parent_package and "include" == selected.invoked_name );
 select any real_param related by template_invocations->ActualParameter[R793]->Expression[R794]->Literal[R776] where ( selected.value == invocable.name );
-select one template_invocable related by real_param->Expression[R776]->ActualParameter[R794]->Invocation[R793]->Expression[R776]->Statement[R775]->CodeBlock[R450]->InvocableObject[R4000];
+select one template_invocable related by real_param->Expression[R776]->ActualParameter[R794]->Invocation[R793]->Expression[R776]->Statement[R775]->CodeBlock[R450]->InvocableInComponent[R4000]->InvocableObject[R4001];
 select one operation related by template_invocable->Operation[R427] where ( not selected.is_class_based );
 select one deriv_attr related by template_invocable->AttributeDerivation[R427];
 if ( not_empty operation or not_empty deriv_attr )
@@ -920,6 +930,7 @@ end while;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("c860459a-22c6-44fc-b1e1-c33f9b3f0d35",
@@ -940,16 +951,16 @@ INSERT INTO S_DT_PROXY
 INSERT INTO S_SPARM
 	VALUES ("c7ba4bb0-1eee-4a96-be2f-c328ff56b075",
 	"79b6c05b-f013-466e-8b1e-981bda1f68c8",
-	'invocable',
-	"3ab44839-4426-4754-b12a-0a00ce4dae1a",
+	'invocableInComp',
+	"15275e26-b9be-4723-81b7-a823b206a5bb",
 	0,
 	'',
 	"c860459a-22c6-44fc-b1e1-c33f9b3f0d35",
 	'');
 INSERT INTO S_DT_PROXY
-	VALUES ("3ab44839-4426-4754-b12a-0a00ce4dae1a",
+	VALUES ("15275e26-b9be-4723-81b7-a823b206a5bb",
 	"00000000-0000-0000-0000-000000000000",
-	'inst_ref<Invocable Object>',
+	'inst_ref<InvocableInComponent>',
 	'',
 	'',
 	'../../../../tool-core/models/tool-core/architecture/invocable/invocable.xtuml');
@@ -985,6 +996,7 @@ end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("007e8dfe-aae1-479b-a5dd-a46ab21c3bc5",
@@ -1162,6 +1174,7 @@ end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("a305ece4-9995-4241-ac43-57615e163b79",
@@ -1229,6 +1242,7 @@ end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("553e0f59-b139-4c94-ac11-030c7d48d9b1",
@@ -1325,6 +1339,7 @@ end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("ca1b3441-580a-4c05-b42d-ef3a95050a23",
@@ -1392,6 +1407,7 @@ end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("190dac73-67b4-4c81-be7d-6db7e7088724",
@@ -1488,6 +1504,7 @@ end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("33cd4f95-6262-4425-b2c6-d402d5416e3d",
@@ -1565,6 +1582,7 @@ return else_block;',
 	"60d4da0e-4cbe-4620-8c16-4e1dba1c6b8d",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("953d0e88-dc3b-4766-aaa4-22dd417af7be",
@@ -1604,6 +1622,7 @@ select one disj related by expr->Y_Disjunction[R3061];
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("9d24ac43-a224-463c-9df0-34062800450b",
@@ -1698,6 +1717,7 @@ return then_block;',
 	"60d4da0e-4cbe-4620-8c16-4e1dba1c6b8d",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("9cb510c1-6300-4e7b-8b9f-8e04ae70b975",
@@ -1813,6 +1833,7 @@ return block;',
 	"60d4da0e-4cbe-4620-8c16-4e1dba1c6b8d",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("3af96485-98cc-4be5-bd78-855afe53a10c",
@@ -1871,6 +1892,7 @@ end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("c08ce0df-7e6e-4f54-abbc-004086cffb38",
@@ -1991,6 +2013,7 @@ end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("da0884d9-2f65-403d-ae32-19db44ce2aff",
@@ -2059,6 +2082,7 @@ end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("4a161a48-bb7b-4359-bdfe-de9061fb1467",
@@ -2129,6 +2153,7 @@ end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("5ef95536-708b-455b-a174-7dced5af01fa",
@@ -2207,6 +2232,7 @@ end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("4ee585eb-3f80-4b13-a1ec-593bdde781fe",
@@ -2354,6 +2380,7 @@ end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("081ff953-cdb1-4e77-95fb-3d472b311aae",
@@ -2505,6 +2532,7 @@ end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("125e9f2e-acf8-48b8-a6b3-b6aadd0211fd",
@@ -2611,6 +2639,7 @@ end if;
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("3eb216f1-2fc5-4f6c-889e-d1996d4b93c8",
@@ -2725,6 +2754,7 @@ end if; end if; end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("8bd4de72-c479-45e8-ac51-47627cfe0cb9",
@@ -2811,6 +2841,7 @@ select one var_type related by var_type_ref->Type[R3800];
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("f3182c8b-be26-4b57-8975-78386c2f62a0",
@@ -2883,6 +2914,8 @@ invocable.parent_package = registry.package;
 create object instance generic_invocable of GenericInvocable;
 relate generic_invocable to invocable across R427;
 invocable.oal = "";
+InvocableInComponent::populate( invocable:invocable, component:comp_def );
+invocableInComp = InvocableInComponent::get( invocable:invocable, component:comp_def );
 
 relate temp to generic_invocable across R3053;
 temp.comp_name = registry.comp_name;
@@ -2894,13 +2927,13 @@ relate void_type_ref to invocable across R428;
 // transform the body
 select any body from instances of Y_Body where ( selected.filename == temp.name );
 if ( not_empty body )
-  ::transformRSLBody( body:body, invocable:invocable );
+  ::transformRSLBody( body:body, invocableInComp:invocableInComp );
 else
   // TODO bad
 end if;
 
 // unpack the symbol table
-select any block related by invocable->CodeBlock[R4000] where ( selected.top_level );
+select any block related by invocableInComp->CodeBlock[R4000] where ( selected.top_level );
 indent = ::getIndent( tab_depth:block.tab_depth + 1 );
 select many var_refs from instances of VariableReference where ( selected.parent_name == temp.registry_name and
                                                                  selected.parent_package == temp.registry_package and
@@ -2929,6 +2962,7 @@ select one comp_file related by comp_def->File[R401];
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("5cd0d588-5359-4677-a45e-9e4e72751046",
@@ -2989,6 +3023,7 @@ end for;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO PE_PE
 	VALUES ("ac6a47ad-ad6f-452a-94c0-1149c5a16511",
@@ -3022,17 +3057,8 @@ relate registry to general_file across R3051;
 registry.comp_name = comp_def.name;
 
 // create a template for each reference in the component
-select many invocs from instances of InvocableObject where false;
-select many func_invocs related by comp_def->Function[R405]->InvocableObject[R427];
-select many msg_invocs related by comp_def->Port[R417]->PortMessage[R420]->InvocableObject[R427];
-invocs = func_invocs | msg_invocs;
-select many op_invocs related by comp_def->Class[R408]->Operation[R416]->InvocableObject[R427];
-invocs = invocs | op_invocs;
-select many attr_invocs related by comp_def->Class[R408]->Attribute[R410]->AttributeAccessor[R4510]->AttributeDerivation[R441]->InvocableObject[R427];
-invocs = invocs | attr_invocs;
-select many util_invocs related by comp_def->Utility[R4558]->UtilityFunction[R4559]->InvocableObject[R427];
-invocs = invocs | util_invocs;
-select many template_includes related by invocs->CodeBlock[R4000]->Statement[R450]->ExpressionAsStatement[R451]->Expression[R476]->Invocation[R776]
+select many template_includes related by comp_def->InvocableInComponent[R4001]->CodeBlock[R4000]->
+  Statement[R450]->ExpressionAsStatement[R451]->Expression[R476]->Invocation[R776]
   where ( selected.invoked_name == "include" and selected.invoked_parent_name == "T" and selected.invoked_parent_package == "io.ciera.runtime.template.util" );
 for each template_include in template_includes
   select any filename_string related by template_include->ActualParameter[R793]->Expression[R794]->Literal[R776];
@@ -3054,6 +3080,7 @@ end for;
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("30021741-ea7d-4b6b-98d1-9107ebc82f0d",
