@@ -3518,7 +3518,10 @@ INSERT INTO S_SYNC
 	'o_obj = param.o_obj;
 containing_comp_def = param.containing_comp_def;
 path = param.path;
+
+LOG::LogInfo( message:"JRW Entering ::transformClassInComponent()" );
 select one ep_pkg related by o_obj->PE_PE[R8001]->EP_PKG[R8000];
+LOG::LogInfo( message:"JRW package: " + ep_pkg.Name );
 
 // get exclude mark
 select one pe related by o_obj->PE_PE[R8001];
@@ -3532,12 +3535,15 @@ if ( empty class_exclude_mark )
                                                             selected.feature_name == "UseKeyLettersForName" );
 
   // if necessary, transform the component-independent instance of Class
+  LOG::LogInfo( message:"JRW if necessary, transform component-independent instance of Class" );
   select one obj related by o_obj->Class[R409];
   if ( empty obj )
+    LOG::LogInfo( message:"JRW transforming component-independent class: " + o_obj.Name );
     ::transformClass( o_obj: o_obj );
   end if;
 
   // create the class in component instance and its file
+  LOG::LogInfo( message:"JRW creating ClassInComponent and File" );
   create object instance file of File;
   if ( empty class_name_mark )
     file.name = ::camelCaseName( name:o_obj.Name, start_lower:false );
@@ -3553,9 +3559,11 @@ if ( empty class_exclude_mark )
   classInComponent.extends = "ModelInstance<" + obj.name + "," + containing_comp_def.name + ">";
   
   // add the class to the defining or referring component
+  LOG::LogInfo( message:"JRW relating Class to Component using ClassInComponent" );
   relate obj to containing_comp_def across R408 using classInComponent;
   
   // transform attributes
+  LOG::LogInfo( message:"JRW transforming attributes" );
   select any o_attr related by o_obj->O_ATTR[R102];
   select one prev_attr related by o_attr->O_ATTR[R103.''succeeds''];
   while ( not_empty prev_attr )
@@ -3572,12 +3580,14 @@ if ( empty class_exclude_mark )
   end while;
 
   // transform operations
+  LOG::LogInfo( message:"JRW transforming operations" );
   select many o_tfrs related by o_obj->O_TFR[R115];
   for each o_tfr in o_tfrs
     ::transformOperation( o_tfr:o_tfr, obj:obj, containing_comp_def:containing_comp_def );
   end for;
 
   // transform the state machine
+  LOG::LogInfo( message:"JRW transforming state machine" );
   select one sm related by o_obj->SM_ISM[R518]->SM_SM[R517];
   if ( not_empty sm )
     ::transformStateMachine( sm_sm:sm, classInComp:classInComponent );
@@ -3590,9 +3600,11 @@ if ( empty class_exclude_mark )
   end if;
 
   // transform the set object
+  LOG::LogInfo( message:"JRW transforming set object" );
   ::transformClassSet( obj:obj, ep_pkg:ep_pkg, path:path );
 
   // add to the containing component imports
+  LOG::LogInfo( message:"JRW add to the containing component imports" );
   select one component_file related by containing_comp_def->File[R401];
   select one set_file related by obj->ClassSet[R406]->File[R401];
   ::addFileToImports( file:component_file, file_to_import:file, type:ImportType::IMPL );
@@ -3602,6 +3614,7 @@ if ( empty class_exclude_mark )
   ::addStringToImports( file:component_file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL );
 
   // create the import block
+  LOG::LogInfo( message:"JRW create the import block" );
   ::addFileToImports( file:file, file_to_import:component_file, type:ImportType::BOTH );
 
   ::addFileToImports( file:file, file_to_import:file, type:ImportType::IMPL );
@@ -3616,8 +3629,10 @@ if ( empty class_exclude_mark )
   ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.IXtumlType", type:ImportType::IMPL );
   ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.UniqueId", type:ImportType::IMPL );
   ::addStringToImports( file:file, s:"io.ciera.runtime.instanceloading.InstanceCreatedDelta", type:ImportType::IMPL );
+  LOG::LogInfo( message:"JRW finished creating import block" );
 
-end if;',
+end if;
+LOG::LogInfo( message:"JRW exiting ::transformClassInComponent()" );',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
