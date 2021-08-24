@@ -39,21 +39,18 @@ INSERT INTO S_SYNC
 	'init',
 	'',
 	'// set up command line options
-CMD::register_value( name:"cwd", value_name:"root_dir", usage:"base working directory", default_value:".", required:false );
-CMD::register_value( name:"i", value_name:"input_file", usage:"input file", default_value:"", required:false );
-CMD::register_value( name:"o", value_name:"output_file", usage:"output file", default_value:"", required:false );
-CMD::register_value( name:"gendir", value_name:"gen_dir", usage:"generated output directory", default_value:".", required:false );
-CMD::register_value( name:"use-version", value_name:"use_version", usage:"version identifier for generated components", default_value:"", required:false );
+CMD::register_value(name:"cwd", value_name:"root_dir", usage:"base working directory", default_value:".", required:false);
+CMD::register_value(name:"i", value_name:"input_file", usage:"input file", default_value:"", required:false);
+CMD::register_value(name:"o", value_name:"output_file", usage:"output file", default_value:"", required:false);
+CMD::register_value(name:"gendir", value_name:"gen_dir", usage:"generated output directory", default_value:".", required:false);
+CMD::register_value(name:"use-version", value_name:"use_version", usage:"version identifier for generated components", default_value:"", required:false);
 CMD::read_command_line();
 
-CIERA::setprojectroot( value:CMD::get_value( name:"cwd" ) );
-CIERA::setversion( value:CMD::get_value( name:"use-version" ) );
+CIERA::setprojectroot(value:CMD::get_value(name:"cwd"));
+CIERA::setversion(value:CMD::get_value( name:"use-version"));
 ciera = CIERA::getDefaultInstance();
 
 T::set_output_directory(dir:ciera.projectroot + "/" + CMD::get_value(name:"gendir"));
-
-// load up instances
-// TODO
 
 // preprocess
 ::preprocess();
@@ -62,7 +59,10 @@ T::set_output_directory(dir:ciera.projectroot + "/" + CMD::get_value(name:"gendi
 ::translate();
 
 // dump instances
-// TODO
+output_file = CMD::get_value(name:"o");
+if ("" != output_file)
+  SQL::serialize_file(file:ciera.projectroot + "/" + output_file);
+end if;
 
 // exit
 control stop;',
@@ -86,7 +86,46 @@ INSERT INTO S_SYNC
 
 LOG::LogInfo( message:"Translating..." );
 
-// TODO
+// LOAD MASL
+LOG::LogInfo( message:"Loading MASL model..." );
+
+// Create the preexisting instances of built-in types.
+::BuiltinType_populate();
+
+// Create the preexisting instances of internal types.
+::InternalType_populate();
+
+// Parse and load input MASL.
+LOG::LogInfo( message: "stratus loading MASL" );
+args[1] = CMD::get_value(name:"i");
+args[0] = "-d";
+LOAD::load(java_class:"deploy.parser.MaslImportParser", args:args);
+
+// Resolve referential attribute linkage.
+::ReferentialAttribute_resolve();
+
+elapsed_time = TIM::current_clock() - start_time;
+LOG::LogTime( message:"Elapsed time:", t:elapsed_time );
+
+// TODO TRANSLATE
+LOG::LogInfo( message:"Translating..." );
+
+// Perform a selection to confirm the model loaded correctly.
+class_count = 5;
+message = "First few classes loaded are:  ";
+select many object_declarations from instances of ObjectDeclaration where ( SORT::ascending( attr:"name" ) );
+if ( cardinality object_declarations < class_count )
+  class_count = cardinality object_declarations;
+end if;
+for each object_declaration in object_declarations
+  message = message + object_declaration.name;
+  class_count = class_count - 1;
+  if ( 0 == class_count )
+    break;
+  end if;
+  message = message + ", ";
+end for;
+LOG::LogInfo( message: message );
 
 elapsed_time = TIM::current_clock() - start_time;
 LOG::LogTime( message:"Elapsed time:", t:elapsed_time );',
