@@ -1,4 +1,4 @@
-package io.ciera.tool.core-masl.ees.impl;
+package io.ciera.tool.coremasl.ees.impl;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -7,7 +7,7 @@ import java.util.TreeSet;
 
 import io.ciera.runtime.summit.components.IComponent;
 import io.ciera.runtime.summit.util.Utility;
-import io.ciera.tool.core-masl.ees.C_UTIL;
+import io.ciera.tool.coremasl.ees.C_UTIL;
 
 public class C_UTILImpl<C extends IComponent<C>> extends Utility<C> implements C_UTIL {
 

@@ -1,4 +1,4 @@
-package io.ciera.tool.core-masl.ooaofmarking.impl;
+package io.ciera.tool.coremasl.ooaofmarking.impl;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -6,7 +6,7 @@ import java.util.Scanner;
 
 import io.ciera.runtime.summit.components.IComponent;
 import io.ciera.runtime.summit.util.Utility;
-import io.ciera.tool.core-masl.ooaofmarking.CSV;
+import io.ciera.tool.coremasl.ooaofmarking.CSV;
 
 public class CSVImpl<C extends IComponent<C>> extends Utility<C> implements CSV {
 
