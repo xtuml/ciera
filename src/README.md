@@ -2,19 +2,6 @@
 
 ### Dependencies
 
-#### `bridgepoint` and `mc` repositories
-
-Clone `bridgepoint` and `mc` onto your system:
-
-```
-git clone https://github.com/xtuml/bridgepoint.git
-git clone https://github.com/xtuml/mc.git
-```
-
-In `src/pom.xml`, update the `bpLoc` and `mcLoc` properties to point to the
-correct file location on your system.  By default, they are expected to be
-located in a directory called `git` in your home directory.
-
 #### pypy
 
 The Ciera build can use the `pypy` Python interpreter for its prebuilds. `pypy`
