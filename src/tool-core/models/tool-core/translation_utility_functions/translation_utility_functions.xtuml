@@ -127,6 +127,10 @@ INSERT INTO S_SYNC
 	'',
 	'file_to_import = param.file_to_import;
 import_string = ::pathToPackage( path:file_to_import.path ) + "." + file_to_import.name;
+// @Begin Debug
+fileName = param.file.name;
+LOG::LogInfo( message:"JRW addFileToImports: file, string " + fileName + ", " + import_string );
+// @End Debug
 ::addStringToImports( file:param.file, s:import_string, type:param.type );',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -189,6 +193,7 @@ INSERT INTO S_SYNC
 if ( "" != param.s )
   select any import_ref related by file->TypeImportReference[R402] where ( selected.fully_qualified_name == param.s and selected.type == param.type );
   if ( empty import_ref )
+    LOG::LogInfo( message:"JRW addStringToImports: file, string " + file.name + ", " + param.s );
     type_import = TypeImport::get_import( import:param.s );
     create object instance import_ref of TypeImportReference;
     import_ref.type = param.type;

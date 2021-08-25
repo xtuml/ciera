@@ -254,8 +254,10 @@ INSERT INTO S_SYNC
 	"00000000-0000-0000-0000-000000000000",
 	'resolveTypeImports',
 	'',
-	'select many types from instances of Type;
+	'LOG::LogInfo( message:"JRW entering ::resolveTypeImports()" );
+select many types from instances of Type;
 for each type in types
+  LOG::LogInfo( message:"JRW ::resolveTypeImports(): type name: " + type.name );
   select many impl_files from instances of File where false;
   select many both_files from instances of File where false;
 
@@ -289,7 +291,7 @@ for each type in types
   select many files related by type->TypeReference[R3800]->FormalParameter[R431]->InvocableObject[R429]->Event[R427]->TransitionTableCell[R4756]->State[R4757]->StateMachine[R4751]->File[R401];
   both_files = both_files | files;
 
-  select many files related by type->TypeReference[R3800]->FormalParameter[R431]->InvocableObject[R429]->Event[R427]->StateMachine[R4752]->ClassInComponent[R4750]->File[R401];
+  select many files related by type->TypeReference[R3800]->FormalParameter[R431]->InvocableObject[R429]->Event[R427]->StateMachine[R4752]->ClassInComponent[R4750]->Class[R408]->File[R401];
   impl_files = impl_files | files;
 
   select many inst_ops related by type->TypeReference[R3800]->InvocableObject[R428]->Operation[R427] where ( not selected.is_class_based );
@@ -322,7 +324,8 @@ for each type in types
   for each file in both_files
     type.addToImports( file:file, type:ImportType::BOTH );
   end for;
-end for;',
+end for;
+LOG::LogInfo( message:"JRW exiting ::resolveTypeImports()" );',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -425,6 +428,7 @@ select any current_comp_inst from instances of ComponentInstantiation where fals
 for each c_c in c_cs
   select any comp_def from instances of ComponentDefinition where ( selected.name == ::camelCaseName( name:c_c.Name, start_lower:false ) );
   if ( empty comp_def )
+    LOG::LogInfo( message:"JRW ::transformApplication: invoking ::transformComponentDefinition()" );
     ::transformComponentDefinition( c_c:c_c, containing_comp_def:empty_comp_def, path:param.path, pass:1 );
     ::transformComponentDefinition( c_c:c_c, containing_comp_def:empty_comp_def, path:param.path, pass:2 );
     ::transformComponentDefinition( c_c:c_c, containing_comp_def:empty_comp_def, path:param.path, pass:3 );
@@ -433,6 +437,7 @@ for each c_c in c_cs
   create object instance comp_inst of ComponentInstantiation;
   relate  comp_def to app across R426 using comp_inst;
   select one comp_def_file related by comp_def->File[R401];
+  LOG::LogInfo( message:"JRW ::transformApplication: invoking ::addFileToImports()" );
   ::addFileToImports( file:file, file_to_import:comp_def_file, type:ImportType::IMPL );
   select any executor related by app->ApplicationExecutor[R4027]; // single executor for now
   relate executor to comp_inst across R4028;
@@ -1174,6 +1179,7 @@ INSERT INTO S_SYNC
 	'',
 	'o_obj = param.o_obj;
 
+LOG::LogInfo( message:"JRW entering ::transformClass()" );
 select one ep_pkg related by o_obj->PE_PE[R8001]->EP_PKG[R8000];
 
 // get exclude mark
@@ -1223,20 +1229,23 @@ if ( empty class_exclude_mark )
   relate obj to o_obj across R409;
 
   // create the import block
-  ::addFileToImports( file:file, file_to_import:file, type:ImportType::IMPL );
-  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.application.IRunContext", type:ImportType::IMPL );
-  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.classes.InstanceIdentifier", type:ImportType::IMPL );
-  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.classes.IInstanceIdentifier", type:ImportType::IMPL );
-  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.classes.IModelInstance", type:ImportType::INT );
-  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.classes.ModelInstance", type:ImportType::IMPL );
-  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.InstancePopulationException", type:ImportType::IMPL );
-  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL );
-  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.IWhere", type:ImportType::IMPL );
-  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.IXtumlType", type:ImportType::IMPL );
-  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.UniqueId", type:ImportType::IMPL );
-  ::addStringToImports( file:file, s:"io.ciera.runtime.instanceloading.InstanceCreatedDelta", type:ImportType::IMPL );
+  if ( not file.exclude )
+    LOG::LogInfo( message:"JRW ::transformClass(): adding import block" );
+	  ::addFileToImports( file:file, file_to_import:file, type:ImportType::IMPL );
+	  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.classes.InstanceIdentifier", type:ImportType::IMPL );
+	  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.classes.IInstanceIdentifier", type:ImportType::IMPL );
+	  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.classes.IModelInstance", type:ImportType::INT );
+	  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.classes.ModelInstance", type:ImportType::IMPL );
+	  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.InstancePopulationException", type:ImportType::IMPL );
+	  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL );
+	  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.IWhere", type:ImportType::IMPL );
+	  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.IXtumlType", type:ImportType::IMPL );
+	  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.UniqueId", type:ImportType::IMPL );
+	  ::addStringToImports( file:file, s:"io.ciera.runtime.instanceloading.InstanceCreatedDelta", type:ImportType::IMPL );
+  end if;
 
-end if;',
+end if;
+LOG::LogInfo( message:"JRW exiting ::transformClass()" );',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -1269,21 +1278,22 @@ INSERT INTO S_SYNC
 	"00000000-0000-0000-0000-000000000000",
 	'transformClassSet',
 	'',
-	'obj = param.obj;
+	'classInComp = param.classInComp;
 
-// create the object file
+// create the class set file
 create object instance file of File;
-file.name = obj.name + "Set";
+file.name = classInComp.name + "Set";
 file.path = param.path;
 file.package = ::pathToPackage( path:file.path );
 file.extension = ".java";
 file.exclude = false;
 
 // create the class set object
+select one obj related by classInComp->Class[R408];
 create object instance objset of ClassSet;
 relate objset to obj across R406;
 relate objset to file across R401;
-objset.extends = "InstanceSet<" + objset.name + "," + obj.name + ">";
+objset.extends = "InstanceSet<" + objset.name + "," + classInComp.name + ">";
 objset.comparator = "";
 
 // set the comparator
@@ -1313,9 +1323,9 @@ type.default_value = "new " + objset.name + "Impl()";
 relate type to objset across R407;
 
 // create the import block
-select one objfile related by obj->File[R401];
+select one classInCompFile related by classInComp->File[R401];
 ::addFileToImports( file:file, file_to_import:file, type: ImportType::IMPL );
-::addFileToImports( file:file, file_to_import:objfile, type: ImportType::IMPL );
+::addFileToImports( file:file, file_to_import:classInCompFile, type: ImportType::IMPL );
 ::addStringToImports( file:file, s:"java.util.Arrays", type:ImportType::IMPL );
 ::addStringToImports( file:file, s:"java.util.Comparator", type:ImportType::IMPL );
 ::addStringToImports( file:file, s:"java.util.List", type:ImportType::IMPL );
@@ -1334,12 +1344,19 @@ end if;',
 INSERT INTO S_SPARM
 	VALUES ("8ed3e4d3-66bd-4a27-bbd4-8ed9c0496aa7",
 	"8bc831e7-b772-4237-b2a5-e423d381379b",
-	'obj',
-	"a519e323-b117-4a03-9435-b88e56c2443d",
+	'classInComp',
+	"53e504e6-9b65-4f56-a685-839b95582a5e",
 	0,
 	'',
 	"00000000-0000-0000-0000-000000000000",
 	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("53e504e6-9b65-4f56-a685-839b95582a5e",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<ClassInComponent>',
+	'',
+	'',
+	'../architecture/component/component.xtuml');
 INSERT INTO S_SPARM
 	VALUES ("a3108481-ac1e-4978-b55f-e7904a2b234b",
 	"8bc831e7-b772-4237-b2a5-e423d381379b",
@@ -1372,6 +1389,7 @@ INSERT INTO S_SYNC
 	'c_c = param.c_c;
 
 if ( 1 == param.pass )
+  LOG::LogInfo( message:"JRW entering ::transformComponentDefinition( pass: 1 )" );
 
   // create the file
   create object instance file of File;
@@ -1490,6 +1508,7 @@ if ( 1 == param.pass )
   end if;
 
 elif ( 2 == param.pass )
+    LOG::LogInfo( message:"JRW entering ::transformComponentDefinition( pass: 2)" );
 
   select any file from instances of File where ( selected.name == ::camelCaseName( name:c_c.Name, start_lower:false ) and selected.package == ::pathToPackage( path:param.path ) );
   select one comp_def related by file->ComponentDefinition[R401];
@@ -1501,6 +1520,7 @@ elif ( 2 == param.pass )
   end for;
 
 else
+    LOG::LogInfo( message:"JRW entering ::transformComponentDefinition( pass: 3 )" );
 
   select any file from instances of File where ( selected.name == ::camelCaseName( name:c_c.Name, start_lower:false ) and selected.package == ::pathToPackage( path:param.path ) );
   select one comp_def related by file->ComponentDefinition[R401];
@@ -1520,7 +1540,8 @@ else
     relate rel_pop_selector to rel across R4572;
   end for;
   
-end if;',
+end if;
+LOG::LogInfo( message:"JRW exiting ::transformComponentDefinition()" );  ',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -2269,6 +2290,7 @@ INSERT INTO S_SYNC
 path = param.path;
 
 if ( 1 == param.pass )
+  LOG::LogInfo( message:"JRW entering ::transformPackage( pass: 1 ), package: " + ep_pkg.Name );
 
   // see if this is a package reference
   select one referred_ep_pkg related by ep_pkg->EP_PKG[R1402.''refers to''];
@@ -2324,7 +2346,7 @@ if ( 1 == param.pass )
   end for;
 
 elif ( 2 == param.pass )
-
+  LOG::LogInfo( message:"JRW entering ::transformPackage( pass: 2 ), package: " + ep_pkg.Name );
   // see if this is a package reference
   select one referred_ep_pkg related by ep_pkg->EP_PKG[R1402.''refers to''];
   if ( not_empty referred_ep_pkg )
@@ -2346,7 +2368,7 @@ elif ( 2 == param.pass )
   end for;
   
 else
-
+  LOG::LogInfo( message:"JRW entering ::transformPackage( pass: 3 ), package: " + ep_pkg.Name );
   // see if this is a package reference
   select one referred_ep_pkg related by ep_pkg->EP_PKG[R1402.''refers to''];
   if ( not_empty referred_ep_pkg )
@@ -2375,7 +2397,8 @@ else
     ::transformPackage( ep_pkg:inner_ep_pkg, containing_comp_def:containing_comp_def, path:path + "/" + T::sub( format:"rl", s:ep_pkg.Name ), pass:param.pass );
   end for;
 
-end if;',
+end if;
+LOG::LogInfo( message:"JRW exiting ::transformPackage(), package: " + ep_pkg.Name );',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -2734,11 +2757,12 @@ INSERT INTO S_SYNC
 rel = param.rel;
 other_obj = param.other_obj;
 containing_comp_def = param.containing_comp_def;
+
+LOG::LogInfo( message:"JRW entering ::transformSelector()" );
  
 // This function creates selectors for the class and set for a single path
 // through a relationship. For single instances, a selectOne or selectMany
-// are created based on multiplicity. For sets, a selectMany and is always
-// created.
+// are created based on multiplicity. For sets, a selectMany is always created.
 
 name = "R" + STRING::itoa( i:rel.num ) + "_";
 if ( "" != param.phrase )
@@ -2821,6 +2845,7 @@ else
 end if;
 
 // add imports to object file
+LOG::LogInfo( message:"JRW ::transformSelector(), add imports to object file" );
 select one file related by obj->File[R401];
 ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::BOTH );
 if ( Cond::UNCONDITIONAL == param.cond or Mult::ONE == param.mult )
@@ -2835,15 +2860,18 @@ else
 end if;
 
 // add imports to object set file
+LOG::LogInfo( message:"JRW ::transformSelector(), add imports to object set file" );
 select one set_file related by obj_set->File[R401];
 ::addStringToImports( file:set_file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::BOTH );
 ::addStringToImports( file:set_file, s:set_type.type_package + ".impl." + set_type.type_name + "Impl", type:ImportType::IMPL );
 
 // add imports to component file
+LOG::LogInfo( message:"JRW ::transformSelector(), add imports to component file" );
 select one comp_file related by containing_comp_def->File[R401];
 if ( Mult::MANY != param.mult )
   ::addStringToImports( file:comp_file, s:class_type.type_package + ".impl." + class_type.type_name + "Impl", type:ImportType::IMPL );
-end if;',
+end if;
+LOG::LogInfo( message:"JRW exiting ::transformSelector()" );',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -3241,13 +3269,6 @@ INSERT INTO S_SPARM
 	'',
 	"52462f5f-c541-4d6a-884e-fcfacb4de247",
 	'');
-INSERT INTO S_DT_PROXY
-	VALUES ("53e504e6-9b65-4f56-a685-839b95582a5e",
-	"00000000-0000-0000-0000-000000000000",
-	'inst_ref<ClassInComponent>',
-	'',
-	'',
-	'../architecture/component/component.xtuml');
 INSERT INTO PE_PE
 	VALUES ("cb20fa01-e4b7-4d9c-a8aa-ff49e5763228",
 	1,
@@ -3602,7 +3623,7 @@ if ( empty class_exclude_mark )
 
   // transform the set object
   LOG::LogInfo( message:"JRW transforming set object" );
-  ::transformClassSet( obj:obj, ep_pkg:ep_pkg, path:path );
+  ::transformClassSet( classInComp:classInComponent, ep_pkg:ep_pkg, path:path );
 
   // add to the containing component imports
   LOG::LogInfo( message:"JRW add to the containing component imports" );
