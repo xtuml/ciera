@@ -8,18 +8,71 @@ INSERT INTO O_OBJ
 	'Represents a component-specific association.',
 	"00000000-0000-0000-0000-000000000000");
 INSERT INTO O_TFR
-	VALUES ("af34dcbb-02ec-4299-afbe-1590e7dbe6ba",
+	VALUES ("3b1b180b-1bca-4fb7-90c9-b6463f9c42ba",
 	"3a9f10c3-e0ae-4068-bae5-efc91bb121ea",
-	'render',
+	'render_modifiers',
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'',
-	3,
+	'cardinality_check = "        // TODO cardinality check\n";
+
+T::push_buffer();
+attribute_propagations = "";
+select one rel related by self->Relationship[R448];
+
+select many refs related by self->Relationship[R448]->Class[R434]->Attribute[R410]->AttributeReference[R4506.''provides value for'']
+  where ( selected.rel_num == rel.num and selected.form_phrase == rel.form_phrase and selected.form_name == rel.form_name and
+          selected.part_phrase == rel.part_phrase and selected.part_name == rel.part_name );
+for each ref in refs
+  select any form_accessor related by ref->Attribute[R4506.''provides value for'']->AttributeAccessor[R4510]
+    where ( selected.accessor_type == AttributeAccessorType::SETTER );
+  form_accessor_name = form_accessor.getName();
+  select any part_accessor related by ref->Attribute[R4506.''has value provided by'']->AttributeAccessor[R4510]
+    where ( selected.accessor_type == AttributeAccessorType::GETTER );
+  part_accessor_name = part_accessor.getName();
+  T::include(file:"relationship/t.referentialattributeinitialization.java");
+end for;
+attribute_propagations = T::body();
+T::clear();
+
+relationship_setters = "";
+relationship_unsetters = "";
+select one form related by self->Relationship[R448]->Class[R434];
+select one part related by self->Relationship[R448]->Class[R435];
+form_name = "R" + STRING::itoa( i:rel.num ) + "_";
+if ( "" != rel.form_phrase )
+  form_name = form_name + T::sub( format:"_", s:rel.form_phrase ) + "_";
+end if;
+form_name = form_name + part.name;
+part_name = "R" + STRING::itoa( i:rel.num ) + "_";
+if ( "" != rel.part_phrase )
+  part_name = part_name + T::sub( format:"_", s:rel.part_phrase ) + "_";
+end if;
+part_name = part_name + form.name;
+select any form_selector related by form->InstanceSelector[R442]->Selector[R445] where ( selected.name == form_name );
+select any part_selector related by part->InstanceSelector[R442]->Selector[R445] where ( selected.name == part_name );
+if ( form_selector.multiplicity == Mult::MANY )
+  relationship_setters = relationship_setters + "            part.add" + form_selector.name + "(form);\n";
+  relationship_unsetters = relationship_unsetters + "            part.remove" + form_selector.name + "(form);\n";
+else
+  relationship_setters = relationship_setters + "            part.set" + form_selector.name + "(form);\n";
+  relationship_unsetters = relationship_unsetters + "            part.set" + form_selector.name + "(" + form_selector.type_reference_name + "Impl.EMPTY_" + T::sub( format:"u_", s:form_selector.type_reference_name ) + ");\n";
+end if;
+if ( part_selector.multiplicity == Mult::MANY )
+  relationship_setters = relationship_setters + "            form.add" + part_selector.name + "(part);\n";
+  relationship_unsetters = relationship_unsetters + "            form.remove" + part_selector.name + "(part);\n";
+else
+  relationship_setters = relationship_setters + "            form.set" + part_selector.name + "(part);\n";
+  relationship_unsetters = relationship_unsetters + "            form.set" + part_selector.name + "(" + part_selector.type_reference_name + "Impl.EMPTY_" + T::sub( format:"u_", s:part_selector.type_reference_name ) + ");\n";
+end if;
+
+T::pop_buffer();
+T::include(file:"relationship/t.relationshipmodifiers.java");',
+	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",
 	0,
-	1);
+	0);
 INSERT INTO O_REF
 	VALUES ("3a9f10c3-e0ae-4068-bae5-efc91bb121ea",
 	"23f9d7b1-3127-4414-9299-e535bda771bf",
