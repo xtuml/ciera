@@ -33,6 +33,209 @@ INSERT INTO DIM_DIA
 	0.000000,
 	0.000000,
 	"00000000-0000-0000-0000-000000000000");
+INSERT INTO S_SYNC
+	VALUES ("4c867d76-54b3-4504-9e60-e54f73be10c2",
+	"00000000-0000-0000-0000-000000000000",
+	'transformDomain',
+	'',
+	'domain = param.domain;
+
+if ( 1 == param.pass )
+
+  // create the file
+  create object instance file of File;
+  file.name = ::camelCaseName(name:domain.name, start_lower:false);
+  file.path = param.path;
+  file.package = ::pathToPackage( path:file.path );
+  file.extension = ".java";
+  file.exclude = false;
+
+  // create the component definition object
+  create object instance comp_def of ComponentDefinition;
+  relate comp_def to file across R401;
+  comp_def.extends = "Component<" + comp_def.name + ">";
+  comp_def.version = "";
+  comp_def.version_date = "";
+  
+  // set version information TODO
+  ciera = CIERA::getDefaultInstance();
+  component_version = ciera.version;
+  if ("" != component_version)
+    comp_def.version = component_version;
+    current_date = TIM::current_date();
+    year_string = STRING::itoa( i:TIM::get_year( date:current_date ) );
+    month_string = STRING::itoa( i:TIM::get_month( date:current_date ) );
+    if ( STRING::strlen( s:month_string ) < 2 )
+      month_string = "0" + month_string;
+    end if;
+    day_string = STRING::itoa( i:TIM::get_day( date:current_date ) );
+    if ( STRING::strlen( s:day_string ) < 2 )
+      day_string = "0" + day_string;
+    end if;
+    hour_string = STRING::itoa( i:TIM::get_hour( date:current_date ) );
+    if ( STRING::strlen( s:hour_string ) < 2 )
+      hour_string = "0" + hour_string;
+    end if;
+    minute_string = STRING::itoa( i:TIM::get_minute( date:current_date ) );
+    if ( STRING::strlen( s:minute_string ) < 2 )
+      minute_string = "0" + minute_string;
+    end if;
+    second_string = STRING::itoa( i:TIM::get_second( date:current_date ) );
+    if ( STRING::strlen( s:second_string ) < 2 )
+      second_string = "0" + second_string;
+    end if;
+    comp_def.version_date = year_string + "-" + month_string + "-" + day_string + " " + hour_string + ":" + minute_string + ":" + second_string;
+  end if;
+  
+  // TODO translate domain elements
+
+  // create import block
+  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.application.IApplication", type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.application.IRunContext", type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.components.Component", type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.classes.IModelInstance", type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.BadArgumentException", type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.EmptyInstanceException", type:ImportType::IMPL );
+
+  ::addStringToImports( file:file, s:"java.util.Map", type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"java.util.TreeMap", type:ImportType::IMPL );
+  
+  if ("" != component_version)
+    ::addStringToImports( file:file, s:"java.io.IOException", type:ImportType::IMPL );
+    ::addStringToImports( file:file, s:"java.util.Properties", type:ImportType::IMPL );
+  end if;
+
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	1);
+INSERT INTO S_SPARM
+	VALUES ("e060eb45-49af-4d1d-b4bb-880b8b10a937",
+	"4c867d76-54b3-4504-9e60-e54f73be10c2",
+	'domain',
+	"d467079c-c61e-4b05-8498-3fe2f24782a6",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("d467079c-c61e-4b05-8498-3fe2f24782a6",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Domain>',
+	'',
+	'',
+	'../../../../ooamasl/models/ooamasl/ooamasl/domain/domain.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("2323d00b-3688-4778-bdd1-ed140fe79329",
+	"4c867d76-54b3-4504-9e60-e54f73be10c2",
+	'pass',
+	"ba5eda7a-def5-0000-0000-000000000002",
+	0,
+	'',
+	"e060eb45-49af-4d1d-b4bb-880b8b10a937",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("edc05e97-5ed4-4104-a130-64e0364e7841",
+	"4c867d76-54b3-4504-9e60-e54f73be10c2",
+	'path',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"2323d00b-3688-4778-bdd1-ed140fe79329",
+	'');
+INSERT INTO PE_PE
+	VALUES ("4c867d76-54b3-4504-9e60-e54f73be10c2",
+	1,
+	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("a273ac6b-7940-4d3d-8c41-b8c33c8c5922",
+	"00000000-0000-0000-0000-000000000000",
+	'transformMaslApplication',
+	'',
+	'// get application marks
+select any app_name_mark from instances of Mark where ( selected.markable_name == "*" and selected.path == "*" and selected.feature_name == "ApplicationName" );
+select any app_pkg_mark from instances of Mark where ( selected.markable_name == "*" and selected.path == "*" and selected.feature_name == "ApplicationPackage" );
+
+// create the file
+create object instance file of File;
+if ( not_empty app_name_mark )
+  file.name = app_name_mark.value;
+else
+  file.name = "UnnamedApplication";
+end if;
+if ( not_empty app_pkg_mark )
+  file.package = app_pkg_mark.value;
+  file.path = ::formatPath( path:file.package );
+else
+  file.path = "unnamedapplication";
+  file.package = ::pathToPackage( path:file.path );
+end if;
+file.extension = ".java";
+file.exclude = false;
+
+// create the application object
+create object instance app of Application;
+relate app to file across R401;
+
+// create application executors
+index = 0;
+while ( index < 1 ) // single executor for now
+  create object instance executor of ApplicationExecutor;
+  if ( app.async )
+    executor.index = -1;
+  else
+    executor.index = index;
+  end if;
+  relate executor to app across R4027;
+  index = index + 1;
+end while;
+
+// translate domains
+select many domains from instances of Domain;
+select any current_comp_inst from instances of ComponentInstantiation where false;
+for each domain in domains
+  ::transformDomain(domain:domain, path:file.path, pass:1);
+  select any comp_def from instances of ComponentDefinition where ( selected.name == ::camelCaseName( name:domain.name, start_lower:false ) );
+  create object instance comp_inst of ComponentInstantiation;
+  relate  comp_def to app across R426 using comp_inst;
+  select one comp_def_file related by comp_def->File[R401];
+  ::addFileToImports( file:file, file_to_import:comp_def_file, type:ImportType::IMPL );
+  select any executor related by app->ApplicationExecutor[R4027]; // single executor for now
+  relate executor to comp_inst across R4028;
+  if ( not_empty current_comp_inst )
+    relate comp_inst to current_comp_inst across R4029.''follows'';
+    comp_inst.index = current_comp_inst.index + 1;
+  else
+    comp_inst.index = 0;
+  end if;
+  current_comp_inst = comp_inst;
+end for;
+
+// create the import block
+::addStringToImports( file:file, s:"io.ciera.runtime.summit.application.tasks.HaltExecutionTask", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.runtime.summit.application.tasks.GenericExecutionTask", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"java.util.Arrays", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.runtime.summit.application.ApplicationExecutor", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.runtime.summit.application.IApplication", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.runtime.summit.application.ILogger", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.runtime.summit.components.IComponent", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL );',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	2);
+INSERT INTO PE_PE
+	VALUES ("a273ac6b-7940-4d3d-8c41-b8c33c8c5922",
+	1,
+	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
+	"00000000-0000-0000-0000-000000000000",
+	1);
 INSERT INTO PE_PE
 	VALUES ("e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
 	1,
