@@ -1176,7 +1176,7 @@ relate l_op to binop across R779;
 select one expr_type related by l_op->TypeReference[R795]->Type[R3800];
 ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:expr_type, type:ImportType::IMPL );
 // create right operand
-select one selector related by select_obj->Class[R409]->InstancePopulationSelector[R449];
+selector = InstancePopulationSelector::get( block:block, o_obj:select_obj );
 create object instance r_op of Expression;
 relate r_op to smt across R775;
 r_op.expression_number = "1.2";
@@ -1320,7 +1320,7 @@ if ( not_empty where_clause_lbo and ( "false" == T::sub( format:"l", s:where_cla
   named_expr.name = select_type_def.default_value;
   ::addStringToImports( file: ::getFileForStatement( smt:smt ), s:select_type_def.package + ".impl." + select_type_def.name + "Impl", type:ImportType::IMPL );
 else
-  select one selector related by select_obj->Class[R409]->InstancePopulationSelector[R449];
+  selector = InstancePopulationSelector::get( block:block, o_obj:select_obj );
   create object instance r_op of Expression;
   relate r_op to smt across R775;
   r_op.expression_number = "1.2";
@@ -1331,7 +1331,7 @@ else
   where_expr.multiplicity = act_fiw.cardinality;
   where_expr.sorted = SortType::NONE;
   if ("many" == where_expr.multiplicity)
-    select one cls_set related by select_obj->Class[R409]->ClassSet[R406];
+    cls_set = ClassSet::get( block:block, o_obj:select_obj );
     where_expr.cast = cls_set.name;
   elif ("one" == where_expr.multiplicity)
     select one cls related by select_obj->Class[R409];
@@ -1505,7 +1505,7 @@ else
       where_expr.multiplicity = act_sel.cardinality;
       where_expr.sorted = SortType::NONE;
       if ("many" == where_expr.multiplicity)
-        select one cls_set related by select_obj->Class[R409]->ClassSet[R406];
+        cls_set = ClassSet::get( block:block, o_obj:select_obj );
         where_expr.cast = cls_set.name;
       elif ("one" == where_expr.multiplicity)
         select one cls related by select_obj->Class[R409];
@@ -3911,7 +3911,9 @@ end if;
 selector_name = selector_name + target_class.name;
 select any selector related by base_class->InstanceSelector[R442]->Selector[R445] where ( selected.name == selector_name );
 if ( empty selector )
-  select any selector related by base_class->ClassSet[R406]->SetSelector[R444]->Selector[R445] where ( selected.name == selector_name );
+  select one component related by smt->CodeBlock[R450]->InvocableInComponent[R4000]->ComponentDefinition[R4001];
+  classInComp = ClassInComponent::get( obj:base_class, component:component );
+  select any selector related by classInComp->ClassSet[R406]->SetSelector[R444]->Selector[R445] where ( selected.name == selector_name );
 end if;
 if ( not_empty selector )
   relate selector to sel_rel across R797;
@@ -4773,7 +4775,7 @@ if (not_empty invoc)
   if (not_empty literal)
     select one cls related by where_expr->Expression[R776]->TypeReference[R795]->Type[R3800]->Class[R407];
     if (empty cls)
-      select one cls related by where_expr->Expression[R776]->TypeReference[R795]->Type[R3800]->ClassSet[R407]->Class[R406];
+      select one cls related by where_expr->Expression[R776]->TypeReference[R795]->Type[R3800]->ClassSet[R407]->ClassInComponent[R406]->Class[R408];
     end if;
     select any attr related by cls->Attribute[R410] where (selected.name == "m_" + literal.value or selected.name == "ref_" + literal.value);
     if (not_empty attr)
