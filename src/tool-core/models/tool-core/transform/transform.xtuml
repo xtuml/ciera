@@ -1472,12 +1472,12 @@ if ( 1 == param.pass )
   end for;
 
   // transform instance population selectors
-  select many objs related by comp_def->Class[R408];
-  for each obj in objs
+  select many classInComps related by comp_def->ClassInComponent[R408];
+  for each classInComp in classInComps
     create object instance inst_pop_selector of InstancePopulationSelector;
-    inst_pop_selector.name = obj.name + "_instances";
+    inst_pop_selector.name = classInComp.name + "_instances";
     relate inst_pop_selector to comp_def across R447;
-    relate inst_pop_selector to obj across R449;
+    relate inst_pop_selector to classInComp across R449;
   end for;
   
   if ("" != component_version)
@@ -1537,12 +1537,13 @@ else
   end for;
 
   // transform relationship population selectors
-  select many rels related by comp_def->Relationship[R448];
-  for each rel in rels
+  select many relInComps related by comp_def->RelationshipInComponent[R448];
+  for each relInComp in relInComps
+    select one rel related by relInComp->Relationship[R448];
     create object instance rel_pop_selector of RelationshipPopulationSelector;
     rel_pop_selector.name = rel.name + "s";
     relate rel_pop_selector to comp_def across R4571;
-    relate rel_pop_selector to rel across R4572;
+    relate rel_pop_selector to relInComp across R4572;
   end for;
   
 end if;
