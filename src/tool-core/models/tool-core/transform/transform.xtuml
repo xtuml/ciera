@@ -1293,17 +1293,18 @@ file.extension = ".java";
 file.exclude = false;
 
 // create the class set object
-select one obj related by classInComp->Class[R408];
 create object instance objset of ClassSet;
-relate objset to obj across R406;
+relate objset to classInComp across R406;
 relate objset to file across R401;
 objset.extends = "InstanceSet<" + objset.name + "," + classInComp.name + ">";
 objset.comparator = "";
 
 // set the comparator
-select any comparator_mark from instances of Mark where ( selected.markable_name == "*" and selected.path == "*" and selected.feature_name == "SortComparator" );
+select any comparator_mark from instances of Mark 
+  where ( selected.markable_name == "*" and selected.path == "*" and selected.feature_name == "SortComparator" );
 if ( not_empty comparator_mark )
-  select many attr_accessors related by objset->Class[R406]->Attribute[R410]->AttributeAccessor[R4510] where ( selected.accessor_type == AttributeAccessorType::GETTER );
+  select many attr_accessors related by objset->ClassInComponent[R406]->Class[R408]->
+    Attribute[R410]->AttributeAccessor[R4510] where ( selected.accessor_type == AttributeAccessorType::GETTER );
   for each attr_accessor in attr_accessors
     if ( attr_accessor.getName() == comparator_mark.value )
       objset.comparator = comparator_mark.value;
@@ -1316,7 +1317,7 @@ end if;
 create object instance type of Type;
 type.name = objset.name;
 type.package = objset.package;
-select any s_irdt related by obj->O_OBJ[R409]->S_IRDT[R123] where ( selected.isSet );
+select any s_irdt related by classInComp->Class[R408]->O_OBJ[R409]->S_IRDT[R123] where ( selected.isSet );
 select one s_dt related by s_irdt->S_DT[R17];
 if ( not_empty s_dt )
   type.resolve( s_dt:s_dt );
@@ -1336,7 +1337,7 @@ select one classInCompFile related by classInComp->File[R401];
 ::addStringToImports( file:file, s:"io.ciera.runtime.summit.classes.InstanceSet", type:ImportType::IMPL );
 ::addStringToImports( file:file, s:"io.ciera.runtime.summit.classes.IInstanceSet", type:ImportType::INT );
 
-select any attr related by objset->Class[R406]->Attribute[R410];
+select any attr related by objset->ClassInComponent[R406]->Class[R408]->Attribute[R410];
 if ( not_empty attr )
   ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::BOTH );
 end if;',
