@@ -1215,7 +1215,7 @@ if ( empty class_exclude_mark )
   relate obj to file across R401;
   obj.key_letters = o_obj.Key_Lett;
 
- // create the instance type
+  // create a type for this class
   create object instance type of Type;
   type.name = obj.name;
   type.package = obj.package;
@@ -3356,6 +3356,20 @@ if ( empty class_exclude_mark )
   create object instance classInComponent of ClassInComponent;
   relate classInComponent to file across R401;
   classInComponent.extends = "ModelInstance<" + obj.name + "," + containing_comp_def.name + ">";
+  
+  // create a type for this component-specific class
+  create object instance type of Type;
+  type.name = classInComponent.name;
+  type.package = classInComponent.package;
+  select any s_irdt related by o_obj->S_IRDT[R123] where ( not selected.isSet );
+  select one s_dt related by s_irdt->S_DT[R17];
+  if ( not_empty s_dt )
+    type.resolve( s_dt:s_dt );
+  else
+    // TODO bad
+  end if;
+  type.default_value = classInComponent.name + "Impl.EMPTY_" + T::sub( format:"_u", s:classInComponent.name );
+  relate type to classInComponent across R407;
   
   // add the class to the defining or referring component
   LOG::LogInfo( message:"JRW relating Class to Component using ClassInComponent" );
