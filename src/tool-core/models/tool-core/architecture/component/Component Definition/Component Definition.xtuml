@@ -23,13 +23,14 @@ instance_removes = "";
 class_directory = "";
 separator = "";
 test = "if";
-select many classes related by self->Class[R408];
-for each class_in_comp in classes
+select many class_in_comps related by self->ClassInComponent[R408];
+for each class_in_comp in class_in_comps
+  select one obj related by class_in_comp->Class[R408];
   select one class_set related by class_in_comp->ClassSet[R406];
   instance_extent_initializers = instance_extent_initializers + separator + "        " + class_in_comp.name + "_extent = new " + class_set.name + "Impl();";
   instance_adds = instance_adds + separator + "        " + test + " ( instance instanceof " + class_in_comp.name + " ) return " + class_in_comp.name + "_extent.add( (" + class_in_comp.name + ")instance );";
   instance_removes = instance_removes + separator + "        " + test + " ( instance instanceof " + class_in_comp.name + " ) return " + class_in_comp.name + "_extent.remove( (" + class_in_comp.name + ")instance );";
-  class_directory = class_directory + separator + "        classDirectory.put(" + STRING::quote() + class_in_comp.key_letters + STRING::quote() + ", " + class_in_comp.name + "Impl.class);";
+  class_directory = class_directory + separator + "        classDirectory.put(" + STRING::quote() + obj.key_letters + STRING::quote() + ", " + class_in_comp.name + "Impl.class);";
   test = "else if";
   separator = "\n";
 end for;
@@ -101,6 +102,7 @@ T::clear();',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",
+	0,
 	0);
 INSERT INTO O_TFR
 	VALUES ("273b8a21-c8c9-44be-a019-ab578c26aaf0",
@@ -113,6 +115,7 @@ INSERT INTO O_TFR
 	1,
 	'',
 	"a7a72b98-7905-4169-9e1d-82d499328f4b",
+	0,
 	0);
 INSERT INTO O_REF
 	VALUES ("23f9d7b1-3127-4414-9299-e535bda771bf",
