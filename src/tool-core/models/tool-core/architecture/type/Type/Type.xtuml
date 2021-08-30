@@ -20,6 +20,7 @@ end if;',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",
+	0,
 	0);
 INSERT INTO O_TPARM
 	VALUES ("f7efc991-55ae-4eb0-a925-1d323c8aa04d",
@@ -106,6 +107,7 @@ delete object instance self;',
 	1,
 	'',
 	"12ce1746-ca93-4f76-9666-c69d5e6b3214",
+	0,
 	0);
 INSERT INTO O_TFR
 	VALUES ("1f12226e-5862-4f7b-b690-4a955327d691",
@@ -123,6 +125,7 @@ return primitive;',
 	1,
 	'',
 	"f461d089-804a-4f8f-b01a-4c93ffcc002e",
+	0,
 	0);
 INSERT INTO O_TFR
 	VALUES ("89690c94-da17-43cb-b88e-165cde11c3f6",
@@ -132,7 +135,9 @@ INSERT INTO O_TFR
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	's_dt = param.s_dt;
-select one unresolved_type related by s_dt->Type[R423]->UnresolvedType[R407];
+
+// there is only one instance of unresolved type for each modeled type
+select any unresolved_type related by s_dt->Type[R423]->UnresolvedType[R407];
 if ( not_empty unresolved_type )
   select one old_type related by unresolved_type->Type[R407];
   
@@ -145,10 +150,11 @@ if ( not_empty unresolved_type )
     if ( not_empty old_basic_ref )
       self_ref = TypeReference::getInstanceWithDimString( type:self, dims:"" );
     else
-    select one old_array_ref related by old_type_ref->ArrayTypeReference[R3801];
-    if ( not_empty old_array_ref )
-      self_ref = TypeReference::getInstanceWithDimString( type:self, dims:old_array_ref.dims );
-    end if; end if;
+	    select one old_array_ref related by old_type_ref->ArrayTypeReference[R3801];
+	    if ( not_empty old_array_ref )
+	      self_ref = TypeReference::getInstanceWithDimString( type:self, dims:old_array_ref.dims );
+	    end if; 
+	  end if;
     // replace types
     select many attrs related by old_type_ref->Attribute[R424];
     for each attr in attrs
@@ -189,6 +195,7 @@ end if;',
 	1,
 	'',
 	"1f12226e-5862-4f7b-b690-4a955327d691",
+	0,
 	0);
 INSERT INTO O_TPARM
 	VALUES ("a96a2768-7ac4-433e-8e74-86f0e8f534ad",
@@ -275,7 +282,7 @@ INSERT INTO O_REF
 	'',
 	'Data Type',
 	'DT_ID',
-	'R423.''is basis for''');
+	'R423.''is transformed from''');
 INSERT INTO R_RGO_PROXY
 	VALUES ("b5de937b-55ee-48e4-8e91-d9d73c3f0fab",
 	"4523c521-4f91-406b-aba0-fca6419b2dd4",
