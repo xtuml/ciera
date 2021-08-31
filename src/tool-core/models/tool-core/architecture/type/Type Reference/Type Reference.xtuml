@@ -16,8 +16,10 @@ INSERT INTO O_TFR
 	0,
 	's_dt = param.s_dt;
 s_dims = param.s_dims;
-select one type related by s_dt->Type[R423];
-if ( empty type ) // Create new Unresolved Type
+referring_comp = param.referring_comp;
+select any type from instances of Type where false;  // Decl
+select many types_sdt related by s_dt->Type[R423];
+if ( empty types_sdt ) // Create new Unresolved Type
   // get the next unique number
   num = 0;
   select many unresolved_types from instances of UnresolvedType;
@@ -38,11 +40,19 @@ if ( empty type ) // Create new Unresolved Type
   create object instance unresolved_type of UnresolvedType;
   relate unresolved_type to type across R407;
   unresolved_type.num = num;
+  relate unresolved_type to referring_comp across R3805;
+else
+  // find the (one) unresolved type for this s_dt referred to by the component in question
+  select many types_comp related by referring_comp->UnresolvedType[R3805]->Type[R407];
+  types = types_comp & types_sdt;
+  // convert instance reference set containing single instance to an instance reference
+  select any type related by types->UnresolvedType[R407]->Type[R407];  
 end if;
 return TypeReference::getInstanceFromType( type:type, s_dims:s_dims );',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",
+	0,
 	0);
 INSERT INTO O_TPARM
 	VALUES ("798c298c-1b4c-4448-a93b-cbce9e4b578f",
@@ -76,6 +86,22 @@ INSERT INTO S_DT_PROXY
 	'',
 	'',
 	'../../../../../../mcooa/models/mcooa/ooaofooa/Domain/Domain.xtuml');
+INSERT INTO O_TPARM
+	VALUES ("17adeb83-a3c2-40ab-95f1-8fc70eed5077",
+	"56e6f804-f80c-496e-a630-71a74e00da71",
+	'referring_comp',
+	"109e90cb-1d66-46ee-88db-a568044879d0",
+	0,
+	'',
+	"f35ed199-89a5-49b6-b653-3e0d467b30cc",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("109e90cb-1d66-46ee-88db-a568044879d0",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Component Definition>',
+	'',
+	'',
+	'../../component/component.xtuml');
 INSERT INTO S_DT_PROXY
 	VALUES ("096d9dad-f227-4793-bb43-a1915881b825",
 	"00000000-0000-0000-0000-000000000000",
@@ -107,6 +133,7 @@ return type_ref;',
 	1,
 	'',
 	"56e6f804-f80c-496e-a630-71a74e00da71",
+	0,
 	0);
 INSERT INTO O_TPARM
 	VALUES ("7279453c-598a-466a-b348-2e038032572d",
@@ -154,6 +181,7 @@ return type_ref;',
 	1,
 	'',
 	"40f09b5c-e4cc-4729-b46c-9af64c3c5ba4",
+	0,
 	0);
 INSERT INTO O_TPARM
 	VALUES ("89fca004-50fc-4105-a231-350852f9e42a",
@@ -226,6 +254,7 @@ end if;',
 	1,
 	'',
 	"c091ca8a-9cfc-40ff-a937-1d41a921fb2b",
+	0,
 	0);
 INSERT INTO O_TPARM
 	VALUES ("257226de-561e-4d0c-b501-30011d42b7d1",
