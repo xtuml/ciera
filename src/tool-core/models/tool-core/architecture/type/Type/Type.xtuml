@@ -136,62 +136,18 @@ INSERT INTO O_TFR
 	1,
 	's_dt = param.s_dt;
 
-// there is only one instance of unresolved type for each modeled type
-select any unresolved_type related by s_dt->Type[R423]->UnresolvedType[R407];
-if ( not_empty unresolved_type )
+// combine multiple, component-specific unresolved types into 
+// a single, component-dependent resolved type
+select many unresolved_types related by s_dt->Type[R423]->UnresolvedType[R407];
+for each unresolved_type in unresolved_types
+  select one component related by unresolved_type->ComponentDefinition[R3805];
+  unrelate unresolved_type from component across R3805;
   select one old_type related by unresolved_type->Type[R407];
-  
-  // unrelate old types and hook up the new types
-  select many old_type_refs related by old_type->TypeReference[R3800];
-  for each old_type_ref in old_type_refs
-    // get the corresponding new type ref
-    select any self_ref related by self->TypeReference[R3800] where false;
-    select one old_basic_ref related by old_type_ref->BasicTypeReference[R3801];
-    if ( not_empty old_basic_ref )
-      self_ref = TypeReference::getInstanceWithDimString( type:self, dims:"" );
-    else
-	    select one old_array_ref related by old_type_ref->ArrayTypeReference[R3801];
-	    if ( not_empty old_array_ref )
-	      self_ref = TypeReference::getInstanceWithDimString( type:self, dims:old_array_ref.dims );
-	    end if; 
-	  end if;
-    // replace types
-    select many attrs related by old_type_ref->Attribute[R424];
-    for each attr in attrs
-      unrelate old_type_ref from attr across R424;
-      relate self_ref to attr across R424;
-    end for;
-    select many invocables related by old_type_ref->InvocableObject[R428];
-    for each invocable in invocables
-      unrelate old_type_ref from invocable across R428;
-      relate self_ref to invocable across R428;
-    end for;
-    select many parms related by old_type_ref->FormalParameter[R431];
-    for each parm in parms
-      unrelate old_type_ref from parm across R431;
-      relate self_ref to parm across R431;
-    end for;
-    select many selectors related by old_type_ref->Selector[R446];
-    for each selector in selectors
-      unrelate old_type_ref from selector across R446;
-      relate self_ref to selector across R446;
-    end for;
-    select many expressions related by old_type_ref->Expression[R795];
-    for each expression in expressions
-      unrelate old_type_ref from expression across R795;
-      relate self_ref to expression across R795;
-    end for;
-  end for;
-
+  self.updateTypeReferences( old_type:old_type );
   unrelate old_type from s_dt across R423;
-  relate self to s_dt across R423;
   old_type.dispose();
-
-elif ( not_empty s_dt )
-  relate self to s_dt across R423;
-else
-  // TODO bad
-end if;',
+end for;
+relate self to s_dt across R423;',
 	1,
 	'',
 	"1f12226e-5862-4f7b-b690-4a955327d691",
@@ -213,6 +169,77 @@ INSERT INTO S_DT_PROXY
 	'',
 	'',
 	'../../../../../../mcooa/models/mcooa/ooaofooa/Domain/Domain.xtuml');
+INSERT INTO O_TFR
+	VALUES ("d5962256-c878-4c80-8ba8-04486e1a57d0",
+	"b5de937b-55ee-48e4-8e91-d9d73c3f0fab",
+	'updateTypeReferences',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'old_type = param.old_type;
+
+// unrelate old types and hook up the new types
+select many old_type_refs related by old_type->TypeReference[R3800];
+for each old_type_ref in old_type_refs
+  // get the corresponding new type ref
+  select any self_ref related by self->TypeReference[R3800] where false;
+  select one old_basic_ref related by old_type_ref->BasicTypeReference[R3801];
+  if ( not_empty old_basic_ref )
+    self_ref = TypeReference::getInstanceWithDimString( type:self, dims:"" );
+  else
+    select one old_array_ref related by old_type_ref->ArrayTypeReference[R3801];
+    if ( not_empty old_array_ref )
+      self_ref = TypeReference::getInstanceWithDimString( type:self, dims:old_array_ref.dims );
+    end if; 
+  end if;
+  // replace types
+  select many attrs related by old_type_ref->Attribute[R424];
+  for each attr in attrs
+    unrelate old_type_ref from attr across R424;
+    relate self_ref to attr across R424;
+  end for;
+  select many invocables related by old_type_ref->InvocableObject[R428];
+  for each invocable in invocables
+    unrelate old_type_ref from invocable across R428;
+    relate self_ref to invocable across R428;
+  end for;
+  select many parms related by old_type_ref->FormalParameter[R431];
+  for each parm in parms
+    unrelate old_type_ref from parm across R431;
+    relate self_ref to parm across R431;
+  end for;
+  select many selectors related by old_type_ref->Selector[R446];
+  for each selector in selectors
+    unrelate old_type_ref from selector across R446;
+    relate self_ref to selector across R446;
+  end for;
+  select many expressions related by old_type_ref->Expression[R795];
+  for each expression in expressions
+    unrelate old_type_ref from expression across R795;
+    relate self_ref to expression across R795;
+  end for;
+end for;',
+	1,
+	'',
+	"89690c94-da17-43cb-b88e-165cde11c3f6",
+	0,
+	1);
+INSERT INTO O_TPARM
+	VALUES ("7400788e-0895-43be-a7f3-ee3a00b7fa3e",
+	"d5962256-c878-4c80-8ba8-04486e1a57d0",
+	'old_type',
+	"b4a754cc-b0a5-4777-ae98-df570434ea2a",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("b4a754cc-b0a5-4777-ae98-df570434ea2a",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Type>',
+	'',
+	'',
+	'../type.xtuml');
 INSERT INTO O_NBATTR
 	VALUES ("864744e7-2f4c-4f9f-b744-73335f8defd3",
 	"b5de937b-55ee-48e4-8e91-d9d73c3f0fab");

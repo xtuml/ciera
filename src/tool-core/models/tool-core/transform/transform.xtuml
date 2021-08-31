@@ -1315,17 +1315,21 @@ end if;
 
 // create the instance type
 create object instance type of Type;
+create object instance compSpecType of CompSpecType;
+relate compSpecType to objset across R3803;
 type.name = objset.name;
 type.package = objset.package;
 select any s_irdt related by classInComp->Class[R408]->O_OBJ[R409]->S_IRDT[R123] where ( selected.isSet );
 select one s_dt related by s_irdt->S_DT[R17];
+select one defining_comp related by classInComp->ComponentDefinition[R408];
 if ( not_empty s_dt )
-  type.resolve( s_dt:s_dt );
+  compSpecType.resolve( s_dt:s_dt, defining_comp:defining_comp, new_type:type );
 else
   // TODO bad
 end if;
 type.default_value = "new " + objset.name + "Impl()";
-relate type to objset across R407;
+relate compSpecType to type across R407;
+
 
 // create the import block
 select one classInCompFile related by classInComp->File[R401];
@@ -3359,17 +3363,19 @@ if ( empty class_exclude_mark )
   
   // create a type for this component-specific class
   create object instance type of Type;
+  create object instance compSpecType of CompSpecType;
+  relate compSpecType to classInComponent across R3803;
   type.name = classInComponent.name;
   type.package = classInComponent.package;
   select any s_irdt related by o_obj->S_IRDT[R123] where ( not selected.isSet );
   select one s_dt related by s_irdt->S_DT[R17];
   if ( not_empty s_dt )
-    type.resolve( s_dt:s_dt );
+    compSpecType.resolve( s_dt:s_dt, defining_comp:containing_comp_def, new_type:type );
   else
     // TODO bad
   end if;
   type.default_value = classInComponent.name + "Impl.EMPTY_" + T::sub( format:"_u", s:classInComponent.name );
-  relate type to classInComponent across R407;
+  relate compSpecType to type across R407;
   
   // add the class to the defining or referring component
   LOG::LogInfo( message:"JRW relating Class to Component using ClassInComponent" );
