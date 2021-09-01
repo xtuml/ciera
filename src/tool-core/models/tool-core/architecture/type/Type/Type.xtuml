@@ -65,6 +65,7 @@ INSERT INTO O_TFR
 // builtin
 // class
 // class set
+// class in component
 // enum
 select one unresolved_type related by self->UnresolvedType[R407];
 if ( not_empty unresolved_type )
@@ -74,9 +75,19 @@ select one obj related by self->Class[R407];
 if ( not_empty obj )
   unrelate self from obj across R407;
 end if;
-select one objset related by self->ClassSet[R407];
+select one objset related by self->CompSpecType[R407]->ClassSet[R3803];
 if ( not_empty objset )
-  unrelate self from objset across R407;
+  select one comp_spec_type related by self->CompSpecType[R407];
+  unrelate self from comp_spec_type across R407;
+  unrelate comp_spec_type from objset across R3803;
+  delete object instance comp_spec_type;
+end if;
+select one class_in_comp related by self->CompSpecType[R407]->ClassInComponent[R3803];
+if ( not_empty class_in_comp )
+  select one comp_spec_type related by self->CompSpecType[R407];
+  unrelate self from comp_spec_type across R407;
+  unrelate comp_spec_type from class_in_comp across R3803;
+  delete object instance comp_spec_type;
 end if;
 select one edt related by self->EnumeratedType[R407];
 if ( not_empty edt )
