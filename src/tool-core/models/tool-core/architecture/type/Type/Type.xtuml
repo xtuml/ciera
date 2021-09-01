@@ -251,6 +251,61 @@ INSERT INTO S_DT_PROXY
 	'',
 	'',
 	'../type.xtuml');
+INSERT INTO O_TFR
+	VALUES ("3dccbd13-d390-45d0-985c-08635b740db4",
+	"b5de937b-55ee-48e4-8e91-d9d73c3f0fab",
+	'get',
+	'',
+	"b4a754cc-b0a5-4777-ae98-df570434ea2a",
+	0,
+	'// return the resolved type for this s_dt and component
+// note: this operation assumes all types have been resolved
+s_dt = param.s_dt;
+containing_comp = param.containing_comp;
+
+select any type from instances of Type where false;  // Decl
+
+select any compSpecificType related by s_dt->Type[R423]->CompSpecType[R407];
+if ( not_empty compSpecificType )
+  // find component-specific type for this s_dt and component
+  select many compSpecificSdtTypes related by s_dt->Type[R423]->CompSpecType[R407];
+  select many compSpecificCompTypes related by containing_comp->CompSpecType[R3804];
+  compSpecificTypes = compSpecificSdtTypes & compSpecificCompTypes;
+  select any type related by compSpecificTypes->Type[R407];
+else
+  select any type related by s_dt->Type[R423];
+end if;
+return type;',
+	1,
+	'',
+	"d5962256-c878-4c80-8ba8-04486e1a57d0",
+	0,
+	2);
+INSERT INTO O_TPARM
+	VALUES ("98d5054f-087c-482c-b2c7-09b82c579fc6",
+	"3dccbd13-d390-45d0-985c-08635b740db4",
+	's_dt',
+	"4a90cd45-ece0-4e72-afe7-44996f9d7e1e",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO O_TPARM
+	VALUES ("0b1cd05c-8ff6-466b-80b7-7e003b0e4a75",
+	"3dccbd13-d390-45d0-985c-08635b740db4",
+	'containing_comp',
+	"109e90cb-1d66-46ee-88db-a568044879d0",
+	0,
+	'',
+	"98d5054f-087c-482c-b2c7-09b82c579fc6",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("109e90cb-1d66-46ee-88db-a568044879d0",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Component Definition>',
+	'',
+	'',
+	'../../component/component.xtuml');
 INSERT INTO O_NBATTR
 	VALUES ("864744e7-2f4c-4f9f-b744-73335f8defd3",
 	"b5de937b-55ee-48e4-8e91-d9d73c3f0fab");
