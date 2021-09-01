@@ -75,16 +75,16 @@ select one obj related by self->Class[R407];
 if ( not_empty obj )
   unrelate self from obj across R407;
 end if;
-select one objset related by self->CompSpecType[R407]->ClassSet[R3803];
+select one objset related by self->ComponentSpecificType[R407]->ClassSet[R3803];
 if ( not_empty objset )
-  select one comp_spec_type related by self->CompSpecType[R407];
+  select one comp_spec_type related by self->ComponentSpecificType[R407];
   unrelate self from comp_spec_type across R407;
   unrelate comp_spec_type from objset across R3803;
   delete object instance comp_spec_type;
 end if;
-select one class_in_comp related by self->CompSpecType[R407]->ClassInComponent[R3803];
+select one class_in_comp related by self->ComponentSpecificType[R407]->ClassInComponent[R3803];
 if ( not_empty class_in_comp )
-  select one comp_spec_type related by self->CompSpecType[R407];
+  select one comp_spec_type related by self->ComponentSpecificType[R407];
   unrelate self from comp_spec_type across R407;
   unrelate comp_spec_type from class_in_comp across R3803;
   delete object instance comp_spec_type;
@@ -265,11 +265,11 @@ containing_comp = param.containing_comp;
 
 select any type from instances of Type where false;  // Decl
 
-select any compSpecificType related by s_dt->Type[R423]->CompSpecType[R407];
+select any compSpecificType related by s_dt->Type[R423]->ComponentSpecificType[R407];
 if ( not_empty compSpecificType )
   // find component-specific type for this s_dt and component
-  select many compSpecificSdtTypes related by s_dt->Type[R423]->CompSpecType[R407];
-  select many compSpecificCompTypes related by containing_comp->CompSpecType[R3804];
+  select many compSpecificSdtTypes related by s_dt->Type[R423]->ComponentSpecificType[R407];
+  select many compSpecificCompTypes related by containing_comp->ComponentSpecificType[R3804];
   compSpecificTypes = compSpecificSdtTypes & compSpecificCompTypes;
   select any type related by compSpecificTypes->Type[R407];
 else
