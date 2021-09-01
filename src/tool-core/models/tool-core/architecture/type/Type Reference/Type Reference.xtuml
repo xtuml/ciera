@@ -33,35 +33,35 @@ referring_comp = param.referring_comp;
 
 select any type from instances of Type where false;  // Decl
 
-select many type_sdts related by s_dt->Type[R423];
-
-// Find an unresolved type if it exists, referred to by this component, for this S_DT
-select many unresolved_type_comps related by referring_comp->UnresolvedType[R3805];
-select many unresolved_type_sdts related by type_sdts->UnresolvedType[R407];
-unresolveds = unresolved_type_sdts & unresolved_type_comps;
-select any unresolved_type related by unresolveds->Type[R407];
+select many sdtTypes related by s_dt->Type[R423];
 
 // Find a component-specific resolved type, if it exists, for this S_DT
-select many comp_spec_sdts related by type_sdts->CompSpecType[R407];
-select many comp_spec_comps related by referring_comp->CompSpecType[R3804];
-comp_spec_types = comp_spec_sdts & comp_spec_comps;
-select any resolved_type related by comp_spec_types->Type[R407];
+select many compSpecificSdtTypes related by sdtTypes->CompSpecType[R407];
+select many compSpecificCompTypes related by referring_comp->CompSpecType[R3804];
+compSpecificTypes = compSpecificSdtTypes & compSpecificCompTypes;
+select any resolvedType related by compSpecificTypes->Type[R407];
+
+// Find an unresolved type if it exists, referred to by this component, for this S_DT
+select many unresolvedCompTypes related by referring_comp->UnresolvedType[R3805];
+select many unresolvedSdtTypes related by sdtTypes->UnresolvedType[R407];
+unresolvedTypes = unresolvedSdtTypes & unresolvedCompTypes;
+select any unresolvedType related by unresolvedTypes->Type[R407];
 
 // if a component-specific resolved type exists for this S_DT and component, use it
-if ( not_empty resolved_type ) 
-  type = resolved_type;
+if ( not_empty resolvedType ) 
+  type = resolvedType;
   
-// else, if a component-specific unresolved type exists for this S_DT and component, use it
-elif ( not_empty unresolved_type )
-  type = unresolved_type;
+// else, if an unresolved type exists for this S_DT and component, use it
+elif ( not_empty unresolvedType )
+  type = unresolvedType;
   
 // else, if there are any component-specific types, resolved or unresolved, for this S_DT,
 // or there are no types at all for this S_DT, create a new unresolved type referred to by this component
-elif ( not_empty comp_spec_sdts or not_empty unresolved_type_sdts or empty type_sdts )
+elif ( not_empty compSpecificSdtTypes or not_empty unresolvedSdtTypes or empty sdtTypes )
   // get the next unique number
   num = 0;
-  select many unresolved_types from instances of UnresolvedType;
-  for each ut in unresolved_types
+  select many unresolvedTypes from instances of UnresolvedType;
+  for each ut in unresolvedTypes
     if ( ut.num >= num )
       num = ut.num + 1;
     end if;
@@ -75,10 +75,10 @@ elif ( not_empty comp_spec_sdts or not_empty unresolved_type_sdts or empty type_
   else
     // TODO bad
   end if;
-  create object instance new_unresolved_type of UnresolvedType;
-  relate new_unresolved_type to type across R407;
-  new_unresolved_type.num = num;
-  relate new_unresolved_type to referring_comp across R3805;
+  create object instance new_unresolvedType of UnresolvedType;
+  relate new_unresolvedType to type across R407;
+  new_unresolvedType.num = num;
+  relate new_unresolvedType to referring_comp across R3805;
 else
   // there are no unresolved types and no component-specific types for this S_DT,
   // so this must be a resolved component-independent type, so use it
