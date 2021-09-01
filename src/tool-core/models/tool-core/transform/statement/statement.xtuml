@@ -338,7 +338,8 @@ if ( not_empty invocable )
     select one op_obj related by o_tfr->O_OBJ[R115];
     op_s_dt = ::getInstRefTypeForClass( s_dt:op_s_dt, o_obj:op_obj );
     select many s_dims related by op_v_var->S_DIM[R849];
-    op_type = TypeReference::getInstance( s_dt:op_s_dt, s_dims:s_dims );
+    select one referring_comp related by block->InvocableInComponent[R4000]->ComponentDefinition[R4001];
+    op_type = TypeReference::getInstance( s_dt:op_s_dt, s_dims:s_dims, referring_comp:referring_comp );
     relate op_type to expr2 across R795;
     select any op_var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == op_v_var.Name );
     if ( not_empty op_var ) // cannot declare two variables of the same name in the same scope
@@ -1044,7 +1045,8 @@ expr.expression_number = "1";
 select one s_dt related by iterable_v_var->S_DT[R848];
 s_dt = ::getInstRefTypeForClass( s_dt:s_dt, o_obj:iterable_o_obj );
 select many s_dims related by iterable_v_var->S_DIM[R849];
-type = TypeReference::getInstance( s_dt:s_dt, s_dims:s_dims );
+select one referring_comp related by block->InvocableInComponent[R4000]->ComponentDefinition[R4001];
+type = TypeReference::getInstance( s_dt:s_dt, s_dims:s_dims, referring_comp:referring_comp );
 relate type to expr across R795;
 create object instance var_ref of VariableReference;
 relate iterable_var to var_ref across R782;
@@ -1126,6 +1128,7 @@ INSERT INTO S_SYNC
 block = param.block;
 prev_smt = param.prev_smt;
 select one act_smt related by act_fio->ACT_SMT[R603];
+select one referring_comp related by block->InvocableInComponent[R4000]->ComponentDefinition[R4001];
 
 // create a statement
 create object instance smt of Statement;
@@ -1162,7 +1165,7 @@ select one select_s_dt related by select_v_var->S_DT[R848];
 select one select_obj related by act_fio->O_OBJ[R677];
 select_s_dt = ::getInstRefTypeForClass( s_dt:select_s_dt, o_obj:select_obj );
 select many s_dims related by select_v_var->S_DIM[R849];
-select_type = TypeReference::getInstance( s_dt:select_s_dt, s_dims:s_dims );
+select_type = TypeReference::getInstance( s_dt:select_s_dt, s_dims:s_dims, referring_comp:referring_comp );
 relate select_type to l_op across R795;
 select any existing_var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == select_v_var.Name );
 if ( empty existing_var ) // cannot declare two variables of the same name in the same scope
@@ -1184,7 +1187,7 @@ relate r_op to binop across R778;
 select any s_irdt related by act_fio->O_OBJ[R677]->S_IRDT[R123] where ( selected.isSet );
 select one s_dt related by s_irdt->S_DT[R17];
 select many s_dims from instances of S_DIM where false;
-fio_type = TypeReference::getInstance( s_dt:s_dt, s_dims:s_dims );
+fio_type = TypeReference::getInstance( s_dt:s_dt, s_dims:s_dims, referring_comp:referring_comp );
 relate fio_type to r_op across R795;
 if ( "any" == act_fio.cardinality ) // create another expression for the ''any''. Note that this is a little tricky because the local var ''r_op'' is being reused
   create object instance any_expr of AnyExpr;
@@ -1256,6 +1259,7 @@ INSERT INTO S_SYNC
 block = param.block;
 prev_smt = param.prev_smt;
 select one act_smt related by act_fiw->ACT_SMT[R603];
+select one referring_comp related by block->InvocableInComponent[R4000]->ComponentDefinition[R4001];
 
 // create a statement
 create object instance smt of Statement;
@@ -1292,7 +1296,7 @@ select one select_s_dt related by select_v_var->S_DT[R848];
 select one select_obj related by act_fiw->O_OBJ[R676];
 select_s_dt = ::getInstRefTypeForClass( s_dt:select_s_dt, o_obj:select_obj );
 select many s_dims related by select_v_var->S_DIM[R849];
-select_type = TypeReference::getInstance( s_dt:select_s_dt, s_dims:s_dims );
+select_type = TypeReference::getInstance( s_dt:select_s_dt, s_dims:s_dims, referring_comp:referring_comp );
 relate select_type to l_op across R795;
 select any existing_var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == select_v_var.Name );
 if ( empty existing_var ) // cannot declare two variables of the same name in the same scope
@@ -1344,7 +1348,7 @@ else
   select any s_irdt related by act_fiw->O_OBJ[R676]->S_IRDT[R123] where ( selected.isSet );
   select one s_dt related by s_irdt->S_DT[R17];
   select many s_dims from instances of S_DIM where false;
-  fiw_type = TypeReference::getInstance( s_dt:s_dt, s_dims:s_dims );
+  fiw_type = TypeReference::getInstance( s_dt:s_dt, s_dims:s_dims, referring_comp:referring_comp );
   relate fiw_type to sel_expr across R795;
   relate sel_expr to where_expr across R790;
   create object instance sel of SelectExpr;
@@ -1456,7 +1460,8 @@ end while;
 select one select_obj related by last_lnk->O_OBJ[R678];
 select_s_dt = ::getInstRefTypeForClass( s_dt:select_s_dt, o_obj:select_obj );
 select many s_dims related by select_v_var->S_DIM[R849];
-select_type = TypeReference::getInstance( s_dt:select_s_dt, s_dims:s_dims );
+select one referring_comp related by block->InvocableInComponent[R4000]->ComponentDefinition[R4001];
+select_type = TypeReference::getInstance( s_dt:select_s_dt, s_dims:s_dims, referring_comp:referring_comp );
 relate select_type to l_op across R795;
 select any existing_var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == select_v_var.Name );
 if ( empty existing_var ) // cannot declare two variables of the same name in the same scope
@@ -1626,7 +1631,8 @@ select one cr_s_dt related by cr_v_var->S_DT[R848];
 select one cr_obj related by act_cr->O_OBJ[R671];
 cr_s_dt = ::getInstRefTypeForClass( s_dt:cr_s_dt, o_obj:cr_obj );
 select many s_dims related by cr_v_var->S_DIM[R849];
-cr_type = TypeReference::getInstance( s_dt:cr_s_dt, s_dims:s_dims );
+select one referring_comp related by block->InvocableInComponent[R4000]->ComponentDefinition[R4001];
+cr_type = TypeReference::getInstance( s_dt:cr_s_dt, s_dims:s_dims, referring_comp:referring_comp );
 relate cr_type to l_op across R795;
 select any existing_var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == cr_v_var.Name );
 if ( empty existing_var ) // cannot declare two variables of the same name in the same scope
@@ -1731,7 +1737,8 @@ relate eas to expr across R476;
 select any s_irdt related by act_cnv->O_OBJ[R672]->S_IRDT[R123] where ( not selected.isSet );
 select one s_dt related by s_irdt->S_DT[R17];
 select many s_dims from instances of S_DIM where false;
-cr_type = TypeReference::getInstance( s_dt:s_dt, s_dims:s_dims );
+select one referring_comp related by block->InvocableInComponent[R4000]->ComponentDefinition[R4001];
+cr_type = TypeReference::getInstance( s_dt:s_dt, s_dims:s_dims, referring_comp:referring_comp );
 relate cr_type to expr across R795;
 // create creation
 create object instance cr of Creation;
@@ -1891,7 +1898,8 @@ select one del_s_dt related by del_v_var->S_DT[R848];
 select one del_obj related by del_v_var->V_INT[R814]->O_OBJ[R818];
 del_s_dt = ::getInstRefTypeForClass( s_dt:del_s_dt, o_obj:del_obj );
 select many s_dims related by del_v_var->S_DIM[R849];
-del_type = TypeReference::getInstance( s_dt:del_s_dt, s_dims:s_dims );
+select one referring_comp related by block->InvocableInComponent[R4000]->ComponentDefinition[R4001];
+del_type = TypeReference::getInstance( s_dt:del_s_dt, s_dims:s_dims, referring_comp:referring_comp );
 relate del_type to expr across R795;
 select any del_var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == del_v_var.Name );
 if ( not_empty del_var ) // cannot declare two variables of the same name in the same scope
@@ -1962,6 +1970,7 @@ INSERT INTO S_SYNC
 block = param.block;
 prev_smt = param.prev_smt;
 select one act_smt related by act_ret->ACT_SMT[R603];
+select one referring_comp related by block->InvocableInComponent[R4000]->ComponentDefinition[R4001];
 
 // create a statement
 create object instance smt of Statement;
@@ -1993,7 +2002,7 @@ if ( not_empty ret_val )
     relate prom_expr to smt across R775;
     prom_expr.expression_number = "1";
     select many s_dims from instances of S_DIM where false;  // TODO does not support array types in type promotions
-    type = TypeReference::getInstance(s_dt:ret_dt, s_dims:s_dims);
+    type = TypeReference::getInstance(s_dt:ret_dt, s_dims:s_dims, referring_comp:referring_comp);
     relate type to prom_expr across R795;
     create object instance prom of Promotion;
     relate prom to prom_expr across R776;
@@ -2159,7 +2168,8 @@ relate relsmt to form_expr across R479;
 select one form_s_dt related by form_v_var->S_DT[R848];
 form_s_dt = ::getInstRefTypeForClass( s_dt:form_s_dt, o_obj:form_obj );
 select many s_dims related by form_v_var->S_DIM[R849];
-form_type = TypeReference::getInstance( s_dt:form_s_dt, s_dims:s_dims );
+select one referring_comp related by block->InvocableInComponent[R4000]->ComponentDefinition[R4001];
+form_type = TypeReference::getInstance( s_dt:form_s_dt, s_dims:s_dims, referring_comp:referring_comp );
 relate form_type to form_expr across R795;
 select any form_var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == form_v_var.Name );
 if ( not_empty form_var ) // cannot declare two variables of the same name in the same scope
@@ -2184,7 +2194,7 @@ relate relsmt to part_expr across R480;
 select one part_s_dt related by part_v_var->S_DT[R848];
 part_s_dt = ::getInstRefTypeForClass( s_dt:part_s_dt, o_obj:part_obj );
 select many s_dims related by part_v_var->S_DIM[R849];
-part_type = TypeReference::getInstance( s_dt:part_s_dt, s_dims:s_dims );
+part_type = TypeReference::getInstance( s_dt:part_s_dt, s_dims:s_dims, referring_comp:referring_comp );
 relate part_type to part_expr across R795;
 select any part_var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == part_v_var.Name );
 if ( not_empty part_var ) // cannot declare two variables of the same name in the same scope
@@ -2255,6 +2265,7 @@ INSERT INTO S_SYNC
 block = param.block;
 prev_smt = param.prev_smt;
 select one act_smt related by act_ru->ACT_SMT[R603];
+select one referring_comp related by block->InvocableInComponent[R4000]->ComponentDefinition[R4001];
 
 // create a statement
 create object instance smt of Statement;
@@ -2332,7 +2343,7 @@ if ( not_empty rel1 and not_empty rel2 )
   select one form_s_dt related by link_v_var->S_DT[R848];
   form_s_dt = ::getInstRefTypeForClass( s_dt:form_s_dt, o_obj:link_o_obj );
   select many s_dims related by link_v_var->S_DIM[R849];
-  form_type = TypeReference::getInstance( s_dt:form_s_dt, s_dims:s_dims );
+  form_type = TypeReference::getInstance( s_dt:form_s_dt, s_dims:s_dims, referring_comp:referring_comp );
   relate form_type to form_expr1 across R795;
   select any form_var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == link_v_var.Name );
   if ( not_empty form_var ) // cannot declare two variables of the same name in the same scope
@@ -2357,7 +2368,7 @@ if ( not_empty rel1 and not_empty rel2 )
   select one part_s_dt related by one_v_var->S_DT[R848];
   part_s_dt = ::getInstRefTypeForClass( s_dt:part_s_dt, o_obj:one_o_obj );
   select many s_dims related by one_v_var->S_DIM[R849];
-  part_type = TypeReference::getInstance( s_dt:part_s_dt, s_dims:s_dims );
+  part_type = TypeReference::getInstance( s_dt:part_s_dt, s_dims:s_dims, referring_comp:referring_comp );
   relate part_type to part_expr1 across R795;
   select any part_var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == one_v_var.Name );
   if ( not_empty part_var ) // cannot declare two variables of the same name in the same scope
@@ -2412,7 +2423,7 @@ if ( not_empty rel1 and not_empty rel2 )
   select one part_s_dt related by other_v_var->S_DT[R848];
   part_s_dt = ::getInstRefTypeForClass( s_dt:part_s_dt, o_obj:other_o_obj );
   select many s_dims related by other_v_var->S_DIM[R849];
-  part_type = TypeReference::getInstance( s_dt:part_s_dt, s_dims:s_dims );
+  part_type = TypeReference::getInstance( s_dt:part_s_dt, s_dims:s_dims, referring_comp:referring_comp );
   relate part_type to part_expr2 across R795;
   select any part_var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == other_v_var.Name );
   if ( not_empty part_var ) // cannot declare two variables of the same name in the same scope
@@ -2486,6 +2497,7 @@ INSERT INTO S_SYNC
 block = param.block;
 prev_smt = param.prev_smt;
 select one act_smt related by act_unr->ACT_SMT[R603];
+select one referring_comp related by block->InvocableInComponent[R4000]->ComponentDefinition[R4001];
 
 // create a statement
 create object instance smt of Statement;
@@ -2578,7 +2590,7 @@ relate unrelsmt to form_expr across R483;
 select one form_s_dt related by form_v_var->S_DT[R848];
 form_s_dt = ::getInstRefTypeForClass( s_dt:form_s_dt, o_obj:form_obj );
 select many s_dims related by form_v_var->S_DIM[R849];
-form_type = TypeReference::getInstance( s_dt:form_s_dt, s_dims:s_dims );
+form_type = TypeReference::getInstance( s_dt:form_s_dt, s_dims:s_dims, referring_comp:referring_comp );
 relate form_type to form_expr across R795;
 select any form_var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == form_v_var.Name );
 if ( not_empty form_var ) // cannot declare two variables of the same name in the same scope
@@ -2603,7 +2615,7 @@ relate unrelsmt to part_expr across R482;
 select one part_s_dt related by part_v_var->S_DT[R848];
 part_s_dt = ::getInstRefTypeForClass( s_dt:part_s_dt, o_obj:part_obj );
 select many s_dims related by part_v_var->S_DIM[R849];
-part_type = TypeReference::getInstance( s_dt:part_s_dt, s_dims:s_dims );
+part_type = TypeReference::getInstance( s_dt:part_s_dt, s_dims:s_dims, referring_comp:referring_comp );
 relate part_type to part_expr across R795;
 select any part_var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == part_v_var.Name );
 if ( not_empty part_var ) // cannot declare two variables of the same name in the same scope
@@ -2674,6 +2686,7 @@ INSERT INTO S_SYNC
 block = param.block;
 prev_smt = param.prev_smt;
 select one act_smt related by act_uru->ACT_SMT[R603];
+select one referring_comp related by block->InvocableInComponent[R4000]->ComponentDefinition[R4001];
 
 // create a statement
 create object instance smt of Statement;
@@ -2751,7 +2764,7 @@ if ( not_empty rel1 and not_empty rel2 )
   select one form_s_dt related by link_v_var->S_DT[R848];
   form_s_dt = ::getInstRefTypeForClass( s_dt:form_s_dt, o_obj:link_o_obj );
   select many s_dims related by link_v_var->S_DIM[R849];
-  form_type = TypeReference::getInstance( s_dt:form_s_dt, s_dims:s_dims );
+  form_type = TypeReference::getInstance( s_dt:form_s_dt, s_dims:s_dims, referring_comp:referring_comp );
   relate form_type to form_expr1 across R795;
   select any form_var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == link_v_var.Name );
   if ( not_empty form_var ) // cannot declare two variables of the same name in the same scope
@@ -2776,7 +2789,7 @@ if ( not_empty rel1 and not_empty rel2 )
   select one part_s_dt related by one_v_var->S_DT[R848];
   part_s_dt = ::getInstRefTypeForClass( s_dt:part_s_dt, o_obj:one_o_obj );
   select many s_dims related by one_v_var->S_DIM[R849];
-  part_type = TypeReference::getInstance( s_dt:part_s_dt, s_dims:s_dims );
+  part_type = TypeReference::getInstance( s_dt:part_s_dt, s_dims:s_dims, referring_comp:referring_comp );
   relate part_type to part_expr1 across R795;
   select any part_var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == one_v_var.Name );
   if ( not_empty part_var ) // cannot declare two variables of the same name in the same scope
@@ -2831,7 +2844,7 @@ if ( not_empty rel1 and not_empty rel2 )
   select one part_s_dt related by other_v_var->S_DT[R848];
   part_s_dt = ::getInstRefTypeForClass( s_dt:part_s_dt, o_obj:other_o_obj );
   select many s_dims related by other_v_var->S_DIM[R849];
-  part_type = TypeReference::getInstance( s_dt:part_s_dt, s_dims:s_dims );
+  part_type = TypeReference::getInstance( s_dt:part_s_dt, s_dims:s_dims, referring_comp:referring_comp );
   relate part_type to part_expr2 across R795;
   select any part_var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == other_v_var.Name );
   if ( not_empty part_var ) // cannot declare two variables of the same name in the same scope
@@ -2960,7 +2973,8 @@ if ( not_empty v_val )
     relate prom_expr to smt across R775;
     prom_expr.expression_number = expr_number;
     select many s_dims from instances of S_DIM where false;  // TODO does not support array types in type promotions
-    type = TypeReference::getInstance(s_dt:par_dt, s_dims:s_dims);
+    select one referring_comp related by smt->CodeBlock[R450]->InvocableInComponent[R4000]->ComponentDefinition[R4001];
+    type = TypeReference::getInstance(s_dt:par_dt, s_dims:s_dims, referring_comp:referring_comp);
     relate type to prom_expr across R795;
     create object instance prom of Promotion;
     relate prom to prom_expr across R776;
@@ -3797,7 +3811,8 @@ if ( empty var_obj )
 end if;
 var_dt = ::getInstRefTypeForClass( s_dt:var_dt, o_obj:var_obj );
 select many s_dims related by v_var->S_DIM[R849];
-var_type = TypeReference::getInstance( s_dt:var_dt, s_dims:s_dims );
+select one referring_comp related by smt->CodeBlock[R450]->InvocableInComponent[R4000]->ComponentDefinition[R4001];
+var_type = TypeReference::getInstance( s_dt:var_dt, s_dims:s_dims, referring_comp:referring_comp );
 relate var_type to new_var across R461;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -3857,7 +3872,8 @@ if ( empty s_dt )
   // TODO bad
 end if;
 select many s_dims from instances of S_DIM where false;
-type = TypeReference::getInstance( s_dt:s_dt, s_dims:s_dims );
+select one referring_comp related by smt->CodeBlock[R450]->InvocableInComponent[R4000]->ComponentDefinition[R4001];
+type = TypeReference::getInstance( s_dt:s_dt, s_dims:s_dims, referring_comp:referring_comp );
 relate type to expr across R795;
 
 // create select expression
@@ -4109,6 +4125,7 @@ INSERT INTO S_SYNC
 block = param.block;
 prev_smt = param.prev_smt;
 select one act_smt related by e_ess->ACT_SMT[R603];
+select one referring_comp related by block->InvocableInComponent[R4000]->ComponentDefinition[R4001];
 
 // create a statement
 create object instance smt of Statement;
@@ -4184,7 +4201,7 @@ if ( not_empty e_ges )
   select one target_s_dt related by target_v_var->S_DT[R848];
   select one target_obj related by target_v_var->V_INT[R814]->O_OBJ[R818];
   target_s_dt = ::getInstRefTypeForClass( s_dt:target_s_dt, o_obj:target_obj );
-  target_type = TypeReference::getInstance( s_dt:target_s_dt, s_dims:s_dims );
+  target_type = TypeReference::getInstance( s_dt:target_s_dt, s_dims:s_dims, referring_comp:referring_comp );
   relate target_type to target_expr across R795;
   select any target_var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == target_v_var.Name );
   if ( not_empty target_var ) // cannot declare two variables of the same name in the same scope
@@ -4296,7 +4313,7 @@ else
   select one target_s_dt related by target_v_var->S_DT[R848];
   select one target_obj related by target_v_var->V_INT[R814]->O_OBJ[R818];
   target_s_dt = ::getInstRefTypeForClass( s_dt:target_s_dt, o_obj:target_obj );
-  target_type = TypeReference::getInstance( s_dt:target_s_dt, s_dims:s_dims );
+  target_type = TypeReference::getInstance( s_dt:target_s_dt, s_dims:s_dims, referring_comp:referring_comp );
   relate target_type to target_expr across R795;
   select any target_var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == target_v_var.Name );
   if ( not_empty target_var ) // cannot declare two variables of the same name in the same scope
