@@ -537,13 +537,18 @@ INSERT INTO S_SYNC
 	'getFileForInvocable',
 	'',
 	'invocableInComp = param.invocableInComp;
+select one containingComp related by invocableInComp->ComponentDefinition[R4001];
+select one opClass related by invocableInComp->InvocableObject[R4001]->Operation[R427]->Class[R416];
+opClassInComp = ClassInComponent::get( obj:opClass, component: containingComp );
+select one attrDerivClass related by invocableInComp->InvocableObject[R4001]->AttributeDerivation[R427]->AttributeAccessor[R441]->Attribute[R4510]->Class[R410];
+attrDerivClassInComp = ClassInComponent::get( obj:attrDerivClass, component:containingComp );
 select one file related by invocableInComp->InvocableObject[R4001]->Function[R427]->ComponentDefinition[R405]->File[R401];
 if ( empty file )
   select one file related by invocableInComp->InvocableObject[R4001]->PortMessage[R427]->Port[R420]->File[R401];
   if ( empty file )
-    select one file related by invocableInComp->InvocableObject[R4001]->Operation[R427]->Class[R416]->File[R401];
+    select one file related by opClassInComp->File[R401];
     if ( empty file )
-      select one file related by invocableInComp->InvocableObject[R4001]->AttributeDerivation[R427]->AttributeAccessor[R441]->Attribute[R4510]->Class[R410]->File[R401];
+      select one file related by attrDerivClassInComp->File[R401];
       if ( empty file )
         select one file related by invocableInComp->InvocableObject[R4001]->UtilityFunction[R427]->Utility[R4559]->File[R401];
         if ( empty file )
