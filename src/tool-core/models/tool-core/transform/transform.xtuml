@@ -2107,6 +2107,8 @@ INSERT INTO S_SYNC
 obj = param.obj;
 containing_comp_def = param.containing_comp_def;
 
+class_in_comp = ClassInComponent::get( obj:obj, component: containing_comp_def );
+
 select any op related by obj->Operation[R416] 
   where ( selected.name == o_tfr.Name );
 if ( empty op )
@@ -2158,7 +2160,7 @@ if ( empty op )
 	end if;
 	
 	// add imports
-	select one class_file related by obj->File[R401];
+	select one class_file related by class_in_comp->File[R401];
 	::addStringToImports( file:class_file, s:"io.ciera.runtime.summit.exceptions.EmptyInstanceException", type:ImportType::IMPL );
 	if ( op.is_class_based )
 	  ::addStringToImports( file:class_file, s:"io.ciera.runtime.summit.application.ActionHome", type:ImportType::IMPL );
@@ -2217,7 +2219,7 @@ if ( empty op )
 	  end if;
 	  
 	  // add imports
-	  select one class_file related by obj->File[R401];
+	  select one class_file related by class_in_comp->File[R401];
 	  ::addStringToImports( file:class_file, s:"io.ciera.runtime.summit.exceptions.EmptyInstanceException", type:ImportType::IMPL );
 	  if ( op.is_class_based )
 	    ::addStringToImports( file:class_file, s:"io.ciera.runtime.summit.application.ActionHome", type:ImportType::IMPL );

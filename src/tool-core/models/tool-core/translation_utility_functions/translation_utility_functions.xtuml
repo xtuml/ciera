@@ -1544,6 +1544,7 @@ INSERT INTO S_SYNC
 contained within a component and false otherwise.',
 	'pkg = param.ep_pkg;
 
+LOG::LogInfo( message:"JRW ::packageInComponent(): pkg " + pkg.Name );
 // Find the top level package containing the incoming package and
 // then see if that one is contained within a component.
 select one containingPkg related by pkg->PE_PE[R8001]->EP_PKG[R8000];
@@ -1551,6 +1552,13 @@ if ( not_empty containingPkg )
   return ::packageInComponent( ep_pkg:containingPkg );
 else
 	select one containingComp related by pkg->PE_PE[R8001]->C_C[R8003];
+	//@@@Begin Debug
+	if ( not_empty containingComp )
+	  LOG::LogInfo( message:"JRW ::packageInComponent(): returning TRUE" );
+	else
+	  LOG::LogInfo( message:"JRW ::packageInComponent(): returning FALSE" );
+	end if;
+	//@@@End Debug
 	return not_empty containingComp;
 end if;	',
 	"ba5eda7a-def5-0000-0000-000000000001",

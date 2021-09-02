@@ -37,12 +37,24 @@ INSERT INTO O_TFR
 	'invocable = param.invocable;
 component = param.component;
 
+if ( empty invocable )
+  LOG::LogInfo( message:"JRW InvocableInComponent::get(): !!!EMPTY invocable!!!" );
+end if;
+if ( empty component )
+  LOG::LogInfo( message:"JRW InvocableInComponent::get(): !!!EMPTY component!!!" );
+end if;
+
 // find and return the one, component-specific InvocableInComponent related to the incoming parameters
 // https://support.onefact.net/issues/12231
 select many invocableInComps_invocable related by invocable->InvocableInComponent[R4001];
 select many invocableInComps_component related by component->InvocableInComponent[R4001];
 invocableInComps = invocableInComps_invocable & invocableInComps_component;
-select any invocableInComp related by invocableInComps->InvocableObject[R4001]->InvocableInComponent[R4001];
+
+// return the one instance in the set
+for each invocableInComp in invocableInComps
+end for;
+LOG::LogInfo( message:"JRW InvocableInComponent::get(): comp, invocable " + component.name + ", " + invocable.name );
+LOG::LogInfo( message:"JRW InvocableInComponent::get(): invocableInComp " + invocableInComp.body_name );
 return invocableInComp;',
 	1,
 	'',
