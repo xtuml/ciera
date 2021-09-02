@@ -292,26 +292,23 @@ INSERT INTO O_TFR
 	'component = param.component;
 obj = param.obj;
 
-if ( empty obj )
-  LOG::LogInfo( message:"JRW ClassInComponent::get(): !!!EMPTY obj!!!" );
-end if;
-if ( empty component )
-  LOG::LogInfo( message:"JRW ClassInComponent::get(): !!!EMPTY component!!!" );
-end if;
-
 // find and return the one instance related to the incoming parameters
 // https://support.onefact.net/issues/12231
 select many classInComps_class related by obj->ClassInComponent[R408];
 select many classInComps_comp related by component->ClassInComponent[R408];
 classInComps = classInComps_class & classInComps_comp;
 
-// return the one instance in the set
-select any retVal from instances of ClassInComponent;  // Decl
+// return either an empty handle or the one instance in the set
+select any retVal from instances of ClassInComponent where false;  // Decl
 for each classInComp in classInComps
   retVal = classInComp;
 end for;
-LOG::LogInfo( message:"JRW ClassInComponent::get(): comp, class " + component.name + ", " + obj.name );
-LOG::LogInfo( message:"JRW ClassInComponent::get(): retVal: " + retVal.package + "." + retVal.name );
+if ( not_empty obj )
+	LOG::LogInfo( message:"JRW ClassInComponent::get(): comp, class " + component.name + ", " + obj.name );
+	LOG::LogInfo( message:"JRW ClassInComponent::get(): retVal: " + retVal.package + "." + retVal.name );
+else
+  LOG::LogInfo( message:"JRW ClassInComponent::get(): empty obj" );
+end if;
 return retVal;',
 	1,
 	'',
