@@ -281,6 +281,7 @@ INSERT INTO S_SYNC
 block = param.block;
 prev_smt = param.prev_smt;
 select one act_smt related by act_tfm->ACT_SMT[R603];
+select one referring_comp related by block->InvocableInComponent[R4000]->ComponentDefinition[R4001];
 
 // create a statement
 create object instance smt of Statement;
@@ -325,8 +326,9 @@ if ( not_empty invocable )
     create object instance named_ref of NamedReference;
     relate named_ref to expr2 across R776;
     select one target_class related by invocable->Operation[R427]->Class[R416];
-    named_ref.name = "new " + target_class.name + "Impl.CLASS(context())";
-    select one class_file related by target_class->File[R401];
+    target_class_in_comp = ClassInComponent::get( obj:target_class, component:referring_comp );
+    named_ref.name = "new " + target_class_in_comp.name + "Impl.CLASS(context())";
+    select one class_file related by target_class_in_comp->File[R401];
     ::addStringToImports( file: ::getFileForStatement( smt:smt ), s: ::pathToPackage( path:class_file.path ) + ".impl." + class_file.name + "Impl", type:ImportType::IMPL );
   else // instance based operation
     // create variable reference expression
@@ -338,7 +340,6 @@ if ( not_empty invocable )
     select one op_obj related by o_tfr->O_OBJ[R115];
     op_s_dt = ::getInstRefTypeForClass( s_dt:op_s_dt, o_obj:op_obj );
     select many s_dims related by op_v_var->S_DIM[R849];
-    select one referring_comp related by block->InvocableInComponent[R4000]->ComponentDefinition[R4001];
     op_type = TypeReference::getInstance( s_dt:op_s_dt, s_dims:s_dims, referring_comp:referring_comp );
     relate op_type to expr2 across R795;
     select any op_var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == op_v_var.Name );
@@ -3929,8 +3930,7 @@ end if;
 selector_name = selector_name + target_class.name;
 select any selector related by base_class->InstanceSelector[R442]->Selector[R445] where ( selected.name == selector_name );
 if ( empty selector )
-  select one component related by smt->CodeBlock[R450]->InvocableInComponent[R4000]->ComponentDefinition[R4001];
-  classInComp = ClassInComponent::get( obj:base_class, component:component );
+  classInComp = ClassInComponent::get( obj:base_class, component:referring_comp );
   select any selector related by classInComp->ClassSet[R406]->SetSelector[R444]->Selector[R445] where ( selected.name == selector_name );
 end if;
 if ( not_empty selector )
@@ -4181,8 +4181,8 @@ if ( not_empty e_ges )
   create object instance expr2 of Expression;
   relate expr2 to smt across R775;
   expr2.expression_number = invoc_expr.expression_number + ".1";
-  select one obj related by evt->StateMachine[R4752]->ClassInComponent[R4750]->Class[R408];
-  select one inst_type related by obj->Type[R407];
+  select one classInComp related by evt->StateMachine[R4752]->ClassInComponent[R4750];
+  select one inst_type related by classInComp->ComponentSpecificType[R3803]->Type[R407];
   select many s_dims from instances of S_DIM where false;
   inst_type_ref = TypeReference::getInstanceFromType( type:inst_type, s_dims:s_dims );
   relate inst_type_ref to expr2 across R795;
@@ -4190,7 +4190,7 @@ if ( not_empty e_ges )
   create object instance named_ref of NamedReference;
   relate named_ref to expr2 across R776;
   relate expr2 to invoc across R798;
-  named_ref.name = obj.name + "Impl";
+  named_ref.name = classInComp.name + "Impl";
   // transform actual parameters
   select many v_pars related by e_ess->V_PAR[R700];
   ::transformActualParameters( invocation:invoc, v_pars:v_pars, expr_number:invoc_expr.expression_number, base_num:2 );
@@ -4223,7 +4223,7 @@ if ( not_empty e_ges )
   end if;
 
   // add import for class
-  ::addStringToImports( file: ::getFileForStatement( smt:smt ), s:obj.package + ".impl." + obj.name + "Impl", type:ImportType::IMPL );
+  ::addStringToImports( file: ::getFileForStatement( smt:smt ), s:classInComp.package + ".impl." + classInComp.name + "Impl", type:ImportType::IMPL );
 
 else
 
@@ -4293,8 +4293,8 @@ else
   create object instance expr2 of Expression;
   relate expr2 to smt across R775;
   expr2.expression_number = invoc_expr.expression_number + ".1";
-  select one obj related by evt->StateMachine[R4752]->ClassInComponent[R4750]->Class[R408];
-  select one inst_type related by obj->Type[R407];
+  select one classInComp related by evt->StateMachine[R4752]->ClassInComponent[R4750];
+  select one inst_type related by classInComp->ComponentSpecificType[R3803]->Type[R407];
   select many s_dims from instances of S_DIM where false;
   inst_type_ref = TypeReference::getInstanceFromType( type:inst_type, s_dims:s_dims );
   relate inst_type_ref to expr2 across R795;
@@ -4302,7 +4302,7 @@ else
   create object instance named_ref of NamedReference;
   relate named_ref to expr2 across R776;
   relate expr2 to invoc across R798;
-  named_ref.name = obj.name + "Impl";
+  named_ref.name = classInComp.name + "Impl";
   // transform actual parameters
   select many v_pars related by e_ess->V_PAR[R700];
   ::transformActualParameters( invocation:invoc, v_pars:v_pars, expr_number:invoc_expr.expression_number, base_num:2 );
@@ -4335,7 +4335,7 @@ else
   end if;
   
   // add import for class
-  ::addStringToImports( file: ::getFileForStatement( smt:smt ), s:obj.package + ".impl." + obj.name + "Impl", type:ImportType::IMPL );
+  ::addStringToImports( file: ::getFileForStatement( smt:smt ), s:classInComp.package + ".impl." + classInComp.name + "Impl", type:ImportType::IMPL );
 
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
