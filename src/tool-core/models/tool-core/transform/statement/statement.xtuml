@@ -1653,9 +1653,10 @@ relate cr_type to r_op across R795;
 create object instance cr of Creation;
 relate cr to r_op across R776;
 select one obj related by cr_obj->Class[R409];
+classInComp = ClassInComponent::get( obj:obj, component:referring_comp );
 relate cr to obj across R780;
 relate r_op to binop across R778;
-select one class_file related by obj->File[R401];
+select one class_file related by classInComp->File[R401];
 ::addStringToImports( file: ::getFileForStatement( smt:smt ), s: ::pathToPackage( path:class_file.path ) + ".impl." + class_file.name + "Impl", type:ImportType::IMPL );
 // link create type to the main expression
 relate cr_type to expr across R795;',
@@ -1744,8 +1745,9 @@ relate cr_type to expr across R795;
 create object instance cr of Creation;
 relate cr to expr across R776;
 select one obj related by act_cnv->O_OBJ[R672]->Class[R409];
+classInComp = ClassInComponent::get( obj:obj, component:referring_comp );
 relate cr to obj across R780;
-select one class_file related by obj->File[R401];
+select one class_file related by classInComp->File[R401];
 ::addStringToImports( file: ::getFileForStatement( smt:smt ), s: ::pathToPackage( path:class_file.path ) + ".impl." + class_file.name + "Impl", type:ImportType::IMPL );',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -4466,6 +4468,7 @@ INSERT INTO S_SYNC
 deferral = param.deferral;
 
 select one invocable related by invocableInComp->InvocableObject[R4001];
+select one referring_comp related by invocableInComp->ComponentDefinition[R4001];
 select one o_tfr related by deferral->O_TFR[R126];
 select one type related by invocable->TypeReference[R428];
 returns_value = "void" != type.type_name;
@@ -4512,7 +4515,8 @@ for each subtype in subtypes
     LOG::LogFailure(message:"Could not find matching operation: " + invocable.name + " for subtype: " + subtype.Name);
   end if;
   select one select_class related by subtype->Class[R409];
-  select one select_type_def related by select_class->Type[R407];
+  select_class_in_comp = ClassInComponent::get( obj:select_class, component:referring_comp );
+  select one select_type_def related by select_class_in_comp->ComponentSpecificType[R3803]->Type[R407];
   select_type = TypeReference::getInstanceWithDimString(type:select_type_def, dims:"");
   relate select_type to l_op across R795;
   // create new variable
@@ -4548,7 +4552,8 @@ for each subtype in subtypes
   relate self_expr to smt across R775;
   self_expr.expression_number = "1.2.1";
   select one self_class related by invocable->Operation[R427]->Class[R416];
-  select one self_type_def related by self_class->Type[R407];
+  self_class_in_comp = ClassInComponent::get( obj:self_class, component:referring_comp );
+  select one self_type_def related by self_class_in_comp->ComponentSpecificType[R3803]->Type[R407];
   self_type = TypeReference::getInstanceWithDimString(type:self_type_def, dims:"");
   relate self_type to self_expr across R795;
   create object instance self_ref of NamedReference;
@@ -4790,12 +4795,12 @@ if (not_empty invoc)
   select any attr_parm related by invoc->ActualParameter[R793] where (selected.param_name == "p_attr");
   select one literal related by attr_parm->Expression[R794]->Literal[R776];
   if (not_empty literal)
-    select one cls related by where_expr->Expression[R776]->TypeReference[R795]->Type[R3800]->Class[R407];
+    select one cls related by where_expr->Expression[R776]->TypeReference[R795]->Type[R3800]->ComponentSpecificType[R407]->ClassInComponent[R3803];
     if (empty cls)
       select one cls related by where_expr->Expression[R776]->TypeReference[R795]->Type[R3800]->ComponentSpecificType[R407]->
-        ClassSet[R3803]->ClassInComponent[R406]->Class[R408];
+        ClassSet[R3803]->ClassInComponent[R406];
     end if;
-    select any attr related by cls->Attribute[R410] where (selected.name == "m_" + literal.value or selected.name == "ref_" + literal.value);
+    select any attr related by cls->Class[R408]->Attribute[R410] where (selected.name == "m_" + literal.value or selected.name == "ref_" + literal.value);
     if (not_empty attr)
       // relate attribute to where expression
       where_expr.sorted = sort_type;
