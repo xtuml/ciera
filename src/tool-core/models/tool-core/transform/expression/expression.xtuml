@@ -1089,11 +1089,12 @@ if ( not_empty invocable )
       relate op_type to expr2 across R795;
       // create selected reference
       select one op_cls related by o_tfr->O_OBJ[R115]->Class[R409];
+      op_cls_in_comp = ClassInComponent::get( obj:op_cls, component:referring_comp );
       create object instance sel of SelectedExpr;
-      sel.cast = op_cls.name;
+      sel.cast = op_cls_in_comp.name;
       relate sel to expr2 across R776;
       // add import
-      select one sel_type related by op_cls->Type[R407];
+      select one sel_type related by op_cls_in_comp->ComponentSpecificType[R3803]->Type[R407];
       ::addTypeToImports(file: ::getFileForStatement(smt:smt), type_to_import:sel_type, type:ImportType::IMPL);
     end if;
   else // class based operation
@@ -1108,8 +1109,9 @@ if ( not_empty invocable )
     create object instance named_ref of NamedReference;
     relate named_ref to expr2 across R776;
     select one target_class related by invocable->Operation[R427]->Class[R416];
+    target_class_in_comp = ClassInComponent::get( obj:target_class, component:referring_comp );
     named_ref.name = "new " + target_class.name + "Impl.CLASS(context())";
-    select one class_file related by target_class->File[R401];
+    select one class_file related by target_class_in_comp->File[R401];
     ::addStringToImports( file: ::getFileForStatement( smt:smt ), s: ::pathToPackage( path:class_file.path ) + ".impl." + class_file.name + "Impl", type:ImportType::IMPL );
   end if;
   // transform actual parameters
@@ -1193,19 +1195,20 @@ relate sel to expr across R776;
 // OAL)
 select one select_expr related by smt->ExpressionAsStatement[R451]->Expression[R476]->BinaryOperation[R776]->Expression[R778]
                                    ->WhereExpr[R776]->Expression[R790]->SelectExpr[R776];
-select one sel_cls related by select_expr->SelectRelated[R789]->Selector[R797]->TypeReference[R446]->Type[R3800]->Class[R407];
+select one sel_cls related by select_expr->SelectRelated[R789]->Selector[R797]->TypeReference[R446]->
+  Type[R3800]->ComponentSpecificType[R407]->ClassInComponent[R3803];
 if empty sel_cls
   select one sel_cls related by select_expr->SelectRelated[R789]->Selector[R797]->
-    TypeReference[R446]->Type[R3800]->ComponentSpecificType[R407]->ClassSet[R3803]->ClassInComponent[R406]->Class[R408];
+    TypeReference[R446]->Type[R3800]->ComponentSpecificType[R407]->ClassSet[R3803]->ClassInComponent[R406];
   if empty sel_cls
     select one sel_cls related by select_expr->SelectFromInstances[R789]->
-      InstancePopulationSelector[R799]->ClassInComponent[R449]->Class[R408];
+      InstancePopulationSelector[R799]->ClassInComponent[R449];
   end if;
 end if;
 sel.cast = sel_cls.name;
 
 // add import
-select one sel_type related by sel_cls->Type[R407];
+select one sel_type related by sel_cls->ComponentSpecificType[R3803]->Type[R407];
 file = ::getFileForStatement(smt:smt);
 ::addTypeToImports(file:file, type_to_import:sel_type, type: ImportType::IMPL);',
 	"ba5eda7a-def5-0000-0000-000000000000",
