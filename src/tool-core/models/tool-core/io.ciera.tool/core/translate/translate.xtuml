@@ -158,19 +158,15 @@ LOG::LogInfo( message:"  done." );
 LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
 
 // translate bodies
-if ( root_package_specified and root_package_found )
-  LOG::LogInfo( message:"  Translating OAL bodies..." );
-  select many invocableInComps from instances of InvocableInComponent;
-  for each invocableInComp in invocableInComps
-  	select one invocable related by invocableInComp->InvocableObject[R4001];
-    LOG::LogInfo( message:"  Translating ''" + invocable.parent_package + "." + invocable.parent_name + "#" + invocable.name + "'' ..." );
-    ::transformBody( invocableInComp:invocableInComp );
-  end for;
-  LOG::LogInfo( message:"  done." );
-  LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
-else
-  LOG::LogInfo( message:"  ERROR:  Root package not specified or not found.  Skipping OAL bodies..." );
-end if;
+LOG::LogInfo( message:"  Translating OAL bodies..." );
+select many invocableInComps from instances of InvocableInComponent;
+for each invocableInComp in invocableInComps
+	select one invocable related by invocableInComp->InvocableObject[R4001];
+  LOG::LogInfo( message:"  Translating ''" + invocable.parent_package + "." + invocable.parent_name + "#" + invocable.name + "'' ..." );
+  ::transformBody( invocableInComp:invocableInComp );
+end for;
+LOG::LogInfo( message:"  done." );
+LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
 
 // render all files
 LOG::LogInfo( message:"  Rendering application..." );
