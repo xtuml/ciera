@@ -1582,6 +1582,38 @@ INSERT INTO PE_PE
 	"5c0e4147-5dfb-48d3-a70d-1020d78fa1e2",
 	"00000000-0000-0000-0000-000000000000",
 	1);
+INSERT INTO S_SYNC
+	VALUES ("b5150f47-77f6-4343-8beb-4a20c2f31ef2",
+	"00000000-0000-0000-0000-000000000000",
+	'getRootPackage',
+	'',
+	'select any root_package_mark from instances of Mark where ( selected.markable_name == "*"
+                                                            and selected.path == "*"
+                                                            and selected.feature_name == "RootPackage" );
+select any root_package from instances of EP_PKG where false;                                                          
+if ( not_empty root_package_mark )
+  select many s_syss from instances of S_SYS;
+  for each s_sys in s_syss
+    select any root_package related by s_sys->EP_PKG[R1401] where ( root_package_mark.value == s_sys.Name + "::" + selected.Name );
+    if ( not_empty root_package )
+      break;
+    end if;
+  end for;
+else
+  LOG::LogInfo( message:"ERROR:  No root package specified" );
+end if;
+return root_package;',
+	"9939c670-a721-4742-a824-ed4b0df4acd6",
+	1,
+	'',
+	0,
+	2);
+INSERT INTO PE_PE
+	VALUES ("b5150f47-77f6-4343-8beb-4a20c2f31ef2",
+	1,
+	"5c0e4147-5dfb-48d3-a70d-1020d78fa1e2",
+	"00000000-0000-0000-0000-000000000000",
+	1);
 INSERT INTO PE_PE
 	VALUES ("5c0e4147-5dfb-48d3-a70d-1020d78fa1e2",
 	1,

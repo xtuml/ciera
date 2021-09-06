@@ -118,29 +118,11 @@ LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
 
 // translate root package
 LOG::LogInfo( message:"  Translating application package..." );
-select any root_package_mark from instances of Mark where ( selected.markable_name == "*"
-                                                            and selected.path == "*"
-                                                            and selected.feature_name == "RootPackage" );
-select any root_package from instances of EP_PKG where false;
-root_package_specified = false;
-root_package_found = false;                                                           
-if ( not_empty root_package_mark )
-  root_package_specified = true;
-  select many s_syss from instances of S_SYS;
-  for each s_sys in s_syss
-    select any root_package related by s_sys->EP_PKG[R1401] where ( root_package_mark.value == s_sys.Name + "::" + selected.Name );
-    if ( not_empty root_package )
-      root_package_found = true;
-      break;
-    end if;
-  end for;
-  if ( not_empty root_package )
-    ::transformApplication( root_package:root_package, path: ::ep_pkgToPath( ep_pkg:root_package ) );
-  else
-    LOG::LogInfo( message:"ERROR:  No root package found" );
-  end if;
+root_package = ::getRootPackage();
+if ( not_empty root_package )
+  ::transformApplication( root_package:root_package, path: ::ep_pkgToPath( ep_pkg:root_package ) );
 else
-  LOG::LogInfo( message:"ERROR:  No root package specified" );
+  LOG::LogInfo( message:"ERROR:  No root package found" );
 end if;
 LOG::LogInfo( message:"  done." );
 LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
