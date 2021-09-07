@@ -106,14 +106,14 @@ public abstract class List<E> implements IList<E> {
     @Override
     public boolean retainAll(Collection<?> c) {
         boolean retainAll = false;
-        List<E> toRemove = newArrayList();
+        List<E> toRemove = new ArrayList();
         for (E e : this) {
             if (!c.contains(e) && this.contains(e)) {
             	toRemove.add(e);
                 retainAll = true;
             }
         }
-        internalSet.removeAll(toRemove);
+        internalList.removeAll(toRemove);
         return retainAll;
     }
 
@@ -124,7 +124,7 @@ public abstract class List<E> implements IList<E> {
             if (this.contains(o))
             	removeAll = true;
         }
-        internalSet.removeAll(c);
+        internalList.removeAll(c);
         return removeAll;
     }
 
