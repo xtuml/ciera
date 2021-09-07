@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.TreeSet;
+import java.util.ArrayList;
 
 import io.ciera.runtime.summit.exceptions.BadArgumentException;
 import io.ciera.runtime.summit.exceptions.XtumlException;
