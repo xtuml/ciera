@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.TreeSet;
+import java.util.ArrayList;
 
 import io.ciera.runtime.summit.exceptions.BadArgumentException;
 import io.ciera.runtime.summit.exceptions.XtumlException;
@@ -171,11 +172,14 @@ public abstract class Set<E> implements ISet<E> {
     @Override
     public boolean retainAll(Collection<?> c) {
         boolean retainAll = false;
+        ArrayList<E> toRemove = new ArrayList();
         for (E e : this) {
-            if (!c.contains(e)) {
-                retainAll = remove(e) || retainAll;
+            if (!c.contains(e) && this.contains(e)) {
+            	toRemove.add(e);
+                retainAll = true;
             }
         }
+        internalSet.removeAll(toRemove);
         return retainAll;
     }
 
@@ -183,8 +187,10 @@ public abstract class Set<E> implements ISet<E> {
     public boolean removeAll(Collection<?> c) {
         boolean removeAll = false;
         for (Object o : c) {
-            removeAll = remove(o) || removeAll;
+            if (this.contains(o))
+            	removeAll = true;
         }
+        internalSet.removeAll(c);
         return removeAll;
     }
 
