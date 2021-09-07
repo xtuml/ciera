@@ -863,11 +863,15 @@ INSERT INTO S_SYNC
 obj = param.obj;
 containing_comp_def = param.containing_comp_def;
 
-// Declarations
-select any array_type from instances of ArrayTypeReference where false; 
-select any type from instances of TypeReference where false; 
-
 select one attr related by o_attr->Attribute[R414];
+select one s_dt related by o_attr->S_DT[R114];
+if ( "same_as<Base_Attribute>" == s_dt.Name )
+  select one s_dt related by o_attr->O_RATTR[R106]->O_BATTR[R113]->O_ATTR[R106]->S_DT[R114];
+end if;
+select many s_dims related by o_attr->S_DIM[R120];
+type = TypeReference::getInstance(s_dt:s_dt, s_dims:s_dims, referring_comp:containing_comp_def);
+select one array_type related by type->ArrayTypeReference[R3801];
+
 if ( empty attr )
 	// create the attribute
 	create object instance attr of Attribute;
@@ -893,16 +897,9 @@ if ( empty attr )
 	end for;
 	
 	// set the type
-	select one s_dt related by o_attr->S_DT[R114];
-	if ( "same_as<Base_Attribute>" == s_dt.Name )
-	  select one s_dt related by o_attr->O_RATTR[R106]->O_BATTR[R113]->O_ATTR[R106]->S_DT[R114];
-	end if;
 	if ( empty s_dt )
 	  // TODO bad
 	end if;
-	select many s_dims related by o_attr->S_DIM[R120];
-	type = TypeReference::getInstance(s_dt:s_dt, s_dims:s_dims, referring_comp:containing_comp_def);
-	select one array_type related by type->ArrayTypeReference[R3801];
 	relate type to attr across R424;
 	
 	// set default value for unique id attributes
