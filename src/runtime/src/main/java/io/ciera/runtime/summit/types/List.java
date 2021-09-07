@@ -106,7 +106,7 @@ public abstract class List<E> implements IList<E> {
     @Override
     public boolean retainAll(Collection<?> c) {
         boolean retainAll = false;
-        List<E> toRemove = new ArrayList();
+        ArrayList<E> toRemove = new ArrayList();
         for (E e : this) {
             if (!c.contains(e) && this.contains(e)) {
             	toRemove.add(e);
