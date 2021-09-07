@@ -863,6 +863,10 @@ INSERT INTO S_SYNC
 obj = param.obj;
 containing_comp_def = param.containing_comp_def;
 
+// Declarations
+select any array_type from instances of ArrayTypeReference where false; 
+select any type from instances of TypeReference where false; 
+
 select one attr related by o_attr->Attribute[R414];
 if ( empty attr )
 	// create the attribute
@@ -939,26 +943,27 @@ if ( empty attr )
 	    relate act_act to invocable across R432;
 	  end if;
 	end if;
-	
-	// add import to object file
-	classInComp = ClassInComponent::get( obj:obj, component: containing_comp_def );
-	select one file related by classInComp->File[R401];
-	::addStringToImports( file:file, s:"io.ciera.runtime.instanceloading.AttributeChangedDelta", type:ImportType::IMPL );
-	::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::BOTH );
-	::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.EmptyInstanceException", type:ImportType::IMPL );
-	if (not_empty array_type)
-	  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.ArrayUtil", type:ImportType::IMPL );
-	elif ("String" == type.type_name and "" == type.type_package)
-	  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.StringUtil", type:ImportType::IMPL );
-	end if;
-else
-  // component-independent Attribute already exists, 
-  // so create only an InvocableInComponent if this is a derived attribute
-  select any deriv related by attr->AttributeAccessor[R4510]->AttributeDerivation[R441];
-  if ( not_empty deriv )
-  	select one invocable related by deriv->InvocableObject[R427];
-  	InvocableInComponent::populate( invocable:invocable, component:containing_comp_def );
-  end if;  
+end if;
+
+// component-independent Attribute exists, so cover the component-specific bits
+
+// create only an InvocableInComponent if this is a derived attribute
+select any deriv related by attr->AttributeAccessor[R4510]->AttributeDerivation[R441];
+if ( not_empty deriv )
+	select one invocable related by deriv->InvocableObject[R427];
+	InvocableInComponent::populate( invocable:invocable, component:containing_comp_def );
+end if;  
+
+// add import to object file
+classInComp = ClassInComponent::get( obj:obj, component: containing_comp_def );
+select one file related by classInComp->File[R401];
+::addStringToImports( file:file, s:"io.ciera.runtime.instanceloading.AttributeChangedDelta", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::BOTH );
+::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.EmptyInstanceException", type:ImportType::IMPL );
+if (not_empty array_type)
+  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.ArrayUtil", type:ImportType::IMPL );
+elif ("String" == type.type_name and "" == type.type_package)
+  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.StringUtil", type:ImportType::IMPL );
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
