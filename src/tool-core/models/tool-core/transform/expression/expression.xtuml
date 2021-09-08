@@ -2014,7 +2014,9 @@ if ( empty sm_evtdi )
 else
   param_name = sm_evtdi.Name;
 end if;
-select any formal_param related by sm_evtdi->SM_EVT[R532]->Event[R4759]->InvocableObject[R427]->FormalParameter[R429]
+select one sm_evt related by sm_evtdi->SM_EVT[R532];
+evt = Event::get( sm_evt:sm_evt, component:referring_comp );
+select any formal_param related by evt->InvocableObject[R427]->FormalParameter[R429]
   where ( selected.name == "p_" + param_name );
 if ( not_empty formal_param )
   relate formal_param to ref across R781;

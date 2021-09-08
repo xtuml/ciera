@@ -40,6 +40,72 @@ T::include(file:"statemachine/t.event.java");',
 	"00000000-0000-0000-0000-000000000000",
 	0,
 	0);
+INSERT INTO O_TFR
+	VALUES ("2dd1b6af-2df7-475f-805b-ffc1844d45d5",
+	"652e037d-d274-4c95-824a-55800740c203",
+	'get',
+	'',
+	"6f9d5490-60e9-489c-a2c7-507dc913da72",
+	0,
+	'sm_evt = param.sm_evt;
+component = param.component;
+
+// find and return the one instance related to the incoming parameters
+// https://support.onefact.net/issues/12231
+select many sm_evt_events related by sm_evt->Event[R4759];
+select many comp_events related by component->ClassInComponent[R408]->StateMachine[R4750]->Event[R4752];
+events = sm_evt_events & comp_events;
+
+// return either an empty handle or the one instance in the set
+select any retVal from instances of Event where false;  // Decl
+for each event in events
+  retVal = event;
+end for;
+return retVal;',
+	1,
+	'',
+	"231e5598-3c54-48d6-9df6-8c31aa9f99b6",
+	0,
+	1);
+INSERT INTO O_TPARM
+	VALUES ("457c0713-7056-412b-914d-c9ae8b966e98",
+	"2dd1b6af-2df7-475f-805b-ffc1844d45d5",
+	'sm_evt',
+	"33eebb24-8068-410b-a905-37c4e5cc2fdb",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("33eebb24-8068-410b-a905-37c4e5cc2fdb",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<State Machine Event>',
+	'',
+	'',
+	'../../../../../../mcooa/models/mcooa/ooaofooa/State Machine/State Machine.xtuml');
+INSERT INTO O_TPARM
+	VALUES ("412a96d1-4598-4601-a729-3123d264aee2",
+	"2dd1b6af-2df7-475f-805b-ffc1844d45d5",
+	'component',
+	"109e90cb-1d66-46ee-88db-a568044879d0",
+	0,
+	'',
+	"457c0713-7056-412b-914d-c9ae8b966e98",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("109e90cb-1d66-46ee-88db-a568044879d0",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Component Definition>',
+	'',
+	'',
+	'../../component/component.xtuml');
+INSERT INTO S_DT_PROXY
+	VALUES ("6f9d5490-60e9-489c-a2c7-507dc913da72",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Event>',
+	'',
+	'',
+	'../statemachine.xtuml');
 INSERT INTO O_REF
 	VALUES ("652e037d-d274-4c95-824a-55800740c203",
 	"aa97f020-b408-4ca5-98f1-343113f95488",
