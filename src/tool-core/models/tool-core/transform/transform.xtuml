@@ -2151,14 +2151,6 @@ if ( empty op )
 	  relate act_act to invocable across R432;
 	end if;
 	
-	// add imports
-	select one class_file related by class_in_comp->File[R401];
-	::addStringToImports( file:class_file, s:"io.ciera.runtime.summit.exceptions.EmptyInstanceException", type:ImportType::IMPL );
-	if ( op.is_class_based )
-	  ::addStringToImports( file:class_file, s:"io.ciera.runtime.summit.application.ActionHome", type:ImportType::IMPL );
-	end if;
-	::addStringToImports( file:class_file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::BOTH );
-	
 	// if this is an optional deferred operation, create a second operation for the supertype implementation
 	select one o_def related by o_tfr->O_DEF[R126];
 	if (not_empty o_def and o_def.required == 1)
@@ -2210,13 +2202,6 @@ if ( empty op )
 	    relate act_act to invocable across R432;
 	  end if;
 	  
-	  // add imports
-	  select one class_file related by class_in_comp->File[R401];
-	  ::addStringToImports( file:class_file, s:"io.ciera.runtime.summit.exceptions.EmptyInstanceException", type:ImportType::IMPL );
-	  if ( op.is_class_based )
-	    ::addStringToImports( file:class_file, s:"io.ciera.runtime.summit.application.ActionHome", type:ImportType::IMPL );
-	  end if;
-	
 	// if this is a required deferred operation with no body (unparsed), create an empty body
 	// so that the deferral will get created correctly
 	elif (not_empty o_def and o_def.required == 0 and empty act_act)
@@ -2226,19 +2211,28 @@ if ( empty op )
 	  relate act_opb to o_tfr across R696;
 	  relate act_act to invocable across R432;
 	end if;
-else
-  // component-independent Operation already exists, so create only
-  // the InvocableInComponent instances required
-  select one invocable related by op->InvocableObject[R427];
-  InvocableInComponent::populate( invocable:invocable, component:containing_comp_def );
+end if;
+
+// component-independent Operation exists, so handle the component-dependendent bits
+
+// create an InvocableInComponent for the operation
+select one invocable related by op->InvocableObject[R427];
+InvocableInComponent::populate( invocable:invocable, component:containing_comp_def );
+
+// if this is an optional deferred operation, create an InvocableInComponent for the supertype
+select one supertypeInvocable related by op->InvocableObject[R427] 
+  where ( selected.name == "_supertype_" + o_tfr.Name );
+if ( not_empty supertypeInvocable )
+  InvocableInComponent::populate( invocable:supertypeInvocable, component:containing_comp_def );
+end if;
   
-  // if this is an optional deferred operation, create an InvocableInComponent for the supertype
-  select one supertypeInvocable related by op->InvocableObject[R427] 
-    where ( selected.name == "_supertype_" + o_tfr.Name );
-  if ( not_empty supertypeInvocable )
-    InvocableInComponent::populate( invocable:supertypeInvocable, component:containing_comp_def );
-  end if;
-end if;',
+// add imports
+select one class_file related by class_in_comp->File[R401];
+::addStringToImports( file:class_file, s:"io.ciera.runtime.summit.exceptions.EmptyInstanceException", type:ImportType::IMPL );
+if ( op.is_class_based )
+  ::addStringToImports( file:class_file, s:"io.ciera.runtime.summit.application.ActionHome", type:ImportType::IMPL );
+end if;
+::addStringToImports( file:class_file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::BOTH );',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
