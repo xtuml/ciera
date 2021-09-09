@@ -56,6 +56,19 @@ select many unresolvedSdtTypes related by sdtTypes->UnresolvedType[R407];
 unresolvedTypes = unresolvedSdtTypes & unresolvedCompTypes;
 select any unresolvedType related by unresolvedTypes->Type[R407];
 
+for each sdtType in sdtTypes
+  LOG::LogInfo( message:"JRW TypeReference::getInstance(): s_dt type: " + 
+    sdtType.package + "." + sdtType.name );
+end for;
+for each compSpecificSdtType in compSpecificSdtTypes
+  LOG::LogInfo( message:"JRW TypeReference::getInstance(): component-specific s_dt type: " + 
+    compSpecificSdtType.package + "." + compSpecificSdtType.name );
+end for;
+for each unresType in unresolvedSdtTypes
+  LOG::LogInfo( message:"JRW TypeReference::getInstance(): unresolved s_dt type: " +
+    unresType.package + "." + unresType.name );
+end for;
+
 // if a component-specific resolved type exists for this S_DT and component, use it
 if ( not_empty resolvedType ) 
   type = resolvedType;
