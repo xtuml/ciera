@@ -14,8 +14,16 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'if ( "" != self.package )//and self.package != file.package );
-  ::addStringToImports( file:param.file, s:self.package + "." + self.name, type:param.type );
+	'file = param.file;
+if ( "" != self.package )//and self.package != file.package );
+  select one type_component related by self->ComponentSpecificType[R407]->ComponentDefinition[R3804];
+  select one class_in_comp_component related by file->ClassInComponent[R401]->ComponentDefinition[R408];
+  select one class_set_component related by file->ClassSet[R401]->ClassInComponent[R406]->ComponentDefinition[R408];
+  // add the file to the imports for this type only if this type is component-independent or the file 
+  // is associated with the same component as the component-specific type
+  if ( (empty type_component) or (type_component == class_in_comp_component) or (type_component == class_set_component) )
+    ::addStringToImports( file:param.file, s:self.package + "." + self.name, type:param.type );
+  end if;
 end if;',
 	1,
 	'',
