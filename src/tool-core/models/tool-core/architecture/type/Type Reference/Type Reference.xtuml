@@ -29,20 +29,16 @@ been resolved, so a new unresolved type for this component is created.',
 	0,
 	's_dt = param.s_dt;
 s_dims = param.s_dims;
-referring_comp = param.referring_comp;
+referring_comp = param.referring_comp;  // Empty indicates request for component-independent type
 
 select any type from instances of Type where false;  // Decl
-
 select many sdtTypes related by s_dt->Type[R423];
 
-//@@@Begin Debug
 if ( not_empty referring_comp )
   LOG::LogInfo( message:"JRW TypeReference::getInstance(): s_dt, comp " + s_dt.Name + ", " + referring_comp.name );
 else
     LOG::LogInfo( message:"JRW TypeReference::getInstance(): s_dt, comp " + s_dt.Name + ", !!!EMPTY referring_comp!!!" );
 end if;
-//@@@End Debug
-  
 
 // Find a component-specific resolved type, if it exists, for this S_DT
 select many compSpecificSdtTypes related by sdtTypes->ComponentSpecificType[R407];
@@ -79,9 +75,9 @@ elif ( not_empty unresolvedType )
   type = unresolvedType;
   LOG::LogInfo( message:"JRW TypeReference::getInstance(): existing unresolved type: " + type.package + "." + type.name );
   
-// else, if there are any component-specific types, resolved or unresolved, for this S_DT,
-// or there are no types at all for this S_DT, create a new unresolved type referred to by this component
-elif ( not_empty compSpecificSdtTypes or not_empty unresolvedSdtTypes or empty sdtTypes )
+// else, if there are no types at all for this S_DT, or this is a request for a component-specific type
+// and one does not yet exist (resolved or unresolved) for this component and S_DT, create a new unresolved type
+elif ( empty sdtTypes or not_empty referring_comp )
   // get the next unique number
   num = 0;
   select many unresolvedTypes from instances of UnresolvedType;
@@ -102,13 +98,23 @@ elif ( not_empty compSpecificSdtTypes or not_empty unresolvedSdtTypes or empty s
   create object instance new_unresolvedType of UnresolvedType;
   relate new_unresolvedType to type across R407;
   new_unresolvedType.num = num;
-  relate new_unresolvedType to referring_comp across R3805;
+  if ( not_empty referring_comp )
+    relate new_unresolvedType to referring_comp across R3805;
+  end if;
   LOG::LogInfo( message:"JRW TypeReference::getInstance(): new unresolved type: " + type.package + "." + type.name );
-else
-  // there are no unresolved types and no component-specific types for this S_DT,
-  // so this must be a resolved component-independent type, so use it
-  select any type related by s_dt->Type[R423];
+// if this request is for a component-independent type, find it and use it, even it if turns out to be an unresolved type
+// there could be one or more component-specific types linked to this S_DT, so hunt down the component-independent one
+elif ( empty referring_comp )
+  for each type in sdtTypes
+    select one componentSpecificType related by type->ComponentSpecificType[R407];
+    if ( empty componentSpecificType )
+      break;
+    end if;
+  end for;
   LOG::LogInfo( message:"JRW TypeReference::getInstance(): resolved comp-indpendent type: " + type.package + "." + type.name );
+else
+  // TODO bad
+  LOG::LogInfo( message:"JRW TypeReference::getInstance(): !!!Can''t Happen!!!" );
 end if;
 return TypeReference::getInstanceFromType( type:type, s_dims:s_dims );',
 	1,
