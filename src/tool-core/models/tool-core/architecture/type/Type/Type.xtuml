@@ -161,7 +161,9 @@ LOG::LogInfo( message:"JRW Type::resolve(): s_dt, Type " + s_dt.Name + ", " + se
 select many unresolved_types related by s_dt->Type[R423]->UnresolvedType[R407];
 for each unresolved_type in unresolved_types
   select one component related by unresolved_type->ComponentDefinition[R3805];
-  unrelate unresolved_type from component across R3805;
+  if ( not_empty component )
+    unrelate unresolved_type from component across R3805;
+  end if;
   select one old_type related by unresolved_type->Type[R407];
   self.updateTypeReferences( old_type:old_type );
   unrelate old_type from s_dt across R423;
