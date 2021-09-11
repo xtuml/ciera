@@ -1207,7 +1207,8 @@ for each s_dt in s_dts
       type.name = type_name;
       type.package = type_package;
       type.default_value = type_default_value;
-      type.resolve( s_dt:s_dt );
+      select any empty_comp from instances of ComponentDefinition where false;
+      type.resolve( s_dt:s_dt, defining_comp:empty_comp );
       create object instance builtin of BuiltInType;
       relate builtin to type across R407;
       builtin.primitive = type_primitive;
@@ -1277,7 +1278,7 @@ if ( empty class_exclude_mark )
   select any s_irdt related by o_obj->S_IRDT[R123] where ( not selected.isSet );
   select one s_dt related by s_irdt->S_DT[R17];
   if ( not_empty s_dt )
-    type.resolve( s_dt:s_dt );
+    type.resolveCompIndepClass( s_dt:s_dt );
   else
     // TODO bad
   end if;
@@ -1654,6 +1655,8 @@ INSERT INTO S_SYNC
 	'transformEnumeratedType',
 	'',
 	's_dt = param.s_dt;
+containing_comp_def = param.containing_comp_def;
+
 select one ep_pkg related by s_dt->PE_PE[R8001]->EP_PKG[R8000];
 
 // create the file
@@ -1669,7 +1672,7 @@ create object instance type of Type;
 type.name = file.name;
 type.package = file.package;
 type.default_value = type.name + ".UNINITIALIZED_ENUM";
-type.resolve( s_dt:s_dt );
+type.resolve( s_dt:s_dt, defining_comp: containing_comp_def );
 create object instance edt of EnumeratedType;
 relate type to edt across R407;
 relate edt to file across R401;
@@ -1717,6 +1720,15 @@ INSERT INTO S_DT_PROXY
 	'',
 	'',
 	'../../../../mcooa/models/mcooa/ooaofooa/Domain/Domain.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("ac1ddab0-9ef6-4f9e-bc41-fa5bad8f1adc",
+	"a114d22b-91d1-4024-bd80-b10fccabec0f",
+	'containing_comp_def',
+	"109e90cb-1d66-46ee-88db-a568044879d0",
+	0,
+	'',
+	"52ce9b0d-3a5e-4b00-a118-31e4fea357d2",
+	'');
 INSERT INTO PE_PE
 	VALUES ("a114d22b-91d1-4024-bd80-b10fccabec0f",
 	1,
@@ -2336,6 +2348,7 @@ INSERT INTO S_SYNC
 	'',
 	'ep_pkg = param.ep_pkg;
 path = param.path;
+containing_comp_def = param.containing_comp_def;
 
 if ( 1 == param.pass )
   LOG::LogInfo( message:"JRW entering ::transformPackage( pass: 1 ), package: " + ep_pkg.Name );
@@ -2345,7 +2358,7 @@ if ( 1 == param.pass )
   if ( not_empty referred_ep_pkg )
     ep_pkg = referred_ep_pkg;
   end if;
-  containing_comp_def = param.containing_comp_def;
+
   select many pe_pes related by ep_pkg->PE_PE[R8000];
 
   // transform functions
@@ -2359,12 +2372,12 @@ if ( 1 == param.pass )
   // transform datatypes
   select many edts related by pe_pes->S_DT[R8001]->S_EDT[R17]->S_DT[R17];
   for each edt in edts
-    ::transformEnumeratedType( s_dt:edt );
+    ::transformEnumeratedType( s_dt:edt, containing_comp_def:containing_comp_def );
   end for;
   
   select many udts related by pe_pes->S_DT[R8001]->S_UDT[R17]->S_DT[R17];
   for each udt in udts
-    ::transformUserDefinedType( s_dt:udt );
+    ::transformUserDefinedType( s_dt:udt, containing_comp_def:containing_comp_def );
   end for;
 
   // transform EEs
@@ -2400,7 +2413,7 @@ elif ( 2 == param.pass )
   if ( not_empty referred_ep_pkg )
     ep_pkg = referred_ep_pkg;
   end if;
-  containing_comp_def = param.containing_comp_def;
+
   select many pe_pes related by ep_pkg->PE_PE[R8000];
 
   // transform associations
@@ -2422,7 +2435,7 @@ else
   if ( not_empty referred_ep_pkg )
     ep_pkg = referred_ep_pkg;
   end if;
-  containing_comp_def = param.containing_comp_def;
+
   select many pe_pes related by ep_pkg->PE_PE[R8000];
 
   // transform selectors
@@ -3103,6 +3116,7 @@ INSERT INTO S_SYNC
 	'transformUserDefinedType',
 	'',
 	's_dt = param.s_dt;
+containing_comp_def = param.containing_comp_def;
 select one ep_pkg related by s_dt->PE_PE[R8001]->EP_PKG[R8000];
 
 // create the file
@@ -3118,7 +3132,7 @@ create object instance type of Type;
 type.name = file.name;
 type.package = file.package;
 type.default_value = "new " + type.name + "()";
-type.resolve( s_dt:s_dt );
+type.resolve( s_dt:s_dt, defining_comp:containing_comp_def );
 create object instance udt of UserDefinedType;
 relate type to udt across R407;
 relate udt to file across R401;
@@ -3139,6 +3153,15 @@ INSERT INTO S_SPARM
 	0,
 	'',
 	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("1d07c11b-6ae8-414b-90e4-a2f284ef5346",
+	"d02e7000-869b-4743-9418-85576a503800",
+	'containing_comp_def',
+	"109e90cb-1d66-46ee-88db-a568044879d0",
+	0,
+	'',
+	"78c72c79-4b9b-423f-926e-db02292501ed",
 	'');
 INSERT INTO PE_PE
 	VALUES ("d02e7000-869b-4743-9418-85576a503800",

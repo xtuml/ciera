@@ -154,21 +154,30 @@ INSERT INTO O_TFR
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	's_dt = param.s_dt;
+defining_comp = param.defining_comp;
 
-// combine multiple, component-referred unresolved types into 
-// a single, component-independent resolved type
 LOG::LogInfo( message:"JRW Type::resolve(): s_dt, Type " + s_dt.Name + ", " + self.package + "." + self.name );
-select many unresolved_types related by s_dt->Type[R423]->UnresolvedType[R407];
-for each unresolved_type in unresolved_types
-  select one component related by unresolved_type->ComponentDefinition[R3805];
-  if ( not_empty component )
-    unrelate unresolved_type from component across R3805;
-  end if;
-  select one old_type related by unresolved_type->Type[R407];
-  self.updateTypeReferences( old_type:old_type );
-  unrelate old_type from s_dt across R423;
-  old_type.dispose();
-end for;
+
+// if it exists, find the (one) unresolved type for this S_DT and the defining component
+select many unresolved_types_sdt related by s_dt->Type[R423]->UnresolvedType[R407]
+  where( not selected.comp_indep_class );
+select many unresolved_types_comp related by defining_comp->UnresolvedType[R3805]
+  where( not selected.comp_indep_class );
+unresolved_types = unresolved_types_sdt & unresolved_types_comp;
+select any old_type related by unresolved_types->Type[R407];
+select one unresolved_type related by old_type->UnresolvedType[R407];
+
+// if there is an unresolved type, unhook and dispose it, linking
+// all references to the new type
+if ( not_empty unresolved_type )
+	select one component related by unresolved_type->ComponentDefinition[R3805];
+	unrelate unresolved_type from component across R3805;
+	self.updateTypeReferences( old_type:old_type );
+	unrelate old_type from s_dt across R423;
+	old_type.dispose();
+end if;
+
+// link the new type
 relate self to s_dt across R423;',
 	1,
 	'',
@@ -191,6 +200,22 @@ INSERT INTO S_DT_PROXY
 	'',
 	'',
 	'../../../../../../mcooa/models/mcooa/ooaofooa/Domain/Domain.xtuml');
+INSERT INTO O_TPARM
+	VALUES ("c16260ae-8d43-4e2e-8bf0-3aa7519d50b2",
+	"89690c94-da17-43cb-b88e-165cde11c3f6",
+	'defining_comp',
+	"109e90cb-1d66-46ee-88db-a568044879d0",
+	0,
+	'',
+	"a96a2768-7ac4-433e-8e74-86f0e8f534ad",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("109e90cb-1d66-46ee-88db-a568044879d0",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Component Definition>',
+	'',
+	'',
+	'../../component/component.xtuml');
 INSERT INTO O_TFR
 	VALUES ("d5962256-c878-4c80-8ba8-04486e1a57d0",
 	"b5de937b-55ee-48e4-8e91-d9d73c3f0fab",
@@ -243,7 +268,7 @@ for each old_type_ref in old_type_refs
 end for;',
 	1,
 	'',
-	"89690c94-da17-43cb-b88e-165cde11c3f6",
+	"5e17ae98-98d9-44d5-9ae8-0386a911e9e4",
 	0,
 	1);
 INSERT INTO O_TPARM
@@ -310,70 +335,42 @@ INSERT INTO O_TPARM
 	'',
 	"98d5054f-087c-482c-b2c7-09b82c579fc6",
 	'');
-INSERT INTO S_DT_PROXY
-	VALUES ("109e90cb-1d66-46ee-88db-a568044879d0",
-	"00000000-0000-0000-0000-000000000000",
-	'inst_ref<Component Definition>',
-	'',
-	'',
-	'../../component/component.xtuml');
 INSERT INTO O_TFR
-	VALUES ("29764803-0a53-47a1-a16c-fc6149f7e99c",
+	VALUES ("5e17ae98-98d9-44d5-9ae8-0386a911e9e4",
 	"b5de937b-55ee-48e4-8e91-d9d73c3f0fab",
-	'createUnresolvedType',
+	'resolveCompIndepClass',
 	'',
-	"b4a754cc-b0a5-4777-ae98-df570434ea2a",
-	0,
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
 	's_dt = param.s_dt;
-referring_comp = param.referring_comp;
 
-// get the next unique number
-num = 0;
-select many unresolvedTypes from instances of UnresolvedType;
-for each ut in unresolvedTypes
-  if ( ut.num >= num )
-    num = ut.num + 1;
-  end if;
+// combine multiple, component-referred unresolved types into 
+// a single, component-independent resolved class type
+LOG::LogInfo( message:"JRW Type::resolveCompIndepClass(): s_dt, Type " + s_dt.Name + ", " + self.package + "." + self.name );
+select many unresolved_types related by s_dt->Type[R423]->UnresolvedType[R407]
+  where ( selected.comp_indep_class );
+for each unresolved_type in unresolved_types
+  select one component related by unresolved_type->ComponentDefinition[R3805];
+  unrelate unresolved_type from component across R3805;
+  select one old_type related by unresolved_type->Type[R407];
+  self.updateTypeReferences( old_type:old_type );
+  unrelate old_type from s_dt across R423;
+  old_type.dispose();
 end for;
-
-create object instance type of Type;
-type.name = "UnresolvedType" + STRING::itoa( i:num );
-type.package = "";
-if ( not_empty s_dt )
-  relate s_dt to type across R423;
-else
-  // TODO bad
-end if;
-create object instance new_unresolvedType of UnresolvedType;
-relate new_unresolvedType to type across R407;
-new_unresolvedType.num = num;
-if ( not_empty referring_comp )
-  relate new_unresolvedType to referring_comp across R3805;
-end if;
-LOG::LogInfo( message:"JRW Type::createUnresolvedType(): new unresolved type: " + type.package + "." + type.name );
-return type;',
+relate self to s_dt across R423;',
 	1,
 	'',
-	"3dccbd13-d390-45d0-985c-08635b740db4",
+	"89690c94-da17-43cb-b88e-165cde11c3f6",
 	0,
 	3);
 INSERT INTO O_TPARM
-	VALUES ("e512505b-28f0-43f3-8dfe-90ebde187b12",
-	"29764803-0a53-47a1-a16c-fc6149f7e99c",
+	VALUES ("e2631773-31db-42b6-ac3d-6161b150be45",
+	"5e17ae98-98d9-44d5-9ae8-0386a911e9e4",
 	's_dt',
 	"4a90cd45-ece0-4e72-afe7-44996f9d7e1e",
 	0,
 	'',
 	"00000000-0000-0000-0000-000000000000",
-	'');
-INSERT INTO O_TPARM
-	VALUES ("7a64a431-ee1f-4357-be08-fb728f9ee74f",
-	"29764803-0a53-47a1-a16c-fc6149f7e99c",
-	'referring_comp',
-	"109e90cb-1d66-46ee-88db-a568044879d0",
-	0,
-	'',
-	"e512505b-28f0-43f3-8dfe-90ebde187b12",
 	'');
 INSERT INTO O_NBATTR
 	VALUES ("864744e7-2f4c-4f9f-b744-73335f8defd3",

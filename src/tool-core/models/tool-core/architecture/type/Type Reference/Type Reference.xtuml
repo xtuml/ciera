@@ -80,7 +80,7 @@ elif ( not_empty unresolvedType )
 // or there is an unresolved type for this s_dt, but not for this component, then
 // create a new unresolved type referred to by this component
 elif ( empty sdtTypes or not_empty compSpecificSdtTypes or not_empty unresolvedSdtTypes )
-  type = Type::createUnresolvedType( s_dt:s_dt, referring_comp:referring_comp );
+  type = UnresolvedType::populate( s_dt:s_dt, referring_comp:referring_comp, comp_indep_class:false );
   
 // else, this must be a component-independent one, so use it
 else
@@ -335,6 +335,7 @@ been resolved, so a new unresolved type for this component is created.',
 	0,
 	's_dt = param.s_dt;
 s_dims = param.s_dims;
+referring_comp = param.referring_comp;
 
 LOG::LogInfo( message:"JRW TypeReference::getCompIndClassTypeReference(): s_dt: " + s_dt.Name );
 
@@ -345,16 +346,10 @@ select many types related by s_dt->Type[R423];
 // if no type exists, create a new unresolved one
 if ( empty types ) 
   LOG::LogInfo( message:"JRW TypeReference::getCompIndClassTypeReference(): create new unresolved type." );
-  select any empty_comp from instances of ComponentDefinition where false;
-  type = Type::createUnresolvedType( s_dt:s_dt, referring_comp:empty_comp );
+  type = UnresolvedType::populate( s_dt:s_dt, referring_comp:referring_comp, comp_indep_class:true );
 else
-  // find the component-independent type for this s_dt 
-  for each type in types
-    select one compSpecificType related by type->ComponentSpecificType[R407];
-    if ( empty compSpecificType )
-      break;
-    end if;
-  end for;
+  // find the component-independent class type for this s_dt 
+  select any type related by types->Class[R407]->Type[R407];
   LOG::LogInfo( message:"JRW TypeReference::getCompIndClassTypeReference(): comp-ind type: " + type.package + "." + type.name );
 end if;
 return TypeReference::getInstanceFromType( type:type, s_dims:s_dims );',
@@ -380,6 +375,15 @@ INSERT INTO O_TPARM
 	0,
 	'',
 	"a505ee89-2895-4428-b02b-5ae883726c29",
+	'');
+INSERT INTO O_TPARM
+	VALUES ("a38f6f61-bf2c-4d5d-9a7a-8a36a946613c",
+	"66e6d64a-99e6-4f1e-b82c-669f17edf43f",
+	'referring_comp',
+	"109e90cb-1d66-46ee-88db-a568044879d0",
+	0,
+	'',
+	"6ae68e5e-4bab-47a0-8020-ccc5925ed2a3",
 	'');
 INSERT INTO O_REF
 	VALUES ("327e89b2-6713-4172-b27c-01d702ab5eed",
