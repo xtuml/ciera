@@ -3563,28 +3563,45 @@ rel = param.rel;
 other_obj = param.other_obj;
 containing_comp_def = param.containing_comp_def;
 
-LOG::LogInfo( message:"JRW entering ::transformSelector() rel, obj, other_obj " +
+LOG::LogInfo( message:"JRW ::transformSelector() rel, obj, other_obj " +
   rel.name + ", " + obj.package + "." + obj.name + ", " + other_obj.package + "." + other_obj.name );
  
 // This function creates selectors for the class and set for a single path
 // through a relationship. For single instances, a selectOne or selectMany
 // are created based on multiplicity. For sets, a selectMany is always created.
 
+// construct selector name
 name = "R" + STRING::itoa( i:rel.num ) + "_";
 if ( "" != param.phrase )
   name = name + T::sub( format:"_", s:param.phrase ) + "_";
 end if;
 name = name + other_obj.name;
-	
+
+// gather data required for creating and linking selectors and for adding to imports
 classInComp = ClassInComponent::get( obj:obj, component:containing_comp_def );
 select one obj_set related by classInComp->ClassSet[R406];
 
-// if these selectors do not already exist, create them
-select any sel related by rel->Selector[R4512] 
-  where ( (selected.name == name) and (selected.parent_name == obj_set.name) and (selected.parent_package == obj_set.package) );
+select any set_irdt related by other_obj->O_OBJ[R409]->S_IRDT[R123] where ( selected.isSet );
+select one set_dt related by set_irdt->S_DT[R17];
+if ( empty set_dt )
+  // TODO bad
+end if;
+select many s_dims from instances of S_DIM where false;
+set_type = TypeReference::getInstance( s_dt:set_dt, s_dims:s_dims, referring_comp:containing_comp_def );
+
+select any s_irdt related by other_obj->O_OBJ[R409]->S_IRDT[R123] where ( not selected.isSet );
+select one s_dt related by s_irdt->S_DT[R17];
+if ( empty s_dt )
+  // TODO bad
+end if;
+class_type = TypeReference::getInstance( s_dt:s_dt, s_dims:s_dims, referring_comp:containing_comp_def );
+
+// When a class model is shared by two or more components, the selectors
+// for the the shared model are created when the first component is transformed,
+// so we must avoid creating additional instances of the same selectors as
+// each component referring to the shared class model is transformed.
+select any sel related by rel->Selector[R4512] where ( selected.name == name );
 if ( empty sel )
-	// create set selectors
-	
 	// create ''many'' selector
 	create object instance sel of Selector;
 	sel.parent_name = obj_set.name;
@@ -3597,21 +3614,7 @@ if ( empty sel )
 	relate set_sel to obj_set across R444;
 	
 	// link up type
-	select any set_irdt related by other_obj->O_OBJ[R409]->S_IRDT[R123] where ( selected.isSet );
-	select one set_dt related by set_irdt->S_DT[R17];
-	if ( empty set_dt )
-	  // TODO bad
-	end if;
-	select many s_dims from instances of S_DIM where false;
-	set_type = TypeReference::getInstance( s_dt:set_dt, s_dims:s_dims, referring_comp:containing_comp_def );
 	relate set_type to sel across R446;
-	
-	select any s_irdt related by other_obj->O_OBJ[R409]->S_IRDT[R123] where ( not selected.isSet );
-	select one s_dt related by s_irdt->S_DT[R17];
-	if ( empty s_dt )
-	  // TODO bad
-	end if;
-	class_type = TypeReference::getInstance( s_dt:s_dt, s_dims:s_dims, referring_comp:containing_comp_def );
 	
 	// create the instance selectors
 	if ( Mult::ONE == param.mult )
@@ -3635,7 +3638,6 @@ if ( empty sel )
 	  relate class_type to sel across R446;
 	
 	else
-	
 	  // create ''many'' selector
 	  create object instance sel of Selector;
 	  sel.parent_name = obj.name;
@@ -3653,41 +3655,40 @@ if ( empty sel )
 	
 	  // link up type
 	  relate set_type to sel across R446;
-	
-	end if;
-	
-	// add imports to object file
-	LOG::LogInfo( message:"JRW ::transformSelector(), add imports to object file" );
-	classInComp = ClassInComponent::get( obj:obj, component:containing_comp_def );
-	select one file related by classInComp->File[R401];
-	::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::BOTH );
-	if ( Cond::UNCONDITIONAL == param.cond or Mult::ONE == param.mult )
-	  //::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.ModelIntegrityException", type:ImportType::IMPL );
-	end if;
-	if ( Mult::MANY == param.mult )
-	  ::addStringToImports( file:file, s:set_type.type_package + ".impl." + set_type.type_name + "Impl", type:ImportType::IMPL );
-	  select one type related by class_type->Type[R3800];
-	  ::addTypeToImports( file:file, type_to_import:type, type:ImportType::BOTH );
-	else
-	  ::addStringToImports( file:file, s:class_type.type_package + ".impl." + class_type.type_name + "Impl", type:ImportType::IMPL );
-	end if;
-	
-	// add imports to object set file
-	LOG::LogInfo( message:"JRW ::transformSelector(), add imports to object set file" );
-	select one set_file related by obj_set->File[R401];
-	::addStringToImports( file:set_file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::BOTH );
-	::addStringToImports( file:set_file, s:set_type.type_package + ".impl." + set_type.type_name + "Impl", type:ImportType::IMPL );
-	
-	// add imports to component file
-	LOG::LogInfo( message:"JRW ::transformSelector(), add imports to component file" );
-	select one comp_file related by containing_comp_def->File[R401];
-	if ( Mult::MANY != param.mult )
-	  ::addStringToImports( file:comp_file, s:class_type.type_package + ".impl." + class_type.type_name + "Impl", type:ImportType::IMPL );
 	end if;
 else
   LOG::LogInfo( message:"JRW ::transformSelector() selector exists " + sel.name );
 end if;
-LOG::LogInfo( message:"JRW exiting ::transformSelector()" );',
+
+// add imports to object file
+LOG::LogInfo( message:"JRW ::transformSelector(), add imports to object file" );
+classInComp = ClassInComponent::get( obj:obj, component:containing_comp_def );
+select one file related by classInComp->File[R401];
+::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::BOTH );
+if ( Cond::UNCONDITIONAL == param.cond or Mult::ONE == param.mult )
+  //::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.ModelIntegrityException", type:ImportType::IMPL );
+end if;
+if ( Mult::MANY == param.mult )
+  ::addStringToImports( file:file, s:set_type.type_package + ".impl." + set_type.type_name + "Impl", type:ImportType::IMPL );
+  select one type related by class_type->Type[R3800];
+  ::addTypeToImports( file:file, type_to_import:type, type:ImportType::BOTH );
+else
+  ::addStringToImports( file:file, s:class_type.type_package + ".impl." + class_type.type_name + "Impl", type:ImportType::IMPL );
+end if;
+
+// add imports to object set file
+LOG::LogInfo( message:"JRW ::transformSelector(), add imports to object set file" );
+select one set_file related by obj_set->File[R401];
+::addStringToImports( file:set_file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::BOTH );
+::addStringToImports( file:set_file, s:set_type.type_package + ".impl." + set_type.type_name + "Impl", type:ImportType::IMPL );
+
+// add imports to component file
+LOG::LogInfo( message:"JRW ::transformSelector(), add imports to component file" );
+select one comp_file related by containing_comp_def->File[R401];
+if ( Mult::MANY != param.mult )
+  ::addStringToImports( file:comp_file, s:class_type.type_package + ".impl." + class_type.type_name + "Impl", type:ImportType::IMPL );
+end if;
+LOG::LogInfo( message:"JRW ::transformSelector() exiting" );',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
