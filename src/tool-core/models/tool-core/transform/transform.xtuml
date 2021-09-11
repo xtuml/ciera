@@ -3570,23 +3570,19 @@ LOG::LogInfo( message:"JRW entering ::transformSelector() rel, obj, other_obj " 
 // through a relationship. For single instances, a selectOne or selectMany
 // are created based on multiplicity. For sets, a selectMany is always created.
 
-
-
 name = "R" + STRING::itoa( i:rel.num ) + "_";
 if ( "" != param.phrase )
   name = name + T::sub( format:"_", s:param.phrase ) + "_";
 end if;
 name = name + other_obj.name;
 	
-select any sel related by rel->Selector[R4512];
 classInComp = ClassInComponent::get( obj:obj, component:containing_comp_def );
 select one obj_set related by classInComp->ClassSet[R406];
 
 // if these selectors do not already exist, create them
-if ( (empty sel) or 
-     ((sel.name != name) or (sel.parent_name != obj_set.name) or 
-     (sel.parent_package != obj_set.package )) )
-
+select any sel related by rel->Selector[R4512] 
+  where ( (selected.name == name) and (selected.parent_name == obj_set.name) and (selected.parent_package == obj_set.package) );
+if ( empty sel )
 	// create set selectors
 	
 	// create ''many'' selector
