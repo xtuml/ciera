@@ -3620,6 +3620,7 @@ class_type = TypeReference::getInstance( s_dt:s_dt, s_dims:s_dims, referring_com
 // so we must avoid creating additional instances of the same selectors as
 // each component referring to the shared class model is transformed.
 select any sel related by rel->Selector[R4512] where ( selected.name == name );
+
 if ( empty sel )
 	// create ''many'' selector
 	create object instance sel of Selector;
@@ -3631,10 +3632,7 @@ if ( empty sel )
 	create object instance set_sel of SetSelector;
 	relate set_sel to sel across R445;
 	relate set_sel to obj_set across R444;
-	
-	// link up type
-	relate set_type to sel across R446;
-	
+		
 	// create the instance selectors
 	if ( Mult::ONE == param.mult )
 	
@@ -3652,10 +3650,7 @@ if ( empty sel )
 	  relate inst_sel to sel across R445;
 	  relate inst_sel to obj across R442;
 	  relate inst_sel to set_sel across R4505;
-	
-	  // link up type
-	  relate class_type to sel across R446;
-	
+		
 	else
 	  // create ''many'' selector
 	  create object instance sel of Selector;
@@ -3671,12 +3666,16 @@ if ( empty sel )
 	  relate inst_sel to sel across R445;
 	  relate inst_sel to obj across R442;
 	  relate inst_sel to set_sel across R4505;
-	
-	  // link up type
-	  relate set_type to sel across R446;
 	end if;
 else
   LOG::LogInfo( message:"JRW ::transformSelector() selector exists " + sel.name );
+end if;
+
+// link type references
+if ( Mult::ONE == param.mult )
+  relate class_type to sel across R446;
+else
+  relate set_type to sel across R446;
 end if;
 
 // add imports to object file
