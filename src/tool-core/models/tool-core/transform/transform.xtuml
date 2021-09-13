@@ -609,8 +609,11 @@ if ( empty assoc_exclude_mark )
   select any part_class from instances of Class where false;
   part_cond = Cond::UNCONDITIONAL;
 
-  // determine the type of association being transformed.
-  // when identified, create the appropriate architectural realization.
+  // Determine the type of association being transformed.
+  // When identified, create the appropriate architectural realization if necessary.
+  // If the relationship already exists, just relate it to the component definition.
+  // (This happens when mutiple components share an association via Package Reference.)
+  // Add required imports to each component file.
   select one r_simp related by r_rel->R_SIMP[R206];
   if ( not_empty r_simp )
 
@@ -768,8 +771,9 @@ if ( empty assoc_exclude_mark )
 		    select one r_aoth related by r_assoc->R_AOTH[R210];
 		
 		    select one form_class related by r_assr->R_RGO[R205]->R_OIR[R203]->O_OBJ[R201]->Class[R409];
-		    select one part_class related by r_aone->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->Class[R409];
-		    if ( not_empty form_class and not_empty part_class and not_empty r_aoth )
+		    select one one_part_class related by r_aone->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->Class[R409];
+		    select one oth_part_class related by r_aoth->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->Class[R409];
+		    if ( not_empty form_class and not_empty one_part_class and not_empty r_aoth )
 		      form_phrase = r_aoth.Txt_Phrs;
 		      part_phrase = r_aone.Txt_Phrs;
 		      if ( 0 != r_assr.Mult or 0 != r_aoth.Mult )
@@ -786,13 +790,14 @@ if ( empty assoc_exclude_mark )
 		    if ( "" != part_phrase )
 		      name1 = name1 + T::sub( format:"_", s:part_phrase ) + "_";
 		    end if;
-		    name1 = name1 + part_class.name;
+		    name1 = name1 + one_part_class.name;
+
 		    name2 = "R" + STRING::itoa( i:r_rel.Numb ) + "_" + form_class.name + "_";
 		    if ( "" != part_phrase )
 		      name2 = name2 + T::sub( format:"_", s:part_phrase ) + "_";
 		    end if;
-		    name2 = name2 + part_class.name;
-
+		    name2 = name2 + oth_part_class.name;
+		    
         select any rel1 from instances of Relationship
          where ( selected.name == name1 );
         select any rel2 from instances of Relationship
@@ -810,7 +815,7 @@ if ( empty assoc_exclude_mark )
 			    rel1.part_cond = part_cond;
 			    rel1.rel_type = RelationshipType::Associative;
 			    relate rel1 to form_class across R435;
-			    relate rel1 to part_class across R434;
+			    relate rel1 to one_part_class across R434;
 			
 			    select one o_id1 related by r_assoc->R_AONE[R209]->R_RTO[R204]->O_ID[R109];
 			    if ( not_empty o_id1 )
@@ -825,8 +830,7 @@ if ( empty assoc_exclude_mark )
 			    part_phrase = "";
 			    part_cond = Cond::UNCONDITIONAL;
 			
-			    select one part_class related by r_aoth->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->Class[R409];
-			    if ( not_empty form_class and not_empty part_class and not_empty r_aone )
+			    if ( not_empty form_class and not_empty oth_part_class and not_empty r_aone )
 			      form_phrase = r_aone.Txt_Phrs;
 			      part_phrase = r_aoth.Txt_Phrs;
 			      if ( 0 != r_assr.Mult or 0 != r_aone.Mult )
@@ -851,7 +855,7 @@ if ( empty assoc_exclude_mark )
 			    rel2.part_cond = part_cond;
 			    rel2.rel_type = RelationshipType::Associative;
 			    relate rel2 to form_class across R435;
-			    relate rel2 to part_class across R434;
+			    relate rel2 to oth_part_class across R434;
 			
 			    select one o_id2 related by r_assoc->R_AOTH[R210]->R_RTO[R204]->O_ID[R109];
 			    if ( not_empty o_id2 )
@@ -3650,6 +3654,7 @@ if ( empty many_sel )
   relate inst_sel to sel across R445;
   relate inst_sel to obj across R442;
   relate inst_sel to set_sel across R4505;
+	LOG::LogInfo( message:"AM created selectors: " + name );
 else
   LOG::LogInfo( message:"JRW ::transformSelector() selector exists " + many_sel.name );
 end if;
@@ -3659,8 +3664,10 @@ relate set_type to many_sel across R446;
 select any ins_sel from instances of Selector
   where ( (selected.name == name) and (selected.parent_name == obj.name) );
 if ( Mult::ONE == param.mult )
+	LOG::LogInfo( message:"AM param MULT is ONE" );
   relate class_type to ins_sel across R446;
 else
+	LOG::LogInfo( message:"AM param MULT is MANY" );
   relate set_type to ins_sel across R446;
 end if;
 
