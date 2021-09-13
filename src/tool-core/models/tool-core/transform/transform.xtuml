@@ -609,7 +609,8 @@ if ( empty assoc_exclude_mark )
   select any part_class from instances of Class where false;
   part_cond = Cond::UNCONDITIONAL;
 
-  // create the relationsip subtype
+  // determine the type of association being transformed.
+  // when identified, create the appropriate architectural realization.
   select one r_simp related by r_rel->R_SIMP[R206];
   if ( not_empty r_simp )
 
@@ -781,7 +782,6 @@ if ( empty assoc_exclude_mark )
 		      // TODO bad
 		    end if;
 		
-		    create object instance rel1 of Relationship;
 		    name1 = "R" + STRING::itoa( i:r_rel.Numb ) + "_" + form_class.name + "_";
 		    if ( "" != part_phrase )
 		      name1 = name1 + T::sub( format:"_", s:part_phrase ) + "_";
@@ -799,6 +799,7 @@ if ( empty assoc_exclude_mark )
          where ( selected.name == name2 );
         if ( empty rel1 )
 			    // create the first relationship
+  		    create object instance rel1 of Relationship;
 			    rel1.name = name1;
 			    rel1.num = r_rel.Numb;
 			    rel1.form_phrase = form_phrase;
