@@ -3619,9 +3619,10 @@ class_type = TypeReference::getInstance( s_dt:s_dt, s_dims:s_dims, referring_com
 // for the the shared model are created when the first component is transformed,
 // so we must avoid creating additional instances of the same selectors as
 // each component referring to the shared class model is transformed.
-select any sel related by rel->Selector[R4512] where ( selected.name == name );
+select any many_sel related by rel->Selector[R4512] 
+  where ( (selected.name == name) and (selected.parent_name == obj_set.name) );
 
-if ( empty sel )
+if ( empty many_sel )
 	// create ''many'' selector
 	create object instance sel of Selector;
 	sel.parent_name = obj_set.name;
@@ -3632,50 +3633,34 @@ if ( empty sel )
 	create object instance set_sel of SetSelector;
 	relate set_sel to sel across R445;
 	relate set_sel to obj_set across R444;
-		
-	// create the instance selectors
-	if ( Mult::ONE == param.mult )
+	many_sel = sel;
 	
-	  // create ''one'' selector
-	  create object instance sel of Selector;
-	  sel.parent_name = obj.name;
-	  sel.parent_package = obj.package;
-	  sel.name = name;
-	  sel.multiplicity = param.mult;
-	  relate rel to sel across R4512;
-	  create object instance inst_sel of InstanceSelector;
-	  inst_sel.rel_num = rel.num;
-	  inst_sel.conditionality = param.cond;
-	  inst_sel.formalizer = param.formalizer;
-	  relate inst_sel to sel across R445;
-	  relate inst_sel to obj across R442;
-	  relate inst_sel to set_sel across R4505;
-		
-	else
-	  // create ''many'' selector
-	  create object instance sel of Selector;
-	  sel.parent_name = obj.name;
-	  sel.parent_package = obj.package;
-	  sel.name = name;
-	  sel.multiplicity = param.mult;
-	  relate rel to sel across R4512;
-	  create object instance inst_sel of InstanceSelector;
-	  inst_sel.rel_num = rel.num;
-	  inst_sel.conditionality = param.cond;
-	  inst_sel.formalizer = param.formalizer;
-	  relate inst_sel to sel across R445;
-	  relate inst_sel to obj across R442;
-	  relate inst_sel to set_sel across R4505;
-	end if;
+  // create either a ''one'' or ''many'' instance selector
+  create object instance sel of Selector;
+  sel.parent_name = obj.name;
+  sel.parent_package = obj.package;
+  sel.name = name;
+  sel.multiplicity = param.mult;
+  relate rel to sel across R4512;
+  create object instance inst_sel of InstanceSelector;
+  inst_sel.rel_num = rel.num;
+  inst_sel.conditionality = param.cond;
+  inst_sel.formalizer = param.formalizer;
+  relate inst_sel to sel across R445;
+  relate inst_sel to obj across R442;
+  relate inst_sel to set_sel across R4505;
 else
-  LOG::LogInfo( message:"JRW ::transformSelector() selector exists " + sel.name );
+  LOG::LogInfo( message:"JRW ::transformSelector() selector exists " + many_sel.name );
 end if;
 
 // link type references
+relate set_type to many_sel across R446;
+select any ins_sel from instances of Selector
+  where ( (selected.name == name) and (selected.parent_name == obj.name) );
 if ( Mult::ONE == param.mult )
-  relate class_type to sel across R446;
+  relate class_type to ins_sel across R446;
 else
-  relate set_type to sel across R446;
+  relate set_type to ins_sel across R446;
 end if;
 
 // add imports to object file
