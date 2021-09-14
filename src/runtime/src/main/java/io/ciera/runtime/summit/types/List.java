@@ -109,7 +109,7 @@ public abstract class List<E> implements IList<E> {
         ArrayList<E> toRemove = new ArrayList();
         for (E e : this) {
             if (!c.contains(e)) {
-            	toRemove.add(e);
+                toRemove.add(e);
                 retainAll = true;
             }
         }
