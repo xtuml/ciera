@@ -1290,7 +1290,7 @@ if ( empty class_exclude_mark )
   file.path = root_package_path + "/" + ::ep_pkgToPath( ep_pkg:pkg );
   file.package = ::pathToPackage( path:file.path );
   file.extension = ".java";
-  file.exclude = ::packageInComponent( ep_pkg:pkg );
+  file.exclude = param.exclude_file;
   create object instance obj of Class;
   relate obj to file across R401;
   obj.key_letters = o_obj.Key_Lett;
@@ -1339,6 +1339,15 @@ INSERT INTO S_DT_PROXY
 	'',
 	'',
 	'../../../../mcooa/models/mcooa/ooaofooa/Subsystem/Subsystem.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("0fce0684-fac8-4f36-8ece-1b96b852e285",
+	"39485529-37f5-43d9-bbd1-92027e9dd6d6",
+	'exclude_file',
+	"ba5eda7a-def5-0000-0000-000000000001",
+	0,
+	'',
+	"78d79a4b-aa7c-4f92-8c2b-c122c556f1af",
+	'A component-independent interface file for this class need not be rendered.');
 INSERT INTO PE_PE
 	VALUES ("39485529-37f5-43d9-bbd1-92027e9dd6d6",
 	1,
@@ -3429,7 +3438,10 @@ if ( empty class_exclude_mark )
   select one obj related by o_obj->Class[R409];
   if ( empty obj )
     LOG::LogInfo( message:"JRW transforming component-independent class: " + o_obj.Name );
-    ::transformClass( o_obj: o_obj );
+    // unless this class was defined in a referenced package, suppress rendering its file.
+    select one comp related by containing_comp_def->C_C[R4573.''is transformed from''];
+    pkg_out_of_comp = ::packageOutsideComponent( ep_pkg:ep_pkg, comp:comp );
+    ::transformClass( o_obj:o_obj, exclude_file:not pkg_out_of_comp );
     select one obj related by o_obj->Class[R409];
   end if;
 

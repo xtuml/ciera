@@ -1538,51 +1538,6 @@ INSERT INTO PE_PE
 	"00000000-0000-0000-0000-000000000000",
 	1);
 INSERT INTO S_SYNC
-	VALUES ("c198af38-058a-4cd6-a210-a771e800aa76",
-	"00000000-0000-0000-0000-000000000000",
-	'packageInComponent',
-	'Returns true if the package passed as an argument is
-contained within a component and false otherwise.',
-	'pkg = param.ep_pkg;
-
-LOG::LogInfo( message:"JRW ::packageInComponent(): pkg " + pkg.Name );
-// Find the top level package containing the incoming package and
-// then see if that one is contained within a component.
-select one containingPkg related by pkg->PE_PE[R8001]->EP_PKG[R8000];
-if ( not_empty containingPkg )
-  return ::packageInComponent( ep_pkg:containingPkg );
-else
-	select one containingComp related by pkg->PE_PE[R8001]->C_C[R8003];
-	//@@@Begin Debug
-	if ( not_empty containingComp )
-	  LOG::LogInfo( message:"JRW ::packageInComponent(): returning TRUE" );
-	else
-	  LOG::LogInfo( message:"JRW ::packageInComponent(): returning FALSE" );
-	end if;
-	//@@@End Debug
-	return not_empty containingComp;
-end if;	',
-	"ba5eda7a-def5-0000-0000-000000000001",
-	1,
-	'',
-	0,
-	1);
-INSERT INTO S_SPARM
-	VALUES ("5764fea4-f28c-4667-98f2-ac2d93203f82",
-	"c198af38-058a-4cd6-a210-a771e800aa76",
-	'ep_pkg',
-	"9939c670-a721-4742-a824-ed4b0df4acd6",
-	0,
-	'',
-	"00000000-0000-0000-0000-000000000000",
-	'');
-INSERT INTO PE_PE
-	VALUES ("c198af38-058a-4cd6-a210-a771e800aa76",
-	1,
-	"5c0e4147-5dfb-48d3-a70d-1020d78fa1e2",
-	"00000000-0000-0000-0000-000000000000",
-	1);
-INSERT INTO S_SYNC
 	VALUES ("b5150f47-77f6-4343-8beb-4a20c2f31ef2",
 	"00000000-0000-0000-0000-000000000000",
 	'getRootPackage',
@@ -1610,6 +1565,61 @@ return root_package;',
 	2);
 INSERT INTO PE_PE
 	VALUES ("b5150f47-77f6-4343-8beb-4a20c2f31ef2",
+	1,
+	"5c0e4147-5dfb-48d3-a70d-1020d78fa1e2",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("e8286059-edde-4116-ae0f-bbf349f005a9",
+	"00000000-0000-0000-0000-000000000000",
+	'packageOutsideComponent',
+	'Determine if the given package is the realization of a Package Reference.',
+	'pkg = param.ep_pkg;
+comp = param.comp;
+
+LOG::LogInfo( message:"AM ::packageOutsideComponent(): pkg, comp " + pkg.Name + ", " + comp.Name );
+// Look for a component containing the given package.
+// Return true if there is no component, or if it differs from given component.
+select one containingPkg related by pkg->PE_PE[R8001]->EP_PKG[R8000];
+if ( not_empty containingPkg )
+  return ::packageOutsideComponent( ep_pkg:containingPkg, comp:comp );
+else
+	select one containingComp related by pkg->PE_PE[R8001]->C_C[R8003]
+	 where ( selected.Id == comp.Id );
+	//@@@Begin Debug
+	if ( empty containingComp )
+	  LOG::LogInfo( message:"AM ::packageInComponent(): returning TRUE" );
+	else
+	  LOG::LogInfo( message:"AM ::packageInComponent(): returning FALSE" );
+	end if;
+	//@@@End Debug
+	return empty containingComp;
+end if;	',
+	"ba5eda7a-def5-0000-0000-000000000001",
+	1,
+	'',
+	0,
+	3);
+INSERT INTO S_SPARM
+	VALUES ("ab3a5b79-46b4-4d56-8f67-e097c0d577b5",
+	"e8286059-edde-4116-ae0f-bbf349f005a9",
+	'ep_pkg',
+	"9939c670-a721-4742-a824-ed4b0df4acd6",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'The containing package encountered while transforming a class in a component context.');
+INSERT INTO S_SPARM
+	VALUES ("9af4f92f-286a-4ac1-9187-b90928562b8f",
+	"e8286059-edde-4116-ae0f-bbf349f005a9",
+	'comp',
+	"67f93d18-1045-4c6c-b0d5-a692023c471c",
+	0,
+	'',
+	"ab3a5b79-46b4-4d56-8f67-e097c0d577b5",
+	'The component currently being transformed.');
+INSERT INTO PE_PE
+	VALUES ("e8286059-edde-4116-ae0f-bbf349f005a9",
 	1,
 	"5c0e4147-5dfb-48d3-a70d-1020d78fa1e2",
 	"00000000-0000-0000-0000-000000000000",
