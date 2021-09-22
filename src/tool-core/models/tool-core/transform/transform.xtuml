@@ -2863,13 +2863,26 @@ containing_comp_def = param.containing_comp_def;
 // form to part
 select many form_to_part_rels related by obj->Relationship[R435];
 for each rel in form_to_part_rels
+	select any comp related by rel->RelationshipInComponent[R448]->ComponentDefinition[R448]
+	 where ( selected.name == containing_comp_def.name )
+	   and ( selected.package == containing_comp_def.package );
+	if ( empty comp )
+		continue;
+	end if;
   select one part_obj related by rel->Class[R434];
   ::transformSelector( obj:obj, rel:rel, phrase:rel.part_phrase, cond:rel.part_cond,
-                       mult:rel.part_mult, formalizer:true, other_obj:part_obj, containing_comp_def:containing_comp_def );
+                       mult:rel.part_mult, formalizer:true, other_obj:part_obj, 
+                       containing_comp_def:containing_comp_def );
 end for;
 // part to form
 select many part_to_form_rels related by obj->Relationship[R434];
 for each rel in part_to_form_rels
+	select any comp related by rel->RelationshipInComponent[R448]->ComponentDefinition[R448]
+	 where ( selected.name == containing_comp_def.name )
+	   and ( selected.package == containing_comp_def.package );
+	if ( empty comp )
+		continue;
+	end if;
   select one form_obj related by rel->Class[R435];
   ::transformSelector( obj:obj, rel:rel, phrase:rel.form_phrase, cond:rel.form_cond,
                        mult:rel.form_mult, formalizer:false, other_obj:form_obj,

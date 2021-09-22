@@ -16,10 +16,11 @@ INSERT INTO O_TFR
 	1,
 	'file = param.file;
 if ( "" != self.package )//and self.package != file.package );
-	select one class_in_comp_component related by file->ClassInComponent[R401]->ComponentDefinition[R408];
-	select one class_set_component related by file->ClassSet[R401]->ClassInComponent[R406]->ComponentDefinition[R408];
-	if ( not_empty class_in_comp_component ) or ( not_empty class_set_component )
-		// class or class set - filter out component-specifics that do not belong here
+	select one comp_spec_type related by self->ComponentSpecificType[R407];
+	if ( not_empty comp_spec_type )
+		// filter out component-specifics that do not belong in the currently processing component.
+    select one class_in_comp_component related by file->ClassInComponent[R401]->ComponentDefinition[R408];
+    select one class_set_component related by file->ClassSet[R401]->ClassInComponent[R406]->ComponentDefinition[R408];
     select one type_component related by self->ComponentSpecificType[R407]->ComponentDefinition[R3804];
     // add the file to the imports for this type only if this type is component-independent, 
     // or the file is associated with the same component as the component-specific type
