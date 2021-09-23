@@ -1,9 +1,20 @@
 package io.ciera.tool.templateengine.translate.impl;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-
+import java.io.InputStream;
+import java.net.JarURLConnection;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.List;
 import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -23,8 +34,9 @@ import io.ciera.tool.templateengine.parser.RSLStringPopulator;
 import io.ciera.tool.templateengine.translate.TU;
 
 public class TUImpl<C extends IComponent<C>> extends Utility<C> implements TU {
-    
+
     private String parseError;
+    private String errPosition;
 
     public TUImpl(C context) {
         super(context);
@@ -33,7 +45,64 @@ public class TUImpl<C extends IComponent<C>> extends Utility<C> implements TU {
 
     @Override
     public void process_templates(final String p_root_folder) {
-        parse(p_root_folder, (TemplateEngine) context());
+        List<FileSystem> virtualFileSystems = new ArrayList<>();
+        List<Path> templatePaths = new ArrayList<>();
+
+        // Build a list of root paths
+        if (p_root_folder != null && !p_root_folder.isEmpty()) {
+            // Add the marked root folder relative path
+            templatePaths.add(Paths.get(p_root_folder));
+
+            // Look for templates in the classpath
+            try {
+                Enumeration<URL> templateDirectories = this.getClass().getClassLoader().getResources("templates");
+                while (templateDirectories.hasMoreElements()) {
+                    URL templateDirectory = templateDirectories.nextElement();
+                    switch (templateDirectory.getProtocol()) {
+                    case "jar":
+                        JarURLConnection jarConnection = (JarURLConnection) templateDirectory.openConnection();
+                        FileSystem fs = FileSystems.newFileSystem(new URI("jar:" + jarConnection.getJarFileURL()),
+                                new HashMap<>());
+                        virtualFileSystems.add(fs);
+                        templatePaths.add(fs.getPath(jarConnection.getEntryName()));
+                        break;
+                    case "file":
+                        templatePaths.add(Paths.get(templateDirectory.toURI()));
+                        break;
+                    }
+                }
+
+            } catch (IOException | URISyntaxException e) {
+                context().getRunContext().getLog().warn("Failed to get templates from classpath: " + e);
+            }
+        }
+
+        // walk each template root path and parse all the templates
+        for (Path startPath : templatePaths) {
+            try {
+                Files.walk(startPath).forEach(p -> {
+                    try {
+                        InputStream in = Files.newInputStream(p);
+                        String templateName = startPath.relativize(p).toString();
+                        context().getRunContext().getLog().info("Parsing: " + templateName);
+                        processTemplate(templateName, in, (TemplateEngine) context());
+                    } catch (IOException e) {
+                        // Ignore directories
+                    }
+                });
+            } catch (IOException e) {
+                context().getRunContext().getLog().warn("Failed to get templates from path " + startPath + ": " + e);
+            }
+        }
+
+        // close the virtual file systems for processing JARs
+        for (FileSystem fs : virtualFileSystems) {
+            try {
+                fs.close();
+            } catch (IOException e) {
+                context().getRunContext().getLog().error("Failed to close virtual file system: " + e);
+            }
+        }
     }
 
     @Override
@@ -71,40 +140,30 @@ public class TUImpl<C extends IComponent<C>> extends Utility<C> implements TU {
 
     }
 
-    private void parse(String filename, TemplateEngine population) {
-        File template_dir = new File(filename);
-        processFile(template_dir.getAbsoluteFile(), "", "", population);
-    }
-
-    private void processFile(File f, String basePath, String relativePath, TemplateEngine population) {
-        if (null != f && f.exists() && null != basePath && null != relativePath) {
-            population.LOG().LogInfo("  Processing file: " + f.getName());
-            if (f.isDirectory()) {
-                if ("".equals(basePath))
-                    basePath = f.getAbsolutePath();
-                else
-                    relativePath = "".equals(relativePath) ? f.getName() : relativePath + File.separator + f.getName();
-                for (File contained_file : f.listFiles())
-                    processFile(contained_file, basePath, relativePath, population);
-            } else {
-                try {
-                    RSLLexer lexer = new RSLLexer(CharStreams.fromStream(new FileInputStream(
-                            basePath + File.separator + relativePath + File.separator + f.getName())));
-                    /*
-                     * lexer debug for ( Token token = lexer.nextToken(); token.getType() !=
-                     * Token.EOF; token = lexer.nextToken() ) { System.err.println(
-                     * lexer.getVocabulary().getSymbolicName(token.getType())); }
-                     */
-                    CommonTokenStream tokens = new CommonTokenStream(lexer);
-                    RSLParser parser = new RSLParser(tokens);
-                    RSLParser.BodyContext ctx = parser.body();
-                    ParseTreeWalker walker = new ParseTreeWalker();
-                    RSLPopulator listener = new RSLPopulator("".equals(relativePath) ? f.getName() : relativePath + File.separator + f.getName(), population);
-                    walker.walk(listener, ctx);
-                } catch (IOException e) {
-                    /* do nothing */ }
+    private void processTemplate(String fileName, InputStream t, TemplateEngine population) throws IOException {
+        parseError = "";
+        RSLLexer lexer = new RSLLexer(CharStreams.fromStream(t));
+        CommonTokenStream tokens = new CommonTokenStream(lexer);
+        RSLParser parser = new RSLParser(tokens);
+        parser.removeErrorListeners();
+        parser.addErrorListener(new BaseErrorListener() {
+            @Override
+            public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line,
+                    int charPositionInLine, String msg, RecognitionException e) {
+                parseError = msg;
+                errPosition = String.format("%d:%d", line, charPositionInLine);
             }
+        });
+        RSLParser.BodyContext ctx = parser.body();
+        if ("".equals(parseError)) {
+            ParseTreeWalker walker = new ParseTreeWalker();
+            RSLPopulator listener = new RSLPopulator(fileName, population);
+            walker.walk(listener, ctx);
+        } else {
+            getRunContext().getLog()
+                    .warn(String.format("Syntax error in file %s %s: ", fileName, errPosition) + parseError);
         }
+
     }
 
 }
