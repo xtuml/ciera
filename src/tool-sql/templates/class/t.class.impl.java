@@ -14,12 +14,6 @@ public class ${self.name}Impl extends ${self.extends} implements ${self.name} {
         this.context = context;
 ${attribute_initializers}${relationship_initializers}${state_machine_initializer}    }
 
-.if (attribute_list != "" )
-    private ${self.name}Impl( ${self.comp_name} context${attribute_list}${initial_state} ) {
-        this.context = context;
-${attribute_initializers2}${relationship_initializers}${state_machine_initializer2}    }
-.end if
-
     private ${self.name}Impl( ${self.comp_name} context, UniqueId instanceId${attribute_list}${initial_state} ) {
         super(instanceId);
         this.context = context;
@@ -36,11 +30,7 @@ ${attribute_initializers2}${relationship_initializers}${state_machine_initialize
 
 .if (attribute_list != "" )
     public static ${self.name} create( ${self.comp_name} context${attribute_list}${initial_state} ) throws XtumlException {
-        ${self.name} new${self.name} = new ${self.name}Impl( context${attribute_invocation_list}${initial_state2} );
-        if ( context.addInstance( new${self.name} ) ) {
-            return new${self.name};
-        }
-        else throw new InstancePopulationException( "Instance already exists within this population." );
+        return create(context, UniqueId.random()${attribute_invocation_list}${initial_state2});
     }
 .end if
 
