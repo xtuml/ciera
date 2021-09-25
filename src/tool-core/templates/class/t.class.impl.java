@@ -28,6 +28,12 @@ ${attribute_initializers2}${relationship_initializers}${state_machine_initialize
         else throw new InstancePopulationException( "Instance already exists within this population." );
     }
 
+.if (attribute_list != "" )
+    public static ${self.name} create( ${self.comp_name} context${attribute_list}${initial_state} ) throws XtumlException {
+        return create(context, UniqueId.random()${attribute_invocation_list}${initial_state2});
+    }
+.end if
+
     public static ${self.name} create( ${self.comp_name} context, UniqueId instanceId${attribute_list}${initial_state} ) throws XtumlException {
         ${self.name} new${self.name} = new ${self.name}Impl( context, instanceId${attribute_invocation_list}${initial_state2} );
         if ( context.addInstance( new${self.name} ) ) {

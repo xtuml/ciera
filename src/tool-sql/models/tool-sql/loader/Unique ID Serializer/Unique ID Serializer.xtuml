@@ -14,6 +14,23 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
+	'// invoke the class-based operation which will do the actual rendering.
+
+UniqueIDSerializer::do_render( class_name:self.class_name, accessor_name:self.value );',
+	1,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	0,
+	0);
+INSERT INTO O_TFR
+	VALUES ("527b6b1a-1be3-41fb-851a-ac831efbf8ce",
+	"670a2e7b-b475-4ed6-a496-00051ab11bac",
+	'do_render',
+	'This class-based operation actually performs the rendering.
+Providing a class-based operation makes it available to support association identifier serialization
+',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	0,
 	'quote = "''";
 select any uuid_quote_mark from instances of Mark where ( selected.markable_name == "*"
                                                           and selected.path == "*"
@@ -21,11 +38,32 @@ select any uuid_quote_mark from instances of Mark where ( selected.markable_name
 if (not_empty uuid_quote_mark)
 	quote = "\\" + STRING::quote();
 end if;
+class_name = param.class_name;
+value = param.accessor_name;
 T::include(file:"loader/t.uniqueidserializer.java");',
 	1,
 	'',
+	"6b43b4e4-ca82-441b-a808-03d250207b51",
+	0,
+	1);
+INSERT INTO O_TPARM
+	VALUES ("6c2cabbb-6b4c-4fb9-a437-08fd90f58855",
+	"527b6b1a-1be3-41fb-851a-ac831efbf8ce",
+	'class_name',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
 	"00000000-0000-0000-0000-000000000000",
-	0);
+	'The name of the class for which this serializer is being built.');
+INSERT INTO O_TPARM
+	VALUES ("8322c901-9171-46bc-a294-fdef86adfaa6",
+	"527b6b1a-1be3-41fb-851a-ac831efbf8ce",
+	'accessor_name',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"6c2cabbb-6b4c-4fb9-a437-08fd90f58855",
+	'The name of the accessor method for the instance identifier, needed by the serializer template.');
 INSERT INTO O_REF
 	VALUES ("670a2e7b-b475-4ed6-a496-00051ab11bac",
 	"cb18b6bd-de98-4b83-be2f-55573f8b1bba",
