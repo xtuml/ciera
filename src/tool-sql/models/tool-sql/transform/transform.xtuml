@@ -1383,13 +1383,16 @@ if ( relation.rel_type == RelationshipType::Binary )
   else
   	create object instance multi of MultiInstanceRef;
   	// The set type of this reference will be needed for iteration by the serializing template
-    select one set_typ related by selector->TypeReference[R446];
-  	multi.set_type_name = set_typ.type_name;
+  	select any containing_comp_def from instances of ComponentDefinition
+  	 where ( selected.name == pop_loader.comp_name );
+    classInComp = ClassInComponent::get( obj:partclass, component:containing_comp_def );
+    select one obj_set related by classInComp->ClassSet[R406];
+    multi.set_type_name = obj_set.name;
   	relate multi to ref2 across R3028;
   	// Imports to support the set manipulation required in the generated serializing method.
     select one file related by pop_loader->GeneralFile[R3009]->File[R401];
-    ::addStringToImports( file:file, s:set_typ.type_package + "." + set_typ.type_name, type:ImportType::INT );
-    ::addStringToImports( file:file, s:set_typ.type_package + ".impl." + set_typ.type_name + "Impl", type:ImportType::IMPL );
+    ::addStringToImports( file:file, s:obj_set.package + "." + obj_set.name, type:ImportType::INT );
+    ::addStringToImports( file:file, s:obj_set.package + ".impl." + obj_set.name + "Impl", type:ImportType::IMPL );
   end if;
 
 elif ( relation.rel_type == RelationshipType::Associative )
