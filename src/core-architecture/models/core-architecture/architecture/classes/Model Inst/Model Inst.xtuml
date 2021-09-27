@@ -1,0 +1,511 @@
+-- BP 7.1.6 content: ModelClass syschar: 3 persistence-version: 7.1.6
+
+INSERT INTO O_OBJ
+	VALUES ("82cf3088-71ed-48c3-850e-afe53bfc0fe5",
+	'Model Inst',
+	2,
+	'Class',
+	'Represents a single model class.',
+	"00000000-0000-0000-0000-000000000000");
+INSERT INTO O_TFR
+	VALUES ("3f92e396-c6fe-46e5-be56-7a9fe880c529",
+	"82cf3088-71ed-48c3-850e-afe53bfc0fe5",
+	'render',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'select one file related by self->File[R401];
+imports = file.getFormattedImports( type:ImportType::IMPL );
+
+// TODO select ordered by
+index = 0;
+select any attribute related by self->Attribute[R410] where ( index == selected.order);
+while ( not_empty attribute ) 
+  attribute.render_initializer();
+  index = index + 1;
+  select any attribute related by self->Attribute[R410] where ( index == selected.order);
+end while;
+attribute_initializers = T::body();
+T::clear();
+
+attribute_list = "";
+attribute_invocation_list = "";
+attribute_initializers2 = "";
+index = 0;
+select any attribute related by self->Attribute[R410] where ( index == selected.order);
+while ( not_empty attribute ) 
+  attribute_list = attribute_list + ", " + attribute.type_reference_name + " " + attribute.name;
+  attribute_invocation_list = attribute_invocation_list + ", " + attribute.name;
+  attribute_initializers2 = attribute_initializers2 + "        this." + attribute.name + " = " + attribute.name + ";\n";
+  index = index + 1;
+  select any attribute related by self->Attribute[R410] where ( index == selected.order);
+end while;
+
+id1_attributes = "";
+id2_attributes = "";
+id3_attributes = "";
+sep1 = "";
+sep2 = "";
+sep3 = "";
+index = 0;
+select any attribute related by self->Attribute[R410] where ( index == selected.order);
+while ( not_empty attribute ) 
+  attribute.render();
+  select many accessors related by attribute->AttributeAccessor[R4510];
+  for each accessor in accessors
+    accessor.render();
+    if ( AttributeAccessorType::GETTER == accessor.accessor_type and attribute.identifier % 2 == 1 )
+      id1_attributes = id1_attributes + sep1 + accessor.getName() + "()";
+      sep1 = ", ";
+    end if;
+    if ( AttributeAccessorType::GETTER == accessor.accessor_type and ( attribute.identifier / 2 ) % 2 == 1 )
+      id2_attributes = id2_attributes + sep2 + accessor.getName() + "()";
+      sep2 = ", ";
+    end if;
+    if ( AttributeAccessorType::GETTER == accessor.accessor_type and ( attribute.identifier / 4 ) % 2 == 1 )
+      id3_attributes = id3_attributes + sep3 + accessor.getName() + "()";
+      sep3 = ", ";
+    end if;
+  end for;
+  index = index + 1;
+  select any attribute related by self->Attribute[R410] where ( index == selected.order);
+end while;
+attributes = T::body();
+T::clear();
+
+select many class_ops related by self->Operation[R416] where ( selected.is_class_based );
+if ( not_empty class_ops )
+  for each operation in class_ops
+    operation.render();
+  end for;
+  operations = T::body();
+  T::clear();
+  T::include(file:"class/t.operations.static.java");
+end if;
+static_operations = T::body();
+T::clear();
+
+select many inst_ops related by self->Operation[R416] where ( not selected.is_class_based );
+for each operation in inst_ops
+  operation.render();
+end for;
+operations = T::body();
+T::clear();
+
+initial_state = "";
+initial_state2 = "";
+state_machine_initializer = "";
+state_machine_initializer2 = "";
+state_machine_decl = "";
+select one sm related by self->StateMachine[R4750];
+if ( not_empty sm )
+  initial_state = ", int initialState";
+  initial_state2 = ", initialState";
+  state_machine_initializer = "        statemachine = new " + sm.name + "(this, context());\n";
+  state_machine_initializer2 = "        statemachine = new " + sm.name + "(this, context(), initialState);\n";
+  sm.render_decl();
+  state_machine_decl = T::body();
+  T::clear();
+end if;
+
+select many evts related by sm->Event[R4752];
+for each evt in evts
+  evt.render();
+end for;
+state_machine_events = T::body();
+T::clear();
+
+select many selects related by self->InstanceSelector[R442];
+relationship_initializers = "";
+for each selector in selects
+  selector.render();
+  select one sel related by selector->Selector[R445];
+  if ( sel.multiplicity == Mult::MANY )
+    relationship_initializers = relationship_initializers + "        " + selector.name + "_set = new " + sel.type_reference_name + "Impl();\n";
+  else
+    relationship_initializers = relationship_initializers + "        " + selector.name + "_inst = " + sel.type_reference_name + "Impl.EMPTY_" + T::sub( format:"u_", s:sel.type_reference_name ) + ";\n";
+  end if;
+end for;
+selectors = T::body();
+T::clear();
+
+index = 0;
+select any attribute related by self->Attribute[R410] where ( index == selected.order);
+while ( not_empty attribute ) 
+  select many accessors related by attribute->AttributeAccessor[R4510];
+  for each accessor in accessors
+    accessor.render_empty();
+  end for;
+  index = index + 1;
+  select any attribute related by self->Attribute[R410] where ( index == selected.order);
+end while;
+empty_attributes = T::body();
+T::clear();
+
+for each operation in inst_ops
+  operation.render_empty();
+end for;
+empty_operations = T::body();
+T::clear();
+
+for each selector in selects
+  selector.render_empty();
+end for;
+empty_selectors = T::body();
+T::clear();
+
+T::include(file:"class/t.class.impl.java");
+T::emit( file:file.path + "/impl/" + self.name + "Impl" + file.extension );
+T::clear();
+
+imports = file.getFormattedImports( type:ImportType::INT );
+
+index = 0;
+select any attribute related by self->Attribute[R410] where ( index == selected.order);
+while ( not_empty attribute ) 
+  select many accessors related by attribute->AttributeAccessor[R4510];
+  for each accessor in accessors
+    accessor.render_interface();
+  end for;
+  index = index + 1;
+  select any attribute related by self->Attribute[R410] where ( index == selected.order);
+end while;
+attributes = T::body();
+T::clear();
+
+for each operation in inst_ops
+  operation.render_interface();
+end for;
+operations = T::body();
+T::clear();
+
+for each selector in selects
+  selector.render_interface();
+end for;
+selectors = T::body();
+T::clear();
+
+T::include(file:"class/t.class.java");
+T::emit( file:file.path + "/" + self.name + file.extension );
+T::clear();',
+	1,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	0,
+	0);
+INSERT INTO O_NBATTR
+	VALUES ("e1102dc5-96a8-43ba-8f27-735c3be3b0ac",
+	"82cf3088-71ed-48c3-850e-afe53bfc0fe5");
+INSERT INTO O_BATTR
+	VALUES ("e1102dc5-96a8-43ba-8f27-735c3be3b0ac",
+	"82cf3088-71ed-48c3-850e-afe53bfc0fe5");
+INSERT INTO O_ATTR
+	VALUES ("e1102dc5-96a8-43ba-8f27-735c3be3b0ac",
+	"82cf3088-71ed-48c3-850e-afe53bfc0fe5",
+	"cbb93527-a951-4d52-b6c5-13d33521339c",
+	'extends',
+	'',
+	'',
+	'extends',
+	0,
+	"ba5eda7a-def5-0000-0000-000000000004",
+	'',
+	'');
+INSERT INTO O_NBATTR
+	VALUES ("a97bc160-b446-4fde-8058-02e0b97739dc",
+	"82cf3088-71ed-48c3-850e-afe53bfc0fe5");
+INSERT INTO O_BATTR
+	VALUES ("a97bc160-b446-4fde-8058-02e0b97739dc",
+	"82cf3088-71ed-48c3-850e-afe53bfc0fe5");
+INSERT INTO O_ATTR
+	VALUES ("a97bc160-b446-4fde-8058-02e0b97739dc",
+	"82cf3088-71ed-48c3-850e-afe53bfc0fe5",
+	"e1102dc5-96a8-43ba-8f27-735c3be3b0ac",
+	'key_letters',
+	'',
+	'',
+	'key_letters',
+	0,
+	"ba5eda7a-def5-0000-0000-000000000004",
+	'',
+	'');
+INSERT INTO O_REF
+	VALUES ("82cf3088-71ed-48c3-850e-afe53bfc0fe5",
+	"dc9c4877-4fcb-49df-a886-ab917b250774",
+	0,
+	"3dfc4c02-94c0-4383-8964-c3bfa4b2e9bd",
+	"8f0c124a-55f6-41de-9844-451b6463ab15",
+	"aa57f37e-9c1f-43e2-bdb2-139b02f3ecec",
+	"d0fabe99-0939-4ae6-9c05-740746d8b95b",
+	"cbb93527-a951-4d52-b6c5-13d33521339c",
+	"2b153378-9acf-41e3-b85c-b49fb016a5d4",
+	"00000000-0000-0000-0000-000000000000",
+	0,
+	'',
+	'File',
+	'package',
+	'R401');
+INSERT INTO R_RGO_PROXY
+	VALUES ("82cf3088-71ed-48c3-850e-afe53bfc0fe5",
+	"8f0c124a-55f6-41de-9844-451b6463ab15",
+	"aa57f37e-9c1f-43e2-bdb2-139b02f3ecec",
+	'../../file/file.xtuml');
+INSERT INTO O_RTIDA_PROXY
+	VALUES ("3dfc4c02-94c0-4383-8964-c3bfa4b2e9bd",
+	"dc9c4877-4fcb-49df-a886-ab917b250774",
+	0,
+	"8f0c124a-55f6-41de-9844-451b6463ab15",
+	"d0fabe99-0939-4ae6-9c05-740746d8b95b",
+	'../../file/file.xtuml');
+INSERT INTO O_REF
+	VALUES ("82cf3088-71ed-48c3-850e-afe53bfc0fe5",
+	"b5de937b-55ee-48e4-8e91-d9d73c3f0fab",
+	0,
+	"f44b46d8-90bf-4603-93b9-9beb6bd0fe62",
+	"e5dad769-3068-4d6b-bdca-63c34edafaf5",
+	"6b2b7202-ddac-42b0-a843-7eddedc9543b",
+	"556adddf-6013-43d6-bee0-5b682a812874",
+	"cbb93527-a951-4d52-b6c5-13d33521339c",
+	"c4bbabb0-3603-4282-89b3-fa1009f00a40",
+	"2b153378-9acf-41e3-b85c-b49fb016a5d4",
+	0,
+	'',
+	'Type',
+	'package',
+	'R407');
+INSERT INTO R_RGO_PROXY
+	VALUES ("82cf3088-71ed-48c3-850e-afe53bfc0fe5",
+	"e5dad769-3068-4d6b-bdca-63c34edafaf5",
+	"6b2b7202-ddac-42b0-a843-7eddedc9543b",
+	'../../type/type.xtuml');
+INSERT INTO O_RTIDA_PROXY
+	VALUES ("f44b46d8-90bf-4603-93b9-9beb6bd0fe62",
+	"b5de937b-55ee-48e4-8e91-d9d73c3f0fab",
+	0,
+	"e5dad769-3068-4d6b-bdca-63c34edafaf5",
+	"556adddf-6013-43d6-bee0-5b682a812874",
+	'../../type/type.xtuml');
+INSERT INTO O_RATTR
+	VALUES ("cbb93527-a951-4d52-b6c5-13d33521339c",
+	"82cf3088-71ed-48c3-850e-afe53bfc0fe5",
+	"3dfc4c02-94c0-4383-8964-c3bfa4b2e9bd",
+	"dc9c4877-4fcb-49df-a886-ab917b250774",
+	1,
+	'package');
+INSERT INTO O_BATTR_PROXY
+	VALUES ("3dfc4c02-94c0-4383-8964-c3bfa4b2e9bd",
+	"dc9c4877-4fcb-49df-a886-ab917b250774",
+	'../../file/File/File.xtuml');
+INSERT INTO O_ATTR
+	VALUES ("cbb93527-a951-4d52-b6c5-13d33521339c",
+	"82cf3088-71ed-48c3-850e-afe53bfc0fe5",
+	"ae4de985-deee-4396-a035-f8874abd3c23",
+	'package',
+	'',
+	'',
+	'path',
+	0,
+	"ba5eda7a-def5-0000-0000-000000000007",
+	'',
+	'');
+INSERT INTO O_REF
+	VALUES ("82cf3088-71ed-48c3-850e-afe53bfc0fe5",
+	"dc9c4877-4fcb-49df-a886-ab917b250774",
+	0,
+	"c49819d1-92ba-4732-98e5-2b3eca8bc470",
+	"8f0c124a-55f6-41de-9844-451b6463ab15",
+	"aa57f37e-9c1f-43e2-bdb2-139b02f3ecec",
+	"d0fabe99-0939-4ae6-9c05-740746d8b95b",
+	"ae4de985-deee-4396-a035-f8874abd3c23",
+	"1eced1eb-bd5f-4c2f-9ae5-2436dfbc4a3b",
+	"00000000-0000-0000-0000-000000000000",
+	0,
+	'',
+	'File',
+	'name',
+	'R401');
+INSERT INTO O_RTIDA_PROXY
+	VALUES ("c49819d1-92ba-4732-98e5-2b3eca8bc470",
+	"dc9c4877-4fcb-49df-a886-ab917b250774",
+	0,
+	"8f0c124a-55f6-41de-9844-451b6463ab15",
+	"d0fabe99-0939-4ae6-9c05-740746d8b95b",
+	'../../file/file.xtuml');
+INSERT INTO O_REF
+	VALUES ("82cf3088-71ed-48c3-850e-afe53bfc0fe5",
+	"b5de937b-55ee-48e4-8e91-d9d73c3f0fab",
+	0,
+	"864744e7-2f4c-4f9f-b744-73335f8defd3",
+	"e5dad769-3068-4d6b-bdca-63c34edafaf5",
+	"6b2b7202-ddac-42b0-a843-7eddedc9543b",
+	"556adddf-6013-43d6-bee0-5b682a812874",
+	"ae4de985-deee-4396-a035-f8874abd3c23",
+	"d3a118aa-5572-4d10-8112-3f77eacdd381",
+	"1eced1eb-bd5f-4c2f-9ae5-2436dfbc4a3b",
+	0,
+	'',
+	'Type',
+	'name',
+	'R407');
+INSERT INTO O_RTIDA_PROXY
+	VALUES ("864744e7-2f4c-4f9f-b744-73335f8defd3",
+	"b5de937b-55ee-48e4-8e91-d9d73c3f0fab",
+	0,
+	"e5dad769-3068-4d6b-bdca-63c34edafaf5",
+	"556adddf-6013-43d6-bee0-5b682a812874",
+	'../../type/type.xtuml');
+INSERT INTO O_RATTR
+	VALUES ("ae4de985-deee-4396-a035-f8874abd3c23",
+	"82cf3088-71ed-48c3-850e-afe53bfc0fe5",
+	"c49819d1-92ba-4732-98e5-2b3eca8bc470",
+	"dc9c4877-4fcb-49df-a886-ab917b250774",
+	1,
+	'name');
+INSERT INTO O_BATTR_PROXY
+	VALUES ("c49819d1-92ba-4732-98e5-2b3eca8bc470",
+	"dc9c4877-4fcb-49df-a886-ab917b250774",
+	'../../file/File/File.xtuml');
+INSERT INTO O_ATTR
+	VALUES ("ae4de985-deee-4396-a035-f8874abd3c23",
+	"82cf3088-71ed-48c3-850e-afe53bfc0fe5",
+	"32b87916-1a30-461e-a591-0302ce7260c7",
+	'name',
+	'',
+	'',
+	'name',
+	0,
+	"ba5eda7a-def5-0000-0000-000000000007",
+	'',
+	'');
+INSERT INTO O_REF
+	VALUES ("82cf3088-71ed-48c3-850e-afe53bfc0fe5",
+	"23f9d7b1-3127-4414-9299-e535bda771bf",
+	0,
+	"144e3dd3-5675-4754-a262-0b2fb7161f64",
+	"c5f0e156-3d3e-446e-8977-94608a943df5",
+	"b62c5603-779a-4e0b-b67a-2b591364c9de",
+	"e9ed16fd-d344-44e3-9dee-da4567d2ce6f",
+	"bf4ce6a6-191b-4aea-9e20-ddab5cd71f28",
+	"33461664-d5a3-4687-ae25-8f5a9db0db52",
+	"00000000-0000-0000-0000-000000000000",
+	0,
+	'',
+	'Component Definition',
+	'name',
+	'R408.''forms instance population of''');
+INSERT INTO R_RGO_PROXY
+	VALUES ("82cf3088-71ed-48c3-850e-afe53bfc0fe5",
+	"c5f0e156-3d3e-446e-8977-94608a943df5",
+	"b62c5603-779a-4e0b-b67a-2b591364c9de",
+	'../../component/component.xtuml');
+INSERT INTO O_RTIDA_PROXY
+	VALUES ("144e3dd3-5675-4754-a262-0b2fb7161f64",
+	"23f9d7b1-3127-4414-9299-e535bda771bf",
+	0,
+	"c5f0e156-3d3e-446e-8977-94608a943df5",
+	"e9ed16fd-d344-44e3-9dee-da4567d2ce6f",
+	'../../component/component.xtuml');
+INSERT INTO O_RATTR
+	VALUES ("bf4ce6a6-191b-4aea-9e20-ddab5cd71f28",
+	"82cf3088-71ed-48c3-850e-afe53bfc0fe5",
+	"c49819d1-92ba-4732-98e5-2b3eca8bc470",
+	"dc9c4877-4fcb-49df-a886-ab917b250774",
+	1,
+	'name');
+INSERT INTO O_ATTR
+	VALUES ("bf4ce6a6-191b-4aea-9e20-ddab5cd71f28",
+	"82cf3088-71ed-48c3-850e-afe53bfc0fe5",
+	"00000000-0000-0000-0000-000000000000",
+	'comp_name',
+	'',
+	'comp_',
+	'name',
+	1,
+	"ba5eda7a-def5-0000-0000-000000000007",
+	'',
+	'');
+INSERT INTO O_REF
+	VALUES ("82cf3088-71ed-48c3-850e-afe53bfc0fe5",
+	"23f9d7b1-3127-4414-9299-e535bda771bf",
+	0,
+	"797a56de-c62e-4fd8-8d8e-dc868af7d628",
+	"c5f0e156-3d3e-446e-8977-94608a943df5",
+	"b62c5603-779a-4e0b-b67a-2b591364c9de",
+	"e9ed16fd-d344-44e3-9dee-da4567d2ce6f",
+	"32b87916-1a30-461e-a591-0302ce7260c7",
+	"c428d25f-df6d-41f3-9aa0-6ae8e882dc1a",
+	"00000000-0000-0000-0000-000000000000",
+	0,
+	'',
+	'Component Definition',
+	'package',
+	'R408.''forms instance population of''');
+INSERT INTO O_RTIDA_PROXY
+	VALUES ("797a56de-c62e-4fd8-8d8e-dc868af7d628",
+	"23f9d7b1-3127-4414-9299-e535bda771bf",
+	0,
+	"c5f0e156-3d3e-446e-8977-94608a943df5",
+	"e9ed16fd-d344-44e3-9dee-da4567d2ce6f",
+	'../../component/component.xtuml');
+INSERT INTO O_RATTR
+	VALUES ("32b87916-1a30-461e-a591-0302ce7260c7",
+	"82cf3088-71ed-48c3-850e-afe53bfc0fe5",
+	"3dfc4c02-94c0-4383-8964-c3bfa4b2e9bd",
+	"dc9c4877-4fcb-49df-a886-ab917b250774",
+	1,
+	'package');
+INSERT INTO O_ATTR
+	VALUES ("32b87916-1a30-461e-a591-0302ce7260c7",
+	"82cf3088-71ed-48c3-850e-afe53bfc0fe5",
+	"bf4ce6a6-191b-4aea-9e20-ddab5cd71f28",
+	'comp_package',
+	'',
+	'comp_',
+	'package',
+	1,
+	"ba5eda7a-def5-0000-0000-000000000007",
+	'',
+	'');
+INSERT INTO O_ID
+	VALUES (2,
+	"82cf3088-71ed-48c3-850e-afe53bfc0fe5");
+INSERT INTO O_ID
+	VALUES (1,
+	"82cf3088-71ed-48c3-850e-afe53bfc0fe5");
+INSERT INTO O_ID
+	VALUES (0,
+	"82cf3088-71ed-48c3-850e-afe53bfc0fe5");
+INSERT INTO O_OIDA
+	VALUES ("cbb93527-a951-4d52-b6c5-13d33521339c",
+	"82cf3088-71ed-48c3-850e-afe53bfc0fe5",
+	0,
+	'package');
+INSERT INTO O_OIDA
+	VALUES ("ae4de985-deee-4396-a035-f8874abd3c23",
+	"82cf3088-71ed-48c3-850e-afe53bfc0fe5",
+	0,
+	'name');
+INSERT INTO O_OIDA
+	VALUES ("bf4ce6a6-191b-4aea-9e20-ddab5cd71f28",
+	"82cf3088-71ed-48c3-850e-afe53bfc0fe5",
+	0,
+	'comp_name');
+INSERT INTO O_OIDA
+	VALUES ("32b87916-1a30-461e-a591-0302ce7260c7",
+	"82cf3088-71ed-48c3-850e-afe53bfc0fe5",
+	0,
+	'comp_package');
+INSERT INTO PE_PE
+	VALUES ("82cf3088-71ed-48c3-850e-afe53bfc0fe5",
+	1,
+	"21077d52-bd16-4c07-a66a-63a05c97762e",
+	"00000000-0000-0000-0000-000000000000",
+	4);
+INSERT INTO EP_PKG_PROXY
+	VALUES ("21077d52-bd16-4c07-a66a-63a05c97762e",
+	"00000000-0000-0000-0000-000000000000",
+	"21d38790-b93a-4ad6-b0a2-e3ba56baed8a",
+	'classes',
+	'',
+	0,
+	'../classes.xtuml');

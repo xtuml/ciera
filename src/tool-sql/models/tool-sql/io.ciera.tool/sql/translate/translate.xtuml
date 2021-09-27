@@ -45,19 +45,26 @@ CMD::register_value( name:"o", value_name:"output_file", usage:"output file", de
 CMD::register_value( name:"gendir", value_name:"gen_dir", usage:"generated output directory", default_value:".", required:false );
 CMD::read_command_line();
 
-CIERA::setprojectroot( value:CMD::get_value( name:"cwd" ) );
-ciera = CIERA::getDefaultInstance();
+// set up available marks
+::configure_features();
 
-T::set_output_directory(dir:ciera.projectroot + "/" + CMD::get_value(name:"gendir"));
+// set project root and version
+select any universal_markable from instances of Markable where selected.name == "*";
+select any project_root_feature related by universal_markable->Feature[R2822] where selected.name == "ProjectRoot";
+create object instance project_root of Mark;
+project_root.path = "*";
+project_root.value = CMD::get_value(name:"cwd");
+relate project_root_feature to universal_markable across R2821 using project_root;
+
+T::set_output_directory(dir:project_root.value + "/" + CMD::get_value(name:"gendir"));
 
 // load up instances
 input_file = CMD::get_value( name:"i" );
 if ( "" != input_file )
-  LOG::LogInfo( message:"tool-sql SQL load file: " + input_file );
-  SQL::load_file( file:ciera.projectroot + "/" + input_file );
+  SQL::load_file( file:project_root.value + "/" + input_file );
 
   // preprocess
-  ::preprocess();
+  ::load_marks();
 
   // translate
   ::translate();
@@ -65,8 +72,7 @@ if ( "" != input_file )
   // dump instances
   output_file = CMD::get_value( name:"o" );
   if ( "" != output_file )
-    LOG::LogInfo( message:"tool-sql SQL serialize file: " + output_file );
-    SQL::serialize_file( file:ciera.projectroot + "/" + output_file );
+    SQL::serialize_file( file:project_root.value + "/" + output_file );
   end if;
 else
   LOG::LogInfo( message:"No input file." );
@@ -140,6 +146,63 @@ LOG::LogTime( message:"Elapsed time:", t:elapsed_time );',
 	0);
 INSERT INTO PE_PE
 	VALUES ("02917204-af4a-4633-9353-031ae6adcc9b",
+	1,
+	"b63eedd0-68a0-47d5-9b56-0f249d13ff46",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("86c77380-592a-48af-b422-364a640926fe",
+	"00000000-0000-0000-0000-000000000000",
+	'configure_features',
+	'',
+	'// create markable element types
+create object instance universal_markable of Markable;
+universal_markable.name = "*";
+
+create object instance class_markable of Markable;
+class_markable.name = "Model Class";
+
+create object instance attr_markable of Markable;
+attr_markable.name = "Attribute";
+
+create object instance pkg_markable of Markable;
+pkg_markable.name = "Package";
+
+create object instance comp_markable of Markable;
+comp_markable.name = "Component";
+
+// create available features
+create object instance no_inst_ids of Feature;
+no_inst_ids.name = "NoInstanceIdsForLoad";
+relate no_inst_ids to comp_markable across R2822;
+
+create object instance non_persistent_ids of Feature;
+non_persistent_ids.name = "NonPersistentInstanceIds";
+relate non_persistent_ids to universal_markable across R2822;
+
+create object instance no_serialize of Feature;
+no_serialize.name = "DoNotSerialize";
+relate no_serialize to pkg_markable across R2822;
+
+create object instance non_persistent of Feature;
+non_persistent.name = "NonPersistent";
+relate non_persistent to attr_markable across R2822;
+relate non_persistent to class_markable across R2822;
+
+create object instance project_root of Feature;
+project_root.name = "ProjectRoot";
+relate project_root to universal_markable across R2822;
+
+create object instance root_package of Feature;
+root_package.name = "RootPackage";
+relate root_package to universal_markable across R2822;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	1);
+INSERT INTO PE_PE
+	VALUES ("86c77380-592a-48af-b422-364a640926fe",
 	1,
 	"b63eedd0-68a0-47d5-9b56-0f249d13ff46",
 	"00000000-0000-0000-0000-000000000000",
