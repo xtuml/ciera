@@ -66,7 +66,7 @@ Observe the difference in the `out.sql` file contents.
 1. Launch a recent version of BridgePoint (download nightly build
    [here](https://s3.amazonaws.com/xtuml-releases/nightly-build/buildfiles.html))
 2. Import the `runtime` project from the
-   `$HOME/.m2/repository/io/ciera/runtime/2.6.0-pre/runtime-2.6.0-pre.jar` file.
+   `$HOME/.m2/repository/io/ciera/runtime/2.6.0/runtime-2.6.0.jar` file.
 3. Import the `pei` from this folder (diasable "Search for nested
    projects")
 

@@ -2,7 +2,7 @@ FROM ubuntu:20.04
 
 # Metadata
 LABEL maintainer="levi@roxsoftware.com"
-LABEL version="v2.6.0-pre"
+LABEL version="v2.6.0"
 
 # Install dependencies
 RUN apt-get update && apt-get install -y git maven python3 python3-pip unzip vim
