@@ -46,14 +46,17 @@ CMD::register_value(name:"gendir", value_name:"gen_dir", usage:"generated output
 CMD::register_value(name:"use-version", value_name:"use_version", usage:"version identifier for generated components", default_value:"", required:false);
 CMD::read_command_line();
 
-CIERA::setprojectroot(value:CMD::get_value(name:"cwd"));
-CIERA::setversion(value:CMD::get_value( name:"use-version"));
-ciera = CIERA::getDefaultInstance();
+::configure_features();
 
-T::set_output_directory(dir:ciera.projectroot + "/" + CMD::get_value(name:"gendir"));
+// set project root
+select any universal_markable from instances of Markable where selected.name == "*";
+select any project_root_feature related by universal_markable->Feature[R2822] where selected.name == "ProjectRoot";
+create object instance project_root of Mark;
+project_root.path = "*";
+project_root.value = CMD::get_value(name:"cwd");
+relate project_root_feature to universal_markable across R2821 using project_root;
 
-// preprocess
-::preprocess();
+T::set_output_directory(dir:project_root.value + "/" + CMD::get_value(name:"gendir"));
 
 // translate
 ::translate();
@@ -61,7 +64,7 @@ T::set_output_directory(dir:ciera.projectroot + "/" + CMD::get_value(name:"gendi
 // dump instances
 output_file = CMD::get_value(name:"o");
 if ("" != output_file)
-  SQL::serialize_file(file:ciera.projectroot + "/" + output_file);
+  SQL::serialize_file(file:project_root.value + "/" + output_file);
 end if;
 
 // exit
@@ -109,7 +112,7 @@ LOG::LogTime( message:"Elapsed time:", t:elapsed_time );
 
 // translate builtin types
 LOG::LogInfo( message:"  Translating buitlin types..." );
-::transformBuiltinTypes();
+//::transformBuiltinTypes(); TODO
 LOG::LogInfo( message:"  done." );
 LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
 
@@ -144,7 +147,7 @@ LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
 
 // resolve user defined types
 LOG::LogInfo( message:"  Resolving user defined types..." );
-::resolveUserDefinedTypes();
+//::resolveUserDefinedTypes();  TODO
 LOG::LogInfo( message:"  done." );
 LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
 
@@ -170,6 +173,38 @@ LOG::LogTime( message:"Elapsed time:", t:elapsed_time );',
 	0);
 INSERT INTO PE_PE
 	VALUES ("7d5ab1db-be04-4119-8c06-85236906e57b",
+	1,
+	"71959823-0e17-46fb-8e33-a2062e470c4c",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("d8ecaa77-6822-4b3f-8050-9dc67ed7abd2",
+	"00000000-0000-0000-0000-000000000000",
+	'configure_features',
+	'',
+	'// create markable element types
+create object instance universal_markable of Markable;
+universal_markable.name = "*";
+
+// create available features
+create object instance app_name of Feature;
+app_name.name = "ApplicationName";
+relate app_name to universal_markable across R2822;
+
+create object instance app_package of Feature;
+app_package.name = "ApplicationPackage";
+relate app_package to universal_markable across R2822;
+
+create object instance project_root of Feature;
+project_root.name = "ProjectRoot";
+relate project_root to universal_markable across R2822;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	1);
+INSERT INTO PE_PE
+	VALUES ("d8ecaa77-6822-4b3f-8050-9dc67ed7abd2",
 	1,
 	"71959823-0e17-46fb-8e33-a2062e470c4c",
 	"00000000-0000-0000-0000-000000000000",
