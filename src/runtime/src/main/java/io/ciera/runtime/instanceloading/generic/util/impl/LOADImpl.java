@@ -5,6 +5,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 
+import io.ciera.runtime.instanceloading.generic.IGenericLoader;
 import io.ciera.runtime.instanceloading.generic.util.LOAD;
 import io.ciera.runtime.summit.components.IComponent;
 import io.ciera.runtime.summit.exceptions.XtumlException;
@@ -12,12 +13,15 @@ import io.ciera.runtime.summit.util.Utility;
 
 public class LOADImpl<C extends IComponent<C>> extends Utility<C> implements LOAD {
 
+    private IGenericLoader defaultLoader;
+
     public LOADImpl(C context) {
         super(context);
+        defaultLoader = null;
     }
 
     @Override
-    public Object call_function(String function_name, Object ... args) throws XtumlException {
+    public Object call_function(String function_name, Object... args) throws XtumlException {
         if (function_name == null || Arrays.asList(args).contains(null)) {
             throw new XtumlException("Invalid arguments to 'call_function'");
         }
@@ -28,22 +32,22 @@ public class LOADImpl<C extends IComponent<C>> extends Utility<C> implements LOA
                     for (int i = 0; i < args.length; i++) {
                         try {
                             // try the constructor with the same type as the passed value
-                            Constructor<?> valueConstructor = domainFunction.getParameterTypes()[i].getConstructor(args[i].getClass());
+                            Constructor<?> valueConstructor = domainFunction.getParameterTypes()[i]
+                                    .getConstructor(args[i].getClass());
                             parameterList[i] = valueConstructor.newInstance(args[i]);
-                        }
-                        catch (NoSuchMethodException e1) {
+                        } catch (NoSuchMethodException e1) {
                             try {
                                 // try the constructor with the same generic Object type
-                                Constructor<?> valueConstructor = domainFunction.getParameterTypes()[i].getConstructor(Object.class);
+                                Constructor<?> valueConstructor = domainFunction.getParameterTypes()[i]
+                                        .getConstructor(Object.class);
                                 parameterList[i] = valueConstructor.newInstance(args[i]);
-                            }
-                            catch (NoSuchMethodException e2) {
+                            } catch (NoSuchMethodException e2) {
                                 try {
                                     // try to find the deserialize method
-                                    Method deserialize = domainFunction.getParameterTypes()[i].getMethod("deserialize", Object.class);
+                                    Method deserialize = domainFunction.getParameterTypes()[i].getMethod("deserialize",
+                                            Object.class);
                                     parameterList[i] = deserialize.invoke(null, args[i]);
-                                }
-                                catch (NoSuchMethodException e3) {
+                                } catch (NoSuchMethodException e3) {
                                     // no casting
                                     parameterList[i] = args[i];
                                 }
@@ -51,15 +55,19 @@ public class LOADImpl<C extends IComponent<C>> extends Utility<C> implements LOA
                         }
                     }
                     return domainFunction.invoke(context(), parameterList);
-                } catch (IllegalAccessException | IllegalArgumentException | InstantiationException | InvocationTargetException | SecurityException e) {
-                    if (e instanceof InvocationTargetException && ((InvocationTargetException)e).getCause() instanceof XtumlException) {
-                        throw (XtumlException)((InvocationTargetException)e).getCause();
+                } catch (IllegalAccessException | IllegalArgumentException | InstantiationException
+                        | InvocationTargetException | SecurityException e) {
+                    if (e instanceof InvocationTargetException
+                            && ((InvocationTargetException) e).getCause() instanceof XtumlException) {
+                        throw (XtumlException) ((InvocationTargetException) e).getCause();
                     }
-                    throw new XtumlException(String.format("Could not invoke domain function '%s' on component '%s'.", function_name, context().getClass().getName()), e);
+                    throw new XtumlException(String.format("Could not invoke domain function '%s' on component '%s'.",
+                            function_name, context().getClass().getName()), e);
                 }
             }
         }
-        throw new XtumlException(String.format("Could not find domain function '%s' on component '%s'.", function_name, context().getClass().getName()));
+        throw new XtumlException(String.format("Could not find domain function '%s' on component '%s'.", function_name,
+                context().getClass().getName()));
     }
 
     @Override
@@ -71,16 +79,17 @@ public class LOADImpl<C extends IComponent<C>> extends Utility<C> implements LOA
             Class<?> modelClass = context().getClassByKeyLetters(key_letters);
             if (modelClass != null) {
                 return modelClass.getMethod("create", context().getClass()).invoke(null, context());
-            }
-            else {
+            } else {
                 throw new XtumlException(String.format("No class found with key letters '%s'", key_letters));
             }
-        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException
-                | NoSuchMethodException | SecurityException e) {
-            if (e instanceof InvocationTargetException && ((InvocationTargetException)e).getCause() instanceof XtumlException) {
-                throw (XtumlException)((InvocationTargetException)e).getCause();
+        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException
+                | SecurityException e) {
+            if (e instanceof InvocationTargetException
+                    && ((InvocationTargetException) e).getCause() instanceof XtumlException) {
+                throw (XtumlException) ((InvocationTargetException) e).getCause();
             }
-            throw new XtumlException(String.format("Could not create instance of class with key letters '%s'", key_letters), e);
+            throw new XtumlException(
+                    String.format("Could not create instance of class with key letters '%s'", key_letters), e);
         }
     }
 
@@ -90,16 +99,46 @@ public class LOADImpl<C extends IComponent<C>> extends Utility<C> implements LOA
             throw new XtumlException("Invalid arguments to 'load'");
         }
         try {
-            Class<?> loader = ClassLoader.getSystemClassLoader().loadClass(java_class);
-            Method loadMethod = loader.getMethod("load", LOAD.class, String[].class);
-            loadMethod.invoke(loader.newInstance(), this, (Object)args);
-        } catch (ClassNotFoundException | NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException
-                | InvocationTargetException | InstantiationException e) {
-            if (e instanceof InvocationTargetException && ((InvocationTargetException)e).getCause() instanceof XtumlException) {
-                throw (XtumlException)((InvocationTargetException)e).getCause();
+            Class<?> loaderClass = ClassLoader.getSystemClassLoader().loadClass(java_class);
+            Object loader = loaderClass.getConstructor().newInstance();
+            load(loader, loaderClass, args);
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | IllegalArgumentException
+                | InvocationTargetException | NoSuchMethodException | SecurityException e) {
+            if (e instanceof InvocationTargetException
+                    && ((InvocationTargetException) e).getCause() instanceof XtumlException) {
+                throw (XtumlException) ((InvocationTargetException) e).getCause();
             }
             throw new XtumlException(String.format("Could not load or run class '%s'", java_class), e);
         }
+    }
+
+    @Override
+    public void load2(String[] args) throws XtumlException {
+        if (args == null) {
+            throw new XtumlException("Invalid arguments to 'load2'");
+        }
+        if (defaultLoader == null) {
+            throw new XtumlException("No default loader");
+        }
+        load(defaultLoader, defaultLoader.getClass(), args);
+    }
+
+    private void load(Object loader, Class<?> loaderClass, String[] args) throws XtumlException {
+        try {
+            Method loadMethod = loaderClass.getMethod("load", LOAD.class, String[].class);
+            loadMethod.invoke(loader, this, (Object) args);
+        } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+            if (e instanceof InvocationTargetException
+                    && ((InvocationTargetException) e).getCause() instanceof XtumlException) {
+                throw (XtumlException) ((InvocationTargetException) e).getCause();
+            }
+            throw new XtumlException(String.format("Could not load or run class '%s'", loaderClass.getName()), e);
+        }
+    }
+    
+    @Override
+    public void setDefaultLoader(IGenericLoader loader) {
+        defaultLoader = loader;
     }
 
     @Override
@@ -107,12 +146,14 @@ public class LOADImpl<C extends IComponent<C>> extends Utility<C> implements LOA
         relate(inst1, inst2, rel_num, phrase, false);
     }
 
-    private void relate(Object inst1, Object inst2, int rel_num, String phrase, boolean other_phrase) throws XtumlException {
+    private void relate(Object inst1, Object inst2, int rel_num, String phrase, boolean other_phrase)
+            throws XtumlException {
         if (inst1 == null || inst2 == null) {
             throw new XtumlException("Invalid arguments to 'relate'");
         }
         for (Method relator : context().getClass().getMethods()) {
-            if (relator.getName().startsWith(String.format("relate_R%d_", rel_num)) && relator.getParameterCount() == 2) {
+            if (relator.getName().startsWith(String.format("relate_R%d_", rel_num))
+                    && relator.getParameterCount() == 2) {
                 Class<?>[] parameterTypes = relator.getParameterTypes();
                 Object form;
                 Object part;
@@ -122,7 +163,8 @@ public class LOADImpl<C extends IComponent<C>> extends Utility<C> implements LOA
                     if (parameterTypes[0].isInstance(inst1) && parameterTypes[1].isInstance(inst2)) {
                         form = inst1;
                         part = inst2;
-                        if (phrase != null && (relator.getName().indexOf(phrase.replaceAll("\\s", "_")) < 0 ^ other_phrase)) {
+                        if (phrase != null
+                                && (relator.getName().indexOf(phrase.replaceAll("\\s", "_")) < 0 ^ other_phrase)) {
                             // If a phrase is provided, reject it if it does not match the relator
                             continue;
                         }
@@ -152,32 +194,36 @@ public class LOADImpl<C extends IComponent<C>> extends Utility<C> implements LOA
                         form = inst2;
                         part = inst1;
                     }
-                }
-                else {
-                    throw new XtumlException(String.format("Expected instances of types '%s' and '%s', but recieved incompatible types '%s' and '%s' for 'R%d' in component '%s'.",
-                                                           parameterTypes[0].getName(), parameterTypes[1].getName(), inst1.getClass().getName(), inst2.getClass().getName(),
-                                                           rel_num, context().getClass().getName()));
+                } else {
+                    throw new XtumlException(String.format(
+                            "Expected instances of types '%s' and '%s', but recieved incompatible types '%s' and '%s' for 'R%d' in component '%s'.",
+                            parameterTypes[0].getName(), parameterTypes[1].getName(), inst1.getClass().getName(),
+                            inst2.getClass().getName(), rel_num, context().getClass().getName()));
                 }
                 // perform relate
                 try {
                     relator.invoke(context(), form, part);
-                    return;  // early return here to break out of loop and avoid throwing an exception
+                    return; // early return here to break out of loop and avoid throwing an exception
                 } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-                    if (e instanceof InvocationTargetException && ((InvocationTargetException)e).getCause() instanceof XtumlException) {
-                        throw (XtumlException)((InvocationTargetException)e).getCause();
+                    if (e instanceof InvocationTargetException
+                            && ((InvocationTargetException) e).getCause() instanceof XtumlException) {
+                        throw (XtumlException) ((InvocationTargetException) e).getCause();
                     }
-                    throw new XtumlException(String.format("Could not relate instances across 'R%d' in component '%s'.", rel_num, context().getClass().getName()), e);
+                    throw new XtumlException(String.format("Could not relate instances across 'R%d' in component '%s'.",
+                            rel_num, context().getClass().getName()), e);
                 }
-     
+
             }
         }
         // if it gets this far, a matching relate function was not found
-        throw new XtumlException(String.format("Could not relate instances of types '%s' and '%s' across 'R%d' in component '%s'.",
-                                               inst1.getClass().getName(), inst2.getClass().getName(), rel_num, context().getClass().getName()));
+        throw new XtumlException(String.format(
+                "Could not relate instances of types '%s' and '%s' across 'R%d' in component '%s'.",
+                inst1.getClass().getName(), inst2.getClass().getName(), rel_num, context().getClass().getName()));
     }
 
     @Override
-    public void relate_using(Object inst1, Object inst2, Object link, int rel_num, String phrase) throws XtumlException {
+    public void relate_using(Object inst1, Object inst2, Object link, int rel_num, String phrase)
+            throws XtumlException {
         relate(link, inst1, rel_num, phrase, true);
         relate(link, inst2, rel_num, phrase, false);
     }
@@ -188,42 +234,47 @@ public class LOADImpl<C extends IComponent<C>> extends Utility<C> implements LOA
             throw new XtumlException("Invalid arguments to 'set_attribute'");
         }
         for (Method setter : instance.getClass().getMethods()) {
-            if (setter.getName().equals("set" + attribute_name.substring(0, 1).toUpperCase() + attribute_name.substring(1))
-                && setter.getParameterCount() == 1) {
+            if (setter.getName()
+                    .equals("set" + attribute_name.substring(0, 1).toUpperCase() + attribute_name.substring(1))
+                    && setter.getParameterCount() == 1) {
                 try {
                     try {
                         // try the constructor with the same type as the passed value
-                        Constructor<?> valueConstructor = setter.getParameterTypes()[0].getConstructor(value.getClass());
+                        Constructor<?> valueConstructor = setter.getParameterTypes()[0]
+                                .getConstructor(value.getClass());
                         setter.invoke(instance, valueConstructor.newInstance(value));
-                    }
-                    catch (NoSuchMethodException e1) {
+                    } catch (NoSuchMethodException e1) {
                         try {
                             // try the constructor with the same generic Object type
-                            Constructor<?> valueConstructor = setter.getParameterTypes()[0].getConstructor(Object.class);
+                            Constructor<?> valueConstructor = setter.getParameterTypes()[0]
+                                    .getConstructor(Object.class);
                             setter.invoke(instance, valueConstructor.newInstance(value));
-                        }
-                        catch (NoSuchMethodException e2) {
+                        } catch (NoSuchMethodException e2) {
                             try {
                                 // try to find the deserialize method
-                                Method deserialize = setter.getParameterTypes()[0].getMethod("deserialize", Object.class);
+                                Method deserialize = setter.getParameterTypes()[0].getMethod("deserialize",
+                                        Object.class);
                                 setter.invoke(instance, deserialize.invoke(null, value));
-                            }
-                            catch (NoSuchMethodException e3) {
+                            } catch (NoSuchMethodException e3) {
                                 // no casting
                                 setter.invoke(instance, value);
                             }
                         }
                     }
                     return;
-                } catch (IllegalAccessException | IllegalArgumentException | InstantiationException | InvocationTargetException | SecurityException e) {
-                    if (e instanceof InvocationTargetException && ((InvocationTargetException)e).getCause() instanceof XtumlException) {
-                        throw (XtumlException)((InvocationTargetException)e).getCause();
+                } catch (IllegalAccessException | IllegalArgumentException | InstantiationException
+                        | InvocationTargetException | SecurityException e) {
+                    if (e instanceof InvocationTargetException
+                            && ((InvocationTargetException) e).getCause() instanceof XtumlException) {
+                        throw (XtumlException) ((InvocationTargetException) e).getCause();
                     }
-                    throw new XtumlException(String.format("Could not set attribute '%s' on class '%s'", attribute_name, instance.getClass().getName()), e);
+                    throw new XtumlException(String.format("Could not set attribute '%s' on class '%s'", attribute_name,
+                            instance.getClass().getName()), e);
                 }
             }
         }
-        throw new XtumlException(String.format("Could not find setter method for attribute '%s' on class '%s'", attribute_name, instance.getClass().getName()));
+        throw new XtumlException(String.format("Could not find setter method for attribute '%s' on class '%s'",
+                attribute_name, instance.getClass().getName()));
     }
 
 }
