@@ -61,6 +61,12 @@ if ( 1 == param.pass )
   component_version = "";
   
   // TODO translate domain elements
+  
+  // transform services
+  select many domain_services related by domain->DomainService[R5303];
+  for each domain_service in domain_services
+    ::transformDomainService(domain_service:domain_service, comp_def:comp_def);
+  end for;
 
   // create import block
   ::addStringToImports( file:file, s:"io.ciera.runtime.summit.application.IApplication", type:ImportType::IMPL );
@@ -205,6 +211,123 @@ end for;
 	2);
 INSERT INTO PE_PE
 	VALUES ("a273ac6b-7940-4d3d-8c41-b8c33c8c5922",
+	1,
+	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("6337d8b4-4779-4670-be9f-e297eabcf5d1",
+	"00000000-0000-0000-0000-000000000000",
+	'transformDomainService',
+	'',
+	'domain_service = param.domain_service;
+comp_def = param.comp_def;
+
+select one service related by domain_service->Service[R5203];
+
+// create function object
+create object instance func of Function;
+relate func to comp_def across R405;
+
+// create invocable
+create object instance invocable of InvocableObject;
+invocable.name = service.name;
+invocable.parent_name = comp_def.name;
+invocable.parent_package = comp_def.package;
+relate func to invocable across R427;
+//invocable.actions = s_sync.Action_Semantics_internal; // TODO
+
+// link type TODO
+type = ::TypeReference_getBuiltinTypeReference(name:"void");
+relate type to invocable across R428;
+
+/*
+// create parameters
+select any s_sparm related by s_sync->S_SPARM[R24];
+prev_s_sparm = s_sparm;
+// select first parameter
+while ( not_empty prev_s_sparm )
+  s_sparm = prev_s_sparm;
+  select one prev_s_sparm related by s_sparm->S_SPARM[R54.''succeeds''];
+end while;
+while ( not_empty s_sparm )
+  // create parameter
+  create object instance parm of FormalParameter;
+  parm.name = "p_" + s_sparm.Name;
+  parm.by_ref = ( 1 == s_sparm.By_Ref );
+  select one parm_dt related by s_sparm->S_DT[R26];
+  select many s_dims related by s_sparm->S_DIM[R52];
+  parm_type = ::TypeReference_getInstance( s_dt:parm_dt, s_dims:s_dims );
+  relate parm_type to parm across R431;
+  ::linkParameter( invocable:invocable, parameter:parm );
+  select one s_sparm related by s_sparm->S_SPARM[R54.''precedes''];
+end while;
+
+// see if this is an initializer function
+select one c_c related by comp_def->C_C[R4573];
+select one c_c_pe related by c_c->PE_PE[R8001];
+select any init_function_mark from instances of Mark where ( selected.markable_name == "Component" and
+                                                             selected.path == ::containerMarkingPath( pe:c_c_pe ) + "::" + c_c.Name and
+                                                             selected.feature_name == "InitFunction" );
+if ( not_empty init_function_mark and func.name == init_function_mark.value )
+  select any s_sparm related by s_sync->S_SPARM[R24];
+  if ( empty s_sparm )
+    select one init_function related by comp_def->Function[R4561];
+    if ( empty init_function )
+      relate func to comp_def across R4561;
+    else
+      // TODO bad
+    end if;
+  else
+    // TODO bad
+  end if;
+end if;
+
+// relate the body
+select one act_act related by s_sync->ACT_FNB[R695]->ACT_ACT[R698];
+if ( not_empty act_act )
+  relate act_act to invocable across R432;
+end if;
+*/',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	3);
+INSERT INTO S_SPARM
+	VALUES ("5ee0efbd-acd2-4732-9a5f-db65dbabc35c",
+	"6337d8b4-4779-4670-be9f-e297eabcf5d1",
+	'domain_service',
+	"ffebe79c-5289-41c4-9a6c-4c6b8346d989",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("ffebe79c-5289-41c4-9a6c-4c6b8346d989",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<DomainService>',
+	'',
+	'',
+	'../../../../ooamasl/models/ooamasl/ooamasl/domain/domain.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("6e4c46fe-109d-4d62-a11f-1a7070c44b2a",
+	"6337d8b4-4779-4670-be9f-e297eabcf5d1",
+	'comp_def',
+	"109e90cb-1d66-46ee-88db-a568044879d0",
+	0,
+	'',
+	"5ee0efbd-acd2-4732-9a5f-db65dbabc35c",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("109e90cb-1d66-46ee-88db-a568044879d0",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Component Definition>',
+	'',
+	'',
+	'../../../../core-architecture/models/core-architecture/architecture/component/component.xtuml');
+INSERT INTO PE_PE
+	VALUES ("6337d8b4-4779-4670-be9f-e297eabcf5d1",
 	1,
 	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
 	"00000000-0000-0000-0000-000000000000",
