@@ -1077,37 +1077,40 @@ if ( not_empty r_subsup )
 	end if;
 
 else
-select one r_assoc related by r_rel->R_ASSOC[R206];
-if ( not_empty r_assoc )
-
-	select one r_assr related by r_assoc->R_ASSR[R211];
-	select one r_aone related by r_assoc->R_AONE[R209];
-	select one r_aoth related by r_assoc->R_AOTH[R210];
-
-	select one form_class related by r_assr->R_RGO[R205]->R_OIR[R203]->O_OBJ[R201]->Class[R409];
-	select one part_class related by r_aone->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->Class[R409];
-	if ( not_empty form_class and not_empty part_class and not_empty r_aoth )
-		form_phrase = r_aoth.Txt_Phrs;
-		part_phrase = r_aone.Txt_Phrs;
-		if ( 0 != r_assr.Mult or 0 != r_aoth.Mult )
-			form_mult = Mult::MANY;
-		end if;
-		if ( 0 != r_aoth.Cond )
-			form_cond = Cond::CONDITIONAL;
-		end if;
-	else
-		// TODO bad
+*/
+select one assoc related by maslrel->AssociativeRelationshipDeclaration[R6010];
+if (not_empty assoc)
+  
+	select one half_rel_1 related by assoc->HalfRelationship[R6000];
+	select one half_rel_2 related by assoc->HalfRelationship[R6002];
+	
+	// get the formalizer and participant information for the first relationship
+	select one form_class related by assoc->ObjectDeclaration[R6001]->Class[R8300];
+	form_phrase = half_rel_2.role;
+	if (half_rel_2.multiplicity == Multiplicity2::many)
+		form_mult = Mult::MANY;
+	end if;
+	if (half_rel_2.isconditional)
+		form_cond = Cond::CONDITIONAL;
+	end if;
+	select one part_class related by half_rel_1->ObjectDeclaration[R6004]->Class[R8300];
+	part_phrase = half_rel_1.role;
+	if (half_rel_1.multiplicity == Multiplicity2::many)
+		part_mult = Mult::MANY;
+	end if;
+	if (half_rel_1.isconditional)
+		part_cond = Cond::CONDITIONAL;
 	end if;
 
 	// create the first relationship
 	create object instance rel1 of Relationship;
-	name1 = "R" + STRING::itoa( i:r_rel.Numb ) + "_" + form_class.name + "_";
-	if ( "" != part_phrase )
-		name1 = name1 + T::sub( format:"_", s:part_phrase ) + "_";
+	name1 = maslrel.name + "_" + form_class.name + "_";
+	if (part_phrase != "")
+		name1 = name1 + T::sub(format:"_", s:part_phrase) + "_";
 	end if;
 	name1 = name1 + part_class.name;
 	rel1.name = name1;
-	rel1.num = r_rel.Numb;
+	rel1.num = STRING::atoi(s:STRING::substr(s:maslrel.name, begin:1, end:-1));
 	rel1.form_phrase = form_phrase;
 	rel1.part_phrase = part_phrase;
 	rel1.form_mult = form_mult;
@@ -1119,42 +1122,48 @@ if ( not_empty r_assoc )
 	relate rel1 to form_class across R435;
 	relate rel1 to part_class across R434;
 
+	/* TODO get the ID number
 	select one o_id1 related by r_assoc->R_AONE[R209]->R_RTO[R204]->O_ID[R109];
 	if ( not_empty o_id1 )
 		rel1.id_num = o_id1.Oid_ID + 1;
 	else
 		rel1.id_num = 0;
 	end if;
+	*/
 
+	// get the formalizer and participant information for the second relationship
 	form_phrase = "";
 	form_mult = Mult::ONE;
 	form_cond = Cond::UNCONDITIONAL;
 	part_phrase = "";
 	part_cond = Cond::UNCONDITIONAL;
 
-	select one part_class related by r_aoth->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->Class[R409];
-	if ( not_empty form_class and not_empty part_class and not_empty r_aone )
-		form_phrase = r_aone.Txt_Phrs;
-		part_phrase = r_aoth.Txt_Phrs;
-		if ( 0 != r_assr.Mult or 0 != r_aone.Mult )
-			form_mult = Mult::MANY;
-		end if;
-		if ( 0 != r_aone.Cond )
-			form_cond = Cond::CONDITIONAL;
-		end if;
-	else
-		// TODO bad
+	select one form_class related by assoc->ObjectDeclaration[R6001]->Class[R8300];
+	form_phrase = half_rel_1.role;
+	if (half_rel_1.multiplicity == Multiplicity2::many)
+		form_mult = Mult::MANY;
+	end if;
+	if (half_rel_1.isconditional)
+		form_cond = Cond::CONDITIONAL;
+	end if;
+	select one part_class related by half_rel_2->ObjectDeclaration[R6004]->Class[R8300];
+	part_phrase = half_rel_2.role;
+	if (half_rel_2.multiplicity == Multiplicity2::many)
+		part_mult = Mult::MANY;
+	end if;
+	if (half_rel_2.isconditional)
+		part_cond = Cond::CONDITIONAL;
 	end if;
 
 	// create the second relationship
 	create object instance rel2 of Relationship;
-	name2 = "R" + STRING::itoa( i:r_rel.Numb ) + "_" + form_class.name + "_";
-	if ( "" != part_phrase )
-		name2 = name2 + T::sub( format:"_", s:part_phrase ) + "_";
+	name2 = maslrel.name + "_" + form_class.name + "_";
+	if (part_phrase != "")
+		name2 = name2 + T::sub(format:"_", s:part_phrase) + "_";
 	end if;
 	name2 = name2 + part_class.name;
 	rel2.name = name2;
-	rel2.num = r_rel.Numb;
+	rel2.num = STRING::atoi(s:STRING::substr(s:maslrel.name, begin:1, end:-1));
 	rel2.form_phrase = form_phrase;
 	rel2.part_phrase = part_phrase;
 	rel2.form_mult = form_mult;
@@ -1166,17 +1175,19 @@ if ( not_empty r_assoc )
 	relate rel2 to form_class across R435;
 	relate rel2 to part_class across R434;
 
+  /*
 	select one o_id2 related by r_assoc->R_AOTH[R210]->R_RTO[R204]->O_ID[R109];
 	if ( not_empty o_id2 )
 		rel2.id_num = o_id2.Oid_ID + 1;
 	else
 		rel2.id_num = 0;
 	end if;
+	*/
 	
 	relate rel1 to rel2 across R436.''is one half of associative'';  // note these are a symmetric pair.
 else
 	// TODO bad
-end if; end if;*/ end if;
+end if; end if;// end if;
 
 // add necessary imports
 ::addStringToImports(file:file, s:"io.ciera.runtime.summit.classes.RelationshipSet", type:ImportType::IMPL);
