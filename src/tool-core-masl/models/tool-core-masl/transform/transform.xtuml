@@ -67,6 +67,12 @@ if ( 1 == param.pass )
   for each domain_service in domain_services
     ::transformDomainService(domain_service:domain_service, comp_def:comp_def);
   end for;
+
+  // transform terminators
+  select many terms related by domain->DomainTerminator[R5304];
+  for each term in terms
+    ::transformDomainTerminator(domain_terminator:term, comp_def:comp_def, path:file.path + "/" + T::sub(format:"l", s:term.name));
+  end for;
   
   // transform objects
   select many object_declarations related by domain->ObjectDeclaration[R5805];
@@ -589,6 +595,291 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("c532c34c-bb46-42d3-8f7e-6798cb8d1e58",
+	1,
+	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("93597cc3-f7ca-44bf-86ff-6d3f3d9b6818",
+	"00000000-0000-0000-0000-000000000000",
+	'transformDomainTerminator',
+	'',
+	'domain_terminator = param.domain_terminator;
+comp_def = param.comp_def;
+
+// create the port file
+create object instance port_file of File;
+port_file.name = comp_def.name + ::camelCaseName(name:domain_terminator.name, start_lower:false);
+port_file.path = param.path;
+port_file.package = ::pathToPackage(path:port_file.path);
+port_file.extension = ".java";
+port_file.exclude = false;
+
+// create the interface package object
+create object instance port of Port;
+relate port to port_file across R401;
+port.port_name = ::camelCaseName(name:domain_terminator.name, start_lower:false);
+
+// set base class
+select any base_class_mark from instances of Mark where false;
+/* TODO
+select any base_class_mark from instances of Mark where ( selected.markable_name == "Port" and
+                                                          selected.path == ::containerMarkingPath( pe:pe ) + "::" + c_c.Name + "::" + c_po.Name and
+                                                          selected.feature_name == "BaseClass" );
+*/
+
+if (not_empty base_class_mark)
+  port.base_class = base_class_mark.value;
+  ::addStringToImports(file:port_file, s:"io.ciera.runtime.summit.interfaces." + base_class_mark.value, type:ImportType::IMPL);
+else
+  port.base_class = "Port";
+  ::addStringToImports(file:port_file, s:"io.ciera.runtime.summit.interfaces.Port", type:ImportType::IMPL);
+end if;
+
+// add extra for http port
+/* TODO
+if ("HttpPort" == port.base_class)
+  select one c_c related by c_po->C_C[R4010];
+  select one pe related by c_c->PE_PE[R8001];
+  select any http_endpoint_mark from instances of Mark where ( selected.markable_name == "Port" and
+                                                               selected.path == ::containerMarkingPath( pe:pe ) + "::" + c_c.Name + "::" + c_po.Name and
+                                                               selected.feature_name == "HttpEndpoint" );
+  port.endpoint = http_endpoint_mark.value;
+end if;
+*/
+
+// set port as requirer
+port.provider = false;
+
+// relate to other component
+relate port to comp_def across R417;
+
+// create the interface file
+create object instance iface_file of File;
+iface_file.name = "I" + ::camelCaseName(name:domain_terminator.name, start_lower:false);
+iface_file.path = param.path;
+iface_file.package = ::pathToPackage( path:iface_file.path );
+iface_file.extension = ".java";
+iface_file.exclude = false;
+
+// create the interface package object
+create object instance iface of Interface;
+relate iface to iface_file across R401;
+relate port to iface across R418;
+
+// transform terminator services
+select many terminator_services related by domain_terminator->DomainTerminatorService[R5306];
+index = 1;
+for each terminator_service in terminator_services
+	::transformDomainTerminatorService(terminator_service:terminator_service, iface:iface, port:port, index:index);
+	index = index + 1;
+end for;
+
+// add to component file
+select one component_file related by comp_def->File[R401];
+::addFileToImports(file:component_file, file_to_import:port_file, type:ImportType::IMPL);
+
+// add imports
+::addStringToImports(file:port_file, s:"io.ciera.runtime.summit.exceptions.BadArgumentException", type:ImportType::IMPL);
+::addStringToImports(file:port_file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL);
+::addStringToImports(file:port_file, s:"io.ciera.runtime.summit.interfaces.IMessage", type:ImportType::IMPL);
+::addStringToImports(file:port_file, s:"io.ciera.runtime.summit.interfaces.IPort", type:ImportType::IMPL);
+::addFileToImports(file:port_file, file_to_import:component_file, type:ImportType::IMPL);
+::addFileToImports(file:port_file, file_to_import:iface_file, type:ImportType::IMPL);',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	5);
+INSERT INTO S_SPARM
+	VALUES ("eb52c79f-0717-4418-894d-a0b1e2376de0",
+	"93597cc3-f7ca-44bf-86ff-6d3f3d9b6818",
+	'domain_terminator',
+	"d32c0dae-6ff9-4154-9607-21e8f5db2bb8",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("d32c0dae-6ff9-4154-9607-21e8f5db2bb8",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<DomainTerminator>',
+	'',
+	'',
+	'../../../../ooamasl/models/ooamasl/ooamasl/domain/domain.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("75ae6a28-2f7c-47fb-8c94-54e2ed02bc7f",
+	"93597cc3-f7ca-44bf-86ff-6d3f3d9b6818",
+	'comp_def',
+	"109e90cb-1d66-46ee-88db-a568044879d0",
+	0,
+	'',
+	"eb52c79f-0717-4418-894d-a0b1e2376de0",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("d94d9f11-d275-46ee-bd4b-007a40971ec3",
+	"93597cc3-f7ca-44bf-86ff-6d3f3d9b6818",
+	'path',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"75ae6a28-2f7c-47fb-8c94-54e2ed02bc7f",
+	'');
+INSERT INTO PE_PE
+	VALUES ("93597cc3-f7ca-44bf-86ff-6d3f3d9b6818",
+	1,
+	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("004b6365-0d67-4a5a-9f29-ec2b21938c21",
+	"00000000-0000-0000-0000-000000000000",
+	'transformDomainTerminatorService',
+	'',
+	'terminator_service = param.terminator_service;
+select one service related by terminator_service->Service[R5203];
+iface = param.iface;
+index = param.index;
+
+// create message object
+create object instance msg of Message;
+msg.name = service.name;
+msg.to_provider = true;
+msg.id = index;
+relate msg to iface across R419;
+
+select one iface_file related by iface->File[R401];
+::addStringToImports( file:iface_file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL );
+::addStringToImports( file:iface_file, s:"io.ciera.runtime.summit.interfaces.Message", type:ImportType::IMPL );
+
+port = param.port;
+select one port_file related by port->File[R401];
+
+// create port message
+create object instance port_msg of PortMessage;
+relate port to msg across R420 using port_msg;
+
+// create invocable
+create object instance invocable of InvocableObject;
+invocable.name = msg.name;
+invocable.parent_name = port.name;
+invocable.parent_package = port.package;
+relate port_msg to invocable across R427;
+
+// populate the OAL
+//invocable.actions = "";  TODO
+
+// link type TODO
+type = ::TypeReference_getBuiltinTypeReference(name:"void");
+relate type to invocable across R428;
+
+// create parameters
+/* TODO
+select any c_pp related by c_ep->C_PP[R4006];
+prev_c_pp = c_pp;
+// select first parameter
+while ( not_empty prev_c_pp )
+  c_pp = prev_c_pp;
+  select one prev_c_pp related by c_pp->C_PP[R4021.''succeeds''];
+end while;
+while ( not_empty c_pp )
+  // create parameter
+  create object instance parm of FormalParameter;
+  parm.name = "p_" + c_pp.Name;
+  parm.by_ref = ( 1 == c_pp.By_Ref );
+  select one parm_dt related by c_pp->S_DT[R4007];
+  select many s_dims related by c_pp->S_DIM[R4017];
+  parm_type_ref = ::TypeReference_getInstance( s_dt:parm_dt, s_dims:s_dims );
+  relate parm_type_ref to parm across R431;
+  ::linkParameter( invocable:invocable, parameter:parm );
+  select one c_pp related by c_pp->C_PP[R4021.''precedes''];
+  if ((msg.to_provider and port.provider) or (not msg.to_provider and not port.provider))
+    if ( "boolean" == parm_type_ref.type_name )
+      ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.BooleanUtil", type:ImportType::IMPL );
+    elif ( "int" == parm_type_ref.type_name )
+      ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.IntegerUtil", type:ImportType::IMPL );
+    elif ( "double" == parm_type_ref.type_name )
+      ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.RealUtil", type:ImportType::IMPL );
+    elif ( "String" == parm_type_ref.type_name )
+      ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.StringUtil", type:ImportType::IMPL );
+    else
+      select one parm_type related by parm_type_ref->Type[R3800];
+      ::addTypeToImports( file:file, type_to_import:parm_type, type:ImportType::IMPL );
+    end if;
+  end if;
+end while;
+*/
+
+// relate the body
+/* TODO
+if ( not_empty act_act )
+  relate act_act to invocable across R432;
+else
+*/',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	6);
+INSERT INTO S_SPARM
+	VALUES ("52d90d59-5ad7-4837-b360-2b6196ac6741",
+	"004b6365-0d67-4a5a-9f29-ec2b21938c21",
+	'terminator_service',
+	"1f9d3f63-cc27-4669-8de9-5252b9fcf08b",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("1f9d3f63-cc27-4669-8de9-5252b9fcf08b",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<DomainTerminatorService>',
+	'',
+	'',
+	'../../../../ooamasl/models/ooamasl/ooamasl/domain/domain.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("d3e4b9a3-faf0-4293-b987-c0ea8ba0a858",
+	"004b6365-0d67-4a5a-9f29-ec2b21938c21",
+	'iface',
+	"003d869d-0580-4a1f-b1c8-e1657cc0248c",
+	0,
+	'',
+	"52d90d59-5ad7-4837-b360-2b6196ac6741",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("003d869d-0580-4a1f-b1c8-e1657cc0248c",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Iface>',
+	'',
+	'',
+	'../../../../core-architecture/models/core-architecture/architecture/interfaces/interfaces.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("4129176a-2b25-4e95-a495-c11796d7248e",
+	"004b6365-0d67-4a5a-9f29-ec2b21938c21",
+	'port',
+	"d29fe14e-2574-4613-ac57-716ebd8e905c",
+	0,
+	'',
+	"d3e4b9a3-faf0-4293-b987-c0ea8ba0a858",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("d29fe14e-2574-4613-ac57-716ebd8e905c",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Port>',
+	'',
+	'',
+	'../../../../core-architecture/models/core-architecture/architecture/interfaces/interfaces.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("a0f09456-2189-496f-979d-cb3a27b9dc40",
+	"004b6365-0d67-4a5a-9f29-ec2b21938c21",
+	'index',
+	"ba5eda7a-def5-0000-0000-000000000002",
+	0,
+	'',
+	"4129176a-2b25-4e95-a495-c11796d7248e",
+	'');
+INSERT INTO PE_PE
+	VALUES ("004b6365-0d67-4a5a-9f29-ec2b21938c21",
 	1,
 	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
 	"00000000-0000-0000-0000-000000000000",
