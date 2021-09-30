@@ -67,22 +67,37 @@ if ( 1 == param.pass )
   for each domain_service in domain_services
     ::transformDomainService(domain_service:domain_service, comp_def:comp_def);
   end for;
+  
+  // transform objects
+  select many object_declarations related by domain->ObjectDeclaration[R5805];
+  for each object_declaration in object_declarations
+    ::transformObject(object_declaration:object_declaration, comp_def:comp_def);
+  end for;
 
+  // transform instance population selectors
+  select many objs related by comp_def->Class[R408];
+  for each obj in objs
+    create object instance inst_pop_selector of InstancePopulationSelector;
+    inst_pop_selector.name = obj.name + "_instances";
+    relate inst_pop_selector to comp_def across R447;
+    relate inst_pop_selector to obj across R449;
+  end for;
+ 
   // create import block
-  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.application.IApplication", type:ImportType::IMPL );
-  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.application.IRunContext", type:ImportType::IMPL );
-  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.components.Component", type:ImportType::IMPL );
-  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.classes.IModelInstance", type:ImportType::IMPL );
-  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL );
-  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.BadArgumentException", type:ImportType::IMPL );
-  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.EmptyInstanceException", type:ImportType::IMPL );
+  ::addStringToImports(file:file, s:"io.ciera.runtime.summit.application.IApplication", type:ImportType::IMPL);
+  ::addStringToImports(file:file, s:"io.ciera.runtime.summit.application.IRunContext", type:ImportType::IMPL);
+  ::addStringToImports(file:file, s:"io.ciera.runtime.summit.components.Component", type:ImportType::IMPL);
+  ::addStringToImports(file:file, s:"io.ciera.runtime.summit.classes.IModelInstance", type:ImportType::IMPL);
+  ::addStringToImports(file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL);
+  ::addStringToImports(file:file, s:"io.ciera.runtime.summit.exceptions.BadArgumentException", type:ImportType::IMPL);
+  ::addStringToImports(file:file, s:"io.ciera.runtime.summit.exceptions.EmptyInstanceException", type:ImportType::IMPL);
 
-  ::addStringToImports( file:file, s:"java.util.Map", type:ImportType::IMPL );
-  ::addStringToImports( file:file, s:"java.util.TreeMap", type:ImportType::IMPL );
+  ::addStringToImports(file:file, s:"java.util.Map", type:ImportType::IMPL);
+  ::addStringToImports(file:file, s:"java.util.TreeMap", type:ImportType::IMPL);
   
   if ("" != component_version)
-    ::addStringToImports( file:file, s:"java.io.IOException", type:ImportType::IMPL );
-    ::addStringToImports( file:file, s:"java.util.Properties", type:ImportType::IMPL );
+    ::addStringToImports(file:file, s:"java.io.IOException", type:ImportType::IMPL);
+    ::addStringToImports(file:file, s:"java.util.Properties", type:ImportType::IMPL);
   end if;
 
 end if;',
@@ -328,6 +343,252 @@ INSERT INTO S_DT_PROXY
 	'../../../../core-architecture/models/core-architecture/architecture/component/component.xtuml');
 INSERT INTO PE_PE
 	VALUES ("6337d8b4-4779-4670-be9f-e297eabcf5d1",
+	1,
+	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("a167f7d5-3c79-4ff5-8b40-a091b9b1a31e",
+	"00000000-0000-0000-0000-000000000000",
+	'transformObject',
+	'',
+	'object_declaration = param.object_declaration;
+comp_def = param.comp_def;
+select one component_file related by comp_def->File[R401];
+path = component_file.path + "/" + "classes";  // put all classes in one package called ''classes''
+
+// get exclude mark
+/* TODO
+select one pe related by o_obj->PE_PE[R8001];
+select any class_exclude_mark from instances of Mark where ( selected.markable_name == "Model Class" and
+                                                            selected.path == ::containerMarkingPath( pe:pe ) + "::" + o_obj.Name and
+                                                            selected.feature_name == "Exclude" );
+
+// get mark for naming
+select any class_name_mark from instances of Mark where ( selected.markable_name == "Model Class" and
+																													selected.path == ::containerMarkingPath( pe:pe ) + "::" + o_obj.Name and
+																													selected.feature_name == "UseKeyLettersForName" );
+*/
+
+// create the object file
+create object instance file of File;
+//if ( empty class_name_mark )
+	file.name = ::camelCaseName(name:object_declaration.name, start_lower:false );
+//else
+//  file.name = o_obj.Key_Lett;
+//end if;
+file.path = path;
+file.package = ::pathToPackage(path:file.path);
+file.extension = ".java";
+file.exclude = false;
+
+// create the object
+create object instance obj of Class;
+relate obj to file across R401;
+obj.key_letters = file.name;  // TODO key letters
+obj.extends = "ModelInstance<" + obj.name + "," + comp_def.name + ">";
+
+// add the class to the component
+relate obj to comp_def across R408;
+
+// create the instance type
+create object instance type of Type;
+type.name = obj.name;
+type.package = obj.package;
+type.default_value = obj.name + "Impl.EMPTY_" + T::sub( format:"_u", s:obj.name );
+relate type to obj across R407;
+
+// transform attributes
+/* TODO
+select any o_attr related by o_obj->O_ATTR[R102];
+select one prev_attr related by o_attr->O_ATTR[R103.''succeeds''];
+while ( not_empty prev_attr )
+	o_attr = prev_attr;
+	select one prev_attr related by o_attr->O_ATTR[R103.''succeeds''];
+end while;
+index = 0;
+while ( not_empty o_attr )
+	if ( "current_state" != o_attr.Name )
+		::transformAttribute( o_attr:o_attr, obj:obj, index:index );
+		index = index + 1;
+	end if;
+	select one o_attr related by o_attr->O_ATTR[R103.''precedes''];
+end while;
+*/
+
+// transform operations
+/* TODO
+select many o_tfrs related by o_obj->O_TFR[R115];
+for each o_tfr in o_tfrs
+	::transformOperation( o_tfr:o_tfr, obj:obj );
+end for;
+*/
+
+// transform the state machine
+/* TODO
+select one sm related by o_obj->SM_ISM[R518]->SM_SM[R517];
+if ( not_empty sm )
+	::transformStateMachine( sm_sm:sm, obj:obj );
+	::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL );
+	::addStringToImports( file:file, s:"io.ciera.runtime.summit.statemachine.IEvent", type:ImportType::IMPL );
+	select any evt related by obj->StateMachine[R4750]->Event[R4752];
+	if ( not_empty evt )
+		::addStringToImports( file:file, s:"io.ciera.runtime.summit.statemachine.Event", type:ImportType::IMPL );
+	end if;
+end if;
+*/
+
+// transform the set object
+::transformObjectSet(obj:obj, path:path);
+
+// add to the containing component imports
+select one set_file related by obj->ClassSet[R406]->File[R401];
+::addFileToImports(file:component_file, file_to_import:file, type:ImportType::IMPL);
+::addFileToImports(file:component_file, file_to_import:set_file, type:ImportType::IMPL);
+::addStringToImports(file:component_file, s: ::pathToPackage( path:file.path ) + ".impl." + file.name + "Impl", type:ImportType::IMPL);
+::addStringToImports(file:component_file, s: ::pathToPackage( path:set_file.path ) + ".impl." + set_file.name + "Impl", type:ImportType::IMPL);
+::addStringToImports(file:component_file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL);
+
+// create the import block
+::addFileToImports(file:file, file_to_import:component_file, type:ImportType::BOTH);
+
+::addFileToImports(file:file, file_to_import:file, type:ImportType::IMPL);
+::addStringToImports(file:file, s:"io.ciera.runtime.summit.application.IRunContext", type:ImportType::IMPL);
+::addStringToImports(file:file, s:"io.ciera.runtime.summit.classes.InstanceIdentifier", type:ImportType::IMPL);
+::addStringToImports(file:file, s:"io.ciera.runtime.summit.classes.IInstanceIdentifier", type:ImportType::IMPL);
+::addStringToImports(file:file, s:"io.ciera.runtime.summit.classes.IModelInstance", type:ImportType::INT);
+::addStringToImports(file:file, s:"io.ciera.runtime.summit.classes.ModelInstance", type:ImportType::IMPL);
+::addStringToImports(file:file, s:"io.ciera.runtime.summit.exceptions.InstancePopulationException", type:ImportType::IMPL);
+::addStringToImports(file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL);
+::addStringToImports(file:file, s:"io.ciera.runtime.summit.types.IWhere", type:ImportType::IMPL);
+::addStringToImports(file:file, s:"io.ciera.runtime.summit.types.IXtumlType", type:ImportType::IMPL);
+::addStringToImports(file:file, s:"io.ciera.runtime.summit.types.UniqueId", type:ImportType::IMPL);
+::addStringToImports(file:file, s:"io.ciera.runtime.instanceloading.InstanceCreatedDelta", type:ImportType::IMPL);',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	4);
+INSERT INTO S_SPARM
+	VALUES ("de3adfbb-18df-4417-8e71-9157b189c106",
+	"a167f7d5-3c79-4ff5-8b40-a091b9b1a31e",
+	'object_declaration',
+	"ccbbc697-c60c-4034-8e31-7a46032151eb",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("ccbbc697-c60c-4034-8e31-7a46032151eb",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<ObjectDeclaration>',
+	'',
+	'',
+	'../../../../ooamasl/models/ooamasl/ooamasl/object/object.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("192d3817-53e8-46de-a490-3b0072f3eafc",
+	"a167f7d5-3c79-4ff5-8b40-a091b9b1a31e",
+	'comp_def',
+	"109e90cb-1d66-46ee-88db-a568044879d0",
+	0,
+	'',
+	"de3adfbb-18df-4417-8e71-9157b189c106",
+	'');
+INSERT INTO PE_PE
+	VALUES ("a167f7d5-3c79-4ff5-8b40-a091b9b1a31e",
+	1,
+	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("c532c34c-bb46-42d3-8f7e-6798cb8d1e58",
+	"00000000-0000-0000-0000-000000000000",
+	'transformObjectSet',
+	'',
+	'obj = param.obj;
+
+// create the object file
+create object instance file of File;
+file.name = obj.name + "Set";
+file.path = param.path;
+file.package = ::pathToPackage(path:file.path);
+file.extension = ".java";
+file.exclude = false;
+
+// create the class set object
+create object instance objset of ClassSet;
+relate objset to obj across R406;
+relate objset to file across R401;
+objset.extends = "InstanceSet<" + objset.name + "," + obj.name + ">";
+objset.comparator = "";
+
+// set the comparator
+/* TODO
+select any comparator_mark from instances of Mark where ( selected.markable_name == "*" and selected.path == "*" and selected.feature_name == "SortComparator" );
+if ( not_empty comparator_mark )
+  select many attr_accessors related by objset->Class[R406]->Attribute[R410]->AttributeAccessor[R4510] where ( selected.accessor_type == AttributeAccessorType::GETTER );
+  for each attr_accessor in attr_accessors
+    if ( attr_accessor.getName() == comparator_mark.value )
+      objset.comparator = comparator_mark.value;
+      break;
+    end if;
+  end for;
+end if;
+*/
+
+// create the instance type
+create object instance type of Type;
+type.name = objset.name;
+type.package = objset.package;
+type.default_value = "new " + objset.name + "Impl()";
+relate type to objset across R407;
+
+// create the import block
+select one objfile related by obj->File[R401];
+::addFileToImports(file:file, file_to_import:file, type: ImportType::IMPL);
+::addFileToImports(file:file, file_to_import:objfile, type: ImportType::IMPL);
+::addStringToImports(file:file, s:"java.util.Arrays", type:ImportType::IMPL);
+::addStringToImports(file:file, s:"java.util.Comparator", type:ImportType::IMPL);
+::addStringToImports(file:file, s:"java.util.List", type:ImportType::IMPL);
+::addStringToImports(file:file, s:"io.ciera.runtime.summit.classes.InstanceSet", type:ImportType::IMPL);
+::addStringToImports(file:file, s:"io.ciera.runtime.summit.classes.IInstanceSet", type:ImportType::INT);
+
+select any attr related by objset->Class[R406]->Attribute[R410];
+if (not_empty attr)
+  ::addStringToImports(file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::BOTH);
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	0);
+INSERT INTO S_SPARM
+	VALUES ("7bb7660f-dc28-4ddd-a4e0-1789f3e863cd",
+	"c532c34c-bb46-42d3-8f7e-6798cb8d1e58",
+	'obj',
+	"a519e323-b117-4a03-9435-b88e56c2443d",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("a519e323-b117-4a03-9435-b88e56c2443d",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Model Inst>',
+	'',
+	'',
+	'../../../../core-architecture/models/core-architecture/architecture/classes/classes.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("a6420656-4132-4d4a-9adb-cd2e9f55405b",
+	"c532c34c-bb46-42d3-8f7e-6798cb8d1e58",
+	'path',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"7bb7660f-dc28-4ddd-a4e0-1789f3e863cd",
+	'');
+INSERT INTO PE_PE
+	VALUES ("c532c34c-bb46-42d3-8f7e-6798cb8d1e58",
 	1,
 	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
 	"00000000-0000-0000-0000-000000000000",
