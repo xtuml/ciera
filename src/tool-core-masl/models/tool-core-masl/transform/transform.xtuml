@@ -1022,62 +1022,46 @@ if (not_empty normal)
 		rel.id_num = 0;
 	end if;
 	*/
-	rel.id_num = 0;
 
 else
-	/*
-select one r_subsup related by r_rel->R_SUBSUP[R206];
-if ( not_empty r_subsup )
+select one subsup related by maslrel->SubtypeRelationshipDeclaration[R6010];
+if ( not_empty subsup )
 
-	select one part_class related by r_subsup->R_SUPER[R212]->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->Class[R409];
-	select many sub_classes related by r_subsup->R_SUB[R213]->R_RGO[R205]->R_OIR[R203]->O_OBJ[R201]->Class[R409];
-	if ( not_empty part_class and not_empty sub_classes )
-		part_phrase = "is_a";
-		for each form_class in sub_classes
+	select one part_class related by subsup->ObjectDeclaration[R6017]->Class[R8300];
+	select many sub_classes related by subsup->ObjectDeclaration[R6016]->Class[R8300];
+	part_phrase = "is_a";
+	for each form_class in sub_classes
 
-			form_phrase = "is_a";
-			form_cond = Cond::CONDITIONAL;
+		form_phrase = "is_a";
+		form_cond = Cond::CONDITIONAL;
 
-			// create the relationship
-			create object instance rel of Relationship;
-			name = "R" + STRING::itoa( i:r_rel.Numb ) + "_" + form_class.name + "_";
-			if ( "" != part_phrase )
-				name = name + part_phrase + "_";
-			end if;
-			name = name + part_class.name;
-			rel.name = name;
-			rel.num = r_rel.Numb;
-			rel.form_phrase = form_phrase;
-			rel.part_phrase = part_phrase;
-			rel.form_mult = form_mult;
-			rel.part_mult = part_mult;
-			rel.form_cond = form_cond;
-			rel.part_cond = part_cond;
-			rel.rel_type = RelationshipType::SuperSubtype;
-			relate rel to comp_def across R448;
-			relate rel to form_class across R435;
-			relate rel to part_class across R434;
-			
-			select one o_id related by r_subsup->R_SUPER[R212]->R_RTO[R204]->O_ID[R109];
-			if ( not_empty o_id )
-				rel.id_num = o_id.Oid_ID + 1;
-			else
-				rel.id_num = 0;
-			end if;
-
-			// special case for EP_PKG instances... top level packages do not have a PE_PE instance
-			if ( 8001 == rel.num and "EP_PKG" == rel.form_name )
-				LOG::LogInfo( message:"  Special casing R8001 EP_PKG to PackageableElement" );
-				rel.part_cond = Cond::CONDITIONAL;
-			end if;
-
-		end for;
-	else
-		// TODO bad
-	end if;
+		// create the relationship
+		create object instance rel of Relationship;
+		name = maslrel.name + "_" + form_class.name + "_is_a_" + part_class.name;
+		rel.name = name;
+		rel.num = STRING::atoi(s:STRING::substr(s:maslrel.name, begin:1, end:-1));
+		rel.form_phrase = form_phrase;
+		rel.part_phrase = part_phrase;
+		rel.form_mult = form_mult;
+		rel.part_mult = part_mult;
+		rel.form_cond = form_cond;
+		rel.part_cond = part_cond;
+		rel.rel_type = RelationshipType::SuperSubtype;
+		relate rel to comp_def across R448;
+		relate rel to form_class across R435;
+		relate rel to part_class across R434;
+		
+		/* TODO get the ID number
+		select one o_id related by r_subsup->R_SUPER[R212]->R_RTO[R204]->O_ID[R109];
+		if ( not_empty o_id )
+			rel.id_num = o_id.Oid_ID + 1;
+		else
+			rel.id_num = 0;
+		end if;
+		*/
+	end for;
 
 else
-*/
 select one assoc related by maslrel->AssociativeRelationshipDeclaration[R6010];
 if (not_empty assoc)
   
@@ -1185,9 +1169,7 @@ if (not_empty assoc)
 	*/
 	
 	relate rel1 to rel2 across R436.''is one half of associative'';  // note these are a symmetric pair.
-else
-	// TODO bad
-end if; end if;// end if;
+end if; end if; end if;
 
 // add necessary imports
 ::addStringToImports(file:file, s:"io.ciera.runtime.summit.classes.RelationshipSet", type:ImportType::IMPL);
