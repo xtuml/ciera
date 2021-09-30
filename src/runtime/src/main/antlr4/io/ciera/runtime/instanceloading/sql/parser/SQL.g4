@@ -1,9 +1,5 @@
 grammar SQL;
 
-@header {
-package io.ciera.runtime.instanceloading.sql.parser;
-}
-
 sql_file:          ( insert_statement | link_statement )*;
 
 insert_statement:  'INSERT' 'INTO' table_name 'VALUES' LPAREN values RPAREN SEMI;
