@@ -391,6 +391,7 @@ INSERT INTO S_SYNC
 	'transformObject',
 	'',
 	'object_declaration = param.object_declaration;
+select one domain related by object_declaration->Domain[R5805];
 comp_def = param.comp_def;
 select one component_file related by comp_def->File[R401];
 path = component_file.path + "/" + "classes";  // put all classes in one package called ''classes''
@@ -408,13 +409,14 @@ select any class_name_mark from instances of Mark where ( selected.markable_name
 																													selected.feature_name == "UseKeyLettersForName" );
 */
 
+// get key letters mark
+select any key_letter_mark from instances of Mark where (selected.markable_name == "Object" and
+  selected.feature_name == "key_letter" and
+  selected.path == "" + domain.name + "::" + object_declaration.name);
+
 // create the object file
 create object instance file of File;
-//if ( empty class_name_mark )
-	file.name = ::camelCaseName(name:object_declaration.name, start_lower:false );
-//else
-//  file.name = o_obj.Key_Lett;
-//end if;
+file.name = ::camelCaseName(name:object_declaration.name, start_lower:false );
 file.path = path;
 file.package = ::pathToPackage(path:file.path);
 file.extension = ".java";
@@ -423,7 +425,11 @@ file.exclude = false;
 // create the object
 create object instance obj of Class;
 relate obj to file across R401;
-obj.key_letters = file.name;  // TODO key letters
+if (not_empty key_letter_mark)
+  obj.key_letters = key_letter_mark.value;
+else
+  obj.key_letters = file.name;
+end if;
 obj.extends = "ModelInstance<" + obj.name + "," + comp_def.name + ">";
 
 // add the class to the component
