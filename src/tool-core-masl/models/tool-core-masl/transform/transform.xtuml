@@ -440,22 +440,18 @@ type.default_value = obj.name + "Impl.EMPTY_" + T::sub( format:"_u", s:obj.name 
 relate type to obj across R407;
 
 // transform attributes
-/* TODO
-select any o_attr related by o_obj->O_ATTR[R102];
-select one prev_attr related by o_attr->O_ATTR[R103.''succeeds''];
-while ( not_empty prev_attr )
-	o_attr = prev_attr;
-	select one prev_attr related by o_attr->O_ATTR[R103.''succeeds''];
+select any maslattr related by object_declaration->AttributeDeclaration[R5802];
+select one prev_attr related by maslattr->AttributeDeclaration[R5809.''succeeds''];
+while (not_empty prev_attr)
+  maslattr = prev_attr;
+  select one prev_attr related by maslattr->AttributeDeclaration[R5809.''succeeds''];
 end while;
 index = 0;
-while ( not_empty o_attr )
-	if ( "current_state" != o_attr.Name )
-		::transformAttribute( o_attr:o_attr, obj:obj, index:index );
-		index = index + 1;
-	end if;
-	select one o_attr related by o_attr->O_ATTR[R103.''precedes''];
+while (not_empty maslattr)
+  ::transformAttributeDeclaration(attr:maslattr, obj:obj, index:index);
+	index = index + 1;
+	select one maslattr related by maslattr->AttributeDeclaration[R5809.''precedes''];
 end while;
-*/
 
 // transform operations
 /* TODO
@@ -1159,7 +1155,7 @@ if (not_empty assoc)
 	relate rel2 to form_class across R435;
 	relate rel2 to part_class across R434;
 
-  /*
+  /* TODO
 	select one o_id2 related by r_assoc->R_AOTH[R210]->R_RTO[R204]->O_ID[R109];
 	if ( not_empty o_id2 )
 		rel2.id_num = o_id2.Oid_ID + 1;
@@ -1211,6 +1207,124 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("14b42ff1-d03f-4557-bb85-e0d523c9f560",
+	1,
+	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("d13703e8-082b-41d8-9e21-0e3d97d6da31",
+	"00000000-0000-0000-0000-000000000000",
+	'transformAttributeDeclaration',
+	'',
+	'maslattr = param.attr;
+obj = param.obj;
+
+// create the attribute
+create object instance attr of Attribute;
+select many referentials related by maslattr->ReferentialAttributeDefinition[R5800.''refers_to''];
+if (not_empty referentials)
+  attr.name = "ref_" + maslattr.name;
+else
+  attr.name = "m_" + maslattr.name;
+end if;
+attr.base_name = maslattr.name;
+attr.order = param.index;
+attr.default_value = "";
+relate attr to obj across R410;
+
+// set part of identifier
+attr.identifier = 0;
+if maslattr.isPreferredIdentifier
+  attr.identifier = 1;
+end if;
+
+// relate to masl class
+relate attr to maslattr across R8301;
+
+// set the type
+/* TODO
+select one s_dt related by o_attr->S_DT[R114];
+if ( "same_as<Base_Attribute>" == s_dt.Name )
+  select one s_dt related by o_attr->O_RATTR[R106]->O_BATTR[R113]->O_ATTR[R106]->S_DT[R114];
+end if;
+if ( empty s_dt )
+  // TODO bad
+end if;
+select many s_dims related by o_attr->S_DIM[R120];
+type = ::TypeReference_getInstance(s_dt:s_dt, s_dims:s_dims);
+*/
+type = ::TypeReference_getBuiltinTypeReference(name:"boolean");  // temp
+select one array_type related by type->ArrayTypeReference[R3801];
+relate type to attr across R424;
+
+// set default value for unique id attributes
+/* TODO handle unique IDs
+if ( "UniqueId" == type.type_name )
+  attr.default_value = "UniqueId.random()";
+end if;
+*/
+
+// create accessors
+create object instance getter of AttributeAccessor;
+getter.accessor_type = AttributeAccessorType::GETTER;
+relate getter to attr across R4510;
+create object instance setter of AttributeAccessor;
+setter.accessor_type = AttributeAccessorType::SETTER;
+relate setter to attr across R4510;
+
+// add import to object file
+select one file related by obj->File[R401];
+::addStringToImports(file:file, s:"io.ciera.runtime.instanceloading.AttributeChangedDelta", type:ImportType::IMPL);
+::addStringToImports(file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::BOTH);
+::addStringToImports(file:file, s:"io.ciera.runtime.summit.exceptions.EmptyInstanceException", type:ImportType::IMPL);
+/* TODO
+if (not_empty array_type)
+  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.ArrayUtil", type:ImportType::IMPL );
+elif ("String" == type.type_name and "" == type.type_package)
+  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.StringUtil", type:ImportType::IMPL );
+end if;
+*/',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	8);
+INSERT INTO S_SPARM
+	VALUES ("0634ff00-eab7-45e6-b893-1874b2a5c7e8",
+	"d13703e8-082b-41d8-9e21-0e3d97d6da31",
+	'attr',
+	"bc9fb0af-6887-4a01-9bad-2412058db57c",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("bc9fb0af-6887-4a01-9bad-2412058db57c",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<AttributeDeclaration>',
+	'',
+	'',
+	'../../../../ooamasl/models/ooamasl/ooamasl/object/object.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("85724f64-796f-4d88-a420-3ce289a4b058",
+	"d13703e8-082b-41d8-9e21-0e3d97d6da31",
+	'obj',
+	"a519e323-b117-4a03-9435-b88e56c2443d",
+	0,
+	'',
+	"0634ff00-eab7-45e6-b893-1874b2a5c7e8",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("fc943558-6916-44c3-8857-8d46e5beb953",
+	"d13703e8-082b-41d8-9e21-0e3d97d6da31",
+	'index',
+	"ba5eda7a-def5-0000-0000-000000000002",
+	0,
+	'',
+	"85724f64-796f-4d88-a420-3ce289a4b058",
+	'');
+INSERT INTO PE_PE
+	VALUES ("d13703e8-082b-41d8-9e21-0e3d97d6da31",
 	1,
 	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
 	"00000000-0000-0000-0000-000000000000",
