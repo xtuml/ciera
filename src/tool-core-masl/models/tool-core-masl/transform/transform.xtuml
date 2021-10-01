@@ -454,12 +454,10 @@ while (not_empty maslattr)
 end while;
 
 // transform operations
-/* TODO
-select many o_tfrs related by o_obj->O_TFR[R115];
-for each o_tfr in o_tfrs
-	::transformOperation( o_tfr:o_tfr, obj:obj );
+select many object_services related by object_declaration->ObjectService[R5808];
+for each object_service in object_services
+	::transformObjectService(object_service:object_service, obj:obj);
 end for;
-*/
 
 // transform the state machine
 /* TODO
@@ -1325,6 +1323,109 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("d13703e8-082b-41d8-9e21-0e3d97d6da31",
+	1,
+	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("ea574998-30fc-4373-a1c8-d4b289d85244",
+	"00000000-0000-0000-0000-000000000000",
+	'transformObjectService',
+	'',
+	'object_service = param.object_service;
+select one service related by object_service->Service[R5203];
+obj = param.obj;
+
+// create operation object
+create object instance op of Operation;
+op.is_class_based = not object_service.isInstance;
+relate op to obj across R416;
+
+// create invocable
+create object instance invocable of InvocableObject;
+invocable.name = service.name;
+invocable.parent_name = op.class_name;
+invocable.parent_package = op.class_package;
+relate op to invocable across R427;
+//invocable.actions = o_tfr.Action_Semantics_internal; TODO
+
+// link type TODO
+type = ::TypeReference_getBuiltinTypeReference(name:"void");
+relate type to invocable across R428;
+
+// create parameters
+/* TODO
+select any o_tparm related by o_tfr->O_TPARM[R117];
+prev_o_tparm = o_tparm;
+// select first parameter
+while (not_empty prev_o_tparm)
+  o_tparm = prev_o_tparm;
+  select one prev_o_tparm related by o_tparm->O_TPARM[R124.''succeeds''];
+end while;
+while (not_empty o_tparm)
+  // create parameter
+  create object instance parm of FormalParameter;
+  parm.name = "p_" + o_tparm.Name;
+  parm.by_ref = (1 == o_tparm.By_Ref);
+  select one parm_dt related by o_tparm->S_DT[R118];
+  select many s_dims related by o_tparm->S_DIM[R121];
+  parm_type = ::TypeReference_getInstance(s_dt:parm_dt, s_dims:s_dims);
+  relate parm_type to parm across R431;
+  ::linkParameter(invocable:invocable, parameter:parm);
+  select one o_tparm related by o_tparm->O_TPARM[R124.''precedes''];
+end while;
+*/
+
+// relate the body
+/* TODO
+select one act_act related by o_tfr->ACT_OPB[R696]->ACT_ACT[R698];
+if (not_empty act_act)
+  relate act_act to invocable across R432;
+end if;
+*/
+
+// add imports
+select one class_file related by obj->File[R401];
+::addStringToImports(file:class_file, s:"io.ciera.runtime.summit.exceptions.EmptyInstanceException", type:ImportType::IMPL);
+if (op.is_class_based)
+  ::addStringToImports(file:class_file, s:"io.ciera.runtime.summit.application.ActionHome", type:ImportType::IMPL);
+end if;
+::addStringToImports(file:class_file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::BOTH);
+
+// if this is an optional deferred operation, create a second operation for the supertype implementation
+// TODO',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	3);
+INSERT INTO S_SPARM
+	VALUES ("ca074451-023a-420f-b508-78f978e97d7b",
+	"ea574998-30fc-4373-a1c8-d4b289d85244",
+	'object_service',
+	"4ad9b822-f9c4-40b0-bfd6-44ed4fbaaf33",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("4ad9b822-f9c4-40b0-bfd6-44ed4fbaaf33",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<ObjectService>',
+	'',
+	'',
+	'../../../../ooamasl/models/ooamasl/ooamasl/object/object.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("a4f23ffc-c780-4de8-ac12-e8e66ba04067",
+	"ea574998-30fc-4373-a1c8-d4b289d85244",
+	'obj',
+	"a519e323-b117-4a03-9435-b88e56c2443d",
+	0,
+	'',
+	"ca074451-023a-420f-b508-78f978e97d7b",
+	'');
+INSERT INTO PE_PE
+	VALUES ("ea574998-30fc-4373-a1c8-d4b289d85244",
 	1,
 	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
 	"00000000-0000-0000-0000-000000000000",
