@@ -459,19 +459,27 @@ for each object_service in object_services
 	::transformObjectService(object_service:object_service, obj:obj);
 end for;
 
-// transform the state machine
-/* TODO
-select one sm related by o_obj->SM_ISM[R518]->SM_SM[R517];
-if ( not_empty sm )
-	::transformStateMachine( sm_sm:sm, obj:obj );
-	::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL );
-	::addStringToImports( file:file, s:"io.ciera.runtime.summit.statemachine.IEvent", type:ImportType::IMPL );
-	select any evt related by obj->StateMachine[R4750]->Event[R4752];
-	if ( not_empty evt )
-		::addStringToImports( file:file, s:"io.ciera.runtime.summit.statemachine.Event", type:ImportType::IMPL );
-	end if;
-end if;
-*/
+// transform states
+select many states related by object_declaration->State2[R6105];
+state_number = 0;
+for each state in states
+  ::transformMaslState(state:state, obj:obj, number:state_number);
+  state_number = state_number + 1;
+end for;
+
+// transform events
+select many evts related by object_declaration->EventDeclaration[R6101];
+evt_number = 0;
+for each evt in evts
+  ::transformMaslEvent(evt:evt, obj:obj, number:evt_number);
+  evt_number = evt_number + 1;
+end for;
+
+// transform transition tables
+select many transition_tables related by object_declaration->TransitionTable[R6113];
+for each transition_table in transition_tables
+  ::transformTransitionTable(transition_table:transition_table, obj:obj);
+end for;
 
 // transform the set object
 ::transformObjectSet(obj:obj, path:path);
@@ -1426,6 +1434,319 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("ea574998-30fc-4373-a1c8-d4b289d85244",
+	1,
+	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("438be88e-6ba7-41ed-bf4c-7361ded3bbed",
+	"00000000-0000-0000-0000-000000000000",
+	'transformMaslState',
+	'',
+	'maslstate = param.state;
+obj = param.obj;
+
+if (maslstate.flavor == StateType::assigner or 
+  maslstate.flavor == StateType::assigner_start or
+  maslstate.flavor == StateType::creation)
+  LOG::LogFailure(message:"State type not supported for state: " + obj.name + "." + maslstate.name);
+  return;
+end if;
+
+select one sm related by obj->StateMachine[R4750];
+if (empty sm)
+  ::createMaslStateMachine(obj:obj);
+  select one sm related by obj->StateMachine[R4750];
+end if;
+
+// create state
+create object instance state of State;
+relate state to sm across R4751;
+state.final = maslstate.flavor == StateType::terminal;
+state.number = param.number;
+
+// TODO check terminal state behavior
+
+// create invocable
+create object instance invocable of InvocableObject;
+invocable.name = T::sub(format:"_", s:maslstate.name);
+invocable.parent_name = sm.name;
+invocable.parent_package = sm.package;
+relate state to invocable across R427;
+// TODO
+//select one sm_act related by sm_state->SM_MOAH[R511]->SM_AH[R513]->SM_ACT[R514];
+//invocable.actions = sm_act.Action_Semantics_internal;
+
+// relate the body
+/* TODO
+select one act_act related by sm_act->ACT_SAB[R691]->ACT_ACT[R698];
+if (not_empty act_act)
+  relate act_act to invocable across R432;
+end if;
+*/
+
+// link type
+type = ::TypeReference_getBuiltinTypeReference(name:"void");
+relate type to invocable across R428;
+
+// link to masl state
+relate state to maslstate across R8302;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	9);
+INSERT INTO S_SPARM
+	VALUES ("fbf7ba79-96fc-4e02-bd44-2c6030200492",
+	"438be88e-6ba7-41ed-bf4c-7361ded3bbed",
+	'state',
+	"640e9a30-074e-45fd-aa2b-fdcc3fc56f5b",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("640e9a30-074e-45fd-aa2b-fdcc3fc56f5b",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<State>',
+	'',
+	'',
+	'../../../../ooamasl/models/ooamasl/ooamasl/statemodel/statemodel.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("c2fcb60e-fa83-428e-bd18-4ab828c25aa1",
+	"438be88e-6ba7-41ed-bf4c-7361ded3bbed",
+	'obj',
+	"a519e323-b117-4a03-9435-b88e56c2443d",
+	0,
+	'',
+	"fbf7ba79-96fc-4e02-bd44-2c6030200492",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("b0da04dd-869a-48d6-8b5b-c627978d4ce1",
+	"438be88e-6ba7-41ed-bf4c-7361ded3bbed",
+	'number',
+	"ba5eda7a-def5-0000-0000-000000000002",
+	0,
+	'',
+	"c2fcb60e-fa83-428e-bd18-4ab828c25aa1",
+	'');
+INSERT INTO PE_PE
+	VALUES ("438be88e-6ba7-41ed-bf4c-7361ded3bbed",
+	1,
+	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("48de3bbe-9980-41be-8853-893f124f6be8",
+	"00000000-0000-0000-0000-000000000000",
+	'transformMaslEvent',
+	'',
+	'maslevt = param.evt;
+obj = param.obj;
+
+// create state machine if necessary
+select one sm related by obj->StateMachine[R4750];
+if (empty sm)
+  ::createMaslStateMachine(obj:obj);
+  select one sm related by obj->StateMachine[R4750];
+end if;
+
+// create event
+create object instance evt of Event;
+relate evt to sm across R4752;
+evt.id = param.number;
+
+// create invocable
+create object instance invocable of InvocableObject;
+invocable.name = T::sub(format:"_", s:maslevt.name);
+invocable.parent_name = sm.name;
+invocable.parent_package = sm.package;
+relate evt to invocable across R427;
+invocable.actions = "";
+
+// link type
+type = ::TypeReference_getBuiltinTypeReference(name:"void");
+relate type to invocable across R428;
+
+// create parameters
+/* TODO
+select any sm_evtdi related by sm_evt->SM_EVTDI[R532];
+prev_sm_evtdi = sm_evtdi;
+// select first parameter
+while ( not_empty prev_sm_evtdi )
+  sm_evtdi = prev_sm_evtdi;
+  select one prev_sm_evtdi related by sm_evtdi->SM_EVTDI[R533.''succeeds''];
+end while;
+while ( not_empty sm_evtdi )
+  // create parameter
+  create object instance parm of FormalParameter;
+  parm.name = "p_" + sm_evtdi.Name;
+  parm.by_ref = false;
+  select one parm_dt related by sm_evtdi->S_DT[R524];
+  select many s_dims related by sm_evtdi->S_DIM[R531];
+  parm_type = ::TypeReference_getInstance( s_dt:parm_dt, s_dims:s_dims );
+  relate parm_type to parm across R431;
+  ::linkParameter( invocable:invocable, parameter:parm );
+  select one sm_evtdi related by sm_evtdi->SM_EVTDI[R533.''precedes''];
+end while;
+*/
+
+// add import
+select one class_file related by obj->File[R401];
+::addStringToImports(file:class_file, s:"io.ciera.runtime.summit.statemachine.Event", type:ImportType::IMPL);
+
+// link to masl state
+relate evt to maslevt across R8303;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	11);
+INSERT INTO S_SPARM
+	VALUES ("1e58e713-463c-42b9-ab0c-45d4045f7889",
+	"48de3bbe-9980-41be-8853-893f124f6be8",
+	'evt',
+	"4cfcfee8-b8db-43f0-9290-af0d49e530d4",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("4cfcfee8-b8db-43f0-9290-af0d49e530d4",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<EventDeclaration>',
+	'',
+	'',
+	'../../../../ooamasl/models/ooamasl/ooamasl/statemodel/statemodel.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("7ea28e80-e4ec-45f1-b97f-5571da228235",
+	"48de3bbe-9980-41be-8853-893f124f6be8",
+	'obj',
+	"a519e323-b117-4a03-9435-b88e56c2443d",
+	0,
+	'',
+	"1e58e713-463c-42b9-ab0c-45d4045f7889",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("cae89845-6b86-4f4c-8bcf-e3529a9f9ea8",
+	"48de3bbe-9980-41be-8853-893f124f6be8",
+	'number',
+	"ba5eda7a-def5-0000-0000-000000000002",
+	0,
+	'',
+	"7ea28e80-e4ec-45f1-b97f-5571da228235",
+	'');
+INSERT INTO PE_PE
+	VALUES ("48de3bbe-9980-41be-8853-893f124f6be8",
+	1,
+	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("7a140795-ad3a-4902-b565-414d39405728",
+	"00000000-0000-0000-0000-000000000000",
+	'transformTransitionTable',
+	'',
+	'transition_table = param.transition_table;
+obj = param.obj;
+
+if (transition_table.isassigner)
+  LOG::LogFailure(message:"Assigner state machine not supported for: " + obj.name);
+  return;
+end if;
+
+select one sm related by obj->StateMachine[R4750];
+
+select many transition_rows related by transition_table->TransitionRow[R6114];
+for each transition_row in transition_rows
+  
+  select one start_state related by transition_row->State2[R6111]->State[R8302];
+
+  // create a row for this start state
+  create object instance row of TransitionTableRow;
+  relate row to sm across R4753;
+  relate row to start_state across R4754;
+  row.index = start_state.number;
+  
+  select many transition_options related by transition_row->TransitionOption[R6112];
+  for each transition_option in transition_options
+    
+    select one evt related by transition_option->EventDeclaration[R6108]->Event[R8303];
+    
+    // create a cell for this option
+    create object instance cell of TransitionTableCell;
+    relate cell to row across R4755;
+    relate cell to evt across R4756;
+    cell.index = evt.id;
+    
+    if (transition_option.flavor == TransitionType2::ignore)
+      cell.transition_type = TransitionType::IGNORE;
+    elif (transition_option.flavor == TransitionType2::cannot_happen)
+      cell.transition_type = TransitionType::CANT_HAPPEN;
+    else
+      select one dest_state related by transition_option->State2[R6109]->State[R8302];
+      
+      select one test1 related by transition_option->State2[R6109];
+      if empty test1
+        LOG::LogFailure(message:"FAIL");
+      end if;
+      
+      LOG::LogInfo(message:"Levi " + start_state.name);
+      LOG::LogInfo(message:"Levi " + evt.name);
+
+			// create transition
+			create object instance txn of Transition;
+			relate dest_state to cell across R4757 using txn;
+			cell.transition_type = TransitionType::TRANSITION;
+
+			// create invocable
+			create object instance invocable of InvocableObject;
+			invocable.name = start_state.name + "_txn_" + dest_state.name;
+			invocable.parent_name = sm.name;
+			invocable.parent_package = sm.package;
+			relate txn to invocable across R427;
+			invocable.actions = "";  // MASL does not support transition actions
+			
+			// link type
+			type = ::TypeReference_getBuiltinTypeReference( name:"void" );
+			relate type to invocable across R428;
+
+    end if;
+  end for;
+end for;
+ ',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	12);
+INSERT INTO S_SPARM
+	VALUES ("5c80d557-a927-4b35-9546-21f7d4c64605",
+	"7a140795-ad3a-4902-b565-414d39405728",
+	'transition_table',
+	"1562ccf7-11fc-4113-b5e2-b75406fe923c",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("1562ccf7-11fc-4113-b5e2-b75406fe923c",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<TransitionTable>',
+	'',
+	'',
+	'../../../../ooamasl/models/ooamasl/ooamasl/statemodel/statemodel.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("1df2a65e-2f3b-4091-967b-d0bd4c1a32ab",
+	"7a140795-ad3a-4902-b565-414d39405728",
+	'obj',
+	"a519e323-b117-4a03-9435-b88e56c2443d",
+	0,
+	'',
+	"5c80d557-a927-4b35-9546-21f7d4c64605",
+	'');
+INSERT INTO PE_PE
+	VALUES ("7a140795-ad3a-4902-b565-414d39405728",
 	1,
 	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
 	"00000000-0000-0000-0000-000000000000",

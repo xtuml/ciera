@@ -135,6 +135,65 @@ INSERT INTO PE_PE
 	"3e3aaf4c-aba5-451d-b263-e8fc1b717bce",
 	"00000000-0000-0000-0000-000000000000",
 	1);
+INSERT INTO S_SYNC
+	VALUES ("34ba9655-261b-4ebc-add4-58be8d199d22",
+	"00000000-0000-0000-0000-000000000000",
+	'createMaslStateMachine',
+	'',
+	'obj = param.obj;
+
+// create the state machine file
+create object instance file of File;
+file.name = obj.name + "StateMachine";
+file.path = ::formatPath(path:obj.package);
+file.package = obj.package;
+file.extension = ".java";
+file.exclude = false;
+
+// create the object
+create object instance sm of StateMachine;
+relate sm to file across R401;
+relate sm to obj across R4750;
+
+// add imports
+::addStringToImports(file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL);
+::addStringToImports(file:file, s:"io.ciera.runtime.summit.statemachine.ITransition", type:ImportType::IMPL);
+::addStringToImports(file:file, s:"io.ciera.runtime.summit.statemachine.StateMachine", type:ImportType::IMPL);
+
+select one class_file related by obj->File[R401];
+select one comp_file related by obj->ComponentDefinition[R408]->File[R401];
+::addFileToImports(file:file, file_to_import:class_file, type:ImportType::IMPL);
+::addFileToImports(file:file, file_to_import:comp_file, type:ImportType::IMPL);
+
+::addStringToImports(file:class_file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL);
+::addStringToImports(file:class_file, s:"io.ciera.runtime.summit.statemachine.IEvent", type:ImportType::IMPL);',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	10);
+INSERT INTO S_SPARM
+	VALUES ("619d5ec2-457c-4c5c-9d7c-d80d03cfb2f1",
+	"34ba9655-261b-4ebc-add4-58be8d199d22",
+	'obj',
+	"a519e323-b117-4a03-9435-b88e56c2443d",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("a519e323-b117-4a03-9435-b88e56c2443d",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Model Inst>',
+	'',
+	'',
+	'../../../../core-architecture/models/core-architecture/architecture/classes/classes.xtuml');
+INSERT INTO PE_PE
+	VALUES ("34ba9655-261b-4ebc-add4-58be8d199d22",
+	1,
+	"3e3aaf4c-aba5-451d-b263-e8fc1b717bce",
+	"00000000-0000-0000-0000-000000000000",
+	1);
 INSERT INTO PE_PE
 	VALUES ("3e3aaf4c-aba5-451d-b263-e8fc1b717bce",
 	1,
