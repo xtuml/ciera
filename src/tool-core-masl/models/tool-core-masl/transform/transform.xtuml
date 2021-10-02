@@ -292,7 +292,12 @@ invocable.name = service.name;
 invocable.parent_name = comp_def.name;
 invocable.parent_package = comp_def.package;
 relate func to invocable across R427;
-//invocable.actions = s_sync.Action_Semantics_internal; // TODO
+
+// copy actions
+select one code_block related by service->CodeBlock2[R5403];
+if not_empty code_block
+  invocable.actions = code_block.actions;
+end if;
 
 // link type
 select any type from instances of TypeReference;
@@ -802,8 +807,11 @@ invocable.parent_name = port.name;
 invocable.parent_package = port.package;
 relate port_msg to invocable across R427;
 
-// populate the OAL
-//invocable.actions = "";  TODO
+// copy actions
+select one code_block related by service->CodeBlock2[R5403];
+if not_empty code_block
+  invocable.actions = code_block.actions;
+end if;
 
 // link type
 select any type from instances of TypeReference;
@@ -1311,7 +1319,12 @@ invocable.name = service.name;
 invocable.parent_name = op.class_name;
 invocable.parent_package = op.class_package;
 relate op to invocable across R427;
-//invocable.actions = o_tfr.Action_Semantics_internal; TODO
+
+// copy actions
+select one code_block related by service->CodeBlock2[R5403];
+if not_empty code_block
+  invocable.actions = code_block.actions;
+end if;
 
 // link type
 select any type from instances of TypeReference;
@@ -1416,9 +1429,12 @@ invocable.name = T::sub(format:"_", s:maslstate.name);
 invocable.parent_name = sm.name;
 invocable.parent_package = sm.package;
 relate state to invocable across R427;
-// TODO
-//select one sm_act related by sm_state->SM_MOAH[R511]->SM_AH[R513]->SM_ACT[R514];
-//invocable.actions = sm_act.Action_Semantics_internal;
+
+// copy actions
+select one code_block related by maslstate->CodeBlock2[R6115];
+if not_empty code_block
+  invocable.actions = code_block.actions;
+end if;
 
 // link type
 type = ::TypeReference_getBuiltinTypeReference(name:"void");
@@ -1509,7 +1525,6 @@ invocable.name = T::sub(format:"_", s:maslevt.name);
 invocable.parent_name = sm.name;
 invocable.parent_package = sm.package;
 relate evt to invocable across R427;
-invocable.actions = "";
 
 // link type
 type = ::TypeReference_getBuiltinTypeReference(name:"void");
@@ -1625,7 +1640,6 @@ for each transition_row in transition_rows
 			invocable.parent_name = sm.name;
 			invocable.parent_package = sm.package;
 			relate txn to invocable across R427;
-			invocable.actions = "";  // MASL does not support transition actions
 			
 			// link type
 			type = ::TypeReference_getBuiltinTypeReference( name:"void" );
