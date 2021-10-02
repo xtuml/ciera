@@ -278,6 +278,7 @@ INSERT INTO S_SYNC
 	'transformDomainService',
 	'',
 	'domain_service = param.domain_service;
+select one domain related by domain_service->Domain[R5303];
 comp_def = param.comp_def;
 
 select one service related by domain_service->Service[R5203];
@@ -313,33 +314,13 @@ relate type to invocable across R428;
 select one first_parameter related by service->ParameterDefinition[R5204];
 ::transformParameterList(first_parameter:first_parameter, invocable:invocable);
 
-/* TODO
 // see if this is an initializer function
-select one c_c related by comp_def->C_C[R4573];
-select one c_c_pe related by c_c->PE_PE[R8001];
-select any init_function_mark from instances of Mark where ( selected.markable_name == "Component" and
-                                                             selected.path == ::containerMarkingPath( pe:c_c_pe ) + "::" + c_c.Name and
-                                                             selected.feature_name == "InitFunction" );
-if ( not_empty init_function_mark and func.name == init_function_mark.value )
-  select any s_sparm related by s_sync->S_SPARM[R24];
-  if ( empty s_sparm )
-    select one init_function related by comp_def->Function[R4561];
-    if ( empty init_function )
-      relate func to comp_def across R4561;
-    else
-      // TODO bad
-    end if;
-  else
-    // TODO bad
-  end if;
-end if;
-
-// relate the body
-select one act_act related by s_sync->ACT_FNB[R695]->ACT_ACT[R698];
-if ( not_empty act_act )
-  relate act_act to invocable across R432;
-end if;
-*/',
+select any init_function_mark from instances of Mark where (selected.markable_name == "DomainService" and
+  selected.path == "" + domain.name + "::" + service.name and
+  selected.feature_name == "startup");
+if (not_empty init_function_mark)
+  relate func to comp_def across R4561;
+end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
