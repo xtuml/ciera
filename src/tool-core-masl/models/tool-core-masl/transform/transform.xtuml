@@ -1222,17 +1222,16 @@ end if;
 relate attr to maslattr across R8301;
 
 // set the type
-select one builtin related by maslattr->BasicType[R5803]->BuiltinType[R6205]->BuiltInType[R8305];
-type = ::TypeReference_getBuiltinTypeReference(name:builtin.name);
-select one array_type related by type->ArrayTypeReference[R3801];
-relate type to attr across R424;
-
-// set default value for unique id attributes
-/* TODO handle unique IDs
-if ( "UniqueId" == type.type_name )
+select one maslbuiltin related by maslattr->BasicType[R5803]->BuiltinType[R6205];
+select any type from instances of TypeReference;
+if (::attrIsUnique(attr:maslattr) and ("" + maslbuiltin.name) == "integer")
+	type = ::TypeReference_getBuiltinTypeReference(name:"UniqueId");
   attr.default_value = "UniqueId.random()";
+else
+	select one builtin related by maslbuiltin->BuiltInType[R8305];
+	type = ::TypeReference_getBuiltinTypeReference(name:builtin.name);
 end if;
-*/
+relate type to attr across R424;
 
 // create accessors
 create object instance getter of AttributeAccessor;

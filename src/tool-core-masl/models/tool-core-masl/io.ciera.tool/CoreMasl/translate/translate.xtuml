@@ -120,25 +120,6 @@ LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
 LOG::LogInfo( message:"Translating..." );
 ::transformMaslApplication();
 
-// Perform a selection to confirm the model loaded correctly.
-// TODO
-class_count = 5;
-message = "First few classes loaded are:  ";
-select many object_declarations from instances of ObjectDeclaration where ( SORT::ascending( attr:"name" ) );
-if ( cardinality object_declarations < class_count )
-  class_count = cardinality object_declarations;
-end if;
-for each object_declaration in object_declarations
-  message = message + object_declaration.name;
-  class_count = class_count - 1;
-  if ( 0 == class_count )
-    break;
-  end if;
-  message = message + ", ";
-end for;
-LOG::LogInfo( message: message );
-// TODO
-
 // resolve types
 LOG::LogInfo( message:"  Resolving type references..." );
 ::resolveTypeImports();

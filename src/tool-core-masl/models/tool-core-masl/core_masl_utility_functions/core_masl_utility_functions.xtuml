@@ -113,16 +113,28 @@ for each masltype in masltypes
 end for;
 
 // create void type
-create object instance type of Type;
-type.name = "void";
-type.package = "";
-type.default_value = "";
-create object instance builtin of BuiltInType;
-relate builtin to type across R407;
-builtin.primitive = true;
-builtin.unique = false;
-builtin.inst = false;
-builtin.instset = false;',
+create object instance type1 of Type;
+type1.name = "void";
+type1.package = "";
+type1.default_value = "";
+create object instance builtin1 of BuiltInType;
+relate builtin1 to type1 across R407;
+builtin1.primitive = true;
+builtin1.unique = false;
+builtin1.inst = false;
+builtin1.instset = false;
+
+// create unique id type
+create object instance type2 of Type;
+type2.name = "UniqueId";
+type2.package = "io.ciera.runtime.summit.types";
+type2.default_value = "new UniqueId()";
+create object instance builtin2 of BuiltInType;
+relate builtin2 to type2 across R407;
+builtin2.primitive = false;
+builtin2.unique = true;
+builtin2.inst = false;
+builtin2.instset = false;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -189,6 +201,50 @@ INSERT INTO S_DT_PROXY
 	'../../../../core-architecture/models/core-architecture/architecture/classes/classes.xtuml');
 INSERT INTO PE_PE
 	VALUES ("34ba9655-261b-4ebc-add4-58be8d199d22",
+	1,
+	"3e3aaf4c-aba5-451d-b263-e8fc1b717bce",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("a908ce8d-07c5-44cf-925b-6e71bd3b9fed",
+	"00000000-0000-0000-0000-000000000000",
+	'attrIsUnique',
+	'',
+	'attr = param.attr;
+if attr.isUnique
+  return true;
+else
+  select many unique_ref_attrs related by attr->AttributeDeclaration[R5800.''refers_to''];
+  for each unique_ref_attr in unique_ref_attrs
+    if ::attrIsUnique(attr:unique_ref_attr)
+      return true;
+    end if;
+  end for;
+  return false;
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000001",
+	1,
+	'',
+	0,
+	11);
+INSERT INTO S_SPARM
+	VALUES ("06418faf-5553-4c7d-99de-3b5a40c93f2d",
+	"a908ce8d-07c5-44cf-925b-6e71bd3b9fed",
+	'attr',
+	"bc9fb0af-6887-4a01-9bad-2412058db57c",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("bc9fb0af-6887-4a01-9bad-2412058db57c",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<AttributeDeclaration>',
+	'',
+	'',
+	'../../../../ooamasl/models/ooamasl/ooamasl/object/object.xtuml');
+INSERT INTO PE_PE
+	VALUES ("a908ce8d-07c5-44cf-925b-6e71bd3b9fed",
 	1,
 	"3e3aaf4c-aba5-451d-b263-e8fc1b717bce",
 	"00000000-0000-0000-0000-000000000000",
