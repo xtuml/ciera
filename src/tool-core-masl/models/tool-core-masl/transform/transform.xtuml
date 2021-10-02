@@ -136,6 +136,12 @@ else
     relate rel_pop_selector to rel across R4572;
   end for;
 
+  // transform attribute references
+  select many objs related by comp_def->Class[R408];
+  for each obj in objs
+    ::transformMaslAttributeReferences(obj:obj);
+  end for;
+
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -910,13 +916,11 @@ if (not_empty normal)
 	// get the formalizer and participant information
 	select one half_rel_1 related by normal->HalfRelationship[R6007];
 	select one half_rel_2 related by normal->HalfRelationship[R6008];
-	select any ref1 related by half_rel_1->ObjectDeclaration[R6004]->AttributeDeclaration[R5802]
-		->ReferentialAttributeDefinition[R5800.''is_referenced_by'']->RelationshipSpecification[R5811]->HalfRelationship[R6013]
-		->NormalRelationshipDeclaration[R6007]->RelationshipDeclaration[R6010] where (selected.name == maslrel.name);
-	select any ref2 related by half_rel_1->ObjectDeclaration[R6004]->AttributeDeclaration[R5802]
-		->ReferentialAttributeDefinition[R5800.''is_referenced_by'']->RelationshipSpecification[R5811]->HalfRelationship[R6013]
-		->NormalRelationshipDeclaration[R6008]->RelationshipDeclaration[R6010] where (selected.name == maslrel.name);
-	if (not_empty ref1 or not_empty ref2)  // the first half is the participant
+	select many rel_specs related by half_rel_1->ObjectDeclaration[R6004]->AttributeDeclaration[R5802]
+		->ReferentialAttributeDefinition[R5800.''is_referenced_by'']->RelationshipSpecification[R5811] where (
+		selected.role == half_rel_1.role or selected.role == "");
+	select any ref_rel related by rel_specs->RelationshipDeclaration[R6015] where (selected.name == maslrel.name);
+	if (not_empty ref_rel)  // the first half "to" class is the participant
 		select one form_class related by half_rel_2->ObjectDeclaration[R6004]->Class[R8300];
 		form_phrase = half_rel_2.role;
 		if (half_rel_2.multiplicity == Multiplicity2::many)
@@ -971,6 +975,7 @@ if (not_empty normal)
 	relate rel to comp_def across R448;
 	relate rel to form_class across R435;
 	relate rel to part_class across R434;
+	relate rel to maslrel across R8304;
 
 	/* TODO get the ID number
 	select any o_id related by r_simp->R_PART[R207]->R_RTO[R204]->O_ID[R109];
@@ -1008,6 +1013,7 @@ if ( not_empty subsup )
 		relate rel to comp_def across R448;
 		relate rel to form_class across R435;
 		relate rel to part_class across R434;
+	  relate rel to maslrel across R8304;
 		
 		/* TODO get the ID number
 		select one o_id related by r_subsup->R_SUPER[R212]->R_RTO[R204]->O_ID[R109];
@@ -1063,6 +1069,7 @@ if (not_empty assoc)
 	relate rel1 to comp_def across R448;
 	relate rel1 to form_class across R435;
 	relate rel1 to part_class across R434;
+	relate rel1 to maslrel across R8304;
 
 	/* TODO get the ID number
 	select one o_id1 related by r_assoc->R_AONE[R209]->R_RTO[R204]->O_ID[R109];
@@ -1116,6 +1123,7 @@ if (not_empty assoc)
 	relate rel2 to comp_def across R448;
 	relate rel2 to form_class across R435;
 	relate rel2 to part_class across R434;
+	relate rel2 to maslrel across R8304;
 
   /* TODO
 	select one o_id2 related by r_assoc->R_AOTH[R210]->R_RTO[R204]->O_ID[R109];
@@ -1722,6 +1730,49 @@ INSERT INTO S_DT_PROXY
 	'../../../../core-architecture/models/core-architecture/architecture/invocable/invocable.xtuml');
 INSERT INTO PE_PE
 	VALUES ("c63f93b6-1fa9-4e4d-887e-4bd100f4454d",
+	1,
+	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("51320e2f-c4fa-41fc-bc81-caab2798fed8",
+	"00000000-0000-0000-0000-000000000000",
+	'transformMaslAttributeReferences',
+	'',
+	'obj = param.obj;
+select many attrs related by obj->Attribute[R410];
+for each attr in attrs
+  select many masl_attr_refs related by attr->AttributeDeclaration[R8301]->ReferentialAttributeDefinition[R5800.''refers_to''];
+  for each masl_attr_ref in masl_attr_refs
+    // gather identifying information
+    select one referred_to_attr related by masl_attr_ref->AttributeDeclaration[R5800.''refers_to'']->Attribute[R8301];
+    select one referred_to_obj related by referred_to_attr->Class[R410];
+    select one rel_spec related by masl_attr_ref->RelationshipSpecification[R5811];
+    select any relationship related by rel_spec->RelationshipDeclaration[R6015]->Relationship[R8304] where (
+      selected.form_name == obj.name and selected.part_name == referred_to_obj.name and
+      (selected.part_phrase == rel_spec.role or rel_spec.role == ""));
+    // create attribute reference
+    create object instance attr_ref of AttributeReference;
+    relate attr to referred_to_attr across R4506.''has value provided by'' using attr_ref;
+    relate relationship to attr_ref across R4511;
+  end for;
+end for;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	0);
+INSERT INTO S_SPARM
+	VALUES ("540870ed-c564-4091-bd40-0ff07d10947b",
+	"51320e2f-c4fa-41fc-bc81-caab2798fed8",
+	'obj',
+	"a519e323-b117-4a03-9435-b88e56c2443d",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO PE_PE
+	VALUES ("51320e2f-c4fa-41fc-bc81-caab2798fed8",
 	1,
 	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
 	"00000000-0000-0000-0000-000000000000",
