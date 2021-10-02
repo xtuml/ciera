@@ -375,19 +375,6 @@ comp_def = param.comp_def;
 select one component_file related by comp_def->File[R401];
 path = component_file.path + "/" + "classes";  // put all classes in one package called ''classes''
 
-// get exclude mark
-/* TODO
-select one pe related by o_obj->PE_PE[R8001];
-select any class_exclude_mark from instances of Mark where ( selected.markable_name == "Model Class" and
-                                                            selected.path == ::containerMarkingPath( pe:pe ) + "::" + o_obj.Name and
-                                                            selected.feature_name == "Exclude" );
-
-// get mark for naming
-select any class_name_mark from instances of Mark where ( selected.markable_name == "Model Class" and
-																													selected.path == ::containerMarkingPath( pe:pe ) + "::" + o_obj.Name and
-																													selected.feature_name == "UseKeyLettersForName" );
-*/
-
 // get key letters mark
 select any key_letter_mark from instances of Mark where (selected.markable_name == "Object" and
   selected.feature_name == "key_letter" and
@@ -550,20 +537,6 @@ relate objset to file across R401;
 objset.extends = "InstanceSet<" + objset.name + "," + obj.name + ">";
 objset.comparator = "";
 
-// set the comparator
-/* TODO
-select any comparator_mark from instances of Mark where ( selected.markable_name == "*" and selected.path == "*" and selected.feature_name == "SortComparator" );
-if ( not_empty comparator_mark )
-  select many attr_accessors related by objset->Class[R406]->Attribute[R410]->AttributeAccessor[R4510] where ( selected.accessor_type == AttributeAccessorType::GETTER );
-  for each attr_accessor in attr_accessors
-    if ( attr_accessor.getName() == comparator_mark.value )
-      objset.comparator = comparator_mark.value;
-      break;
-    end if;
-  end for;
-end if;
-*/
-
 // create the instance type
 create object instance type of Type;
 type.name = objset.name;
@@ -643,32 +616,8 @@ relate port to port_file across R401;
 port.port_name = ::camelCaseName(name:domain_terminator.name, start_lower:false);
 
 // set base class
-select any base_class_mark from instances of Mark where false;
-/* TODO
-select any base_class_mark from instances of Mark where ( selected.markable_name == "Port" and
-                                                          selected.path == ::containerMarkingPath( pe:pe ) + "::" + c_c.Name + "::" + c_po.Name and
-                                                          selected.feature_name == "BaseClass" );
-*/
-
-if (not_empty base_class_mark)
-  port.base_class = base_class_mark.value;
-  ::addStringToImports(file:port_file, s:"io.ciera.runtime.summit.interfaces." + base_class_mark.value, type:ImportType::IMPL);
-else
-  port.base_class = "Port";
-  ::addStringToImports(file:port_file, s:"io.ciera.runtime.summit.interfaces.Port", type:ImportType::IMPL);
-end if;
-
-// add extra for http port
-/* TODO
-if ("HttpPort" == port.base_class)
-  select one c_c related by c_po->C_C[R4010];
-  select one pe related by c_c->PE_PE[R8001];
-  select any http_endpoint_mark from instances of Mark where ( selected.markable_name == "Port" and
-                                                               selected.path == ::containerMarkingPath( pe:pe ) + "::" + c_c.Name + "::" + c_po.Name and
-                                                               selected.feature_name == "HttpEndpoint" );
-  port.endpoint = http_endpoint_mark.value;
-end if;
-*/
+port.base_class = "Port";
+::addStringToImports(file:port_file, s:"io.ciera.runtime.summit.interfaces.Port", type:ImportType::IMPL);
 
 // set port as requirer
 port.provider = false;
@@ -806,14 +755,7 @@ relate type to invocable across R428;
 
 // create parameters
 select one first_parameter related by service->ParameterDefinition[R5204];
-::transformParameterList(first_parameter:first_parameter, invocable:invocable);
-
-// relate the body
-/* TODO
-if ( not_empty act_act )
-  relate act_act to invocable across R432;
-else
-*/',
+::transformParameterList(first_parameter:first_parameter, invocable:invocable);',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -890,14 +832,6 @@ INSERT INTO S_SYNC
 	'maslrel = param.rel;
 comp_def = param.comp_def;
 select one file related by comp_def->File[R401];
-
-// get exclude mark
-/* TODO
-select one pe related by r_rel->PE_PE[R8001];
-select any assoc_exclude_mark from instances of Mark where ( selected.markable_name == "Association" and
-                                                             selected.path == ::containerMarkingPath( pe:pe ) + "::R" + STRING::itoa( i:r_rel.Numb ) and
-                                                             selected.feature_name == "Exclude" );
-*/
 
 select any form_class from instances of Class where false;
 form_phrase = "";
@@ -1124,7 +1058,7 @@ if (not_empty assoc)
 	relate rel2 to part_class across R434;
 	relate rel2 to maslrel across R8304;
 
-  /* TODO
+	/* TODO get the ID number
 	select one o_id2 related by r_assoc->R_AOTH[R210]->R_RTO[R204]->O_ID[R109];
 	if ( not_empty o_id2 )
 		rel2.id_num = o_id2.Oid_ID + 1;
@@ -1321,14 +1255,6 @@ relate type to invocable across R428;
 select one first_parameter related by service->ParameterDefinition[R5204];
 ::transformParameterList(first_parameter:first_parameter, invocable:invocable);
 
-// relate the body
-/* TODO
-select one act_act related by o_tfr->ACT_OPB[R696]->ACT_ACT[R698];
-if (not_empty act_act)
-  relate act_act to invocable across R432;
-end if;
-*/
-
 // add imports
 select one class_file related by obj->File[R401];
 ::addStringToImports(file:class_file, s:"io.ciera.runtime.summit.exceptions.EmptyInstanceException", type:ImportType::IMPL);
@@ -1424,14 +1350,6 @@ relate type to invocable across R428;
 // create parameters
 select one first_parameter related by maslstate->ParameterDefinition[R6104];
 ::transformParameterList(first_parameter:first_parameter, invocable:invocable);
-
-// relate the body
-/* TODO
-select one act_act related by sm_act->ACT_SAB[R691]->ACT_ACT[R698];
-if (not_empty act_act)
-  relate act_act to invocable across R432;
-end if;
-*/
 
 // link to masl state
 relate state to maslstate across R8302;',
