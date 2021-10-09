@@ -40,54 +40,52 @@ INSERT INTO S_SYNC
 	'',
 	'upper_block = param.upper_block;
 code_block = param.code_block;
-if (not_empty code_block)
+first_statement = param.first_statement;
 
-  invocable = param.invocable;
+invocable = param.invocable;
 
-  // create code block
-  create object instance block of CodeBlock;
-  if (empty upper_block)
-    block.top_level = true;
-    block.tab_depth = 1;
-    select one port_msg related by invocable->PortMessage[R427];
-    if (not_empty port_msg)
-      select one port related by port_msg->Port[R420];
-      select one msg related by port_msg->Message[R420];
-      if ((msg.to_provider and not port.provider) or (not msg.to_provider and port.provider))
-        block.tab_depth = 2; // increase the tab depth by one for bodies which belong to outbound port messages
-      end if;
-    end if;
-    select one class_op related by invocable->Operation[R427] where (selected.is_class_based);
-    if (not_empty class_op)
-      block.tab_depth = 2; // increase the tab depth by one for bodies which belong to class based operations
-    end if;
-  else
-    select one invocable related by upper_block->InvocableObject[R4000];
-    block.top_level = false;
-    block.tab_depth = upper_block.tab_depth + 1;
-  end if;
-  relate block to invocable across R4000;
-  block.block_number = param.block_number;
-
-  // copy visibile variables from upper block
-  select many vars related by upper_block->Variable[R458];
-  for each var in vars
-    create object instance var_in_scope of VariableInScope;
-    relate var to block across R458 using var_in_scope;
-  end for;
-  
-  // create variable declarations for this code block
-  select many variable_declarations related by code_block->VariableDefinition[R5151];
-  for each variable_declaration in variable_declarations
-    ::transformVariableInitialization(variable_declaration:variable_declaration, block:block);
-  end for;
-
-  // transform all statements
-  ::transformMaslStatements(code_block:code_block, block:block);
-
+// create code block
+create object instance block of CodeBlock;
+if (empty upper_block)
+	block.top_level = true;
+	block.tab_depth = 1;
+	select one port_msg related by invocable->PortMessage[R427];
+	if (not_empty port_msg)
+		select one port related by port_msg->Port[R420];
+		select one msg related by port_msg->Message[R420];
+		if ((msg.to_provider and not port.provider) or (not msg.to_provider and port.provider))
+			block.tab_depth = 2; // increase the tab depth by one for bodies which belong to outbound port messages
+		end if;
+	end if;
+	select one class_op related by invocable->Operation[R427] where (selected.is_class_based);
+	if (not_empty class_op)
+		block.tab_depth = 2; // increase the tab depth by one for bodies which belong to class based operations
+	end if;
 else
-  // TODO bad
-end if;',
+	select one invocable related by upper_block->InvocableObject[R4000];
+	block.top_level = false;
+	block.tab_depth = upper_block.tab_depth + 1;
+end if;
+relate block to invocable across R4000;
+block.block_number = param.block_number;
+
+// copy visibile variables from upper block
+select many vars related by upper_block->Variable[R458];
+for each var in vars
+	create object instance var_in_scope of VariableInScope;
+	relate var to block across R458 using var_in_scope;
+end for;
+
+// create variable declarations for this code block
+if (not_empty code_block)
+	select many variable_declarations related by code_block->VariableDefinition[R5151];
+	for each variable_declaration in variable_declarations
+		::transformVariableInitialization(variable_declaration:variable_declaration, block:block);
+	end for;
+end if;
+
+// transform all statements
+::transformMaslStatements(code_block:code_block, first_statement:first_statement, block:block);',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -132,7 +130,7 @@ INSERT INTO S_SPARM
 	"ba5eda7a-def5-0000-0000-000000000004",
 	0,
 	'',
-	"1583da29-741d-429c-82b9-e80355a12e3a",
+	"772eebc4-49e7-44b4-90cd-bc7fdd6890a8",
 	'');
 INSERT INTO S_SPARM
 	VALUES ("1cd93b33-fa8c-4998-a746-a1673fd272ef",
@@ -150,6 +148,22 @@ INSERT INTO S_DT_PROXY
 	'',
 	'',
 	'../../../../../core-architecture/models/core-architecture/architecture/invocable/invocable.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("772eebc4-49e7-44b4-90cd-bc7fdd6890a8",
+	"a15c0dfb-3749-42a0-833a-cdd52a9f9ea8",
+	'first_statement',
+	"05890c89-f4eb-4163-9007-b5abcf03a719",
+	0,
+	'',
+	"1583da29-741d-429c-82b9-e80355a12e3a",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("05890c89-f4eb-4163-9007-b5abcf03a719",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Statement>',
+	'',
+	'',
+	'../../../../../ooamasl/models/ooamasl/ooamasl/statement/statement.xtuml');
 INSERT INTO PE_PE
 	VALUES ("a15c0dfb-3749-42a0-833a-cdd52a9f9ea8",
 	1,
@@ -172,8 +186,12 @@ select one io_stream_statement related by masl_statement->IOStreamStatement[R513
 if (not_empty io_stream_statement)
   ::transformIOStreamStatement(io_stream_statement:io_stream_statement, block:block, prev_smt:prev_smt);
 else
+select one if_statement related by masl_statement->IfStatement[R5135];
+if (not_empty if_statement)
+  ::transformMaslIfStatement(if_statement:if_statement, block:block, prev_smt:prev_smt);
+else
   LOG::LogFailure(message:"statement type not supported: ''" + masl_statement.actions + "''");
-end if;',
+end if; end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -188,13 +206,6 @@ INSERT INTO S_SPARM
 	'',
 	"00000000-0000-0000-0000-000000000000",
 	'');
-INSERT INTO S_DT_PROXY
-	VALUES ("05890c89-f4eb-4163-9007-b5abcf03a719",
-	"00000000-0000-0000-0000-000000000000",
-	'inst_ref<Statement>',
-	'',
-	'',
-	'../../../../../ooamasl/models/ooamasl/ooamasl/statement/statement.xtuml');
 INSERT INTO S_SPARM
 	VALUES ("fc03a869-eef9-495c-a68c-527de6187b12",
 	"78df0df8-f559-4d45-b48f-bfa8c4c24686",
@@ -232,8 +243,11 @@ INSERT INTO S_SYNC
 	'transformMaslStatements',
 	'',
 	'code_block = param.code_block;
+masl_statement = param.first_statement;
 block = param.block;
-select one masl_statement related by code_block->Statement2[R5150];
+if (not_empty code_block)
+  select one masl_statement related by code_block->Statement2[R5150];
+end if;
 select any prev_smt related by block->Statement[R450] where SORT::descending(attr:"statement_number");
 smt_num = 1;
 while (not_empty masl_statement)
@@ -255,7 +269,7 @@ INSERT INTO S_SPARM
 	"60d4da0e-4cbe-4620-8c16-4e1dba1c6b8d",
 	0,
 	'',
-	"43554ee7-a4a8-41a5-96c7-dfb4a4f21055",
+	"ccd8de00-6acb-481c-a517-f221989e81bd",
 	'');
 INSERT INTO S_SPARM
 	VALUES ("43554ee7-a4a8-41a5-96c7-dfb4a4f21055",
@@ -265,6 +279,15 @@ INSERT INTO S_SPARM
 	0,
 	'',
 	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("ccd8de00-6acb-481c-a517-f221989e81bd",
+	"b711d9b4-f2f1-467a-b928-f777d141335d",
+	'first_statement',
+	"05890c89-f4eb-4163-9007-b5abcf03a719",
+	0,
+	'',
+	"43554ee7-a4a8-41a5-96c7-dfb4a4f21055",
 	'');
 INSERT INTO PE_PE
 	VALUES ("b711d9b4-f2f1-467a-b928-f777d141335d",
@@ -587,6 +610,211 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("0df98c26-771d-400d-b8af-34756099c9a9",
+	1,
+	"c45f2f21-d5ff-4652-999f-d4808df1e2ef",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("4a517e24-c178-42fa-aff7-7ec010abe193",
+	"00000000-0000-0000-0000-000000000000",
+	'transformMaslIfStatement',
+	'',
+	'if_statement = param.if_statement;
+block = param.block;
+prev_smt = param.prev_smt;
+select any empty_invocable from instances of InvocableObject where false;
+select any empty_code_block from instances of CodeBlock2 where false;
+
+// create a statement
+create object instance smt of Statement;
+relate smt to block across R450;
+if (not_empty prev_smt)
+  smt.statement_number = STRING::itoa(i:STRING::atoi(s:prev_smt.statement_number) + 1);
+  relate smt to prev_smt across R477.''executes after'';
+else
+  smt.statement_number = "1";
+end if;
+smt.actions = if_statement.actions;
+
+// create if statement
+create object instance if_smt of IfSmt;
+relate if_smt to smt across R451;
+if_smt.is_else_if = false;
+
+// translate if condition expression
+select one if_cond related by if_statement->Expression2[R5143];
+::transformMaslExpression(masl_expression:if_cond, expr_number:"1", smt:smt);
+select any if_expr related by smt->Expression[R775] where (selected.expression_number == "1");
+relate if_expr to if_smt across R471;
+
+// create then block
+then_block_number = ::getNextBlockNumber(upper_block:block);
+select one then_first_statement related by if_statement->Statement2[R5144];
+::transformMaslBlock(upper_block:block, code_block:empty_code_block, first_statement:then_first_statement, block_number:then_block_number, invocable:empty_invocable);
+select any then_block related by block->InvocableObject[R4000]->CodeBlock[R4000] where (selected.block_number == then_block_number);
+relate then_block to if_smt across R453;
+
+// translate elsifs
+select any elsif_alternative related by if_statement->Alternative[R5145] where (not selected.else_otherwise);
+select one prev_elsif_alternative related by elsif_alternative->Alternative[R5158.''succeeds''] where (not selected.else_otherwise);
+while (not_empty prev_elsif_alternative)
+  elsif_alternative = prev_elsif_alternative;
+  select one prev_elsif_alternative related by elsif_alternative->Alternative[R5158.''succeeds''] where (not selected.else_otherwise);
+end while;
+while (not_empty elsif_alternative)
+  // create block for elif
+  elif_block_number = ::getNextBlockNumber(upper_block:block);
+  ::transformMaslBlockForElsif(upper_block:block, alternative:elsif_alternative, block_number:elif_block_number);
+  select any else_block related by block->InvocableObject[R4000]->CodeBlock[R4000] where (selected.block_number == elif_block_number);
+  relate else_block to if_smt across R454;
+  // set the new current block and if statement
+  block = else_block;
+  select any if_smt related by if_smt->CodeBlock[R454]->Statement[R450]->IfSmt[R451];
+  select one elsif_alternative related by elsif_alternative->Alternative[R5158.''precedes''] where (not selected.else_otherwise);
+end while;
+
+// create else block
+else_block_number = ::getNextBlockNumber(upper_block:block);
+select any else_alternative related by if_statement->Alternative[R5145] where (selected.else_otherwise);
+if (not_empty else_alternative)
+  select one else_first_statement related by else_alternative->Statement2[R5148];
+  ::transformMaslBlock(upper_block:block, code_block:empty_code_block, first_statement:else_first_statement, block_number:else_block_number, invocable:empty_invocable);
+  select any else_block related by block->InvocableObject[R4000]->CodeBlock[R4000] where (selected.block_number == else_block_number);
+  relate else_block to if_smt across R454;
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	2);
+INSERT INTO S_SPARM
+	VALUES ("b8917f77-658b-42d7-9755-fad0cf663023",
+	"4a517e24-c178-42fa-aff7-7ec010abe193",
+	'if_statement',
+	"3307cec9-3876-47e5-b32f-9d185274e2f5",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("3307cec9-3876-47e5-b32f-9d185274e2f5",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<IfStatement>',
+	'',
+	'',
+	'../../../../../ooamasl/models/ooamasl/ooamasl/statement/statement.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("297ea188-3318-411b-a83c-ea7b554a76a0",
+	"4a517e24-c178-42fa-aff7-7ec010abe193",
+	'block',
+	"60d4da0e-4cbe-4620-8c16-4e1dba1c6b8d",
+	0,
+	'',
+	"b8917f77-658b-42d7-9755-fad0cf663023",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("540d74bc-1386-457d-a729-92281035b0b3",
+	"4a517e24-c178-42fa-aff7-7ec010abe193",
+	'prev_smt',
+	"b586ec7e-41fe-4d50-9cf3-27b173e9848a",
+	0,
+	'',
+	"297ea188-3318-411b-a83c-ea7b554a76a0",
+	'');
+INSERT INTO PE_PE
+	VALUES ("4a517e24-c178-42fa-aff7-7ec010abe193",
+	1,
+	"c45f2f21-d5ff-4652-999f-d4808df1e2ef",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("b20c666e-494b-47e3-a9e0-35ddea24de31",
+	"00000000-0000-0000-0000-000000000000",
+	'transformMaslBlockForElsif',
+	'',
+	'upper_block = param.upper_block;
+alternative = param.alternative;
+select any empty_code_block from instances of CodeBlock2 where false;
+
+// create block
+select one invocable related by upper_block->InvocableObject[R4000];
+create object instance block of CodeBlock;
+relate block to invocable across R4000;
+block.block_number = param.block_number;
+block.tab_depth = upper_block.tab_depth;  // keep same tab depth
+
+// copy visibile variables from upper block
+select many vars related by upper_block->Variable[R458];
+for each var in vars
+  create object instance var_in_scope of VariableInScope;
+  relate var to block across R458 using var_in_scope;
+end for;
+
+// create single statement in block
+create object instance smt of Statement;
+relate smt to block across R450;
+smt.statement_number = "1";
+smt.actions = alternative.actions;
+
+// create if statement
+create object instance if_smt of IfSmt;
+relate if_smt to smt across R451;
+if_smt.is_else_if = true;
+
+// translate if expression
+select one if_cond related by alternative->Expression2[R5147];
+::transformMaslExpression(masl_expression:if_cond, expr_number:"1", smt:smt);
+select any if_expr related by smt->Expression[R775] where (selected.expression_number == "1");
+relate if_expr to if_smt across R471;
+
+// create then block
+select any empty_invocable from instances of InvocableObject where false;
+then_block_number = ::getNextBlockNumber(upper_block:block);
+select one then_first_statement related by alternative->Statement2[R5148];
+::transformMaslBlock(upper_block:block, code_block:empty_code_block, first_statement:then_first_statement, block_number:then_block_number, invocable:empty_invocable);
+select any then_block related by block->InvocableObject[R4000]->CodeBlock[R4000] where (selected.block_number == then_block_number);
+relate then_block to if_smt across R453;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	0);
+INSERT INTO S_SPARM
+	VALUES ("b1b46267-5f61-4861-8194-84155045991c",
+	"b20c666e-494b-47e3-a9e0-35ddea24de31",
+	'upper_block',
+	"60d4da0e-4cbe-4620-8c16-4e1dba1c6b8d",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("cef8487a-dd76-4286-bc27-768c2c1b5643",
+	"b20c666e-494b-47e3-a9e0-35ddea24de31",
+	'alternative',
+	"e9cf5ab1-1443-4abc-9f62-2b276b179467",
+	0,
+	'',
+	"b1b46267-5f61-4861-8194-84155045991c",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("e9cf5ab1-1443-4abc-9f62-2b276b179467",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Alternative>',
+	'',
+	'',
+	'../../../../../ooamasl/models/ooamasl/ooamasl/statement/statement.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("be4f4695-5a76-47bd-b6c1-a00d7ebe7d9c",
+	"b20c666e-494b-47e3-a9e0-35ddea24de31",
+	'block_number',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"cef8487a-dd76-4286-bc27-768c2c1b5643",
+	'');
+INSERT INTO PE_PE
+	VALUES ("b20c666e-494b-47e3-a9e0-35ddea24de31",
 	1,
 	"c45f2f21-d5ff-4652-999f-d4808df1e2ef",
 	"00000000-0000-0000-0000-000000000000",
