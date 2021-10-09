@@ -128,16 +128,56 @@ relate type to expr across R795;
 create object instance lit of Literal;
 relate lit to expr across R776;
 
+select one numeric_literal related by literal_expression->NumericLiteral[R5700];
+if (not_empty numeric_literal)
+  lit.value = numeric_literal.text;
+else
+select one character_literal related by literal_expression->CharacterLiteral[R5700];
+if (not_empty character_literal)
+  // TODO
+else
 select one string_literal related by literal_expression->StringLiteral[R5700];
 if (not_empty string_literal)
-  lit.value = string_literal.noQuotes;
+  lit.value = string_literal.original;
+else
+select one timestamp_literal related by literal_expression->TimestampLiteral[R5700];
+if (not_empty timestamp_literal)
+  // TODO
+else
+select one duration_literal related by literal_expression->DurationLiteral[R5700];
+if (not_empty duration_literal)
+  // TODO
+else
+select one boolean_literal related by literal_expression->BooleanLiteral[R5700];
+if (not_empty boolean_literal)
+  if boolean_literal.value
+    lit.value = "true";
+  else
+    lit.value = "false";
+  end if;
+else
+select one null_literal related by literal_expression->NullLiteral[R5700];
+if (not_empty null_literal)
+  lit.value = "null";
+else
+select one flush_literal related by literal_expression->FlushLiteral[R5700];
+if (not_empty flush_literal)
+  lit.value = "flush";
+else
+select one endl_literal related by literal_expression->EndlLiteral[R5700];
+if (not_empty endl_literal)
+  lit.value = "System.lineSeparator()";
+else
+select one this_literal related by literal_expression->ThisLiteral[R5700];
+if (not_empty this_literal)
+  lit.value = "self()";
 else
 select one console_literal related by literal_expression->ConsoleLiteral[R5700];
 if not_empty console_literal
   lit.value = "BaseDevice.console()";
   file = ::getFileForStatement(smt:smt);
   ::addStringToImports(file:file, s:"io.ciera.runtime.summit.types.BaseDevice", type:ImportType::IMPL);
-end if; end if;',
+end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; ',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
