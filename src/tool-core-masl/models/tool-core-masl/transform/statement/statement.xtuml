@@ -75,6 +75,12 @@ if (not_empty code_block)
     create object instance var_in_scope of VariableInScope;
     relate var to block across R458 using var_in_scope;
   end for;
+  
+  // create variable declarations for this code block
+  select many variable_declarations related by code_block->VariableDefinition[R5151];
+  for each variable_declaration in variable_declarations
+    ::transformVariableInitialization(variable_declaration:variable_declaration, block:block);
+  end for;
 
   // transform all statements
   ::transformMaslStatements(code_block:code_block, block:block);
@@ -228,7 +234,7 @@ INSERT INTO S_SYNC
 	'code_block = param.code_block;
 block = param.block;
 select one masl_statement related by code_block->Statement2[R5150];
-select any prev_smt from instances of Statement where false;
+select any prev_smt related by block->Statement[R450] where SORT::descending(attr:"statement_number");
 smt_num = 1;
 while (not_empty masl_statement)
   ::transformMaslStatement(masl_statement:masl_statement, block:block, prev_smt:prev_smt);
@@ -395,6 +401,192 @@ INSERT INTO S_DT_PROXY
 	'../../../../../ooamasl/models/ooamasl/ooamasl/statement/statement.xtuml');
 INSERT INTO PE_PE
 	VALUES ("acbda8b8-9a50-44ff-8605-f95ff06d71e5",
+	1,
+	"c45f2f21-d5ff-4652-999f-d4808df1e2ef",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("04159730-c15c-4433-a923-ec64dfaa746a",
+	"00000000-0000-0000-0000-000000000000",
+	'transformVariableDeclaration',
+	'',
+	'variable_declaration = param.variable_declaration;
+smt = param.smt;
+
+// create new variable
+create object instance new_var of Variable;
+relate new_var to smt across R457;
+new_var.name = variable_declaration.name;
+new_var.readonly = variable_declaration.isreadonly;
+
+// link in scope
+select one scope related by smt->CodeBlock[R450];
+select any existing_var_in_scope related by scope->VariableInScope[R458] where (selected.var_name == new_var.name);
+if ( not_empty existing_var_in_scope )  // shadow variable of same name
+  LOG::LogInfo( message:"warning: shadowing variable" );
+  select one existing_var related by existing_var_in_scope->Variable[R458];
+  unrelate existing_var from scope across R458 using existing_var_in_scope;
+end if;
+create object instance var_in_scope of VariableInScope;
+relate new_var to scope across R458 using var_in_scope;
+
+// link data type
+select one builtin related by variable_declaration->BasicType[R5137]->BuiltinType[R6205]->BuiltInType[R8305];
+type = ::TypeReference_getBuiltinTypeReference(name:builtin.name);
+relate type to new_var across R461;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	1);
+INSERT INTO S_SPARM
+	VALUES ("a76bf727-ba9d-474a-8a66-b0a3f4dc361d",
+	"04159730-c15c-4433-a923-ec64dfaa746a",
+	'variable_declaration',
+	"cbe32761-b70f-4b5b-bdd0-4863523889a1",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("cbe32761-b70f-4b5b-bdd0-4863523889a1",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<VariableDefinition>',
+	'',
+	'',
+	'../../../../../ooamasl/models/ooamasl/ooamasl/statement/statement.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("56bdc5c4-f731-48e7-bfe9-f30227ba5372",
+	"04159730-c15c-4433-a923-ec64dfaa746a",
+	'smt',
+	"b586ec7e-41fe-4d50-9cf3-27b173e9848a",
+	0,
+	'',
+	"a76bf727-ba9d-474a-8a66-b0a3f4dc361d",
+	'');
+INSERT INTO PE_PE
+	VALUES ("04159730-c15c-4433-a923-ec64dfaa746a",
+	1,
+	"c45f2f21-d5ff-4652-999f-d4808df1e2ef",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("0df98c26-771d-400d-b8af-34756099c9a9",
+	"00000000-0000-0000-0000-000000000000",
+	'transformVariableInitialization',
+	'',
+	'variable_declaration = param.variable_declaration;
+block = param.block;
+select any prev_smt related by block->Statement[R450] where SORT::descending(attr:"statement_number");
+
+// Create an assignment statement at the top of the block. If there is an
+// initialization expression, use it. If not, use the default value.
+
+// create a statement
+create object instance smt of Statement;
+relate smt to block across R450;
+if (not_empty prev_smt)
+  smt.statement_number = STRING::itoa(i:STRING::atoi(s:prev_smt.statement_number) + 1);
+  relate smt to prev_smt across R477.''executes after'';
+else
+  smt.statement_number = "1";
+end if;
+smt.actions = variable_declaration.actions;
+
+// create expression as statement
+create object instance eas of ExpressionAsStatement;
+relate eas to smt across R451;
+
+// create main expression
+create object instance expr of Expression;
+relate expr to smt across R775;
+expr.expression_number = "1";
+relate expr to eas across R476;
+
+// create binary operation and assignment expression
+create object instance binop of BinaryOperation;
+relate binop to expr across R776;
+binop.operator = "=";
+binop.invocation = false;
+
+// create new variable
+::transformVariableDeclaration(variable_declaration:variable_declaration, smt:smt);
+select any var related by smt->CodeBlock[R450]->Variable[R458] where (selected.name == "" + variable_declaration.name);
+
+// create variable reference for left operand
+create object instance l_op of Expression;
+relate l_op to smt across R775;
+l_op.expression_number = "1.1";
+relate l_op to binop across R779;
+
+// link type
+select one type related by var->TypeReference[R461];
+relate type to l_op across R795;
+
+// create variable reference
+create object instance var_ref of VariableReference;
+relate var to var_ref across R782;
+relate var_ref to l_op across R776;
+var_ref.declaration = true;
+
+// add type reference to file
+select one expr_type related by var->TypeReference[R461]->Type[R3800];
+::addTypeToImports(file: ::getFileForStatement(smt:smt), type_to_import:expr_type, type:ImportType::IMPL);
+
+// create right operand
+select one init_expr related by variable_declaration->Expression2[R5138];
+if not_empty init_expr
+  ::transformMaslExpression(masl_expression:init_expr, expr_number:"1.2", smt:smt);
+  LOG::LogInfo(message:"LEVI1");
+else
+  // if no initializer exists, simply use the default value for the type
+	create object instance r_op of Expression;
+	relate r_op to smt across R775;
+	r_op.expression_number = "1.2";
+	// link type
+	relate type to r_op across R795;
+	// create a named expression
+	create object instance named_expr of NamedReference;
+	named_expr.name = expr_type.default_value;
+	relate named_expr to r_op across R776;
+  LOG::LogInfo(message:"LEVI2");
+end if;
+select any r_op related by smt->Expression[R775] where (selected.expression_number == "1.2");
+if empty l_op
+  LOG::LogInfo(message:"LEVI3");
+end if;
+if empty r_op
+  LOG::LogInfo(message:"LEVI4");
+end if;
+relate r_op to binop across R778;
+
+// link l_op type to the main expression
+relate type to expr across R795;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	1);
+INSERT INTO S_SPARM
+	VALUES ("13ee92c4-8f0d-4466-8bbe-d1c3930e14c0",
+	"0df98c26-771d-400d-b8af-34756099c9a9",
+	'variable_declaration',
+	"cbe32761-b70f-4b5b-bdd0-4863523889a1",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("92f1385e-e6f1-49d8-b5fa-934af25fe6cc",
+	"0df98c26-771d-400d-b8af-34756099c9a9",
+	'block',
+	"60d4da0e-4cbe-4620-8c16-4e1dba1c6b8d",
+	0,
+	'',
+	"13ee92c4-8f0d-4466-8bbe-d1c3930e14c0",
+	'');
+INSERT INTO PE_PE
+	VALUES ("0df98c26-771d-400d-b8af-34756099c9a9",
 	1,
 	"c45f2f21-d5ff-4652-999f-d4808df1e2ef",
 	"00000000-0000-0000-0000-000000000000",
