@@ -182,6 +182,10 @@ if (empty masl_statement or empty block)
   // TODO bad
 end if;
 
+select one assign_statement related by masl_statement->AssignmentStatement[R5135];
+if (not_empty assign_statement)
+  ::transformAssignStatement(assign_statement:assign_statement, block:block, prev_smt:prev_smt);
+else
 select one io_stream_statement related by masl_statement->IOStreamStatement[R5135];
 if (not_empty io_stream_statement)
   ::transformIOStreamStatement(io_stream_statement:io_stream_statement, block:block, prev_smt:prev_smt);
@@ -191,7 +195,7 @@ if (not_empty if_statement)
   ::transformMaslIfStatement(if_statement:if_statement, block:block, prev_smt:prev_smt);
 else
   LOG::LogFailure(message:"statement type not supported: ''" + masl_statement.actions + "''");
-end if; end if;',
+end if; end if; end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -815,6 +819,124 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("b20c666e-494b-47e3-a9e0-35ddea24de31",
+	1,
+	"c45f2f21-d5ff-4652-999f-d4808df1e2ef",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("272ee62d-8b16-45ee-8571-941543a4a470",
+	"00000000-0000-0000-0000-000000000000",
+	'transformAssignStatement',
+	'',
+	'assign_statement = param.assign_statement;
+block = param.block;
+prev_smt = param.prev_smt;
+select one masl_statement related by assign_statement->Statement2[R5135];
+
+// create a statement
+create object instance smt of Statement;
+relate smt to block across R450;
+if (not_empty prev_smt)
+  smt.statement_number = STRING::itoa(i:STRING::atoi(s:prev_smt.statement_number) + 1);
+  relate smt to prev_smt across R477.''executes after'';
+else
+  smt.statement_number = "1";
+end if;
+smt.actions = masl_statement.actions;
+
+// collect info
+select one left_expr related by assign_statement->Expression2[R5101];
+select one left_type related by left_expr->BasicType[R5570]->BuiltinType[R6205];
+select one right_expr related by assign_statement->Expression2[R5100];
+select one right_type related by right_expr->BasicType[R5570]->BuiltinType[R6205];
+
+// create expression as statement
+create object instance eas of ExpressionAsStatement;
+relate eas to smt across R451;
+
+// create main expression
+create object instance expr of Expression;
+relate expr to smt across R775;
+expr.expression_number = "1";
+relate expr to eas across R476;
+
+// create binary operation and assignment expression
+create object instance binop of BinaryOperation;
+relate binop to expr across R776;
+binop.operator = "=";
+binop.invocation = false;
+
+// create left operand
+::transformMaslExpression(masl_expression:left_expr, expr_number:"1.1", smt:smt);
+select any l_op related by smt->Expression[R775] where (selected.expression_number == "1.1");
+relate l_op to binop across R779;
+select one ltype related by l_op->TypeReference[R795];
+
+// create right operand
+// no type promotion necessary or automatic promotion of integer to real or integer to timestamp
+if left_type == right_type or ("" + left_type.name == "real" and "" + right_type.name == "integer") or ("" + left_type.name == "timestamp" and "" + right_type.name == "integer")
+	::transformMaslExpression(masl_expression:right_expr, expr_number:"1.2", smt:smt);
+else
+	// must do type promotion
+	create object instance prom_expr of Expression;
+	relate prom_expr to smt across R775;
+	prom_expr.expression_number = "1.2";
+	relate ltype to prom_expr across R795;
+	create object instance prom of Promotion;
+	relate prom to prom_expr across R776;
+	// TODO
+  prom.cast = true;
+	::transformMaslExpression(masl_expression:right_expr, expr_number:"1.2.1", smt:smt);
+	select any prom_val related by smt->Expression[R775] where (selected.expression_number == "1.2.1");
+	relate prom_val to prom across R3907;
+end if;
+select any r_op related by smt->Expression[R775] where (selected.expression_number == "1.2");
+relate r_op to binop across R778;
+
+// link l_op type to the main expression
+select one type related by l_op->TypeReference[R795];
+relate type to expr across R795;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	0);
+INSERT INTO S_SPARM
+	VALUES ("b9fe2495-ed7b-405b-ae26-133b72688b04",
+	"272ee62d-8b16-45ee-8571-941543a4a470",
+	'assign_statement',
+	"71dca57b-4d62-4071-b97e-de30ee42722f",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("71dca57b-4d62-4071-b97e-de30ee42722f",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<AssignmentStatement>',
+	'',
+	'',
+	'../../../../../ooamasl/models/ooamasl/ooamasl/statement/statement.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("4a1eab06-1f2a-4b5c-b17c-ee88ad97468e",
+	"272ee62d-8b16-45ee-8571-941543a4a470",
+	'block',
+	"60d4da0e-4cbe-4620-8c16-4e1dba1c6b8d",
+	0,
+	'',
+	"b9fe2495-ed7b-405b-ae26-133b72688b04",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("6405046c-6255-4d60-b74f-0bcca7fb61c8",
+	"272ee62d-8b16-45ee-8571-941543a4a470",
+	'prev_smt',
+	"b586ec7e-41fe-4d50-9cf3-27b173e9848a",
+	0,
+	'',
+	"4a1eab06-1f2a-4b5c-b17c-ee88ad97468e",
+	'');
+INSERT INTO PE_PE
+	VALUES ("272ee62d-8b16-45ee-8571-941543a4a470",
 	1,
 	"c45f2f21-d5ff-4652-999f-d4808df1e2ef",
 	"00000000-0000-0000-0000-000000000000",
