@@ -50,8 +50,12 @@ select one variable_reference related by masl_expression->VariableNameExpression
 if (not_empty variable_reference)
   ::transformVariableNameExpression(variable_reference:variable_reference, smt:smt, expr_number:expr_number);
 else
+select one create_expression related by masl_expression->CreateExpression[R5517];
+if (not_empty create_expression)
+  ::transformCreateExpression(create_expression:create_expression, smt:smt, expr_number:expr_number);
+else
   LOG::LogInfo( message:"expression type not yet supported" );
-end if; end if;',
+end if; end if; end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -242,16 +246,15 @@ create object instance expr of Expression;
 relate expr to smt across R775;
 expr.expression_number = expr_number;
 
-// link type
-select one builtin related by variable_def->BasicType[R5137]->BuiltinType[R6205]->BuiltInType[R8305];
-type = ::TypeReference_getBuiltinTypeReference(name:builtin.name);
-relate type to expr across R795;
-
 // create variable reference
 select any var related by smt->CodeBlock[R450]->Variable[R458] where (selected.name == "" + variable_def.name);
 create object instance var_ref of VariableReference;
 relate var to var_ref across R782;
 relate var_ref to expr across R776;
+
+// link type
+select one type related by var->TypeReference[R461];
+relate type to expr across R795;
 
 // add type reference to file
 select one expr_type related by var->TypeReference[R461]->Type[R3800];
@@ -297,6 +300,79 @@ INSERT INTO S_DT_PROXY
 	'../../../../../ooamasl/models/ooamasl/ooamasl/expression/expression.xtuml');
 INSERT INTO PE_PE
 	VALUES ("8b25318a-a390-4219-9b88-7f42b6542b6e",
+	1,
+	"6b1296bb-978b-44fd-b197-7cada155e1c8",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("7d98ff46-616a-4379-b408-cd8e2b7226dd",
+	"00000000-0000-0000-0000-000000000000",
+	'transformCreateExpression',
+	'',
+	'create_expression = param.create_expression;
+smt = param.smt;
+expr_number = param.expr_number;
+
+// create expression
+create object instance expr of Expression;
+relate expr to smt across R775;
+expr.expression_number = expr_number;
+
+// link type
+select one obj related by create_expression->ObjectDeclaration[R5511]->Class[R8300];
+select one inst_type related by obj->Type[R407];
+cr_type = ::TypeReference_getInstanceWithDimString(type:inst_type, dims:"");
+relate cr_type to expr across R795;
+
+// create creation
+create object instance cr of Creation;
+relate cr to expr across R776;
+relate cr to obj across R780;
+select one class_file related by obj->File[R401];
+
+// add import
+::addStringToImports(file: ::getFileForStatement(smt:smt), s: ::pathToPackage(path:class_file.path) + ".impl." + class_file.name + "Impl", type:ImportType::IMPL);',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	0);
+INSERT INTO S_SPARM
+	VALUES ("fa40c918-25bf-4359-88a5-022984ac6cfa",
+	"7d98ff46-616a-4379-b408-cd8e2b7226dd",
+	'create_expression',
+	"5cf91f22-7d2b-48cf-aed2-8f35dd414190",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("5cf91f22-7d2b-48cf-aed2-8f35dd414190",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<CreateExpression>',
+	'',
+	'',
+	'../../../../../ooamasl/models/ooamasl/ooamasl/expression/expression.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("5c1951e7-be23-4a35-b688-ff98bf275d77",
+	"7d98ff46-616a-4379-b408-cd8e2b7226dd",
+	'smt',
+	"b586ec7e-41fe-4d50-9cf3-27b173e9848a",
+	0,
+	'',
+	"fa40c918-25bf-4359-88a5-022984ac6cfa",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("add15592-1b2d-416b-b05e-a094a607a96c",
+	"7d98ff46-616a-4379-b408-cd8e2b7226dd",
+	'expr_number',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"5c1951e7-be23-4a35-b688-ff98bf275d77",
+	'');
+INSERT INTO PE_PE
+	VALUES ("7d98ff46-616a-4379-b408-cd8e2b7226dd",
 	1,
 	"6b1296bb-978b-44fd-b197-7cada155e1c8",
 	"00000000-0000-0000-0000-000000000000",

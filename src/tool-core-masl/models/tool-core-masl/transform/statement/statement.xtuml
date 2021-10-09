@@ -458,8 +458,18 @@ create object instance var_in_scope of VariableInScope;
 relate new_var to scope across R458 using var_in_scope;
 
 // link data type
+select any type from instances of TypeReference where false;
 select one builtin related by variable_declaration->BasicType[R5137]->BuiltinType[R6205]->BuiltInType[R8305];
-type = ::TypeReference_getBuiltinTypeReference(name:builtin.name);
+if not_empty builtin
+  type = ::TypeReference_getBuiltinTypeReference(name:builtin.name);
+else
+  select one inst_type related by variable_declaration->BasicType[R5137]->InstanceType[R6205]->ObjectDeclaration[R6220]->Class[R8300]->Type[R407];
+  if not_empty inst_type
+    file = ::getFileForStatement(smt:smt);
+    ::addTypeToImports(file:file, type_to_import:inst_type, type: ImportType::IMPL);
+  end if;
+  type = ::TypeReference_getInstanceWithDimString(type:inst_type, dims:"");
+end if;
 relate type to new_var across R461;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -564,7 +574,6 @@ select one expr_type related by var->TypeReference[R461]->Type[R3800];
 select one init_expr related by variable_declaration->Expression2[R5138];
 if not_empty init_expr
   ::transformMaslExpression(masl_expression:init_expr, expr_number:"1.2", smt:smt);
-  LOG::LogInfo(message:"LEVI1");
 else
   // if no initializer exists, simply use the default value for the type
 	create object instance r_op of Expression;
@@ -576,15 +585,11 @@ else
 	create object instance named_expr of NamedReference;
 	named_expr.name = expr_type.default_value;
 	relate named_expr to r_op across R776;
-  LOG::LogInfo(message:"LEVI2");
+	// if this is an instance type, must import the implementation class
+	select one class_file related by expr_type->Class[R407]->File[R401];
+  ::addStringToImports(file: ::getFileForStatement(smt:smt), s: ::pathToPackage(path:class_file.path) + ".impl." + class_file.name + "Impl", type:ImportType::IMPL);
 end if;
 select any r_op related by smt->Expression[R775] where (selected.expression_number == "1.2");
-if empty l_op
-  LOG::LogInfo(message:"LEVI3");
-end if;
-if empty r_op
-  LOG::LogInfo(message:"LEVI4");
-end if;
 relate r_op to binop across R778;
 
 // link l_op type to the main expression
