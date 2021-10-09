@@ -3928,7 +3928,7 @@ if ( "" != phrase )
   selector_name = selector_name + T::sub( format:"_", s:phrase ) + "_";
 end if;
 selector_name = selector_name + target_class.name;
-select any selector related by base_class->InstanceSelector[R442]->Selector[R445] where ( selected.name == selector_name );
+select any selector related by base_class->ClassInComponent[R408]->InstanceSelector[R442]->Selector[R445] where ( selected.name == selector_name );
 if ( empty selector )
   classInComp = ClassInComponent::get( obj:base_class, component:referring_comp );
   select any selector related by classInComp->ClassSet[R406]->SetSelector[R444]->Selector[R445] where ( selected.name == selector_name );
@@ -4568,7 +4568,8 @@ for each subtype in subtypes
                                                                  selected.form_name == select_class.name and
                                                                  selected.part_name == self_class.name ); // if no phrase was included, the target and base class must be different
   selector_name = "R" + STRING::itoa( i:r_rel.Numb ) + "_is_a_" + select_class.name;
-  select any selector related by self_class->InstanceSelector[R442]->Selector[R445] where ( selected.name == selector_name );
+  select any selector related by self_class_in_comp->InstanceSelector[R442]->Selector[R445] 
+   where ( selected.name == selector_name );
   if ( not_empty selector )
     relate selector to sel_rel across R797;
   else
