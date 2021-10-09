@@ -232,13 +232,9 @@ select any prev_smt from instances of Statement where false;
 smt_num = 1;
 while (not_empty masl_statement)
   ::transformMaslStatement(masl_statement:masl_statement, block:block, prev_smt:prev_smt);
-  select any prev_smt related by block->Statement[R450] where (selected.statement_number == STRING::itoa(i:smt_num + 1)); // for MASL statements that result in 2 statements
-  if (not_empty prev_smt)
-    smt_num = smt_num + 2;
-  else
-    select any prev_smt related by block->Statement[R450] where (selected.statement_number == STRING::itoa(i:smt_num));
-    smt_num = smt_num + 1;
-  end if;
+  // get the last created statement by selecting any ordered descending by statement number
+  select any prev_smt related by block->Statement[R450] where SORT::descending(attr:"statement_number");
+  smt_num = STRING::atoi(s:prev_smt.statement_number) + 1;
   select one masl_statement related by masl_statement->Statement2[R5155.''precedes''];
 end while;',
 	"ba5eda7a-def5-0000-0000-000000000000",
@@ -280,69 +276,84 @@ block = param.block;
 prev_smt = param.prev_smt;
 select one masl_statement related by io_stream_statement->Statement2[R5135];
 
-// create a statement
-create object instance smt of Statement;
-relate smt to block across R450;
-if ( not_empty prev_smt )
-  smt.statement_number = STRING::itoa(i:STRING::atoi( s:prev_smt.statement_number ) + 1);
-  relate smt to prev_smt across R477.''executes after'';
-else
-  smt.statement_number = "1";
-end if;
-select one body related by block->InvocableObject[R4000];
-smt.actions = masl_statement.actions;
-
-// create expression as statement
-create object instance eas of ExpressionAsStatement;
-relate eas to smt across R451;
-
 // Get the device expression and the other expression.
-// TODO: currently only assumes one stream operator per statement
 select one device_expression related by io_stream_statement->Expression2[R5156];
-select any other_expression related by io_stream_statement->Expression2[R5115];
+select any stream_operator related by io_stream_statement->StreamOperator[R5115] where selected.index == 0;
 
-// create main expression
-create object instance expr of Expression;
-relate expr to smt across R775;
-expr.expression_number = "1";
-relate expr to eas across R476;
+// Create a statement for each stream operation sequentially
+first_statement = true;
+while not_empty stream_operator
 
-// create binary operation and assignment expression
-create object instance binop of BinaryOperation;
-relate binop to expr across R776;
-if (io_stream_statement.operator == IOop::in)
-	binop.operator = "read";
-elif (io_stream_statement.operator == IOop::linein)
-	binop.operator = "readLine";
-elif (io_stream_statement.operator == IOop::out)
-	binop.operator = "write";
-elif (io_stream_statement.operator == IOop::lineout)
-	binop.operator = "writeLine";
-else
-	// TODO bad
-end if;
-binop.invocation = true;
+	// create a statement
+	create object instance smt of Statement;
+	relate smt to block across R450;
+	if ( not_empty prev_smt )
+		smt.statement_number = STRING::itoa(i:STRING::atoi(s:prev_smt.statement_number) + 1);
+		relate smt to prev_smt across R477.''executes after'';
+	else
+		smt.statement_number = "1";
+	end if;
+	if first_statement
+		smt.actions = masl_statement.actions;
+		first_statement = false;
+	end if;
 
-// create left operand
-::transformMaslExpression(masl_expression:device_expression, expr_number:"1.1", smt:smt );
-select any l_op related by smt->Expression[R775] where (selected.expression_number == "1.1");
-relate l_op to binop across R779;
-select one ltype related by l_op->TypeReference[R795];
+	// create expression as statement
+	create object instance eas of ExpressionAsStatement;
+	relate eas to smt across R451;
 
-// create right operand
-::transformMaslExpression(masl_expression:other_expression, expr_number:"1.2", smt:smt);
-select any r_op related by smt->Expression[R775] where (selected.expression_number == "1.2");
-relate r_op to binop across R778;
 
-if (io_stream_statement.operator == IOop::in or io_stream_statement.operator == IOop::linein)
-  // link r_op type to the main expression for reads
-  select one type related by r_op->TypeReference[R795];
-  relate type to expr across R795;
-else
-  // link ''void'' to the main expression for writes
-  type = ::TypeReference_getBuiltinTypeReference(name:"void");
-  relate type to expr across R795;
-end if;',
+	// create main expression
+	create object instance expr of Expression;
+	relate expr to smt across R775;
+	expr.expression_number = "1";
+	relate expr to eas across R476;
+
+	// create binary operation and assignment expression
+	create object instance binop of BinaryOperation;
+	relate binop to expr across R776;
+	if (stream_operator.operator == IOop::in)
+		binop.operator = "read";
+	elif (stream_operator.operator == IOop::linein)
+		binop.operator = "readLine";
+	elif (stream_operator.operator == IOop::out)
+		binop.operator = "write";
+	elif (stream_operator.operator == IOop::lineout)
+		binop.operator = "writeLine";
+	else
+		// TODO bad
+	end if;
+	binop.invocation = true;
+
+	// create left operand
+	::transformMaslExpression(masl_expression:device_expression, expr_number:"1.1", smt:smt );
+	select any l_op related by smt->Expression[R775] where (selected.expression_number == "1.1");
+	relate l_op to binop across R779;
+	select one ltype related by l_op->TypeReference[R795];
+
+	// create right operand
+	select one other_expression related by stream_operator->Expression2[R5115];
+	::transformMaslExpression(masl_expression:other_expression, expr_number:"1.2", smt:smt);
+	select any r_op related by smt->Expression[R775] where (selected.expression_number == "1.2");
+	relate r_op to binop across R778;
+
+	if (stream_operator.operator == IOop::in or stream_operator.operator == IOop::linein)
+		// link r_op type to the main expression for reads
+		select one type related by r_op->TypeReference[R795];
+		relate type to expr across R795;
+	else
+		// link ''void'' to the main expression for writes
+		type = ::TypeReference_getBuiltinTypeReference(name:"void");
+		relate type to expr across R795;
+	end if;
+
+	// set this statement as the previous statement
+	prev_smt = smt;
+	
+	// get the next stream operator
+	select one stream_operator related by stream_operator->StreamOperator[R5159.''precedes''];
+
+end while;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
