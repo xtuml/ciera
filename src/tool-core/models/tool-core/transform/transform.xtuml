@@ -3683,7 +3683,8 @@ relate rel to sel across R4512;
 create object instance set_sel of SetSelector;
 relate set_sel to sel across R445;
 relate set_sel to obj_set across R444;
-many_sel = sel;
+// link type references
+relate set_type to sel across R446;
 
 // create either a ''one'' or ''many'' instance selector
 create object instance sel of Selector;
@@ -3699,21 +3700,16 @@ relate inst_sel to sel across R445;
 relate inst_sel to classInComp across R442;
 relate inst_sel to set_sel across R4505;
 
-// link type references
-relate set_type to many_sel across R446;
-select any ins_sel from instances of Selector
-  where ( (selected.name == name) and (selected.parent_name == obj.name) );
 if ( Mult::ONE == param.mult )
-	LOG::LogInfo( message:"AM :: xform_selector: param MULT is ONE " + name + " class_type: " + class_type.type_reference_name );
-  relate class_type to ins_sel across R446;
+	LOG::LogInfo( message:"AM :: xform_selector: param MULT is ONE; " + name + " class_type: " + class_type.type_reference_name );
+  relate class_type to sel across R446;
 else
-	LOG::LogInfo( message:"AM :: xform_selector: param MULT is MANY " + name + " set_type: " + set_type.type_reference_name );
-  relate set_type to ins_sel across R446;
+	LOG::LogInfo( message:"AM :: xform_selector: param MULT is MANY; " + name + " set_type: " + set_type.type_reference_name );
+  relate set_type to sel across R446;
 end if;
 
 // add imports to object file
 LOG::LogInfo( message:"JRW ::transformSelector(), add imports to object file" );
-classInComp = ClassInComponent::get( obj:obj, component:containing_comp_def );
 select one file related by classInComp->File[R401];
 ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::BOTH );
 if ( Cond::UNCONDITIONAL == param.cond or Mult::ONE == param.mult )
