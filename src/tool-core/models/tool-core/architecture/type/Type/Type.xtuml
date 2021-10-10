@@ -24,25 +24,8 @@ if ( "" != self.package )//and self.package != file.package );
 		// filter out component-specifics that do not belong in the currently processing component.
     // add the file to the imports for this type only if this type is component-independent, 
     // or the file is associated with the same component as the component-specific type
-    select one class_in_comp_component related by file->ClassInComponent[R401]->ComponentDefinition[R408];
-    select one class_set_component related by file->ClassSet[R401]->ClassInComponent[R406]->ComponentDefinition[R408];
-    if ( (type_component == class_in_comp_component) or (type_component == class_set_component) )
-      ::addStringToImports( file:param.file, s:self.package + "." + self.name, type:param.type );
-    end if;
-    select any brg_in_comp_component related by file->Utility[R401]->ComponentDefinition[R4558]
-	   where ( selected.name == type_component.name )
-	     and ( selected.package == type_component.package );
-    if (type_component == brg_in_comp_component)
-
-//    if ( file.knowsComponent( comp:type_component ) );
-      LOG::LogInfo( message:"JRW :: addToImport for Utility file name: " + file.name );
-      ::addStringToImports( file:param.file, s:self.package + "." + self.name, type:param.type );
-    end if;
-    select one sm_in_comp_component related by file->StateMachine[R401]->ClassInComponent[R4750]
-                                                   ->ComponentDefinition[R408.''forms instance population of'']
-	   where ( selected.name == type_component.name )
-	     and ( selected.package == type_component.package );
-    if (type_component == sm_in_comp_component)
+    if file.knowsComponent( component:type_component )
+      LOG::LogInfo( message:"JRW :: addToImport for file name: " + file.name + " component " + type_component.name );
       ::addStringToImports( file:param.file, s:self.package + "." + self.name, type:param.type );
     end if;
   else
