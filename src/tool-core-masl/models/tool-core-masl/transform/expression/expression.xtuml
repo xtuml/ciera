@@ -70,8 +70,16 @@ select one param_ref related by masl_expression->ParameterNameExpression[R5517];
 if (not_empty param_ref)
   ::transformParameterNameExpression(param_ref:param_ref, smt:smt, expr_number:expr_number);
 else
+select one object_ref related by masl_expression->ObjectNameExpression[R5517];
+if (not_empty object_ref)
+  ::transformObjectNameExpression(object_reference:object_ref, smt:smt, expr_number:expr_number);
+else
+select one find_expression related by masl_expression->FindExpression[R5517];
+if (not_empty find_expression)
+  ::transformFindExpression(find_expression:find_expression, smt:smt, expr_number:expr_number);
+else
   LOG::LogInfo( message:"expression type not yet supported" );
-end if; end if; end if; end if; end if; end if; end if;',
+end if; end if; end if; end if; end if; end if; end if; end if; end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -1092,6 +1100,158 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("144c78dc-a3bb-48e7-aa14-e1e00036a790",
+	1,
+	"6b1296bb-978b-44fd-b197-7cada155e1c8",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("3b04df9d-b2a1-4dff-aef0-06e0e9e94af6",
+	"00000000-0000-0000-0000-000000000000",
+	'transformObjectNameExpression',
+	'',
+	'object_reference = param.object_reference;
+smt = param.smt;
+expr_number = param.expr_number;
+
+// create expression
+create object instance expr of Expression;
+relate expr to smt across R775;
+expr.expression_number = expr_number;
+
+// link type
+select one set_type related by object_reference->ObjectDeclaration[R5533]->Class[R8300]->ClassSet[R406]->Type[R407];
+type = ::TypeReference_getInstanceWithDimString(type:set_type, dims:"");
+relate type to expr across R795;
+
+// create selector
+create object instance sel of SelectExpr;
+relate sel to expr across R776;
+create object instance sel_fi of SelectFromInstances;
+relate sel_fi to sel across R789;
+select one selector related by object_reference->ObjectDeclaration[R5533]->Class[R8300]->InstancePopulationSelector[R449];
+relate selector to sel_fi across R799;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	4);
+INSERT INTO S_SPARM
+	VALUES ("238bddfd-6ecc-432f-830b-c67e02f3bf2c",
+	"3b04df9d-b2a1-4dff-aef0-06e0e9e94af6",
+	'object_reference',
+	"5900757f-4fb3-40fb-901a-5bce08ec76ee",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("5900757f-4fb3-40fb-901a-5bce08ec76ee",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<ObjectNameExpression>',
+	'',
+	'',
+	'../../../../../ooamasl/models/ooamasl/ooamasl/expression/expression.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("526d93c9-3b72-4f73-b260-fe8a9b1fab4f",
+	"3b04df9d-b2a1-4dff-aef0-06e0e9e94af6",
+	'smt',
+	"b586ec7e-41fe-4d50-9cf3-27b173e9848a",
+	0,
+	'',
+	"238bddfd-6ecc-432f-830b-c67e02f3bf2c",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("26fc56ed-e96f-446f-86be-5f92c8718fd1",
+	"3b04df9d-b2a1-4dff-aef0-06e0e9e94af6",
+	'expr_number',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"526d93c9-3b72-4f73-b260-fe8a9b1fab4f",
+	'');
+INSERT INTO PE_PE
+	VALUES ("3b04df9d-b2a1-4dff-aef0-06e0e9e94af6",
+	1,
+	"6b1296bb-978b-44fd-b197-7cada155e1c8",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("a69974b3-9927-4e0d-90f4-cc597035e9ca",
+	"00000000-0000-0000-0000-000000000000",
+	'transformFindExpression',
+	'',
+	'find_expression = param.find_expression;
+smt = param.smt;
+expr_number = param.expr_number;
+
+if find_expression.flavor == FindType::find  // simply pass it through
+  select one root_expression related by find_expression->Expression2[R5519];
+  ::transformMaslExpression(masl_expression:root_expression, expr_number:expr_number, smt:smt);
+elif find_expression.flavor == FindType::find_one
+
+	// create expression
+	create object instance expr of Expression;
+	relate expr to smt across R775;
+	expr.expression_number = expr_number;
+
+	// link type
+	select one inst_type related by find_expression->Expression2[R5517]->BasicType[R5570]
+		->InstanceType[R6205]->ObjectDeclaration[R6220]->Class[R8300]->ClassSet[R406]->Type[R407];
+	type = ::TypeReference_getInstanceWithDimString(type:inst_type, dims:"");
+	relate type to expr across R795;
+	
+	// create any expression
+	create object instance any_expr of AnyExpr;
+  relate any_expr to expr across R776;
+  select one root_expression related by find_expression->Expression2[R5519];
+  ::transformMaslExpression(masl_expression:root_expression, expr_number:expr_number + ".1", smt:smt);
+  select any root_expr related by smt->Expression[R775] where (selected.expression_number == expr_number + ".1");
+  relate root_expr to any_expr across R783;
+
+else
+  // TODO find_only
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	5);
+INSERT INTO S_SPARM
+	VALUES ("8f1a492b-bd25-46d5-8192-477dc2f6b24e",
+	"a69974b3-9927-4e0d-90f4-cc597035e9ca",
+	'find_expression',
+	"8148fd0d-6ecb-4359-9582-3aa1bb4ea4f9",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("8148fd0d-6ecb-4359-9582-3aa1bb4ea4f9",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<FindExpression>',
+	'',
+	'',
+	'../../../../../ooamasl/models/ooamasl/ooamasl/expression/expression.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("73e31994-516d-44b2-8b24-9c60a0e82e29",
+	"a69974b3-9927-4e0d-90f4-cc597035e9ca",
+	'smt',
+	"b586ec7e-41fe-4d50-9cf3-27b173e9848a",
+	0,
+	'',
+	"8f1a492b-bd25-46d5-8192-477dc2f6b24e",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("755d876e-482e-4bda-a343-028cadca470b",
+	"a69974b3-9927-4e0d-90f4-cc597035e9ca",
+	'expr_number',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"73e31994-516d-44b2-8b24-9c60a0e82e29",
+	'');
+INSERT INTO PE_PE
+	VALUES ("a69974b3-9927-4e0d-90f4-cc597035e9ca",
 	1,
 	"6b1296bb-978b-44fd-b197-7cada155e1c8",
 	"00000000-0000-0000-0000-000000000000",
