@@ -587,7 +587,9 @@ else
 	relate named_expr to r_op across R776;
 	// if this is an instance type, must import the implementation class
 	select one class_file related by expr_type->Class[R407]->File[R401];
-  ::addStringToImports(file: ::getFileForStatement(smt:smt), s: ::pathToPackage(path:class_file.path) + ".impl." + class_file.name + "Impl", type:ImportType::IMPL);
+	if (not_empty class_file)
+    ::addStringToImports(file: ::getFileForStatement(smt:smt), s: ::pathToPackage(path:class_file.path) + ".impl." + class_file.name + "Impl", type:ImportType::IMPL);
+  end if;
 end if;
 select any r_op related by smt->Expression[R775] where (selected.expression_number == "1.2");
 relate r_op to binop across R778;
