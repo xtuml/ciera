@@ -66,8 +66,12 @@ select one call_expression related by masl_expression->CallExpression[R5517];
 if (not_empty call_expression)
   ::transformCallExpression(call_expression:call_expression, smt:smt, expr_number:expr_number);
 else
+select one param_ref related by masl_expression->ParameterNameExpression[R5517];
+if (not_empty param_ref)
+  ::transformParameterNameExpression(param_ref:param_ref, smt:smt, expr_number:expr_number);
+else
   LOG::LogInfo( message:"expression type not yet supported" );
-end if; end if; end if; end if; end if; end if;',
+end if; end if; end if; end if; end if; end if; end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -1074,6 +1078,80 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("117a5174-ab8c-4ddc-a953-7d83d6398ed9",
+	1,
+	"6b1296bb-978b-44fd-b197-7cada155e1c8",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("144c78dc-a3bb-48e7-aa14-e1e00036a790",
+	"00000000-0000-0000-0000-000000000000",
+	'transformParameterNameExpression',
+	'',
+	'param_ref = param.param_ref;
+smt = param.smt;
+expr_number = param.expr_number;
+
+// create expression
+create object instance expr of Expression;
+relate expr to smt across R775;
+expr.expression_number = expr_number;
+
+// link type
+select one builtin related by param_ref->ParameterDefinition[R5536]->BasicType[R5200]->BuiltinType[R6205]->BuiltInType[R8305];
+type = ::TypeReference_getBuiltinTypeReference(name:builtin.name);
+relate type to expr across R795;
+
+create object instance ref of ParameterReference;
+relate ref to expr across R776;
+select one param_def related by param_ref->ParameterDefinition[R5536];
+select any formal_param related by smt->CodeBlock[R450]->InvocableObject[R4000]->FormalParameter[R429]
+  where (selected.name == "p_" + param_def.name);
+if (not_empty formal_param)
+  relate formal_param to ref across R781;
+else
+  // TODO bad
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	3);
+INSERT INTO S_SPARM
+	VALUES ("c2c935c5-7101-4b12-bb25-fc1d354b3134",
+	"144c78dc-a3bb-48e7-aa14-e1e00036a790",
+	'param_ref',
+	"a3feb24c-045b-4744-bb9e-fe9bbfffe967",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("a3feb24c-045b-4744-bb9e-fe9bbfffe967",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<ParameterNameExpression>',
+	'',
+	'',
+	'../../../../../ooamasl/models/ooamasl/ooamasl/expression/expression.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("6be0082d-b45b-435d-a513-4513aed98363",
+	"144c78dc-a3bb-48e7-aa14-e1e00036a790",
+	'smt',
+	"b586ec7e-41fe-4d50-9cf3-27b173e9848a",
+	0,
+	'',
+	"c2c935c5-7101-4b12-bb25-fc1d354b3134",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("f909db40-0ae3-4825-a373-c8c4b2a48784",
+	"144c78dc-a3bb-48e7-aa14-e1e00036a790",
+	'expr_number',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"6be0082d-b45b-435d-a513-4513aed98363",
+	'');
+INSERT INTO PE_PE
+	VALUES ("144c78dc-a3bb-48e7-aa14-e1e00036a790",
 	1,
 	"6b1296bb-978b-44fd-b197-7cada155e1c8",
 	"00000000-0000-0000-0000-000000000000",
