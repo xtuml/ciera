@@ -202,8 +202,12 @@ select one service_call_statement related by masl_statement->ServiceCall[R5135];
 if (not_empty service_call_statement)
   ::transformServiceCall(service_call:service_call_statement, block:block, prev_smt:prev_smt);
 else
+select one link_unlink_statement related by masl_statement->LinkUnlinkStatement[R5135];
+if (not_empty link_unlink_statement)
+  ::transformLinkUnlinkStatement(link_unlink_statement:link_unlink_statement, block:block, prev_smt:prev_smt);
+else
   LOG::LogFailure(message:"statement type not supported: ''" + masl_statement.actions + "''");
-end if; end if; end if; end if; end if;',
+end if; end if; end if; end if; end if; end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -1161,24 +1165,9 @@ if (not_empty instance_service_invocation)
 		// relate expression to expression as statement
 		select one inst_val related by instance_service_invocation->Expression2[R5615];
 		select one this_literal related by inst_val->LiteralExpression[R5517]->ThisLiteral[R5700];
-		if (not_empty this_literal)
-			// create variable reference expression
-			create object instance expr2 of Expression;
-			relate expr2 to smt across R775;
-			expr2.expression_number = "1.1";
-			relate expr2 to invoc across R798;
-			select one inst_type related by object_service->ObjectDeclaration[R5808]->Class[R8300]->Type[R407];
-			op_type = ::TypeReference_getInstanceWithDimString(type:inst_type, dims:"");
-			relate op_type to expr2 across R795;
-			// create named reference to self
-			create object instance self_ref of NamedReference;
-			relate self_ref to expr2 across R776;
-			self_ref.name = "self()";
-		else
-		  ::transformMaslExpression(masl_expression:inst_val, expr_number:"1.1", smt:smt);
-      select any expr2 related by smt->Expression[R775] where (selected.expression_number == "1.1");
-			relate expr2 to invoc across R798;
-		end if;
+		::transformMaslExpression(masl_expression:inst_val, expr_number:"1.1", smt:smt);
+		select any expr2 related by smt->Expression[R775] where (selected.expression_number == "1.1");
+		relate expr2 to invoc across R798;
 		// transform actual parameters
 		select one first_argument related by service_call->ServiceInvocation[R5161]->CallExpression[R5500]->Argument[R5575];
 		if (not_empty first_argument)
@@ -1231,6 +1220,171 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("e30915e6-a856-4172-984e-cd677fcbdfc2",
+	1,
+	"c45f2f21-d5ff-4652-999f-d4808df1e2ef",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("7e78f145-466c-4003-a566-f91b8e99ddef",
+	"00000000-0000-0000-0000-000000000000",
+	'transformLinkUnlinkStatement',
+	'',
+	'link_unlink_statement = param.link_unlink_statement;
+block = param.block;
+prev_smt = param.prev_smt;
+select one masl_statement related by link_unlink_statement->Statement2[R5135];
+
+// create a statement
+create object instance smt of Statement;
+relate smt to block across R450;
+if (not_empty prev_smt)
+  smt.statement_number = STRING::itoa(i:STRING::atoi(s:prev_smt.statement_number) + 1);
+  relate smt to prev_smt across R477.''executes after'';
+else
+  smt.statement_number = "1";
+end if;
+smt.actions = masl_statement.actions;
+
+// gather info
+select one rel_spec related by link_unlink_statement->RelationshipSpecification[R5120];
+select one rel_decl related by rel_spec->RelationshipDeclaration[R6015];
+select one lhs related by link_unlink_statement->Expression2[R5122];
+select one lhs_class related by lhs->BasicType[R5570]->InstanceType[R6205]->ObjectDeclaration[R6220]->Class[R8300];
+select one rhs related by link_unlink_statement->Expression2[R5119];
+if (empty rhs)
+  // TODO implicity create a selection across the association to get the right
+  // hand side before unlinking. note: this only works with unconditional 1
+  // associations
+end if;
+select one rhs_class related by rhs->BasicType[R5570]->InstanceType[R6205]->ObjectDeclaration[R6220]->Class[R8300];
+select one uses related by link_unlink_statement->Expression2[R5121];
+select one uses_class related by uses->BasicType[R5570]->InstanceType[R6205]->ObjectDeclaration[R6220]->Class[R8300];
+containing_comp_def = ::getCompDefForStatement(smt:smt);
+
+// find the relationship and transform the sub exppressions
+select any rel from instances of Relationship where false;
+select any form_expr from instances of Expression where false;
+select any part_expr from instances of Expression where false;
+if (not_empty uses)
+  // link/unlink lhs first
+  select any rel related by rel_spec->RelationshipDeclaration[R6015]->Relationship[R8304]
+    where (selected.form_name == uses_class.name and selected.part_name == lhs_class.name);
+  ::transformMaslExpression(masl_expression:uses, expr_number:"1", smt:smt);
+  select any form_expr related by smt->Expression[R775] where (selected.expression_number == "1");
+  ::transformMaslExpression(masl_expression:lhs, expr_number:"2", smt:smt);
+  select any part_expr related by smt->Expression[R775] where (selected.expression_number == "2");
+else
+  select any rel related by rel_spec->RelationshipDeclaration[R6015]->Relationship[R8304]
+    where ((selected.form_name == lhs_class.name and selected.part_name == rhs_class.name)
+        or (selected.form_name == rhs_class.name and selected.part_name == lhs_class.name));
+	select any rhs_ref related by rhs_class->ObjectDeclaration[R8300]->AttributeDeclaration[R5802]
+		->ReferentialAttributeDefinition[R5800.''refers_to'']->RelationshipSpecification[R5811]->RelationshipDeclaration[R6015]
+		where (selected.name == rel_decl.name);
+	if (empty rhs_ref)
+		::transformMaslExpression(masl_expression:lhs, expr_number:"1", smt:smt);
+		select any form_expr related by smt->Expression[R775] where (selected.expression_number == "1");
+		::transformMaslExpression(masl_expression:rhs, expr_number:"2", smt:smt);
+		select any part_expr related by smt->Expression[R775] where (selected.expression_number == "2");
+	else
+		::transformMaslExpression(masl_expression:rhs, expr_number:"1", smt:smt);
+		select any form_expr related by smt->Expression[R775] where (selected.expression_number == "1");
+		::transformMaslExpression(masl_expression:lhs, expr_number:"2", smt:smt);
+		select any part_expr related by smt->Expression[R775] where (selected.expression_number == "2");
+	end if;
+end if;
+
+// create relate/unrelate statement
+if link_unlink_statement.isLink
+	create object instance relsmt of RelateSmt;
+	relate relsmt to smt across R451;
+	relate rel to relsmt across R481;
+	relate form_expr to relsmt across R479;
+	relate part_expr to relsmt across R480;
+else
+	create object instance unrelsmt of UnrelateSmt;
+	relate unrelsmt to smt across R451;
+	relate rel to unrelsmt across R484;
+	relate form_expr to unrelsmt across R483;
+	relate part_expr to unrelsmt across R482;
+end if;
+  
+// if this is an associative relationship, create the second statement
+if (not_empty uses)
+  prev_smt = smt;
+
+	// create a statement
+	create object instance smt of Statement;
+	relate smt to block across R450;
+  smt.statement_number = STRING::itoa(i:STRING::atoi(s:prev_smt.statement_number) + 1);
+  relate smt to prev_smt across R477.''executes after'';
+	smt.actions = "";
+
+	// find the relationship and transform the sub exppressions
+	// link/unlink rhs
+	select any rel related by rel_spec->RelationshipDeclaration[R6015]->Relationship[R8304]
+		where (selected.form_name == uses_class.name and selected.part_name == rhs_class.name);
+	::transformMaslExpression(masl_expression:uses, expr_number:"1", smt:smt);  // TODO translating the uses expression twice can cause side effects
+	select any form_expr related by smt->Expression[R775] where (selected.expression_number == "1");
+	::transformMaslExpression(masl_expression:rhs, expr_number:"2", smt:smt);
+	select any part_expr related by smt->Expression[R775] where (selected.expression_number == "2");
+
+	// create relate/unrelate statement
+	if link_unlink_statement.isLink
+		create object instance relsmt of RelateSmt;
+		relate relsmt to smt across R451;
+		relate rel to relsmt across R481;
+		relate form_expr to relsmt across R479;
+		relate part_expr to relsmt across R480;
+	else
+		create object instance unrelsmt of UnrelateSmt;
+		relate unrelsmt to smt across R451;
+		relate rel to unrelsmt across R484;
+		relate form_expr to unrelsmt across R483;
+		relate part_expr to unrelsmt across R482;
+	end if;
+
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	0);
+INSERT INTO S_SPARM
+	VALUES ("4ce35b6d-2abd-4f01-b9f1-e3158b6604d2",
+	"7e78f145-466c-4003-a566-f91b8e99ddef",
+	'link_unlink_statement',
+	"a55225be-4c84-4c35-9f19-5cae429fdacc",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("a55225be-4c84-4c35-9f19-5cae429fdacc",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<LinkUnlinkStatement>',
+	'',
+	'',
+	'../../../../../ooamasl/models/ooamasl/ooamasl/statement/statement.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("2a952174-0aa0-4c1c-8d24-a1159170141b",
+	"7e78f145-466c-4003-a566-f91b8e99ddef",
+	'block',
+	"60d4da0e-4cbe-4620-8c16-4e1dba1c6b8d",
+	0,
+	'',
+	"4ce35b6d-2abd-4f01-b9f1-e3158b6604d2",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("5c63cfe8-ec5d-4ef0-9c55-4cee9e6851b9",
+	"7e78f145-466c-4003-a566-f91b8e99ddef",
+	'prev_smt',
+	"b586ec7e-41fe-4d50-9cf3-27b173e9848a",
+	0,
+	'',
+	"2a952174-0aa0-4c1c-8d24-a1159170141b",
+	'');
+INSERT INTO PE_PE
+	VALUES ("7e78f145-466c-4003-a566-f91b8e99ddef",
 	1,
 	"c45f2f21-d5ff-4652-999f-d4808df1e2ef",
 	"00000000-0000-0000-0000-000000000000",
