@@ -206,8 +206,12 @@ select one link_unlink_statement related by masl_statement->LinkUnlinkStatement[
 if (not_empty link_unlink_statement)
   ::transformLinkUnlinkStatement(link_unlink_statement:link_unlink_statement, block:block, prev_smt:prev_smt);
 else
+select one generate_statement related by masl_statement->GenerateStatement[R5135];
+if (not_empty generate_statement)
+  ::transformGenerateStatement(generate_statement:generate_statement, block:block, prev_smt:prev_smt);
+else
   LOG::LogFailure(message:"statement type not supported: ''" + masl_statement.actions + "''");
-end if; end if; end if; end if; end if; end if;',
+end if; end if; end if; end if; end if; end if; end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -1385,6 +1389,131 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("7e78f145-466c-4003-a566-f91b8e99ddef",
+	1,
+	"c45f2f21-d5ff-4652-999f-d4808df1e2ef",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("c8d9feec-a01c-423a-b5dd-4018603cf34c",
+	"00000000-0000-0000-0000-000000000000",
+	'transformGenerateStatement',
+	'',
+	'generate_statement = param.generate_statement;
+block = param.block;
+prev_smt = param.prev_smt;
+select one masl_statement related by generate_statement->Statement2[R5135];
+
+// create a statement
+create object instance smt of Statement;
+relate smt to block across R450;
+if (not_empty prev_smt)
+  smt.statement_number = STRING::itoa(i:STRING::atoi(s:prev_smt.statement_number) + 1);
+  relate smt to prev_smt across R477.''executes after'';
+else
+  smt.statement_number = "1";
+end if;
+smt.actions = masl_statement.actions;
+
+select one evt related by generate_statement->EventDeclaration[R5112]->Event[R8303];
+select one target related by generate_statement->Expression2[R5113]; // TODO if empty, assigner or creation
+
+// create generate statement
+create object instance gen_smt of Generate;
+relate gen_smt to smt across R451;
+
+// create the event expression
+create object instance evt_expr of Expression;
+relate evt_expr to smt across R775;
+evt_expr.expression_number = "1";
+evt_type_ref = ::TypeReference_getBuiltinTypeReference(name:"EventHandle");
+relate evt_type_ref to evt_expr across R795;
+relate evt_expr to gen_smt across R486;
+
+// create event creation
+create object instance evt_cr of EventCreation;
+relate evt_cr to evt_expr across R776;
+evt_cr.to_self = false;
+
+// create the event invocation
+create object instance invoc_expr of Expression;
+relate invoc_expr to smt across R775;
+invoc_expr.expression_number = evt_expr.expression_number + ".1";
+relate evt_type_ref to invoc_expr across R795;
+relate invoc_expr to evt_cr across R3903;
+create object instance invoc of Invocation;
+relate invoc to invoc_expr across R776;
+select one evt_invocable related by evt->InvocableObject[R427];
+relate invoc to evt_invocable across R792;
+
+// create named reference expression
+create object instance expr2 of Expression;
+relate expr2 to smt across R775;
+expr2.expression_number = invoc_expr.expression_number + ".1";
+select one obj related by evt->StateMachine[R4752]->Class[R4750];
+select one inst_type related by obj->Type[R407];
+inst_type_ref = ::TypeReference_getInstanceWithDimString(type:inst_type, dims:"");
+relate inst_type_ref to expr2 across R795;
+
+// create named reference
+create object instance named_ref of NamedReference;
+relate named_ref to expr2 across R776;
+relate expr2 to invoc across R798;
+named_ref.name = obj.name + "Impl";
+
+// transform actual parameters
+select one first_argument related by generate_statement->Argument[R5114];
+if (not_empty first_argument)
+	::transformArguments(invocation:invoc, first_argument:first_argument, expr_number:invoc_expr.expression_number, base_num:2);
+end if;
+
+// translate the target expression
+::transformMaslExpression(masl_expression:target, expr_number:evt_expr.expression_number + ".2", smt:smt);
+select any target_expr related by smt->Expression[R775] where (selected.expression_number == evt_expr.expression_number + ".2");
+relate evt_cr to target_expr across R3902;
+
+// add import for class
+::addStringToImports(file: ::getFileForStatement(smt:smt), s:obj.package + ".impl." + obj.name + "Impl", type:ImportType::IMPL);',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	0);
+INSERT INTO S_SPARM
+	VALUES ("7b2b1c9b-3f28-488b-9f54-b99ad01b9800",
+	"c8d9feec-a01c-423a-b5dd-4018603cf34c",
+	'generate_statement',
+	"be782bf4-7110-4e2f-83ed-2db067257e29",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("be782bf4-7110-4e2f-83ed-2db067257e29",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<GenerateStatement>',
+	'',
+	'',
+	'../../../../../ooamasl/models/ooamasl/ooamasl/statement/statement.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("adf9ea98-2f62-4f81-a721-97521836737f",
+	"c8d9feec-a01c-423a-b5dd-4018603cf34c",
+	'block',
+	"60d4da0e-4cbe-4620-8c16-4e1dba1c6b8d",
+	0,
+	'',
+	"7b2b1c9b-3f28-488b-9f54-b99ad01b9800",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("772650d1-b18e-4bdc-bdd9-0b89c50a6c38",
+	"c8d9feec-a01c-423a-b5dd-4018603cf34c",
+	'prev_smt',
+	"b586ec7e-41fe-4d50-9cf3-27b173e9848a",
+	0,
+	'',
+	"adf9ea98-2f62-4f81-a721-97521836737f",
+	'');
+INSERT INTO PE_PE
+	VALUES ("c8d9feec-a01c-423a-b5dd-4018603cf34c",
 	1,
 	"c45f2f21-d5ff-4652-999f-d4808df1e2ef",
 	"00000000-0000-0000-0000-000000000000",
