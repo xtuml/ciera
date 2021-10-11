@@ -132,8 +132,10 @@ LOG::LogInfo( message:"  done." );
 LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
 
 // translate bodies
-LOG::LogInfo(message:"  Translating MASL bodies...");
 select many invocables from instances of InvocableObject;
+select many invocables related by invocables->CodeBlock2[R8306]->InvocableObject[R8306];  // only translate bodies that have code
+num_bodies = cardinality invocables;
+LOG::LogInfo(message:"  Translating " + STRING::itoa(i:num_bodies) + " MASL bodies...");
 for each invocable in invocables
   LOG::LogInfo(message:"  Translating ''" + invocable.parent_package + "." + invocable.parent_name + "#" + invocable.name + "'' ...");
   ::transformMaslBody(invocable:invocable);

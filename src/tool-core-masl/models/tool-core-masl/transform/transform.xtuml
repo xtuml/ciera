@@ -248,13 +248,20 @@ create object instance file of File;
 if ( not_empty app_name_mark )
   file.name = app_name_mark.value;
 else
-  file.name = "UnnamedApplication";
+  select many domains from instances of Domain;
+  num_domains = cardinality domains;
+  if num_domains == 1
+    select any domain from instances of Domain;
+    file.name = domain.name + "Application";
+  else
+    file.name = "UnnamedApplication";
+  end if;
 end if;
 if ( not_empty app_pkg_mark )
   file.package = app_pkg_mark.value;
   file.path = ::formatPath( path:file.package );
 else
-  file.path = "unnamedapplication";
+  file.path = T::sub(format:"l", s:file.name);
   file.package = ::pathToPackage( path:file.path );
 end if;
 file.extension = ".java";
@@ -481,7 +488,7 @@ for each object_service in object_services
 end for;
 
 // transform states
-select many states related by object_declaration->State2[R6105];
+select many states related by object_declaration->State2[R6105] where ("" + selected.name != "Non_Existent");
 state_number = 0;
 for each state in states
   ::transformMaslState(state:state, obj:obj, number:state_number);
@@ -1391,13 +1398,6 @@ invocable.parent_name = sm.name;
 invocable.parent_package = sm.package;
 relate state to invocable across R427;
 
-// create code block TODO temp
-create object instance block of CodeBlock;
-block.top_level = true;
-block.tab_depth = 1;
-block.block_number = "1";
-relate block to invocable across R4000;
-
 // copy actions
 select one code_block related by maslstate->CodeBlock2[R6115];
 if not_empty code_block
@@ -1565,49 +1565,51 @@ select many transition_rows related by transition_table->TransitionRow[R6114];
 for each transition_row in transition_rows
   
   select one start_state related by transition_row->State2[R6111]->State[R8302];
+  if (not_empty start_state)  // ignore Non_Existent state for now TODO
 
-  // create a row for this start state
-  create object instance row of TransitionTableRow;
-  relate row to sm across R4753;
-  relate row to start_state across R4754;
-  row.index = start_state.number;
-  
-  select many transition_options related by transition_row->TransitionOption[R6112];
-  for each transition_option in transition_options
-    
-    select one evt related by transition_option->EventDeclaration[R6108]->Event[R8303];
-    
-    // create a cell for this option
-    create object instance cell of TransitionTableCell;
-    relate cell to row across R4755;
-    relate cell to evt across R4756;
-    cell.index = evt.id;
-    
-    if (transition_option.flavor == TransitionType2::ignore)
-      cell.transition_type = TransitionType::IGNORE;
-    elif (transition_option.flavor == TransitionType2::cannot_happen)
-      cell.transition_type = TransitionType::CANT_HAPPEN;
-    else
-      select one dest_state related by transition_option->State2[R6109]->State[R8302];
-      
-			// create transition
-			create object instance txn of Transition;
-			relate dest_state to cell across R4757 using txn;
-			cell.transition_type = TransitionType::TRANSITION;
-
-			// create invocable
-			create object instance invocable of InvocableObject;
-			invocable.name = start_state.name + "_txn_" + dest_state.name;
-			invocable.parent_name = sm.name;
-			invocable.parent_package = sm.package;
-			relate txn to invocable across R427;
+		// create a row for this start state
+		create object instance row of TransitionTableRow;
+		relate row to sm across R4753;
+		relate row to start_state across R4754;
+		row.index = start_state.number;
+		
+		select many transition_options related by transition_row->TransitionOption[R6112];
+		for each transition_option in transition_options
 			
-			// link type
-			type = ::TypeReference_getBuiltinTypeReference( name:"void" );
-			relate type to invocable across R428;
+			select one evt related by transition_option->EventDeclaration[R6108]->Event[R8303];
+			
+			// create a cell for this option
+			create object instance cell of TransitionTableCell;
+			relate cell to row across R4755;
+			relate cell to evt across R4756;
+			cell.index = evt.id;
+			
+			if (transition_option.flavor == TransitionType2::ignore)
+				cell.transition_type = TransitionType::IGNORE;
+			elif (transition_option.flavor == TransitionType2::cannot_happen)
+				cell.transition_type = TransitionType::CANT_HAPPEN;
+			else
+				select one dest_state related by transition_option->State2[R6109]->State[R8302];
+				
+				// create transition
+				create object instance txn of Transition;
+				relate dest_state to cell across R4757 using txn;
+				cell.transition_type = TransitionType::TRANSITION;
 
-    end if;
-  end for;
+				// create invocable
+				create object instance invocable of InvocableObject;
+				invocable.name = start_state.name + "_txn_" + dest_state.name;
+				invocable.parent_name = sm.name;
+				invocable.parent_package = sm.package;
+				relate txn to invocable across R427;
+				
+				// link type
+				type = ::TypeReference_getBuiltinTypeReference( name:"void" );
+				relate type to invocable across R428;
+
+			end if;
+		end for;
+	end if;
 end for;
  ',
 	"ba5eda7a-def5-0000-0000-000000000000",
