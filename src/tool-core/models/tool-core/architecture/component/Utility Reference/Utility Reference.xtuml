@@ -14,11 +14,150 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'T::include(file:"component/t.utilityreference.java");',
+	'select one file related by self->File[R401];
+imports = file.getFormattedImports( type:ImportType::IMPL );
+
+select many util_funcs related by self->Utility[R4558.''contains'']->UtilityFunction[R4559];
+for each utility_function in util_funcs
+  utility_function.render();
+end for;
+utility_functions = T::body();
+T::clear();
+
+T::include(file:"component/t.utility.impl.java");
+T::emit( file:file.path + "/impl/" + self.name + "Impl" + file.extension );
+LOG::LogInfo( message:"AM :: Utility render: " +  file.path  + "/impl/" + self.name + "Impl" + file.extension );
+T::clear();
+
+imports = file.getFormattedImports( type:ImportType::INT );
+
+for each utility_function in util_funcs
+  utility_function.render_interface();
+end for;
+utility_functions = T::body();
+T::clear();
+
+T::include(file:"component/t.utility.java");
+T::emit( file:file.path + "/" + self.name + file.extension );
+LOG::LogInfo( message:"AM :: Utility I/F render: " + file.path + "/" + self.name + file.extension );
+T::clear();',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",
+	0,
 	0);
+INSERT INTO O_TFR
+	VALUES ("bb1fa6ec-7312-4d6b-b6da-d8848c579c66",
+	"ad1a1a13-bf85-4055-a9fb-947d0dcf38ee",
+	'knowsComponent',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000001",
+	1,
+	'select one comp_def related by self->ComponentDefinition[R4558.''used within context of''];
+if ( comp_def == param.component )
+  return true;
+end if;
+return false;',
+	1,
+	'',
+	"846cd1cc-8486-4571-9937-6da8c0a3e819",
+	0,
+	1);
+INSERT INTO O_TPARM
+	VALUES ("7474c461-c85f-4949-9516-d67aed0f1be9",
+	"bb1fa6ec-7312-4d6b-b6da-d8848c579c66",
+	'component',
+	"109e90cb-1d66-46ee-88db-a568044879d0",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("109e90cb-1d66-46ee-88db-a568044879d0",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Component Definition>',
+	'',
+	'',
+	'../component.xtuml');
+INSERT INTO O_TFR
+	VALUES ("9c4f80a1-e6cb-4e8f-b48e-b0efc834b183",
+	"ad1a1a13-bf85-4055-a9fb-947d0dcf38ee",
+	'get',
+	'',
+	"5e2adf0b-43a1-49f0-9af9-edf805e9937a",
+	0,
+	'component = param.component;
+utility = param.utility;
+
+// find and return the one instance related to the incoming parameters
+// https://support.onefact.net/issues/12231
+select many util_util_refs related by utility->UtilityReference[R4558];
+select many comp_util_refs related by component->UtilityReference[R4558];
+utilInComps = comp_util_refs & util_util_refs;
+
+// return either an empty handle or the one instance in the set
+select any retVal from instances of UtilityReference where false;  // Decl
+for each util_ref in utilInComps
+  retVal = util_ref;
+end for;
+if ( not_empty retVal )
+	LOG::LogInfo( message:"JRW UtilityReference::get(): comp, util " + component.name + ", " + utility.name );
+	LOG::LogInfo( message:"JRW UtilityReference::get(): retVal: " + retVal.package + "." + retVal.name );
+else
+  LOG::LogInfo( message:"JRW UtilityReference::get(): empty return value" );
+end if;
+return retVal;',
+	1,
+	'',
+	"bb1fa6ec-7312-4d6b-b6da-d8848c579c66",
+	0,
+	3);
+INSERT INTO O_TPARM
+	VALUES ("ce5219e4-d8f8-4432-bcf4-cce52989deb8",
+	"9c4f80a1-e6cb-4e8f-b48e-b0efc834b183",
+	'utility',
+	"05845c9d-7216-4905-8b60-6bf9f95f42e7",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("05845c9d-7216-4905-8b60-6bf9f95f42e7",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Utility>',
+	'',
+	'',
+	'../component.xtuml');
+INSERT INTO O_TPARM
+	VALUES ("6a3c2908-2923-48c7-acfb-7797c9ab8f43",
+	"9c4f80a1-e6cb-4e8f-b48e-b0efc834b183",
+	'component',
+	"109e90cb-1d66-46ee-88db-a568044879d0",
+	0,
+	'',
+	"ce5219e4-d8f8-4432-bcf4-cce52989deb8",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("5e2adf0b-43a1-49f0-9af9-edf805e9937a",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Utility Reference>',
+	'',
+	'',
+	'../component.xtuml');
+INSERT INTO O_TFR
+	VALUES ("846cd1cc-8486-4571-9937-6da8c0a3e819",
+	"ad1a1a13-bf85-4055-a9fb-947d0dcf38ee",
+	'render_initializer',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'T::include(file:"component/t.utilityreference.java");
+',
+	1,
+	'',
+	"38f4c915-c7d2-4433-897c-d512327b00f3",
+	0,
+	4);
 INSERT INTO O_REF
 	VALUES ("ad1a1a13-bf85-4055-a9fb-947d0dcf38ee",
 	"23f9d7b1-3127-4414-9299-e535bda771bf",
@@ -142,10 +281,14 @@ INSERT INTO O_RTIDA_PROXY
 INSERT INTO O_RATTR
 	VALUES ("9053abe5-2334-4ebb-bd7b-f3df338698ce",
 	"ad1a1a13-bf85-4055-a9fb-947d0dcf38ee",
-	"c49819d1-92ba-4732-98e5-2b3eca8bc470",
-	"dc9c4877-4fcb-49df-a886-ab917b250774",
+	"c9b15ce8-6aba-4adf-9dc4-ec69cf34541c",
+	"ef51e75c-7df1-4972-94ca-56b4ca9af67b",
 	1,
 	'name');
+INSERT INTO O_BATTR_PROXY
+	VALUES ("c9b15ce8-6aba-4adf-9dc4-ec69cf34541c",
+	"ef51e75c-7df1-4972-94ca-56b4ca9af67b",
+	'../Utility/Utility.xtuml');
 INSERT INTO O_ATTR
 	VALUES ("9053abe5-2334-4ebb-bd7b-f3df338698ce",
 	"ad1a1a13-bf85-4055-a9fb-947d0dcf38ee",
@@ -184,10 +327,14 @@ INSERT INTO O_RTIDA_PROXY
 INSERT INTO O_RATTR
 	VALUES ("b62b8217-7e39-42c5-8362-68cedebd7110",
 	"ad1a1a13-bf85-4055-a9fb-947d0dcf38ee",
-	"3dfc4c02-94c0-4383-8964-c3bfa4b2e9bd",
-	"dc9c4877-4fcb-49df-a886-ab917b250774",
+	"a0c675b1-ce0d-4cfb-90a0-672cd3b67254",
+	"ef51e75c-7df1-4972-94ca-56b4ca9af67b",
 	1,
 	'package');
+INSERT INTO O_BATTR_PROXY
+	VALUES ("a0c675b1-ce0d-4cfb-90a0-672cd3b67254",
+	"ef51e75c-7df1-4972-94ca-56b4ca9af67b",
+	'../Utility/Utility.xtuml');
 INSERT INTO O_ATTR
 	VALUES ("b62b8217-7e39-42c5-8362-68cedebd7110",
 	"ad1a1a13-bf85-4055-a9fb-947d0dcf38ee",
@@ -197,6 +344,95 @@ INSERT INTO O_ATTR
 	'utility_',
 	'package',
 	1,
+	"ba5eda7a-def5-0000-0000-000000000007",
+	'',
+	'');
+INSERT INTO O_REF
+	VALUES ("ad1a1a13-bf85-4055-a9fb-947d0dcf38ee",
+	"dc9c4877-4fcb-49df-a886-ab917b250774",
+	0,
+	"c49819d1-92ba-4732-98e5-2b3eca8bc470",
+	"8f0c124a-55f6-41de-9844-451b6463ab15",
+	"d515ee02-de3f-4494-9e81-97e93b7b4ee0",
+	"d0fabe99-0939-4ae6-9c05-740746d8b95b",
+	"f04f9811-4b0b-4c84-9c24-798433792337",
+	"3094f592-4698-48bd-81f6-e08edad5efd7",
+	"00000000-0000-0000-0000-000000000000",
+	0,
+	'',
+	'File',
+	'name',
+	'R401');
+INSERT INTO R_RGO_PROXY
+	VALUES ("ad1a1a13-bf85-4055-a9fb-947d0dcf38ee",
+	"8f0c124a-55f6-41de-9844-451b6463ab15",
+	"d515ee02-de3f-4494-9e81-97e93b7b4ee0",
+	'../../file/file.xtuml');
+INSERT INTO O_RTIDA_PROXY
+	VALUES ("c49819d1-92ba-4732-98e5-2b3eca8bc470",
+	"dc9c4877-4fcb-49df-a886-ab917b250774",
+	0,
+	"8f0c124a-55f6-41de-9844-451b6463ab15",
+	"d0fabe99-0939-4ae6-9c05-740746d8b95b",
+	'../../file/file.xtuml');
+INSERT INTO O_RATTR
+	VALUES ("f04f9811-4b0b-4c84-9c24-798433792337",
+	"ad1a1a13-bf85-4055-a9fb-947d0dcf38ee",
+	"c49819d1-92ba-4732-98e5-2b3eca8bc470",
+	"dc9c4877-4fcb-49df-a886-ab917b250774",
+	1,
+	'name');
+INSERT INTO O_ATTR
+	VALUES ("f04f9811-4b0b-4c84-9c24-798433792337",
+	"ad1a1a13-bf85-4055-a9fb-947d0dcf38ee",
+	"b62b8217-7e39-42c5-8362-68cedebd7110",
+	'name',
+	'',
+	'',
+	'name',
+	0,
+	"ba5eda7a-def5-0000-0000-000000000007",
+	'',
+	'');
+INSERT INTO O_REF
+	VALUES ("ad1a1a13-bf85-4055-a9fb-947d0dcf38ee",
+	"dc9c4877-4fcb-49df-a886-ab917b250774",
+	0,
+	"3dfc4c02-94c0-4383-8964-c3bfa4b2e9bd",
+	"8f0c124a-55f6-41de-9844-451b6463ab15",
+	"d515ee02-de3f-4494-9e81-97e93b7b4ee0",
+	"d0fabe99-0939-4ae6-9c05-740746d8b95b",
+	"c3709752-9c47-461c-ad25-c915a64a22e0",
+	"abae2441-0c08-4620-bc80-0be83203d233",
+	"00000000-0000-0000-0000-000000000000",
+	0,
+	'',
+	'File',
+	'package',
+	'R401');
+INSERT INTO O_RTIDA_PROXY
+	VALUES ("3dfc4c02-94c0-4383-8964-c3bfa4b2e9bd",
+	"dc9c4877-4fcb-49df-a886-ab917b250774",
+	0,
+	"8f0c124a-55f6-41de-9844-451b6463ab15",
+	"d0fabe99-0939-4ae6-9c05-740746d8b95b",
+	'../../file/file.xtuml');
+INSERT INTO O_RATTR
+	VALUES ("c3709752-9c47-461c-ad25-c915a64a22e0",
+	"ad1a1a13-bf85-4055-a9fb-947d0dcf38ee",
+	"3dfc4c02-94c0-4383-8964-c3bfa4b2e9bd",
+	"dc9c4877-4fcb-49df-a886-ab917b250774",
+	1,
+	'package');
+INSERT INTO O_ATTR
+	VALUES ("c3709752-9c47-461c-ad25-c915a64a22e0",
+	"ad1a1a13-bf85-4055-a9fb-947d0dcf38ee",
+	"f04f9811-4b0b-4c84-9c24-798433792337",
+	'package',
+	'',
+	'',
+	'package',
+	0,
 	"ba5eda7a-def5-0000-0000-000000000007",
 	'',
 	'');
@@ -226,6 +462,16 @@ INSERT INTO O_OIDA
 INSERT INTO O_ID
 	VALUES (1,
 	"ad1a1a13-bf85-4055-a9fb-947d0dcf38ee");
+INSERT INTO O_OIDA
+	VALUES ("f04f9811-4b0b-4c84-9c24-798433792337",
+	"ad1a1a13-bf85-4055-a9fb-947d0dcf38ee",
+	1,
+	'name');
+INSERT INTO O_OIDA
+	VALUES ("c3709752-9c47-461c-ad25-c915a64a22e0",
+	"ad1a1a13-bf85-4055-a9fb-947d0dcf38ee",
+	1,
+	'package');
 INSERT INTO O_ID
 	VALUES (2,
 	"ad1a1a13-bf85-4055-a9fb-947d0dcf38ee");

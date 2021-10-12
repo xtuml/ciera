@@ -845,10 +845,11 @@ if ( empty util_func )
   ::transformUtility( s_ee:s_ee, ep_pkg:s_ee_pkg, containing_comp_def:empty_comp_def, exclude:true, path: ::ep_pkgToPath( ep_pkg:s_ee_pkg ) );
   select one util_func related by v_brv->S_BRG[R828]->UtilityFunction[R4570];
 end if;
+containing_comp_def = ::getCompDefForStatement( smt:smt );
 select one invocable related by util_func->InvocableObject[R427];
 select one utility related by util_func->Utility[R4559];
-select one utility_file related by utility->File[R401];
-containing_comp_def = ::getCompDefForStatement( smt:smt );
+utility_reference = UtilityReference::get( utility:utility, component: containing_comp_def );
+select one utility_file related by utility_reference->File[R401];
 select one containing_comp_file related by containing_comp_def->File[R401];
 ::addFileToImports( file:containing_comp_file, file_to_import:utility_file, type:ImportType::IMPL );
 ::addStringToImports( file:containing_comp_file, s: ::pathToPackage( path:utility_file.path ) + ".impl." + utility_file.name + "Impl", type:ImportType::IMPL );

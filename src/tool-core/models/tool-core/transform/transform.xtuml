@@ -306,7 +306,7 @@ for each type in types
     LOG::LogInfo( message:"JRW Parm->Port: " + file.package + "." + file.name );
   end for;
 
-  select many files related by type->TypeReference[R3800]->FormalParameter[R431]->InvocableObject[R429]->UtilityFunction[R427]->Utility[R4559]->File[R401];
+  select many files related by type->TypeReference[R3800]->FormalParameter[R431]->InvocableObject[R429]->UtilityFunction[R427]->Utility[R4559]->UtilityReference[R4558]->File[R401];
   both_files = both_files | files;
   for each file in files
     LOG::LogInfo( message:"JRW Parm->Util: " + file.package + "." + file.name );
@@ -350,7 +350,7 @@ for each type in types
     LOG::LogInfo( message:"JRW InvObj->PortMsg->Port: " + file.package + "." + file.name );
   end for;
 
-  select many files related by type->TypeReference[R3800]->InvocableObject[R428]->UtilityFunction[R427]->Utility[R4559]->File[R401];
+  select many files related by type->TypeReference[R3800]->InvocableObject[R428]->UtilityFunction[R427]->Utility[R4559]->UtilityReference[R4558]->File[R401];
   both_files = both_files | files;
   for each file in files
     LOG::LogInfo( message:"JRW InvObj->Util: " + file.package + "." + file.name );
@@ -2409,7 +2409,7 @@ path = param.path;
 containing_comp_def = param.containing_comp_def;
 
 if ( 1 == param.pass )
-  LOG::LogInfo( message:"JRW entering ::transformPackage( pass: 1 ), package: " + ep_pkg.Name );
+  LOG::LogInfo( message:"JRW entering ::transformPackage( pass: 1 ), package: " + ep_pkg.Name + " path: " + path );
 
   // see if this is a package reference
   select one referred_ep_pkg related by ep_pkg->EP_PKG[R1402.''refers to''];
@@ -2441,6 +2441,9 @@ if ( 1 == param.pass )
   // transform EEs
   select many s_ees related by pe_pes->S_EE[R8001];
   for each s_ee in s_ees
+  	if ( not_empty referred_ep_pkg )
+  		LOG::LogInfo( message:"AM :: xform pkg ref: " + ep_pkg.Name + " EE: " + s_ee.Key_Lett );
+  	end if;
     ::transformUtility( s_ee:s_ee, ep_pkg:ep_pkg, containing_comp_def:containing_comp_def, exclude:false, path:path + "/" + T::sub( format:"rl", s:ep_pkg.Name ) );
   end for;
 
@@ -3251,37 +3254,46 @@ INSERT INTO S_SYNC
 	's_ee = param.s_ee;
 containing_comp_def = param.containing_comp_def;
 
-// create the file
-create object instance file of File;
-file.name = ::camelCaseName( name:s_ee.Key_Lett, start_lower:false );
-file.path = param.path;
-file.package = ::pathToPackage( path:file.path );
-file.extension = ".java";
-file.exclude = param.exclude;
+select any utility from instances of Utility
+ where ( selected.name == s_ee.Name );
+if ( empty utility )
 
-// create the utility object
-create object instance utility of Utility;
-relate utility to file across R401;
-
-// relate the containing component
-if ( not_empty containing_comp_def )
-  create object instance util_ref of UtilityReference;
-  relate utility to containing_comp_def across R4558 using util_ref;
-  select one component_file related by containing_comp_def->File[R401];
-  ::addFileToImports( file:component_file, file_to_import:file, type:ImportType::IMPL );
-  ::addStringToImports( file:component_file, s: ::pathToPackage( path:file.path ) + ".impl." + file.name + "Impl", type:ImportType::IMPL );
+	// create the utility object
+	create object instance utility of Utility;
+	utility.name = s_ee.Name;
 end if;
-
+	
 // transform each utility function
 select many s_brgs related by s_ee->S_BRG[R19];
 for each s_brg in s_brgs
   ::transformUtilityFunction( s_brg:s_brg, utility:utility, containing_comp_def:containing_comp_def );
 end for;
 
-// create import block
-::addFileToImports( file:file, file_to_import:file, type:ImportType::IMPL );
-::addStringToImports( file:file, s:"io.ciera.runtime.summit.util.Utility", type:ImportType::IMPL );
-::addStringToImports( file:file, s:"io.ciera.runtime.summit.components.IComponent", type:ImportType::IMPL );',
+// relate the containing component
+if ( not_empty containing_comp_def )
+  create object instance util_ref of UtilityReference;
+  relate utility to containing_comp_def across R4558 using util_ref;
+
+	// create the file
+	create object instance file of File;
+	file.name = ::camelCaseName( name:s_ee.Key_Lett, start_lower:false );
+	file.path = param.path;
+	file.package = ::pathToPackage( path:file.path );
+	file.extension = ".java";
+	file.exclude = param.exclude;
+	relate file to util_ref across R401;
+	// create import block
+	::addFileToImports( file:file, file_to_import:file, type:ImportType::IMPL );
+	::addStringToImports( file:file, s:"io.ciera.runtime.summit.util.Utility", type:ImportType::IMPL );
+	::addStringToImports( file:file, s:"io.ciera.runtime.summit.components.IComponent", type:ImportType::IMPL );
+	
+  select one component_file related by containing_comp_def->File[R401];
+  ::addFileToImports( file:component_file, file_to_import:file, type:ImportType::IMPL );
+  ::addStringToImports( file:component_file, s: ::pathToPackage( path:file.path ) + ".impl." + file.name + "Impl", type:ImportType::IMPL );
+end if;
+
+
+',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -3354,50 +3366,67 @@ INSERT INTO S_SYNC
 utility = param.utility;
 containing_comp_def = param.containing_comp_def;
 
-// create utility function object
-create object instance util_func of UtilityFunction;
-relate util_func to utility across R4559;
+select one util_func related by s_brg->UtilityFunction[R4570];
 
-// create invocable
-create object instance invocable of InvocableObject;
-invocable.name = s_brg.Name;
-invocable.parent_name = utility.name;
-invocable.parent_package = utility.package;
-relate util_func to invocable across R427;
-invocable.oal = s_brg.Action_Semantics_internal;
-if ( not_empty containing_comp_def )
-  InvocableInComponent::populate( invocable:invocable, component:containing_comp_def );
+if ( empty util_func )
+	// create utility function object
+	create object instance util_func of UtilityFunction;
+	relate util_func to utility across R4559;
+	relate s_brg to util_func across R4570;
+	
+	// create invocable
+	create object instance invocable of InvocableObject;
+	invocable.name = s_brg.Name;
+	invocable.parent_name = utility.name;
+	invocable.parent_package = utility.package;
+	relate util_func to invocable across R427;
+	invocable.oal = s_brg.Action_Semantics_internal;
+	if ( not_empty containing_comp_def )
+	  InvocableInComponent::populate( invocable:invocable, component:containing_comp_def );
+	end if;
+	
+	// link type
+	select one s_dt related by s_brg->S_DT[R20];
+	select many s_dims related by s_brg->S_DIM[R50];
+	type = TypeReference::getInstance( s_dt:s_dt, s_dims:s_dims, referring_comp:containing_comp_def );
+	relate type to invocable across R428;
+	
+	// create parameters
+	select any s_bparm related by s_brg->S_BPARM[R21];
+	prev_s_bparm = s_bparm;
+	// select first parameter
+	while ( not_empty prev_s_bparm )
+	  s_bparm = prev_s_bparm;
+	  select one prev_s_bparm related by s_bparm->S_BPARM[R55.''succeeds''];
+	end while;
+	while ( not_empty s_bparm )
+	  // create parameter
+	  create object instance parm of FormalParameter;
+	  parm.name = "p_" + s_bparm.Name;
+	  parm.by_ref = ( 1 == s_bparm.By_Ref );
+	  select one parm_dt related by s_bparm->S_DT[R22];
+	  select many s_dims related by s_bparm->S_DIM[R49];
+	  parm_type = TypeReference::getInstance( s_dt:parm_dt, s_dims:s_dims, referring_comp:containing_comp_def );
+	  relate parm_type to parm across R431;
+	  ::linkParameter( invocable:invocable, parameter:parm );
+	  select one s_bparm related by s_bparm->S_BPARM[R55.''precedes''];
+	end while;
+  // relate the body
+  select one act_act related by s_brg->ACT_BRB[R697]->ACT_ACT[R698];
+  if ( not_empty act_act )
+    relate act_act to invocable across R432;
+  end if;
+	
+else
+	if ( not_empty containing_comp_def )
+	  // create an InvocableInComponent for the operation
+    select one invocable related by util_func->InvocableObject[R427];
+    InvocableInComponent::populate( invocable:invocable, component:containing_comp_def );
+  end if;
+
 end if;
 
-// link type
-select one s_dt related by s_brg->S_DT[R20];
-select many s_dims related by s_brg->S_DIM[R50];
-type = TypeReference::getInstance( s_dt:s_dt, s_dims:s_dims, referring_comp:containing_comp_def );
-relate type to invocable across R428;
-
-// create parameters
-select any s_bparm related by s_brg->S_BPARM[R21];
-prev_s_bparm = s_bparm;
-// select first parameter
-while ( not_empty prev_s_bparm )
-  s_bparm = prev_s_bparm;
-  select one prev_s_bparm related by s_bparm->S_BPARM[R55.''succeeds''];
-end while;
-while ( not_empty s_bparm )
-  // create parameter
-  create object instance parm of FormalParameter;
-  parm.name = "p_" + s_bparm.Name;
-  parm.by_ref = ( 1 == s_bparm.By_Ref );
-  select one parm_dt related by s_bparm->S_DT[R22];
-  select many s_dims related by s_bparm->S_DIM[R49];
-  parm_type = TypeReference::getInstance( s_dt:parm_dt, s_dims:s_dims, referring_comp:containing_comp_def );
-  relate parm_type to parm across R431;
-  ::linkParameter( invocable:invocable, parameter:parm );
-  select one s_bparm related by s_bparm->S_BPARM[R55.''precedes''];
-end while;
-
-// relate bridge
-relate s_brg to util_func across R4570;',
+',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
