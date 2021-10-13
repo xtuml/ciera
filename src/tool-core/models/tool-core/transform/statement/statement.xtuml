@@ -54,33 +54,15 @@ else
 end if;
 select one body related by block->InvocableInComponent[R4000]->InvocableObject[R4001];
 smt.oal = ::getOalStatement( body:body.oal, line_num:act_smt.LineNumber );
+LOG::LogInfo( message:"AM :: xform BRG invocation: " + smt.oal );
+
+select one s_ee related by act_brg->S_BRG[R674]->S_EE[R19];
+select one s_ee_pkg related by s_ee->PE_PE[R8001]->EP_PKG[R8000];
+containing_comp_def = ::getCompDefForStatement( smt:smt );
+LOG::LogInfo( message:"AM :: xform BRG invoc -> utility - ee path: " + ::ep_pkgToPath( ep_pkg:s_ee_pkg ) );
+::transformUtility( s_ee:s_ee, ep_pkg:s_ee_pkg, containing_comp_def:containing_comp_def, exclude:true, path: ::ep_pkgToPath( ep_pkg:s_ee_pkg ) );
 
 select one util_func related by act_brg->S_BRG[R674]->UtilityFunction[R4570];
-if ( empty util_func )
-  select one s_ee related by act_brg->S_BRG[R674]->S_EE[R19];
-  select one s_ee_pkg related by s_ee->PE_PE[R8001]->EP_PKG[R8000];
-  select any empty_comp_def from instances of ComponentDefinition where false;
-  ::transformUtility( s_ee:s_ee, ep_pkg:s_ee_pkg, containing_comp_def:empty_comp_def, exclude:true, path: ::ep_pkgToPath( ep_pkg:s_ee_pkg ) );
-  select one util_func related by act_brg->S_BRG[R674]->UtilityFunction[R4570];
-end if;
-select one utility related by util_func->Utility[R4559];
-containing_comp_def = ::getCompDefForStatement( smt:smt );
-if ( not_empty containing_comp_def )
-	utility_reference = UtilityReference::get( utility:utility, component: containing_comp_def );
-	select one utility_file related by utility_reference->File[R401];
-	if ( not_empty utility_file ) // not ''built-in ? @@@ AM debug
-		select one containing_comp_file related by containing_comp_def->File[R401];
-		::addFileToImports( file:containing_comp_file, file_to_import:utility_file, type:ImportType::IMPL );
-		::addStringToImports( file:containing_comp_file, s: ::pathToPackage( path:utility_file.path ) + ".impl." + utility_file.name + "Impl", type:ImportType::IMPL );
-	end if;
-  /*
-  select any util_ref related by utility->UtilityReference[R4558] where ( selected.comp_name == containing_comp_def.name and selected.comp_package == containing_comp_def.package );
-  if ( empty util_ref )
-    create object instance util_ref of UtilityReference;
-    relate utility to containing_comp_def across R4558 using util_ref;
-  end if;
-  */
-end if;
 select one invocable related by util_func->InvocableObject[R427];
 if ( not_empty invocable )
   // create expression as statement
@@ -108,13 +90,25 @@ if ( not_empty invocable )
   create object instance named_ref of NamedReference;
   relate named_ref to expr2 across R776;
   relate expr2 to invoc across R798;
+  select one utility related by util_func->Utility[R4559];
   named_ref.name = "context()." + utility.name + "()";
   // transform actual parameters
   select many v_pars related by act_brg->V_PAR[R628];
   ::transformActualParameters( invocation:invoc, v_pars:v_pars, expr_number:"1", base_num:2 );
+
+  utility_reference = UtilityReference::get( utility:utility, component: containing_comp_def );
+  select one util_ref_file related by utility_reference->File[R401];
+//  invInComp = InvocableInComponent::get( invocable:invocable, component: containing_comp_def );
+//  inv_file = ::getFileForInvocable( invocableInComp:invInComp );
+  smt_file = ::getFileForStatement( smt:smt );
+  LOG::LogInfo( message:"AM :: xform BRG invocable file: " + smt_file.name + " adding: " + util_ref_file.name );
+	::addFileToImports( file:smt_file, file_to_import:util_ref_file, type:ImportType::IMPL );
+	::addStringToImports( file:smt_file, s: ::pathToPackage( path:util_ref_file.path ) + ".impl." + util_ref_file.name + "Impl", type:ImportType::IMPL );
+  
 else
   // TODO bad
-end if;',
+end if;
+',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',

@@ -3254,45 +3254,50 @@ INSERT INTO S_SYNC
 	's_ee = param.s_ee;
 containing_comp_def = param.containing_comp_def;
 
+util_name = ::camelCaseName( name:s_ee.Key_Lett, start_lower:false );
+
 select any utility from instances of Utility
- where ( selected.name == s_ee.Name );
+ where ( selected.name == util_name );
 if ( empty utility )
 
 	// create the utility object
 	create object instance utility of Utility;
-	utility.name = s_ee.Name;
-end if;
-	
-// transform each utility function
-select many s_brgs related by s_ee->S_BRG[R19];
-for each s_brg in s_brgs
-  ::transformUtilityFunction( s_brg:s_brg, utility:utility, containing_comp_def:containing_comp_def );
-end for;
-
-// relate the containing component
-if ( not_empty containing_comp_def )
-  create object instance util_ref of UtilityReference;
-  relate utility to containing_comp_def across R4558 using util_ref;
-
-	// create the file
-	create object instance file of File;
-	file.name = ::camelCaseName( name:s_ee.Key_Lett, start_lower:false );
-	file.path = param.path;
-	file.package = ::pathToPackage( path:file.path );
-	file.extension = ".java";
-	file.exclude = param.exclude;
-	relate file to util_ref across R401;
-	// create import block
-	::addFileToImports( file:file, file_to_import:file, type:ImportType::IMPL );
-	::addStringToImports( file:file, s:"io.ciera.runtime.summit.util.Utility", type:ImportType::IMPL );
-	::addStringToImports( file:file, s:"io.ciera.runtime.summit.components.IComponent", type:ImportType::IMPL );
-	
-  select one component_file related by containing_comp_def->File[R401];
-  ::addFileToImports( file:component_file, file_to_import:file, type:ImportType::IMPL );
-  ::addStringToImports( file:component_file, s: ::pathToPackage( path:file.path ) + ".impl." + file.name + "Impl", type:ImportType::IMPL );
+	utility.name = util_name;
 end if;
 
-
+utility_reference = UtilityReference::get( utility:utility, component: containing_comp_def );
+if ( empty utility_reference )
+	
+	// transform each utility function
+	select many s_brgs related by s_ee->S_BRG[R19];
+	for each s_brg in s_brgs
+	  ::transformUtilityFunction( s_brg:s_brg, utility:utility, containing_comp_def:containing_comp_def );
+	end for;
+	
+	// relate the containing component
+	if ( not_empty containing_comp_def )
+	  create object instance util_ref of UtilityReference;
+	  relate utility to containing_comp_def across R4558 using util_ref;
+	  LOG::LogInfo( message:"AM ::xformUtility - R4558 relates: " + containing_comp_def.name + " to " + utility.name );
+	
+		// create the file
+		create object instance file of File;
+		file.name = util_name;
+		file.path = param.path;
+		file.package = ::pathToPackage( path:file.path );
+		file.extension = ".java";
+		file.exclude = param.exclude;
+		relate file to util_ref across R401;
+		// create import block
+		::addFileToImports( file:file, file_to_import:file, type:ImportType::IMPL );
+		::addStringToImports( file:file, s:"io.ciera.runtime.summit.util.Utility", type:ImportType::IMPL );
+		::addStringToImports( file:file, s:"io.ciera.runtime.summit.components.IComponent", type:ImportType::IMPL );
+		
+	  select one component_file related by containing_comp_def->File[R401];
+	  ::addFileToImports( file:component_file, file_to_import:file, type:ImportType::IMPL );
+	  ::addStringToImports( file:component_file, s: ::pathToPackage( path:file.path ) + ".impl." + file.name + "Impl", type:ImportType::IMPL );
+	end if;
+end if;
 ',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
