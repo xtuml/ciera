@@ -20,23 +20,11 @@ type_name = type.type_reference_name;
 select one invocable related by self->InvocableObject[R427];
 parameter_list = invocable.parameter_list();
 
-// TODO, at present ::transformUtilityFunction does not 
-// hook up the action body to the invocable, so OAL bodies
-// in bridge operations do not get translated.  Accordingly,
-// the code below does not bother looking for a code body.
-// When https://support.onefact.net/issues/12236 is resolved, 
-// this operation must navigate to an instance of InvocableInComp
-// to retrieve the body representing the translated activity
-// (if there is one) for this bridge operation.  Doing this requires
-// an instance of ComponentDefinition, and the existing class model
-// does not make it possible to find one.  One approach is to follow
-// the pattern of ClassInComponent for UtilityInComponent.
-// 
-//invocableInComp = InvocableInComponent::get( invocable:invocable, component:component );
 select any invocableInComp related by invocable->InvocableInComponent[R4001];  // body is the same for all
+T::push_buffer();
 body = invocableInComp.body();
-/*
-body = "{}";
+T::pop_buffer();
+LOG::LogInfo( message:"AM :: render util func: " + self.name + " body: " + body );
 if ( "{}" == body )
   select one return_type related by type->Type[R3800];
   body = "{\n        // Insert your implementation here\n";
@@ -45,9 +33,9 @@ if ( "{}" == body )
   end if;
   body = body + "    }";
 end if;
-*/
 
-T::include(file:"component/t.utilityfunction.java");',
+T::include(file:"component/t.utilityfunction.java");
+',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",
