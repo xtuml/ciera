@@ -306,7 +306,7 @@ for each type in types
     LOG::LogInfo( message:"JRW Parm->Port: " + file.package + "." + file.name );
   end for;
 
-  select many files related by type->TypeReference[R3800]->FormalParameter[R431]->InvocableObject[R429]->UtilityFunction[R427]->Utility[R4559]->UtilityReference[R4558]->File[R401];
+  select many files related by type->TypeReference[R3800]->FormalParameter[R431]->InvocableObject[R429]->UtilityFunction[R427]->Utility[R4559]->UtilityInComponent[R4558]->File[R401];
   both_files = both_files | files;
   for each file in files
     LOG::LogInfo( message:"JRW Parm->Util: " + file.package + "." + file.name );
@@ -350,7 +350,7 @@ for each type in types
     LOG::LogInfo( message:"JRW InvObj->PortMsg->Port: " + file.package + "." + file.name );
   end for;
 
-  select many files related by type->TypeReference[R3800]->InvocableObject[R428]->UtilityFunction[R427]->Utility[R4559]->UtilityReference[R4558]->File[R401];
+  select many files related by type->TypeReference[R3800]->InvocableObject[R428]->UtilityFunction[R427]->Utility[R4559]->UtilityInComponent[R4558]->File[R401];
   both_files = both_files | files;
   for each file in files
     LOG::LogInfo( message:"JRW InvObj->Util: " + file.package + "." + file.name );
@@ -2444,7 +2444,7 @@ if ( 1 == param.pass )
   	if ( not_empty referred_ep_pkg )
   		LOG::LogInfo( message:"AM :: xform pkg ref: " + ep_pkg.Name + " EE: " + s_ee.Key_Lett );
   	end if;
-    ::transformUtility( s_ee:s_ee, ep_pkg:ep_pkg, containing_comp_def:containing_comp_def, exclude:false, path:path + "/" + T::sub( format:"rl", s:ep_pkg.Name ) );
+    ::transformUtility( s_ee:s_ee, ep_pkg:ep_pkg, containing_comp_def:containing_comp_def, is_definition:true, path:path + "/" + T::sub( format:"rl", s:ep_pkg.Name ) );
   end for;
 
   // transform classes
@@ -3263,25 +3263,26 @@ if ( empty utility )
 	// create the utility object
 	create object instance utility of Utility;
 	utility.name = util_name;
+	utility.package = ::pathToPackage( path:param.path );
 	LOG::LogInfo( message:"AM ::xformUtilty -created utility: "  + util_name + " for comp: " + containing_comp_def.name );
 end if;
 
-utility_reference = UtilityReference::get( utility:utility, component: containing_comp_def );
-if ( empty utility_reference )
+if ( param.is_definition )
+  utility_in_comp = UtilityInComponent::get( utility:utility, component: containing_comp_def );
+  if ( empty utility_in_comp )
 	
-	// relate the containing component
-	if ( not_empty containing_comp_def )
-	  create object instance util_ref of UtilityReference;
-	  relate utility to containing_comp_def across R4558 using util_ref;
+	  // relate the containing component
+	  create object instance utility_in_comp of UtilityInComponent;
+	  relate utility to containing_comp_def across R4558 using utility_in_comp;
 	
 		// create the file for this component''s use of the utility
 		create object instance file of File;
-		file.name = util_name;
+		file.name = utility.name;
 		file.path = param.path;
 		file.package = ::pathToPackage( path:file.path );
 		file.extension = ".java";
-		file.exclude = param.exclude;
-		relate file to util_ref across R401;
+		file.exclude = false;
+		relate file to utility_in_comp across R401;
 		LOG::LogInfo( message:"AM ::xformUtility - created UtilityReference: " + file.path + " " + file.name );
 		// create import block
 		::addFileToImports( file:file, file_to_import:file, type:ImportType::IMPL );
@@ -3291,16 +3292,20 @@ if ( empty utility_reference )
 	  select one component_file related by containing_comp_def->File[R401];
 	  ::addFileToImports( file:component_file, file_to_import:file, type:ImportType::IMPL );
 	  ::addStringToImports( file:component_file, s: ::pathToPackage( path:file.path ) + ".impl." + file.name + "Impl", type:ImportType::IMPL );
-	end if;
 
-	// transform each utility function
-	select many s_brgs related by s_ee->S_BRG[R19];
-	for each s_brg in s_brgs
-		LOG::LogInfo( message:"AM ::xformUtility - xforming util func: " + s_brg.Name + " comp: " + containing_comp_def.name );
-	  ::transformUtilityFunction( s_brg:s_brg, utility:utility, containing_comp_def:containing_comp_def );
-	end for;
-	
+		// transform each utility function for this component context
+		select many s_brgs related by s_ee->S_BRG[R19];
+		for each s_brg in s_brgs
+			LOG::LogInfo( message:"AM ::xformUtility - xforming util func: " + s_brg.Name + " comp: " + containing_comp_def.name );
+		  ::transformUtilityFunction( s_brg:s_brg, utility:utility, containing_comp_def:containing_comp_def );
+		end for;
+	end if;
+else
+	relate utility to containing_comp_def across R4560;
 end if;
+
+	
+
 ',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -3335,7 +3340,7 @@ INSERT INTO S_SPARM
 INSERT INTO S_SPARM
 	VALUES ("5078c5f9-c41e-4561-9c18-464a2137b800",
 	"13f46372-87b9-41dc-bfd6-c69214ebb3c4",
-	'exclude',
+	'is_definition',
 	"ba5eda7a-def5-0000-0000-000000000001",
 	0,
 	'',
@@ -3386,7 +3391,7 @@ if ( empty util_func )
 	create object instance invocable of InvocableObject;
 	invocable.name = s_brg.Name;
 	invocable.parent_name = utility.name;
-	invocable.parent_package = utility.package;
+	invocable.parent_package = param.containing_comp_def.package;
 	relate util_func to invocable across R427;
 	invocable.oal = s_brg.Action_Semantics_internal;
 	

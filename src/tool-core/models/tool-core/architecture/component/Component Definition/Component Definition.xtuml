@@ -80,10 +80,12 @@ T::clear();
 
 utility_initializers = "";
 separator = "";
-select many util_refs related by self->UtilityReference[R4558];
-for each util_ref in util_refs
-  util_ref.render_initializer();
-  utility_initializers = utility_initializers + separator + "        " + util_ref.utility_name + " = null;";
+select many contained_utilities related by self->Utility[R4558.''contains''];
+select many referred_utilities related by self->Utility[R4560.''refers to''];
+known_utilities = contained_utilities & referred_utilities;
+for each util in known_utilities
+  util.render_initializer();
+  utility_initializers = utility_initializers + separator + "        " + util.name + " = null;";
   separator = "\n";
 end for;
 utilities = T::body();
