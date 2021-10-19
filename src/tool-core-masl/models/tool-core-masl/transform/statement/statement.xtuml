@@ -268,12 +268,12 @@ block = param.block;
 if (not_empty code_block)
   select one masl_statement related by code_block->Statement2[R5150];
 end if;
-select any prev_smt related by block->Statement[R450] where SORT::descending(attr:"statement_number");
+prev_smt = ::lastStatementInBlock(block:block);
 smt_num = 1;
 while (not_empty masl_statement)
   ::transformMaslStatement(masl_statement:masl_statement, block:block, prev_smt:prev_smt);
   // get the last created statement by selecting any ordered descending by statement number
-  select any prev_smt related by block->Statement[R450] where SORT::descending(attr:"statement_number");
+  prev_smt = ::lastStatementInBlock(block:block);
   smt_num = STRING::atoi(s:prev_smt.statement_number) + 1;
   select one masl_statement related by masl_statement->Statement2[R5155.''precedes''];
 end while;',
@@ -530,7 +530,7 @@ INSERT INTO S_SYNC
 	'',
 	'variable_declaration = param.variable_declaration;
 block = param.block;
-select any prev_smt related by block->Statement[R450] where SORT::descending(attr:"statement_number");
+prev_smt = ::lastStatementInBlock(block:block);
 
 // Create an assignment statement at the top of the block. If there is an
 // initialization expression, use it. If not, use the default value.
