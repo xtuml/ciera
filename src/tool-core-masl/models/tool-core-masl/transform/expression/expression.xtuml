@@ -38,14 +38,12 @@ INSERT INTO S_SYNC
 	"00000000-0000-0000-0000-000000000000",
 	'transformMaslExpression',
 	'',
-	'LOG::LogInfo(message:"LEVI10");
-masl_expression = param.masl_expression;
+	'masl_expression = param.masl_expression;
 smt = param.smt;
 expr_number = param.expr_number;
 
 select one literal_expression related by masl_expression->LiteralExpression[R5517];
 if (not_empty literal_expression)
-  LOG::LogInfo(message:"LEVI11");
   ::transformLiteral(literal_expression:literal_expression, smt:smt, expr_number:expr_number);
 else
   LOG::LogInfo( message:"expression type not yet supported" );
@@ -107,8 +105,7 @@ INSERT INTO S_SYNC
 	"00000000-0000-0000-0000-000000000000",
 	'transformLiteral',
 	'',
-	'LOG::LogInfo(message:"LEVI12");
-literal_expression = param.literal_expression;
+	'literal_expression = param.literal_expression;
 smt = param.smt;
 expr_number = param.expr_number;
 
@@ -133,12 +130,10 @@ relate lit to expr across R776;
 
 select one string_literal related by literal_expression->StringLiteral[R5700];
 if (not_empty string_literal)
-  LOG::LogInfo(message:"LEVI13");
   lit.value = string_literal.noQuotes;
 else
 select one console_literal related by literal_expression->ConsoleLiteral[R5700];
 if not_empty console_literal
-  LOG::LogInfo(message:"LEVI14");
   lit.value = "BaseDevice.console()";
   file = ::getFileForStatement(smt:smt);
   ::addStringToImports(file:file, s:"io.ciera.runtime.summit.types.BaseDevice", type:ImportType::IMPL);

@@ -38,8 +38,7 @@ INSERT INTO S_SYNC
 	"00000000-0000-0000-0000-000000000000",
 	'transformMaslBlock',
 	'',
-	'LOG::LogInfo(message:"LEVI3");
-upper_block = param.upper_block;
+	'upper_block = param.upper_block;
 code_block = param.code_block;
 if (not_empty code_block)
 
@@ -77,7 +76,6 @@ if (not_empty code_block)
     relate var to block across R458 using var_in_scope;
   end for;
 
-  LOG::LogInfo(message:"LEVI4");
   // transform all statements
   ::transformMaslStatements(code_block:code_block, block:block);
 
@@ -157,8 +155,7 @@ INSERT INTO S_SYNC
 	"00000000-0000-0000-0000-000000000000",
 	'transformMaslStatement',
 	'',
-	'LOG::LogInfo(message:"LEVI7");
-masl_statement = param.masl_statement;
+	'masl_statement = param.masl_statement;
 block = param.block;
 prev_smt = param.prev_smt;
 if (empty masl_statement or empty block)
@@ -167,7 +164,6 @@ end if;
 
 select one io_stream_statement related by masl_statement->IOStreamStatement[R5135];
 if (not_empty io_stream_statement)
-  LOG::LogInfo(message:"LEVI8");
   ::transformIOStreamStatement(io_stream_statement:io_stream_statement, block:block, prev_smt:prev_smt);
 else
   LOG::LogFailure(message:"statement type not supported: ''" + masl_statement.actions + "''");
@@ -229,14 +225,12 @@ INSERT INTO S_SYNC
 	"00000000-0000-0000-0000-000000000000",
 	'transformMaslStatements',
 	'',
-	'LOG::LogInfo(message:"LEVI5");
-code_block = param.code_block;
+	'code_block = param.code_block;
 block = param.block;
 select one masl_statement related by code_block->Statement2[R5150];
 select any prev_smt from instances of Statement where false;
 smt_num = 1;
 while (not_empty masl_statement)
-  LOG::LogInfo(message:"LEVI6");
   ::transformMaslStatement(masl_statement:masl_statement, block:block, prev_smt:prev_smt);
   select any prev_smt related by block->Statement[R450] where (selected.statement_number == STRING::itoa(i:smt_num + 1)); // for MASL statements that result in 2 statements
   if (not_empty prev_smt)
@@ -245,7 +239,7 @@ while (not_empty masl_statement)
     select any prev_smt related by block->Statement[R450] where (selected.statement_number == STRING::itoa(i:smt_num));
     smt_num = smt_num + 1;
   end if;
-  select one masl_statement related by masl_statement->Statement2[R5155.''succeeds''];
+  select one masl_statement related by masl_statement->Statement2[R5155.''precedes''];
 end while;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -281,8 +275,7 @@ INSERT INTO S_SYNC
 	"00000000-0000-0000-0000-000000000000",
 	'transformIOStreamStatement',
 	'',
-	'LOG::LogInfo(message:"LEVI9");
-io_stream_statement = param.io_stream_statement;
+	'io_stream_statement = param.io_stream_statement;
 block = param.block;
 prev_smt = param.prev_smt;
 select one masl_statement related by io_stream_statement->Statement2[R5135];
@@ -318,11 +311,11 @@ relate expr to eas across R476;
 create object instance binop of BinaryOperation;
 relate binop to expr across R776;
 if (io_stream_statement.operator == IOop::in)
-	binop.operator = "readToken";
+	binop.operator = "read";
 elif (io_stream_statement.operator == IOop::linein)
 	binop.operator = "readLine";
 elif (io_stream_statement.operator == IOop::out)
-	binop.operator = "writeToken";
+	binop.operator = "write";
 elif (io_stream_statement.operator == IOop::lineout)
 	binop.operator = "writeLine";
 else
