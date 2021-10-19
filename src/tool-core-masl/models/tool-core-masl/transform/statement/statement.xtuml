@@ -1,0 +1,416 @@
+-- BP 7.1.6 content: Package syschar: 3 persistence-version: 7.1.6
+
+INSERT INTO EP_PKG
+	VALUES ("c45f2f21-d5ff-4652-999f-d4808df1e2ef",
+	"00000000-0000-0000-0000-000000000000",
+	"ff182108-eff3-4cdc-81dd-efdc6098874b",
+	'statement',
+	'',
+	0);
+INSERT INTO GD_MD
+	VALUES ("a75fc6e6-c6e3-40ab-a351-19b5ea1ea500",
+	112,
+	"c45f2f21-d5ff-4652-999f-d4808df1e2ef",
+	108,
+	0,
+	0,
+	1,
+	1,
+	1,
+	12,
+	1,
+	0,
+	0,
+	0,
+	0,
+	0,
+	'',
+	'tool-core-masl::transform::statement');
+INSERT INTO DIM_DIA
+	VALUES ("a75fc6e6-c6e3-40ab-a351-19b5ea1ea500",
+	'',
+	1.000000,
+	0.000000,
+	0.000000,
+	"00000000-0000-0000-0000-000000000000");
+INSERT INTO S_SYNC
+	VALUES ("a15c0dfb-3749-42a0-833a-cdd52a9f9ea8",
+	"00000000-0000-0000-0000-000000000000",
+	'transformMaslBlock',
+	'',
+	'LOG::LogInfo(message:"LEVI3");
+upper_block = param.upper_block;
+code_block = param.code_block;
+if (not_empty code_block)
+
+  invocable = param.invocable;
+
+  // create code block
+  create object instance block of CodeBlock;
+  if (empty upper_block)
+    block.top_level = true;
+    block.tab_depth = 1;
+    select one port_msg related by invocable->PortMessage[R427];
+    if (not_empty port_msg)
+      select one port related by port_msg->Port[R420];
+      select one msg related by port_msg->Message[R420];
+      if ((msg.to_provider and not port.provider) or (not msg.to_provider and port.provider))
+        block.tab_depth = 2; // increase the tab depth by one for bodies which belong to outbound port messages
+      end if;
+    end if;
+    select one class_op related by invocable->Operation[R427] where (selected.is_class_based);
+    if (not_empty class_op)
+      block.tab_depth = 2; // increase the tab depth by one for bodies which belong to class based operations
+    end if;
+  else
+    select one invocable related by upper_block->InvocableObject[R4000];
+    block.top_level = false;
+    block.tab_depth = upper_block.tab_depth + 1;
+  end if;
+  relate block to invocable across R4000;
+  block.block_number = param.block_number;
+
+  // copy visibile variables from upper block
+  select many vars related by upper_block->Variable[R458];
+  for each var in vars
+    create object instance var_in_scope of VariableInScope;
+    relate var to block across R458 using var_in_scope;
+  end for;
+
+  LOG::LogInfo(message:"LEVI4");
+  // transform all statements
+  ::transformMaslStatements(code_block:code_block, block:block);
+
+else
+  // TODO bad
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	0);
+INSERT INTO S_SPARM
+	VALUES ("a7ce0356-b889-4e12-be9e-1b80aa6a9946",
+	"a15c0dfb-3749-42a0-833a-cdd52a9f9ea8",
+	'upper_block',
+	"60d4da0e-4cbe-4620-8c16-4e1dba1c6b8d",
+	0,
+	'',
+	"1cd93b33-fa8c-4998-a746-a1673fd272ef",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("60d4da0e-4cbe-4620-8c16-4e1dba1c6b8d",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Code Block>',
+	'',
+	'',
+	'../../../../../core-architecture/models/core-architecture/architecture/invocable/invocable.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("1583da29-741d-429c-82b9-e80355a12e3a",
+	"a15c0dfb-3749-42a0-833a-cdd52a9f9ea8",
+	'code_block',
+	"a76746ea-c05f-42fd-bfbf-00a70b069bb6",
+	0,
+	'',
+	"a7ce0356-b889-4e12-be9e-1b80aa6a9946",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("a76746ea-c05f-42fd-bfbf-00a70b069bb6",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<CodeBlock>',
+	'',
+	'',
+	'../../../../../ooamasl/models/ooamasl/ooamasl/statement/statement.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("233aa0f8-c738-4aa0-ba63-702432a6972b",
+	"a15c0dfb-3749-42a0-833a-cdd52a9f9ea8",
+	'block_number',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"1583da29-741d-429c-82b9-e80355a12e3a",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("1cd93b33-fa8c-4998-a746-a1673fd272ef",
+	"a15c0dfb-3749-42a0-833a-cdd52a9f9ea8",
+	'invocable',
+	"3ab44839-4426-4754-b12a-0a00ce4dae1a",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("3ab44839-4426-4754-b12a-0a00ce4dae1a",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Invocable Object>',
+	'',
+	'',
+	'../../../../../core-architecture/models/core-architecture/architecture/invocable/invocable.xtuml');
+INSERT INTO PE_PE
+	VALUES ("a15c0dfb-3749-42a0-833a-cdd52a9f9ea8",
+	1,
+	"c45f2f21-d5ff-4652-999f-d4808df1e2ef",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("78df0df8-f559-4d45-b48f-bfa8c4c24686",
+	"00000000-0000-0000-0000-000000000000",
+	'transformMaslStatement',
+	'',
+	'LOG::LogInfo(message:"LEVI7");
+masl_statement = param.masl_statement;
+block = param.block;
+prev_smt = param.prev_smt;
+if (empty masl_statement or empty block)
+  // TODO bad
+end if;
+
+select one io_stream_statement related by masl_statement->IOStreamStatement[R5135];
+if (not_empty io_stream_statement)
+  LOG::LogInfo(message:"LEVI8");
+  ::transformIOStreamStatement(io_stream_statement:io_stream_statement, block:block, prev_smt:prev_smt);
+else
+  LOG::LogFailure(message:"statement type not supported: ''" + masl_statement.actions + "''");
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	0);
+INSERT INTO S_SPARM
+	VALUES ("83d772f9-ec52-48f6-9d25-6ef45ada7062",
+	"78df0df8-f559-4d45-b48f-bfa8c4c24686",
+	'masl_statement',
+	"05890c89-f4eb-4163-9007-b5abcf03a719",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("05890c89-f4eb-4163-9007-b5abcf03a719",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Statement>',
+	'',
+	'',
+	'../../../../../ooamasl/models/ooamasl/ooamasl/statement/statement.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("fc03a869-eef9-495c-a68c-527de6187b12",
+	"78df0df8-f559-4d45-b48f-bfa8c4c24686",
+	'block',
+	"60d4da0e-4cbe-4620-8c16-4e1dba1c6b8d",
+	0,
+	'',
+	"83d772f9-ec52-48f6-9d25-6ef45ada7062",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("8c2a71a1-b904-4991-a89c-c25bb02e8f0c",
+	"78df0df8-f559-4d45-b48f-bfa8c4c24686",
+	'prev_smt',
+	"b586ec7e-41fe-4d50-9cf3-27b173e9848a",
+	0,
+	'',
+	"fc03a869-eef9-495c-a68c-527de6187b12",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("b586ec7e-41fe-4d50-9cf3-27b173e9848a",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Statement>',
+	'',
+	'',
+	'../../../../../core-architecture/models/core-architecture/architecture/statement/statement.xtuml');
+INSERT INTO PE_PE
+	VALUES ("78df0df8-f559-4d45-b48f-bfa8c4c24686",
+	1,
+	"c45f2f21-d5ff-4652-999f-d4808df1e2ef",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("b711d9b4-f2f1-467a-b928-f777d141335d",
+	"00000000-0000-0000-0000-000000000000",
+	'transformMaslStatements',
+	'',
+	'LOG::LogInfo(message:"LEVI5");
+code_block = param.code_block;
+block = param.block;
+select one masl_statement related by code_block->Statement2[R5150];
+select any prev_smt from instances of Statement where false;
+smt_num = 1;
+while (not_empty masl_statement)
+  LOG::LogInfo(message:"LEVI6");
+  ::transformMaslStatement(masl_statement:masl_statement, block:block, prev_smt:prev_smt);
+  select any prev_smt related by block->Statement[R450] where (selected.statement_number == STRING::itoa(i:smt_num + 1)); // for MASL statements that result in 2 statements
+  if (not_empty prev_smt)
+    smt_num = smt_num + 2;
+  else
+    select any prev_smt related by block->Statement[R450] where (selected.statement_number == STRING::itoa(i:smt_num));
+    smt_num = smt_num + 1;
+  end if;
+  select one masl_statement related by masl_statement->Statement2[R5155.''succeeds''];
+end while;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	0);
+INSERT INTO S_SPARM
+	VALUES ("585eda91-f258-4baf-90fe-9ac127a710c9",
+	"b711d9b4-f2f1-467a-b928-f777d141335d",
+	'block',
+	"60d4da0e-4cbe-4620-8c16-4e1dba1c6b8d",
+	0,
+	'',
+	"43554ee7-a4a8-41a5-96c7-dfb4a4f21055",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("43554ee7-a4a8-41a5-96c7-dfb4a4f21055",
+	"b711d9b4-f2f1-467a-b928-f777d141335d",
+	'code_block',
+	"a76746ea-c05f-42fd-bfbf-00a70b069bb6",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO PE_PE
+	VALUES ("b711d9b4-f2f1-467a-b928-f777d141335d",
+	1,
+	"c45f2f21-d5ff-4652-999f-d4808df1e2ef",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("acbda8b8-9a50-44ff-8605-f95ff06d71e5",
+	"00000000-0000-0000-0000-000000000000",
+	'transformIOStreamStatement',
+	'',
+	'LOG::LogInfo(message:"LEVI9");
+io_stream_statement = param.io_stream_statement;
+block = param.block;
+prev_smt = param.prev_smt;
+select one masl_statement related by io_stream_statement->Statement2[R5135];
+
+// create a statement
+create object instance smt of Statement;
+relate smt to block across R450;
+if ( not_empty prev_smt )
+  smt.statement_number = STRING::itoa(i:STRING::atoi( s:prev_smt.statement_number ) + 1);
+  relate smt to prev_smt across R477.''executes after'';
+else
+  smt.statement_number = "1";
+end if;
+select one body related by block->InvocableObject[R4000];
+smt.actions = masl_statement.actions;
+
+// create expression as statement
+create object instance eas of ExpressionAsStatement;
+relate eas to smt across R451;
+
+// Get the device expression and the other expression.
+// TODO: currently only assumes one stream operator per statement
+select one device_expression related by io_stream_statement->Expression2[R5156];
+select any other_expression related by io_stream_statement->Expression2[R5115];
+
+// create main expression
+create object instance expr of Expression;
+relate expr to smt across R775;
+expr.expression_number = "1";
+relate expr to eas across R476;
+
+// create binary operation and assignment expression
+create object instance binop of BinaryOperation;
+relate binop to expr across R776;
+if (io_stream_statement.operator == IOop::in)
+	binop.operator = "readToken";
+elif (io_stream_statement.operator == IOop::linein)
+	binop.operator = "readLine";
+elif (io_stream_statement.operator == IOop::out)
+	binop.operator = "writeToken";
+elif (io_stream_statement.operator == IOop::lineout)
+	binop.operator = "writeLine";
+else
+	// TODO bad
+end if;
+binop.invocation = true;
+
+// create left operand
+::transformMaslExpression(masl_expression:device_expression, expr_number:"1.1", smt:smt );
+select any l_op related by smt->Expression[R775] where (selected.expression_number == "1.1");
+relate l_op to binop across R779;
+select one ltype related by l_op->TypeReference[R795];
+
+// create right operand
+::transformMaslExpression(masl_expression:other_expression, expr_number:"1.2", smt:smt);
+select any r_op related by smt->Expression[R775] where (selected.expression_number == "1.2");
+relate r_op to binop across R778;
+
+if (io_stream_statement.operator == IOop::in or io_stream_statement.operator == IOop::linein)
+  // link r_op type to the main expression for reads
+  select one type related by r_op->TypeReference[R795];
+  relate type to expr across R795;
+else
+  // link ''void'' to the main expression for writes
+  type = ::TypeReference_getBuiltinTypeReference(name:"void");
+  relate type to expr across R795;
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	0);
+INSERT INTO S_SPARM
+	VALUES ("8838ac4f-16a2-4ba2-a39b-2ab94b7dbc57",
+	"acbda8b8-9a50-44ff-8605-f95ff06d71e5",
+	'block',
+	"60d4da0e-4cbe-4620-8c16-4e1dba1c6b8d",
+	0,
+	'',
+	"8d18892e-bf98-4127-86a6-3a4bcf18c82f",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("94ea6296-b29a-447d-9cc4-23d32474735e",
+	"acbda8b8-9a50-44ff-8605-f95ff06d71e5",
+	'prev_smt',
+	"b586ec7e-41fe-4d50-9cf3-27b173e9848a",
+	0,
+	'',
+	"8838ac4f-16a2-4ba2-a39b-2ab94b7dbc57",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("8d18892e-bf98-4127-86a6-3a4bcf18c82f",
+	"acbda8b8-9a50-44ff-8605-f95ff06d71e5",
+	'io_stream_statement',
+	"44b3ec1a-d9d6-4b23-8417-f2e233dacc51",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("44b3ec1a-d9d6-4b23-8417-f2e233dacc51",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<IOStreamStatement>',
+	'',
+	'',
+	'../../../../../ooamasl/models/ooamasl/ooamasl/statement/statement.xtuml');
+INSERT INTO PE_PE
+	VALUES ("acbda8b8-9a50-44ff-8605-f95ff06d71e5",
+	1,
+	"c45f2f21-d5ff-4652-999f-d4808df1e2ef",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO PE_PE
+	VALUES ("c45f2f21-d5ff-4652-999f-d4808df1e2ef",
+	1,
+	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
+	"00000000-0000-0000-0000-000000000000",
+	7);
+INSERT INTO EP_PKG_PROXY
+	VALUES ("e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
+	"ff182108-eff3-4cdc-81dd-efdc6098874b",
+	"ff182108-eff3-4cdc-81dd-efdc6098874b",
+	'transform',
+	'',
+	0,
+	'../transform.xtuml');
+INSERT INTO S_SYS_PROXY
+	VALUES ("ff182108-eff3-4cdc-81dd-efdc6098874b",
+	'tool-core-masl',
+	1,
+	'../../tool-core-masl.xtuml');

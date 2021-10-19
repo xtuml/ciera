@@ -1,0 +1,209 @@
+-- BP 7.1.6 content: Package syschar: 3 persistence-version: 7.1.6
+
+INSERT INTO EP_PKG
+	VALUES ("6b1296bb-978b-44fd-b197-7cada155e1c8",
+	"00000000-0000-0000-0000-000000000000",
+	"ff182108-eff3-4cdc-81dd-efdc6098874b",
+	'expression',
+	'',
+	0);
+INSERT INTO GD_MD
+	VALUES ("320ed2d6-2132-412e-ab05-dbb5bdb4d4ee",
+	112,
+	"6b1296bb-978b-44fd-b197-7cada155e1c8",
+	108,
+	0,
+	0,
+	1,
+	1,
+	1,
+	12,
+	1,
+	0,
+	0,
+	0,
+	0,
+	0,
+	'',
+	'tool-core-masl::transform::expression');
+INSERT INTO DIM_DIA
+	VALUES ("320ed2d6-2132-412e-ab05-dbb5bdb4d4ee",
+	'',
+	1.000000,
+	0.000000,
+	0.000000,
+	"00000000-0000-0000-0000-000000000000");
+INSERT INTO S_SYNC
+	VALUES ("8faac498-475f-4436-b4d4-56b2be67ec3f",
+	"00000000-0000-0000-0000-000000000000",
+	'transformMaslExpression',
+	'',
+	'LOG::LogInfo(message:"LEVI10");
+masl_expression = param.masl_expression;
+smt = param.smt;
+expr_number = param.expr_number;
+
+select one literal_expression related by masl_expression->LiteralExpression[R5517];
+if (not_empty literal_expression)
+  LOG::LogInfo(message:"LEVI11");
+  ::transformLiteral(literal_expression:literal_expression, smt:smt, expr_number:expr_number);
+else
+  LOG::LogInfo( message:"expression type not yet supported" );
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	0);
+INSERT INTO S_SPARM
+	VALUES ("1a0c51c6-8b30-44dd-aa0f-a94b027a38e3",
+	"8faac498-475f-4436-b4d4-56b2be67ec3f",
+	'expr_number',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"9ab5cfbd-5f99-4203-bf27-265445c77169",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("cdda67fc-2ef0-4c6e-bb4d-7d6e9e1d688d",
+	"8faac498-475f-4436-b4d4-56b2be67ec3f",
+	'smt',
+	"b586ec7e-41fe-4d50-9cf3-27b173e9848a",
+	0,
+	'',
+	"1a0c51c6-8b30-44dd-aa0f-a94b027a38e3",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("b586ec7e-41fe-4d50-9cf3-27b173e9848a",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Statement>',
+	'',
+	'',
+	'../../../../../core-architecture/models/core-architecture/architecture/statement/statement.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("9ab5cfbd-5f99-4203-bf27-265445c77169",
+	"8faac498-475f-4436-b4d4-56b2be67ec3f",
+	'masl_expression',
+	"0f86953a-c0a1-4f83-b7e4-af32c53c2d6d",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("0f86953a-c0a1-4f83-b7e4-af32c53c2d6d",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Expression>',
+	'',
+	'',
+	'../../../../../ooamasl/models/ooamasl/ooamasl/expression/expression.xtuml');
+INSERT INTO PE_PE
+	VALUES ("8faac498-475f-4436-b4d4-56b2be67ec3f",
+	1,
+	"6b1296bb-978b-44fd-b197-7cada155e1c8",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("0e12573e-069b-4c90-9ce3-b266c877e1e4",
+	"00000000-0000-0000-0000-000000000000",
+	'transformLiteral',
+	'',
+	'LOG::LogInfo(message:"LEVI12");
+literal_expression = param.literal_expression;
+smt = param.smt;
+expr_number = param.expr_number;
+
+// create expression
+create object instance expr of Expression;
+relate expr to smt across R775;
+expr.expression_number = expr_number;
+
+// link type
+select any type from instances of TypeReference;
+select one builtin related by literal_expression->Expression2[R5517]->BasicType[R5570]->BuiltinType[R6205]->BuiltInType[R8305];
+if not_empty builtin
+  type = ::TypeReference_getBuiltinTypeReference(name:builtin.name);
+else
+  type = ::TypeReference_getBuiltinTypeReference(name:"void");
+end if;
+relate type to expr across R795;
+
+// create literal
+create object instance lit of Literal;
+relate lit to expr across R776;
+
+select one string_literal related by literal_expression->StringLiteral[R5700];
+if (not_empty string_literal)
+  LOG::LogInfo(message:"LEVI13");
+  lit.value = string_literal.noQuotes;
+else
+select one console_literal related by literal_expression->ConsoleLiteral[R5700];
+if not_empty console_literal
+  LOG::LogInfo(message:"LEVI14");
+  lit.value = "BaseDevice.console()";
+  file = ::getFileForStatement(smt:smt);
+  ::addStringToImports(file:file, s:"io.ciera.runtime.summit.types.BaseDevice", type:ImportType::IMPL);
+end if; end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	0);
+INSERT INTO S_SPARM
+	VALUES ("db4a66d1-b7a9-4f8b-b1e3-1219244fdda6",
+	"0e12573e-069b-4c90-9ce3-b266c877e1e4",
+	'smt',
+	"b586ec7e-41fe-4d50-9cf3-27b173e9848a",
+	0,
+	'',
+	"e94be769-92ca-4cbd-8db2-dab514aea90f",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("3f0b7cc0-7f77-474f-b911-93ededcabe8f",
+	"0e12573e-069b-4c90-9ce3-b266c877e1e4",
+	'expr_number',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"db4a66d1-b7a9-4f8b-b1e3-1219244fdda6",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("e94be769-92ca-4cbd-8db2-dab514aea90f",
+	"0e12573e-069b-4c90-9ce3-b266c877e1e4",
+	'literal_expression',
+	"93104ff2-77fc-4f9a-99a3-5e7c087de835",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("93104ff2-77fc-4f9a-99a3-5e7c087de835",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<LiteralExpression>',
+	'',
+	'',
+	'../../../../../ooamasl/models/ooamasl/ooamasl/literal/literal.xtuml');
+INSERT INTO PE_PE
+	VALUES ("0e12573e-069b-4c90-9ce3-b266c877e1e4",
+	1,
+	"6b1296bb-978b-44fd-b197-7cada155e1c8",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO PE_PE
+	VALUES ("6b1296bb-978b-44fd-b197-7cada155e1c8",
+	1,
+	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
+	"00000000-0000-0000-0000-000000000000",
+	7);
+INSERT INTO EP_PKG_PROXY
+	VALUES ("e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
+	"ff182108-eff3-4cdc-81dd-efdc6098874b",
+	"ff182108-eff3-4cdc-81dd-efdc6098874b",
+	'transform',
+	'',
+	0,
+	'../transform.xtuml');
+INSERT INTO S_SYS_PROXY
+	VALUES ("ff182108-eff3-4cdc-81dd-efdc6098874b",
+	'tool-core-masl',
+	1,
+	'../../tool-core-masl.xtuml');

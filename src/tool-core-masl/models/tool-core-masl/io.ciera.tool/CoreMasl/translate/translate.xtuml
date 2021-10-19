@@ -132,6 +132,16 @@ LOG::LogInfo( message:"  Resolving user defined types..." );
 LOG::LogInfo( message:"  done." );
 LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
 
+// translate bodies
+LOG::LogInfo(message:"  Translating MASL bodies...");
+select many invocables from instances of InvocableObject;
+for each invocable in invocables
+  LOG::LogInfo(message:"  Translating ''" + invocable.parent_package + "." + invocable.parent_name + "#" + invocable.name + "'' ...");
+  ::transformMaslBody(invocable:invocable);
+end for;
+LOG::LogInfo( message:"  done." );
+LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
+
 // render all files
 LOG::LogInfo( message:"  Rendering application..." );
 select many files from instances of File;
