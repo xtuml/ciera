@@ -1,5 +1,5 @@
 .if ( "" != actions )
-${indent}// ${actions}
+${indent}/* ${actions} */
 .end if
 ${prefix}\
 .if ( "" == ret_expression_body )
