@@ -28,8 +28,11 @@ while ( not_empty prev_statement )
   statement = prev_statement;
   select one prev_statement related by statement->Statement[R477.''executes after''];
 end while;
+select any action_comments_mark from instances of Mark where (selected.feature_name == "IncludeStatementComments");
 while ( not_empty statement )
-  statement.actions = ""; // temporarily remove OAL comments
+  if (empty action_comments_mark)
+    statement.actions = "";  // disable statement comments
+  end if;
   statement.render();
   select one statement related by statement->Statement[R477.''executes before''];
 end while;
