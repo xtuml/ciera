@@ -968,6 +968,10 @@ select one s_dt related by o_attr->S_DT[R114];
 if ( "same_as<Base_Attribute>" == s_dt.Name )
   select one s_dt related by o_attr->O_RATTR[R106]->O_BATTR[R113]->O_ATTR[R106]->S_DT[R114];
 end if;
+if ( empty s_dt )
+  // TODO bad
+  LOG::LogInfo( message:"JRW + AM no type for referential: " + o_attr.Name + " of " + obj.name );
+end if;
 select many s_dims related by o_attr->S_DIM[R120];
 type = TypeReference::getInstance(s_dt:s_dt, s_dims:s_dims, referring_comp:containing_comp_def);
 select one array_type related by type->ArrayTypeReference[R3801];
@@ -3496,7 +3500,7 @@ INSERT INTO S_SYNC
 containing_comp_def = param.containing_comp_def;
 path = param.path;
 
-LOG::LogInfo( message:"JRW Entering ::transformClassInComponent()" );
+LOG::LogInfo( message:"JRW Entering ::transformClassInComponent() " + o_obj.Name );
 select one ep_pkg related by o_obj->PE_PE[R8001]->EP_PKG[R8000];
 LOG::LogInfo( message:"JRW package: " + ep_pkg.Name );
 
