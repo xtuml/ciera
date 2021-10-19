@@ -40,13 +40,13 @@ INSERT INTO S_SYNC
 	'',
 	'domain = param.domain;
 
-if ( 1 == param.pass )
+if (param.pass == 1)
 
   // create the file
   create object instance file of File;
   file.name = ::camelCaseName(name:domain.name, start_lower:false);
   file.path = param.path;
-  file.package = ::pathToPackage( path:file.path );
+  file.package = ::pathToPackage(path:file.path);
   file.extension = ".java";
   file.exclude = false;
 
@@ -105,6 +105,36 @@ if ( 1 == param.pass )
     ::addStringToImports(file:file, s:"java.io.IOException", type:ImportType::IMPL);
     ::addStringToImports(file:file, s:"java.util.Properties", type:ImportType::IMPL);
   end if;
+
+elif (param.pass == 2)
+
+  select any file from instances of File where (selected.name == ::camelCaseName(name:domain.name, start_lower:false) and selected.package == ::pathToPackage(path:param.path));
+  select one comp_def related by file->ComponentDefinition[R401];
+  
+  select many rels related by domain->RelationshipDeclaration[R6003];
+  for each rel in rels
+    ::transformRelationship(rel:rel, comp_def:comp_def);
+  end for;
+
+else
+
+  select any file from instances of File where (selected.name == ::camelCaseName(name:domain.name, start_lower:false) and selected.package == ::pathToPackage(path:param.path));
+  select one comp_def related by file->ComponentDefinition[R401];
+
+  // transform selectors
+  select many objs related by comp_def->Class[R408];
+  for each obj in objs
+    ::transformSelectors(obj:obj);
+  end for;
+
+  // transform relationship population selectors
+  select many rels related by comp_def->Relationship[R448];
+  for each rel in rels
+    create object instance rel_pop_selector of RelationshipPopulationSelector;
+    rel_pop_selector.name = rel.name + "s";
+    relate rel_pop_selector to comp_def across R4571;
+    relate rel_pop_selector to rel across R4572;
+  end for;
 
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
@@ -200,6 +230,8 @@ select many domains from instances of Domain;
 select any current_comp_inst from instances of ComponentInstantiation where false;
 for each domain in domains
   ::transformDomain(domain:domain, path:file.path, pass:1);
+  ::transformDomain(domain:domain, path:file.path, pass:2);
+  ::transformDomain(domain:domain, path:file.path, pass:3);
   select any comp_def from instances of ComponentDefinition where ( selected.name == ::camelCaseName( name:domain.name, start_lower:false ) );
   create object instance comp_inst of ComponentInstantiation;
   relate  comp_def to app across R426 using comp_inst;
@@ -396,6 +428,9 @@ obj.extends = "ModelInstance<" + obj.name + "," + comp_def.name + ">";
 
 // add the class to the component
 relate obj to comp_def across R408;
+
+// connect to the arch model
+relate obj to object_declaration across R8300;
 
 // create the instance type
 create object instance type of Type;
@@ -880,6 +915,309 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("004b6365-0d67-4a5a-9f29-ec2b21938c21",
+	1,
+	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("14b42ff1-d03f-4557-bb85-e0d523c9f560",
+	"00000000-0000-0000-0000-000000000000",
+	'transformRelationship',
+	'',
+	'maslrel = param.rel;
+comp_def = param.comp_def;
+select one file related by comp_def->File[R401];
+
+// get exclude mark
+/* TODO
+select one pe related by r_rel->PE_PE[R8001];
+select any assoc_exclude_mark from instances of Mark where ( selected.markable_name == "Association" and
+                                                             selected.path == ::containerMarkingPath( pe:pe ) + "::R" + STRING::itoa( i:r_rel.Numb ) and
+                                                             selected.feature_name == "Exclude" );
+*/
+
+select any form_class from instances of Class where false;
+form_phrase = "";
+form_mult = Mult::ONE;
+form_cond = Cond::UNCONDITIONAL;
+select any part_class from instances of Class where false;
+part_phrase = "";
+part_mult = Mult::ONE;
+part_cond = Cond::UNCONDITIONAL;
+
+// determine if this is a simple relationship
+select one normal related by maslrel->NormalRelationshipDeclaration[R6010];
+if (not_empty normal)
+
+	// get the formalizer and participant information
+	select one half_rel_1 related by normal->HalfRelationship[R6007];
+	select one half_rel_2 related by normal->HalfRelationship[R6008];
+	select any ref1 related by half_rel_1->ObjectDeclaration[R6004]->AttributeDeclaration[R5802]
+		->ReferentialAttributeDefinition[R5800.''is_referenced_by'']->RelationshipSpecification[R5811]->HalfRelationship[R6013]
+		->NormalRelationshipDeclaration[R6007]->RelationshipDeclaration[R6010] where (selected.name == maslrel.name);
+	select any ref2 related by half_rel_1->ObjectDeclaration[R6004]->AttributeDeclaration[R5802]
+		->ReferentialAttributeDefinition[R5800.''is_referenced_by'']->RelationshipSpecification[R5811]->HalfRelationship[R6013]
+		->NormalRelationshipDeclaration[R6008]->RelationshipDeclaration[R6010] where (selected.name == maslrel.name);
+	if (not_empty ref1 or not_empty ref2)  // the first half is the participant
+		select one form_class related by half_rel_2->ObjectDeclaration[R6004]->Class[R8300];
+		form_phrase = half_rel_2.role;
+		if (half_rel_2.multiplicity == Multiplicity2::many)
+			form_mult = Mult::MANY;
+		end if;
+		if (half_rel_2.isconditional)
+			form_cond = Cond::CONDITIONAL;
+		end if;
+		select one part_class related by half_rel_1->ObjectDeclaration[R6004]->Class[R8300];
+		part_phrase = half_rel_1.role;
+		if (half_rel_1.multiplicity == Multiplicity2::many)
+			part_mult = Mult::MANY;
+		end if;
+		if (half_rel_1.isconditional)
+			part_cond = Cond::CONDITIONAL;
+		end if;
+	else
+		select one form_class related by half_rel_1->ObjectDeclaration[R6004]->Class[R8300];
+		form_phrase = half_rel_1.role;
+		if (half_rel_1.multiplicity == Multiplicity2::many)
+			form_mult = Mult::MANY;
+		end if;
+		if (half_rel_1.isconditional)
+			form_cond = Cond::CONDITIONAL;
+		end if;
+		select one part_class related by half_rel_2->ObjectDeclaration[R6004]->Class[R8300];
+		part_phrase = half_rel_2.role;
+		if (half_rel_2.multiplicity == Multiplicity2::many)
+			part_mult = Mult::MANY;
+		end if;
+		if (half_rel_2.isconditional)
+			part_cond = Cond::CONDITIONAL;
+		end if;
+	end if;
+
+	// create the relationship
+	create object instance rel of Relationship;
+	name = maslrel.name + "_" + form_class.name + "_";
+	if (part_phrase != "")
+		name = name + T::sub(format:"_", s:part_phrase) + "_";
+	end if;
+	name = name + part_class.name;
+	rel.name = name;
+	rel.num = STRING::atoi(s:STRING::substr(s:maslrel.name, begin:1, end:-1));
+	rel.form_phrase = form_phrase;
+	rel.part_phrase = part_phrase;
+	rel.form_mult = form_mult;
+	rel.part_mult = part_mult;
+	rel.form_cond = form_cond;
+	rel.part_cond = part_cond;
+	rel.rel_type = RelationshipType::Binary;
+	relate rel to comp_def across R448;
+	relate rel to form_class across R435;
+	relate rel to part_class across R434;
+
+	/* TODO get the ID number
+	select any o_id related by r_simp->R_PART[R207]->R_RTO[R204]->O_ID[R109];
+	if ( not_empty o_id )
+		rel.id_num = o_id.Oid_ID + 1;
+	else
+		rel.id_num = 0;
+	end if;
+	*/
+	rel.id_num = 0;
+
+else
+	/*
+select one r_subsup related by r_rel->R_SUBSUP[R206];
+if ( not_empty r_subsup )
+
+	select one part_class related by r_subsup->R_SUPER[R212]->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->Class[R409];
+	select many sub_classes related by r_subsup->R_SUB[R213]->R_RGO[R205]->R_OIR[R203]->O_OBJ[R201]->Class[R409];
+	if ( not_empty part_class and not_empty sub_classes )
+		part_phrase = "is_a";
+		for each form_class in sub_classes
+
+			form_phrase = "is_a";
+			form_cond = Cond::CONDITIONAL;
+
+			// create the relationship
+			create object instance rel of Relationship;
+			name = "R" + STRING::itoa( i:r_rel.Numb ) + "_" + form_class.name + "_";
+			if ( "" != part_phrase )
+				name = name + part_phrase + "_";
+			end if;
+			name = name + part_class.name;
+			rel.name = name;
+			rel.num = r_rel.Numb;
+			rel.form_phrase = form_phrase;
+			rel.part_phrase = part_phrase;
+			rel.form_mult = form_mult;
+			rel.part_mult = part_mult;
+			rel.form_cond = form_cond;
+			rel.part_cond = part_cond;
+			rel.rel_type = RelationshipType::SuperSubtype;
+			relate rel to comp_def across R448;
+			relate rel to form_class across R435;
+			relate rel to part_class across R434;
+			
+			select one o_id related by r_subsup->R_SUPER[R212]->R_RTO[R204]->O_ID[R109];
+			if ( not_empty o_id )
+				rel.id_num = o_id.Oid_ID + 1;
+			else
+				rel.id_num = 0;
+			end if;
+
+			// special case for EP_PKG instances... top level packages do not have a PE_PE instance
+			if ( 8001 == rel.num and "EP_PKG" == rel.form_name )
+				LOG::LogInfo( message:"  Special casing R8001 EP_PKG to PackageableElement" );
+				rel.part_cond = Cond::CONDITIONAL;
+			end if;
+
+		end for;
+	else
+		// TODO bad
+	end if;
+
+else
+select one r_assoc related by r_rel->R_ASSOC[R206];
+if ( not_empty r_assoc )
+
+	select one r_assr related by r_assoc->R_ASSR[R211];
+	select one r_aone related by r_assoc->R_AONE[R209];
+	select one r_aoth related by r_assoc->R_AOTH[R210];
+
+	select one form_class related by r_assr->R_RGO[R205]->R_OIR[R203]->O_OBJ[R201]->Class[R409];
+	select one part_class related by r_aone->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->Class[R409];
+	if ( not_empty form_class and not_empty part_class and not_empty r_aoth )
+		form_phrase = r_aoth.Txt_Phrs;
+		part_phrase = r_aone.Txt_Phrs;
+		if ( 0 != r_assr.Mult or 0 != r_aoth.Mult )
+			form_mult = Mult::MANY;
+		end if;
+		if ( 0 != r_aoth.Cond )
+			form_cond = Cond::CONDITIONAL;
+		end if;
+	else
+		// TODO bad
+	end if;
+
+	// create the first relationship
+	create object instance rel1 of Relationship;
+	name1 = "R" + STRING::itoa( i:r_rel.Numb ) + "_" + form_class.name + "_";
+	if ( "" != part_phrase )
+		name1 = name1 + T::sub( format:"_", s:part_phrase ) + "_";
+	end if;
+	name1 = name1 + part_class.name;
+	rel1.name = name1;
+	rel1.num = r_rel.Numb;
+	rel1.form_phrase = form_phrase;
+	rel1.part_phrase = part_phrase;
+	rel1.form_mult = form_mult;
+	rel1.part_mult = part_mult;
+	rel1.form_cond = form_cond;
+	rel1.part_cond = part_cond;
+	rel1.rel_type = RelationshipType::Associative;
+	relate rel1 to comp_def across R448;
+	relate rel1 to form_class across R435;
+	relate rel1 to part_class across R434;
+
+	select one o_id1 related by r_assoc->R_AONE[R209]->R_RTO[R204]->O_ID[R109];
+	if ( not_empty o_id1 )
+		rel1.id_num = o_id1.Oid_ID + 1;
+	else
+		rel1.id_num = 0;
+	end if;
+
+	form_phrase = "";
+	form_mult = Mult::ONE;
+	form_cond = Cond::UNCONDITIONAL;
+	part_phrase = "";
+	part_cond = Cond::UNCONDITIONAL;
+
+	select one part_class related by r_aoth->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->Class[R409];
+	if ( not_empty form_class and not_empty part_class and not_empty r_aone )
+		form_phrase = r_aone.Txt_Phrs;
+		part_phrase = r_aoth.Txt_Phrs;
+		if ( 0 != r_assr.Mult or 0 != r_aone.Mult )
+			form_mult = Mult::MANY;
+		end if;
+		if ( 0 != r_aone.Cond )
+			form_cond = Cond::CONDITIONAL;
+		end if;
+	else
+		// TODO bad
+	end if;
+
+	// create the second relationship
+	create object instance rel2 of Relationship;
+	name2 = "R" + STRING::itoa( i:r_rel.Numb ) + "_" + form_class.name + "_";
+	if ( "" != part_phrase )
+		name2 = name2 + T::sub( format:"_", s:part_phrase ) + "_";
+	end if;
+	name2 = name2 + part_class.name;
+	rel2.name = name2;
+	rel2.num = r_rel.Numb;
+	rel2.form_phrase = form_phrase;
+	rel2.part_phrase = part_phrase;
+	rel2.form_mult = form_mult;
+	rel2.part_mult = part_mult;
+	rel2.form_cond = form_cond;
+	rel2.part_cond = part_cond;
+	rel2.rel_type = RelationshipType::Associative;
+	relate rel2 to comp_def across R448;
+	relate rel2 to form_class across R435;
+	relate rel2 to part_class across R434;
+
+	select one o_id2 related by r_assoc->R_AOTH[R210]->R_RTO[R204]->O_ID[R109];
+	if ( not_empty o_id2 )
+		rel2.id_num = o_id2.Oid_ID + 1;
+	else
+		rel2.id_num = 0;
+	end if;
+	
+	relate rel1 to rel2 across R436.''is one half of associative'';  // note these are a symmetric pair.
+else
+	// TODO bad
+end if; end if;*/ end if;
+
+// add necessary imports
+::addStringToImports(file:file, s:"io.ciera.runtime.summit.classes.RelationshipSet", type:ImportType::IMPL);
+::addStringToImports(file:file, s:"io.ciera.runtime.summit.classes.Relationship", type:ImportType::IMPL);
+::addStringToImports(file:file, s:"io.ciera.runtime.summit.classes.IRelationshipSet", type:ImportType::IMPL);
+::addStringToImports(file:file, s:"io.ciera.runtime.summit.exceptions.BadArgumentException", type:ImportType::IMPL);
+::addStringToImports(file:file, s:"io.ciera.runtime.summit.exceptions.EmptyInstanceException", type:ImportType::IMPL);
+::addStringToImports(file:file, s:"io.ciera.runtime.summit.exceptions.ModelIntegrityException", type:ImportType::IMPL);
+::addStringToImports(file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL);',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	7);
+INSERT INTO S_SPARM
+	VALUES ("873ac9c0-9196-4cdd-a01f-24cd999bc3f9",
+	"14b42ff1-d03f-4557-bb85-e0d523c9f560",
+	'rel',
+	"fc9b3839-3ca6-48c8-b09a-c036f8335a12",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("fc9b3839-3ca6-48c8-b09a-c036f8335a12",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<RelationshipDeclaration>',
+	'',
+	'',
+	'../../../../ooamasl/models/ooamasl/ooamasl/relationship/relationship.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("696819c1-b1a7-4a5a-a0f7-dbb08f6621d3",
+	"14b42ff1-d03f-4557-bb85-e0d523c9f560",
+	'comp_def',
+	"109e90cb-1d66-46ee-88db-a568044879d0",
+	0,
+	'',
+	"873ac9c0-9196-4cdd-a01f-24cd999bc3f9",
+	'');
+INSERT INTO PE_PE
+	VALUES ("14b42ff1-d03f-4557-bb85-e0d523c9f560",
 	1,
 	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
 	"00000000-0000-0000-0000-000000000000",
