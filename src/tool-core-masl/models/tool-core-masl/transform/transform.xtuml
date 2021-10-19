@@ -60,8 +60,6 @@ if (param.pass == 1)
   // set version information TODO
   component_version = "";
   
-  // TODO translate domain elements
-  
   // transform services
   select many domain_services related by domain->DomainService[R5303];
   for each domain_service in domain_services
@@ -296,8 +294,14 @@ invocable.parent_package = comp_def.package;
 relate func to invocable across R427;
 //invocable.actions = s_sync.Action_Semantics_internal; // TODO
 
-// link type TODO
-type = ::TypeReference_getBuiltinTypeReference(name:"void");
+// link type
+select any type from instances of TypeReference;
+select one builtin related by service->BasicType[R5205]->BuiltinType[R6205]->BuiltInType[R8305];
+if not_empty builtin
+  type = ::TypeReference_getBuiltinTypeReference(name:builtin.name);
+else
+  type = ::TypeReference_getBuiltinTypeReference(name:"void");
+end if;
 relate type to invocable across R428;
 
 // create parameters
@@ -801,8 +805,14 @@ relate port_msg to invocable across R427;
 // populate the OAL
 //invocable.actions = "";  TODO
 
-// link type TODO
-type = ::TypeReference_getBuiltinTypeReference(name:"void");
+// link type
+select any type from instances of TypeReference;
+select one builtin related by service->BasicType[R5205]->BuiltinType[R6205]->BuiltInType[R8305];
+if not_empty builtin
+  type = ::TypeReference_getBuiltinTypeReference(name:builtin.name);
+else
+  type = ::TypeReference_getBuiltinTypeReference(name:"void");
+end if;
 relate type to invocable across R428;
 
 // create parameters
@@ -1212,18 +1222,8 @@ end if;
 relate attr to maslattr across R8301;
 
 // set the type
-/* TODO
-select one s_dt related by o_attr->S_DT[R114];
-if ( "same_as<Base_Attribute>" == s_dt.Name )
-  select one s_dt related by o_attr->O_RATTR[R106]->O_BATTR[R113]->O_ATTR[R106]->S_DT[R114];
-end if;
-if ( empty s_dt )
-  // TODO bad
-end if;
-select many s_dims related by o_attr->S_DIM[R120];
-type = ::TypeReference_getInstance(s_dt:s_dt, s_dims:s_dims);
-*/
-type = ::TypeReference_getBuiltinTypeReference(name:"boolean");  // temp
+select one builtin related by maslattr->BasicType[R5803]->BuiltinType[R6205]->BuiltInType[R8305];
+type = ::TypeReference_getBuiltinTypeReference(name:builtin.name);
 select one array_type related by type->ArrayTypeReference[R3801];
 relate type to attr across R424;
 
@@ -1246,14 +1246,7 @@ relate setter to attr across R4510;
 select one file related by obj->File[R401];
 ::addStringToImports(file:file, s:"io.ciera.runtime.instanceloading.AttributeChangedDelta", type:ImportType::IMPL);
 ::addStringToImports(file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::BOTH);
-::addStringToImports(file:file, s:"io.ciera.runtime.summit.exceptions.EmptyInstanceException", type:ImportType::IMPL);
-/* TODO
-if (not_empty array_type)
-  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.ArrayUtil", type:ImportType::IMPL );
-elif ("String" == type.type_name and "" == type.type_package)
-  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.StringUtil", type:ImportType::IMPL );
-end if;
-*/',
+::addStringToImports(file:file, s:"io.ciera.runtime.summit.exceptions.EmptyInstanceException", type:ImportType::IMPL);',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -1321,8 +1314,14 @@ invocable.parent_package = op.class_package;
 relate op to invocable across R427;
 //invocable.actions = o_tfr.Action_Semantics_internal; TODO
 
-// link type TODO
-type = ::TypeReference_getBuiltinTypeReference(name:"void");
+// link type
+select any type from instances of TypeReference;
+select one builtin related by service->BasicType[R5205]->BuiltinType[R6205]->BuiltInType[R8305];
+if not_empty builtin
+  type = ::TypeReference_getBuiltinTypeReference(name:builtin.name);
+else
+  type = ::TypeReference_getBuiltinTypeReference(name:"void");
+end if;
 relate type to invocable across R428;
 
 // create parameters
@@ -1685,9 +1684,10 @@ while (not_empty parameter)
   create object instance parm of FormalParameter;
   parm.name = "p_" + parameter.name;
   parm.by_ref = parameter.mode == ParameterMode::out;
-  // TODO data type
-  parm_type = ::TypeReference_getBuiltinTypeReference(name:"boolean");
-  relate parm_type to parm across R431;
+  // data type
+	select one builtin related by parameter->BasicType[R5200]->BuiltinType[R6205]->BuiltInType[R8305];
+	type = ::TypeReference_getBuiltinTypeReference(name:builtin.name);
+	relate type to parm across R431;
   ::linkParameter(invocable:invocable, parameter:parm);
   select one parameter related by parameter->ParameterDefinition[R5208.''precedes''];
 end while;',
