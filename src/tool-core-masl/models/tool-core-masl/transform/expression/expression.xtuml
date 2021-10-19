@@ -62,8 +62,12 @@ select one binary_expression related by masl_expression->BinaryExpression[R5517]
 if (not_empty binary_expression)
   ::transformBinaryExpression(binary_expression:binary_expression, smt:smt, expr_number:expr_number);
 else
+select one call_expression related by masl_expression->CallExpression[R5517];
+if (not_empty call_expression)
+  ::transformCallExpression(call_expression:call_expression, smt:smt, expr_number:expr_number);
+else
   LOG::LogInfo( message:"expression type not yet supported" );
-end if; end if; end if; end if; end if;',
+end if; end if; end if; end if; end if; end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -787,6 +791,289 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("9a77aa44-5e84-4b3a-8e10-6ca5c9abde72",
+	1,
+	"6b1296bb-978b-44fd-b197-7cada155e1c8",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("91188de4-0b26-460e-bbcc-fe037aebf6a5",
+	"00000000-0000-0000-0000-000000000000",
+	'transformCallExpression',
+	'',
+	'call_expression = param.call_expression;
+smt = param.smt;
+expr_number = param.expr_number;
+
+// create expression
+create object instance expr of Expression;
+relate expr to smt across R775;
+expr.expression_number = expr_number;
+
+// link type
+select one builtin related by call_expression->Expression2[R5517]->BasicType[R5570]->BuiltinType[R6205]->BuiltInType[R8305];
+type = ::TypeReference_getBuiltinTypeReference(name:builtin.name);
+relate type to expr across R795;
+
+select one domain_service_invocation related by call_expression->ServiceInvocation[R5500]->DomainServiceInvocation[R5610];
+if (not_empty domain_service_invocation)
+  select one service related by domain_service_invocation->DomainService[R5611]->Service[R5203];
+	containing_comp_def = ::getCompDefForStatement(smt:smt);
+	select any invocable related by containing_comp_def->Function[R405]->InvocableObject[R427] where (selected.name == "" + service.name);
+	if (not_empty invocable)
+		// create invocation
+		create object instance invoc of Invocation;
+		relate invoc to expr across R776;
+		relate invoc to invocable across R792;
+		// create named reference expression
+		create object instance expr2 of Expression;
+		relate expr2 to smt across R775;
+		expr2.expression_number = expr.expression_number + ".1";
+		void_type = ::TypeReference_getBuiltinTypeReference(name:"void");
+		relate void_type to expr2 across R795;
+		// create named reference
+		create object instance named_ref of NamedReference;
+		relate named_ref to expr2 across R776;
+		relate expr2 to invoc across R798;
+		named_ref.name = "context()";
+		// transform actual parameters
+		select one first_argument related by call_expression->Argument[R5575];
+		if (not_empty first_argument)
+		  ::transformArguments(invocation:invoc, first_argument:first_argument, expr_number:expr.expression_number, base_num:2);
+		end if;
+	else
+		// TODO bad
+	end if;
+else
+  // TODO
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	2);
+INSERT INTO S_SPARM
+	VALUES ("c03e7c08-75d5-4b82-8b5c-0ad9ff80a48b",
+	"91188de4-0b26-460e-bbcc-fe037aebf6a5",
+	'call_expression',
+	"11c510b7-7d65-427b-b237-d125229df9a5",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("11c510b7-7d65-427b-b237-d125229df9a5",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<CallExpression>',
+	'',
+	'',
+	'../../../../../ooamasl/models/ooamasl/ooamasl/expression/expression.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("32916e7d-0038-4a9b-9b2a-4693cfcd80f6",
+	"91188de4-0b26-460e-bbcc-fe037aebf6a5",
+	'smt',
+	"b586ec7e-41fe-4d50-9cf3-27b173e9848a",
+	0,
+	'',
+	"c03e7c08-75d5-4b82-8b5c-0ad9ff80a48b",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("3c4c2040-e108-4ed7-ac42-7e03e2f74468",
+	"91188de4-0b26-460e-bbcc-fe037aebf6a5",
+	'expr_number',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"32916e7d-0038-4a9b-9b2a-4693cfcd80f6",
+	'');
+INSERT INTO PE_PE
+	VALUES ("91188de4-0b26-460e-bbcc-fe037aebf6a5",
+	1,
+	"6b1296bb-978b-44fd-b197-7cada155e1c8",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("29228760-e9fd-44d4-9c41-0dfcd038b372",
+	"00000000-0000-0000-0000-000000000000",
+	'transformArgument',
+	'',
+	'invocation = param.invocation;
+parm = param.parm;
+argument = param.argument;
+prev_act_parm = param.prev_act_parm;
+expr_number = param.expression_num;
+
+select one smt related by invocation->Expression[R776]->Statement[R775];
+select one masl_expression related by argument->Expression2[R5577];
+// TODO considertype promotion
+::transformMaslExpression(masl_expression:masl_expression, expr_number:expr_number, smt:smt);
+select any expr related by smt->Expression[R775] where (selected.expression_number == expr_number);
+
+// create the actual parameter
+create object instance act_parm of ActualParameter;
+relate act_parm to expr across R794;
+relate invocation to act_parm across R793;
+if (not_empty parm)
+	relate act_parm to parm across R3904;
+end if;
+if (not_empty prev_act_parm)
+	relate prev_act_parm to act_parm across R3905.''precedes'';
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	0);
+INSERT INTO S_SPARM
+	VALUES ("0e46f8eb-43aa-4438-9f86-1900c44699a6",
+	"29228760-e9fd-44d4-9c41-0dfcd038b372",
+	'invocation',
+	"887d1375-b0ab-4462-b2be-ec5b8e265583",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("887d1375-b0ab-4462-b2be-ec5b8e265583",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Invocation>',
+	'',
+	'',
+	'../../../../../core-architecture/models/core-architecture/architecture/expression/expression.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("fa8935b8-d588-4da8-b7b0-034e59a8058c",
+	"29228760-e9fd-44d4-9c41-0dfcd038b372",
+	'parm',
+	"4f106c1b-2473-4622-9798-816c7eb93613",
+	0,
+	'',
+	"0e46f8eb-43aa-4438-9f86-1900c44699a6",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("4f106c1b-2473-4622-9798-816c7eb93613",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Formal Parameter>',
+	'',
+	'',
+	'../../../../../core-architecture/models/core-architecture/architecture/invocable/invocable.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("d3a8a02e-4fc9-49b6-b6b4-484a8575d3ec",
+	"29228760-e9fd-44d4-9c41-0dfcd038b372",
+	'expression_num',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"fa8935b8-d588-4da8-b7b0-034e59a8058c",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("3ce6be88-4d00-4e04-ae07-7483152f1692",
+	"29228760-e9fd-44d4-9c41-0dfcd038b372",
+	'argument',
+	"55087eb6-f47a-4ad0-9d03-015c8f3c3663",
+	0,
+	'',
+	"d3a8a02e-4fc9-49b6-b6b4-484a8575d3ec",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("55087eb6-f47a-4ad0-9d03-015c8f3c3663",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Argument>',
+	'',
+	'',
+	'../../../../../ooamasl/models/ooamasl/ooamasl/expression/expression.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("ef085794-a681-4ffd-b3de-e177ed5b3309",
+	"29228760-e9fd-44d4-9c41-0dfcd038b372",
+	'prev_act_parm',
+	"15f335b9-816f-44ca-811f-2a2daa85f28b",
+	0,
+	'',
+	"3ce6be88-4d00-4e04-ae07-7483152f1692",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("15f335b9-816f-44ca-811f-2a2daa85f28b",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Actual Parameter>',
+	'',
+	'',
+	'../../../../../core-architecture/models/core-architecture/architecture/expression/expression.xtuml');
+INSERT INTO PE_PE
+	VALUES ("29228760-e9fd-44d4-9c41-0dfcd038b372",
+	1,
+	"6b1296bb-978b-44fd-b197-7cada155e1c8",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("117a5174-ab8c-4ddc-a953-7d83d6398ed9",
+	"00000000-0000-0000-0000-000000000000",
+	'transformArguments',
+	'',
+	'invocation = param.invocation;
+first_argument = param.first_argument;
+expr_number = param.expr_number;
+base_num = param.base_num;
+
+// get first formal parameter
+select any parm related by invocation->InvocableObject[R792]->FormalParameter[R429];
+select one prev_parm related by parm->FormalParameter[R404.''follows''];
+while (not_empty prev_parm)
+  parm = prev_parm;
+  select one prev_parm related by parm->FormalParameter[R404.''follows''];
+end while;
+
+// transform each parameter
+num = base_num;
+select any prev_act_parm from instances of ActualParameter where false;
+current_argument = first_argument;
+while (not_empty parm)
+  ::transformArgument(invocation:invocation, parm:parm, expression_num:expr_number + "." + STRING::itoa(i:num), argument:current_argument, prev_act_parm:prev_act_parm);
+  select any prev_act_parm related by invocation->ActualParameter[R793] where (selected.expression_number == expr_number + "." + STRING::itoa(i:num));
+  select one parm related by parm->FormalParameter[R404.''precedes''];
+  num = num + 1;
+  select one current_argument related by current_argument->Argument[R5576.''precedes''];
+end while;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	0);
+INSERT INTO S_SPARM
+	VALUES ("53e7c8f9-f637-4c96-95d2-b815abbf6545",
+	"117a5174-ab8c-4ddc-a953-7d83d6398ed9",
+	'invocation',
+	"887d1375-b0ab-4462-b2be-ec5b8e265583",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("9a08685a-b41d-4db7-b289-4b266cffcc53",
+	"117a5174-ab8c-4ddc-a953-7d83d6398ed9",
+	'first_argument',
+	"55087eb6-f47a-4ad0-9d03-015c8f3c3663",
+	0,
+	'',
+	"53e7c8f9-f637-4c96-95d2-b815abbf6545",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("35743f25-caed-42e1-a551-8d010955c613",
+	"117a5174-ab8c-4ddc-a953-7d83d6398ed9",
+	'expr_number',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"9a08685a-b41d-4db7-b289-4b266cffcc53",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("aec3a95d-a3cc-47a2-8a4a-a62988cf3e87",
+	"117a5174-ab8c-4ddc-a953-7d83d6398ed9",
+	'base_num',
+	"ba5eda7a-def5-0000-0000-000000000002",
+	0,
+	'',
+	"35743f25-caed-42e1-a551-8d010955c613",
+	'');
+INSERT INTO PE_PE
+	VALUES ("117a5174-ab8c-4ddc-a953-7d83d6398ed9",
 	1,
 	"6b1296bb-978b-44fd-b197-7cada155e1c8",
 	"00000000-0000-0000-0000-000000000000",

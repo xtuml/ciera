@@ -194,8 +194,16 @@ select one if_statement related by masl_statement->IfStatement[R5135];
 if (not_empty if_statement)
   ::transformMaslIfStatement(if_statement:if_statement, block:block, prev_smt:prev_smt);
 else
+select one return_statement related by masl_statement->ReturnStatement[R5135];
+if (not_empty return_statement)
+  ::transformMaslReturnStatement(return_statement:return_statement, block:block, prev_smt:prev_smt);
+else
+select one service_call_statement related by masl_statement->ServiceCall[R5135];
+if (not_empty service_call_statement)
+  ::transformServiceCall(service_call:service_call_statement, block:block, prev_smt:prev_smt);
+else
   LOG::LogFailure(message:"statement type not supported: ''" + masl_statement.actions + "''");
-end if; end if; end if;',
+end if; end if; end if; end if; end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -944,6 +952,193 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("272ee62d-8b16-45ee-8571-941543a4a470",
+	1,
+	"c45f2f21-d5ff-4652-999f-d4808df1e2ef",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("7e89c2b4-1232-4c0d-8edc-d7cfe660cce7",
+	"00000000-0000-0000-0000-000000000000",
+	'transformMaslReturnStatement',
+	'',
+	'return_statement = param.return_statement;
+block = param.block;
+prev_smt = param.prev_smt;
+select one masl_statement related by return_statement->Statement2[R5135];
+
+// create a statement
+create object instance smt of Statement;
+relate smt to block across R450;
+if (not_empty prev_smt)
+  smt.statement_number = STRING::itoa(i:STRING::atoi(s:prev_smt.statement_number) + 1);
+  relate smt to prev_smt across R477.''executes after'';
+else
+  smt.statement_number = "1";
+end if;
+smt.actions = masl_statement.actions;
+
+// create return statement
+create object instance ret of ReturnSmt;
+relate ret to smt across R451;
+
+// create return expression
+select one ret_val related by return_statement->Expression2[R5128];
+if (not_empty ret_val)
+  // TODO consider type promotion
+  ::transformMaslExpression(masl_expression:ret_val, expr_number:"1", smt:smt);
+  select any ret_expr related by smt->Expression[R775] where (selected.expression_number == "1");
+  relate ret_expr to ret across R473;
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	0);
+INSERT INTO S_SPARM
+	VALUES ("e0954958-58a2-4285-8182-efaf113e6085",
+	"7e89c2b4-1232-4c0d-8edc-d7cfe660cce7",
+	'return_statement',
+	"4cef1faa-1f54-41e7-8b0b-b4ad4dcc3aa1",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("4cef1faa-1f54-41e7-8b0b-b4ad4dcc3aa1",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<ReturnStatement>',
+	'',
+	'',
+	'../../../../../ooamasl/models/ooamasl/ooamasl/statement/statement.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("896c2b70-81dd-4463-8a9d-e6370ef61bfb",
+	"7e89c2b4-1232-4c0d-8edc-d7cfe660cce7",
+	'block',
+	"60d4da0e-4cbe-4620-8c16-4e1dba1c6b8d",
+	0,
+	'',
+	"e0954958-58a2-4285-8182-efaf113e6085",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("1eb0de69-2359-45f4-b388-7365528ce748",
+	"7e89c2b4-1232-4c0d-8edc-d7cfe660cce7",
+	'prev_smt',
+	"b586ec7e-41fe-4d50-9cf3-27b173e9848a",
+	0,
+	'',
+	"896c2b70-81dd-4463-8a9d-e6370ef61bfb",
+	'');
+INSERT INTO PE_PE
+	VALUES ("7e89c2b4-1232-4c0d-8edc-d7cfe660cce7",
+	1,
+	"c45f2f21-d5ff-4652-999f-d4808df1e2ef",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("e30915e6-a856-4172-984e-cd677fcbdfc2",
+	"00000000-0000-0000-0000-000000000000",
+	'transformServiceCall',
+	'',
+	'service_call = param.service_call;
+block = param.block;
+prev_smt = param.prev_smt;
+select one masl_statement related by service_call->Statement2[R5135];
+
+// create a statement
+create object instance smt of Statement;
+relate smt to block across R450;
+if (not_empty prev_smt)
+  smt.statement_number = STRING::itoa(i:STRING::atoi(s:prev_smt.statement_number) + 1);
+  relate smt to prev_smt across R477.''executes after'';
+else
+  smt.statement_number = "1";
+end if;
+smt.actions = masl_statement.actions;
+
+select one domain_service_invocation related by service_call->ServiceInvocation[R5161]->DomainServiceInvocation[R5610];
+if (not_empty domain_service_invocation)
+  select one service related by domain_service_invocation->DomainService[R5611]->Service[R5203];
+	containing_comp_def = ::getCompDefForStatement(smt:smt);
+	select any invocable related by containing_comp_def->Function[R405]->InvocableObject[R427] where (selected.name == "" + service.name);
+	if (not_empty invocable)
+		// create expression as statement
+		create object instance eas of ExpressionAsStatement;
+		relate eas to smt across R451;
+		// create main expression
+		create object instance expr of Expression;
+		relate expr to smt across R775;
+		expr.expression_number = "1";
+		void_type = ::TypeReference_getBuiltinTypeReference(name:"void");
+		relate void_type to expr across R795;
+		// create invocation
+		create object instance invoc of Invocation;
+		relate invoc to expr across R776;
+		relate invoc to invocable across R792;
+		// relate expression to expression as statement
+		relate eas to expr across R476;
+		// create named reference expression
+		create object instance expr2 of Expression;
+		relate expr2 to smt across R775;
+		expr2.expression_number = "1.1";
+		void_type = ::TypeReference_getBuiltinTypeReference(name:"void");
+		relate void_type to expr2 across R795;
+		// create named reference
+		create object instance named_ref of NamedReference;
+		relate named_ref to expr2 across R776;
+		relate expr2 to invoc across R798;
+		named_ref.name = "context()";
+		// transform actual parameters
+		select one first_argument related by service_call->Argument[R5162];
+		if (not_empty first_argument)
+		  ::transformArguments(invocation:invoc, first_argument:first_argument, expr_number:expr.expression_number, base_num:2);
+		end if;
+	else
+		// TODO bad
+	end if;
+else
+  // TODO
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	3);
+INSERT INTO S_SPARM
+	VALUES ("fe55a1a8-367f-4850-bca2-5f104db30a50",
+	"e30915e6-a856-4172-984e-cd677fcbdfc2",
+	'service_call',
+	"9e1e8ee5-e6f9-48b8-a8f3-324c684cde30",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("9e1e8ee5-e6f9-48b8-a8f3-324c684cde30",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<ServiceCall>',
+	'',
+	'',
+	'../../../../../ooamasl/models/ooamasl/ooamasl/statement/statement.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("e165cafd-1144-40d0-954d-3a962c9b62a4",
+	"e30915e6-a856-4172-984e-cd677fcbdfc2",
+	'block',
+	"60d4da0e-4cbe-4620-8c16-4e1dba1c6b8d",
+	0,
+	'',
+	"fe55a1a8-367f-4850-bca2-5f104db30a50",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("a8c1a79c-c1c0-48b9-8d56-9f0949e82423",
+	"e30915e6-a856-4172-984e-cd677fcbdfc2",
+	'prev_smt',
+	"b586ec7e-41fe-4d50-9cf3-27b173e9848a",
+	0,
+	'',
+	"e165cafd-1144-40d0-954d-3a962c9b62a4",
+	'');
+INSERT INTO PE_PE
+	VALUES ("e30915e6-a856-4172-984e-cd677fcbdfc2",
 	1,
 	"c45f2f21-d5ff-4652-999f-d4808df1e2ef",
 	"00000000-0000-0000-0000-000000000000",
