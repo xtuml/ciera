@@ -48,15 +48,14 @@ CMD::read_command_line();
 
 ::configure_features();
 
-// set project root
-select any universal_markable from instances of Markable where selected.name == "*";
-select any project_root_feature related by universal_markable->Feature[R2822] where selected.name == "ProjectRoot";
-create object instance project_root of Mark;
-project_root.path = "*";
-project_root.value = CMD::get_value(name:"cwd");
-relate project_root_feature to universal_markable across R2821 using project_root;
+// TODO temporarily automatically enable action statement comments here
+::create_mark(markable:"*", feature:"IncludeStatementComments", path:"*", value:"true");
 
-T::set_output_directory(dir:project_root.value + "/" + CMD::get_value(name:"gendir"));
+// set project root
+project_root = CMD::get_value(name:"cwd");
+::create_mark(markable:"*", feature:"ProjectRoot", path:"*", value:project_root);
+
+T::set_output_directory(dir:project_root + "/" + CMD::get_value(name:"gendir"));
 
 // translate
 ::translate();
@@ -174,34 +173,27 @@ INSERT INTO S_SYNC
 	'configure_features',
 	'',
 	'// create markable element types
-create object instance universal_markable of Markable;
-universal_markable.name = "*";
-
-create object instance object_markable of Markable;
-object_markable.name = "Object";
-
-create object instance domain_service_markable of Markable;
-domain_service_markable.name = "DomainService";
+universal_markable = Markable::populate(name: "*");
+object_markable = Markable::populate(name: "Object");
+domain_service_markable = Markable::populate(name: "DomainService");
 
 // create available features
-create object instance init_function of Feature;
-init_function.name = "startup";
+init_function = Feature::populate(name: "startup");
 relate init_function to domain_service_markable across R2822;
 
-create object instance key_letters of Feature;
-key_letters.name = "key_letter";
+key_letters = Feature::populate(name: "key_letter");
 relate key_letters to object_markable across R2822;
 
-create object instance app_name of Feature;
-app_name.name = "ApplicationName";
+statement_comments = Feature::populate(name: "IncludeStatementComments");
+relate statement_comments to universal_markable across R2822;
+
+app_name = Feature::populate(name: "ApplicationName");
 relate app_name to universal_markable across R2822;
 
-create object instance app_package of Feature;
-app_package.name = "ApplicationPackage";
+app_package = Feature::populate(name: "ApplicationPackage");
 relate app_package to universal_markable across R2822;
 
-create object instance project_root of Feature;
-project_root.name = "ProjectRoot";
+project_root = Feature::populate(name: "ProjectRoot");
 relate project_root to universal_markable across R2822;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
