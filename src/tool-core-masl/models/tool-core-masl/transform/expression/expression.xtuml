@@ -78,8 +78,12 @@ select one find_expression related by masl_expression->FindExpression[R5517];
 if (not_empty find_expression)
   ::transformFindExpression(find_expression:find_expression, smt:smt, expr_number:expr_number);
 else
+select one navigation_expression related by masl_expression->NavigationExpression[R5517];
+if (not_empty navigation_expression)
+  ::transformNavigationExpression(navigation_expression:navigation_expression, smt:smt, expr_number:expr_number);
+else
   LOG::LogInfo( message:"expression type not yet supported" );
-end if; end if; end if; end if; end if; end if; end if; end if; end if;',
+end if; end if; end if; end if; end if; end if; end if; end if; end if; end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -1252,6 +1256,113 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("a69974b3-9927-4e0d-90f4-cc597035e9ca",
+	1,
+	"6b1296bb-978b-44fd-b197-7cada155e1c8",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("1f49e223-377a-4f56-a00b-d6aa7bac6e06",
+	"00000000-0000-0000-0000-000000000000",
+	'transformNavigationExpression',
+	'',
+	'navigation_expression = param.navigation_expression;
+smt = param.smt;
+expr_number = param.expr_number;
+
+select one rel_spec related by navigation_expression->RelationshipSpecification[R5531];
+select one lhs related by navigation_expression->Expression2[R5532];
+select one lhs_collection related by navigation_expression->Expression2[R5517]->BasicType[R5570]->CollectionType[R6205];
+
+// create expression
+create object instance expr of Expression;
+relate expr to smt across R775;
+expr.expression_number = expr_number;
+
+// link type
+// if the rel spec is a "many" association or the lhs is a collection type,
+// assure that the type of the expression is an instance set
+if (rel_spec.multiplicity == Multiplicity2::many or not_empty lhs_collection)
+  select one obj_decl related by lhs_collection->BasicType[R6208]->InstanceType[R6205]->ObjectDeclaration[R6220];
+  select one set_type related by obj_decl->Class[R8300]->ClassSet[R406]->Type[R407];
+  type = ::TypeReference_getInstanceWithDimString(type:set_type, dims:"");
+  relate type to expr across R795;
+else
+  select one obj_decl related by navigation_expression->Expression2[R5517]->BasicType[R5570]->InstanceType[R6205]->ObjectDeclaration[R6220];
+  select one inst_type related by obj_decl->Class[R8300]->Type[R407];
+  type = ::TypeReference_getInstanceWithDimString(type:inst_type, dims:"");
+  relate type to expr across R795;
+end if;
+
+// create select expression
+create object instance sel of SelectExpr;
+relate sel to expr across R776;
+create object instance sel_rel of SelectRelated;
+relate sel_rel to sel across R789;
+
+// transform the root value
+::transformMaslExpression(masl_expression:lhs, expr_number:expr_number + ".1", smt:smt);
+select any lhs_expr related by smt->Expression[R775] where (selected.expression_number == expr_number + ".1");
+relate lhs_expr to sel_rel across R791;
+
+// get the selector
+select one rel related by rel_spec->RelationshipDeclaration[R6015];
+select one base_class related by rel_spec->ObjectDeclaration[R6014]->Class[R8300];
+select one target_class related by rel_spec->ObjectDeclaration[R6011]->Class[R8300];
+selector_name = "" + rel.name + "_";
+if (rel_spec.role != "")
+  selector_name = selector_name + T::sub(format:"_", s:rel_spec.role) + "_";
+end if;
+selector_name = selector_name + target_class.name;
+select any selector related by base_class->InstanceSelector[R442]->Selector[R445] where (selected.name == selector_name);
+if (empty selector)
+  select any selector related by base_class->ClassSet[R406]->SetSelector[R444]->Selector[R445] where (selected.name == selector_name);
+end if;
+if (not_empty selector)
+  relate selector to sel_rel across R797;
+else
+  // TODO bad
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	4);
+INSERT INTO S_SPARM
+	VALUES ("d23badaf-e4ad-495f-85c4-76988eec7a4e",
+	"1f49e223-377a-4f56-a00b-d6aa7bac6e06",
+	'navigation_expression',
+	"d9337886-2fea-4bb9-8378-d849e35c32a9",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("d9337886-2fea-4bb9-8378-d849e35c32a9",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<NavigationExpression>',
+	'',
+	'',
+	'../../../../../ooamasl/models/ooamasl/ooamasl/expression/expression.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("4d5347e5-73ba-43f1-ae7f-8edff110c988",
+	"1f49e223-377a-4f56-a00b-d6aa7bac6e06",
+	'smt',
+	"b586ec7e-41fe-4d50-9cf3-27b173e9848a",
+	0,
+	'',
+	"d23badaf-e4ad-495f-85c4-76988eec7a4e",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("13131329-2d71-4482-91d8-ba2878a1d197",
+	"1f49e223-377a-4f56-a00b-d6aa7bac6e06",
+	'expr_number',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"4d5347e5-73ba-43f1-ae7f-8edff110c988",
+	'');
+INSERT INTO PE_PE
+	VALUES ("1f49e223-377a-4f56-a00b-d6aa7bac6e06",
 	1,
 	"6b1296bb-978b-44fd-b197-7cada155e1c8",
 	"00000000-0000-0000-0000-000000000000",
