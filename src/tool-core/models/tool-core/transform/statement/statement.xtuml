@@ -2895,58 +2895,6 @@ INSERT INTO PE_PE
 	"00000000-0000-0000-0000-000000000000",
 	1);
 INSERT INTO S_SYNC
-	VALUES ("ff9fef83-850a-4abe-82ef-6d5b83f505bf",
-	"00000000-0000-0000-0000-000000000000",
-	'getCompDefForStatement',
-	'',
-	'smt = param.smt;
-select one invocable related by smt->CodeBlock[R450]->InvocableObject[R4000];
-select one comp_def related by invocable->Function[R427]->ComponentDefinition[R405];
-if ( empty comp_def )
-  select one comp_def related by invocable->PortMessage[R427]->Port[R420]->ComponentDefinition[R417];
-  if ( empty comp_def )
-    select one comp_def related by invocable->Operation[R427]->Class[R416]->ComponentDefinition[R408];
-    if ( empty comp_def )
-      select one comp_def related by invocable->AttributeDerivation[R427]->AttributeAccessor[R441]->Attribute[R4510]->Class[R410]->ComponentDefinition[R408];
-      if ( empty comp_def )
-        select one comp_def related by invocable->State[R427]->StateMachine[R4751]->Class[R4750]->ComponentDefinition[R408];
-        if ( empty comp_def )
-          select one comp_def related by invocable->Transition[R427]->State[R4757]->StateMachine[R4751]->Class[R4750]->ComponentDefinition[R408];
-          // TODO utility will return empty
-        end if;
-      end if;
-    end if;
-  end if;
-end if;
-return comp_def;',
-	"109e90cb-1d66-46ee-88db-a568044879d0",
-	1,
-	'',
-	0,
-	0);
-INSERT INTO S_SPARM
-	VALUES ("e54da777-e46e-48c6-b14e-aa50240d50f4",
-	"ff9fef83-850a-4abe-82ef-6d5b83f505bf",
-	'smt',
-	"b586ec7e-41fe-4d50-9cf3-27b173e9848a",
-	0,
-	'',
-	"00000000-0000-0000-0000-000000000000",
-	'');
-INSERT INTO PE_PE
-	VALUES ("ff9fef83-850a-4abe-82ef-6d5b83f505bf",
-	1,
-	"1aa08c2b-b96c-4c66-8c25-c079950eef10",
-	"00000000-0000-0000-0000-000000000000",
-	1);
-INSERT INTO S_DT_PROXY
-	VALUES ("109e90cb-1d66-46ee-88db-a568044879d0",
-	"00000000-0000-0000-0000-000000000000",
-	'inst_ref<Component Definition>',
-	'',
-	'',
-	'../../../../../core-architecture/models/core-architecture/architecture/component/component.xtuml');
-INSERT INTO S_SYNC
 	VALUES ("1086e27e-2bff-450b-b9e1-903ffcc7f983",
 	"00000000-0000-0000-0000-000000000000",
 	'transformActualParameter',
@@ -3970,68 +3918,6 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("66cd847e-1baf-4368-98bd-abc7fffced6f",
-	1,
-	"1aa08c2b-b96c-4c66-8c25-c079950eef10",
-	"00000000-0000-0000-0000-000000000000",
-	1);
-INSERT INTO S_SYNC
-	VALUES ("9887c09e-f8cb-4d54-9f3d-44f6d220145c",
-	"00000000-0000-0000-0000-000000000000",
-	'resloveVariableFinalizations',
-	'',
-	'invocable = param.invocable;
-
-select many affected_smts from instances of Statement where false;
-
-select many where_clauses from instances of WhereExpr where ( selected.parent_name == invocable.parent_name and
-                                                              selected.parent_package == invocable.parent_package and
-                                                              selected.body_name == invocable.name );
-for each where_clause in where_clauses
-  select one where_expr related by where_clause->Expression[R796];
-  select many var_refs from instances of VariableReference where ( selected.parent_name == invocable.parent_name and
-                                                                   selected.parent_package == invocable.parent_package and
-                                                                   selected.body_name == invocable.name and
-                                                                   selected.block_number == where_expr.block_number and
-                                                                   selected.statement_number == where_expr.statement_number and
-                                                                   0 == STRING::indexof( haystack:selected.expression_number, needle:where_expr.expression_number ) );
-  for each var_ref in var_refs
-    select many var_assignments related by var_ref->Variable[R782]->VariableReference[R782]->Expression[R776]->BinaryOperation[R779] where ( selected.operator == "=" );
-    select one for_smt related by var_ref->Variable[R782]->ForSmt[R459];
-    if ( cardinality var_assignments > 1 or not_empty for_smt ) // the variable needs to be finalized because it is assigned later
-      select one smt related by var_ref->Expression[R776]->Statement[R775];
-      select one var related by var_ref->Variable[R782];
-      select any finalization related by smt->Finalization[R485] where ( selected.var_block_number == var.block_number and selected.var_name == var.name );
-      if ( empty finalization )
-        create object instance finalization of Finalization;
-        relate smt to var across R485 using finalization;
-        affected_smts = affected_smts + smt;
-      end if;
-    end if;
-  end for;
-end for;
-
-for each smt in affected_smts
-  select many finalizations related by smt->Finalization[R485];
-  for each finalization in finalizations
-    finalization.render();
-  end for;
-end for;',
-	"ba5eda7a-def5-0000-0000-000000000000",
-	1,
-	'',
-	0,
-	0);
-INSERT INTO S_SPARM
-	VALUES ("35e31fca-5f9c-4c6c-82d5-468f8f4ef569",
-	"9887c09e-f8cb-4d54-9f3d-44f6d220145c",
-	'invocable',
-	"3ab44839-4426-4754-b12a-0a00ce4dae1a",
-	0,
-	'',
-	"00000000-0000-0000-0000-000000000000",
-	'');
-INSERT INTO PE_PE
-	VALUES ("9887c09e-f8cb-4d54-9f3d-44f6d220145c",
 	1,
 	"1aa08c2b-b96c-4c66-8c25-c079950eef10",
 	"00000000-0000-0000-0000-000000000000",
