@@ -48,20 +48,16 @@ CMD::read_command_line();
 // set up available marks
 ::configure_features();
 
-// set project root and version
-select any universal_markable from instances of Markable where selected.name == "*";
-select any project_root_feature related by universal_markable->Feature[R2822] where selected.name == "ProjectRoot";
-create object instance project_root of Mark;
-project_root.path = "*";
-project_root.value = CMD::get_value(name:"cwd");
-relate project_root_feature to universal_markable across R2821 using project_root;
+// set project root
+project_root = CMD::get_value(name:"cwd");
+project_root_mark = Mark::populate(markable_name:"*", feature_name:"ProjectRoot", path:"*", value:project_root);
 
-T::set_output_directory(dir:project_root.value + "/" + CMD::get_value(name:"gendir"));
+T::set_output_directory(dir:project_root + "/" + CMD::get_value(name:"gendir"));
 
 // load up instances
 input_file = CMD::get_value( name:"i" );
 if ( "" != input_file )
-  SQL::load_file( file:project_root.value + "/" + input_file );
+  SQL::load_file( file:project_root + "/" + input_file );
 
   // preprocess
   ::load_marks();
@@ -72,7 +68,7 @@ if ( "" != input_file )
   // dump instances
   output_file = CMD::get_value( name:"o" );
   if ( "" != output_file )
-    SQL::serialize_file( file:project_root.value + "/" + output_file );
+    SQL::serialize_file( file:project_root + "/" + output_file );
   end if;
 else
   LOG::LogInfo( message:"No input file." );
@@ -156,45 +152,25 @@ INSERT INTO S_SYNC
 	'configure_features',
 	'',
 	'// create markable element types
-create object instance universal_markable of Markable;
-universal_markable.name = "*";
-
-create object instance class_markable of Markable;
-class_markable.name = "Model Class";
-
-create object instance attr_markable of Markable;
-attr_markable.name = "Attribute";
-
-create object instance pkg_markable of Markable;
-pkg_markable.name = "Package";
-
-create object instance comp_markable of Markable;
-comp_markable.name = "Component";
+universal_markable = Markable::populate(name:"*");
+attr_markable = Markable::populate(name:"Attribute");
+comp_markable = Markable::populate(name:"Component");
+class_markable = Markable::populate(name:"Model Class");
+pkg_markable = Markable::populate(name:"Package");
 
 // create available features
-create object instance no_inst_ids of Feature;
-no_inst_ids.name = "NoInstanceIdsForLoad";
+no_inst_ids = Feature::populate(name:"NoInstanceIdsForLoad");
 relate no_inst_ids to comp_markable across R2822;
-
-create object instance non_persistent_ids of Feature;
-non_persistent_ids.name = "NonPersistentInstanceIds";
+non_persistent_ids = Feature::populate(name:"NonPersistentInstanceIds");
 relate non_persistent_ids to universal_markable across R2822;
-
-create object instance no_serialize of Feature;
-no_serialize.name = "DoNotSerialize";
+no_serialize = Feature::populate(name:"DoNotSerialize");
 relate no_serialize to pkg_markable across R2822;
-
-create object instance non_persistent of Feature;
-non_persistent.name = "NonPersistent";
+non_persistent = Feature::populate(name:"NonPersistent");
 relate non_persistent to attr_markable across R2822;
 relate non_persistent to class_markable across R2822;
-
-create object instance project_root of Feature;
-project_root.name = "ProjectRoot";
+project_root = Feature::populate(name:"ProjectRoot");
 relate project_root to universal_markable across R2822;
-
-create object instance root_package of Feature;
-root_package.name = "RootPackage";
+root_package = Feature::populate(name:"RootPackage");
 relate root_package to universal_markable across R2822;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
