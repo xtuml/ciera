@@ -3267,8 +3267,16 @@ if ( empty utility )
 	// create the utility object
 	create object instance utility of Utility;
 	utility.name = util_name;
-	utility.package = ::pathToPackage( path:param.path );
+	utility.package =  ::pathToPackage( path:param.path );
 	LOG::LogInfo( message:"AM ::xformUtilty -created utility: "  + util_name + " for comp: " + containing_comp_def.name );
+	LOG::LogInfo( message:"AM ::xformUtilty -utility package: "  + utility.package );
+
+	// transform each utility function
+	select many s_brgs related by s_ee->S_BRG[R19];
+	for each s_brg in s_brgs
+		LOG::LogInfo( message:"AM ::xformUtility - xforming util func: " + s_brg.Name + " comp: " + containing_comp_def.name );
+	  ::transformUtilityFunction( s_brg:s_brg, utility:utility, containing_comp_def:containing_comp_def );
+	end for;
 end if;
 
 if ( param.is_definition )
@@ -3279,7 +3287,7 @@ if ( param.is_definition )
 	  create object instance utility_in_comp of UtilityInComponent;
 	  relate utility to containing_comp_def across R4558 using utility_in_comp;
 	
-		// create the file for this component''s use of the utility
+		// create the file for this component''s implementation of the utility
 		create object instance file of File;
 		file.name = utility.name;
 		file.path = param.path;
@@ -3297,19 +3305,24 @@ if ( param.is_definition )
 	  ::addFileToImports( file:component_file, file_to_import:file, type:ImportType::IMPL );
 	  ::addStringToImports( file:component_file, s: ::pathToPackage( path:file.path ) + ".impl." + file.name + "Impl", type:ImportType::IMPL );
 
-		// transform each utility function for this component context
-		select many s_brgs related by s_ee->S_BRG[R19];
-		for each s_brg in s_brgs
-			LOG::LogInfo( message:"AM ::xformUtility - xforming util func: " + s_brg.Name + " comp: " + containing_comp_def.name );
-		  ::transformUtilityFunction( s_brg:s_brg, utility:utility, containing_comp_def:containing_comp_def );
-		end for;
 	end if;
 else
-	relate utility to containing_comp_def across R4560;
+	found = false;
+	select many utilities related by containing_comp_def->Utility[R4560];
+	for each util in utilities
+		if ( util == utility )
+			found = true;
+			break;
+		end if;
+	end for;
+	if ( not found )
+		LOG::LogInfo( message:"AM ::xformUtility - R4560 ref " + utility.name + " to comp: " + containing_comp_def.name );
+		relate utility to containing_comp_def across R4560;
+	  select one component_file related by containing_comp_def->File[R401];
+	  ::addStringToImports( file:component_file, s:utility.package + "." + utility.name, type:ImportType::IMPL );
+	  ::addStringToImports( file:component_file, s:utility.package + ".impl." + utility.name + "Impl", type:ImportType::IMPL );
+	end if;
 end if;
-
-	
-
 ',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -3389,13 +3402,12 @@ if ( empty util_func )
 	// create utility function object
 	create object instance util_func of UtilityFunction;
 	relate util_func to utility across R4559;
-	relate s_brg to util_func across R4570;
 	
 	// create invocable
 	create object instance invocable of InvocableObject;
 	invocable.name = s_brg.Name;
 	invocable.parent_name = utility.name;
-	invocable.parent_package = param.containing_comp_def.package;
+	invocable.parent_package = utility.package;
 	relate util_func to invocable across R427;
 	invocable.oal = s_brg.Action_Semantics_internal;
 	
@@ -3425,6 +3437,8 @@ if ( empty util_func )
 	  ::linkParameter( invocable:invocable, parameter:parm );
 	  select one s_bparm related by s_bparm->S_BPARM[R55.''precedes''];
 	end while;
+  relate s_brg to util_func across R4570;
+
   // relate the body
   select one act_act related by s_brg->ACT_BRB[R697]->ACT_ACT[R698];
   if ( not_empty act_act )
@@ -3432,17 +3446,14 @@ if ( empty util_func )
   end if;
 end if;	
 
-if ( not_empty containing_comp_def )  // @TODO AM - I don''t belive this can be empty
+if ( not_empty containing_comp_def )  // @TODO AM - I don''t believe this can be empty
   // create an InvocableInComponent for the operation
   select one invocable related by util_func->InvocableObject[R427];
   LOG::LogInfo( message:"AM ::xform util func - invInComp populate " + util_func.name + " " + containing_comp_def.name );
   InvocableInComponent::populate( invocable:invocable, component:containing_comp_def );
 else
-  LOG::LogInfo( message:"AM ::xform util func !! no invocableInComp: " + util_func.name );
+  LOG::LogInfo( message:"AM ::xform util func !! no containing component: " + util_func.name );
 end if;
-
-
-
 ',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,

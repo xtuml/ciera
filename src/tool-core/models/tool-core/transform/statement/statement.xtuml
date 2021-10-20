@@ -58,7 +58,8 @@ smt.oal = ::getOalStatement( body:body.oal, line_num:act_smt.LineNumber );
 select one s_ee related by act_brg->S_BRG[R674]->S_EE[R19];
 select one s_ee_pkg related by s_ee->PE_PE[R8001]->EP_PKG[R8000];
 containing_comp_def = ::getCompDefForStatement( smt:smt );
-LOG::LogInfo( message:"AM ::xform BRG invoc -> utility - ee path: " + ::ep_pkgToPath( ep_pkg:s_ee_pkg ) );
+
+LOG::LogInfo( message:"AM ::xform BRG invoc ee path, comp: " + ::ep_pkgToPath( ep_pkg:s_ee_pkg ) + " " + containing_comp_def.name );
 ::transformUtility( s_ee:s_ee, ep_pkg:s_ee_pkg, containing_comp_def:containing_comp_def, is_definition:false, path: ::ep_pkgToPath( ep_pkg:s_ee_pkg ) );
 
 select one util_func related by act_brg->S_BRG[R674]->UtilityFunction[R4570];
@@ -96,6 +97,7 @@ if ( not_empty invocable )
   ::transformActualParameters( invocation:invoc, v_pars:v_pars, expr_number:"1", base_num:2 );
 else
   // TODO bad
+  LOG::LogInfo( message:"AM ::xform BRG invoc - no invocable found for util func " + util_func.name );
 end if;
 ',
 	"ba5eda7a-def5-0000-0000-000000000000",
