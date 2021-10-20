@@ -80,7 +80,7 @@ INSERT INTO S_BRG
 INSERT INTO S_BPARM
 	VALUES ("bce9cf58-e16f-49c5-9409-4d45b25d9d22",
 	"0131a688-16c5-4beb-8497-10b1449adcd6",
-	'root_folder',
+	'template_path',
 	"ba5eda7a-def5-0000-0000-000000000004",
 	0,
 	'',
@@ -129,25 +129,23 @@ CMD::register_value( name:"cwd", value_name:"root_dir", usage:"base working dire
 CMD::register_value( name:"i", value_name:"input_file", usage:"input file", default_value:"", required:false );
 CMD::register_value( name:"o", value_name:"output_file", usage:"output file", default_value:"", required:false );
 CMD::register_value( name:"gendir", value_name:"gen_dir", usage:"generated output directory", default_value:".", required:false );
+CMD::register_value( name:"template-path", value_name:"template_path", usage:"colon separated list of template root paths", default_value:"", required:false );
 CMD::read_command_line();
 
 // set up available marks
 ::configure_features();
 
-// set project root and version
-select any universal_markable from instances of Markable where selected.name == "*";
-select any project_root_feature related by universal_markable->Feature[R2822] where selected.name == "ProjectRoot";
-create object instance project_root of Mark;
-project_root.path = "*";
-project_root.value = CMD::get_value(name:"cwd");
-relate project_root_feature to universal_markable across R2821 using project_root;
+// set project root
+project_root = CMD::get_value(name:"cwd");
+project_root_mark = Mark::populate(markable_name:"*", feature_name:"ProjectRoot", path:"*", value:project_root);
 
-T::set_output_directory(dir:project_root.value + "/" + CMD::get_value(name:"gendir"));
+// set output directory
+T::set_output_directory(dir:project_root + "/" + CMD::get_value(name:"gendir"));
 
 // load up instances
 input_file = CMD::get_value( name:"i" );
 if ( "" != input_file )
-  SQL::load_file( file:project_root.value + "/" + input_file );
+  SQL::load_file( file:project_root + "/" + input_file );
 
   // preprocess
   ::load_marks();
@@ -158,7 +156,7 @@ if ( "" != input_file )
   // dump instances
   output_file = CMD::get_value( name:"o" );
   if ( "" != output_file )
-    SQL::serialize_file( file:project_root.value + "/" + output_file );
+    SQL::serialize_file( file:project_root + "/" + output_file );
   end if;
 else
   LOG::LogInfo( message:"No input file." );
@@ -188,18 +186,7 @@ LOG::LogInfo( message:"Translating..." );
 
 // translate templates package
 LOG::LogInfo( message:"  Processing RSL templates..." );
-select any template_dir_mark from instances of Mark where ( selected.markable_name == "*"
-                                                            and selected.path == "*"
-                                                            and selected.feature_name == "TemplateDir" );
-select any project_root_mark from instances of Mark where ( selected.markable_name == "*"
-                                                            and selected.path == "*"
-                                                            and selected.feature_name == "ProjectRoot" );
-
-if ( not_empty template_dir_mark )
-  TU::process_templates(root_folder:project_root_mark.value + "/" + template_dir_mark.value);
-else
-  TU::process_templates(root_folder:"");
-end if;
+TU::process_templates(template_path:CMD::get_value(name:"template-path"));
 LOG::LogInfo( message:"  done." );
 LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
 
@@ -264,22 +251,9 @@ INSERT INTO S_SYNC
 	"00000000-0000-0000-0000-000000000000",
 	'configure_features',
 	'',
-	'// create markable element types
-create object instance universal_markable of Markable;
-universal_markable.name = "*";
-
-// create available features
-create object instance template_dir of Feature;
-template_dir.name = "TemplateDir";
-relate template_dir to universal_markable across R2822;
-
-create object instance project_root of Feature;
-project_root.name = "ProjectRoot";
-relate project_root to universal_markable across R2822;
-
-create object instance root_package of Feature;
-root_package.name = "RootPackage";
-relate root_package to universal_markable across R2822;',
+	'universal_markable = Markable::populate(name:"*");
+project_root_feature = Feature::populate(name:"ProjectRoot");
+relate project_root_feature to universal_markable across R2822;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',

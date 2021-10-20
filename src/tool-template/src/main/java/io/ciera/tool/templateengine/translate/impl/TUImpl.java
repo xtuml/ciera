@@ -2,10 +2,8 @@ package io.ciera.tool.templateengine.translate.impl;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.JarURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -15,6 +13,9 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+
 import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -44,36 +45,42 @@ public class TUImpl<C extends IComponent<C>> extends Utility<C> implements TU {
     }
 
     @Override
-    public void process_templates(final String p_root_folder) {
+    public void process_templates(final String p_template_path) {
         List<FileSystem> virtualFileSystems = new ArrayList<>();
         List<Path> templatePaths = new ArrayList<>();
 
-        // Build a list of root paths
-        if (p_root_folder != null && !p_root_folder.isEmpty()) {
-            // Add the marked root folder relative path
-            templatePaths.add(Paths.get(p_root_folder));
-
-            // Look for templates in the classpath
-            try {
-                Enumeration<URL> templateDirectories = this.getClass().getClassLoader().getResources("templates");
-                while (templateDirectories.hasMoreElements()) {
-                    URL templateDirectory = templateDirectories.nextElement();
-                    switch (templateDirectory.getProtocol()) {
-                    case "jar":
-                        JarURLConnection jarConnection = (JarURLConnection) templateDirectory.openConnection();
-                        FileSystem fs = FileSystems.newFileSystem(new URI("jar:" + jarConnection.getJarFileURL()),
-                                new HashMap<>());
-                        virtualFileSystems.add(fs);
-                        templatePaths.add(fs.getPath(jarConnection.getEntryName()));
-                        break;
-                    case "file":
-                        templatePaths.add(Paths.get(templateDirectory.toURI()));
-                        break;
+        // Build a list of template root paths
+        if (p_template_path != null && !p_template_path.isEmpty()) {
+            for (String pathItem : p_template_path.split(":")) {
+                Path pathItemPath = Paths.get(pathItem);
+                ZipFile zipfile = null;
+                FileSystem fs = null;
+                try {
+                    zipfile = new ZipFile(pathItemPath.toFile());
+                } catch (IOException e) {
+                    /* do nothing */ }
+                if (zipfile != null) { // look for templates in zip file; assume that they are in a /templates folder
+                    try {
+                        Enumeration<? extends ZipEntry> entries = zipfile.entries();
+                        while (entries.hasMoreElements()) {
+                            ZipEntry entry = entries.nextElement();
+                            if (entry.getName().endsWith("templates/")) {
+                                if (fs == null) {
+                                    fs = FileSystems.newFileSystem(new URI("jar:file:" + pathItemPath),
+                                            new HashMap<>());
+                                    virtualFileSystems.add(fs);
+                                }
+                                templatePaths.add(fs.getPath(entry.getName()));
+                                break;
+                            }
+                        }
+                    } catch (IOException | URISyntaxException e) {
+                        context().getRunContext().getLog()
+                                .warn("Failed to get templates from classpath item " + pathItemPath + ": " + e);
                     }
+                } else { // look for templates in a local directory
+                    templatePaths.add(pathItemPath);
                 }
-
-            } catch (IOException | URISyntaxException e) {
-                context().getRunContext().getLog().warn("Failed to get templates from classpath: " + e);
             }
         }
 
@@ -95,7 +102,7 @@ public class TUImpl<C extends IComponent<C>> extends Utility<C> implements TU {
             }
         }
 
-        // close the virtual file systems for processing JARs
+        // close the virtual file systems for processing ZIP archives
         for (FileSystem fs : virtualFileSystems) {
             try {
                 fs.close();
