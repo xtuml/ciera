@@ -3279,9 +3279,9 @@ if ( empty utility )
 	end for;
 end if;
 
-if ( param.is_definition )
-  utility_in_comp = UtilityInComponent::get( utility:utility, component: containing_comp_def );
-  if ( empty utility_in_comp )
+utility_in_comp = UtilityInComponent::get( utility:utility, component: containing_comp_def );
+if ( empty utility_in_comp )
+  if ( param.is_definition )
 	
 	  // relate the containing component
 	  create object instance utility_in_comp of UtilityInComponent;
@@ -3305,22 +3305,23 @@ if ( param.is_definition )
 	  ::addFileToImports( file:component_file, file_to_import:file, type:ImportType::IMPL );
 	  ::addStringToImports( file:component_file, s: ::pathToPackage( path:file.path ) + ".impl." + file.name + "Impl", type:ImportType::IMPL );
 
-	end if;
-else
-	found = false;
-	select many utilities related by containing_comp_def->Utility[R4560];
-	for each util in utilities
-		if ( util == utility )
-			found = true;
-			break;
+	else
+	  // just a value/invocation reference; ensure a link for component initiaization
+		found = false;
+		select many utilities related by containing_comp_def->Utility[R4560];
+		for each util in utilities
+			if ( util == utility )
+				found = true;
+				break;
+			end if;
+		end for;
+		if ( not found )
+			LOG::LogInfo( message:"AM ::xformUtility - R4560 ref " + utility.name + " to comp: " + containing_comp_def.name );
+			relate utility to containing_comp_def across R4560;
+		  select one component_file related by containing_comp_def->File[R401];
+		  ::addStringToImports( file:component_file, s:utility.package + "." + utility.name, type:ImportType::IMPL );
+		  ::addStringToImports( file:component_file, s:utility.package + ".impl." + utility.name + "Impl", type:ImportType::IMPL );
 		end if;
-	end for;
-	if ( not found )
-		LOG::LogInfo( message:"AM ::xformUtility - R4560 ref " + utility.name + " to comp: " + containing_comp_def.name );
-		relate utility to containing_comp_def across R4560;
-	  select one component_file related by containing_comp_def->File[R401];
-	  ::addStringToImports( file:component_file, s:utility.package + "." + utility.name, type:ImportType::IMPL );
-	  ::addStringToImports( file:component_file, s:utility.package + ".impl." + utility.name + "Impl", type:ImportType::IMPL );
 	end if;
 end if;
 ',
@@ -3442,7 +3443,10 @@ if ( empty util_func )
   // relate the body
   select one act_act related by s_brg->ACT_BRB[R697]->ACT_ACT[R698];
   if ( not_empty act_act )
-    relate act_act to invocable across R432;
+  	select any stmt related by act_act->ACT_BLK[R601]->ACT_SMT[R602];
+  	if ( not_empty stmt )
+      relate act_act to invocable across R432;
+    end if;
   end if;
 end if;	
 
