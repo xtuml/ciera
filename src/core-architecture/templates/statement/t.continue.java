@@ -1,4 +1,4 @@
-.if ( "" != oal )
-${indent}// ${oal}
+.if ( "" != actions )
+${indent}// ${actions}
 .end if
 ${prefix}${indent}continue;

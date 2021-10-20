@@ -19,21 +19,21 @@ INSERT INTO O_TFR
 select one smt related by self->Statement[R451];
 //prefix = smt.prefix;
 
-if_oal = "";
+if_actions = "";
 select one enclosing_else related by smt->CodeBlock[R450]->IfSmt[R454];
 select many sibling_smts related by smt->CodeBlock[R450]->Statement[R450];
 if ( empty enclosing_else or cardinality sibling_smts != 1 ) // this is not an elif
-  //if_oal = smt.oal;
-  if_oal = "";
+  //if_actions = smt.actions;
+  if_actions = "";
 end if;
 
-else_oal = "";
+else_actions = "";
 select many child_smts related by self->CodeBlock[R454]->Statement[R450];
 select any child_if related by child_smts->IfSmt[R451];
 if ( cardinality child_smts == 1 and not_empty child_if ) // else is an elif
   //select one child_smt related by child_if->Statement[R451];
-  //else_oal = child_smt.oal;
-  else_oal = "";
+  //else_actions = child_smt.actions;
+  else_actions = "";
 end if;
 
 select one cond_expression related by self->Expression[R471];
