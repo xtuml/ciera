@@ -3440,7 +3440,7 @@ if ( empty util_func )
 	end while;
   relate s_brg to util_func across R4570;
 
-  // relate the body
+  // relate the body - if there are any contained OAL statements
   select one act_act related by s_brg->ACT_BRB[R697]->ACT_ACT[R698];
   if ( not_empty act_act )
   	select any stmt related by act_act->ACT_BLK[R601]->ACT_SMT[R602];
@@ -3450,7 +3450,7 @@ if ( empty util_func )
   end if;
 end if;	
 
-if ( not_empty containing_comp_def )  // @TODO AM - I don''t believe this can be empty
+if ( not_empty containing_comp_def )
   // create an InvocableInComponent for the operation
   select one invocable related by util_func->InvocableObject[R427];
   LOG::LogInfo( message:"AM ::xform util func - invInComp populate " + util_func.name + " " + containing_comp_def.name );
