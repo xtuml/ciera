@@ -14,7 +14,9 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'cardinality_check = "        // TODO cardinality check\n";
+	'containing_comp_def = param.containing_comp_def;
+
+cardinality_check = "        // TODO cardinality check\n";
 
 T::push_buffer();
 attribute_propagations = "";
@@ -33,11 +35,15 @@ end for;
 attribute_propagations = T::body();
 T::clear();
 
+// render the add & remove methods
 relationship_setters = "";
 relationship_unsetters = "";
-// relationship generated code is component-independent; any instance will supply the data needed.
-select any form related by self->Class[R434]->ClassInComponent[R408];
-select any part related by self->Class[R435]->ClassInComponent[R408];
+
+select one fclass related by self->Class[R434];
+form = ClassInComponent::get( obj:fclass, component: containing_comp_def );
+select one pclass related by self->Class[R435];
+part = ClassInComponent::get( obj:pclass, component: containing_comp_def );
+
 form_name = "R" + STRING::itoa( i:self.num ) + "_";
 if ( "" != self.form_phrase )
   form_name = form_name + T::sub( format:"_", s:self.form_phrase ) + "_";
@@ -72,6 +78,22 @@ T::include(file:"relationship/t.relationshipmodifiers.java");',
 	"00000000-0000-0000-0000-000000000000",
 	0,
 	0);
+INSERT INTO O_TPARM
+	VALUES ("fbd8e9d3-1788-4b1a-84d9-14638417d05a",
+	"f674dbdb-e584-4e14-aebe-8d213001ee48",
+	'containing_comp_def',
+	"109e90cb-1d66-46ee-88db-a568044879d0",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("109e90cb-1d66-46ee-88db-a568044879d0",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Component Definition>',
+	'',
+	'',
+	'../../component/component.xtuml');
 INSERT INTO O_NBATTR
 	VALUES ("39500dcb-206f-4677-836d-af75e3d4225f",
 	"8663f390-6444-48d2-b4a3-0fadf952f68c");
@@ -556,6 +578,7 @@ INSERT INTO EP_PKG_PROXY
 	"00000000-0000-0000-0000-000000000000",
 	"9092a4a9-91f5-4e59-984b-3ca72917240d",
 	'classes',
-	'',
+	'Provides a set selector with the name of the class it represents a set of.
+',
 	0,
 	'../classes.xtuml');
