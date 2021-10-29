@@ -5,8 +5,19 @@ INSERT INTO EP_PKG
 	"00000000-0000-0000-0000-000000000000",
 	"9092a4a9-91f5-4e59-984b-3ca72917240d",
 	'classes',
-	'Provides a set selector with the name of the class it represents a set of.
-',
+	'Through the mechanism of Package Reference, both class and relationship definitions may be shared 
+by more than one component. To support this, certain architectural classes are component-dependent.
+
+It will be useful to refer to the component package class model and descriptions: these two packages 
+are closely related - as can be seen by the use of mutually imported classes.
+
+In this package, imported ClassInComponent represents the use of a Class (Model Inst) in a specific 
+component. (While the contents of a referenced package cannot be altered, an imported shared class can 
+participate in additional associations.)
+ClassSet (Inst Set) is therefore also component-specific as are the various associated selector classes.
+
+Class (Model Inst), Relationship (Class Relationship), Attribute and Operation classes each represent 
+component-independent artifact definitions, respectively. ',
 	0);
 INSERT INTO GD_MD
 	VALUES ("a4fd9387-fc39-485c-adab-7b4c8b135c82",
@@ -3990,6 +4001,13 @@ referred-to class participating in that relationship.
 Each relationship requires two pairs of selectors, a pair for each ''end'' of the 
 relationship.
 Each pair consists of an instance selector and a set selector.
+A selector provides a name and a datatype for the private data members which 
+implement the relationship.
+An instance selector is either single-valued or an array, depending on 
+muliplicity of the relationship at the referred-to ''end''.
+A set selector adds a suffix to the selector name, providing a name and data 
+type to represent a collection of referred-to instances. This may used as the 
+result of a select statement, or as an instance extent.
 ',
 	"00000000-0000-0000-0000-000000000000",
 	'./Selector/Selector.xtuml');
@@ -4520,7 +4538,18 @@ INSERT INTO R_SIMP
 INSERT INTO R_REL
 	VALUES ("2c286e96-c344-434f-8a75-3c2c3477f7b4",
 	4512,
-	'',
+	'A relationship has two participating classes (associative relationships are
+decomposed into two binary relationships during transformation).
+Each participant gets a pair of selectors, one of each subtype: instance and set.
+
+As participant classes and class sets are component-specific realizations,
+their selectors must also be component-specific; they represent definitions 
+for data members and types which implement the relationship.
+
+This association therefore represents one or more pairs of selectors for the 
+component-specific participant classes at each ''end'' of the relationship.
+That is: two pairs of selectors - a pair for each ''end'' - for each relationship, 
+replicated for each component which makes use of the relationship.',
 	"00000000-0000-0000-0000-000000000000");
 INSERT INTO R_FORM
 	VALUES ("49f03569-1ab3-4237-af87-899e99ffc284",

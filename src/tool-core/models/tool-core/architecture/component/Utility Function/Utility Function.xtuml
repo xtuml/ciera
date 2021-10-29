@@ -14,7 +14,14 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'select one type related by self->InvocableObject[R427]->TypeReference[R428];
+	'// Render the translation of any actions defined in a function of an External Entity (EE).
+// If the EE definition is referenced by more than one component - by use of Package Reference - 
+// then it will be rendered for each such component. 
+// However, as the code block for each function instance of InvocableInComponent has been 
+// transformed from the same function definition, it is not necessary to find a particular 
+// component-specific instance of InvocableInComponent from which to render the translation.
+
+select one type related by self->InvocableObject[R427]->TypeReference[R428];
 type_name = type.type_reference_name;
 LOG::LogInfo( message:"AM :: render util func: " + self.name + " type: " + type_name );
 
@@ -24,7 +31,7 @@ parameter_list = invocable.parameter_list();
 body = "";
 select one act_act related by invocable->ACT_ACT[R432.''transforms actions from''];
 if ( not_empty act_act )
-  select any invocableInComp related by invocable->InvocableInComponent[R4001];  // body is the same for all
+  select any invocableInComp related by invocable->InvocableInComponent[R4001]; // see comment on ''any'' above.
 	T::push_buffer();
 	body = invocableInComp.body();
 	T::pop_buffer();
@@ -352,6 +359,26 @@ INSERT INTO EP_PKG_PROXY
 	"00000000-0000-0000-0000-000000000000",
 	"9092a4a9-91f5-4e59-984b-3ca72917240d",
 	'component',
-	'',
+	'Through the mechanism of Package Reference, both class and relationship definitions may be shared 
+by more than one component. To support this, certain architectural classes are component-dependent.
+
+It will be useful to refer to the class package class model and descriptions: these two packages 
+are closely related - as can be seen by the use of mutually imported classes.
+
+In this package the classes ClassInComponent, RelationshipInComponent and UtilityInComponent represent 
+a component''s use of a corresponding artifact definition in a component-specific way.
+Each is represented as an associative class on a relation between the artifact definition and the 
+component in which it is used.
+
+The Class (Model Inst), Relationship (Class Relationship) and Utility classes each represent 
+component-independent artifact definitions, respectively. One instance of each is created on first 
+encountering an artifact definition during transform from the meta-model representation.
+In the cases of Class and Relationship, a component-dependent associative class is also created and 
+related to the component currently being transformed.
+
+Any subsequent re-occurence of an artifact definition while processing a component can only represent 
+a shared use via Package Reference; a new component-dependent associative instance links the orginal 
+artifact definition to the new referring component.
+',
 	0,
 	'../component.xtuml');
