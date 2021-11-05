@@ -34,12 +34,6 @@ referring_comp = param.referring_comp;
 select any type from instances of Type where false;  // Decl
 select many sdtTypes related by s_dt->Type[R423];
 
-if ( not_empty referring_comp )
-  LOG::LogInfo( message:"JRW TypeReference::getInstance(): s_dt, comp " + s_dt.Name + ", " + referring_comp.name );
-else
-    LOG::LogInfo( message:"JRW TypeReference::getInstance(): s_dt, comp " + s_dt.Name + ", !!!EMPTY referring_comp!!!" );
-end if;
-
 // Find a component-specific resolved type, if it exists, for this S_DT and component
 select many compSpecificSdtTypes related by sdtTypes->ComponentSpecificType[R407];
 select many compSpecificCompTypes related by referring_comp->ComponentSpecificType[R3804];
@@ -52,28 +46,13 @@ select many unresolvedSdtTypes related by sdtTypes->UnresolvedType[R407];
 unresolvedTypes = unresolvedSdtTypes & unresolvedCompTypes;
 select any unresolvedType related by unresolvedTypes->Type[R407];
 
-for each sdtType in sdtTypes
-  LOG::LogInfo( message:"JRW TypeReference::getInstance(): s_dt type: " + 
-    sdtType.package + "." + sdtType.name );
-end for;
-for each compSpecificSdtType in compSpecificSdtTypes
-  LOG::LogInfo( message:"JRW TypeReference::getInstance(): component-specific s_dt type: " + 
-    compSpecificSdtType.package + "." + compSpecificSdtType.name );
-end for;
-for each unresType in unresolvedSdtTypes
-  LOG::LogInfo( message:"JRW TypeReference::getInstance(): unresolved s_dt type: " +
-    unresType.package + "." + unresType.name );
-end for;
-
 // if a component-specific resolved type exists for this S_DT and component, use it
 if ( not_empty resolvedType ) 
   type = resolvedType;
-  LOG::LogInfo( message:"JRW TypeReference::getInstance(): comp-specific resolved type: " + type.package + "." + type.name );
   
 // else, if an unresolved type exists for this S_DT and component, use it
 elif ( not_empty unresolvedType )
   type = unresolvedType;
-  LOG::LogInfo( message:"JRW TypeReference::getInstance(): existing unresolved type: " + type.package + "." + type.name );
   
 // else, if there are no types at all for this S_DT, 
 // or there is a resolved component-specific type for this s_dt, but not this component,
@@ -85,7 +64,6 @@ elif ( empty sdtTypes or not_empty compSpecificSdtTypes or not_empty unresolvedS
 // else, this must be a component-independent one, so use it
 else
   select any type related by s_dt->Type[R423];
-  LOG::LogInfo( message:"JRW TypeReference::getInstance(): resolved comp-indpendent type: " + type.package + "." + type.name );
 end if;
 return TypeReference::getInstanceFromType( type:type, s_dims:s_dims );',
 	1,
@@ -337,20 +315,15 @@ been resolved, so a new unresolved type for this component is created.',
 s_dims = param.s_dims;
 referring_comp = param.referring_comp;
 
-LOG::LogInfo( message:"JRW TypeReference::getCompIndClassTypeReference(): s_dt: " + s_dt.Name );
-
 select any type from instances of Type where false;  // Decl
-
 select many types related by s_dt->Type[R423];
 
 // if no type exists, create a new unresolved one
 if ( empty types ) 
-  LOG::LogInfo( message:"JRW TypeReference::getCompIndClassTypeReference(): create new unresolved type." );
   type = UnresolvedType::populate( s_dt:s_dt, referring_comp:referring_comp, comp_indep_class:true );
 else
   // find the component-independent class type for this s_dt 
   select any type related by types->Class[R407]->Type[R407];
-  LOG::LogInfo( message:"JRW TypeReference::getCompIndClassTypeReference(): comp-ind type: " + type.package + "." + type.name );
 end if;
 return TypeReference::getInstanceFromType( type:type, s_dims:s_dims );',
 	1,
@@ -535,21 +508,21 @@ INSERT INTO EP_PKG_PROXY
 	"00000000-0000-0000-0000-000000000000",
 	"9092a4a9-91f5-4e59-984b-3ca72917240d",
 	'type',
-	'With the exception of a component-independent class, all unresolved types 
-are associated with a referring component, enabling each component-specific 
-type to be resolved on a component boundary.  When a component-independent type 
-is resolved, multiple instances of unresolved type (each associated with a 
-referring component) are removed and replaced with a single, component-independent,
-resolved type.  This work is handled by the generic operation used by most 
-callers to retrieve a type reference.  In many cases the caller of this operation 
-has no idea what sort of type it is handling.
+	'Each unresolved type is associated with a referring component when it is created, 
+enabling each component-specific type to be resolved on a component boundary.  
+
+When a component-independent class type is resolved, multiple instances of unresolved type 
+(each associated with a referring component) are removed and replaced with a single, 
+component-independent, resolved class type.  This work is handled by a specific operation 
+used only for the resolution of component-independent class types.
 
 For the few cases in which a component-independent class is required, a specific 
 method is used to obtain a type reference because the callers in this case know
 that a component-independent class is required.  This allows the general-purpose 
-method to handle all other cases without the need to tease out this one.  When a 
-reference to a component-independent class is requested, any unresolved type created 
-is not associated with a referring component, as there is no need to maintain a 
-population of both resolved and unresolved types in this case. ',
+method to handle all other cases without the need to tease out this one.
+
+Separate methods are used to resolve types other than class and class set types, 
+component-independent class types and component-speicfic types to simplify the 
+logic in all three type-resolution methods.',
 	0,
 	'../type.xtuml');
