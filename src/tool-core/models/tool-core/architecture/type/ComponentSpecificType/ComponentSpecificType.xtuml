@@ -18,8 +18,6 @@ INSERT INTO O_TFR
 defining_comp = param.defining_comp;
 new_type = param.new_type;
 
-LOG::LogInfo( message:"JRW ComponentSpecificType::resolve(): s_dt, new_type " + s_dt.Name + ", " + new_type.package + "." + new_type.name );
-
 // if it exists, find the (one) unresolved type for this S_DT and the defining component
 select many unresolved_types_sdt related by s_dt->Type[R423]->UnresolvedType[R407]
   where( not selected.comp_indep_class );
@@ -223,21 +221,21 @@ INSERT INTO EP_PKG_PROXY
 	"00000000-0000-0000-0000-000000000000",
 	"9092a4a9-91f5-4e59-984b-3ca72917240d",
 	'type',
-	'With the exception of a component-independent class, all unresolved types 
-are associated with a referring component, enabling each component-specific 
-type to be resolved on a component boundary.  When a component-independent type 
-is resolved, multiple instances of unresolved type (each associated with a 
-referring component) are removed and replaced with a single, component-independent,
-resolved type.  This work is handled by the generic operation used by most 
-callers to retrieve a type reference.  In many cases the caller of this operation 
-has no idea what sort of type it is handling.
+	'Each unresolved type is associated with a referring component when it is created, 
+enabling each component-specific type to be resolved on a component boundary.  
+
+When a component-independent class type is resolved, multiple instances of unresolved type 
+(each associated with a referring component) are removed and replaced with a single, 
+component-independent, resolved class type.  This work is handled by a specific operation 
+used only for the resolution of component-independent class types.
 
 For the few cases in which a component-independent class is required, a specific 
 method is used to obtain a type reference because the callers in this case know
 that a component-independent class is required.  This allows the general-purpose 
-method to handle all other cases without the need to tease out this one.  When a 
-reference to a component-independent class is requested, any unresolved type created 
-is not associated with a referring component, as there is no need to maintain a 
-population of both resolved and unresolved types in this case. ',
+method to handle all other cases without the need to tease out this one.
+
+Separate methods are used to resolve types other than class and class set types, 
+component-independent class types and component-speicfic types to simplify the 
+logic in all three type-resolution methods.',
 	0,
 	'../type.xtuml');

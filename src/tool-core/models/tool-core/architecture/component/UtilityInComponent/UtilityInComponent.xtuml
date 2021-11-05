@@ -101,12 +101,6 @@ select any retVal from instances of UtilityInComponent where false;  // Decl
 for each util_assoc in utilInComps
   retVal = util_assoc;
 end for;
-if ( not_empty retVal )
-	LOG::LogInfo( message:"JRW UtilityInComponent::get(): comp, util " + component.name + ", " + utility.name );
-	LOG::LogInfo( message:"JRW UtilityInComponent::get(): retVal: " + retVal.package + "." + retVal.name );
-else
-  LOG::LogInfo( message:"JRW UtilityInComponent::get(): empty return value" );
-end if;
 return retVal;',
 	1,
 	'',
@@ -272,6 +266,26 @@ INSERT INTO EP_PKG_PROXY
 	"00000000-0000-0000-0000-000000000000",
 	"9092a4a9-91f5-4e59-984b-3ca72917240d",
 	'component',
-	'',
+	'Through the mechanism of Package Reference, both class and relationship definitions may be shared 
+by more than one component. To support this, certain architectural classes are component-dependent.
+
+It will be useful to refer to the class package class model and descriptions: these two packages 
+are closely related - as can be seen by the use of mutually imported classes.
+
+In this package the classes ClassInComponent, RelationshipInComponent and UtilityInComponent represent 
+a component''s use of a corresponding artifact definition in a component-specific way.
+Each is represented as an associative class on a relation between the artifact definition and the 
+component in which it is used.
+
+The Class (Model Inst), Relationship (Class Relationship) and Utility classes each represent 
+component-independent artifact definitions, respectively. One instance of each is created on first 
+encountering an artifact definition during transform from the meta-model representation.
+In the cases of Class and Relationship, a component-dependent associative class is also created and 
+related to the component currently being transformed.
+
+Any subsequent re-occurence of an artifact definition while processing a component can only represent 
+a shared use via Package Reference; a new component-dependent associative instance links the orginal 
+artifact definition to the new referring component.
+',
 	0,
 	'../component.xtuml');
