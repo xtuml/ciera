@@ -127,10 +127,6 @@ INSERT INTO S_SYNC
 	'',
 	'file_to_import = param.file_to_import;
 import_string = ::pathToPackage( path:file_to_import.path ) + "." + file_to_import.name;
-// @Begin Debug
-fileName = param.file.name;
-LOG::LogInfo( message:"JRW addFileToImports: file, string " + fileName + ", " + import_string );
-// @End Debug
 ::addStringToImports( file:param.file, s:import_string, type:param.type );',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -193,7 +189,6 @@ INSERT INTO S_SYNC
 if ( "" != param.s )
   select any import_ref related by file->TypeImportReference[R402] where ( selected.fully_qualified_name == param.s and selected.type == param.type );
   if ( empty import_ref )
-    LOG::LogInfo( message:"JRW addStringToImports: file, string " + file.package + "." + file.name + ", " + param.s );
     type_import = TypeImport::get_import( import:param.s );
     create object instance import_ref of TypeImportReference;
     import_ref.type = param.type;
@@ -244,8 +239,6 @@ INSERT INTO S_SYNC
 	'addTypeToImports',
 	'',
 	'type_to_import = param.type_to_import;
-
-LOG::LogInfo( message:"JRW ::addTypeToImports(): typeName, fileName " + type_to_import.name + ", " + param.file.name );
 
 if ( not type_to_import.primitive() and "" != type_to_import.package )
   ::addStringToImports( file:param.file, s:type_to_import.package + "." + type_to_import.name, type:param.type );
@@ -546,20 +539,10 @@ if ( empty file )
     select one opClass related by invocableInComp->InvocableObject[R4001]->Operation[R427]->Class[R416];
     opClassInComp = ClassInComponent::get( obj:opClass, component:containingComp );
     select one file related by opClassInComp->File[R401];
-    // @@@Begin Debug
-    if ( not_empty file )
-      LOG::LogInfo( message:"JRW ::getFileForInvocable(): opClassInComp, file " + opClassInComp.package + "." + opClassInComp.name + ", " + file.package + "." + file.name );
-    end if;
-    // @@@End Debug
     if ( empty file )
       select one attrDerivClass related by invocableInComp->InvocableObject[R4001]->AttributeDerivation[R427]->AttributeAccessor[R441]->Attribute[R4510]->Class[R410];
       attrDerivClassInComp = ClassInComponent::get( obj:attrDerivClass, component:containingComp );
       select one file related by attrDerivClassInComp->File[R401];
-      // @@@Begin Debug
-      if ( not_empty file )
-        LOG::LogInfo( message:"JRW ::getFileForInvocable(): attrDerivClassInComp, file " + attrDerivClassInComp.package + "." + attrDerivClassInComp.name + ", " + file.package + "." + file.name );
-      end if;
-      // @@@End Debug
       if ( empty file )
         select one inv_util_ref related by invocableInComp->InvocableObject[R4001]->UtilityFunction[R427]->Utility[R4559];
         util_in_comp = UtilityInComponent::get( utility:inv_util_ref, component: containingComp );
@@ -574,7 +557,6 @@ if ( empty file )
     end if;
   end if;
 end if;
-LOG::LogInfo( message:"JRW ::getFileForInvocable(): file, invocable " + file.name + ", " + invocableInComp.body_name );
 return file;',
 	"133d5e7b-5ad2-41dd-b534-afe8f7cf56a8",
 	1,
@@ -610,11 +592,7 @@ INSERT INTO S_SYNC
 	'',
 	'smt = param.smt;
 select one invocableInComp related by smt->CodeBlock[R450]->InvocableInComponent[R4000];
-LOG::LogInfo( message:"JRW ::getFileForStatement(): smt.oal: " + smt.oal );
 file = ::getFileForInvocable( invocableInComp:invocableInComp );
-if ( empty file )
-  LOG::LogInfo( message:"JRW ::getFileForStatement() - no file" );
-end if;
 return file;',
 	"133d5e7b-5ad2-41dd-b534-afe8f7cf56a8",
 	1,
@@ -1583,7 +1561,6 @@ INSERT INTO S_SYNC
 	'pkg = param.ep_pkg;
 comp = param.comp;
 
-LOG::LogInfo( message:"JRW ::packageOutsideComponent(): pkg, comp " + pkg.Name + ", " + comp.Name );
 // Look for a component containing the given package.
 // Return true if there is no component, or if it differs from given component.
 select one containingPkg related by pkg->PE_PE[R8001]->EP_PKG[R8000];
@@ -1591,14 +1568,7 @@ if ( not_empty containingPkg )
   return ::packageOutsideComponent( ep_pkg:containingPkg, comp:comp );
 else
 	select one containingComp related by pkg->PE_PE[R8001]->C_C[R8003]
-	 where ( selected.Id == comp.Id );
-	//@@@Begin Debug
-	if ( empty containingComp )
-	  LOG::LogInfo( message:"JRW ::packageOutsideComponent(): returning TRUE" );
-	else
-	  LOG::LogInfo( message:"JRW ::packageOutsideComponent(): returning FALSE" );
-	end if;
-	//@@@End Debug
+	  where ( selected.Id == comp.Id );
 	return empty containingComp;
 end if;	',
 	"ba5eda7a-def5-0000-0000-000000000001",
