@@ -254,119 +254,66 @@ INSERT INTO S_SYNC
 	"00000000-0000-0000-0000-000000000000",
 	'resolveTypeImports',
 	'',
-	'LOG::LogInfo( message:"JRW entering ::resolveTypeImports()" );
-select many types from instances of Type;
+	'select many types from instances of Type;
 for each type in types
-  LOG::LogInfo( message:"JRW ::resolveTypeImports(): type: " + type.package + "." + type.name );
   select many impl_files from instances of File where false;
   select many both_files from instances of File where false;
 
   // find files
   select many files related by type->TypeReference[R3800]->Attribute[R424]->Class[R410]->ClassInComponent[R408]->File[R401];
   both_files = both_files | files;
-  for each file in files
-    LOG::LogInfo( message:"JRW Attr->ClassInComp: " + file.package + "." + file.name );
-  end for;
 
   select many files related by type->TypeReference[R3800]->Attribute[R424]->Class[R410]->ClassInComponent[R408]->ClassSet[R406]->File[R401];
   both_files = both_files | files;
-  for each file in files
-    LOG::LogInfo( message:"JRW Attr->ClassSet: " + file.package + "." + file.name );
-  end for;
 
   select many files related by type->TypeReference[R3800]->FormalParameter[R431]->InvocableObject[R429]->Function[R427]->ComponentDefinition[R405]->File[R401];
   both_files = both_files | files;
-  for each file in files
-    LOG::LogInfo( message:"JRW Parm->Func->Comp: " + file.package + "." + file.name );
-  end for;
 
   select many inst_ops related by type->TypeReference[R3800]->FormalParameter[R431]->InvocableObject[R429]->Operation[R427] where ( not selected.is_class_based );
   select many files related by inst_ops->Class[R416]->ClassInComponent[R408]->File[R401];
   both_files = both_files | files;
-  for each file in files
-    LOG::LogInfo( message:"JRW Parm->InsOp->ClassInComp: " + file.package + "." + file.name );
-  end for;
 
   select many class_ops related by type->TypeReference[R3800]->FormalParameter[R431]->InvocableObject[R429]->Operation[R427] where ( selected.is_class_based );
   select many files related by class_ops->Class[R416]->ClassInComponent[R408]->File[R401];
   impl_files = impl_files | files;
-  for each file in files
-    LOG::LogInfo( message:"JRW Parm->ClsOp->ClassInComp: " + file.package + "." + file.name );
-  end for;
 
   select many files related by type->TypeReference[R3800]->FormalParameter[R431]->InvocableObject[R429]->PortMessage[R427]->Message[R420]->Interface[R419]->File[R401];
   both_files = both_files | files;
-  for each file in files
-    LOG::LogInfo( message:"JRW Parm->IFace: " + file.package + "." + file.name );
-  end for;
 
   select many files related by type->TypeReference[R3800]->FormalParameter[R431]->InvocableObject[R429]->PortMessage[R427]->Port[R420]->File[R401];
   both_files = both_files | files;
-  for each file in files
-    LOG::LogInfo( message:"JRW Parm->Port: " + file.package + "." + file.name );
-  end for;
 
   select many files related by type->TypeReference[R3800]->FormalParameter[R431]->InvocableObject[R429]->UtilityFunction[R427]->Utility[R4559]->UtilityInComponent[R4558]->File[R401];
   both_files = both_files | files;
-  for each file in files
-    LOG::LogInfo( message:"JRW Parm->Util: " + file.package + "." + file.name );
-  end for;
 
   select many files related by type->TypeReference[R3800]->FormalParameter[R431]->InvocableObject[R429]->Event[R427]->TransitionTableCell[R4756]->State[R4757]->StateMachine[R4751]->File[R401];
   both_files = both_files | files;
-  for each file in files
-    LOG::LogInfo( message:"JRW Parm->Evt->SM: " + file.package + "." + file.name );
-  end for;
 
   select many files related by type->TypeReference[R3800]->FormalParameter[R431]->InvocableObject[R429]->Event[R427]->StateMachine[R4752]->ClassInComponent[R4750]->File[R401];
   impl_files = impl_files | files;
-  for each file in files
-    LOG::LogInfo( message:"JRW Parm->SM->ClassInComp: " + file.package + "." + file.name );
-  end for;
 
   select many inst_ops related by type->TypeReference[R3800]->InvocableObject[R428]->Operation[R427] where ( not selected.is_class_based );
   select many files related by inst_ops->Class[R416]->ClassInComponent[R408]->File[R401];
   both_files = both_files | files;
-  for each file in files
-    LOG::LogInfo( message:"JRW InsOp->ClassInComp: " + file.package + "." + file.name );
-  end for;
 
   select many class_ops related by type->TypeReference[R3800]->InvocableObject[R428]->Operation[R427] where ( selected.is_class_based );
   select many files related by class_ops->Class[R416]->ClassInComponent[R408]->File[R401];
   impl_files = impl_files | files;
-  for each file in files
-    LOG::LogInfo( message:"JRW ClsOp->ClassInComp: " + file.package + "." + file.name );
-  end for;
 
   select many files related by type->TypeReference[R3800]->InvocableObject[R428]->PortMessage[R427]->Message[R420]->Interface[R419]->File[R401];
   both_files = both_files | files;
-  for each file in files
-    LOG::LogInfo( message:"JRW InvObj->PortMsg->Msg->IFace: " + file.package + "." + file.name );
-  end for;
 
   select many files related by type->TypeReference[R3800]->InvocableObject[R428]->PortMessage[R427]->Port[R420]->File[R401];
   both_files = both_files | files;
-  for each file in files
-    LOG::LogInfo( message:"JRW InvObj->PortMsg->Port: " + file.package + "." + file.name );
-  end for;
 
   select many files related by type->TypeReference[R3800]->InvocableObject[R428]->UtilityFunction[R427]->Utility[R4559]->UtilityInComponent[R4558]->File[R401];
   both_files = both_files | files;
-  for each file in files
-    LOG::LogInfo( message:"JRW InvObj->Util: " + file.package + "." + file.name );
-  end for;
 
   select many files related by type->TypeReference[R3800]->Selector[R446]->InstanceSelector[R445]->ClassInComponent[R442]->File[R401];
   both_files = both_files | files;
-  for each file in files
-    LOG::LogInfo( message:"JRW Selector->InsSelector->ClassInComp: " + file.package + "." + file.name );
-  end for;
 
   select many files related by type->TypeReference[R3800]->Selector[R446]->SetSelector[R445]->ClassSet[R444]->File[R401];
   both_files = both_files | files;
-  for each file in files
-    LOG::LogInfo( message:"JRW Selector->SetSelector->ClassSet: " + file.package + "." + file.name );
-  end for;
 
   // add to imports
   for each file in impl_files
@@ -375,8 +322,7 @@ for each type in types
   for each file in both_files
     type.addToImports( file:file, type:ImportType::BOTH );
   end for;
-end for;
-LOG::LogInfo( message:"JRW exiting ::resolveTypeImports()" );',
+end for;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -479,7 +425,6 @@ select any current_comp_inst from instances of ComponentInstantiation where fals
 for each c_c in c_cs
   select any comp_def from instances of ComponentDefinition where ( selected.name == ::camelCaseName( name:c_c.Name, start_lower:false ) );
   if ( empty comp_def )
-    LOG::LogInfo( message:"JRW ::transformApplication: invoking ::transformComponentDefinition()" );
     ::transformComponentDefinition( c_c:c_c, containing_comp_def:empty_comp_def, path:param.path, pass:1 );
     ::transformComponentDefinition( c_c:c_c, containing_comp_def:empty_comp_def, path:param.path, pass:2 );
     ::transformComponentDefinition( c_c:c_c, containing_comp_def:empty_comp_def, path:param.path, pass:3 );
@@ -488,7 +433,6 @@ for each c_c in c_cs
   create object instance comp_inst of ComponentInstantiation;
   relate  comp_def to app across R426 using comp_inst;
   select one comp_def_file related by comp_def->File[R401];
-  LOG::LogInfo( message:"JRW ::transformApplication: invoking ::addFileToImports()" );
   ::addFileToImports( file:file, file_to_import:comp_def_file, type:ImportType::IMPL );
   select any executor related by app->ApplicationExecutor[R4027]; // single executor for now
   relate executor to comp_inst across R4028;
@@ -1289,7 +1233,6 @@ INSERT INTO S_SYNC
 	'',
 	'o_obj = param.o_obj;
 
-LOG::LogInfo( message:"JRW entering ::transformClass()" );
 select one ep_pkg related by o_obj->PE_PE[R8001]->EP_PKG[R8000];
 
 // get exclude mark
@@ -1340,11 +1283,9 @@ if ( empty class_exclude_mark )
   relate obj to o_obj across R409;
 
   // create the import block
-  LOG::LogInfo( message:"JRW ::transformClass(): adding import block" );
   ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.IXtumlType", type:ImportType::INT );
 
-end if;
-LOG::LogInfo( message:"JRW exiting ::transformClass()" );',
+end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -1501,7 +1442,6 @@ INSERT INTO S_SYNC
 	'c_c = param.c_c;
 
 if ( 1 == param.pass )
-  LOG::LogInfo( message:"JRW entering ::transformComponentDefinition( pass: 1 )" );
 
   // create the file
   create object instance file of File;
@@ -1620,8 +1560,6 @@ if ( 1 == param.pass )
   end if;
 
 elif ( 2 == param.pass )
-    LOG::LogInfo( message:"JRW entering ::transformComponentDefinition( pass: 2)" );
-
   select any file from instances of File where ( selected.name == ::camelCaseName( name:c_c.Name, start_lower:false ) and selected.package == ::pathToPackage( path:param.path ) );
   select one comp_def related by file->ComponentDefinition[R401];
 
@@ -1632,8 +1570,6 @@ elif ( 2 == param.pass )
   end for;
 
 else
-    LOG::LogInfo( message:"JRW entering ::transformComponentDefinition( pass: 3 )" );
-
   select any file from instances of File where ( selected.name == ::camelCaseName( name:c_c.Name, start_lower:false ) and selected.package == ::pathToPackage( path:param.path ) );
   select one comp_def related by file->ComponentDefinition[R401];
 
@@ -1653,8 +1589,7 @@ else
     relate rel_pop_selector to relInComp across R4572;
   end for;
   
-end if;
-LOG::LogInfo( message:"JRW exiting ::transformComponentDefinition()" );  ',
+end if; ',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -2465,7 +2400,7 @@ if ( 1 == param.pass )
   end for;
 
 elif ( 2 == param.pass )
-  LOG::LogInfo( message:"JRW entering ::transformPackage( pass: 2 ), package: " + ep_pkg.Name );
+
   // see if this is a package reference
   select one referred_ep_pkg related by ep_pkg->EP_PKG[R1402.''refers to''];
   if ( not_empty referred_ep_pkg )
@@ -2487,7 +2422,7 @@ elif ( 2 == param.pass )
   end for;
   
 else
-  LOG::LogInfo( message:"JRW entering ::transformPackage( pass: 3 ), package: " + ep_pkg.Name );
+
   // see if this is a package reference
   select one referred_ep_pkg related by ep_pkg->EP_PKG[R1402.''refers to''];
   if ( not_empty referred_ep_pkg )
@@ -2516,8 +2451,7 @@ else
     ::transformPackage( ep_pkg:inner_ep_pkg, containing_comp_def:containing_comp_def, path:path + "/" + T::sub( format:"rl", s:ep_pkg.Name ), pass:param.pass );
   end for;
 
-end if;
-LOG::LogInfo( message:"JRW exiting ::transformPackage(), package: " + ep_pkg.Name );',
+end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -3503,9 +3437,7 @@ INSERT INTO S_SYNC
 containing_comp_def = param.containing_comp_def;
 path = param.path;
 
-LOG::LogInfo( message:"JRW Entering ::transformClassInComponent() " + o_obj.Name );
 select one ep_pkg related by o_obj->PE_PE[R8001]->EP_PKG[R8000];
-LOG::LogInfo( message:"JRW package: " + ep_pkg.Name );
 
 // get exclude mark
 select one pe related by o_obj->PE_PE[R8001];
@@ -3519,10 +3451,8 @@ if ( empty class_exclude_mark )
                                                             selected.feature_name == "UseKeyLettersForName" );
 
   // ensure the component-independent instance of Class has been transformed
-  LOG::LogInfo( message:"JRW ensure the component-independent instance of Class has been transformed" );
   select one obj related by o_obj->Class[R409];
   if ( empty obj )
-    LOG::LogInfo( message:"JRW transforming component-independent class: " + o_obj.Name );
     // unless this class was defined in a referenced package, suppress rendering its file.
     select one comp related by containing_comp_def->C_C[R4573];
     pkg_out_of_comp = ::packageOutsideComponent( ep_pkg:ep_pkg, comp:comp );
@@ -3531,7 +3461,6 @@ if ( empty class_exclude_mark )
   end if;
 
   // create the class in component instance and its file
-  LOG::LogInfo( message:"JRW creating ClassInComponent and File" );
   create object instance file of File;
   if ( empty class_name_mark )
     file.name = ::camelCaseName( name:o_obj.Name, start_lower:false );
@@ -3562,11 +3491,9 @@ if ( empty class_exclude_mark )
   relate compSpecType to classInComponent across R3803;
   
   // add the class to the defining or referring component
-  LOG::LogInfo( message:"JRW relating Class to Component using ClassInComponent" );
   relate obj to containing_comp_def across R408 using classInComponent;
   
   // transform attributes
-  LOG::LogInfo( message:"JRW transforming attributes" );
   select any o_attr related by o_obj->O_ATTR[R102];
   select one prev_attr related by o_attr->O_ATTR[R103.''succeeds''];
   while ( not_empty prev_attr )
@@ -3583,14 +3510,12 @@ if ( empty class_exclude_mark )
   end while;
 
   // transform operations
-  LOG::LogInfo( message:"JRW transforming operations" );
   select many o_tfrs related by o_obj->O_TFR[R115];
   for each o_tfr in o_tfrs
     ::transformOperation( o_tfr:o_tfr, obj:obj, containing_comp_def:containing_comp_def );
   end for;
 
   // transform the state machine
-  LOG::LogInfo( message:"JRW transforming state machine" );
   select one sm related by o_obj->SM_ISM[R518]->SM_SM[R517];
   if ( not_empty sm )
     ::transformStateMachine( sm_sm:sm, classInComp:classInComponent );
@@ -3603,11 +3528,9 @@ if ( empty class_exclude_mark )
   end if;
 
   // transform the set object
-  LOG::LogInfo( message:"JRW transforming set object" );
   ::transformClassSet( classInComp:classInComponent, ep_pkg:ep_pkg, path:path );
 
   // add to the containing component imports
-  LOG::LogInfo( message:"JRW add to the containing component imports" );
   select one component_file related by containing_comp_def->File[R401];
   select one set_file related by classInComponent->ClassSet[R406]->File[R401];
   ::addFileToImports( file:component_file, file_to_import:file, type:ImportType::IMPL );
@@ -3617,7 +3540,6 @@ if ( empty class_exclude_mark )
   ::addStringToImports( file:component_file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL );
 
   // create the import block
-  LOG::LogInfo( message:"JRW create the import block" );
   ::addFileToImports( file:file, file_to_import:component_file, type:ImportType::BOTH );
 
   ::addFileToImports( file:file, file_to_import:file, type:ImportType::IMPL );
@@ -3632,10 +3554,7 @@ if ( empty class_exclude_mark )
   ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.IXtumlType", type:ImportType::IMPL );
   ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.UniqueId", type:ImportType::IMPL );
   ::addStringToImports( file:file, s:"io.ciera.runtime.instanceloading.InstanceCreatedDelta", type:ImportType::IMPL );
-  LOG::LogInfo( message:"JRW finished creating import block" );
-
-end if;
-LOG::LogInfo( message:"JRW exiting ::transformClassInComponent()" );',
+end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
