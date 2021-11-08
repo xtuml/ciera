@@ -553,11 +553,10 @@ if ( empty assoc_exclude_mark )
   select any part_class from instances of Class where false;
   part_cond = Cond::UNCONDITIONAL;
 
-  // create the relationsip subtype
+  // determine if this is a simple relationship
   select one r_simp related by r_rel->R_SIMP[R206];
   if ( not_empty r_simp )
 
-    // If there is no R_FORM and the multiplicity of both is ONE, one is chosen arbitrarily to be the formalizer
     select one r_form related by r_simp->R_FORM[R208];
     select one form_class related by r_form->R_RGO[R205]->R_OIR[R203]->O_OBJ[R201]->Class[R409];
     if ( not_empty form_class )
@@ -582,34 +581,52 @@ if ( empty assoc_exclude_mark )
         // TODO bad
       end if;
     else
-      select any r_part1 related by r_simp->R_PART[R207] where ( selected.Mult == 0 );
-      if ( empty r_part1 )
-        select any r_part1 related by r_simp->R_PART[R207]; // for many to many unformalized, select one randomly
+      // Unformalized: no R_FORM supplied - use some rationale to select one of the two R_PARTS as ''form''.
+      // If one - and only one - side is of multiplicity 1, then choose the other side as ''form''.
+      // Otherwise use participating class name order to make a deterministic choice of ''form'' side.
+      decided = false;
+      select any r_part1 related by r_simp->R_PART[R207];
+      select any r_part2 related by r_simp->R_PART[R207] 
+       where ( selected.OIR_ID != r_part1.OIR_ID );
+      // assume that r_part2 is a good choice for the ''form'' participant
+      if ( r_part1.Mult != 0 )
+      	if ( r_part2.Mult == 0 )	// bad gamble - but reverse will work, so swap sides
+	      	a_part = r_part1;
+	      	r_part1 = r_part2;
+	      	r_part2 = a_part;
+	      	decided = true;  // we have correctly identified a 1:M
+      	end if;
       end if;
-      if ( not_empty r_part1 )
-        select one part_class related by r_part1->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->Class[R409];
-        select any r_part2 related by r_simp->R_PART[R207] where ( selected.OIR_ID != r_part1.OIR_ID );
-        select one form_class related by r_part2->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->Class[R409];
-        if ( not_empty form_class and not_empty part_class )
-          form_phrase = r_part2.Txt_Phrs;
-          part_phrase = r_part1.Txt_Phrs;
-          if ( 0 != r_part2.Mult )
-            form_mult = Mult::MANY;
-          end if;
-          if ( 0 != r_part1.Mult )
-            part_mult = Mult::MANY;
-          end if;
-          if ( 0 != r_part2.Cond )
-            form_cond = Cond::CONDITIONAL;
-          end if;
-          if ( 0 != r_part1.Cond )
-            part_cond = Cond::CONDITIONAL;
-          end if;
-        else
-          // TODO bad
+      select one part_class related by r_part1->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->Class[R409];
+      select one form_class related by r_part2->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->Class[R409];
+      if ( not_empty form_class and not_empty part_class )
+      	if ( not decided )
+        	if ( part_class.name > form_class.name )
+		      	a_part = r_part1;
+		      	r_part1 = r_part2;
+		      	r_part2 = a_part;
+		      	a_class = part_class;
+		      	part_class = form_class;
+		      	form_class = a_class;
+        	end if;
+        end if;
+        LOG::LogInfo( message:"AM:: xformAssoc - form: " + form_class.name + " part: " + part_class.name );
+      	form_phrase = r_part2.Txt_Phrs;
+        part_phrase = r_part1.Txt_Phrs;
+        if ( 0 != r_part2.Mult )
+          form_mult = Mult::MANY;
+        end if;
+        if ( 0 != r_part1.Mult )
+          part_mult = Mult::MANY;
+        end if;
+        if ( 0 != r_part2.Cond )
+          form_cond = Cond::CONDITIONAL;
+        end if;
+        if ( 0 != r_part1.Cond )
+          part_cond = Cond::CONDITIONAL;
         end if;
       else
-        // TODO bad unformalized many to many binary associations not supported
+        // TODO bad 
       end if;
     end if;
 
