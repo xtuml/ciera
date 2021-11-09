@@ -266,7 +266,7 @@ INSERT INTO S_SYNC
 masl_statement = param.first_statement;
 block = param.block;
 if (not_empty code_block)
-  select one masl_statement related by code_block->Statement2[R5150];
+  select one masl_statement related by code_block->MaslStatement[R5150];
 end if;
 prev_smt = ::lastStatementInBlock(block:block);
 smt_num = 1;
@@ -275,7 +275,7 @@ while (not_empty masl_statement)
   // get the last created statement by selecting any ordered descending by statement number
   prev_smt = ::lastStatementInBlock(block:block);
   smt_num = STRING::atoi(s:prev_smt.statement_number) + 1;
-  select one masl_statement related by masl_statement->Statement2[R5155.''precedes''];
+  select one masl_statement related by masl_statement->MaslStatement[R5155.''precedes''];
 end while;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -323,10 +323,10 @@ INSERT INTO S_SYNC
 	'io_stream_statement = param.io_stream_statement;
 block = param.block;
 prev_smt = param.prev_smt;
-select one masl_statement related by io_stream_statement->Statement2[R5135];
+select one masl_statement related by io_stream_statement->MaslStatement[R5135];
 
 // Get the device expression and the other expression.
-select one device_expression related by io_stream_statement->Expression2[R5156];
+select one device_expression related by io_stream_statement->MaslExpression[R5156];
 select any stream_operator related by io_stream_statement->StreamOperator[R5115] where selected.index == 0;
 
 // Create a statement for each stream operation sequentially
@@ -381,7 +381,7 @@ while not_empty stream_operator
 	select one ltype related by l_op->TypeReference[R795];
 
 	// create right operand
-	select one other_expression related by stream_operator->Expression2[R5115];
+	select one other_expression related by stream_operator->MaslExpression[R5115];
 	::transformMaslExpression(masl_expression:other_expression, expr_number:"1.2", smt:smt);
 	select any r_op related by smt->Expression[R775] where (selected.expression_number == "1.2");
 	relate r_op to binop across R778;
@@ -587,7 +587,7 @@ select one expr_type related by var->TypeReference[R461]->Type[R3800];
 ::addTypeToImports(file: ::getFileForStatement(smt:smt), type_to_import:expr_type, type:ImportType::IMPL);
 
 // create right operand
-select one init_expr related by variable_declaration->Expression2[R5138];
+select one init_expr related by variable_declaration->MaslExpression[R5138];
 if not_empty init_expr
   ::transformMaslExpression(masl_expression:init_expr, expr_number:"1.2", smt:smt);
 else
@@ -650,7 +650,7 @@ INSERT INTO S_SYNC
 block = param.block;
 prev_smt = param.prev_smt;
 select any empty_invocable from instances of InvocableObject where false;
-select any empty_code_block from instances of CodeBlock2 where false;
+select any empty_code_block from instances of MaslCodeBlock where false;
 
 // create a statement
 create object instance smt of Statement;
@@ -669,14 +669,14 @@ relate if_smt to smt across R451;
 if_smt.is_else_if = false;
 
 // translate if condition expression
-select one if_cond related by if_statement->Expression2[R5143];
+select one if_cond related by if_statement->MaslExpression[R5143];
 ::transformMaslExpression(masl_expression:if_cond, expr_number:"1", smt:smt);
 select any if_expr related by smt->Expression[R775] where (selected.expression_number == "1");
 relate if_expr to if_smt across R471;
 
 // create then block
 then_block_number = ::getNextBlockNumber(upper_block:block);
-select one then_first_statement related by if_statement->Statement2[R5144];
+select one then_first_statement related by if_statement->MaslStatement[R5144];
 ::transformMaslBlock(upper_block:block, code_block:empty_code_block, first_statement:then_first_statement, block_number:then_block_number, invocable:empty_invocable);
 select any then_block related by block->InvocableObject[R4000]->CodeBlock[R4000] where (selected.block_number == then_block_number);
 relate then_block to if_smt across R453;
@@ -704,7 +704,7 @@ end while;
 else_block_number = ::getNextBlockNumber(upper_block:block);
 select any else_alternative related by if_statement->Alternative[R5145] where (selected.else_otherwise);
 if (not_empty else_alternative)
-  select one else_first_statement related by else_alternative->Statement2[R5148];
+  select one else_first_statement related by else_alternative->MaslStatement[R5148];
   ::transformMaslBlock(upper_block:block, code_block:empty_code_block, first_statement:else_first_statement, block_number:else_block_number, invocable:empty_invocable);
   select any else_block related by block->InvocableObject[R4000]->CodeBlock[R4000] where (selected.block_number == else_block_number);
   relate else_block to if_smt across R454;
@@ -761,7 +761,7 @@ INSERT INTO S_SYNC
 	'',
 	'upper_block = param.upper_block;
 alternative = param.alternative;
-select any empty_code_block from instances of CodeBlock2 where false;
+select any empty_code_block from instances of MaslCodeBlock where false;
 
 // create block
 select one invocable related by upper_block->InvocableObject[R4000];
@@ -789,7 +789,7 @@ relate if_smt to smt across R451;
 if_smt.is_else_if = true;
 
 // translate if expression
-select one if_cond related by alternative->Expression2[R5147];
+select one if_cond related by alternative->MaslExpression[R5147];
 ::transformMaslExpression(masl_expression:if_cond, expr_number:"1", smt:smt);
 select any if_expr related by smt->Expression[R775] where (selected.expression_number == "1");
 relate if_expr to if_smt across R471;
@@ -797,7 +797,7 @@ relate if_expr to if_smt across R471;
 // create then block
 select any empty_invocable from instances of InvocableObject where false;
 then_block_number = ::getNextBlockNumber(upper_block:block);
-select one then_first_statement related by alternative->Statement2[R5148];
+select one then_first_statement related by alternative->MaslStatement[R5148];
 ::transformMaslBlock(upper_block:block, code_block:empty_code_block, first_statement:then_first_statement, block_number:then_block_number, invocable:empty_invocable);
 select any then_block related by block->InvocableObject[R4000]->CodeBlock[R4000] where (selected.block_number == then_block_number);
 relate then_block to if_smt across R453;',
@@ -854,7 +854,7 @@ INSERT INTO S_SYNC
 	'assign_statement = param.assign_statement;
 block = param.block;
 prev_smt = param.prev_smt;
-select one masl_statement related by assign_statement->Statement2[R5135];
+select one masl_statement related by assign_statement->MaslStatement[R5135];
 
 // create a statement
 create object instance smt of Statement;
@@ -868,9 +868,9 @@ end if;
 smt.actions = masl_statement.actions;
 
 // collect info
-select one left_expr related by assign_statement->Expression2[R5101];
+select one left_expr related by assign_statement->MaslExpression[R5101];
 select one left_type related by left_expr->BasicType[R5570]->BuiltinType[R6205];
-select one right_expr related by assign_statement->Expression2[R5100];
+select one right_expr related by assign_statement->MaslExpression[R5100];
 select one right_type related by right_expr->BasicType[R5570]->BuiltinType[R6205];
 
 // create expression as statement
@@ -972,7 +972,7 @@ INSERT INTO S_SYNC
 	'return_statement = param.return_statement;
 block = param.block;
 prev_smt = param.prev_smt;
-select one masl_statement related by return_statement->Statement2[R5135];
+select one masl_statement related by return_statement->MaslStatement[R5135];
 
 // create a statement
 create object instance smt of Statement;
@@ -990,7 +990,7 @@ create object instance ret of ReturnSmt;
 relate ret to smt across R451;
 
 // create return expression
-select one ret_val related by return_statement->Expression2[R5128];
+select one ret_val related by return_statement->MaslExpression[R5128];
 if (not_empty ret_val)
   // TODO consider type promotion
   ::transformMaslExpression(masl_expression:ret_val, expr_number:"1", smt:smt);
@@ -1050,7 +1050,7 @@ INSERT INTO S_SYNC
 	'service_call = param.service_call;
 block = param.block;
 prev_smt = param.prev_smt;
-select one masl_statement related by service_call->Statement2[R5135];
+select one masl_statement related by service_call->MaslStatement[R5135];
 
 // create a statement
 create object instance smt of Statement;
@@ -1167,7 +1167,7 @@ if (not_empty instance_service_invocation)
 		relate invoc to expr across R776;
 		relate invoc to invocable across R792;
 		// relate expression to expression as statement
-		select one inst_val related by instance_service_invocation->Expression2[R5615];
+		select one inst_val related by instance_service_invocation->MaslExpression[R5615];
 		select one this_literal related by inst_val->LiteralExpression[R5517]->ThisLiteral[R5700];
 		::transformMaslExpression(masl_expression:inst_val, expr_number:"1.1", smt:smt);
 		select any expr2 related by smt->Expression[R775] where (selected.expression_number == "1.1");
@@ -1236,7 +1236,7 @@ INSERT INTO S_SYNC
 	'link_unlink_statement = param.link_unlink_statement;
 block = param.block;
 prev_smt = param.prev_smt;
-select one masl_statement related by link_unlink_statement->Statement2[R5135];
+select one masl_statement related by link_unlink_statement->MaslStatement[R5135];
 
 // create a statement
 create object instance smt of Statement;
@@ -1252,16 +1252,16 @@ smt.actions = masl_statement.actions;
 // gather info
 select one rel_spec related by link_unlink_statement->RelationshipSpecification[R5120];
 select one rel_decl related by rel_spec->RelationshipDeclaration[R6015];
-select one lhs related by link_unlink_statement->Expression2[R5122];
+select one lhs related by link_unlink_statement->MaslExpression[R5122];
 select one lhs_class related by lhs->BasicType[R5570]->InstanceType[R6205]->ObjectDeclaration[R6220]->Class[R8300];
-select one rhs related by link_unlink_statement->Expression2[R5119];
+select one rhs related by link_unlink_statement->MaslExpression[R5119];
 if (empty rhs)
   // TODO implicity create a selection across the association to get the right
   // hand side before unlinking. note: this only works with unconditional 1
   // associations
 end if;
 select one rhs_class related by rhs->BasicType[R5570]->InstanceType[R6205]->ObjectDeclaration[R6220]->Class[R8300];
-select one uses related by link_unlink_statement->Expression2[R5121];
+select one uses related by link_unlink_statement->MaslExpression[R5121];
 select one uses_class related by uses->BasicType[R5570]->InstanceType[R6205]->ObjectDeclaration[R6220]->Class[R8300];
 containing_comp_def = ::getCompDefForStatement(smt:smt);
 
@@ -1401,7 +1401,7 @@ INSERT INTO S_SYNC
 	'generate_statement = param.generate_statement;
 block = param.block;
 prev_smt = param.prev_smt;
-select one masl_statement related by generate_statement->Statement2[R5135];
+select one masl_statement related by generate_statement->MaslStatement[R5135];
 
 // create a statement
 create object instance smt of Statement;
@@ -1415,7 +1415,7 @@ end if;
 smt.actions = masl_statement.actions;
 
 select one evt related by generate_statement->EventDeclaration[R5112]->Event[R8303];
-select one target related by generate_statement->Expression2[R5113]; // TODO if empty, assigner or creation
+select one target related by generate_statement->MaslExpression[R5113]; // TODO if empty, assigner or creation
 
 // create generate statement
 create object instance gen_smt of Generate;

@@ -152,7 +152,7 @@ expr.expression_number = expr_number;
 
 // link type
 select any type from instances of TypeReference;
-select one builtin related by literal_expression->Expression2[R5517]->BasicType[R5570]->BuiltinType[R6205]->BuiltInType[R8305];
+select one builtin related by literal_expression->MaslExpression[R5517]->BasicType[R5570]->BuiltinType[R6205]->BuiltInType[R8305];
 if not_empty builtin
   type = ::TypeReference_getBuiltinTypeReference(name:builtin.name);
 else
@@ -426,7 +426,7 @@ relate type to expr across R795;
 
 create object instance acc of AttributeAccess;
 relate acc to expr across R776;
-select one root_expression related by selected_attribute_expression->Expression2[R5569];
+select one root_expression related by selected_attribute_expression->MaslExpression[R5569];
 ::transformMaslExpression(masl_expression:root_expression, expr_number:expr.expression_number + ".1", smt:smt);
 select any root_expr related by smt->Expression[R775] where (selected.expression_number == expr.expression_number + ".1");
 relate root_expr to acc across R785;
@@ -487,8 +487,8 @@ smt = param.smt;
 expr_number = param.expr_number;
 file = ::getFileForStatement(smt:smt);
 
-select one lhs related by binary_expression->Expression2[R5001];
-select one rhs related by binary_expression->Expression2[R5002];
+select one lhs related by binary_expression->MaslExpression[R5001];
+select one rhs related by binary_expression->MaslExpression[R5002];
 
 // if this is a comparison with null, create an empty check unary operation
 select one lhs_null_literal related by lhs->LiteralExpression[R5517]->NullLiteral[R5700];
@@ -552,7 +552,7 @@ else
 	expr.expression_number = expr_number;
 
 	// link type
-	select one builtin related by binary_expression->Expression2[R5517]->BasicType[R5570]->BuiltinType[R6205]->BuiltInType[R8305];
+	select one builtin related by binary_expression->MaslExpression[R5517]->BasicType[R5570]->BuiltinType[R6205]->BuiltInType[R8305];
 	type = ::TypeReference_getBuiltinTypeReference(name:builtin.name);
 	relate type to expr across R795;
 
@@ -828,7 +828,7 @@ relate expr to smt across R775;
 expr.expression_number = expr_number;
 
 // link type
-select one builtin related by call_expression->Expression2[R5517]->BasicType[R5570]->BuiltinType[R6205]->BuiltInType[R8305];
+select one builtin related by call_expression->MaslExpression[R5517]->BasicType[R5570]->BuiltinType[R6205]->BuiltInType[R8305];
 type = ::TypeReference_getBuiltinTypeReference(name:builtin.name);
 relate type to expr across R795;
 
@@ -869,7 +869,7 @@ if (not_empty cast_expression)
 	relate prom to expr across R776;
 	// TODO for now only support simple casting
 	prom.cast = true;
-	select one first_argument related by call_expression->Argument[R5575]->Expression2[R5577];
+	select one first_argument related by call_expression->Argument[R5575]->MaslExpression[R5577];
 	::transformMaslExpression(masl_expression:first_argument, expr_number:expr_number + ".1", smt:smt);
 	select any prom_val related by smt->Expression[R775] where (selected.expression_number == expr_number + ".1");
 	relate prom_val to prom across R3907;
@@ -933,7 +933,7 @@ prev_act_parm = param.prev_act_parm;
 expr_number = param.expression_num;
 
 select one smt related by invocation->Expression[R776]->Statement[R775];
-select one masl_expression related by argument->Expression2[R5577];
+select one masl_expression related by argument->MaslExpression[R5577];
 // TODO considertype promotion
 ::transformMaslExpression(masl_expression:masl_expression, expr_number:expr_number, smt:smt);
 select any expr related by smt->Expression[R775] where (selected.expression_number == expr_number);
@@ -1263,7 +1263,7 @@ smt = param.smt;
 expr_number = param.expr_number;
 
 if find_expression.flavor == FindType::find  // simply pass it through
-  select one root_expression related by find_expression->Expression2[R5519];
+  select one root_expression related by find_expression->MaslExpression[R5519];
   ::transformMaslExpression(masl_expression:root_expression, expr_number:expr_number, smt:smt);
 elif find_expression.flavor == FindType::find_one
 
@@ -1273,7 +1273,7 @@ elif find_expression.flavor == FindType::find_one
 	expr.expression_number = expr_number;
 
 	// link type
-	select one inst_type related by find_expression->Expression2[R5517]->BasicType[R5570]
+	select one inst_type related by find_expression->MaslExpression[R5517]->BasicType[R5570]
 		->InstanceType[R6205]->ObjectDeclaration[R6220]->Class[R8300]->ClassSet[R406]->Type[R407];
 	type = ::TypeReference_getInstanceWithDimString(type:inst_type, dims:"");
 	relate type to expr across R795;
@@ -1281,7 +1281,7 @@ elif find_expression.flavor == FindType::find_one
 	// create any expression
 	create object instance any_expr of AnyExpr;
   relate any_expr to expr across R776;
-  select one root_expression related by find_expression->Expression2[R5519];
+  select one root_expression related by find_expression->MaslExpression[R5519];
   ::transformMaslExpression(masl_expression:root_expression, expr_number:expr_number + ".1", smt:smt);
   select any root_expr related by smt->Expression[R775] where (selected.expression_number == expr_number + ".1");
   relate root_expr to any_expr across R783;
@@ -1344,8 +1344,8 @@ smt = param.smt;
 expr_number = param.expr_number;
 
 select one rel_spec related by navigation_expression->RelationshipSpecification[R5531];
-select one lhs related by navigation_expression->Expression2[R5532];
-select one lhs_collection related by navigation_expression->Expression2[R5517]->BasicType[R5570]->CollectionType[R6205];
+select one lhs related by navigation_expression->MaslExpression[R5532];
+select one lhs_collection related by navigation_expression->MaslExpression[R5517]->BasicType[R5570]->CollectionType[R6205];
 
 // create expression
 create object instance expr of Expression;
@@ -1355,13 +1355,13 @@ expr.expression_number = expr_number;
 // link type
 // if the rel spec is a "many" association or the lhs is a collection type,
 // assure that the type of the expression is an instance set
-if (rel_spec.multiplicity == Multiplicity2::many or not_empty lhs_collection)
+if (rel_spec.multiplicity == MaslMultiplicity::many or not_empty lhs_collection)
   select one obj_decl related by lhs_collection->BasicType[R6208]->InstanceType[R6205]->ObjectDeclaration[R6220];
   select one set_type related by obj_decl->Class[R8300]->ClassSet[R406]->Type[R407];
   type = ::TypeReference_getInstanceWithDimString(type:set_type, dims:"");
   relate type to expr across R795;
 else
-  select one obj_decl related by navigation_expression->Expression2[R5517]->BasicType[R5570]->InstanceType[R6205]->ObjectDeclaration[R6220];
+  select one obj_decl related by navigation_expression->MaslExpression[R5517]->BasicType[R5570]->InstanceType[R6205]->ObjectDeclaration[R6220];
   select one inst_type related by obj_decl->Class[R8300]->Type[R407];
   type = ::TypeReference_getInstanceWithDimString(type:inst_type, dims:"");
   relate type to expr across R795;
@@ -1389,13 +1389,13 @@ if (not_empty using_class and using_class.name != base_class.name and using_clas
 	// link type
 	// if the rel spec is a "many" association or the lhs is a collection type,
 	// assure that the type of the expression is an instance set
-	if (rel_spec.multiplicity == Multiplicity2::many or not_empty lhs_collection)
+	if (rel_spec.multiplicity == MaslMultiplicity::many or not_empty lhs_collection)
 		select one obj_decl related by lhs_collection->BasicType[R6208]->InstanceType[R6205]->ObjectDeclaration[R6220];
 		select one set_type related by obj_decl->Class[R8300]->ClassSet[R406]->Type[R407];
 		type = ::TypeReference_getInstanceWithDimString(type:set_type, dims:"");
 		relate type to expr1 across R795;
 	else
-		select one obj_decl related by navigation_expression->Expression2[R5517]->BasicType[R5570]->InstanceType[R6205]->ObjectDeclaration[R6220];
+		select one obj_decl related by navigation_expression->MaslExpression[R5517]->BasicType[R5570]->InstanceType[R6205]->ObjectDeclaration[R6220];
 		select one inst_type related by obj_decl->Class[R8300]->Type[R407];
 		type = ::TypeReference_getInstanceWithDimString(type:inst_type, dims:"");
 		relate type to expr1 across R795;
