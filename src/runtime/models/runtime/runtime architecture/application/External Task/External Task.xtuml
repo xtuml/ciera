@@ -1,53 +1,66 @@
 -- BP 7.1.6 content: ModelClass syschar: 3 persistence-version: 7.1.6
 
 INSERT INTO O_OBJ
-	VALUES ("e3b0ccc6-6cc6-4693-92c9-5fd042d62b72",
-	'Halt',
-	19,
-	'Halt',
-	'The halt task causes the application to
-exit gracefully. The "running" flag on
-the application is set to false and the
-application executors will shut down
-after their current task is complete.
+	VALUES ("fc2b8b66-7171-4bff-8f18-f035c2c5b97b",
+	'External Task',
+	27,
+	'ExternalTask',
+	'An external task represents an
+asyncrhonous stimulus from outside the
+domain. This can be either a message on
+a terminator, a timer that has expired,
+or an event generated from generic
+execution. External events initiate a
+thread of control.
 
-If running in "sequential" mode, the
-executor will allow all internal tasks
-to complete before shutting down. This
-allows the transaction to finish and
-provide a consistent final instance
-population for shutdown.
-
-TODO Question: should outbound messages
-be stopped?',
+For the purposes of this architecture, a
+thread of control is defined as the
+action triggered by an external stimulus
+(message or timer) and all subsequent
+actions induced by event generation of
+the first action. If an action generates
+more than one event, the thread of
+control branches into multiple legs. A
+leg terminates when its action does not
+result in any generated events. The
+whole thread terminates when all legs
+have terminated. Thread of control here
+does not carry across inter-domain
+solicited events.',
 	"00000000-0000-0000-0000-000000000000");
 INSERT INTO O_TFR
-	VALUES ("0479898e-173b-4d1d-91f5-8b052c1e465d",
-	"e3b0ccc6-6cc6-4693-92c9-5fd042d62b72",
+	VALUES ("72405e35-37cd-4926-bc30-dd76dea8aa91",
+	"fc2b8b66-7171-4bff-8f18-f035c2c5b97b",
 	'run',
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'// The application is immediately halted
-// and all executors are destroyed.
-// Executors are allowed to complete any
-// currently executing tasks before
-// stopping.',
-	1,
+	'// deferred',
+	0,
 	'',
 	"00000000-0000-0000-0000-000000000000",
 	0,
 	1);
+INSERT INTO O_DEF
+	VALUES ("72405e35-37cd-4926-bc30-dd76dea8aa91",
+	"846714fc-8e16-408d-9883-059f42470a8a",
+	0);
+INSERT INTO R_REL_PROXY
+	VALUES ("846714fc-8e16-408d-9883-059f42470a8a",
+	27,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'../application.xtuml');
 INSERT INTO O_REF
-	VALUES ("e3b0ccc6-6cc6-4693-92c9-5fd042d62b72",
+	VALUES ("fc2b8b66-7171-4bff-8f18-f035c2c5b97b",
 	"5986af20-7390-45aa-bfee-c4baac6b4aa9",
 	0,
 	"0e159222-5a02-473b-b471-eaa72d4fcb41",
 	"bac25a5d-3c33-423f-8810-f561c9fda419",
-	"003a9a34-f3af-4efe-901e-266ba0acd162",
+	"1c1fc874-7aac-469e-8749-23f10b3a9b4f",
 	"cfaf532c-1fca-41d3-9ac0-ef219d1d07ae",
-	"98a95af2-05a8-4000-aed4-cd66b80b8064",
-	"7908c570-0d41-4687-92ad-b84577e46056",
+	"3e0e52a3-8d3b-49f7-9ed1-cf5a535dd997",
+	"9e49ef8a-6c85-4a97-81f6-ce2d5be1c398",
 	"00000000-0000-0000-0000-000000000000",
 	0,
 	'',
@@ -55,9 +68,9 @@ INSERT INTO O_REF
 	'executor_id',
 	'R26');
 INSERT INTO R_RGO_PROXY
-	VALUES ("e3b0ccc6-6cc6-4693-92c9-5fd042d62b72",
+	VALUES ("fc2b8b66-7171-4bff-8f18-f035c2c5b97b",
 	"bac25a5d-3c33-423f-8810-f561c9fda419",
-	"003a9a34-f3af-4efe-901e-266ba0acd162",
+	"1c1fc874-7aac-469e-8749-23f10b3a9b4f",
 	'../application.xtuml');
 INSERT INTO O_RTIDA_PROXY
 	VALUES ("0e159222-5a02-473b-b471-eaa72d4fcb41",
@@ -67,8 +80,8 @@ INSERT INTO O_RTIDA_PROXY
 	"cfaf532c-1fca-41d3-9ac0-ef219d1d07ae",
 	'../application.xtuml');
 INSERT INTO O_RATTR
-	VALUES ("98a95af2-05a8-4000-aed4-cd66b80b8064",
-	"e3b0ccc6-6cc6-4693-92c9-5fd042d62b72",
+	VALUES ("3e0e52a3-8d3b-49f7-9ed1-cf5a535dd997",
+	"fc2b8b66-7171-4bff-8f18-f035c2c5b97b",
 	"ed9b3791-c5bd-49f6-a0cd-33a8d602a0b7",
 	"e20c5c6e-26a8-4ddc-8adc-fa969dec59b7",
 	1,
@@ -78,8 +91,8 @@ INSERT INTO O_BATTR_PROXY
 	"e20c5c6e-26a8-4ddc-8adc-fa969dec59b7",
 	'../Application Executor/Application Executor.xtuml');
 INSERT INTO O_ATTR
-	VALUES ("98a95af2-05a8-4000-aed4-cd66b80b8064",
-	"e3b0ccc6-6cc6-4693-92c9-5fd042d62b72",
+	VALUES ("3e0e52a3-8d3b-49f7-9ed1-cf5a535dd997",
+	"fc2b8b66-7171-4bff-8f18-f035c2c5b97b",
 	"00000000-0000-0000-0000-000000000000",
 	'executor_id',
 	'',
@@ -90,15 +103,15 @@ INSERT INTO O_ATTR
 	'',
 	'');
 INSERT INTO O_REF
-	VALUES ("e3b0ccc6-6cc6-4693-92c9-5fd042d62b72",
+	VALUES ("fc2b8b66-7171-4bff-8f18-f035c2c5b97b",
 	"5986af20-7390-45aa-bfee-c4baac6b4aa9",
 	0,
 	"0e816704-fd4e-44e8-b171-167ba52d1b8a",
 	"bac25a5d-3c33-423f-8810-f561c9fda419",
-	"003a9a34-f3af-4efe-901e-266ba0acd162",
+	"1c1fc874-7aac-469e-8749-23f10b3a9b4f",
 	"cfaf532c-1fca-41d3-9ac0-ef219d1d07ae",
-	"ab44790f-98e1-4555-a785-00c2f617059d",
-	"3d0564e3-c525-4f7a-ad53-c5358987b100",
+	"ca7804c7-8581-4f26-a6b0-753923c7af6c",
+	"3cc09c24-7d39-4696-8bc3-0531432b89ad",
 	"00000000-0000-0000-0000-000000000000",
 	0,
 	'',
@@ -113,8 +126,8 @@ INSERT INTO O_RTIDA_PROXY
 	"cfaf532c-1fca-41d3-9ac0-ef219d1d07ae",
 	'../application.xtuml');
 INSERT INTO O_RATTR
-	VALUES ("ab44790f-98e1-4555-a785-00c2f617059d",
-	"e3b0ccc6-6cc6-4693-92c9-5fd042d62b72",
+	VALUES ("ca7804c7-8581-4f26-a6b0-753923c7af6c",
+	"fc2b8b66-7171-4bff-8f18-f035c2c5b97b",
 	"0e816704-fd4e-44e8-b171-167ba52d1b8a",
 	"5986af20-7390-45aa-bfee-c4baac6b4aa9",
 	1,
@@ -124,9 +137,9 @@ INSERT INTO O_BATTR_PROXY
 	"5986af20-7390-45aa-bfee-c4baac6b4aa9",
 	'../Task/Task.xtuml');
 INSERT INTO O_ATTR
-	VALUES ("ab44790f-98e1-4555-a785-00c2f617059d",
-	"e3b0ccc6-6cc6-4693-92c9-5fd042d62b72",
-	"98a95af2-05a8-4000-aed4-cd66b80b8064",
+	VALUES ("ca7804c7-8581-4f26-a6b0-753923c7af6c",
+	"fc2b8b66-7171-4bff-8f18-f035c2c5b97b",
+	"3e0e52a3-8d3b-49f7-9ed1-cf5a535dd997",
 	'sequence_number',
 	'',
 	'',
@@ -137,25 +150,25 @@ INSERT INTO O_ATTR
 	'');
 INSERT INTO O_ID
 	VALUES (0,
-	"e3b0ccc6-6cc6-4693-92c9-5fd042d62b72");
+	"fc2b8b66-7171-4bff-8f18-f035c2c5b97b");
 INSERT INTO O_OIDA
-	VALUES ("98a95af2-05a8-4000-aed4-cd66b80b8064",
-	"e3b0ccc6-6cc6-4693-92c9-5fd042d62b72",
+	VALUES ("3e0e52a3-8d3b-49f7-9ed1-cf5a535dd997",
+	"fc2b8b66-7171-4bff-8f18-f035c2c5b97b",
 	0,
 	'executor_id');
 INSERT INTO O_OIDA
-	VALUES ("ab44790f-98e1-4555-a785-00c2f617059d",
-	"e3b0ccc6-6cc6-4693-92c9-5fd042d62b72",
+	VALUES ("ca7804c7-8581-4f26-a6b0-753923c7af6c",
+	"fc2b8b66-7171-4bff-8f18-f035c2c5b97b",
 	0,
 	'sequence_number');
 INSERT INTO O_ID
 	VALUES (1,
-	"e3b0ccc6-6cc6-4693-92c9-5fd042d62b72");
+	"fc2b8b66-7171-4bff-8f18-f035c2c5b97b");
 INSERT INTO O_ID
 	VALUES (2,
-	"e3b0ccc6-6cc6-4693-92c9-5fd042d62b72");
+	"fc2b8b66-7171-4bff-8f18-f035c2c5b97b");
 INSERT INTO PE_PE
-	VALUES ("e3b0ccc6-6cc6-4693-92c9-5fd042d62b72",
+	VALUES ("fc2b8b66-7171-4bff-8f18-f035c2c5b97b",
 	1,
 	"db6294b1-da64-4d90-b2a4-16f383adc26e",
 	"00000000-0000-0000-0000-000000000000",
