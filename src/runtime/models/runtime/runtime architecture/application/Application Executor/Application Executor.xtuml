@@ -5,9 +5,61 @@ INSERT INTO O_OBJ
 	'Application Executor',
 	3,
 	'ApplicationExecutor',
-	'An Application Executor is an xtUML run context implemented as an operating
-system thread. The executor maintains its own event queues and operates
-independently of other executors in the system.',
+	'An Application Executor is an xtUML run
+context implemented as an operating
+system thread. The executor maintains
+its own event queues and operates
+independently of other executors in the
+system.
+
+An executor can run in two execution modes:
+- sequential
+- interleaved (default)
+
+In sequential mode, all internal events
+created as a result of an external event
+are executed before any more external
+tasks are handled. The next external
+task marks the boundary of the
+transaction.
+
+In interleaved mode, tasks can be
+executed in any order (except for
+self-directed events which are
+accelerated and sender-receiver pair
+ordering). Each task marks the boundary
+of the transaction. In this mode, events
+induced by different external events can
+dispatched in an interleaved manner.
+
+An executor can run with different model consistency modes:
+- strict (default)
+- relaxed
+- off
+
+In strict mode, model consistency is
+checked at the end of every transaction.
+An inconsistent model results in an
+aborted transaction.
+
+In relaxed mode, integrity is only
+checked when (and if) the task queue is
+completely drained. Use with caution as
+there are no guarantees how often this
+will occur if ever. An inconsistent
+model results in an exception being
+raised. Although the situation can be
+detected, the inconsistency may have
+already been flushed to persistent
+storage.
+
+If set to off, no model consistency
+checking is enforced after activities
+are run however model consistency
+constraints that can be checked real
+time are still checked (e.g.
+multiplicity) and result in a runtime
+exception.',
 	"00000000-0000-0000-0000-000000000000");
 INSERT INTO O_NBATTR
 	VALUES ("ed9b3791-c5bd-49f6-a0cd-33a8d602a0b7",
@@ -27,6 +79,74 @@ INSERT INTO O_ATTR
 	"ba5eda7a-def5-0000-0000-000000000002",
 	'',
 	'');
+INSERT INTO O_NBATTR
+	VALUES ("808ccb9d-a9d5-4458-b2b7-787cb66699d5",
+	"e20c5c6e-26a8-4ddc-8adc-fa969dec59b7");
+INSERT INTO O_BATTR
+	VALUES ("808ccb9d-a9d5-4458-b2b7-787cb66699d5",
+	"e20c5c6e-26a8-4ddc-8adc-fa969dec59b7");
+INSERT INTO O_ATTR
+	VALUES ("808ccb9d-a9d5-4458-b2b7-787cb66699d5",
+	"e20c5c6e-26a8-4ddc-8adc-fa969dec59b7",
+	"ddecd7ec-e70c-46b0-b2c0-be4d82f88c08",
+	'current_state',
+	'',
+	'',
+	'current_state',
+	0,
+	"ba5eda7a-def5-0000-0000-000000000006",
+	'',
+	'');
+INSERT INTO O_NBATTR
+	VALUES ("60c4cd41-f38a-44d6-86da-b718af7ab422",
+	"e20c5c6e-26a8-4ddc-8adc-fa969dec59b7");
+INSERT INTO O_BATTR
+	VALUES ("60c4cd41-f38a-44d6-86da-b718af7ab422",
+	"e20c5c6e-26a8-4ddc-8adc-fa969dec59b7");
+INSERT INTO O_ATTR
+	VALUES ("60c4cd41-f38a-44d6-86da-b718af7ab422",
+	"e20c5c6e-26a8-4ddc-8adc-fa969dec59b7",
+	"ed9b3791-c5bd-49f6-a0cd-33a8d602a0b7",
+	'execution_mode',
+	'',
+	'',
+	'execution_mode',
+	0,
+	"d05860e5-6a90-4fbd-b410-61466cc14999",
+	'',
+	'ExecutionMode::INTERLEAVED');
+INSERT INTO S_DT_PROXY
+	VALUES ("d05860e5-6a90-4fbd-b410-61466cc14999",
+	"00000000-0000-0000-0000-000000000000",
+	'ExecutionMode',
+	'',
+	'',
+	'../../types/types.xtuml');
+INSERT INTO O_NBATTR
+	VALUES ("ddecd7ec-e70c-46b0-b2c0-be4d82f88c08",
+	"e20c5c6e-26a8-4ddc-8adc-fa969dec59b7");
+INSERT INTO O_BATTR
+	VALUES ("ddecd7ec-e70c-46b0-b2c0-be4d82f88c08",
+	"e20c5c6e-26a8-4ddc-8adc-fa969dec59b7");
+INSERT INTO O_ATTR
+	VALUES ("ddecd7ec-e70c-46b0-b2c0-be4d82f88c08",
+	"e20c5c6e-26a8-4ddc-8adc-fa969dec59b7",
+	"60c4cd41-f38a-44d6-86da-b718af7ab422",
+	'model_consistency_mode',
+	'',
+	'',
+	'model_consistency_mode',
+	0,
+	"d8660269-1c41-4855-841b-16a42838cd30",
+	'',
+	'ModelConsistencyMode::STRICT');
+INSERT INTO S_DT_PROXY
+	VALUES ("d8660269-1c41-4855-841b-16a42838cd30",
+	"00000000-0000-0000-0000-000000000000",
+	'ModelConsistencyMode',
+	'',
+	'',
+	'../../types/types.xtuml');
 INSERT INTO O_ID
 	VALUES (0,
 	"e20c5c6e-26a8-4ddc-8adc-fa969dec59b7");
