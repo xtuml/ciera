@@ -553,7 +553,8 @@ if ( empty assoc_exclude_mark )
   select any part_class from instances of Class where false;
   part_cond = Cond::UNCONDITIONAL;
 
-  // Determine the type of association being transformed.
+  // Determine the type of association being transformed:
+  // 3 cases: Simple (Binary); Super-Sub; Associative - each treated separately.
   // When identified, create the appropriate architectural realization if necessary.
   // If the relationship already exists, just relate it to the component definition.
   // (This happens when mutiple components share an association via Package Reference.)
@@ -586,46 +587,58 @@ if ( empty assoc_exclude_mark )
       end if;
     else
       // Unformalized: no R_FORM supplied - use some rationale to select one of the two R_PARTS as ''form''.
-      // If one - and only one - side is of multiplicity 1, then choose the other side as ''form''.
-      // Otherwise use participating class name order to make a deterministic choice of ''form'' side.
-      decided = false;
-      select any r_part1 related by r_simp->R_PART[R207];
-      select any r_part2 related by r_simp->R_PART[R207] 
-       where ( selected.OIR_ID != r_part1.OIR_ID );
-      // assume that r_part2 is a good choice for the ''form'' participant
-      if ( r_part1.Mult != 0 )
-      	if ( r_part2.Mult == 0 )	// bad gamble - but reverse will work, so swap sides
-	      	a_part = r_part1;
-	      	r_part1 = r_part2;
-	      	r_part2 = a_part;
-	      	decided = true;  // we have correctly identified a 1:M
+      // If one - and only one - side is of multiplicity 1, then choose the other ''Many'' side as ''form''.
+      // Otherwise use participating class name/phrase order to make a deterministic choice of ''form'' side.
+      //
+      // Initially: arbitrarily assume that the first ''part'' selected will turn out to be the good choice.
+      // Eventually: if this turns out to be a poor choice the form/part roles will be swapped.
+      swap = false;
+      select any form_part related by r_simp->R_PART[R207];
+      select any part_part related by r_simp->R_PART[R207] where ( selected.OIR_ID != form_part.OIR_ID );
+      select one form_class related by form_part->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->Class[R409];
+      select one part_class related by part_part->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->Class[R409];
+      
+      // Now: either validate the choice, or determine it must be swapped.
+      // If multiplicity differs, ( 1:M or M:1 )there is a clear choice: ''Many'' side should be ''form''
+      if (form_part.Mult != part_part.Mult )
+      	if ( form_part.Mult == 0 )  // bad guess.. 
+      		swap = true;
+        end if;
+      else
+      	// No clear choice ( 1:1 or M:M ) - use deterministic heuristic to ensure repeatable choice.
+      	// If classes are distinct use names; if reflexive, use phrases (mandatory in this case).
+      	if ( form_class != part_class )
+      		if ( form_class.name < part_class.name )
+      			swap = true;
+      		end if;
+      	else
+      		if ( form_part.Txt_Phrs < part_part.Txt_Phrs )
+      			swap = true;
+      		end if;
       	end if;
       end if;
-      select one part_class related by r_part1->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->Class[R409];
-      select one form_class related by r_part2->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->Class[R409];
+      // Now swap, if the assumed choice turned out to be a poor choice.
+    	if ( swap )
+      	a_part = part_part;
+      	part_part = form_part;
+      	form_part = a_part;
+      	a_class = part_class;
+      	part_class = form_class;
+      	form_class = a_class;
+      end if;
       if ( not_empty form_class and not_empty part_class )
-      	if ( not decided )
-        	if ( part_class.name > form_class.name )
-		      	a_part = r_part1;
-		      	r_part1 = r_part2;
-		      	r_part2 = a_part;
-		      	a_class = part_class;
-		      	part_class = form_class;
-		      	form_class = a_class;
-        	end if;
-        end if;
-      	form_phrase = r_part2.Txt_Phrs;
-        part_phrase = r_part1.Txt_Phrs;
-        if ( 0 != r_part2.Mult )
+      	form_phrase = form_part.Txt_Phrs;
+        part_phrase = part_part.Txt_Phrs;
+        if ( 0 != form_part.Mult )
           form_mult = Mult::MANY;
         end if;
-        if ( 0 != r_part1.Mult )
+        if ( 0 != part_part.Mult )
           part_mult = Mult::MANY;
         end if;
-        if ( 0 != r_part2.Cond )
+        if ( 0 != form_part.Cond )
           form_cond = Cond::CONDITIONAL;
         end if;
-        if ( 0 != r_part1.Cond )
+        if ( 0 != part_part.Cond )
           part_cond = Cond::CONDITIONAL;
         end if;
       else
