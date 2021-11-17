@@ -1,9 +1,5 @@
-package ${self.package};
-
-${imports}
-
-public interface ${self.name} {
-
-${utility_functions}
-
-}
+    private ${self.name} ${self.name};
+    public ${self.name} ${self.name}() {
+        if ( null == ${self.name} ) ${self.name} = new ${self.name}Impl<>( this );
+        return ${self.name};
+    }

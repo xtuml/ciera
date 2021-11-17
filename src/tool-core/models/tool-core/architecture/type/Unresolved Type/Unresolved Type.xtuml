@@ -23,7 +23,94 @@ delete object instance self;',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",
+	0,
 	0);
+INSERT INTO O_TFR
+	VALUES ("8f33646a-9f9f-427a-9730-7a55702bae0d",
+	"c7da247b-41a3-4d5b-9ffe-16e192542273",
+	'populate',
+	'',
+	"b4a754cc-b0a5-4777-ae98-df570434ea2a",
+	0,
+	's_dt = param.s_dt;
+referring_comp = param.referring_comp;
+
+// get the next unique number
+num = 0;
+select many unresolvedTypes from instances of UnresolvedType;
+for each ut in unresolvedTypes
+  if ( ut.num >= num )
+    num = ut.num + 1;
+  end if;
+end for;
+
+create object instance type of Type;
+type.name = "UnresolvedType" + STRING::itoa( i:num );
+type.package = "";
+if ( not_empty s_dt )
+  relate s_dt to type across R423;
+else
+  // TODO bad
+end if;
+create object instance new_unresolvedType of UnresolvedType;
+new_unresolvedType.comp_indep_class = param.comp_indep_class;
+relate new_unresolvedType to type across R407;
+new_unresolvedType.num = num;
+relate new_unresolvedType to referring_comp across R3805;
+return type;',
+	1,
+	'',
+	"db02fb4e-8da9-468f-b599-9efd4b1e7ca8",
+	0,
+	3);
+INSERT INTO O_TPARM
+	VALUES ("55e1b88a-78ac-4725-8078-e2944e0b02b8",
+	"8f33646a-9f9f-427a-9730-7a55702bae0d",
+	's_dt',
+	"4a90cd45-ece0-4e72-afe7-44996f9d7e1e",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("4a90cd45-ece0-4e72-afe7-44996f9d7e1e",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Data Type>',
+	'',
+	'',
+	'../../../../../../mcooa/models/mcooa/ooaofooa/Domain/Domain.xtuml');
+INSERT INTO O_TPARM
+	VALUES ("938ce317-ae66-4e8a-b306-745b0b6136c3",
+	"8f33646a-9f9f-427a-9730-7a55702bae0d",
+	'referring_comp',
+	"109e90cb-1d66-46ee-88db-a568044879d0",
+	0,
+	'',
+	"55e1b88a-78ac-4725-8078-e2944e0b02b8",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("109e90cb-1d66-46ee-88db-a568044879d0",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Component Definition>',
+	'',
+	'',
+	'../../component/component.xtuml');
+INSERT INTO O_TPARM
+	VALUES ("17cc9a11-7b16-4dbe-980f-062be3b63edd",
+	"8f33646a-9f9f-427a-9730-7a55702bae0d",
+	'comp_indep_class',
+	"ba5eda7a-def5-0000-0000-000000000001",
+	0,
+	'',
+	"938ce317-ae66-4e8a-b306-745b0b6136c3",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("b4a754cc-b0a5-4777-ae98-df570434ea2a",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Type>',
+	'',
+	'',
+	'../type.xtuml');
 INSERT INTO O_REF
 	VALUES ("c7da247b-41a3-4d5b-9ffe-16e192542273",
 	"b5de937b-55ee-48e4-8e91-d9d73c3f0fab",
@@ -139,6 +226,25 @@ INSERT INTO O_ATTR
 	"ba5eda7a-def5-0000-0000-000000000002",
 	'',
 	'');
+INSERT INTO O_NBATTR
+	VALUES ("35f3d564-c7c7-4c76-b5bf-3b85bdd0998a",
+	"c7da247b-41a3-4d5b-9ffe-16e192542273");
+INSERT INTO O_BATTR
+	VALUES ("35f3d564-c7c7-4c76-b5bf-3b85bdd0998a",
+	"c7da247b-41a3-4d5b-9ffe-16e192542273");
+INSERT INTO O_ATTR
+	VALUES ("35f3d564-c7c7-4c76-b5bf-3b85bdd0998a",
+	"c7da247b-41a3-4d5b-9ffe-16e192542273",
+	"b6398fea-e0da-433d-bbcf-85571d7660c1",
+	'comp_indep_class',
+	'True when this type will eventually be resolved into a component-independent class type.
+False otherwise.',
+	'',
+	'comp_indep_class',
+	0,
+	"ba5eda7a-def5-0000-0000-000000000001",
+	'',
+	'');
 INSERT INTO O_ID
 	VALUES (0,
 	"c7da247b-41a3-4d5b-9ffe-16e192542273");
@@ -174,6 +280,21 @@ INSERT INTO EP_PKG_PROXY
 	"00000000-0000-0000-0000-000000000000",
 	"9092a4a9-91f5-4e59-984b-3ca72917240d",
 	'type',
-	'',
+	'Each unresolved type is associated with a referring component when it is created, 
+enabling each component-specific type to be resolved on a component boundary.  
+
+When a component-independent class type is resolved, multiple instances of unresolved type 
+(each associated with a referring component) are removed and replaced with a single, 
+component-independent, resolved class type.  This work is handled by a specific operation 
+used only for the resolution of component-independent class types.
+
+For the few cases in which a component-independent class is required, a specific 
+method is used to obtain a type reference because the callers in this case know
+that a component-independent class is required.  This allows the general-purpose 
+method to handle all other cases without the need to tease out this one.
+
+Separate methods are used to resolve types other than class and class set types, 
+component-independent class types and component-speicfic types to simplify the 
+logic in all three type-resolution methods.',
 	0,
 	'../type.xtuml');

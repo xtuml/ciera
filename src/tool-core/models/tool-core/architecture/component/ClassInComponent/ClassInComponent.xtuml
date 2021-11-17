@@ -1,0 +1,597 @@
+-- BP 7.1.6 content: ModelClass syschar: 3 persistence-version: 7.1.6
+
+INSERT INTO O_OBJ
+	VALUES ("92e3fa0e-1804-4f88-84c7-46a11e6cb56d",
+	'ClassInComponent',
+	17,
+	'ClassInComponent',
+	'A generated application class, specialized for
+a particular component.',
+	"00000000-0000-0000-0000-000000000000");
+INSERT INTO O_TFR
+	VALUES ("6d2a38bb-4995-4fed-a9e9-4f164f0bf25d",
+	"92e3fa0e-1804-4f88-84c7-46a11e6cb56d",
+	'render',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'// Render component-specific implemenation for modeled class
+select one file related by self->File[R401];
+imports = file.getFormattedImports( type:ImportType::IMPL );
+
+// Provide values to templates
+select one component related by self->ComponentDefinition[R408];
+comp_name = component.name;
+select one compIndClass related by self->Class[R408];
+key_letters = compIndClass.key_letters;
+
+
+// Attributes
+// TODO select ordered by
+index = 0;
+select any attribute related by compIndClass->Attribute[R410] where ( index == selected.order);
+while ( not_empty attribute )
+  attribute.render_initializer();
+  index = index + 1;
+  select any attribute related by compIndClass->Attribute[R410] where ( index == selected.order);
+end while;
+attribute_initializers = T::body();
+T::clear();
+
+attribute_list = "";
+attribute_invocation_list = "";
+attribute_initializers2 = "";
+index = 0;
+select any attribute related by compIndClass->Attribute[R410] where ( index == selected.order);
+while ( not_empty attribute )
+  attribute_list = attribute_list + ", " + attribute.type_reference_name + " " + attribute.name;
+  attribute_invocation_list = attribute_invocation_list + ", " + attribute.name;
+  attribute_initializers2 = attribute_initializers2 + "        this." + attribute.name + " = " + attribute.name + ";\n";
+  index = index + 1;
+  select any attribute related by compIndClass->Attribute[R410] where ( index == selected.order);
+end while;
+
+id1_attributes = "";
+id2_attributes = "";
+id3_attributes = "";
+sep1 = "";
+sep2 = "";
+sep3 = "";
+index = 0;
+select any attribute related by compIndClass->Attribute[R410] where ( index == selected.order);
+while ( not_empty attribute )
+  attribute.render();
+  select many accessors related by attribute->AttributeAccessor[R4510];
+  for each accessor in accessors
+    accessor.render( containing_comp_def:component );
+    if ( AttributeAccessorType::GETTER == accessor.accessor_type and attribute.identifier % 2 == 1 )
+      id1_attributes = id1_attributes + sep1 + accessor.getName() + "()";
+      sep1 = ", ";
+    end if;
+    if ( AttributeAccessorType::GETTER == accessor.accessor_type and ( attribute.identifier / 2 ) % 2 == 1 )
+      id2_attributes = id2_attributes + sep2 + accessor.getName() + "()";
+      sep2 = ", ";
+    end if;
+    if ( AttributeAccessorType::GETTER == accessor.accessor_type and ( attribute.identifier / 4 ) % 2 == 1 )
+      id3_attributes = id3_attributes + sep3 + accessor.getName() + "()";
+      sep3 = ", ";
+    end if;
+  end for;
+  index = index + 1;
+  select any attribute related by compIndClass->Attribute[R410] where ( index == selected.order);
+end while;
+attributes = T::body();
+T::clear();
+
+// Class-based Operations
+select many class_ops related by compIndClass->Operation[R416] where ( selected.is_class_based );
+if ( not_empty class_ops )
+  for each operation in class_ops
+    operation.render( containing_comp_def:component );
+  end for;
+  operations = T::body();
+  T::clear();
+  T::include(file:"class/t.operations.static.java");
+end if;
+static_operations = T::body();
+T::clear();
+
+// Instance-based Operations
+select many inst_ops related by compIndClass->Operation[R416] where ( not selected.is_class_based );
+for each operation in inst_ops
+  operation.render( containing_comp_def:component );
+end for;
+operations = T::body();
+T::clear();
+
+// State Model
+initial_state = "";
+initial_state2 = "";
+state_machine_initializer = "";
+state_machine_initializer2 = "";
+state_machine_decl = "";
+select one sm related by self->StateMachine[R4750];
+if ( not_empty sm )
+  initial_state = ", int initialState";
+  initial_state2 = ", initialState";
+  state_machine_initializer = "        statemachine = new " + sm.name + "(this, context());\n";
+  state_machine_initializer2 = "        statemachine = new " + sm.name + "(this, context(), initialState);\n";
+  sm.render_decl();
+  state_machine_decl = T::body();
+  T::clear();
+end if;
+
+// Events
+select many evts related by sm->Event[R4752];
+for each evt in evts
+  evt.render();
+end for;
+state_machine_events = T::body();
+T::clear();
+
+// Associations (selections)
+select many iselects related by self->InstanceSelector[R442];
+relationship_initializers = "";
+for each iselector in iselects
+  iselector.render();
+  select one sel related by iselector->Selector[R445];
+  if ( sel.multiplicity == Mult::MANY )
+    relationship_initializers = relationship_initializers + "        " + sel.name + "_set = new " + sel.type_reference_name + "Impl();\n";
+  else
+    relationship_initializers = relationship_initializers + "        " + sel.name + "_inst = " + sel.type_reference_name + "Impl.EMPTY_" + T::sub( format:"u_", s:sel.type_reference_name ) + ";\n";
+  end if;
+end for;
+selectors = T::body();
+T::clear();
+
+// Attribute Accessors
+index = 0;
+select any attribute related by compIndClass->Attribute[R410] where ( index == selected.order);
+while ( not_empty attribute )
+  select many accessors related by attribute->AttributeAccessor[R4510];
+  for each accessor in accessors
+    accessor.render_empty();
+  end for;
+  index = index + 1;
+  select any attribute related by compIndClass->Attribute[R410] where ( index == selected.order);
+end while;
+empty_attributes = T::body();
+T::clear();
+
+for each operation in inst_ops
+  operation.render_empty();
+end for;
+empty_operations = T::body();
+T::clear();
+
+for each iselector in iselects
+  iselector.render_empty();
+end for;
+empty_selectors = T::body();
+T::clear();
+
+T::include(file:"class/t.classincomp.impl.java");
+T::emit( file:file.path + "/impl/" + self.name + "Impl" + file.extension );
+T::clear();
+
+// Render component-specific interface for modeled class.
+imports = file.getFormattedImports( type:ImportType::INT );
+
+// Attribute accessors
+index = 0;
+select any attribute related by compIndClass->Attribute[R410] where ( index == selected.order);
+while ( not_empty attribute )
+  select many accessors related by attribute->AttributeAccessor[R4510];
+  for each accessor in accessors
+    accessor.render_interface();
+  end for;
+  index = index + 1;
+  select any attribute related by compIndClass->Attribute[R410] where ( index == selected.order);
+end while;
+attributes = T::body();
+T::clear();
+
+// Instance-based operations
+for each operation in inst_ops
+  operation.render_interface();
+end for;
+operations = T::body();
+T::clear();
+
+// Association methods (selectors)
+for each iselector in iselects
+  iselector.render_interface();
+end for;
+selectors = T::body();
+T::clear();
+
+// Determine whether this class is defined outside a component
+select one compIndInterfaceFile related by compIndClass->File[R401];
+compIndep = not compIndInterfaceFile.exclude;
+
+// Supply package and name of component-independent interface to template
+select one compIndepClass related by self->Class[R408];
+compIndepInterface = compIndepClass.package + "." + compIndepClass.name;
+
+T::include(file:"class/t.classincomp.java");
+T::emit( file:file.path + "/" + self.name + file.extension );
+T::clear();',
+	1,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	0,
+	1);
+INSERT INTO O_TFR
+	VALUES ("2195e150-c60c-48a0-8e67-718b2731f433",
+	"92e3fa0e-1804-4f88-84c7-46a11e6cb56d",
+	'getMany',
+	'',
+	"bcecc117-fbce-4715-b5b5-afc251779591",
+	0,
+	'component = param.component;
+objs = param.objs;
+
+// find and return the set of instances related to the incoming parameters
+// https://support.onefact.net/issues/12231
+select many classInComps_class related by objs->ClassInComponent[R408];
+select many classInComps_comp related by component->ClassInComponent[R408];
+classInComps = classInComps_class & classInComps_comp;
+
+return classInComps;',
+	1,
+	'',
+	"6d2a38bb-4995-4fed-a9e9-4f164f0bf25d",
+	0,
+	2);
+INSERT INTO O_TPARM
+	VALUES ("bd7b3697-e44b-4769-b931-17f3442bd396",
+	"2195e150-c60c-48a0-8e67-718b2731f433",
+	'component',
+	"109e90cb-1d66-46ee-88db-a568044879d0",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("109e90cb-1d66-46ee-88db-a568044879d0",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Component Definition>',
+	'',
+	'',
+	'../component.xtuml');
+INSERT INTO O_TPARM
+	VALUES ("d14a51f6-c69c-435d-b041-cbd9f47e4d09",
+	"2195e150-c60c-48a0-8e67-718b2731f433",
+	'objs',
+	"bf94cd7d-c170-4840-9094-1cec4a2aa7d2",
+	0,
+	'',
+	"bd7b3697-e44b-4769-b931-17f3442bd396",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("bf94cd7d-c170-4840-9094-1cec4a2aa7d2",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref_set<Model Inst>',
+	'',
+	'',
+	'../../classes/classes.xtuml');
+INSERT INTO S_DT_PROXY
+	VALUES ("bcecc117-fbce-4715-b5b5-afc251779591",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref_set<ClassInComponent>',
+	'',
+	'',
+	'../component.xtuml');
+INSERT INTO O_TFR
+	VALUES ("b18b1fb9-467f-4ff1-b82f-1f78b3fc8336",
+	"92e3fa0e-1804-4f88-84c7-46a11e6cb56d",
+	'get',
+	'',
+	"53e504e6-9b65-4f56-a685-839b95582a5e",
+	0,
+	'component = param.component;
+obj = param.obj;
+
+// find and return the one instance related to the incoming parameters
+// https://support.onefact.net/issues/12231
+select many classInComps_class related by obj->ClassInComponent[R408];
+select many classInComps_comp related by component->ClassInComponent[R408];
+classInComps = classInComps_class & classInComps_comp;
+
+// return either an empty handle or the one instance in the set
+select any retVal from instances of ClassInComponent where false;  // Decl
+for each classInComp in classInComps
+  retVal = classInComp;
+end for;
+return retVal;',
+	1,
+	'',
+	"2195e150-c60c-48a0-8e67-718b2731f433",
+	0,
+	3);
+INSERT INTO O_TPARM
+	VALUES ("20e787ce-f122-4b74-890d-e59456625b11",
+	"b18b1fb9-467f-4ff1-b82f-1f78b3fc8336",
+	'obj',
+	"a519e323-b117-4a03-9435-b88e56c2443d",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("a519e323-b117-4a03-9435-b88e56c2443d",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Model Inst>',
+	'',
+	'',
+	'../../classes/classes.xtuml');
+INSERT INTO O_TPARM
+	VALUES ("52a03235-46c4-4b07-8df0-4f642fc47f4c",
+	"b18b1fb9-467f-4ff1-b82f-1f78b3fc8336",
+	'component',
+	"109e90cb-1d66-46ee-88db-a568044879d0",
+	0,
+	'',
+	"20e787ce-f122-4b74-890d-e59456625b11",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("53e504e6-9b65-4f56-a685-839b95582a5e",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<ClassInComponent>',
+	'',
+	'',
+	'../component.xtuml');
+INSERT INTO O_TFR
+	VALUES ("38dbdf86-36a6-43da-97e7-dbd95c457c8f",
+	"92e3fa0e-1804-4f88-84c7-46a11e6cb56d",
+	'knowsComponent',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000001",
+	1,
+	'select one comp_def related by self->ComponentDefinition[R408.''forms instance population of''];
+if ( comp_def == param.component )
+  return true;
+end if;
+return false;',
+	1,
+	'',
+	"b18b1fb9-467f-4ff1-b82f-1f78b3fc8336",
+	0,
+	4);
+INSERT INTO O_TPARM
+	VALUES ("f6c72542-33c5-49b9-9faa-d7a5a10a2312",
+	"38dbdf86-36a6-43da-97e7-dbd95c457c8f",
+	'component',
+	"109e90cb-1d66-46ee-88db-a568044879d0",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO O_NBATTR
+	VALUES ("68224d74-eba7-4939-9b78-c07e12e76c13",
+	"92e3fa0e-1804-4f88-84c7-46a11e6cb56d");
+INSERT INTO O_BATTR
+	VALUES ("68224d74-eba7-4939-9b78-c07e12e76c13",
+	"92e3fa0e-1804-4f88-84c7-46a11e6cb56d");
+INSERT INTO O_ATTR
+	VALUES ("68224d74-eba7-4939-9b78-c07e12e76c13",
+	"92e3fa0e-1804-4f88-84c7-46a11e6cb56d",
+	"539ffb47-36e9-4615-8ab3-fc7c040fddf5",
+	'extends',
+	'Contains the string that follows the Java "extends" keyword
+when rendering an instance of this class.',
+	'',
+	'extends',
+	0,
+	"ba5eda7a-def5-0000-0000-000000000004",
+	'',
+	'');
+INSERT INTO O_REF
+	VALUES ("92e3fa0e-1804-4f88-84c7-46a11e6cb56d",
+	"dc9c4877-4fcb-49df-a886-ab917b250774",
+	0,
+	"c49819d1-92ba-4732-98e5-2b3eca8bc470",
+	"8f0c124a-55f6-41de-9844-451b6463ab15",
+	"1938f193-7fb3-4bfe-b7a5-e7f3221b9da7",
+	"d0fabe99-0939-4ae6-9c05-740746d8b95b",
+	"943ef056-ef80-4210-b25f-a3cdad615973",
+	"fcec66ad-6db9-4df3-bfa3-bfc618e781df",
+	"00000000-0000-0000-0000-000000000000",
+	0,
+	'',
+	'File',
+	'name',
+	'R401');
+INSERT INTO R_RGO_PROXY
+	VALUES ("92e3fa0e-1804-4f88-84c7-46a11e6cb56d",
+	"8f0c124a-55f6-41de-9844-451b6463ab15",
+	"1938f193-7fb3-4bfe-b7a5-e7f3221b9da7",
+	'../../file/file.xtuml');
+INSERT INTO O_RTIDA_PROXY
+	VALUES ("c49819d1-92ba-4732-98e5-2b3eca8bc470",
+	"dc9c4877-4fcb-49df-a886-ab917b250774",
+	0,
+	"8f0c124a-55f6-41de-9844-451b6463ab15",
+	"d0fabe99-0939-4ae6-9c05-740746d8b95b",
+	'../../file/file.xtuml');
+INSERT INTO O_REF
+	VALUES ("92e3fa0e-1804-4f88-84c7-46a11e6cb56d",
+	"09d80bf6-16e0-4433-9763-bde7913f1f4b",
+	0,
+	"0abe7a81-2d4e-4ff4-93c0-e8d364f015e2",
+	"bc1f03c4-8243-4462-b500-e963057d4c0c",
+	"ebd00035-1fdf-492c-8a22-7dc1efaf4d95",
+	"f991dd3e-1422-4709-a4fe-804655feaf05",
+	"943ef056-ef80-4210-b25f-a3cdad615973",
+	"493516ca-843c-403b-8ec9-dcb237ec5e45",
+	"fcec66ad-6db9-4df3-bfa3-bfc618e781df",
+	0,
+	'',
+	'ComponentSpecificType',
+	'name',
+	'R3803');
+INSERT INTO R_RGO_PROXY
+	VALUES ("92e3fa0e-1804-4f88-84c7-46a11e6cb56d",
+	"bc1f03c4-8243-4462-b500-e963057d4c0c",
+	"ebd00035-1fdf-492c-8a22-7dc1efaf4d95",
+	'../../type/type.xtuml');
+INSERT INTO O_RTIDA_PROXY
+	VALUES ("0abe7a81-2d4e-4ff4-93c0-e8d364f015e2",
+	"09d80bf6-16e0-4433-9763-bde7913f1f4b",
+	0,
+	"bc1f03c4-8243-4462-b500-e963057d4c0c",
+	"f991dd3e-1422-4709-a4fe-804655feaf05",
+	'../../type/type.xtuml');
+INSERT INTO O_RATTR
+	VALUES ("943ef056-ef80-4210-b25f-a3cdad615973",
+	"92e3fa0e-1804-4f88-84c7-46a11e6cb56d",
+	"864744e7-2f4c-4f9f-b744-73335f8defd3",
+	"b5de937b-55ee-48e4-8e91-d9d73c3f0fab",
+	1,
+	'name');
+INSERT INTO O_BATTR_PROXY
+	VALUES ("864744e7-2f4c-4f9f-b744-73335f8defd3",
+	"b5de937b-55ee-48e4-8e91-d9d73c3f0fab",
+	'../../type/Type/Type.xtuml');
+INSERT INTO O_ATTR
+	VALUES ("943ef056-ef80-4210-b25f-a3cdad615973",
+	"92e3fa0e-1804-4f88-84c7-46a11e6cb56d",
+	"00000000-0000-0000-0000-000000000000",
+	'name',
+	'
+
+
+
+',
+	'',
+	'name',
+	0,
+	"ba5eda7a-def5-0000-0000-000000000007",
+	'',
+	'');
+INSERT INTO O_REF
+	VALUES ("92e3fa0e-1804-4f88-84c7-46a11e6cb56d",
+	"dc9c4877-4fcb-49df-a886-ab917b250774",
+	0,
+	"3dfc4c02-94c0-4383-8964-c3bfa4b2e9bd",
+	"8f0c124a-55f6-41de-9844-451b6463ab15",
+	"1938f193-7fb3-4bfe-b7a5-e7f3221b9da7",
+	"d0fabe99-0939-4ae6-9c05-740746d8b95b",
+	"539ffb47-36e9-4615-8ab3-fc7c040fddf5",
+	"3303ed45-d6a6-4178-a5ed-f3980cdbcf7b",
+	"00000000-0000-0000-0000-000000000000",
+	0,
+	'',
+	'File',
+	'package',
+	'R401');
+INSERT INTO O_RTIDA_PROXY
+	VALUES ("3dfc4c02-94c0-4383-8964-c3bfa4b2e9bd",
+	"dc9c4877-4fcb-49df-a886-ab917b250774",
+	0,
+	"8f0c124a-55f6-41de-9844-451b6463ab15",
+	"d0fabe99-0939-4ae6-9c05-740746d8b95b",
+	'../../file/file.xtuml');
+INSERT INTO O_REF
+	VALUES ("92e3fa0e-1804-4f88-84c7-46a11e6cb56d",
+	"09d80bf6-16e0-4433-9763-bde7913f1f4b",
+	0,
+	"fd998be5-316f-4b55-9558-dd5586b1fea9",
+	"bc1f03c4-8243-4462-b500-e963057d4c0c",
+	"ebd00035-1fdf-492c-8a22-7dc1efaf4d95",
+	"f991dd3e-1422-4709-a4fe-804655feaf05",
+	"539ffb47-36e9-4615-8ab3-fc7c040fddf5",
+	"2930fbf1-bee2-4ceb-b0a3-37c7f8bf9947",
+	"3303ed45-d6a6-4178-a5ed-f3980cdbcf7b",
+	0,
+	'',
+	'ComponentSpecificType',
+	'package',
+	'R3803');
+INSERT INTO O_RTIDA_PROXY
+	VALUES ("fd998be5-316f-4b55-9558-dd5586b1fea9",
+	"09d80bf6-16e0-4433-9763-bde7913f1f4b",
+	0,
+	"bc1f03c4-8243-4462-b500-e963057d4c0c",
+	"f991dd3e-1422-4709-a4fe-804655feaf05",
+	'../../type/type.xtuml');
+INSERT INTO O_RATTR
+	VALUES ("539ffb47-36e9-4615-8ab3-fc7c040fddf5",
+	"92e3fa0e-1804-4f88-84c7-46a11e6cb56d",
+	"f44b46d8-90bf-4603-93b9-9beb6bd0fe62",
+	"b5de937b-55ee-48e4-8e91-d9d73c3f0fab",
+	1,
+	'package');
+INSERT INTO O_BATTR_PROXY
+	VALUES ("f44b46d8-90bf-4603-93b9-9beb6bd0fe62",
+	"b5de937b-55ee-48e4-8e91-d9d73c3f0fab",
+	'../../type/Type/Type.xtuml');
+INSERT INTO O_ATTR
+	VALUES ("539ffb47-36e9-4615-8ab3-fc7c040fddf5",
+	"92e3fa0e-1804-4f88-84c7-46a11e6cb56d",
+	"943ef056-ef80-4210-b25f-a3cdad615973",
+	'package',
+	'
+
+
+
+',
+	'',
+	'package',
+	0,
+	"ba5eda7a-def5-0000-0000-000000000007",
+	'',
+	'');
+INSERT INTO O_ID
+	VALUES (0,
+	"92e3fa0e-1804-4f88-84c7-46a11e6cb56d");
+INSERT INTO O_OIDA
+	VALUES ("943ef056-ef80-4210-b25f-a3cdad615973",
+	"92e3fa0e-1804-4f88-84c7-46a11e6cb56d",
+	0,
+	'name');
+INSERT INTO O_OIDA
+	VALUES ("539ffb47-36e9-4615-8ab3-fc7c040fddf5",
+	"92e3fa0e-1804-4f88-84c7-46a11e6cb56d",
+	0,
+	'package');
+INSERT INTO O_ID
+	VALUES (1,
+	"92e3fa0e-1804-4f88-84c7-46a11e6cb56d");
+INSERT INTO O_ID
+	VALUES (2,
+	"92e3fa0e-1804-4f88-84c7-46a11e6cb56d");
+INSERT INTO PE_PE
+	VALUES ("92e3fa0e-1804-4f88-84c7-46a11e6cb56d",
+	1,
+	"6672bc72-2c65-4b18-94e9-fea6a87afcbd",
+	"00000000-0000-0000-0000-000000000000",
+	4);
+INSERT INTO EP_PKG_PROXY
+	VALUES ("6672bc72-2c65-4b18-94e9-fea6a87afcbd",
+	"00000000-0000-0000-0000-000000000000",
+	"9092a4a9-91f5-4e59-984b-3ca72917240d",
+	'component',
+	'Through the mechanism of Package Reference, both class and relationship definitions may be shared 
+by more than one component. To support this, certain architectural classes are component-dependent.
+
+It will be useful to refer to the class package class model and descriptions: these two packages 
+are closely related - as can be seen by the use of mutually imported classes.
+
+In this package the classes ClassInComponent, RelationshipInComponent and UtilityInComponent represent 
+a component''s use of a corresponding artifact definition in a component-specific way.
+Each is represented as an associative class on a relation between the artifact definition and the 
+component in which it is used.
+
+The Class (Model Inst), Relationship (Class Relationship) and Utility classes each represent 
+component-independent artifact definitions, respectively. One instance of each is created on first 
+encountering an artifact definition during transform from the meta-model representation.
+In the cases of Class and Relationship, a component-dependent associative class is also created and 
+related to the component currently being transformed.
+
+Any subsequent re-occurence of an artifact definition while processing a component can only represent 
+a shared use via Package Reference; a new component-dependent associative instance links the orginal 
+artifact definition to the new referring component.
+',
+	0,
+	'../component.xtuml');

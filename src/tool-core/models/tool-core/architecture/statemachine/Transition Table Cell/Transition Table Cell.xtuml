@@ -37,15 +37,24 @@ while ( not_empty parm )
 end while;
 
 select one end_state related by self->State[R4757];
-select any txn_action related by self->Transition[R4757]->InvocableObject[R427]->CodeBlock[R4000];
+
+// we just need to know whether or not this cell has a transition activity, so there is no need to 
+// find a particular component-specific code block -- we just need to know whether there is at least one
+// the resulting flag is then used by the template
+select any txn_action related by self->Transition[R4757]->
+  InvocableObject[R427]->InvocableInComponent[R4001]->CodeBlock[R4000];
 has_txn_action = not_empty txn_action;
+
 evt_name = evt.name;
 end_state_name = "";
 if (not_empty end_state)
   end_state_name = end_state.name;
 end if;
 
-select any entry_action related by end_state->InvocableObject[R427]->CodeBlock[R4000];
+// we just need to know whether or not this state has an entry activity, so there is no need to 
+// find a particular component-specific code block -- we just need to know whether there is at least one
+// the resulting flag is then used by the template
+select any entry_action related by end_state->InvocableObject[R427]->InvocableInComponent[R4001]->CodeBlock[R4000];
 has_entry_action = not_empty entry_action;
 
 // check same data rule
@@ -67,6 +76,7 @@ T::include(file:"statemachine/t.transitiontablecell.java");',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",
+	0,
 	0);
 INSERT INTO O_REF
 	VALUES ("f719cf80-112a-4784-a412-1defdd5724ce",

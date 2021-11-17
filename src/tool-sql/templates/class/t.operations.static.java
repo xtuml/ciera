@@ -1,6 +1,6 @@
-    public static class CLASS extends ActionHome<${self.comp_name}> {
+    public static class CLASS extends ActionHome<${comp_name}> {
 
-        public CLASS( ${self.comp_name} context ) {
+        public CLASS( ${comp_name} context ) {
             super( context );
         }
 

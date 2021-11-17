@@ -14,12 +14,28 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'if ( "" != self.package )//and self.package != file.package );
-  ::addStringToImports( file:param.file, s:self.package + "." + self.name, type:param.type );
+	'file = param.file;
+if ( "" != self.package )//and self.package != file.package );
+	select one type_component related by self->ComponentSpecificType[R407]->ComponentDefinition[R3804.''defined by''];
+	if ( empty type_component )
+    select one type_component related by self->UnresolvedType[R407]->ComponentDefinition[R3805.''referred to by''];
+  end if;
+  if ( not_empty type_component )
+		// filter out component-specifics that do not belong in the currently processing component.
+    // add the file to the imports for this type only if this type is component-independent, 
+    // or the file is associated with the same component as the component-specific type
+    if file.knowsComponent( component:type_component )
+      ::addStringToImports( file:param.file, s:self.package + "." + self.name, type:param.type );
+    end if;
+  else
+  	// just add it...
+    ::addStringToImports( file:param.file, s:self.package + "." + self.name, type:param.type );
+  end if;
 end if;',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",
+	0,
 	0);
 INSERT INTO O_TPARM
 	VALUES ("f7efc991-55ae-4eb0-a925-1d323c8aa04d",
@@ -64,6 +80,7 @@ INSERT INTO O_TFR
 // builtin
 // class
 // class set
+// class in component
 // enum
 select one unresolved_type related by self->UnresolvedType[R407];
 if ( not_empty unresolved_type )
@@ -73,9 +90,19 @@ select one obj related by self->Class[R407];
 if ( not_empty obj )
   unrelate self from obj across R407;
 end if;
-select one objset related by self->ClassSet[R407];
+select one objset related by self->ComponentSpecificType[R407]->ClassSet[R3803];
 if ( not_empty objset )
-  unrelate self from objset across R407;
+  select one comp_spec_type related by self->ComponentSpecificType[R407];
+  unrelate self from comp_spec_type across R407;
+  unrelate comp_spec_type from objset across R3803;
+  delete object instance comp_spec_type;
+end if;
+select one class_in_comp related by self->ComponentSpecificType[R407]->ClassInComponent[R3803];
+if ( not_empty class_in_comp )
+  select one comp_spec_type related by self->ComponentSpecificType[R407];
+  unrelate self from comp_spec_type across R407;
+  unrelate comp_spec_type from class_in_comp across R3803;
+  delete object instance comp_spec_type;
 end if;
 select one edt related by self->EnumeratedType[R407];
 if ( not_empty edt )
@@ -106,6 +133,7 @@ delete object instance self;',
 	1,
 	'',
 	"12ce1746-ca93-4f76-9666-c69d5e6b3214",
+	0,
 	0);
 INSERT INTO O_TFR
 	VALUES ("1f12226e-5862-4f7b-b690-4a955327d691",
@@ -123,6 +151,7 @@ return primitive;',
 	1,
 	'',
 	"f461d089-804a-4f8f-b01a-4c93ffcc002e",
+	0,
 	0);
 INSERT INTO O_TFR
 	VALUES ("89690c94-da17-43cb-b88e-165cde11c3f6",
@@ -132,63 +161,33 @@ INSERT INTO O_TFR
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	's_dt = param.s_dt;
-select one unresolved_type related by s_dt->Type[R423]->UnresolvedType[R407];
+defining_comp = param.defining_comp;
+
+// if it exists, find the (one) unresolved type for this S_DT and the defining component
+select many unresolved_types_sdt related by s_dt->Type[R423]->UnresolvedType[R407]
+  where( not selected.comp_indep_class );
+select many unresolved_types_comp related by defining_comp->UnresolvedType[R3805]
+  where( not selected.comp_indep_class );
+unresolved_types = unresolved_types_sdt & unresolved_types_comp;
+select any old_type related by unresolved_types->Type[R407];
+select one unresolved_type related by old_type->UnresolvedType[R407];
+
+// if there is an unresolved type, unhook and dispose it, linking
+// all references to the new type
 if ( not_empty unresolved_type )
-  select one old_type related by unresolved_type->Type[R407];
-  
-  // unrelate old types and hook up the new types
-  select many old_type_refs related by old_type->TypeReference[R3800];
-  for each old_type_ref in old_type_refs
-    // get the corresponding new type ref
-    select any self_ref related by self->TypeReference[R3800] where false;
-    select one old_basic_ref related by old_type_ref->BasicTypeReference[R3801];
-    if ( not_empty old_basic_ref )
-      self_ref = TypeReference::getInstanceWithDimString( type:self, dims:"" );
-    else
-    select one old_array_ref related by old_type_ref->ArrayTypeReference[R3801];
-    if ( not_empty old_array_ref )
-      self_ref = TypeReference::getInstanceWithDimString( type:self, dims:old_array_ref.dims );
-    end if; end if;
-    // replace types
-    select many attrs related by old_type_ref->Attribute[R424];
-    for each attr in attrs
-      unrelate old_type_ref from attr across R424;
-      relate self_ref to attr across R424;
-    end for;
-    select many invocables related by old_type_ref->InvocableObject[R428];
-    for each invocable in invocables
-      unrelate old_type_ref from invocable across R428;
-      relate self_ref to invocable across R428;
-    end for;
-    select many parms related by old_type_ref->FormalParameter[R431];
-    for each parm in parms
-      unrelate old_type_ref from parm across R431;
-      relate self_ref to parm across R431;
-    end for;
-    select many selectors related by old_type_ref->Selector[R446];
-    for each selector in selectors
-      unrelate old_type_ref from selector across R446;
-      relate self_ref to selector across R446;
-    end for;
-    select many expressions related by old_type_ref->Expression[R795];
-    for each expression in expressions
-      unrelate old_type_ref from expression across R795;
-      relate self_ref to expression across R795;
-    end for;
-  end for;
+	select one component related by unresolved_type->ComponentDefinition[R3805];
+	unrelate unresolved_type from component across R3805;
+	self.updateTypeReferences( old_type:old_type );
+	unrelate old_type from s_dt across R423;
+	old_type.dispose();
+end if;
 
-  unrelate old_type from s_dt across R423;
-  relate self to s_dt across R423;
-  old_type.dispose();
-
-elif ( not_empty s_dt )
-  relate self to s_dt across R423;
-else
-  // TODO bad
-end if;',
+// link the new type
+relate self to s_dt across R423;',
 	1,
 	'',
 	"1f12226e-5862-4f7b-b690-4a955327d691",
+	0,
 	0);
 INSERT INTO O_TPARM
 	VALUES ("a96a2768-7ac4-433e-8e74-86f0e8f534ad",
@@ -206,6 +205,177 @@ INSERT INTO S_DT_PROXY
 	'',
 	'',
 	'../../../../../../mcooa/models/mcooa/ooaofooa/Domain/Domain.xtuml');
+INSERT INTO O_TPARM
+	VALUES ("c16260ae-8d43-4e2e-8bf0-3aa7519d50b2",
+	"89690c94-da17-43cb-b88e-165cde11c3f6",
+	'defining_comp',
+	"109e90cb-1d66-46ee-88db-a568044879d0",
+	0,
+	'',
+	"a96a2768-7ac4-433e-8e74-86f0e8f534ad",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("109e90cb-1d66-46ee-88db-a568044879d0",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Component Definition>',
+	'',
+	'',
+	'../../component/component.xtuml');
+INSERT INTO O_TFR
+	VALUES ("d5962256-c878-4c80-8ba8-04486e1a57d0",
+	"b5de937b-55ee-48e4-8e91-d9d73c3f0fab",
+	'updateTypeReferences',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'old_type = param.old_type;
+
+// unrelate old types and hook up the new types
+select many old_type_refs related by old_type->TypeReference[R3800];
+for each old_type_ref in old_type_refs
+  // get the corresponding new type ref
+  select any self_ref related by self->TypeReference[R3800] where false;
+  select one old_basic_ref related by old_type_ref->BasicTypeReference[R3801];
+  if ( not_empty old_basic_ref )
+    self_ref = TypeReference::getInstanceWithDimString( type:self, dims:"" );
+  else
+    select one old_array_ref related by old_type_ref->ArrayTypeReference[R3801];
+    if ( not_empty old_array_ref )
+      self_ref = TypeReference::getInstanceWithDimString( type:self, dims:old_array_ref.dims );
+    end if; 
+  end if;
+  // replace types
+  select many attrs related by old_type_ref->Attribute[R424];
+  for each attr in attrs
+    unrelate old_type_ref from attr across R424;
+    relate self_ref to attr across R424;
+  end for;
+  select many invocables related by old_type_ref->InvocableObject[R428];
+  for each invocable in invocables
+    unrelate old_type_ref from invocable across R428;
+    relate self_ref to invocable across R428;
+  end for;
+  select many parms related by old_type_ref->FormalParameter[R431];
+  for each parm in parms
+    unrelate old_type_ref from parm across R431;
+    relate self_ref to parm across R431;
+  end for;
+  select many selectors related by old_type_ref->Selector[R446];
+  for each selector in selectors
+    unrelate old_type_ref from selector across R446;
+    relate self_ref to selector across R446;
+  end for;
+  select many expressions related by old_type_ref->Expression[R795];
+  for each expression in expressions
+    unrelate old_type_ref from expression across R795;
+    relate self_ref to expression across R795;
+  end for;
+end for;',
+	1,
+	'',
+	"5e17ae98-98d9-44d5-9ae8-0386a911e9e4",
+	0,
+	1);
+INSERT INTO O_TPARM
+	VALUES ("7400788e-0895-43be-a7f3-ee3a00b7fa3e",
+	"d5962256-c878-4c80-8ba8-04486e1a57d0",
+	'old_type',
+	"b4a754cc-b0a5-4777-ae98-df570434ea2a",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("b4a754cc-b0a5-4777-ae98-df570434ea2a",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Type>',
+	'',
+	'',
+	'../type.xtuml');
+INSERT INTO O_TFR
+	VALUES ("3dccbd13-d390-45d0-985c-08635b740db4",
+	"b5de937b-55ee-48e4-8e91-d9d73c3f0fab",
+	'get',
+	'',
+	"b4a754cc-b0a5-4777-ae98-df570434ea2a",
+	0,
+	'// return the resolved type for this s_dt and component
+// note: this operation assumes all types have been resolved
+s_dt = param.s_dt;
+containing_comp = param.containing_comp;
+
+select any type from instances of Type where false;  // Decl
+
+select any compSpecificType related by s_dt->Type[R423]->ComponentSpecificType[R407];
+if ( not_empty compSpecificType )
+  // find component-specific type for this s_dt and component
+  select many compSpecificSdtTypes related by s_dt->Type[R423]->ComponentSpecificType[R407];
+  select many compSpecificCompTypes related by containing_comp->ComponentSpecificType[R3804];
+  compSpecificTypes = compSpecificSdtTypes & compSpecificCompTypes;
+  select any type related by compSpecificTypes->Type[R407];
+else
+  select any type related by s_dt->Type[R423];
+end if;
+return type;',
+	1,
+	'',
+	"d5962256-c878-4c80-8ba8-04486e1a57d0",
+	0,
+	2);
+INSERT INTO O_TPARM
+	VALUES ("98d5054f-087c-482c-b2c7-09b82c579fc6",
+	"3dccbd13-d390-45d0-985c-08635b740db4",
+	's_dt',
+	"4a90cd45-ece0-4e72-afe7-44996f9d7e1e",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO O_TPARM
+	VALUES ("0b1cd05c-8ff6-466b-80b7-7e003b0e4a75",
+	"3dccbd13-d390-45d0-985c-08635b740db4",
+	'containing_comp',
+	"109e90cb-1d66-46ee-88db-a568044879d0",
+	0,
+	'',
+	"98d5054f-087c-482c-b2c7-09b82c579fc6",
+	'');
+INSERT INTO O_TFR
+	VALUES ("5e17ae98-98d9-44d5-9ae8-0386a911e9e4",
+	"b5de937b-55ee-48e4-8e91-d9d73c3f0fab",
+	'resolveCompIndepClass',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	's_dt = param.s_dt;
+
+// combine multiple, component-referred unresolved types into 
+// a single, component-independent resolved class type
+select many unresolved_types related by s_dt->Type[R423]->UnresolvedType[R407]
+  where ( selected.comp_indep_class );
+for each unresolved_type in unresolved_types
+  select one component related by unresolved_type->ComponentDefinition[R3805];
+  unrelate unresolved_type from component across R3805;
+  select one old_type related by unresolved_type->Type[R407];
+  self.updateTypeReferences( old_type:old_type );
+  unrelate old_type from s_dt across R423;
+  old_type.dispose();
+end for;
+relate self to s_dt across R423;',
+	1,
+	'',
+	"89690c94-da17-43cb-b88e-165cde11c3f6",
+	0,
+	3);
+INSERT INTO O_TPARM
+	VALUES ("e2631773-31db-42b6-ac3d-6161b150be45",
+	"5e17ae98-98d9-44d5-9ae8-0386a911e9e4",
+	's_dt',
+	"4a90cd45-ece0-4e72-afe7-44996f9d7e1e",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
 INSERT INTO O_NBATTR
 	VALUES ("864744e7-2f4c-4f9f-b744-73335f8defd3",
 	"b5de937b-55ee-48e4-8e91-d9d73c3f0fab");
@@ -275,7 +445,7 @@ INSERT INTO O_REF
 	'',
 	'Data Type',
 	'DT_ID',
-	'R423.''is basis for''');
+	'R423.''is transformed from''');
 INSERT INTO R_RGO_PROXY
 	VALUES ("b5de937b-55ee-48e4-8e91-d9d73c3f0fab",
 	"4523c521-4f91-406b-aba0-fca6419b2dd4",
@@ -341,6 +511,21 @@ INSERT INTO EP_PKG_PROXY
 	"00000000-0000-0000-0000-000000000000",
 	"9092a4a9-91f5-4e59-984b-3ca72917240d",
 	'type',
-	'',
+	'Each unresolved type is associated with a referring component when it is created, 
+enabling each component-specific type to be resolved on a component boundary.  
+
+When a component-independent class type is resolved, multiple instances of unresolved type 
+(each associated with a referring component) are removed and replaced with a single, 
+component-independent, resolved class type.  This work is handled by a specific operation 
+used only for the resolution of component-independent class types.
+
+For the few cases in which a component-independent class is required, a specific 
+method is used to obtain a type reference because the callers in this case know
+that a component-independent class is required.  This allows the general-purpose 
+method to handle all other cases without the need to tease out this one.
+
+Separate methods are used to resolve types other than class and class set types, 
+component-independent class types and component-speicfic types to simplify the 
+logic in all three type-resolution methods.',
 	0,
 	'../type.xtuml');

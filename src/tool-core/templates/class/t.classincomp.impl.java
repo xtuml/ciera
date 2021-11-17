@@ -4,28 +4,28 @@ ${imports}
 
 public class ${self.name}Impl extends ${self.extends} implements ${self.name} {
 
-    public static final String KEY_LETTERS = "${self.key_letters}";
+    public static final String KEY_LETTERS = "${key_letters}";
     public static final ${self.name} EMPTY_$u_{self.name} = new Empty${self.name}();
 
-    private ${self.comp_name} context;
+    private ${comp_name} context;
 
     // constructors
-    private ${self.name}Impl( ${self.comp_name} context ) {
+    private ${self.name}Impl( ${comp_name} context ) {
         this.context = context;
 ${attribute_initializers}${relationship_initializers}${state_machine_initializer}    }
 
 .if (attribute_list != "" )
-    private ${self.name}Impl( ${self.comp_name} context${attribute_list}${initial_state} ) {
+    private ${self.name}Impl( ${comp_name} context${attribute_list}${initial_state} ) {
         this.context = context;
 ${attribute_initializers2}${relationship_initializers}${state_machine_initializer2}    }
 .end if
 
-    private ${self.name}Impl( ${self.comp_name} context, UniqueId instanceId${attribute_list}${initial_state} ) {
+    private ${self.name}Impl( ${comp_name} context, UniqueId instanceId${attribute_list}${initial_state} ) {
         super(instanceId);
         this.context = context;
 ${attribute_initializers2}${relationship_initializers}${state_machine_initializer2}    }
 
-    public static ${self.name} create( ${self.comp_name} context ) throws XtumlException {
+    public static ${self.name} create( ${comp_name} context ) throws XtumlException {
         ${self.name} new${self.name} = new ${self.name}Impl( context );
         if ( context.addInstance( new${self.name} ) ) {
             new${self.name}.getRunContext().addChange(new InstanceCreatedDelta(new${self.name}, KEY_LETTERS));
@@ -35,7 +35,7 @@ ${attribute_initializers2}${relationship_initializers}${state_machine_initialize
     }
 
 .if (attribute_list != "" )
-    public static ${self.name} create( ${self.comp_name} context${attribute_list}${initial_state} ) throws XtumlException {
+    public static ${self.name} create( ${comp_name} context${attribute_list}${initial_state} ) throws XtumlException {
         ${self.name} new${self.name} = new ${self.name}Impl( context${attribute_invocation_list}${initial_state2} );
         if ( context.addInstance( new${self.name} ) ) {
             return new${self.name};
@@ -44,7 +44,7 @@ ${attribute_initializers2}${relationship_initializers}${state_machine_initialize
     }
 .end if
 
-    public static ${self.name} create( ${self.comp_name} context, UniqueId instanceId${attribute_list}${initial_state} ) throws XtumlException {
+    public static ${self.name} create( ${comp_name} context, UniqueId instanceId${attribute_list}${initial_state} ) throws XtumlException {
         ${self.name} new${self.name} = new ${self.name}Impl( context, instanceId${attribute_invocation_list}${initial_state2} );
         if ( context.addInstance( new${self.name} ) ) {
             return new${self.name};
@@ -116,7 +116,7 @@ ${selectors}
     }
 
     @Override
-    public ${self.comp_name} context() {
+    public ${comp_name} context() {
         return context;
     }
 

@@ -11,38 +11,65 @@ INSERT INTO O_TFR
 	VALUES ("56e6f804-f80c-496e-a630-71a74e00da71",
 	"327e89b2-6713-4172-b27c-01d702ab5eed",
 	'getInstance',
-	'',
+	'All unresolved types are referred to by a specific component.  
+These may eventually be combined into a single, resolved, component-independent 
+type when the subtype for that type is created, but we cannot know that a type is 
+component-independent until it has been thus resolved.
+
+If there is a resolved, component-specific type for this S_DT and component, it is used.
+If there is an unresolved type for this S_DT and component, it is used.
+If there is a resolved, component-independent type for this S_DT, it is used.
+
+If there are no types for this S_DT, a new unresolved type is created for this component.
+If there are any resolved component-specific types for this S_DT, but not for this component, then this is 
+a component-specific type, and a new unresolved type is created for this component.
+If there are any unresolved types for this S_DT, but not one for this component, this type has not yet 
+been resolved, so a new unresolved type for this component is created.',
 	"096d9dad-f227-4793-bb43-a1915881b825",
 	0,
 	's_dt = param.s_dt;
 s_dims = param.s_dims;
-select one type related by s_dt->Type[R423];
-if ( empty type ) // Create new Unresolved Type
-  // get the next unique number
-  num = 0;
-  select many unresolved_types from instances of UnresolvedType;
-  for each ut in unresolved_types
-    if ( ut.num >= num )
-      num = ut.num + 1;
-    end if;
-  end for;
+referring_comp = param.referring_comp; 
 
-  create object instance type of Type;
-  type.name = "UnresolvedType" + STRING::itoa( i:num );
-  type.package = "";
-  if ( not_empty s_dt )
-    relate s_dt to type across R423;
-  else
-    // TODO bad
-  end if;
-  create object instance unresolved_type of UnresolvedType;
-  relate unresolved_type to type across R407;
-  unresolved_type.num = num;
+select any type from instances of Type where false;  // Decl
+select many sdtTypes related by s_dt->Type[R423];
+
+// Find a component-specific resolved type, if it exists, for this S_DT and component
+select many compSpecificSdtTypes related by sdtTypes->ComponentSpecificType[R407];
+select many compSpecificCompTypes related by referring_comp->ComponentSpecificType[R3804];
+compSpecificTypes = compSpecificSdtTypes & compSpecificCompTypes;
+select any resolvedType related by compSpecificTypes->Type[R407];
+
+// Find an unresolved type if it exists, referred to by this component, for this S_DT
+select many unresolvedCompTypes related by referring_comp->UnresolvedType[R3805];
+select many unresolvedSdtTypes related by sdtTypes->UnresolvedType[R407];
+unresolvedTypes = unresolvedSdtTypes & unresolvedCompTypes;
+select any unresolvedType related by unresolvedTypes->Type[R407];
+
+// if a component-specific resolved type exists for this S_DT and component, use it
+if ( not_empty resolvedType ) 
+  type = resolvedType;
+  
+// else, if an unresolved type exists for this S_DT and component, use it
+elif ( not_empty unresolvedType )
+  type = unresolvedType;
+  
+// else, if there are no types at all for this S_DT, 
+// or there is a resolved component-specific type for this s_dt, but not this component,
+// or there is an unresolved type for this s_dt, but not for this component, then
+// create a new unresolved type referred to by this component
+elif ( empty sdtTypes or not_empty compSpecificSdtTypes or not_empty unresolvedSdtTypes )
+  type = UnresolvedType::populate( s_dt:s_dt, referring_comp:referring_comp, comp_indep_class:false );
+  
+// else, this must be a component-independent one, so use it
+else
+  select any type related by s_dt->Type[R423];
 end if;
 return TypeReference::getInstanceFromType( type:type, s_dims:s_dims );',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",
+	0,
 	0);
 INSERT INTO O_TPARM
 	VALUES ("798c298c-1b4c-4448-a93b-cbce9e4b578f",
@@ -76,6 +103,22 @@ INSERT INTO S_DT_PROXY
 	'',
 	'',
 	'../../../../../../mcooa/models/mcooa/ooaofooa/Domain/Domain.xtuml');
+INSERT INTO O_TPARM
+	VALUES ("17adeb83-a3c2-40ab-95f1-8fc70eed5077",
+	"56e6f804-f80c-496e-a630-71a74e00da71",
+	'referring_comp',
+	"109e90cb-1d66-46ee-88db-a568044879d0",
+	0,
+	'',
+	"f35ed199-89a5-49b6-b653-3e0d467b30cc",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("109e90cb-1d66-46ee-88db-a568044879d0",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Component Definition>',
+	'',
+	'',
+	'../../component/component.xtuml');
 INSERT INTO S_DT_PROXY
 	VALUES ("096d9dad-f227-4793-bb43-a1915881b825",
 	"00000000-0000-0000-0000-000000000000",
@@ -107,6 +150,7 @@ return type_ref;',
 	1,
 	'',
 	"56e6f804-f80c-496e-a630-71a74e00da71",
+	0,
 	0);
 INSERT INTO O_TPARM
 	VALUES ("7279453c-598a-466a-b348-2e038032572d",
@@ -154,6 +198,7 @@ return type_ref;',
 	1,
 	'',
 	"40f09b5c-e4cc-4729-b46c-9af64c3c5ba4",
+	0,
 	0);
 INSERT INTO O_TPARM
 	VALUES ("89fca004-50fc-4105-a231-350852f9e42a",
@@ -226,6 +271,7 @@ end if;',
 	1,
 	'',
 	"c091ca8a-9cfc-40ff-a937-1d41a921fb2b",
+	0,
 	0);
 INSERT INTO O_TPARM
 	VALUES ("257226de-561e-4d0c-b501-30011d42b7d1",
@@ -244,6 +290,73 @@ INSERT INTO O_TPARM
 	0,
 	'',
 	"257226de-561e-4d0c-b501-30011d42b7d1",
+	'');
+INSERT INTO O_TFR
+	VALUES ("66e6d64a-99e6-4f1e-b82c-669f17edf43f",
+	"327e89b2-6713-4172-b27c-01d702ab5eed",
+	'getCompIndClassTypeReference',
+	'All unresolved types are referred to by a specific component.  
+These may eventually be combined into a single, resolved, component-independent 
+type when the subtype for that type is created, but we cannot know that a type is 
+component-independent until it has been thus resolved.
+
+If there is a resolved, component-specific type for this S_DT and component, it is used.
+If there is an unresolved type for this S_DT and component, it is used.
+If there is a resolved, component-independent type for this S_DT, it is used.
+
+If there are no types for this S_DT, a new unresolved type is created for this component.
+If there are any resolved component-specific types for this S_DT, but not for this component, then this is 
+a component-specific type, and a new unresolved type is created for this component.
+If there are any unresolved types for this S_DT, but not one for this component, this type has not yet 
+been resolved, so a new unresolved type for this component is created.',
+	"096d9dad-f227-4793-bb43-a1915881b825",
+	0,
+	's_dt = param.s_dt;
+s_dims = param.s_dims;
+referring_comp = param.referring_comp;
+
+select any type from instances of Type where false;  // Decl
+select many types related by s_dt->Type[R423];
+
+// if no type exists, create a new unresolved one
+if ( empty types ) 
+  type = UnresolvedType::populate( s_dt:s_dt, referring_comp:referring_comp, comp_indep_class:true );
+else
+  // find the component-independent class type for this s_dt 
+  select any type related by types->Class[R407]->Type[R407];
+end if;
+return TypeReference::getInstanceFromType( type:type, s_dims:s_dims );',
+	1,
+	'',
+	"a7ffd85c-0179-4a37-b6eb-71c16845c088",
+	0,
+	0);
+INSERT INTO O_TPARM
+	VALUES ("a505ee89-2895-4428-b02b-5ae883726c29",
+	"66e6d64a-99e6-4f1e-b82c-669f17edf43f",
+	's_dt',
+	"4a90cd45-ece0-4e72-afe7-44996f9d7e1e",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO O_TPARM
+	VALUES ("6ae68e5e-4bab-47a0-8020-ccc5925ed2a3",
+	"66e6d64a-99e6-4f1e-b82c-669f17edf43f",
+	's_dims',
+	"9e615117-5ec7-43cc-a3c5-fe7cdd626110",
+	0,
+	'',
+	"a505ee89-2895-4428-b02b-5ae883726c29",
+	'');
+INSERT INTO O_TPARM
+	VALUES ("a38f6f61-bf2c-4d5d-9a7a-8a36a946613c",
+	"66e6d64a-99e6-4f1e-b82c-669f17edf43f",
+	'referring_comp',
+	"109e90cb-1d66-46ee-88db-a568044879d0",
+	0,
+	'',
+	"6ae68e5e-4bab-47a0-8020-ccc5925ed2a3",
 	'');
 INSERT INTO O_REF
 	VALUES ("327e89b2-6713-4172-b27c-01d702ab5eed",
@@ -395,6 +508,21 @@ INSERT INTO EP_PKG_PROXY
 	"00000000-0000-0000-0000-000000000000",
 	"9092a4a9-91f5-4e59-984b-3ca72917240d",
 	'type',
-	'',
+	'Each unresolved type is associated with a referring component when it is created, 
+enabling each component-specific type to be resolved on a component boundary.  
+
+When a component-independent class type is resolved, multiple instances of unresolved type 
+(each associated with a referring component) are removed and replaced with a single, 
+component-independent, resolved class type.  This work is handled by a specific operation 
+used only for the resolution of component-independent class types.
+
+For the few cases in which a component-independent class is required, a specific 
+method is used to obtain a type reference because the callers in this case know
+that a component-independent class is required.  This allows the general-purpose 
+method to handle all other cases without the need to tease out this one.
+
+Separate methods are used to resolve types other than class and class set types, 
+component-independent class types and component-speicfic types to simplify the 
+logic in all three type-resolution methods.',
 	0,
 	'../type.xtuml');

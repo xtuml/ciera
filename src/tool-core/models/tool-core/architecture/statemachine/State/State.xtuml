@@ -33,13 +33,16 @@ if ( not_empty evt_invocable )
   end if;
 end if;
 select one invocable related by self->InvocableObject[R427];
-body = invocable.body();
+select one component related by self->StateMachine[R4751]->ClassInComponent[R4750]->ComponentDefinition[R408];
+invocableInComp = InvocableInComponent::get( invocable:invocable, component:component );
+body = invocableInComp.body();
 T::pop_buffer();
 
 T::include(file:"statemachine/t.state.java");',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",
+	0,
 	0);
 INSERT INTO O_TFR
 	VALUES ("84a66836-03bd-4216-bd1d-997bdee12ee6",
@@ -52,7 +55,74 @@ INSERT INTO O_TFR
 	1,
 	'',
 	"1fbad297-e8f4-42e5-b358-4abdfa339325",
+	0,
 	0);
+INSERT INTO O_TFR
+	VALUES ("f37fec42-d51d-4c00-830f-47a07da68c32",
+	"b7aed3d0-a455-473e-9880-062ed6874914",
+	'get',
+	'',
+	"30c63b4b-343a-46b2-9955-726cdc5e9916",
+	0,
+	'state_machine = param.state_machine;
+sm_state = param.sm_state;
+
+// find and return the one instance related to the incoming parameters
+// https://support.onefact.net/issues/12231
+select many sm_state_states related by sm_state->State[R4758];
+select many state_machine_states related by state_machine->State[R4751];
+states = sm_state_states & state_machine_states;
+
+// return either an empty handle or the one instance in the set
+select any retVal from instances of State where false;  // Decl
+for each state in states
+  retVal = state;
+end for;
+return retVal;',
+	1,
+	'',
+	"84a66836-03bd-4216-bd1d-997bdee12ee6",
+	0,
+	1);
+INSERT INTO O_TPARM
+	VALUES ("53fcd41e-146a-40e1-888f-0d6d29c5353b",
+	"f37fec42-d51d-4c00-830f-47a07da68c32",
+	'state_machine',
+	"e26cd508-1f72-4f47-bc3a-f80c2afd819a",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("e26cd508-1f72-4f47-bc3a-f80c2afd819a",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<State Machine>',
+	'',
+	'',
+	'../statemachine.xtuml');
+INSERT INTO O_TPARM
+	VALUES ("65080b9d-3082-444f-a84b-029be4dfaa5e",
+	"f37fec42-d51d-4c00-830f-47a07da68c32",
+	'sm_state',
+	"ce86dade-b263-4245-8001-19dd4123f4f9",
+	0,
+	'',
+	"53fcd41e-146a-40e1-888f-0d6d29c5353b",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("ce86dade-b263-4245-8001-19dd4123f4f9",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<State Machine State>',
+	'',
+	'',
+	'../../../../../../mcooa/models/mcooa/ooaofooa/State Machine/State Machine.xtuml');
+INSERT INTO S_DT_PROXY
+	VALUES ("30c63b4b-343a-46b2-9955-726cdc5e9916",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<State>',
+	'',
+	'',
+	'../statemachine.xtuml');
 INSERT INTO O_REF
 	VALUES ("b7aed3d0-a455-473e-9880-062ed6874914",
 	"aa97f020-b408-4ca5-98f1-343113f95488",
@@ -304,7 +374,7 @@ INSERT INTO O_REF
 	'',
 	'State Machine State',
 	'SM_ID',
-	'R4758.''is basis for''');
+	'R4758.''is transformed from''');
 INSERT INTO R_RGO_PROXY
 	VALUES ("b7aed3d0-a455-473e-9880-062ed6874914",
 	"77a1b292-da6a-45ca-87d4-9edccdf53240",
@@ -355,7 +425,7 @@ INSERT INTO O_REF
 	'',
 	'State Machine State',
 	'SMstt_ID',
-	'R4758.''is basis for''');
+	'R4758.''is transformed from''');
 INSERT INTO O_RTIDA_PROXY
 	VALUES ("32ffc7eb-8edb-4d0c-a71b-d6786a6f3e41",
 	"e6d8ada6-6e33-47b5-9d80-fcb65f33c2fd",

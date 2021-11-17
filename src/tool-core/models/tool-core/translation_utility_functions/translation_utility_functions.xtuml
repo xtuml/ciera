@@ -89,6 +89,7 @@ return mult;',
 	"05a31d0a-15c4-4fe9-84b5-004baff831ec",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("f61b2083-52b9-4d1b-9525-7ad28e2d1bb0",
@@ -130,6 +131,7 @@ import_string = ::pathToPackage( path:file_to_import.path ) + "." + file_to_impo
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("694bfae7-c4d1-4a73-95c0-cdf488ec1351",
@@ -196,6 +198,7 @@ end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("3e963abb-07ab-497c-9168-70077a51f3b2",
@@ -236,12 +239,14 @@ INSERT INTO S_SYNC
 	'addTypeToImports',
 	'',
 	'type_to_import = param.type_to_import;
+
 if ( not type_to_import.primitive() and "" != type_to_import.package )
   ::addStringToImports( file:param.file, s:type_to_import.package + "." + type_to_import.name, type:param.type );
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("d47cbc92-34a7-4f84-bbd6-77acd70df858",
@@ -303,6 +308,7 @@ return path;',
 	"ba5eda7a-def5-0000-0000-000000000004",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("3fcc766b-1443-496c-a2ed-73f63ac077b1",
@@ -357,6 +363,7 @@ return T::sub( format:"r", s:name );
 	"ba5eda7a-def5-0000-0000-000000000004",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("008c623b-de96-43f9-b7eb-4d9cb08c05a0",
@@ -415,6 +422,7 @@ end if;',
 	"ba5eda7a-def5-0000-0000-000000000004",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("f74db15e-0c8c-44ed-ab75-84bc0b98de3b",
@@ -458,6 +466,7 @@ return path;',
 	"ba5eda7a-def5-0000-0000-000000000004",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("dee45e6c-2ddb-405c-9dc1-53c1175de628",
@@ -498,6 +507,7 @@ return s;',
 	"ba5eda7a-def5-0000-0000-000000000004",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("794053b8-b3ba-4d9b-8523-eff8a0ee1159",
@@ -519,20 +529,28 @@ INSERT INTO S_SYNC
 	"00000000-0000-0000-0000-000000000000",
 	'getFileForInvocable',
 	'',
-	'invocable = param.invocable;
-select one file related by invocable->Function[R427]->ComponentDefinition[R405]->File[R401];
+	'invocableInComp = param.invocableInComp;
+select one containingComp related by invocableInComp->ComponentDefinition[R4001];
+
+select one file related by invocableInComp->InvocableObject[R4001]->Function[R427]->ComponentDefinition[R405]->File[R401];
 if ( empty file )
-  select one file related by invocable->PortMessage[R427]->Port[R420]->File[R401];
+  select one file related by invocableInComp->InvocableObject[R4001]->PortMessage[R427]->Port[R420]->File[R401];
   if ( empty file )
-    select one file related by invocable->Operation[R427]->Class[R416]->File[R401];
+    select one opClass related by invocableInComp->InvocableObject[R4001]->Operation[R427]->Class[R416];
+    opClassInComp = ClassInComponent::get( obj:opClass, component:containingComp );
+    select one file related by opClassInComp->File[R401];
     if ( empty file )
-      select one file related by invocable->AttributeDerivation[R427]->AttributeAccessor[R441]->Attribute[R4510]->Class[R410]->File[R401];
+      select one attrDerivClass related by invocableInComp->InvocableObject[R4001]->AttributeDerivation[R427]->AttributeAccessor[R441]->Attribute[R4510]->Class[R410];
+      attrDerivClassInComp = ClassInComponent::get( obj:attrDerivClass, component:containingComp );
+      select one file related by attrDerivClassInComp->File[R401];
       if ( empty file )
-        select one file related by invocable->UtilityFunction[R427]->Utility[R4559]->File[R401];
+        select one inv_util_ref related by invocableInComp->InvocableObject[R4001]->UtilityFunction[R427]->Utility[R4559];
+        util_in_comp = UtilityInComponent::get( utility:inv_util_ref, component: containingComp );
+        select one file related by util_in_comp->File[R401];
         if ( empty file )
-          select one file related by invocable->State[R427]->StateMachine[R4751]->File[R401];
+          select one file related by invocableInComp->InvocableObject[R4001]->State[R427]->StateMachine[R4751]->File[R401];
           if ( empty file )
-            select one file related by invocable->Transition[R427]->State[R4757]->StateMachine[R4751]->File[R401];
+            select one file related by invocableInComp->InvocableObject[R4001]->Transition[R427]->State[R4757]->StateMachine[R4751]->File[R401];
           end if;
         end if;
       end if;
@@ -543,20 +561,21 @@ return file;',
 	"133d5e7b-5ad2-41dd-b534-afe8f7cf56a8",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("12c355f3-3ac7-4f5f-bef4-3b7725d7d673",
 	"ac48db97-f823-4b91-ac4a-e177758d04b2",
-	'invocable',
-	"3ab44839-4426-4754-b12a-0a00ce4dae1a",
+	'invocableInComp',
+	"15275e26-b9be-4723-81b7-a823b206a5bb",
 	0,
 	'',
 	"00000000-0000-0000-0000-000000000000",
 	'');
 INSERT INTO S_DT_PROXY
-	VALUES ("3ab44839-4426-4754-b12a-0a00ce4dae1a",
+	VALUES ("15275e26-b9be-4723-81b7-a823b206a5bb",
 	"00000000-0000-0000-0000-000000000000",
-	'inst_ref<Invocable Object>',
+	'inst_ref<InvocableInComponent>',
 	'',
 	'',
 	'../architecture/invocable/invocable.xtuml');
@@ -572,11 +591,13 @@ INSERT INTO S_SYNC
 	'getFileForStatement',
 	'',
 	'smt = param.smt;
-select one invocable related by smt->CodeBlock[R450]->InvocableObject[R4000];
-return ::getFileForInvocable( invocable:invocable );',
+select one invocableInComp related by smt->CodeBlock[R450]->InvocableInComponent[R4000];
+file = ::getFileForInvocable( invocableInComp:invocableInComp );
+return file;',
 	"133d5e7b-5ad2-41dd-b534-afe8f7cf56a8",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("4cc0df81-8976-42d0-a9d6-616cf3b77954",
@@ -627,6 +648,7 @@ return indent;',
 	"ba5eda7a-def5-0000-0000-000000000004",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("c5735686-8fc0-4923-af1a-266f44e067da",
@@ -663,6 +685,7 @@ return s_dt;',
 	"4a90cd45-ece0-4e72-afe7-44996f9d7e1e",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("cfeeacf6-552e-46fe-ad93-59f2664c34da",
@@ -736,6 +759,7 @@ return block_number;',
 	"ba5eda7a-def5-0000-0000-000000000004",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("c750913d-47e5-433c-8caa-16c08ffccb25",
@@ -787,6 +811,7 @@ return STRING::trim( s:line );',
 	"ba5eda7a-def5-0000-0000-000000000004",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("67fd0ddd-1560-4db2-be9f-245148f5c09f",
@@ -878,6 +903,7 @@ return par_s_dt;',
 	"4a90cd45-ece0-4e72-afe7-44996f9d7e1e",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("9d400812-77ad-479d-9490-0350c974e25a",
@@ -919,6 +945,7 @@ return s_dt;',
 	"4a90cd45-ece0-4e72-afe7-44996f9d7e1e",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("b25f41e0-25a9-45a5-a3db-02a8c0c11417",
@@ -963,6 +990,7 @@ end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO PE_PE
 	VALUES ("aecd2aa3-de06-4fac-beae-378bfa95618b",
@@ -1029,6 +1057,7 @@ return num_references;',
 	"ba5eda7a-def5-0000-0000-000000000002",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("b0093fed-0288-4a3e-87fa-e66b47f177a0",
@@ -1084,6 +1113,7 @@ return phrase;',
 	"ba5eda7a-def5-0000-0000-000000000004",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("4201683e-ea8c-4e09-ad81-d16b7144fae2",
@@ -1117,6 +1147,7 @@ return s;',
 	"ba5eda7a-def5-0000-0000-000000000004",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("02e07f8d-e923-45d7-9bff-8eee23103d22",
@@ -1203,6 +1234,7 @@ return prec1 - prec2;',
 	"ba5eda7a-def5-0000-0000-000000000002",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("c3021527-2051-4986-81e5-da2e616b064d",
@@ -1247,6 +1279,7 @@ INSERT INTO S_SYNC
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO PE_PE
 	VALUES ("11737cee-8a3a-4c1a-9258-ca957a555dfe",
@@ -1287,6 +1320,7 @@ return false;',
 	"ba5eda7a-def5-0000-0000-000000000001",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("e3bfa540-cef6-48e2-b4b6-a0a65eb034f6",
@@ -1349,6 +1383,7 @@ return false;',
 	"ba5eda7a-def5-0000-0000-000000000001",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("864262c1-abd9-4e25-a10c-4af16f0e9e99",
@@ -1378,6 +1413,7 @@ return ( empty c_c and empty ep_pkg );',
 	"ba5eda7a-def5-0000-0000-000000000001",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("a485d8e4-eeaf-4deb-bbcf-a33609812cf5",
@@ -1415,6 +1451,7 @@ return false;',
 	"ba5eda7a-def5-0000-0000-000000000001",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("4cb5dcc3-b489-4860-9b8c-db0e1c0c8b77",
@@ -1460,6 +1497,7 @@ return s_dt;',
 	"4a90cd45-ece0-4e72-afe7-44996f9d7e1e",
 	1,
 	'',
+	0,
 	0);
 INSERT INTO S_SPARM
 	VALUES ("5ca2f4d2-777d-4c7e-9161-d168b4dd56d8",
@@ -1479,6 +1517,85 @@ INSERT INTO S_DT_PROXY
 	'../../../../mcooa/models/mcooa/ooaofooa/Body/Body.xtuml');
 INSERT INTO PE_PE
 	VALUES ("5371c110-4c98-4780-9faa-a41d42fbe12b",
+	1,
+	"5c0e4147-5dfb-48d3-a70d-1020d78fa1e2",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("b5150f47-77f6-4343-8beb-4a20c2f31ef2",
+	"00000000-0000-0000-0000-000000000000",
+	'getRootPackage',
+	'',
+	'select any root_package_mark from instances of Mark where ( selected.markable_name == "*"
+                                                            and selected.path == "*"
+                                                            and selected.feature_name == "RootPackage" );
+select any root_package from instances of EP_PKG where false;                                                          
+if ( not_empty root_package_mark )
+  select many s_syss from instances of S_SYS;
+  for each s_sys in s_syss
+    select any root_package related by s_sys->EP_PKG[R1401] where ( root_package_mark.value == s_sys.Name + "::" + selected.Name );
+    if ( not_empty root_package )
+      break;
+    end if;
+  end for;
+else
+  LOG::LogInfo( message:"ERROR:  No root package specified" );
+end if;
+return root_package;',
+	"9939c670-a721-4742-a824-ed4b0df4acd6",
+	1,
+	'',
+	0,
+	2);
+INSERT INTO PE_PE
+	VALUES ("b5150f47-77f6-4343-8beb-4a20c2f31ef2",
+	1,
+	"5c0e4147-5dfb-48d3-a70d-1020d78fa1e2",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("e8286059-edde-4116-ae0f-bbf349f005a9",
+	"00000000-0000-0000-0000-000000000000",
+	'packageOutsideComponent',
+	'Determine if the given package is the realization of a Package Reference.',
+	'pkg = param.ep_pkg;
+comp = param.comp;
+
+// Look for a component containing the given package.
+// Return true if there is no component, or if it differs from given component.
+select one containingPkg related by pkg->PE_PE[R8001]->EP_PKG[R8000];
+if ( not_empty containingPkg )
+  return ::packageOutsideComponent( ep_pkg:containingPkg, comp:comp );
+else
+	select one containingComp related by pkg->PE_PE[R8001]->C_C[R8003]
+	  where ( selected.Id == comp.Id );
+	return empty containingComp;
+end if;	',
+	"ba5eda7a-def5-0000-0000-000000000001",
+	1,
+	'',
+	0,
+	3);
+INSERT INTO S_SPARM
+	VALUES ("ab3a5b79-46b4-4d56-8f67-e097c0d577b5",
+	"e8286059-edde-4116-ae0f-bbf349f005a9",
+	'ep_pkg',
+	"9939c670-a721-4742-a824-ed4b0df4acd6",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'The containing package encountered while transforming a class in a component context.');
+INSERT INTO S_SPARM
+	VALUES ("9af4f92f-286a-4ac1-9187-b90928562b8f",
+	"e8286059-edde-4116-ae0f-bbf349f005a9",
+	'comp',
+	"67f93d18-1045-4c6c-b0d5-a692023c471c",
+	0,
+	'',
+	"ab3a5b79-46b4-4d56-8f67-e097c0d577b5",
+	'The component currently being transformed.');
+INSERT INTO PE_PE
+	VALUES ("e8286059-edde-4116-ae0f-bbf349f005a9",
 	1,
 	"5c0e4147-5dfb-48d3-a70d-1020d78fa1e2",
 	"00000000-0000-0000-0000-000000000000",

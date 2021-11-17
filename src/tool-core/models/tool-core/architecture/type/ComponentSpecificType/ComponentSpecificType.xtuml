@@ -1,0 +1,241 @@
+-- BP 7.1.6 content: ModelClass syschar: 3 persistence-version: 7.1.6
+
+INSERT INTO O_OBJ
+	VALUES ("09d80bf6-16e0-4433-9763-bde7913f1f4b",
+	'ComponentSpecificType',
+	10,
+	'ComponentSpecificType',
+	'A component-specific type.',
+	"00000000-0000-0000-0000-000000000000");
+INSERT INTO O_TFR
+	VALUES ("ecf54135-a229-46b3-b9d5-751d0824f695",
+	"09d80bf6-16e0-4433-9763-bde7913f1f4b",
+	'resolve',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	's_dt = param.s_dt;
+defining_comp = param.defining_comp;
+new_type = param.new_type;
+
+// if it exists, find the (one) unresolved type for this S_DT and the defining component
+select many unresolved_types_sdt related by s_dt->Type[R423]->UnresolvedType[R407]
+  where( not selected.comp_indep_class );
+select many unresolved_types_comp related by defining_comp->UnresolvedType[R3805]
+  where( not selected.comp_indep_class );
+unresolved_types = unresolved_types_sdt & unresolved_types_comp;
+select any old_type related by unresolved_types->Type[R407];
+select one unresolved_type related by old_type->UnresolvedType[R407];
+
+// if there is an unresolved type, unhook and dispose it, linking
+// all references to the new type
+if ( not_empty unresolved_type )
+	select one component related by unresolved_type->ComponentDefinition[R3805];
+	unrelate unresolved_type from component across R3805;
+	new_type.updateTypeReferences( old_type:old_type );
+	unrelate old_type from s_dt across R423;
+	old_type.dispose();
+end if;
+
+// link the new type
+relate self to defining_comp across R3804;
+relate self to new_type across R407;
+relate new_type to s_dt across R423;',
+	1,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	0,
+	1);
+INSERT INTO O_TPARM
+	VALUES ("a4018bba-3af3-485a-b876-22d0864bea5c",
+	"ecf54135-a229-46b3-b9d5-751d0824f695",
+	's_dt',
+	"4a90cd45-ece0-4e72-afe7-44996f9d7e1e",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("4a90cd45-ece0-4e72-afe7-44996f9d7e1e",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Data Type>',
+	'',
+	'',
+	'../../../../../../mcooa/models/mcooa/ooaofooa/Domain/Domain.xtuml');
+INSERT INTO O_TPARM
+	VALUES ("0c70f896-adb2-488c-9571-131009e5256d",
+	"ecf54135-a229-46b3-b9d5-751d0824f695",
+	'defining_comp',
+	"109e90cb-1d66-46ee-88db-a568044879d0",
+	0,
+	'',
+	"a4018bba-3af3-485a-b876-22d0864bea5c",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("109e90cb-1d66-46ee-88db-a568044879d0",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Component Definition>',
+	'',
+	'',
+	'../../component/component.xtuml');
+INSERT INTO O_TPARM
+	VALUES ("daa49f9a-36aa-46de-a4d7-fbdad69e66d7",
+	"ecf54135-a229-46b3-b9d5-751d0824f695",
+	'new_type',
+	"b4a754cc-b0a5-4777-ae98-df570434ea2a",
+	0,
+	'',
+	"0c70f896-adb2-488c-9571-131009e5256d",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("b4a754cc-b0a5-4777-ae98-df570434ea2a",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Type>',
+	'',
+	'',
+	'../type.xtuml');
+INSERT INTO O_REF
+	VALUES ("09d80bf6-16e0-4433-9763-bde7913f1f4b",
+	"b5de937b-55ee-48e4-8e91-d9d73c3f0fab",
+	0,
+	"864744e7-2f4c-4f9f-b744-73335f8defd3",
+	"e5dad769-3068-4d6b-bdca-63c34edafaf5",
+	"7be1c769-a9ea-4c7a-9b97-143a80143df2",
+	"556adddf-6013-43d6-bee0-5b682a812874",
+	"0abe7a81-2d4e-4ff4-93c0-e8d364f015e2",
+	"7ef60c9e-6142-47db-bd8e-98dcb33bbd94",
+	"00000000-0000-0000-0000-000000000000",
+	0,
+	'',
+	'Type',
+	'name',
+	'R407');
+INSERT INTO R_RGO_PROXY
+	VALUES ("09d80bf6-16e0-4433-9763-bde7913f1f4b",
+	"e5dad769-3068-4d6b-bdca-63c34edafaf5",
+	"7be1c769-a9ea-4c7a-9b97-143a80143df2",
+	'../type.xtuml');
+INSERT INTO O_RTIDA_PROXY
+	VALUES ("864744e7-2f4c-4f9f-b744-73335f8defd3",
+	"b5de937b-55ee-48e4-8e91-d9d73c3f0fab",
+	0,
+	"e5dad769-3068-4d6b-bdca-63c34edafaf5",
+	"556adddf-6013-43d6-bee0-5b682a812874",
+	'../type.xtuml');
+INSERT INTO O_RATTR
+	VALUES ("0abe7a81-2d4e-4ff4-93c0-e8d364f015e2",
+	"09d80bf6-16e0-4433-9763-bde7913f1f4b",
+	"864744e7-2f4c-4f9f-b744-73335f8defd3",
+	"b5de937b-55ee-48e4-8e91-d9d73c3f0fab",
+	1,
+	'name');
+INSERT INTO O_BATTR_PROXY
+	VALUES ("864744e7-2f4c-4f9f-b744-73335f8defd3",
+	"b5de937b-55ee-48e4-8e91-d9d73c3f0fab",
+	'../Type/Type.xtuml');
+INSERT INTO O_ATTR
+	VALUES ("0abe7a81-2d4e-4ff4-93c0-e8d364f015e2",
+	"09d80bf6-16e0-4433-9763-bde7913f1f4b",
+	"00000000-0000-0000-0000-000000000000",
+	'name',
+	'',
+	'',
+	'name',
+	0,
+	"ba5eda7a-def5-0000-0000-000000000007",
+	'',
+	'');
+INSERT INTO O_REF
+	VALUES ("09d80bf6-16e0-4433-9763-bde7913f1f4b",
+	"b5de937b-55ee-48e4-8e91-d9d73c3f0fab",
+	0,
+	"f44b46d8-90bf-4603-93b9-9beb6bd0fe62",
+	"e5dad769-3068-4d6b-bdca-63c34edafaf5",
+	"7be1c769-a9ea-4c7a-9b97-143a80143df2",
+	"556adddf-6013-43d6-bee0-5b682a812874",
+	"fd998be5-316f-4b55-9558-dd5586b1fea9",
+	"3a33b963-af61-4a70-b91a-8399f7d6a0f6",
+	"00000000-0000-0000-0000-000000000000",
+	0,
+	'',
+	'Type',
+	'package',
+	'R407');
+INSERT INTO O_RTIDA_PROXY
+	VALUES ("f44b46d8-90bf-4603-93b9-9beb6bd0fe62",
+	"b5de937b-55ee-48e4-8e91-d9d73c3f0fab",
+	0,
+	"e5dad769-3068-4d6b-bdca-63c34edafaf5",
+	"556adddf-6013-43d6-bee0-5b682a812874",
+	'../type.xtuml');
+INSERT INTO O_RATTR
+	VALUES ("fd998be5-316f-4b55-9558-dd5586b1fea9",
+	"09d80bf6-16e0-4433-9763-bde7913f1f4b",
+	"f44b46d8-90bf-4603-93b9-9beb6bd0fe62",
+	"b5de937b-55ee-48e4-8e91-d9d73c3f0fab",
+	1,
+	'package');
+INSERT INTO O_BATTR_PROXY
+	VALUES ("f44b46d8-90bf-4603-93b9-9beb6bd0fe62",
+	"b5de937b-55ee-48e4-8e91-d9d73c3f0fab",
+	'../Type/Type.xtuml');
+INSERT INTO O_ATTR
+	VALUES ("fd998be5-316f-4b55-9558-dd5586b1fea9",
+	"09d80bf6-16e0-4433-9763-bde7913f1f4b",
+	"0abe7a81-2d4e-4ff4-93c0-e8d364f015e2",
+	'package',
+	'',
+	'',
+	'package',
+	0,
+	"ba5eda7a-def5-0000-0000-000000000007",
+	'',
+	'');
+INSERT INTO O_ID
+	VALUES (0,
+	"09d80bf6-16e0-4433-9763-bde7913f1f4b");
+INSERT INTO O_OIDA
+	VALUES ("0abe7a81-2d4e-4ff4-93c0-e8d364f015e2",
+	"09d80bf6-16e0-4433-9763-bde7913f1f4b",
+	0,
+	'name');
+INSERT INTO O_OIDA
+	VALUES ("fd998be5-316f-4b55-9558-dd5586b1fea9",
+	"09d80bf6-16e0-4433-9763-bde7913f1f4b",
+	0,
+	'package');
+INSERT INTO O_ID
+	VALUES (1,
+	"09d80bf6-16e0-4433-9763-bde7913f1f4b");
+INSERT INTO O_ID
+	VALUES (2,
+	"09d80bf6-16e0-4433-9763-bde7913f1f4b");
+INSERT INTO PE_PE
+	VALUES ("09d80bf6-16e0-4433-9763-bde7913f1f4b",
+	1,
+	"6c030477-ff07-4e5d-a9e3-82b3b5d9465b",
+	"00000000-0000-0000-0000-000000000000",
+	4);
+INSERT INTO EP_PKG_PROXY
+	VALUES ("6c030477-ff07-4e5d-a9e3-82b3b5d9465b",
+	"00000000-0000-0000-0000-000000000000",
+	"9092a4a9-91f5-4e59-984b-3ca72917240d",
+	'type',
+	'Each unresolved type is associated with a referring component when it is created, 
+enabling each component-specific type to be resolved on a component boundary.  
+
+When a component-independent class type is resolved, multiple instances of unresolved type 
+(each associated with a referring component) are removed and replaced with a single, 
+component-independent, resolved class type.  This work is handled by a specific operation 
+used only for the resolution of component-independent class types.
+
+For the few cases in which a component-independent class is required, a specific 
+method is used to obtain a type reference because the callers in this case know
+that a component-independent class is required.  This allows the general-purpose 
+method to handle all other cases without the need to tease out this one.
+
+Separate methods are used to resolve types other than class and class set types, 
+component-independent class types and component-speicfic types to simplify the 
+logic in all three type-resolution methods.',
+	0,
+	'../type.xtuml');
