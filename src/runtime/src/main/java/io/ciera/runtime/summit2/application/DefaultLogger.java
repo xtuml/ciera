@@ -6,10 +6,12 @@ import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.SimpleFormatter;
 
-/*
+/**
  * This default logger implements the generic interface and is based internally
  * on the JUL logging system. It's default log level is INFO so debug and trace
  * logs will be ignored by default.
+ * 
+ * @see java.util.logging.Logger
  */
 public class DefaultLogger implements Logger {
 
