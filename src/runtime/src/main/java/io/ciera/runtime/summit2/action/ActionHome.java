@@ -16,14 +16,16 @@ public interface ActionHome {
     /**
      * Get the parent domain.
      * 
-     * @return {@link Domain} the parent domain within which the actions are defined.
+     * @return {@link Domain} the parent domain within which the actions are
+     *         defined.
      */
     public Domain getDomain();
 
     /**
      * Get the execution context.
      * 
-     * @return {@link ExecutionContext} the execution context within which the actions run.
+     * @return {@link ExecutionContext} the execution context within which the
+     *         actions run.
      */
     public ExecutionContext getContext();
 
