@@ -1,5 +1,7 @@
 package io.ciera.runtime.summit2.domain;
 
-public abstract class ObjectInstance {
+import io.ciera.runtime.summit2.types.ModelType;
+
+public abstract class ObjectInstance extends ModelType {
 
 }
