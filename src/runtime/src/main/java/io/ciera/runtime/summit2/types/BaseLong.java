@@ -2,10 +2,12 @@ package io.ciera.runtime.summit2.types;
 
 import java.util.function.Function;
 
+import io.ciera.runtime.summit2.exceptions.DeserializationException;
+
 public class BaseLong extends ModelType implements Numeric {
 
     private long value;
-    
+
     public BaseLong() {
         this(0l);
     }
@@ -62,23 +64,23 @@ public class BaseLong extends ModelType implements Numeric {
     public static <T extends Object> Function<T, ModelType> getCastFunction(Class<T> sourceType) {
         // Direct cast from a subclass
         if (BaseLong.class.isAssignableFrom(sourceType)) {
-            return o -> (BaseLong)o;
+            return o -> (BaseLong) o;
         }
-        
+
         // Special conversion for Java primitive shadow subclass
         if (Long.class.equals(sourceType)) {
-            return o -> new BaseLong((long)o);
+            return o -> new BaseLong((long) o);
         }
-        
+
         // Direct conversion from superclass
         if (Numeric.class.equals(sourceType)) {
-            return o -> new BaseLong(((BaseNumeric)o).getWholePart());
+            return o -> new BaseLong(((BaseNumeric) o).getWholePart());
         }
-        
+
         // Search in superclass for indirect conversion
         Function<T, ModelType> f = BaseNumeric.getCastFunction(sourceType);
         if (f != null) {
-            return o -> getCastFunction(Numeric.class).apply((Numeric)f.apply(o));
+            return o -> getCastFunction(Numeric.class).apply((Numeric) f.apply(o));
         }
 
         // Didn't find any applicable cast functions
@@ -87,23 +89,25 @@ public class BaseLong extends ModelType implements Numeric {
 
     @Override
     public boolean equals(Object o) {
-        return o instanceof BaseLong && value == ((BaseLong) o).value;
+        return ModelType.castTo(BaseLong.class, o).value == value;
     }
 
     @Override
     public int hashCode() {
         return Long.hashCode(value);
     }
-    
+
     @Override
     public String toString() {
         return Long.toString(value);
     }
-    
+
     public static BaseLong fromString(String s) {
-        return new BaseLong(Long.parseLong(s));
+        try {
+            return new BaseLong(Long.parseLong(s));
+        } catch (NumberFormatException e) {
+            throw new DeserializationException("Could not parse long", e);
+        }
     }
-
-
 
 }

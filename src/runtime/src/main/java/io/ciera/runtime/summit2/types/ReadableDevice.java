@@ -12,21 +12,23 @@ public class ReadableDevice extends Device {
 
     private Scanner sc;
 
-    public ReadableDevice(InputStream in) {
+    public ReadableDevice(String name, InputStream in) {
+        super(name);
         this.sc = new Scanner(in);
     }
 
     @Override
-    public Object read(final Class<Object> cls) {
+    @SuppressWarnings("unchecked")
+    public <T extends Object> T read(final Class<T> cls) {
         if (sc.hasNext()) {
             String token = sc.next();
             try {
-                Method deserialize = cls.getMethod("fromString", Object.class);
-                return deserialize.invoke(null, token);
+                Method deserialize = cls.getMethod("fromString", String.class);
+                return (T) deserialize.invoke(null, token);
             } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException
                     | InvocationTargetException e) {
                 throw new DeserializationException(
-                        "Could not deserialize token '" + token + "' for type '" + cls.getName() + "'");
+                        "Could not deserialize token '" + token + "' for type '" + cls.getName() + "'", e);
             }
 
         } else {

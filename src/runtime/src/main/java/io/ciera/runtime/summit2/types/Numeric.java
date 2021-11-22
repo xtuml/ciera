@@ -1,6 +1,13 @@
 package io.ciera.runtime.summit2.types;
 
-public interface Numeric extends Comparable<Object>{
+/**
+ * The Numeric interface provides an abstract specification for all numeric
+ * types. Numeric types can participate in arithmetic operations and be compared
+ * to one another.
+ *
+ * TODO document methods
+ */
+public interface Numeric extends Comparable<Object> {
 
     public Numeric add(Object o);
 
