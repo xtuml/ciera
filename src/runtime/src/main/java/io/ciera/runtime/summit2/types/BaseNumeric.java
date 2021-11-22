@@ -6,51 +6,45 @@ import java.util.function.Function;
  * TODO Used only for casting purposes
  *
  */
-public class BaseNumeric extends ModelType implements Numeric, Comparable<Object> {
+public class BaseNumeric extends ModelType implements Numeric {
 
     private long wholePart;
     private double fractionalPart;
+
+    public BaseNumeric(long intValue) {
+        this(intValue, 0d);
+    }
+
+    public BaseNumeric(double realValue) {
+        this(Double.valueOf(realValue).longValue(), Math.abs(realValue) % 1);
+    }
 
     public BaseNumeric(long wholePart, double fractionalPart) {
         this.wholePart = wholePart;
         this.fractionalPart = fractionalPart;
     }
 
-    @SuppressWarnings("unchecked")
-    public static <R extends Object> Function<ModelType, R> getCastFunctionForType(Class<R> type,
-            Class<?> ignoreClass) {
-        // Direct cast to subclasses
-        if (Byte.class.equals(type)) {
-            return o -> (R) Byte.valueOf(Long.valueOf(((BaseNumeric) o).wholePart).byteValue());
-        } else if (Short.class.equals(type)) {
-            return o -> (R) Short.valueOf(Long.valueOf(((BaseNumeric) o).wholePart).shortValue());
-        } else if (Integer.class.equals(type)) {
-            return o -> (R) Integer.valueOf(Long.valueOf(((BaseNumeric) o).wholePart).intValue());
-        } else if (Long.class.equals(type)) {
-            return o -> (R) Long.valueOf(((BaseNumeric) o).wholePart);
-        } else if (Double.class.equals(type)) {
-            return o -> ((BaseNumeric) o).wholePart > 0
-                    ? (R) Double.valueOf(((BaseNumeric) o).wholePart + ((BaseNumeric) o).fractionalPart)
-                    : (R) Double.valueOf(((BaseNumeric) o).wholePart - ((BaseNumeric) o).fractionalPart);
-        } else if (Date.class.equals(type)) {
-            return o -> (R) new Date(((BaseNumeric) o).wholePart);
-        }
+    public long getWholePart() {
+        return wholePart;
+    }
 
-        // Attempt to find cast function in subclasses
-        if (!Date.class.equals(ignoreClass)) {
-            Function<ModelType, R> f = Date.getCastFunctionForType(type, Numeric.class);
-            if (f != null) {
-                return f;
-            }
+    public double getFractionalPart() {
+        return fractionalPart;
+    }
+
+    public static <T extends Object> Function<T, ModelType> getCastFunction(Class<T> sourceType) {
+
+        // Direct casting from subclasses:
+        // This is a special case because the numeric type is abstract and only
+        // exists to bridge between other numeric types
+        if (BaseLong.class.equals(sourceType)) {
+            return o -> new BaseNumeric(((BaseLong) o).getValue());
+
         }
+        // TODO more subclasses
 
         // Didn't find any applicable cast functions
         return null;
-    }
-
-    @Override
-    public <R extends Object> Function<ModelType, R> getCastFunction(Class<R> type) {
-        return BaseNumeric.getCastFunctionForType(type, null);
     }
 
     @Override

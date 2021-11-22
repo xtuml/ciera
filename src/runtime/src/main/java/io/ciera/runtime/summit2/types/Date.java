@@ -9,12 +9,7 @@ import java.util.function.Function;
 
 import io.ciera.runtime.summit2.exceptions.DeserializationException;
 
-public class Date extends ModelType implements Numeric, Comparable<Object> {
-
-    /**
-     * TODO Microseconds since the epoch
-     */
-    private long timestamp;
+public class Date extends TimeStamp {
 
     /**
      * TODO calendar instance used to get date fields
@@ -29,13 +24,40 @@ public class Date extends ModelType implements Numeric, Comparable<Object> {
         this(timestamp, Instant.EPOCH);
     }
 
+    public Date(BaseLong o) {
+        this(o.getValue());
+    }
+
     public Date(long timestamp, Instant epoch) {
-        this.timestamp = timestamp;
+        super(timestamp);
         long unixMicros = timestamp - epoch.until(Instant.EPOCH, ChronoUnit.MICROS);
         cal = Calendar.getInstance();
         cal.setTimeZone(TimeZone.getTimeZone("UTC"));
         cal.setTimeInMillis(unixMicros / 1000L);
     }
+
+    public static <T extends Object> Function<T, ModelType> getCastFunction(Class<T> sourceType) {
+        // Direct cast from a subclass
+        if (Date.class.isAssignableFrom(sourceType)) {
+            return o -> (Date) o;
+        }
+
+        // Direct conversion from superclass
+        if (TimeStamp.class.equals(sourceType)) {
+            return o -> new Date((TimeStamp) o);
+        }
+
+        // Search in superclass for indirect conversion
+        Function<T, ModelType> f = TimeStamp.getCastFunction(sourceType);
+        if (f != null) {
+            return o -> getCastFunction(TimeStamp.class).apply((TimeStamp) f.apply(o));
+        }
+
+        // Didn't find any applicable cast functions
+        return null;
+    }
+
+
 
     /**
      * TODO
@@ -101,42 +123,6 @@ public class Date extends ModelType implements Numeric, Comparable<Object> {
      * clock.getEpoch()); }
      */
 
-    @SuppressWarnings("unchecked")
-    public static <R extends Object> Function<ModelType, R> getCastFunctionForType(Class<R> type,
-            Class<?> ignoreClass) {
-        // Direct cast to superclass
-        if (Numeric.class.equals(type)) {
-            return o -> (R) new BaseNumeric(((Date) o).timestamp, 0d);
-        }
-
-        // Attempt to find cast function in superclass
-        if (!Numeric.class.equals(ignoreClass)) {
-            Function<ModelType, R> f = BaseNumeric.getCastFunctionForType(type, Date.class);
-            if (f != null) {
-                return o -> f.apply((ModelType) ((Date) o).castTo(Numeric.class));
-            }
-        }
-
-        // Didn't find any applicable cast functions
-        return null;
-    }
-
-    @Override
-    public int compareTo(Object o) {
-        Date d = ModelType.castTo(Date.class, o);
-        return timestamp == d.timestamp ? 0 : timestamp < d.timestamp ? -1 : 1;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        return o instanceof Date && timestamp == ((Date) o).timestamp;
-    }
-
-    @Override
-    public int hashCode() {
-        return Long.hashCode(timestamp);
-    }
-
     @Override
     public String toString() {
         // Create ISO 8601 compliant date string
@@ -155,52 +141,45 @@ public class Date extends ModelType implements Numeric, Comparable<Object> {
     }
 
     @Override
-    public Date add(Object n) {
-        // TODO this my lose precision
-        return new Date(timestamp + ModelType.castTo(Date.class, n).timestamp);
+    public Date add(Object o) {
+        return super.add(o).castTo(Date.class);
     }
 
     @Override
-    public Date subtract(Object n) {
-        // TODO this my lose precision
-        return new Date(timestamp - ModelType.castTo(Date.class, n).timestamp);
+    public Date subtract(Object o) {
+        return super.subtract(o).castTo(Date.class);
     }
 
     @Override
-    public Date multiply(Object n) {
+    public Date multiply(Object o) {
         throw new UnsupportedOperationException(
-                "Multiplication is not supported for types 'Date' and '" + n != null ? n.getClass().getName()
+                "Multiplication is not supported for types 'Date' and '" + o != null ? o.getClass().getName()
                         : "null" + "'");
     }
 
     @Override
-    public Date divide(Object n) {
+    public Date divide(Object o) {
         throw new UnsupportedOperationException(
-                "Division is not supported for types 'Date' and '" + n != null ? n.getClass().getName() : "null" + "'");
+                "Division is not supported for types 'Date' and '" + o != null ? o.getClass().getName() : "null" + "'");
     }
 
     @Override
-    public Date modulo(Object n) {
+    public Date modulo(Object o) {
         throw new UnsupportedOperationException(
-                "Modulo is not supported for types 'Date' and '" + n != null ? n.getClass().getName() : "null" + "'");
+                "Modulo is not supported for types 'Date' and '" + o != null ? o.getClass().getName() : "null" + "'");
     }
 
     @Override
-    public Date remainder(Object n) {
+    public Date remainder(Object o) {
         throw new UnsupportedOperationException(
-                "Remainder is not supported for types 'Date' and '" + n != null ? n.getClass().getName()
+                "Remainder is not supported for types 'Date' and '" + o != null ? o.getClass().getName()
                         : "null" + "'");
     }
 
     @Override
-    public Date power(Object n) {
+    public Date power(Object o) {
         throw new UnsupportedOperationException(
-                "Power is not supported for types 'Date' and '" + n != null ? n.getClass().getName() : "null" + "'");
-    }
-
-    @Override
-    public <R> Function<ModelType, R> getCastFunction(Class<R> type) {
-        return Date.getCastFunctionForType(type, null);
+                "Power is not supported for types 'Date' and '" + o != null ? o.getClass().getName() : "null" + "'");
     }
 
 }
