@@ -2,7 +2,7 @@ package io.ciera.runtime.summit2.exceptions;
 
 public class DeserializationException extends RuntimeException {
 
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1l;
 
     public DeserializationException() {
         super();

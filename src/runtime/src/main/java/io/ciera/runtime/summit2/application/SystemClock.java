@@ -5,7 +5,7 @@ import java.time.Instant;
 public class SystemClock {
 
     public long getTime() {
-        return 0L; // TODO
+        return 0l; // TODO
     }
 
     public Instant getEpoch() {

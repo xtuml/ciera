@@ -65,7 +65,7 @@ public class Duration extends BaseLong {
     public static Duration fromString(String s) {
         // Parse ISO 8601 compliant duration string
         try {
-            return new Duration(java.time.Duration.parse(s).toNanos() / 1000L);
+            return new Duration(java.time.Duration.parse(s).toNanos() / 1000l);
         } catch (NullPointerException | DateTimeParseException e) {
             throw new DeserializationException("Could not parse duration", e);
         }
