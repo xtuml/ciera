@@ -18,12 +18,12 @@ public class Date extends TimeStamp {
     /**
      * Constant representing microseconds per day used for conversion from string.
      */
-    private static long MICROS_PER_DAY = 86400000000L;
+    private static long MICROS_PER_DAY = 86400000000l;
 
     /**
      * Use ISO-8601 date/time format.
      */
-    private static DateTimeFormatter FORMAT = DateTimeFormatter.ISO_DATE_TIME;
+    private static DateTimeFormatter FORMAT = DateTimeFormatter.ISO_INSTANT;
 
     /**
      * The calendar instance is initialized with the time stamp given interpreted as
@@ -32,7 +32,7 @@ public class Date extends TimeStamp {
     private Calendar cal;
 
     public Date() {
-        this(0L, Instant.EPOCH);
+        this(0l, Instant.EPOCH);
     }
 
     public Date(long timestamp) {
@@ -47,7 +47,7 @@ public class Date extends TimeStamp {
         super(timestamp);
         cal = Calendar.getInstance();
         cal.setTimeZone(TimeZone.getTimeZone("UTC"));
-        cal.setTimeInMillis((timestamp - epoch.until(Instant.EPOCH, ChronoUnit.MICROS)) / 1000L);
+        cal.setTimeInMillis((timestamp - epoch.until(Instant.EPOCH, ChronoUnit.MICROS)) / 1000l);
     }
 
     /**
@@ -197,7 +197,7 @@ public class Date extends TimeStamp {
     public static Date fromString(String s) {
         try {
             TemporalAccessor t = FORMAT.parse(s);
-            return new Date(t.getLong(ChronoField.EPOCH_DAY) * MICROS_PER_DAY + t.getLong(ChronoField.MICRO_OF_DAY));
+            return new Date((t.getLong(ChronoField.INSTANT_SECONDS) * 1000000l) + (t.getLong(ChronoField.NANO_OF_SECOND) / 1000l));
         } catch (NullPointerException | DateTimeParseException e) {
             throw new DeserializationException("Could not parse date", e);
         }
