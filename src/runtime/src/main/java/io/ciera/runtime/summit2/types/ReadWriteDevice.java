@@ -8,8 +8,8 @@ public class ReadWriteDevice extends ReadableDevice {
 
     private PrintStream out;
 
-    public ReadWriteDevice(InputStream in, OutputStream out) {
-        super(in);
+    public ReadWriteDevice(String name, InputStream in, OutputStream out) {
+        super(name, in);
         this.out = new PrintStream(out);
     }
 

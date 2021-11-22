@@ -3,8 +3,10 @@ package io.ciera.runtime.summit2.types;
 import java.util.function.Function;
 
 /**
- * TODO Used only for casting purposes
- *
+ * The BaseNumeric class is a concrete base implementation of the
+ * {@link Numeric} interface. Its only purpose in life is to provide a path for
+ * type conversion between different numeric types such as conversions between
+ * real and integer without losing information.
  */
 public class BaseNumeric extends ModelType implements Numeric {
 
@@ -33,15 +35,30 @@ public class BaseNumeric extends ModelType implements Numeric {
     }
 
     public static <T extends Object> Function<T, ModelType> getCastFunction(Class<T> sourceType) {
-
         // Direct casting from subclasses:
         // This is a special case because the numeric type is abstract and only
         // exists to bridge between other numeric types
-        if (BaseLong.class.equals(sourceType)) {
+        if (BaseByte.class.isAssignableFrom(sourceType)) {
+            return o -> new BaseNumeric(((BaseByte) o).getValue());
+        } else if (Byte.class.equals(sourceType)) {
+            return o -> new BaseNumeric(Byte.valueOf((byte) o).longValue());
+        } else if (BaseDouble.class.isAssignableFrom(sourceType)) {
+            return o -> new BaseNumeric(((BaseDouble) o).getValue());
+        } else if (Double.class.equals(sourceType)) {
+            return o -> new BaseNumeric((double) o);
+        } else if (BaseInteger.class.isAssignableFrom(sourceType)) {
+            return o -> new BaseNumeric(((BaseInteger) o).getValue());
+        } else if (Integer.class.equals(sourceType)) {
+            return o -> new BaseNumeric(Integer.valueOf((int) o).longValue());
+        } else if (BaseLong.class.isAssignableFrom(sourceType)) {
             return o -> new BaseNumeric(((BaseLong) o).getValue());
-
+        } else if (Long.class.equals(sourceType)) {
+            return o -> new BaseNumeric((long) o);
+        } else if (BaseShort.class.isAssignableFrom(sourceType)) {
+            return o -> new BaseNumeric(((BaseShort) o).getValue());
+        } else if (Short.class.equals(sourceType)) {
+            return o -> new BaseNumeric(Short.valueOf((short) o).longValue());
         }
-        // TODO more subclasses
 
         // Didn't find any applicable cast functions
         return null;

@@ -1,18 +1,33 @@
 package io.ciera.runtime.summit2.types;
 
-import java.text.SimpleDateFormat;
 import java.time.Instant;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.time.temporal.ChronoField;
 import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalAccessor;
 import java.util.Calendar;
 import java.util.TimeZone;
 import java.util.function.Function;
 
+import io.ciera.runtime.summit2.application.SystemClock;
 import io.ciera.runtime.summit2.exceptions.DeserializationException;
 
 public class Date extends TimeStamp {
 
     /**
-     * TODO calendar instance used to get date fields
+     * Constant representing microseconds per day used for conversion from string.
+     */
+    private static long MICROS_PER_DAY = 86400000000L;
+
+    /**
+     * Use ISO-8601 date/time format.
+     */
+    private static DateTimeFormatter FORMAT = DateTimeFormatter.ISO_DATE_TIME;
+
+    /**
+     * The calendar instance is initialized with the time stamp given interpreted as
+     * microseconds since the Unix epoch. The time zone is UTC.
      */
     private Calendar cal;
 
@@ -30,114 +45,75 @@ public class Date extends TimeStamp {
 
     public Date(long timestamp, Instant epoch) {
         super(timestamp);
-        long unixMicros = timestamp - epoch.until(Instant.EPOCH, ChronoUnit.MICROS);
         cal = Calendar.getInstance();
         cal.setTimeZone(TimeZone.getTimeZone("UTC"));
-        cal.setTimeInMillis(unixMicros / 1000L);
+        cal.setTimeInMillis((timestamp - epoch.until(Instant.EPOCH, ChronoUnit.MICROS)) / 1000L);
     }
-
-    public static <T extends Object> Function<T, ModelType> getCastFunction(Class<T> sourceType) {
-        // Direct cast from a subclass
-        if (Date.class.isAssignableFrom(sourceType)) {
-            return o -> (Date) o;
-        }
-
-        // Direct conversion from superclass
-        if (TimeStamp.class.equals(sourceType)) {
-            return o -> new Date((TimeStamp) o);
-        }
-
-        // Search in superclass for indirect conversion
-        Function<T, ModelType> f = TimeStamp.getCastFunction(sourceType);
-        if (f != null) {
-            return o -> getCastFunction(TimeStamp.class).apply((TimeStamp) f.apply(o));
-        }
-
-        // Didn't find any applicable cast functions
-        return null;
-    }
-
-
 
     /**
-     * TODO
+     * Get the year AD of this Date.
      * 
-     * @return
+     * @return the year number.
      */
     public int getYear() {
         return cal.get(Calendar.YEAR);
     }
 
     /**
-     * TODO
+     * Get the month of this Date. Values are 1-indexed meaning January=1,
+     * February=2, etc.
      * 
-     * @return
+     * @return the month number.
      */
     public int getMonth() {
         return cal.get(Calendar.MONTH) + 1;
     }
 
     /**
-     * TODO
+     * Get the day of the month of this date.
      * 
-     * @return
+     * @return the day number.
      */
     public int getDay() {
         return cal.get(Calendar.DAY_OF_MONTH);
     }
 
     /**
-     * TODO
+     * Get the hour of the day of this date.
      * 
-     * @return
+     * @return the hour number.
      */
     public int getHour() {
         return cal.get(Calendar.HOUR_OF_DAY);
     }
 
     /**
-     * TODO
+     * Get the minute of the hour of this date.
      * 
-     * @return
+     * @return the minute number.
      */
     public int getMinute() {
         return cal.get(Calendar.MINUTE);
     }
 
     /**
-     * TODO
+     * Get the second of the minute of this date.
      * 
-     * @return
+     * @return the second number.
      */
     public int getSecond() {
         return cal.get(Calendar.SECOND);
     }
 
     /**
-     * TODO TODO test
+     * Create a new instance of Date from the current time and epoch set in the
+     * system clock.
      * 
-     * @return
+     * @param clock The clock to reference.
+     * @return A constructed Date instance.
      */
-    /*
-     * public static Date now(SystemClock clock) { return new Date(clock.time(),
-     * clock.getEpoch()); }
-     */
-
-    @Override
-    public String toString() {
-        // Create ISO 8601 compliant date string
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
-        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
-        return sdf.format(cal.getTime());
-    }
-
-    public static Date fromString(String s) {
-        try {
-            // TODO parse iso string
-            return new Date(Long.parseLong(s) * 1000L);
-        } catch (NullPointerException | NumberFormatException e) {
-            throw new DeserializationException("Cannot deserialize 'Date' from input: " + s, e);
-        }
+    public static Date now(SystemClock clock) {
+        return new Date(clock.getTime(), clock.getEpoch());
     }
 
     @Override
@@ -180,6 +156,52 @@ public class Date extends TimeStamp {
     public Date power(Object o) {
         throw new UnsupportedOperationException(
                 "Power is not supported for types 'Date' and '" + o != null ? o.getClass().getName() : "null" + "'");
+    }
+
+    public static <T extends Object> Function<T, ModelType> getCastFunction(Class<T> sourceType) {
+        // Direct cast from a subclass
+        if (Date.class.isAssignableFrom(sourceType)) {
+            return o -> (Date) o;
+        }
+
+        // Direct conversion from superclass
+        if (TimeStamp.class.equals(sourceType)) {
+            return o -> new Date((TimeStamp) o);
+        }
+
+        // Search in superclass for indirect conversion
+        Function<T, ModelType> f = TimeStamp.getCastFunction(sourceType);
+        if (f != null) {
+            return o -> getCastFunction(TimeStamp.class).apply((TimeStamp) f.apply(o));
+        }
+
+        // Didn't find any applicable cast functions
+        return null;
+    }
+
+    /**
+     * Override the 'toString' method to produce an ISO-8601 compliant date/time
+     * string.
+     */
+    @Override
+    public String toString() {
+        return FORMAT.format(cal.toInstant());
+    }
+
+    /**
+     * Parse an ISO-8601 date/time string.
+     * 
+     * @param s The input string
+     * @return an instance of Date representative of the input string.
+     */
+    public static Date fromString(String s) {
+        try {
+            TemporalAccessor t = FORMAT.parse(s);
+            return new Date(t.getLong(ChronoField.EPOCH_DAY) * MICROS_PER_DAY + t.getLong(ChronoField.MICRO_OF_DAY));
+        } catch (NullPointerException | DateTimeParseException e) {
+            throw new DeserializationException("Could not parse date", e);
+        }
+
     }
 
 }

@@ -20,7 +20,6 @@ public class DeviceReadException extends RuntimeException {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 
-    
     public DeviceReadException(Throwable cause) {
         super(cause);
     }
