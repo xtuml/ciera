@@ -197,7 +197,8 @@ public class Date extends TimeStamp {
     public static Date fromString(String s) {
         try {
             TemporalAccessor t = FORMAT.parse(s);
-            return new Date((t.getLong(ChronoField.INSTANT_SECONDS) * 1000000l) + (t.getLong(ChronoField.NANO_OF_SECOND) / 1000l));
+            return new Date((t.getLong(ChronoField.INSTANT_SECONDS) * 1000000l)
+                    + (t.getLong(ChronoField.NANO_OF_SECOND) / 1000l));
         } catch (NullPointerException | DateTimeParseException e) {
             throw new DeserializationException("Could not parse date", e);
         }

@@ -40,7 +40,7 @@ public class TestTypeConversion {
     public void intToTimeStamp() {
         int input = Integer.MAX_VALUE;
         TimeStamp output = ModelType.castTo(TimeStamp.class, input);
-        assertEquals((long) Integer.MAX_VALUE, output.getValue());
+        assertEquals(Integer.MAX_VALUE, output.getValue());
     }
 
     @Test
