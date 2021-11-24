@@ -16,11 +16,6 @@ import io.ciera.runtime.summit2.exceptions.DeserializationException;
 public class Date extends TimeStamp {
 
     /**
-     * Constant representing microseconds per day used for conversion from string.
-     */
-    private static long MICROS_PER_DAY = 86400000000l;
-
-    /**
      * Use ISO-8601 date/time format.
      */
     private static DateTimeFormatter FORMAT = DateTimeFormatter.ISO_INSTANT;

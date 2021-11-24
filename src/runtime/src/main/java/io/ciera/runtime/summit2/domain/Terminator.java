@@ -3,7 +3,7 @@ package io.ciera.runtime.summit2.domain;
 import io.ciera.runtime.summit2.action.ActionHome;
 import io.ciera.runtime.summit2.application.ExecutionContext;
 import io.ciera.runtime.summit2.application.Logger;
-import io.ciera.runtime.summit2.application.ReceivedMessage;
+import io.ciera.runtime.summit2.application.task.ReceivedMessage;
 
 public abstract class Terminator implements ActionHome {
 
@@ -23,7 +23,7 @@ public abstract class Terminator implements ActionHome {
 
     public void send(Message message) {
         if (peer != null) {
-            peer.getContext().addTask(new ReceivedMessage(peer, message));
+            peer.getContext().addTask(new ReceivedMessage(peer.getContext(), peer, message));
         }
     }
 

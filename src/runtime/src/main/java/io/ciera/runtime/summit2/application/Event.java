@@ -15,5 +15,9 @@ public class Event {
         // TODO
         return 0;
     }
+    
+    public EventHandle getEventHandle() {
+        return eventHandle;
+    }
 
 }

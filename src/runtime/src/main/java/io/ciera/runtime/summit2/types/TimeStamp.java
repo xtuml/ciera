@@ -2,6 +2,8 @@ package io.ciera.runtime.summit2.types;
 
 import java.util.function.Function;
 
+import io.ciera.runtime.summit2.application.SystemClock;
+
 /**
  * The TimeStamp class represents a point in time. It is represented as a
  * quantity of microseconds elapsed since an epoch (reference point in time).
@@ -22,6 +24,18 @@ public class TimeStamp extends BaseLong {
     public TimeStamp(BaseLong o) {
         this(o.getValue());
     }
+
+    /**
+     * Create a new instance of TimeStamp from the current time and epoch set in the
+     * system clock.
+     * 
+     * @param clock The clock to reference.
+     * @return A constructed TimeStamp instance.
+     */
+    public static TimeStamp now(SystemClock clock) {
+        return new TimeStamp(clock.getTime());
+    }
+ 
 
     public static <T extends Object> Function<T, ModelType> getCastFunction(Class<T> sourceType) {
         // Direct cast from a subclass
