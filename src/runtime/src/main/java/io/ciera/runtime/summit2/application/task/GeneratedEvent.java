@@ -20,6 +20,7 @@ public class GeneratedEvent extends Task {
     @Override
     public void run() {
         target.consumeEvent(event);
+        getContext().getInstancePopulation().removeEvent(event.getEventHandle());
     }
     
     @Override

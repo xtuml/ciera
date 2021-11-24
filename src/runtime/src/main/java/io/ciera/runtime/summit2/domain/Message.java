@@ -2,7 +2,6 @@ package io.ciera.runtime.summit2.domain;
 
 import io.ciera.runtime.summit2.exceptions.DeserializationException;
 import io.ciera.runtime.summit2.types.MessageHandle;
-import io.ciera.runtime.summit2.types.UniqueId;
 
 /**
  * A message represents an asynchronous event sent across domain boundaries. A
@@ -55,7 +54,7 @@ public class Message implements Comparable<Message> {
      * 
      * @return the message's unique ID.
      */
-    public UniqueId getMessageHandle() {
+    public MessageHandle getMessageHandle() {
         return messageHandle;
     }
 

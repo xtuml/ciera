@@ -10,10 +10,16 @@ import java.util.TreeSet;
 import java.util.function.Predicate;
 
 import io.ciera.runtime.summit2.action.ActionHome;
+import io.ciera.runtime.summit2.application.Event;
+import io.ciera.runtime.summit2.application.EventTarget;
 import io.ciera.runtime.summit2.application.ExecutionContext;
 import io.ciera.runtime.summit2.application.Logger;
+import io.ciera.runtime.summit2.application.Timer;
 import io.ciera.runtime.summit2.exceptions.InstancePopulationException;
 import io.ciera.runtime.summit2.exceptions.ModelIntegrityException;
+import io.ciera.runtime.summit2.types.EventHandle;
+import io.ciera.runtime.summit2.types.MessageHandle;
+import io.ciera.runtime.summit2.types.TimerHandle;
 import io.ciera.runtime.summit2.types.UniqueId;
 
 /**
@@ -28,11 +34,17 @@ public abstract class Domain implements ActionHome, InstancePopulation {
     private ExecutionContext context;
     private Logger logger;
 
-    private Map<Class<?>, Set<ObjectInstance>> instancePopulation;
+    private final Map<Class<?>, Set<ObjectInstance>> instancePopulation;
+    private final Map<EventHandle, Event> eventPopulation;
+    private final Map<TimerHandle, Timer> timerPopulation;
+    private final Map<MessageHandle, Message> messagePopulation;
 
     public Domain(String name, ExecutionContext context, Logger logger) {
         this.name = name;
         this.instancePopulation = new TreeMap<>();
+        this.eventPopulation = new TreeMap<>();
+        this.timerPopulation = new TreeMap<>();
+        this.messagePopulation = new TreeMap<>();
     }
 
     @Override
@@ -125,6 +137,68 @@ public abstract class Domain implements ActionHome, InstancePopulation {
             throw new ModelIntegrityException(
                     "Instance does not exist within the population of '" + getName() + "': " + instance);
         }
+    }
+
+    @Override
+    public EventHandle addEvent(Event event) {
+        eventPopulation.put(event.getEventHandle(), event);
+        return event.getEventHandle();
+    }
+
+    @Override
+    public Event getEvent(EventHandle eventHandle) {
+        return eventPopulation.get(eventHandle);
+    }
+
+    @Override
+    public Event removeEvent(EventHandle eventHandle) {
+        return eventPopulation.remove(eventHandle);
+    }
+
+    @Override
+    public TimerHandle addTimer(Timer timer) {
+        timerPopulation.put(timer.getTimerHandle(), timer);
+        return timer.getTimerHandle();
+    }
+
+    @Override
+    public Timer getTimer(TimerHandle timerHandle) {
+        return timerPopulation.get(timerHandle);
+    }
+
+    @Override
+    public Timer removeTimer(TimerHandle timerHandle) {
+        return timerPopulation.remove(timerHandle);
+    }
+
+    @Override
+    public MessageHandle addMessage(Message message) {
+        messagePopulation.put(message.getMessageHandle(), message);
+        return message.getMessageHandle();
+    }
+
+    @Override
+    public Message getMessage(MessageHandle messageHandle) {
+        return messagePopulation.get(messageHandle);
+    }
+
+    @Override
+    public Message removeMessage(MessageHandle messageHandle) {
+        return messagePopulation.remove(messageHandle);
+    }
+
+    public EventTarget getTarget(UniqueId targetHandle) {
+        for (Class<?> object : instancePopulation.keySet()) {
+            Set<ObjectInstance> instanceSet = instancePopulation.get(object);
+            ObjectInstance instance = null != instanceSet
+                    ? instanceSet.stream().filter(o -> o.getInstanceId().equals(targetHandle)).findAny().orElse(null)
+                    : null;
+            if (instance != null) {
+                return instance;
+            }
+        }
+        // TODO check for assigner state machines
+        return null;
     }
 
 }

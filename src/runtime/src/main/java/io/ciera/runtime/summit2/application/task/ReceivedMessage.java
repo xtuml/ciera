@@ -19,6 +19,7 @@ public class ReceivedMessage extends Task {
     @Override
     public void run() {
         target.deliver(message);
+        getContext().getInstancePopulation().removeMessage(message.getMessageHandle());
     }
 
 }

@@ -5,13 +5,16 @@ import java.util.concurrent.PriorityBlockingQueue;
 
 import io.ciera.runtime.summit2.application.task.GeneratedEvent;
 import io.ciera.runtime.summit2.application.task.GeneratedEventToSelf;
+import io.ciera.runtime.summit2.domain.InstancePopulation;
 import io.ciera.runtime.summit2.types.Duration;
 import io.ciera.runtime.summit2.types.TimeStamp;
+import io.ciera.runtime.summit2.types.TimerHandle;
 
 public class ExecutionContext implements Runnable {
 
     private int id;
     private Application application;
+    private InstancePopulation instancePopulation;
     private ExecutionMode executionMode;
     private ModelIntegrityMode modelIntegrityMode;
 
@@ -20,12 +23,12 @@ public class ExecutionContext implements Runnable {
     private int sequenceNumber;
     private BlockingQueue<Task> tasks;
 
-    public ExecutionContext(int id, Application application) {
-        this(id, application, ExecutionMode.INTERLEAVED, ModelIntegrityMode.STRICT, 1000000l, false);
+    public ExecutionContext(int id, Application application, InstancePopulation instancePopulation) {
+        this(id, application, instancePopulation, ExecutionMode.INTERLEAVED, ModelIntegrityMode.STRICT, 1000000l, false);
 
     }
 
-    public ExecutionContext(int id, Application application, ExecutionMode executionMode,
+    public ExecutionContext(int id, Application application, InstancePopulation instancePopulation, ExecutionMode executionMode,
             ModelIntegrityMode modelIntegrityMode, long tickDuration, boolean enableSimulatedTime) {
         this.id = id;
         this.executionMode = executionMode;
@@ -55,6 +58,10 @@ public class ExecutionContext implements Runnable {
     public Application getApplication() {
         return application;
     }
+    
+    public InstancePopulation getInstancePopulation() {
+        return instancePopulation;
+    }
 
     public ExecutionMode getExecutionMode() {
         return executionMode;
@@ -80,21 +87,29 @@ public class ExecutionContext implements Runnable {
         addTask(new GeneratedEventToSelf(this, event, target));
     }
     
-    public void scheduleEvent(Event event, EventTarget target, TimeStamp expiration, Duration period) {
-        clock.registerTimer(new Timer(event.getEventHandle(), target.getTargetHandle(), expiration, period), event, target);
+    public TimerHandle scheduleEvent(Event event, EventTarget target, Timer timer) {
+        instancePopulation.removeTimer(timer.getTimerHandle());
+        instancePopulation.addTimer(timer);
+        clock.registerTimer(timer, event, target);
+        return timer.getTimerHandle();
     }
 
-    public void scheduleEvent(Event event, EventTarget target, TimeStamp expiration) {
-        scheduleEvent(event, target, expiration, null);
+    public TimerHandle scheduleEvent(Event event, EventTarget target, TimeStamp expiration, Duration period) {
+        Timer timer = new Timer(event.getEventHandle(), target.getTargetHandle(), expiration.getValue(), period.getValue());
+        return scheduleEvent(event, target, timer);
     }
 
-    public void scheduleEvent(Event event, EventTarget target, Duration delay, Duration period) {
+    public TimerHandle scheduleEvent(Event event, EventTarget target, TimeStamp expiration) {
+        return scheduleEvent(event, target, expiration, null);
+    }
+
+    public TimerHandle scheduleEvent(Event event, EventTarget target, Duration delay, Duration period) {
         TimeStamp expiration = TimeStamp.now(clock).add(delay).castTo(TimeStamp.class);
-        scheduleEvent(event, target, expiration, period);
+        return scheduleEvent(event, target, expiration, period);
     }
 
-    public void scheduleEvent(Event event, EventTarget target, Duration delay) {
-        scheduleEvent(event, target, delay, null);
+    public TimerHandle scheduleEvent(Event event, EventTarget target, Duration delay) {
+        return scheduleEvent(event, target, delay, null);
     }
     
     public void addTask(Task newTask) {
