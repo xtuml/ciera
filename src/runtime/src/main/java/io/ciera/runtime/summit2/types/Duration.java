@@ -9,7 +9,7 @@ import java.time.format.DateTimeParseException;
 
 /**
  * The Duration class represents a period of time. It is represented as a
- * quantity of microseconds. Durations can be represented as ISO-8601 strings.
+ * quantity of nanoseconds. Durations can be represented as ISO-8601 strings.
  */
 public class Duration extends BaseLong {
 
@@ -53,7 +53,7 @@ public class Duration extends BaseLong {
     @Override
     public String toString() {
         // Create ISO 8601 compliant duration string
-        return java.time.Duration.of(getValue(), ChronoUnit.MICROS).toString();
+        return java.time.Duration.of(getValue(), ChronoUnit.NANOS).toString();
     }
 
     /**
@@ -65,7 +65,7 @@ public class Duration extends BaseLong {
     public static Duration fromString(String s) {
         // Parse ISO 8601 compliant duration string
         try {
-            return new Duration(java.time.Duration.parse(s).toNanos() / 1000l);
+            return new Duration(java.time.Duration.parse(s).toNanos());
         } catch (NullPointerException | DateTimeParseException e) {
             throw new DeserializationException("Could not parse duration", e);
         }

@@ -16,23 +16,32 @@ public class ExecutionContext implements Runnable {
     private ModelIntegrityMode modelIntegrityMode;
 
     private SystemClock clock;
+    private Thread clockThread;
     private int sequenceNumber;
     private BlockingQueue<Task> tasks;
 
     public ExecutionContext(int id, Application application) {
-        this(id, application, ExecutionMode.INTERLEAVED, ModelIntegrityMode.STRICT, false);
+        this(id, application, ExecutionMode.INTERLEAVED, ModelIntegrityMode.STRICT, 1000000l, false);
 
     }
 
     public ExecutionContext(int id, Application application, ExecutionMode executionMode,
-            ModelIntegrityMode modelIntegrityMode, boolean enableSimulatedTime) {
+            ModelIntegrityMode modelIntegrityMode, long tickDuration, boolean enableSimulatedTime) {
         this.id = id;
         this.executionMode = executionMode;
         this.modelIntegrityMode = modelIntegrityMode;
         this.application = application;
-        this.clock = new SystemClock(enableSimulatedTime);
         this.sequenceNumber = 1;
         this.tasks = new PriorityBlockingQueue<>();
+        
+        if (!enableSimulatedTime) {
+            this.clock = new WallClock(this, tickDuration);
+            this.clockThread = new Thread((WallClock)this.clock, "Clock: " + getName());
+            this.clockThread.start();
+        } else {
+            this.clockThread = null;
+            // TODO create simulated clock
+        }
     }
     
     public String getName() {
@@ -72,7 +81,7 @@ public class ExecutionContext implements Runnable {
     }
     
     public void scheduleEvent(Event event, EventTarget target, TimeStamp expiration, Duration period) {
-        clock.registerTimer(new Timer(event.getEventHandle(), target.getTargetHandle(), expiration, period));
+        clock.registerTimer(new Timer(event.getEventHandle(), target.getTargetHandle(), expiration, period), event, target);
     }
 
     public void scheduleEvent(Event event, EventTarget target, TimeStamp expiration) {
@@ -108,6 +117,20 @@ public class ExecutionContext implements Runnable {
                 // TODO handle interrupted exception
             }
         }
+        // Wait for the clock to shut down
+        if (this.clockThread != null) {
+            try {
+                this.clockThread.join();
+            } catch (InterruptedException e) {
+                // TODO handle interrupted exception
+            }
+        }
+    }
+    
+    public Thread start() {
+        Thread t = new Thread(this, getName());
+        t.start();
+        return t;
     }
 
 }

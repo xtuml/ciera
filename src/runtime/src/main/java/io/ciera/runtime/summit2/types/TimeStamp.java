@@ -6,7 +6,7 @@ import io.ciera.runtime.summit2.application.SystemClock;
 
 /**
  * The TimeStamp class represents a point in time. It is represented as a
- * quantity of microseconds elapsed since an epoch (reference point in time).
+ * quantity of nanoseconds elapsed since an epoch (reference point in time).
  * TimeStamp instances do not inherently define the epoch they are referenced
  * from, but will be interpreted by the runtime based on the current settings of
  * the {@link SystemClock}.
