@@ -15,4 +15,7 @@ public interface IMessage {
     
     public String serialize() throws XtumlException;
 
+    public void addParm(String key, Object value) throws XtumlException;
+
+    public Object getParm(String key);
 }
