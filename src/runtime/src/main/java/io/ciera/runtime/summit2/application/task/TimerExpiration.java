@@ -23,9 +23,12 @@ public class TimerExpiration extends Task {
     public void run() {
         // Queue the event
         getContext().addTask(new GeneratedEvent(getContext(), event, target));
-        // Reset the timer if necessary
         if (timer.isRecurring()) {
-            // TODO
+            // Re-schedule the timer
+            timer.reset();
+            getContext().scheduleEvent(event, target, timer);
+        } else {
+            getContext().getInstancePopulation().removeTimer(timer.getTimerHandle());
         }
     }
     

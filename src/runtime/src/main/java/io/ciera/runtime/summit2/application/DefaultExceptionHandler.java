@@ -6,6 +6,7 @@ public class DefaultExceptionHandler implements ExceptionHandler{
     public void handle(RuntimeException e) {
         // TODO
         e.printStackTrace();
+        System.exit(1);
     }
 
 }

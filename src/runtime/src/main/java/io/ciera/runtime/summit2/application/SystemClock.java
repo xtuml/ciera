@@ -1,11 +1,12 @@
 package io.ciera.runtime.summit2.application;
 
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
+import java.util.Collections;
 import java.util.PriorityQueue;
 import java.util.Queue;
 
 import io.ciera.runtime.summit2.application.task.TimerExpiration;
+import io.ciera.runtime.summit2.types.TimerHandle;
 
 public abstract class SystemClock {
 
@@ -45,6 +46,18 @@ public abstract class SystemClock {
     protected void expireTimer(ActiveTimer activeTimer) {
         context.addTask(new TimerExpiration(context, activeTimer.getTimer(), activeTimer.getEvent(), activeTimer.getTarget()));
     }
+
+    public boolean cancelTimer(TimerHandle timerHandle) {
+        for (ActiveTimer activeTimer : Collections.unmodifiableCollection(activeTimers)) {
+            if (activeTimer.getTimer().getTimerHandle().equals(timerHandle)) {
+                activeTimers.remove(activeTimer);
+                getContext().getInstancePopulation().removeTimer(timerHandle);
+                getContext().getInstancePopulation().removeEvent(activeTimer.getEvent().getEventHandle());
+                return true;
+            }
+        }
+        return false;
+    }
     
     protected static class ActiveTimer implements Comparable<ActiveTimer>{
 
@@ -71,7 +84,7 @@ public abstract class SystemClock {
         }
         
         public boolean isExpired(long currentTime) {
-            return timer.getExpiration().getValue() < currentTime;
+            return timer.getExpiration() < currentTime;
         }
 
         @Override

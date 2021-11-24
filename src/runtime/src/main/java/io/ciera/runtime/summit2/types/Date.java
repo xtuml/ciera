@@ -44,6 +44,10 @@ public class Date extends TimeStamp {
         cal.setTimeZone(TimeZone.getTimeZone("UTC"));
         cal.setTimeInMillis((timestamp / 1000000l) - epoch.until(Instant.EPOCH, ChronoUnit.MILLIS));
     }
+    
+    public Date(Calendar cal) {
+        // TODO
+    }
 
     /**
      * Get the year AD of this Date.
