@@ -15,20 +15,19 @@ INSERT INTO O_TFR
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'select one type related by self->Type[R499.''imports''];
-importimpl = param.impl;
+imp_typ = param.import_type;
 typname = type.name;
 pkgname = type.package;
-if ( importimpl )
+importimpl = false;
+LOG::LogInfo( message:"AM:: render type import INT: " + pkgname + " " + typname );
+T::include(file:"file/t.typeimport.java");
+if ( imp_typ != ImportType::INT )
 	select one comp_specific related by type->ComponentSpecificType[R407];
   if ( not_empty comp_specific )
     LOG::LogInfo( message:"AM:: render type import IMPL: " + pkgname + " " + typname );
+    importimpl = true;
     T::include(file:"file/t.typeimport.java");
-  else
-    LOG::LogInfo( message:"AM: not rendering import IMPL: " + pkgname + " " + typname );
   end if;
-else
-  LOG::LogInfo( message:"AM:: render type import INT: " + pkgname + " " + typname );
-	T::include(file:"file/t.typeimport.java");
 end if;
 ',
 	1,
@@ -39,12 +38,19 @@ end if;
 INSERT INTO O_TPARM
 	VALUES ("dff2633e-86a5-4fc3-89ea-c81d1714a633",
 	"f4b04742-dda1-49e9-bbdc-e2887c4474bd",
-	'impl',
-	"ba5eda7a-def5-0000-0000-000000000001",
+	'import_type',
+	"0216eb17-fbe4-49fc-b32f-fa5387d53466",
 	0,
 	'',
 	"00000000-0000-0000-0000-000000000000",
 	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("0216eb17-fbe4-49fc-b32f-fa5387d53466",
+	"00000000-0000-0000-0000-000000000000",
+	'ImportType',
+	'',
+	'',
+	'../../../types/types.xtuml');
 INSERT INTO O_ID
 	VALUES (0,
 	"38084458-dcec-4609-b492-dff4b3e7899a");

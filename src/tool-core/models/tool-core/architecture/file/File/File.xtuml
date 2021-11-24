@@ -45,21 +45,12 @@ select many reqs related by import_refs->ImportRequest[R402.''imports type via''
 for each req in reqs
 	select one stringimport related by req->StringImport[R403];
 	if ( not_empty stringimport )
-    LOG::LogInfo( message:"AM::File.getFormattedImports string: " + stringimport.import_string );
     stringimport.render();
-    T::append( s:"\n" );
   else
   	select one typeimport related by req->TypeImport[R403];
- 		select one type related by typeimport->Type[R499.''imports''];
-    LOG::LogInfo( message:"AM::File.getFormattedImportsINT type: " + type.package + "." + type.name );
-    typeimport.render( impl:false);
-    T::append( s:"\n" );
-  	if ( imp_typ == ImportType::IMPL )	or ( imp_typ == ImportType::BOTH )
-      LOG::LogInfo( message:"AM::File.getFormattedImportsIMPL type: " + type.package + "." + type.name );
-      typeimport.render( impl:true);
-      T::append( s:"\n" );
-    end if;
+    typeimport.render( import_type:imp_typ );
   end if;
+  T::append( s:"\n" );
 end for;
 import_block = T::body();
 T::clear();
