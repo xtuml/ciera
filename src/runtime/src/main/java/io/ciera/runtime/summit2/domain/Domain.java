@@ -5,6 +5,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.function.Predicate;
 
@@ -31,6 +32,7 @@ public abstract class Domain implements ActionHome, InstancePopulation {
 
     public Domain(String name, ExecutionContext context, Logger logger) {
         this.name = name;
+        this.instancePopulation = new TreeMap<>();
     }
 
     @Override

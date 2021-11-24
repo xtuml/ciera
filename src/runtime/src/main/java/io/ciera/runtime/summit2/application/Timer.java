@@ -6,7 +6,7 @@ import io.ciera.runtime.summit2.types.TimeStamp;
 import io.ciera.runtime.summit2.types.TimerHandle;
 import io.ciera.runtime.summit2.types.UniqueId;
 
-public class Timer {
+public class Timer implements Comparable<Timer> {
 
     private TimerHandle timerHandle;
     private EventHandle eventHandle;
@@ -52,6 +52,11 @@ public class Timer {
 
     public boolean isRecurring() {
         return recurring;
+    }
+
+    @Override
+    public int compareTo(Timer o) {
+        return expiration.compareTo(o.getExpiration()) * -1;
     }
 
 }

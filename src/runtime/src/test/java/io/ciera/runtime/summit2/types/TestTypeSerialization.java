@@ -24,24 +24,24 @@ public class TestTypeSerialization {
 
     @Test
     public void testDuration() {
-        Duration d1 = new Duration(123456789000l);
+        Duration d1 = new Duration(123456789000000l);
         String s1 = d1.toString();
         assertEquals("PT34H17M36.789S", s1);
 
         String s2 = "PT274H20M54.321S";
         Duration d2 = Duration.fromString(s2);
-        assertEquals(987654321000l, d2.getValue());
+        assertEquals(987654321000000l, d2.getValue());
     }
 
     @Test
     public void testDate() {
-        Date d1 = new Date(1637624161000000l);
+        Date d1 = new Date(1637624161000000000l);
         String s1 = d1.toString();
         assertEquals("2021-11-22T23:36:01Z", s1);
 
         String s2 = "2021-11-21T23:36:01Z";
         Date d2 = Date.fromString(s2);
-        assertEquals(1637537761000000l, d2.getValue());
+        assertEquals(1637537761000000000l, d2.getValue());
     }
 
     @Test
