@@ -6,14 +6,18 @@ import io.ciera.runtime.application.Logger;
 
 public abstract class Utility implements ActionHome {
 
-    private Domain domain;
-    private ExecutionContext context;
-    private Logger logger;
+    private final Domain domain;
+    private final ExecutionContext context;
+    private final Logger logger;
 
-    public Utility(Domain domain, ExecutionContext context, Logger logger) {
+    public Utility(Domain domain) {
+        this(domain, null);
+    }
+
+    public Utility(Domain domain, ExecutionContext context) {
         this.domain = domain;
         this.context = context;
-        this.logger = logger;
+        this.logger = domain.getLogger();
     }
 
     @Override
@@ -23,7 +27,7 @@ public abstract class Utility implements ActionHome {
 
     @Override
     public ExecutionContext getContext() {
-        return context;
+        return context != null ? context : getDomain().getContext();
     }
 
     @Override

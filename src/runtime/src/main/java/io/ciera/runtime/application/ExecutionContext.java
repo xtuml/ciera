@@ -119,6 +119,17 @@ public class ExecutionContext implements Runnable {
         tasks.offer(newTask);
     }
 
+    public void addTask(Runnable genericTask) {
+        tasks.offer(new Task(this) {
+            @Override
+            public void run() {
+                if (genericTask != null) {
+                    genericTask.run();
+                }
+            }
+        });
+    }
+
     @Override
     public void run() {
         while (application.isRunning()) {
