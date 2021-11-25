@@ -1,14 +1,17 @@
 package io.ciera.runtime.util;
 
 import io.ciera.runtime.application.ExecutionContext;
-import io.ciera.runtime.application.Logger;
 import io.ciera.runtime.domain.Domain;
 import io.ciera.runtime.domain.Utility;
 
 public class STRING extends Utility {
 
-    public STRING(Domain domain, ExecutionContext context, Logger logger) {
-        super(domain, context, logger);
+    public STRING(Domain domain) {
+        super(domain);
+    }
+
+    public STRING(Domain domain, ExecutionContext context) {
+        super(domain, context);
     }
 
     public String itoa(final int i) {

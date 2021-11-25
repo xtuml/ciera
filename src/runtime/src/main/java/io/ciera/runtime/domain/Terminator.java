@@ -7,17 +7,21 @@ import io.ciera.runtime.application.task.ReceivedMessage;
 
 public abstract class Terminator implements ActionHome {
 
-    private String name;
-    private Domain domain;
-    private ExecutionContext context;
-    private Logger logger;
+    private final String name;
+    private final Domain domain;
+    private final ExecutionContext context;
+    private final Logger logger;
     private Terminator peer;
 
-    public Terminator(String name, Domain domain, ExecutionContext context, Logger logger) {
+    public Terminator(String name, Domain domain) {
+        this(name, domain, null);
+    }
+
+    public Terminator(String name, Domain domain, ExecutionContext context) {
         this.name = name;
         this.domain = domain;
         this.context = context;
-        this.logger = logger;
+        this.logger = domain.getLogger();
         this.peer = null;
     }
 
@@ -45,7 +49,7 @@ public abstract class Terminator implements ActionHome {
 
     @Override
     public ExecutionContext getContext() {
-        return context;
+        return context != null ? context : getDomain().getContext();
     }
 
     @Override

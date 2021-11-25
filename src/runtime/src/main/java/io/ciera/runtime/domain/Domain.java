@@ -10,6 +10,7 @@ import java.util.TreeSet;
 import java.util.function.Predicate;
 
 import io.ciera.runtime.action.ActionHome;
+import io.ciera.runtime.application.Application;
 import io.ciera.runtime.application.Event;
 import io.ciera.runtime.application.EventTarget;
 import io.ciera.runtime.application.ExecutionContext;
@@ -30,17 +31,25 @@ import io.ciera.runtime.types.UniqueId;
  */
 public abstract class Domain implements ActionHome, InstancePopulation {
 
-    private String name;
-    private ExecutionContext context;
-    private Logger logger;
+    private final String name;
+    private final Application application;
+    private final ExecutionContext context;
+    private final Logger logger;
 
     private final Map<Class<?>, Set<ObjectInstance>> instancePopulation;
     private final Map<EventHandle, Event> eventPopulation;
     private final Map<TimerHandle, Timer> timerPopulation;
     private final Map<MessageHandle, Message> messagePopulation;
 
-    public Domain(String name, ExecutionContext context, Logger logger) {
+    public Domain(String name, Application application) {
+        this(name, application, null);
+    }
+
+    public Domain(String name, Application application, ExecutionContext context) {
         this.name = name;
+        this.application = application;
+        this.context = context;
+        this.logger = application.getLogger();
         this.instancePopulation = new TreeMap<>();
         this.eventPopulation = new TreeMap<>();
         this.timerPopulation = new TreeMap<>();
@@ -50,6 +59,10 @@ public abstract class Domain implements ActionHome, InstancePopulation {
     @Override
     public String getName() {
         return name;
+    }
+
+    public Application getApplication() {
+        return application;
     }
 
     /**
@@ -64,7 +77,7 @@ public abstract class Domain implements ActionHome, InstancePopulation {
 
     @Override
     public ExecutionContext getContext() {
-        return context;
+        return context != null ? context : getApplication().defaultContext();
     }
 
     @Override

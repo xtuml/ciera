@@ -10,18 +10,22 @@ import io.ciera.runtime.exceptions.TransitionException;
 
 public abstract class StateMachine implements ActionHome, EventTarget {
 
-    private String name;
-    private Domain domain;
-    private ExecutionContext context;
-    private Logger logger;
+    private final String name;
+    private final Domain domain;
+    private final ExecutionContext context;
+    private final Logger logger;
 
     private Enum<?> currentState;
 
-    public StateMachine(String name, Domain domain, ExecutionContext context, Logger logger, Enum<?> initialState) {
+    public StateMachine(String name, Domain domain, Enum<?> initialState) {
+        this(name, domain, null, initialState);
+    }
+
+    public StateMachine(String name, Domain domain, ExecutionContext context, Enum<?> initialState) {
         this.name = name;
         this.domain = domain;
         this.context = context;
-        this.logger = logger;
+        this.logger = domain.getLogger();
         this.currentState = initialState;
     }
 
@@ -62,7 +66,7 @@ public abstract class StateMachine implements ActionHome, EventTarget {
 
     @Override
     public ExecutionContext getContext() {
-        return context;
+        return context != null ? context : getDomain().getContext();
     }
 
     @Override
