@@ -74,30 +74,29 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'select any msg_parm related by self->InvocableObject[R427]->FormalParameter[R429];
+	'// Generate the receiver of a Port Messsage which will be invoked in context from a peer Port ''send''.
+// An Interface mark may specify message parameters passed as JSON strings, rather than indexed array.
+// Parameter-handling for both mechanisms are built; one is then chosen based on that marked value.
+
 // parameters are presented in reverse of declared order; re-order to expected sequence.
+select any msg_parm related by self->InvocableObject[R427]->FormalParameter[R429];
 select one prev_msg_parm related by msg_parm->FormalParameter[R404.''follows''];
 while ( not_empty prev_msg_parm )
   msg_parm = prev_msg_parm;
   select one prev_msg_parm related by msg_parm->FormalParameter[R404.''follows''];
 end while;
-select one iface related by self->Message[R420.''provides implementation for'']->Interface[R419.''defines message format for''];
-LOG::LogInfo( message:"PortMessage.render: " + self.msg_name );
-serialize = iface.serialize_msgs;
-if ( serialize )
-	LOG::LogInfo( message:"serialize true" );
-end if;
+
+// prepare to build both parameter-handling fragments: one a text string; one a rendered buffer.
 message_parameter_list = "";
 pname = "";
 accessor = "";
 deserializer = "";
-T::push_buffer();
 sep = "";
 i = 0;
+
+T::push_buffer();
 while ( not_empty msg_parm )
-	if ( not serialize )
-    accessor = "message.get(" + STRING::itoa( i:i ) + ")";
-  end if;
+  accessor = "message.get(" + STRING::itoa( i:i ) + ")";
 	pname = msg_parm.name;
   select one parm_dt related by msg_parm->TypeReference[R431];
   if ( "boolean" == parm_dt.type_name )
@@ -121,11 +120,14 @@ while ( not_empty msg_parm )
   i = i + 1;
   select one msg_parm related by msg_parm->FormalParameter[R404.''precedes''];
 end while;
-if ( serialize )
+
+// select parameter-handling fragment for template, based on Interface marked value.
+select one iface related by self->Message[R420.''provides implementation for'']->Interface[R419.''defines message format for''];
+if ( iface.serialize_msgs )
   message_parameter_list = T::body();
-	LOG::LogInfo( message:"Serializing... " + message_parameter_list );
 end if;
 T::pop_buffer();
+
 T::include(file:"interface/t.message.deliver.java");',
 	1,
 	'',
