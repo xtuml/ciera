@@ -14,7 +14,9 @@ INSERT INTO O_TFR
 	'',
 	"9ea1a53b-efa1-4bfa-a5ae-7b18040f7dd1",
 	0,
-	'select any string_import from instances of StringImport 
+	'// Find an existing instance of the requested import string - or create one.
+
+select any string_import from instances of StringImport 
  where ( selected.import_string == param.import_string );
 select any import_req from instances of ImportRequest where false; //decl
 if ( empty string_import )
@@ -22,7 +24,6 @@ if ( empty string_import )
   string_import.import_string = param.import_string;
   create object instance import_req of ImportRequest;
   relate string_import to import_req across R403;
-  LOG::LogInfo( message:"AM::get->created string import req: " + param.import_string );
 else
 	select one import_req related by string_import->ImportRequest[R403];
 end if;
@@ -55,11 +56,12 @@ INSERT INTO O_TFR
 	'',
 	"9ea1a53b-efa1-4bfa-a5ae-7b18040f7dd1",
 	0,
-	'type = param.type;
+	'// Find an existing instance of the requested import type - or create one.
+
+type = param.type;
 select any import_req from instances of ImportRequest where false; //decl
 select any type_import related by type->TypeImport[R499.''is imported by'']; 
 if ( empty type_import )
-  LOG::LogInfo( message:"AM::TypeImport create for: " + type.name );
   create object instance type_import of TypeImport;
   relate type_import to type across R499.''imports'';
   create object instance import_req of ImportRequest;

@@ -185,17 +185,14 @@ INSERT INTO S_SYNC
 	"00000000-0000-0000-0000-000000000000",
 	'addStringToImports',
 	'',
-	'file = param.file;
+	'// ensure that the requested import is referred to by the requesting file.
+
+file = param.file;
 imptype = param.type;
 if ( "" != param.s )
   import_req = ImportRequest::get_string_import( import_string:param.s );
   import_reference = ImportReference::get( file:file, request:import_req, reftype:imptype );
   if ( empty import_reference )
-  	if ( param.type == ImportType::IMPL )
-  	  LOG::LogInfo( message:"AM:: adding import ref type IMPL for file: " + file.name );
-  	else
-   	  LOG::LogInfo( message:"AM:: adding import ref type INT for file: " + file.name );
-  	end if;
     create object instance import_ref of ImportReference;
     import_ref.import_type = imptype;
     relate import_req to file across R402 using import_ref;
@@ -247,27 +244,13 @@ INSERT INTO S_SYNC
 	'file = param.file;
 imptype = param.type;
 type_to_import = param.type_to_import;
-select one sdt related by type_to_import->S_DT[R423];
-if ( ::s_dtIsBuiltin( s_dt:sdt ) )
-  LOG::LogInfo( message:"AM::addTypeToImports builtin " + type_to_import.name + " to file " + file.name );
-end if;
 if ( not type_to_import.primitive() and "" != type_to_import.package )
-	if ( param.type == ImportType::IMPL )
-    LOG::LogInfo( message:"AM::addTypeToImports - IMPL file: " + file.name + " " + type_to_import.name );
-  else
-    LOG::LogInfo( message:"AM::addTypeToImports - INT file: " + file.name + " " + type_to_import.name );
-  end if;
   import_req = ImportRequest::get_type_import( type:type_to_import );
   import_reference = ImportReference::get( file:file, request:import_req, reftype:imptype );
   if ( empty import_reference )
     create object instance import_ref of ImportReference;
     import_ref.import_type = imptype;
     relate import_req to file across R402 using import_ref;
-		if ( imptype == ImportType::IMPL )
-	    LOG::LogInfo( message:"AM::addTypeToImports - IMPL created: " + type_to_import.name );
-	  else
-	    LOG::LogInfo( message:"AM::addTypeToImports - INT created: " + type_to_import.name );
-	  end if;
   end if;
 end if;
 ',

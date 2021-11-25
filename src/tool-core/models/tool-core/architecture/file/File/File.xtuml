@@ -38,7 +38,6 @@ INSERT INTO O_TFR
 	"ba5eda7a-def5-0000-0000-000000000004",
 	1,
 	'imp_typ = param.type;
-LOG::LogInfo( message:"AM::File.getFormattedImports: " + self.name );
 select many import_refs related by self->ImportReference[R402]
  where ( param.type == ImportType::BOTH or selected.import_type == ImportType::BOTH or selected.import_type == param.type );
 select many reqs related by import_refs->ImportRequest[R402.''imports type via''];
@@ -48,7 +47,12 @@ for each req in reqs
     stringimport.render();
   else
   	select one typeimport related by req->TypeImport[R403];
-    typeimport.render( import_type:imp_typ );
+  	select one port related by self->Port[R401];
+  	if ( not_empty port )
+      typeimport.render( import_implementation:true  );
+    else
+      typeimport.render( import_implementation:false  );
+    end if;
   end if;
   T::append( s:"\n" );
 end for;
@@ -56,8 +60,6 @@ import_block = T::body();
 T::clear();
 
 import_block = C_UTIL::organizeImports( s:import_block );
-
-LOG::LogInfo( message:"AM::File.getFormattedImports all done: " + self.name );
 
 return "\n" + import_block;',
 	1,

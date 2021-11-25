@@ -17,20 +17,12 @@ INSERT INTO O_TFR
 	's_dt = param.s_dt;
 defining_comp = param.defining_comp;
 new_type = param.new_type;
-LOG::LogInfo( message:"AM:: resolving comp_spec_type import: " + new_type.name );
 
 // if it exists, find the (one) unresolved type for this S_DT and the defining component
 select many unresolved_types_sdt related by s_dt->Type[R423]->UnresolvedType[R407]
   where( not selected.comp_indep_class );
-for each unr in unresolved_types_sdt
-	select one rcomp related by unr->ComponentDefinition[R3805.''referred to by''];
-	LOG::LogInfo( message:"AM:: resolving s_dt type: " + unr.name + " referred by " + rcomp.name );
-end for;
 select many unresolved_types_comp related by defining_comp->UnresolvedType[R3805]
   where( not selected.comp_indep_class );
-for each unr in unresolved_types_comp
-	LOG::LogInfo( message:"AM:: resolving comp type: " + unr.name + " defined by " + defining_comp.name );
-end for;
 unresolved_types = unresolved_types_sdt & unresolved_types_comp;
 select any old_type related by unresolved_types->Type[R407];
 select one unresolved_type related by old_type->UnresolvedType[R407];
@@ -44,7 +36,6 @@ if ( not_empty unresolved_type )
 	unrelate old_type from s_dt across R423;
 	select many typeimports related by unresolved_type->Type[R407]->TypeImport[R499.''is imported by''];
 	for each typeimport in typeimports
-		LOG::LogInfo( message:"AM:: resolving comp_spec_type import: " + new_type.name );
 		select one unresolved related by typeimport->Type[R499.''imports''];
 		unrelate typeimport from unresolved across R499.''imports'';
 		relate typeimport to new_type across R499.''imports'';

@@ -14,22 +14,24 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'file = param.file;
+	'// Attempt to add an import of this type to a requesting file.
+
+file = param.file;
 if ( "" != self.package )//and self.package != file.package );
 	select one type_component related by self->ComponentSpecificType[R407]->ComponentDefinition[R3804.''defined by''];
 	if ( empty type_component )
     select one type_component related by self->UnresolvedType[R407]->ComponentDefinition[R3805.''referred to by''];
   end if;
   if ( not_empty type_component )
-		// filter out component-specifics that do not belong in the currently processing component.
+    // filter out component-specifics that do not belong in the component being processed
     // add the file to the imports for this type only if this type is component-independent, 
-    // or the file is associated with the same component as the component-specific type
+    // or the requesting file is associated with the same component as the component-specific type
     if file.knowsComponent( component:type_component )
-      ::addStringToImports( file:param.file, s:self.package + "." + self.name, type:param.type );
+    ::addTypeToImports( file:file, type_to_import:self, type:param.type );
     end if;
   else
   	// just add it...
-    ::addStringToImports( file:param.file, s:self.package + "." + self.name, type:param.type );
+    ::addTypeToImports( file:file, type_to_import:self, type:param.type );
   end if;
 end if;',
 	1,
