@@ -15,9 +15,12 @@ public abstract class Message implements IMessage, Comparable<IMessage> {
 	
 	private UniqueId messageHandle;
     private Object[] parameterData;
+    private JSONObject keyValueParms;
     
     public Message() {
     	this(new Object[0]);
+    	messageHandle = UniqueId.random();
+    	keyValueParms = new JSONObject();
     }
 
     public Message(Object... data) {
@@ -108,4 +111,12 @@ public abstract class Message implements IMessage, Comparable<IMessage> {
         else throw new XtumlException("Cannot deserialize message");
     }
     
+    public void addParm(String key, Object value ) throws XtumlException {
+		if (value instanceof IXtumlType) keyValueParms.put(key, ((IXtumlType)value).serialize());
+		else keyValueParms.put(key, value.toString());
+    }
+
+    public Object getParm(String key ) {
+    	return keyValueParms.get(key);
+    }
 }

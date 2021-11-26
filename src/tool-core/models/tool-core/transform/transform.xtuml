@@ -2033,6 +2033,16 @@ if ( empty iface )
   // relate to the c_i
   relate iface to c_i across R421;
 
+  // is this Interface marked for message parameter serialization?
+	select one pe related by c_i->PE_PE[R8001];
+	select any serialize_mark from instances of Mark 
+	 where ( selected.markable_name == "Interface" and
+	         selected.path == ::containerMarkingPath( pe:pe ) + "::" + c_i.Name and
+	         selected.feature_name == "Serialize" );
+	if ( not_empty serialize_mark )
+		iface.serialize_msgs = true;
+	end if;                                                          
+
   // transform messages
   // sort by name to assure consistent translation
   select many c_eps related by c_i->C_EP[R4003];

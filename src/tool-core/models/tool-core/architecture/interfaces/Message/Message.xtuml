@@ -14,27 +14,51 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'select any invocable related by self->PortMessage[R420]->InvocableObject[R427];
+	'// Generate the interface methods to create Port Messages.
+// An Interface mark may specify message parameters passed as JSON strings, rather than indexed array.
+// Parameter-handling for both mechanisms are built; one is then chosen based on that marked value.
+
+select any invocable related by self->PortMessage[R420]->InvocableObject[R427];
 parameter_list = invocable.parameter_list();
 
-invocation_parameter_list = "";
+// parameters are presented in reverse of declared order; re-order to expected sequence.
 select any parm from instances of FormalParameter where false;
 select any prev_parm related by invocable->FormalParameter[R429];
 while ( not_empty prev_parm )
   parm = prev_parm;
   select one prev_parm related by parm->FormalParameter[R404.''follows''];
 end while;
+
+// prepare to build both parameter-handling fragments: one a text string; one a rendered buffer.
+pname = "";
+addparms = "";
 separator = "";
+invocation_parameter_list = "";
+serialize = false;
+
+T::push_buffer();
 while ( not_empty parm )
   invocation_parameter_list = invocation_parameter_list + separator + parm.name;
-  separator = ",  ";
+  separator = ", ";
+  pname = parm.name;
+  T::include( file:"interface/t.portmessage.parm.java");
   select one parm related by parm->FormalParameter[R404.''precedes''];
 end while;
+
+// select/modify fragments to be passed to template, based on serialize choice.
+select one iface related by self->Interface[R419.''defines message format for''];
+if ( iface.serialize_msgs )
+  addparms = T::body();
+  invocation_parameter_list = "";
+  serialize = true;
+end if;
+T::pop_buffer();
 
 T::include(file:"interface/t.message.java");',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",
+	0,
 	0);
 INSERT INTO O_NBATTR
 	VALUES ("7ad04da4-0d63-47e6-86a4-dfc351516b37",

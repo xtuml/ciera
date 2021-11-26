@@ -74,33 +74,60 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'message_parameter_list = "";
+	'// Generate the receiver of a Port Messsage which will be invoked in context from a peer Port ''send''.
+// An Interface mark may specify message parameters passed as JSON strings, rather than indexed array.
+// Parameter-handling for both mechanisms are built; one is then chosen based on that marked value.
+
+// parameters are presented in reverse of declared order; re-order to expected sequence.
 select any msg_parm related by self->InvocableObject[R427]->FormalParameter[R429];
 select one prev_msg_parm related by msg_parm->FormalParameter[R404.''follows''];
 while ( not_empty prev_msg_parm )
   msg_parm = prev_msg_parm;
   select one prev_msg_parm related by msg_parm->FormalParameter[R404.''follows''];
 end while;
+
+// prepare to build both parameter-handling fragments: one a text string; one a rendered buffer.
+message_parameter_list = "";
+pname = "";
+accessor = "";
+deserializer = "";
 sep = "";
 i = 0;
+
+T::push_buffer();
 while ( not_empty msg_parm )
   accessor = "message.get(" + STRING::itoa( i:i ) + ")";
+	pname = msg_parm.name;
   select one parm_dt related by msg_parm->TypeReference[R431];
   if ( "boolean" == parm_dt.type_name )
+  	deserializer = "BooleanUtil";
     message_parameter_list = message_parameter_list + sep + "BooleanUtil.deserialize(" + accessor + ")";
   elif ( "int" == parm_dt.type_name )
+  	deserializer = "IntegerUtil";
     message_parameter_list = message_parameter_list + sep + "IntegerUtil.deserialize(" + accessor + ")";
   elif ( "double" == parm_dt.type_name )
+  	deserializer = "RealUtil";
     message_parameter_list = message_parameter_list + sep + "RealUtil.deserialize(" + accessor + ")";
   elif ( "String" == parm_dt.type_name )
+  	deserializer = "StringUtil";
     message_parameter_list = message_parameter_list + sep + "StringUtil.deserialize(" + accessor + ")";
   else
+  	deserializer = parm_dt.type_reference_name;
     message_parameter_list = message_parameter_list + sep + parm_dt.type_reference_name + ".deserialize(" + accessor + ")";
   end if;
+  T::include( file:"interface/t.deserialize.parm.java" );
   sep = ", ";
   i = i + 1;
   select one msg_parm related by msg_parm->FormalParameter[R404.''precedes''];
 end while;
+
+// select parameter-handling fragment for template, based on serialize choice.
+select one iface related by self->Message[R420.''provides implementation for'']->Interface[R419.''defines message format for''];
+if ( iface.serialize_msgs )
+  message_parameter_list = T::body();
+end if;
+T::pop_buffer();
+
 T::include(file:"interface/t.message.deliver.java");',
 	1,
 	'',
