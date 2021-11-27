@@ -3,9 +3,9 @@ package io.ciera.runtime.domain;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.function.Predicate;
 
@@ -50,10 +50,10 @@ public abstract class Domain implements ActionHome, InstancePopulation {
         this.application = application;
         this.context = context;
         this.logger = application.getLogger();
-        this.instancePopulation = new TreeMap<>();
-        this.eventPopulation = new TreeMap<>();
-        this.timerPopulation = new TreeMap<>();
-        this.messagePopulation = new TreeMap<>();
+        this.instancePopulation = new HashMap<>();
+        this.eventPopulation = new HashMap<>();
+        this.timerPopulation = new HashMap<>();
+        this.messagePopulation = new HashMap<>();
     }
 
     @Override
@@ -91,11 +91,12 @@ public abstract class Domain implements ActionHome, InstancePopulation {
     }
 
     @Override
-    public <T extends ObjectInstance> void createInstance(Class<T> type) {
+    public <T extends ObjectInstance> T createInstance(Class<T> type) {
         try {
-            Constructor<T> constructor = type.getConstructor();
-            T instance = constructor.newInstance();
+            Constructor<T> constructor = type.getConstructor(getClass());
+            T instance = constructor.newInstance(this);
             addInstance(instance);
+            return instance;
         } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException
                 | IllegalArgumentException | InvocationTargetException e) {
             throw new InstancePopulationException("Could not create instance of type '" + type.getSimpleName() + "'",
@@ -138,7 +139,8 @@ public abstract class Domain implements ActionHome, InstancePopulation {
     @Override
     @SuppressWarnings("unchecked")
     public <T extends ObjectInstance> Set<T> getAllInstances(Class<T> object) {
-        return (Set<T>) Collections.unmodifiableSet(instancePopulation.get(object));
+        Set<T> objectPopulation = (Set<T>) instancePopulation.get(object);
+        return Collections.unmodifiableSet(objectPopulation != null ? objectPopulation : new TreeSet<>());
     }
 
     @Override

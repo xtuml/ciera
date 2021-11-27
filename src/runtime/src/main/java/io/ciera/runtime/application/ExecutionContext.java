@@ -1,27 +1,32 @@
 package io.ciera.runtime.application;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.PriorityBlockingQueue;
 
 import io.ciera.runtime.application.task.GeneratedEvent;
 import io.ciera.runtime.application.task.GeneratedEventToSelf;
 import io.ciera.runtime.domain.InstancePopulation;
+import io.ciera.runtime.exceptions.InstancePopulationException;
 import io.ciera.runtime.types.Duration;
 import io.ciera.runtime.types.TimeStamp;
 import io.ciera.runtime.types.TimerHandle;
+import io.ciera.runtime.types.UniqueId;
 
 public class ExecutionContext implements Runnable {
 
-    private int id;
-    private Application application;
-    private InstancePopulation instancePopulation;
-    private ExecutionMode executionMode;
-    private ModelIntegrityMode modelIntegrityMode;
+    private final int id;
+    private final Application application;
+    private final InstancePopulation instancePopulation;
+    private final ExecutionMode executionMode;
+    private final ModelIntegrityMode modelIntegrityMode;
 
-    private SystemClock clock;
-    private Thread clockThread;
+    private final SystemClock clock;
+    private final Thread clockThread;
+    private final BlockingQueue<Task> tasks;
+
     private int sequenceNumber;
-    private BlockingQueue<Task> tasks;
 
     public ExecutionContext(int id, Application application, InstancePopulation instancePopulation) {
         this(id, application, instancePopulation, ExecutionMode.INTERLEAVED, ModelIntegrityMode.STRICT, 1000000l,
@@ -33,20 +38,22 @@ public class ExecutionContext implements Runnable {
             ExecutionMode executionMode, ModelIntegrityMode modelIntegrityMode, long tickDuration,
             boolean enableSimulatedTime) {
         this.id = id;
+        this.application = application;
+        this.instancePopulation = instancePopulation;
         this.executionMode = executionMode;
         this.modelIntegrityMode = modelIntegrityMode;
-        this.application = application;
-        this.sequenceNumber = 1;
         this.tasks = new PriorityBlockingQueue<>();
 
         if (!enableSimulatedTime) {
             this.clock = new WallClock(this, tickDuration);
             this.clockThread = new Thread((WallClock) this.clock, "Clock: " + getName());
-            this.clockThread.start();
         } else {
+            this.clock = null;
             this.clockThread = null;
             // TODO create simulated clock
         }
+
+        this.sequenceNumber = 1;
     }
 
     public String getName() {
@@ -81,12 +88,34 @@ public class ExecutionContext implements Runnable {
         return sequenceNumber++;
     }
 
-    public void generateEvent(Event event, EventTarget target) {
-        addTask(new GeneratedEvent(this, event, target));
+    public <E extends Event> void generateEvent(Class<E> eventType, EventTarget target, Object... data) {
+        generateEvent(eventType, target, false, data);
+
     }
 
-    public void generateEventToSelf(Event event, EventTarget target) {
-        addTask(new GeneratedEventToSelf(this, event, target));
+    public <E extends Event> void generateEventToSelf(Class<E> eventType, EventTarget target, Object... data) {
+        generateEvent(eventType, target, true, data);
+    }
+
+    private <E extends Event> void generateEvent(Class<E> eventType, EventTarget target, boolean toSelf, Object... data) {
+        try {
+            Constructor<E> eventBuilder;
+            eventBuilder = eventType.getConstructor(UniqueId.class, Object[].class);
+            Event event = eventBuilder.newInstance(target.getTargetHandle(), (Object) data);
+            generateEvent(event, target, toSelf);
+        } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException
+                | IllegalArgumentException | InvocationTargetException e) {
+            throw new InstancePopulationException("Could not generate event TODO", e);
+        }
+    }
+
+    private void generateEvent(Event event, EventTarget target, boolean toSelf) {
+        if (toSelf) {
+            addTask(new GeneratedEventToSelf(this, event, target));
+
+        } else {
+            addTask(new GeneratedEvent(this, event, target));
+        }
     }
 
     public TimerHandle scheduleEvent(Event event, EventTarget target, Timer timer) {
@@ -103,7 +132,7 @@ public class ExecutionContext implements Runnable {
     }
 
     public TimerHandle scheduleEvent(Event event, EventTarget target, TimeStamp expiration) {
-        return scheduleEvent(event, target, expiration, null);
+        return scheduleEvent(event, target, expiration, new Duration(0l));
     }
 
     public TimerHandle scheduleEvent(Event event, EventTarget target, Duration delay, Duration period) {
@@ -112,7 +141,7 @@ public class ExecutionContext implements Runnable {
     }
 
     public TimerHandle scheduleEvent(Event event, EventTarget target, Duration delay) {
-        return scheduleEvent(event, target, delay, null);
+        return scheduleEvent(event, target, delay, new Duration(0l));
     }
 
     public void addTask(Task newTask) {
@@ -132,6 +161,10 @@ public class ExecutionContext implements Runnable {
 
     @Override
     public void run() {
+        // start the clock
+        if (this.clockThread != null) {
+            this.clockThread.start();
+        }
         while (application.isRunning()) {
             try {
                 Task task = tasks.take();
@@ -141,6 +174,7 @@ public class ExecutionContext implements Runnable {
                     // TODO complete transaction
                 } catch (RuntimeException e) {
                     // TODO invoke exception handler
+                    getApplication().getExceptionHandler().handle(e);
                 }
             } catch (InterruptedException e) {
                 // TODO handle interrupted exception

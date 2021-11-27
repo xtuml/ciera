@@ -5,18 +5,19 @@ import io.ciera.runtime.types.UniqueId;
 
 public abstract class Event implements Comparable<Event> {
 
-    private EventHandle eventHandle;
-    private int eventId;
-    private UniqueId targetHandle;
-    private Object[] parameterData;
+    private final EventHandle eventHandle;
+    private final int eventId;
+    private final UniqueId targetHandle;
+    private final Object[] parameterData;
 
     public Event(int eventId, UniqueId targetHandle, Object... data) {
-        this(new EventHandle(), eventId, targetHandle, data);
+        this(new EventHandle(UniqueId.random()), eventId, targetHandle, data);
     }
 
     public Event(EventHandle eventHandle, int eventId, UniqueId targetHandle, Object... data) {
         this.eventHandle = eventHandle;
         this.eventId = eventId;
+        this.targetHandle = targetHandle;
         this.parameterData = data;
     }
 
@@ -25,7 +26,7 @@ public abstract class Event implements Comparable<Event> {
     }
 
     public String getName() {
-        return getClass().getSimpleName() + "[" + eventHandle.toString() + "]";
+        return getClass().getDeclaringClass().getSimpleName() + "." + getClass().getSimpleName() + "[" + eventHandle.toString() + "]";
     }
 
     public EventHandle getEventHandle() {
@@ -57,6 +58,11 @@ public abstract class Event implements Comparable<Event> {
     @Override
     public int hashCode() {
         return eventHandle.hashCode();
+    }
+    
+    @Override
+    public String toString() {
+        return getName();
     }
 
 }

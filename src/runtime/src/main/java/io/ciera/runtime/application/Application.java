@@ -50,7 +50,7 @@ public abstract class Application {
     }
 
     public ExecutionContext defaultContext() {
-        return !contexts.isEmpty() ? contexts.get(1) : null;
+        return !contexts.isEmpty() ? contexts.get(0) : null;
     }
 
     public void addContext(ExecutionContext context) {

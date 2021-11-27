@@ -32,7 +32,7 @@ public class TIM extends Utility {
 
     public TIM(Domain domain, ExecutionContext context) {
         super(domain, context);
-        this.clock = context.getClock();
+        this.clock = getContext().getClock();
     }
 
     public TimeStamp advance_time(final long microseconds) {

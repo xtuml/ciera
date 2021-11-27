@@ -1,6 +1,5 @@
 package io.ciera.runtime.domain;
 
-import io.ciera.runtime.action.ActionHome;
 import io.ciera.runtime.action.InstanceActionHome;
 import io.ciera.runtime.application.Event;
 import io.ciera.runtime.application.EventTarget;
@@ -18,6 +17,13 @@ public abstract class ObjectInstance extends ModelType implements InstanceAction
     private final ExecutionContext context;
     private final Logger logger;
     private boolean alive;
+    
+    public ObjectInstance() {
+        this.instanceId = null;
+        this.domain = null;
+        this.context = null;
+        this.logger = null;
+    }
 
     public ObjectInstance(Domain domain) {
         this(domain, null);
@@ -32,7 +38,7 @@ public abstract class ObjectInstance extends ModelType implements InstanceAction
         this.domain = domain;
         this.context = context;
         this.logger = domain.getLogger();
-        this.alive = false;
+        this.alive = true;
     }
 
     public UniqueId getInstanceId() {
