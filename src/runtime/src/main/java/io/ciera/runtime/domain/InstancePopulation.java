@@ -14,7 +14,7 @@ public interface InstancePopulation {
 
     public String getName();
 
-    public <T extends ObjectInstance> void createInstance(Class<T> object);
+    public <T extends ObjectInstance> T createInstance(Class<T> object);
 
     public void addInstance(ObjectInstance instance);
 

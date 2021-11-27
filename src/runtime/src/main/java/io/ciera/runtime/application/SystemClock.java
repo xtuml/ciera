@@ -10,14 +10,15 @@ import io.ciera.runtime.types.TimerHandle;
 
 public abstract class SystemClock {
 
-    private ExecutionContext context;
+    private final ExecutionContext context;
+    private final Queue<ActiveTimer> activeTimers;
+
     private Instant epoch;
-    private Queue<ActiveTimer> activeTimers;
 
     public SystemClock(ExecutionContext context) {
         this.context = context;
-        this.epoch = Instant.EPOCH;
         this.activeTimers = new PriorityQueue<>();
+        this.epoch = Instant.EPOCH;
     }
 
     protected Queue<ActiveTimer> getActiveTimers() {

@@ -14,7 +14,7 @@ public class CMD extends Utility {
 
     public CMD(Domain domain, ExecutionContext context) {
         super(domain, context);
-        cmd = new CommandLine(context.getApplication().getArgs());
+        cmd = new CommandLine(context.getApplication().getArgs(), System.err);
     }
 
     public boolean get_flag(final String name) {

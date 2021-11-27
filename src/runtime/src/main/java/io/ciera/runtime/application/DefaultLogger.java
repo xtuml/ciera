@@ -24,7 +24,9 @@ public class DefaultLogger implements Logger {
     public DefaultLogger(String name, Level level) {
         internalLogger = java.util.logging.Logger.getLogger(name);
         internalLogger.setUseParentHandlers(false);
+        internalLogger.setLevel(level);
         ConsoleHandler handler = new ConsoleHandler();
+        handler.setLevel(level);
         handler.setFormatter(new SimpleFormatter() {
             private static final String format = "[%1$tF %1$tT] [%2$-7s] %3$s %n";
 
@@ -35,7 +37,6 @@ public class DefaultLogger implements Logger {
             }
         });
         internalLogger.addHandler(handler);
-        internalLogger.setLevel(level);
     }
 
     @Override
@@ -55,12 +56,12 @@ public class DefaultLogger implements Logger {
 
     @Override
     public void trace(String format, Object arg) {
-        trace(format, arg);
+        trace(format, new Object[] {arg});
     }
 
     @Override
     public void trace(String format, Object arg1, Object arg2) {
-        trace(format, arg1, arg2);
+        trace(format, new Object[] {arg1, arg2});
     }
 
     @Override
@@ -85,12 +86,12 @@ public class DefaultLogger implements Logger {
 
     @Override
     public void debug(String format, Object arg) {
-        debug(format, arg);
+        debug(format, new Object[] {arg});
     }
 
     @Override
     public void debug(String format, Object arg1, Object arg2) {
-        debug(format, arg1, arg2);
+        debug(format, new Object[] {arg1, arg2});
     }
 
     @Override
@@ -115,12 +116,12 @@ public class DefaultLogger implements Logger {
 
     @Override
     public void info(String format, Object arg) {
-        info(format, arg);
+        info(format, new Object[] {arg});
     }
 
     @Override
     public void info(String format, Object arg1, Object arg2) {
-        info(format, arg1, arg2);
+        info(format, new Object[] {arg1, arg2});
     }
 
     @Override
@@ -145,12 +146,12 @@ public class DefaultLogger implements Logger {
 
     @Override
     public void warn(String format, Object arg) {
-        warn(format, arg);
+        warn(format, new Object[] {arg});
     }
 
     @Override
     public void warn(String format, Object arg1, Object arg2) {
-        warn(format, arg1, arg2);
+        warn(format, new Object[] {arg1, arg2});
     }
 
     @Override
@@ -175,12 +176,12 @@ public class DefaultLogger implements Logger {
 
     @Override
     public void error(String format, Object arg) {
-        error(format, arg);
+        error(format, new Object[] {arg});
     }
 
     @Override
     public void error(String format, Object arg1, Object arg2) {
-        error(format, arg1, arg2);
+        error(format, new Object[] {arg1, arg2});
     }
 
     @Override

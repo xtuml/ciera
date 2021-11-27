@@ -5,12 +5,12 @@ import java.time.temporal.ChronoUnit;
 
 public class WallClock extends SystemClock implements Runnable {
 
-    private long tickDuration;
+    private final long tickDuration;
 
     private final Instant STARTUP_INSTANT;
     private final long STARTUP_NANOS;
+    private final long STARTUP_EPOCH_NANOS;
 
-    private long startupEpochNanos;
     private long systemTimeOffset;
 
     public WallClock(ExecutionContext context) {
@@ -22,13 +22,13 @@ public class WallClock extends SystemClock implements Runnable {
         this.tickDuration = tickDuration;
         this.STARTUP_INSTANT = Instant.now();
         this.STARTUP_NANOS = System.nanoTime();
-        this.startupEpochNanos = getEpoch().until(STARTUP_INSTANT, ChronoUnit.NANOS);
+        this.STARTUP_EPOCH_NANOS = getEpoch().until(STARTUP_INSTANT, ChronoUnit.NANOS);
         this.systemTimeOffset = 0;
     }
 
     @Override
     public long getTime() {
-        return startupEpochNanos + (System.nanoTime() - STARTUP_NANOS) + systemTimeOffset;
+        return STARTUP_EPOCH_NANOS + (System.nanoTime() - STARTUP_NANOS) + systemTimeOffset;
     }
 
     @Override
@@ -41,13 +41,13 @@ public class WallClock extends SystemClock implements Runnable {
         while (getContext().getApplication().isRunning()) {
             long start = System.nanoTime();
             // handle all expired timers
-            while (getActiveTimers().peek().isExpired(getTime())) {
+            while (!getActiveTimers().isEmpty() && getActiveTimers().peek().isExpired(getTime())) {
                 expireTimer(getActiveTimers().poll());
             }
             // sleep
-            long sleepTime = tickDuration - (System.nanoTime() - start);
+            long sleepTime = Math.max(tickDuration - (System.nanoTime() - start), 0);
             try {
-                Thread.sleep(sleepTime / 1000000l, (int) sleepTime % 1000000);
+                Thread.sleep(sleepTime / 1000000l, (int) (sleepTime % 1000000l));
             } catch (InterruptedException e) {
                 // TODO Auto-generated catch block
             }

@@ -1,5 +1,7 @@
 package io.ciera.runtime.util;
 
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -13,13 +15,15 @@ public class CommandLine {
     private Map<String, Option> options;
     private Set<String> flags;
     private Map<String, String> values;
-    String[] args;
+    private String[] args;
+    private PrintStream console;
 
-    public CommandLine(String[] args) {
+    public CommandLine(String[] args, OutputStream out) {
         this.args = args;
-        options = new HashMap<>();
-        flags = null;
-        values = null;
+        this.options = new HashMap<>();
+        this.flags = null;
+        this.values = null;
+        this.console = new PrintStream(out);
     }
 
     // class used for registering options
@@ -156,15 +160,15 @@ public class CommandLine {
 
     // print usage of all registered options
     private void printUsage() {
-        System.err.println("Usage:");
+        console.println("Usage:");
         for (Option opt : options.values()) {
             String name = opt.name.length() > 1 ? "--" + opt.name : "-" + opt.name;
             if (Option.FLAG == opt.type)
-                System.err.printf("  %-20s : %s\n", name, opt.usage);
+                console.printf("  %-20s : %s\n", name, opt.usage);
             else
-                System.err.printf("  %-20s : %s\n", name + " <" + opt.value_name + ">", opt.usage);
+                console.printf("  %-20s : %s\n", name + " <" + opt.value_name + ">", opt.usage);
         }
-        System.err.printf("  %-20s : Print usage information.\n", "-h, --help");
+        console.printf("  %-20s : Print usage information.\n", "-h, --help");
     }
 
 }
