@@ -25,13 +25,13 @@ public abstract class BaseSet<E> extends TreeSet<E> {
     public BaseSet(SortedSet<E> s) {
         super(s);
     }
-    
+
     public E any() {
         return any((o) -> true);
     }
-    
+
     public abstract E any(Predicate<E> where);
-    
+
     public abstract BaseSet<E> where(Predicate<E> where);
 
 }

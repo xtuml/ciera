@@ -42,15 +42,12 @@ public abstract class StateMachine implements ActionHome, EventTarget {
     @Override
     public void consumeEvent(Event event) {
         TransitionRule transition = getTransition(currentState, event);
-        logger.trace("%-10s %s: %s [%s] => ...", "TXN START:", getName(),
-                Logger.ANSI_CYAN + currentState.name() + Logger.ANSI_RESET, event.getName());
-        Enum<?> previousState = currentState;
+        traceTxn("TXN START:", getName(), currentState.name(), event.getName(), "...", Logger.ANSI_RESET);
         try {
             Enum<?> newState = transition.execute();
             if (!newState.equals(currentState)) {
-                logger.trace("%-10s %s: %s [%s] => %s", "TXN END:", getName(),
-                        Logger.ANSI_CYAN + previousState.name() + Logger.ANSI_RESET, event.getName(),
-                        Logger.ANSI_GREEN + currentState.name() + Logger.ANSI_RESET);
+                traceTxn("TXN END:", getName(), currentState.name(), event.getName(), newState.name(),
+                        Logger.ANSI_GREEN);
                 currentState = newState;
             }
         } catch (RuntimeException e) {
@@ -81,20 +78,24 @@ public abstract class StateMachine implements ActionHome, EventTarget {
 
     public TransitionRule cannotHappen(Enum<?> currentState, Event event) {
         return () -> {
-            logger.trace("%-10s %s: %s [%s] => %s", "TXN CH:", getName(),
-                    Logger.ANSI_CYAN + currentState.name() + Logger.ANSI_RESET, event.getName(),
-                    Logger.ANSI_RED + "CANNOT HAPPEN" + Logger.ANSI_RESET);
+            traceTxn("TXN END:", getName(), currentState.name(), event.getName(), "CANNOT HAPPEN", Logger.ANSI_RED);
             throw new CannotHappenException(currentState, event, "Event cannot happen.");
         };
     }
 
     public TransitionRule ignore(Enum<?> currentState, Event event) {
         return () -> {
-            logger.trace("%-10s %s: %s [%s] => %s", "TXN IGN:", getName(),
-                    Logger.ANSI_CYAN + currentState.name() + Logger.ANSI_RESET, event.getName(),
-                    Logger.ANSI_YELLOW + "IGNORED" + Logger.ANSI_RESET);
+            traceTxn("TXN END:", getName(), currentState.name(), event.getName(), "IGNORE", Logger.ANSI_YELLOW);
             return currentState;
         };
+    }
+
+    private void traceTxn(String txnType, String targetName, String currentState, String eventName, String nextState,
+            String nextStateColor) {
+        logger.trace("%-15s %-25s: %-50s %-50s => %-40s", txnType, targetName,
+                Logger.ANSI_CYAN + currentState + Logger.ANSI_RESET, "[ " + eventName + " ]",
+                nextStateColor + nextState + Logger.ANSI_RESET);
+
     }
 
 }

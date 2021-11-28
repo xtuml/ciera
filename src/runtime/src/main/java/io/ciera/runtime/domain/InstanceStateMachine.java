@@ -23,7 +23,7 @@ public abstract class InstanceStateMachine extends StateMachine implements Insta
     public ObjectInstance self() {
         return self;
     }
-    
+
     @Override
     public UniqueId getTargetHandle() {
         return self.getInstanceId();

@@ -2,7 +2,7 @@ package io.ciera.runtime.application;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.concurrent.BlockingQueue;
+import java.util.Queue;
 import java.util.concurrent.PriorityBlockingQueue;
 
 import io.ciera.runtime.application.task.GeneratedEvent;
@@ -18,39 +18,35 @@ public class ExecutionContext implements Runnable {
 
     private final int id;
     private final Application application;
+    private final Logger logger;
     private final InstancePopulation instancePopulation;
     private final ExecutionMode executionMode;
     private final ModelIntegrityMode modelIntegrityMode;
 
     private final SystemClock clock;
-    private final Thread clockThread;
-    private final BlockingQueue<Task> tasks;
+    private final Queue<Task> tasks;
 
     private int sequenceNumber;
 
     public ExecutionContext(int id, Application application, InstancePopulation instancePopulation) {
-        this(id, application, instancePopulation, ExecutionMode.INTERLEAVED, ModelIntegrityMode.STRICT, 1000000l,
-                false);
+        this(id, application, instancePopulation, ExecutionMode.INTERLEAVED, ModelIntegrityMode.STRICT, false);
 
     }
 
     public ExecutionContext(int id, Application application, InstancePopulation instancePopulation,
-            ExecutionMode executionMode, ModelIntegrityMode modelIntegrityMode, long tickDuration,
-            boolean enableSimulatedTime) {
+            ExecutionMode executionMode, ModelIntegrityMode modelIntegrityMode, boolean enableSimulatedTime) {
         this.id = id;
         this.application = application;
+        this.logger = application.getLogger();
         this.instancePopulation = instancePopulation;
         this.executionMode = executionMode;
         this.modelIntegrityMode = modelIntegrityMode;
         this.tasks = new PriorityBlockingQueue<>();
 
         if (!enableSimulatedTime) {
-            this.clock = new WallClock(this, tickDuration);
-            this.clockThread = new Thread((WallClock) this.clock, "Clock: " + getName());
+            this.clock = new WallClock(this);
         } else {
-            this.clock = null;
-            this.clockThread = null;
-            // TODO create simulated clock
+            this.clock = new SimulatedClock(this);
         }
 
         this.sequenceNumber = 1;
@@ -97,11 +93,12 @@ public class ExecutionContext implements Runnable {
         generateEvent(eventType, target, true, data);
     }
 
-    private <E extends Event> void generateEvent(Class<E> eventType, EventTarget target, boolean toSelf, Object... data) {
+    private <E extends Event> void generateEvent(Class<E> eventType, EventTarget target, boolean toSelf,
+            Object... data) {
         try {
             Constructor<E> eventBuilder;
             eventBuilder = eventType.getConstructor(UniqueId.class, Object[].class);
-            Event event = eventBuilder.newInstance(target.getTargetHandle(), (Object) data);
+            Event event = eventBuilder.newInstance(target.getTargetHandle(), data);
             generateEvent(event, target, toSelf);
         } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException
                 | IllegalArgumentException | InvocationTargetException e) {
@@ -118,10 +115,11 @@ public class ExecutionContext implements Runnable {
         }
     }
 
-    public TimerHandle scheduleEvent(Event event, EventTarget target, Timer timer) {
+    public synchronized TimerHandle scheduleEvent(Event event, EventTarget target, Timer timer) {
         instancePopulation.removeTimer(timer.getTimerHandle());
         instancePopulation.addTimer(timer);
         clock.registerTimer(timer, event, target);
+        notify();
         return timer.getTimerHandle();
     }
 
@@ -144,12 +142,16 @@ public class ExecutionContext implements Runnable {
         return scheduleEvent(event, target, delay, new Duration(0l));
     }
 
-    public void addTask(Task newTask) {
-        tasks.offer(newTask);
+    public synchronized void addTask(Task newTask) {
+        if (tasks.offer(newTask)) {
+            notify();
+        } else {
+            logger.error("Could not add task to queue");
+        }
     }
 
     public void addTask(Runnable genericTask) {
-        tasks.offer(new Task(this) {
+        addTask(new Task(this) {
             @Override
             public void run() {
                 if (genericTask != null) {
@@ -161,13 +163,13 @@ public class ExecutionContext implements Runnable {
 
     @Override
     public void run() {
-        // start the clock
-        if (this.clockThread != null) {
-            this.clockThread.start();
-        }
         while (application.isRunning()) {
-            try {
-                Task task = tasks.take();
+            // check to see if any timers are expired
+            clock.checkTimers();
+            // get the next task (if there are any)
+            Task task = tasks.poll();
+            if (task != null) {
+                // execute the task
                 try {
                     // TODO initialize transaction
                     task.run();
@@ -176,16 +178,22 @@ public class ExecutionContext implements Runnable {
                     // TODO invoke exception handler
                     getApplication().getExceptionHandler().handle(e);
                 }
-            } catch (InterruptedException e) {
-                // TODO handle interrupted exception
-            }
-        }
-        // Wait for the clock to shut down
-        if (this.clockThread != null) {
-            try {
-                this.clockThread.join();
-            } catch (InterruptedException e) {
-                // TODO handle interrupted exception
+            } else {
+                // wait for something interesting to happen
+                try {
+                    if (clock.hasActiveTimers()) {
+                        // wait for the next timer to expire
+                        clock.waitForNextTimer();
+                    } else {
+                        // wait indefinitely for an external signal or for a
+                        // timer to be scheduled in this context by another context
+                        synchronized (this) {
+                            wait();
+                        }
+                    }
+                } catch (InterruptedException e) {
+                    // woken up by external signal or new timer
+                }
             }
         }
     }
