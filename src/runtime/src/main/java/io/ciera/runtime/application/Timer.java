@@ -60,7 +60,7 @@ public class Timer implements Comparable<Timer> {
 
     @Override
     public int compareTo(Timer o) {
-        return Long.compare(expiration, o.getExpiration()) * -1;
+        return Long.compare(expiration, o.getExpiration());
     }
 
 }

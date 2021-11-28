@@ -29,14 +29,26 @@ public class DefaultLogger implements Logger {
         handler.setLevel(level);
         handler.setFormatter(new SimpleFormatter() {
             private static final String format = "[%1$tF %1$tT] [%2$-7s] %3$s %n";
-
+            
             @Override
             public synchronized String format(LogRecord lr) {
-                return String.format(format, new Date(lr.getMillis()), lr.getLevel().getLocalizedName(),
+                return String.format(format, new Date(lr.getMillis()), getLevelString(lr.getLevel()),
                         lr.getMessage());
             }
         });
         internalLogger.addHandler(handler);
+    }
+    
+    private static String getLevelString(Level level) {
+        if (level.intValue() > Level.WARNING.intValue()) {
+            return ANSI_RED + "ERROR" + ANSI_RESET;
+        } else if (level.intValue() > Level.INFO.intValue()) {
+            return ANSI_YELLOW + "WARN" + ANSI_RESET;
+        } else if (level.intValue() > Level.CONFIG.intValue()) {
+            return ANSI_BLUE + "INFO" + ANSI_RESET;
+        } else {
+            return ANSI_CYAN + "TRACE" + ANSI_RESET;
+        }
     }
 
     @Override
