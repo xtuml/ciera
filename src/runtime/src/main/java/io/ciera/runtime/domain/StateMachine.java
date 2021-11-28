@@ -12,20 +12,16 @@ public abstract class StateMachine implements ActionHome, EventTarget {
 
     private final String name;
     private final Domain domain;
-    private final ExecutionContext context;
     private final Logger logger;
+    private ExecutionContext context;
 
     private Enum<?> currentState;
 
     public StateMachine(String name, Domain domain, Enum<?> initialState) {
-        this(name, domain, null, initialState);
-    }
-
-    public StateMachine(String name, Domain domain, ExecutionContext context, Enum<?> initialState) {
         this.name = name;
         this.domain = domain;
-        this.context = context;
         this.logger = domain.getLogger();
+        this.context = null;
         this.currentState = initialState;
     }
 
@@ -69,6 +65,11 @@ public abstract class StateMachine implements ActionHome, EventTarget {
     @Override
     public ExecutionContext getContext() {
         return context != null ? context : getDomain().getContext();
+    }
+
+    @Override
+    public void attachTo(ExecutionContext context) {
+        this.context = context;
     }
 
     @Override

@@ -19,6 +19,7 @@ public class ExecutionContext implements Runnable {
     private final int id;
     private final Application application;
     private final Logger logger;
+    private final ExceptionHandler exceptionHandler;
     private final InstancePopulation instancePopulation;
     private final ExecutionMode executionMode;
     private final ModelIntegrityMode modelIntegrityMode;
@@ -38,6 +39,7 @@ public class ExecutionContext implements Runnable {
         this.id = id;
         this.application = application;
         this.logger = application.getLogger();
+        this.exceptionHandler = application.getExceptionHandler();
         this.instancePopulation = instancePopulation;
         this.executionMode = executionMode;
         this.modelIntegrityMode = modelIntegrityMode;
@@ -50,38 +52,6 @@ public class ExecutionContext implements Runnable {
         }
 
         this.sequenceNumber = 1;
-    }
-
-    public String getName() {
-        return "ExecutionContext-" + getId();
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public Application getApplication() {
-        return application;
-    }
-
-    public InstancePopulation getInstancePopulation() {
-        return instancePopulation;
-    }
-
-    public ExecutionMode getExecutionMode() {
-        return executionMode;
-    }
-
-    public ModelIntegrityMode getModelIntegrityMode() {
-        return modelIntegrityMode;
-    }
-
-    public SystemClock getClock() {
-        return clock;
-    }
-
-    protected int nextSequenceNumber() {
-        return sequenceNumber++;
     }
 
     public <E extends Event> void generateEvent(Class<E> eventType, EventTarget target, Object... data) {
@@ -142,7 +112,7 @@ public class ExecutionContext implements Runnable {
         return scheduleEvent(event, target, delay, new Duration(0l));
     }
 
-    public synchronized void addTask(Task newTask) {
+    private synchronized void addTask(Task newTask) {
         if (tasks.offer(newTask)) {
             notify();
         } else {
@@ -164,19 +134,21 @@ public class ExecutionContext implements Runnable {
     @Override
     public void run() {
         while (application.isRunning()) {
+
             // check to see if any timers are expired
             clock.checkTimers();
+
             // get the next task (if there are any)
             Task task = tasks.poll();
+
             if (task != null) {
                 // execute the task
                 try {
                     // TODO initialize transaction
                     task.run();
-                    // TODO complete transaction
+                    // TODO complete transaction (check integrity, persist instance pop)
                 } catch (RuntimeException e) {
-                    // TODO invoke exception handler
-                    getApplication().getExceptionHandler().handle(e);
+                    exceptionHandler.handle(e);
                 }
             } else {
                 // wait for something interesting to happen
@@ -186,7 +158,7 @@ public class ExecutionContext implements Runnable {
                         clock.waitForNextTimer();
                     } else {
                         // wait indefinitely for an external signal or for a
-                        // timer to be scheduled in this context by another context
+                        // timer to be scheduled in this context by another thread
                         synchronized (this) {
                             wait();
                         }
@@ -195,6 +167,7 @@ public class ExecutionContext implements Runnable {
                     // woken up by external signal or new timer
                 }
             }
+
         }
     }
 
@@ -202,6 +175,38 @@ public class ExecutionContext implements Runnable {
         Thread t = new Thread(this, getName());
         t.start();
         return t;
+    }
+
+    public String getName() {
+        return "ExecutionContext-" + getId();
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public Application getApplication() {
+        return application;
+    }
+
+    public InstancePopulation getInstancePopulation() {
+        return instancePopulation;
+    }
+
+    public ExecutionMode getExecutionMode() {
+        return executionMode;
+    }
+
+    public ModelIntegrityMode getModelIntegrityMode() {
+        return modelIntegrityMode;
+    }
+
+    public SystemClock getClock() {
+        return clock;
+    }
+
+    protected int nextSequenceNumber() {
+        return sequenceNumber++;
     }
 
 }

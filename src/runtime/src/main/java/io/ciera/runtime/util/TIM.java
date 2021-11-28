@@ -10,7 +10,6 @@ import java.util.TimeZone;
 
 import io.ciera.runtime.application.Event;
 import io.ciera.runtime.application.EventTarget;
-import io.ciera.runtime.application.ExecutionContext;
 import io.ciera.runtime.application.SystemClock;
 import io.ciera.runtime.application.Timer;
 import io.ciera.runtime.domain.Domain;
@@ -27,11 +26,7 @@ public class TIM extends Utility {
     private SystemClock clock;
 
     public TIM(Domain domain) {
-        this(domain, null);
-    }
-
-    public TIM(Domain domain, ExecutionContext context) {
-        super(domain, context);
+        super(domain);
         this.clock = getContext().getClock();
     }
 

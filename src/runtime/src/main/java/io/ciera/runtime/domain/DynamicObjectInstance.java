@@ -1,7 +1,6 @@
 package io.ciera.runtime.domain;
 
 import io.ciera.runtime.application.Event;
-import io.ciera.runtime.application.ExecutionContext;
 import io.ciera.runtime.exceptions.EmptyInstanceException;
 import io.ciera.runtime.exceptions.InstancePopulationException;
 import io.ciera.runtime.types.UniqueId;
@@ -14,18 +13,13 @@ public abstract class DynamicObjectInstance extends ObjectInstance {
         super();
     }
 
-    public DynamicObjectInstance(Domain domain, ExecutionContext context) {
-        super(domain, context);
-        this.stateMachine = null;
-    }
-
     public DynamicObjectInstance(Domain domain) {
         super(domain);
         this.stateMachine = null;
     }
 
-    public DynamicObjectInstance(UniqueId instanceId, Domain domain, ExecutionContext context) {
-        super(instanceId, domain, context);
+    public DynamicObjectInstance(UniqueId instanceId, Domain domain) {
+        super(instanceId, domain);
         this.stateMachine = null;
     }
 
