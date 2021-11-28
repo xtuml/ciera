@@ -4,9 +4,9 @@ import java.util.Arrays;
 
 public abstract class Task implements Runnable, Comparable<Task> {
 
-    public static final int SELF_EVENT_PRIORITY = 300;
-    public static final int SEQUENTIAL_EVENT_PRIORITY = 200;
-    public static final int DEFAULT_PRIORITY = 100;
+    public static final int SELF_EVENT_PRIORITY = 0x30;
+    public static final int SEQUENTIAL_EVENT_PRIORITY = 0x20;
+    public static final int DEFAULT_PRIORITY = 0x10;
 
     private int sequenceNumber;
     private ExecutionContext context;
@@ -30,8 +30,8 @@ public abstract class Task implements Runnable, Comparable<Task> {
 
     @Override
     public int compareTo(Task other) {
-        return Arrays.compare(new int[] { getPriority(), getSequenceNumber() },
-                new int[] { other.getPriority(), other.getSequenceNumber() });
+        return Arrays.compare(new int[] { 0xFF - getPriority(), getSequenceNumber() },
+                new int[] { 0xFF - other.getPriority(), other.getSequenceNumber() });
     }
 
 }

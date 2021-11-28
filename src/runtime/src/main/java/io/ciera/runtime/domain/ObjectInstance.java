@@ -10,14 +10,15 @@ import io.ciera.runtime.exceptions.InstancePopulationException;
 import io.ciera.runtime.types.ModelType;
 import io.ciera.runtime.types.UniqueId;
 
-public abstract class ObjectInstance extends ModelType implements InstanceActionHome, EventTarget, Comparable<ObjectInstance> {
+public abstract class ObjectInstance extends ModelType
+        implements InstanceActionHome, EventTarget, Comparable<ObjectInstance> {
 
     private final UniqueId instanceId;
     private final Domain domain;
     private final ExecutionContext context;
     private final Logger logger;
     private boolean alive;
-    
+
     public ObjectInstance() {
         this.instanceId = null;
         this.domain = null;
@@ -46,7 +47,7 @@ public abstract class ObjectInstance extends ModelType implements InstanceAction
     }
 
     public String getName() {
-        return getClass().getSimpleName() + "[" + instanceId.toString() + "]";
+        return getClass().getSimpleName() + "[" + instanceId.toString().substring(0, 8) + "]";
     }
 
     public void delete() {
@@ -76,7 +77,7 @@ public abstract class ObjectInstance extends ModelType implements InstanceAction
     public Logger getLogger() {
         return logger;
     }
-    
+
     @Override
     public ObjectInstance self() {
         return this;
@@ -95,7 +96,7 @@ public abstract class ObjectInstance extends ModelType implements InstanceAction
     public int compareTo(ObjectInstance o) {
         return getName().compareTo(o.getName());
     }
-    
+
     @Override
     public UniqueId getTargetHandle() {
         return instanceId;

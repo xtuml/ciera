@@ -11,7 +11,7 @@ import io.ciera.runtime.types.TimerHandle;
 public abstract class SystemClock {
 
     private final ExecutionContext context;
-    private final Queue<ActiveTimer> activeTimers;
+    protected final Queue<ActiveTimer> activeTimers;
 
     private Instant epoch;
 
@@ -19,10 +19,6 @@ public abstract class SystemClock {
         this.context = context;
         this.activeTimers = new PriorityQueue<>();
         this.epoch = Instant.EPOCH;
-    }
-
-    protected synchronized Queue<ActiveTimer> getActiveTimers() {
-        return activeTimers;
     }
 
     public ExecutionContext getContext() {
@@ -41,16 +37,25 @@ public abstract class SystemClock {
         this.epoch = epoch;
     }
 
-    public synchronized void registerTimer(Timer timer, Event event, EventTarget target) {
+    protected void checkTimers() {
+        while (!activeTimers.isEmpty() && activeTimers.peek().isExpired(getTime())) {
+            ActiveTimer activeTimer = activeTimers.poll();
+            context.addTask(new TimerExpiration(context, activeTimer.getTimer(), activeTimer.getEvent(),
+                    activeTimer.getTarget()));
+        }
+    }
+
+    protected boolean hasActiveTimers() {
+        return !activeTimers.isEmpty();
+    }
+
+    protected abstract void waitForNextTimer() throws InterruptedException;
+
+    public void registerTimer(Timer timer, Event event, EventTarget target) {
         activeTimers.add(new ActiveTimer(timer, event, target));
     }
 
-    protected void expireTimer(ActiveTimer activeTimer) {
-        context.addTask(
-                new TimerExpiration(context, activeTimer.getTimer(), activeTimer.getEvent(), activeTimer.getTarget()));
-    }
-
-    public synchronized boolean cancelTimer(TimerHandle timerHandle) {
+    public boolean cancelTimer(TimerHandle timerHandle) {
         for (ActiveTimer activeTimer : Collections.unmodifiableCollection(activeTimers)) {
             if (activeTimer.getTimer().getTimerHandle().equals(timerHandle)) {
                 activeTimers.remove(activeTimer);
@@ -87,7 +92,7 @@ public abstract class SystemClock {
         }
 
         public boolean isExpired(long currentTime) {
-            return timer.getExpiration() < currentTime;
+            return timer.getExpiration() <= currentTime;
         }
 
         @Override

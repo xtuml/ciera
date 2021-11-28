@@ -26,7 +26,8 @@ public abstract class Event implements Comparable<Event> {
     }
 
     public String getName() {
-        return getClass().getDeclaringClass().getSimpleName() + "." + getClass().getSimpleName() + "[" + eventHandle.toString() + "]";
+        return getClass().getDeclaringClass().getSimpleName() + "." + getClass().getSimpleName() + "["
+                + eventHandle.toString().substring(0, 8) + "]";
     }
 
     public EventHandle getEventHandle() {
@@ -59,7 +60,7 @@ public abstract class Event implements Comparable<Event> {
     public int hashCode() {
         return eventHandle.hashCode();
     }
-    
+
     @Override
     public String toString() {
         return getName();

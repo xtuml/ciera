@@ -9,7 +9,7 @@ import io.ciera.runtime.types.UniqueId;
 public abstract class DynamicObjectInstance extends ObjectInstance {
 
     private StateMachine stateMachine;
-    
+
     public DynamicObjectInstance() {
         super();
     }
