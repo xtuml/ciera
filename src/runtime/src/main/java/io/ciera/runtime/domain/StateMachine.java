@@ -42,12 +42,17 @@ public abstract class StateMachine implements ActionHome, EventTarget {
     @Override
     public void consumeEvent(Event event) {
         TransitionRule transition = getTransition(currentState, event);
-        logger.trace("TXN START: %s: %s [%s] => ...", getName(), currentState.name(), event.getName());
+        logger.trace("%-10s %s: %s [%s] => ...", "TXN START:", getName(),
+                Logger.ANSI_CYAN + currentState.name() + Logger.ANSI_RESET, event.getName());
         Enum<?> previousState = currentState;
         try {
-            currentState = transition.execute();
-            logger.trace("TXN END: %s: %s [%s] => %s", getName(), previousState.name(), event.getName(),
-                    currentState.name());
+            Enum<?> newState = transition.execute();
+            if (!newState.equals(currentState)) {
+                logger.trace("%-10s %s: %s [%s] => %s", "TXN END:", getName(),
+                        Logger.ANSI_CYAN + previousState.name() + Logger.ANSI_RESET, event.getName(),
+                        Logger.ANSI_GREEN + currentState.name() + Logger.ANSI_RESET);
+                currentState = newState;
+            }
         } catch (RuntimeException e) {
             if (!(e instanceof TransitionException)) {
                 // Inject transition context information
@@ -76,14 +81,18 @@ public abstract class StateMachine implements ActionHome, EventTarget {
 
     public TransitionRule cannotHappen(Enum<?> currentState, Event event) {
         return () -> {
-            logger.trace("TXN: %s: %s [%s] => %s", getName(), currentState.name(), event.getName(), "CANNOT HAPPEN");
+            logger.trace("%-10s %s: %s [%s] => %s", "TXN CH:", getName(),
+                    Logger.ANSI_CYAN + currentState.name() + Logger.ANSI_RESET, event.getName(),
+                    Logger.ANSI_RED + "CANNOT HAPPEN" + Logger.ANSI_RESET);
             throw new CannotHappenException(currentState, event, "Event cannot happen.");
         };
     }
 
     public TransitionRule ignore(Enum<?> currentState, Event event) {
         return () -> {
-            logger.trace("TXN: %s: %s [%s] => %s", getName(), currentState.name(), event.getName(), "IGNORED");
+            logger.trace("%-10s %s: %s [%s] => %s", "TXN IGN:", getName(),
+                    Logger.ANSI_CYAN + currentState.name() + Logger.ANSI_RESET, event.getName(),
+                    Logger.ANSI_YELLOW + "IGNORED" + Logger.ANSI_RESET);
             return currentState;
         };
     }

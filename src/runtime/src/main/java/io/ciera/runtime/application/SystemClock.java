@@ -21,7 +21,7 @@ public abstract class SystemClock {
         this.epoch = Instant.EPOCH;
     }
 
-    protected Queue<ActiveTimer> getActiveTimers() {
+    protected synchronized Queue<ActiveTimer> getActiveTimers() {
         return activeTimers;
     }
 
@@ -41,7 +41,7 @@ public abstract class SystemClock {
         this.epoch = epoch;
     }
 
-    public void registerTimer(Timer timer, Event event, EventTarget target) {
+    public synchronized void registerTimer(Timer timer, Event event, EventTarget target) {
         activeTimers.add(new ActiveTimer(timer, event, target));
     }
 
@@ -50,7 +50,7 @@ public abstract class SystemClock {
                 new TimerExpiration(context, activeTimer.getTimer(), activeTimer.getEvent(), activeTimer.getTarget()));
     }
 
-    public boolean cancelTimer(TimerHandle timerHandle) {
+    public synchronized boolean cancelTimer(TimerHandle timerHandle) {
         for (ActiveTimer activeTimer : Collections.unmodifiableCollection(activeTimers)) {
             if (activeTimer.getTimer().getTimerHandle().equals(timerHandle)) {
                 activeTimers.remove(activeTimer);

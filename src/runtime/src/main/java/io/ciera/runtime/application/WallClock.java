@@ -41,8 +41,10 @@ public class WallClock extends SystemClock implements Runnable {
         while (getContext().getApplication().isRunning()) {
             long start = System.nanoTime();
             // handle all expired timers
-            while (!getActiveTimers().isEmpty() && getActiveTimers().peek().isExpired(getTime())) {
-                expireTimer(getActiveTimers().poll());
+            synchronized (this) {
+                while (!getActiveTimers().isEmpty() && getActiveTimers().peek().isExpired(getTime())) {
+                    expireTimer(getActiveTimers().poll());
+                }
             }
             // sleep
             long sleepTime = Math.max(tickDuration - (System.nanoTime() - start), 0);
