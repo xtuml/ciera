@@ -33,8 +33,8 @@ public abstract class Domain implements ActionHome, InstancePopulation {
 
     private final String name;
     private final Application application;
-    private final ExecutionContext context;
     private final Logger logger;
+    private ExecutionContext context;
 
     private final Map<Class<?>, Set<ObjectInstance>> instancePopulation;
     private final Map<EventHandle, Event> eventPopulation;
@@ -42,14 +42,10 @@ public abstract class Domain implements ActionHome, InstancePopulation {
     private final Map<MessageHandle, Message> messagePopulation;
 
     public Domain(String name, Application application) {
-        this(name, application, null);
-    }
-
-    public Domain(String name, Application application, ExecutionContext context) {
         this.name = name;
         this.application = application;
-        this.context = context;
         this.logger = application.getLogger();
+        this.context = null;
         this.instancePopulation = new HashMap<>();
         this.eventPopulation = new HashMap<>();
         this.timerPopulation = new HashMap<>();
@@ -78,6 +74,11 @@ public abstract class Domain implements ActionHome, InstancePopulation {
     @Override
     public ExecutionContext getContext() {
         return context != null ? context : getApplication().defaultContext();
+    }
+
+    // TODO should this be in an interface somewhere???
+    public void attachTo(ExecutionContext context) {
+        this.context = context;
     }
 
     @Override

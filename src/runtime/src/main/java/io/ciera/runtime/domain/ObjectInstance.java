@@ -15,8 +15,8 @@ public abstract class ObjectInstance extends ModelType
 
     private final UniqueId instanceId;
     private final Domain domain;
-    private final ExecutionContext context;
     private final Logger logger;
+    private ExecutionContext context;
     private boolean alive;
 
     public ObjectInstance() {
@@ -27,18 +27,14 @@ public abstract class ObjectInstance extends ModelType
     }
 
     public ObjectInstance(Domain domain) {
-        this(domain, null);
+        this(UniqueId.random(), domain);
     }
 
-    public ObjectInstance(Domain domain, ExecutionContext context) {
-        this(UniqueId.random(), domain, context);
-    }
-
-    public ObjectInstance(UniqueId instanceId, Domain domain, ExecutionContext context) {
+    public ObjectInstance(UniqueId instanceId, Domain domain) {
         this.instanceId = instanceId;
         this.domain = domain;
-        this.context = context;
         this.logger = domain.getLogger();
+        this.context = null;
         this.alive = true;
     }
 
@@ -71,6 +67,11 @@ public abstract class ObjectInstance extends ModelType
     @Override
     public ExecutionContext getContext() {
         return context != null ? context : getDomain().getContext();
+    }
+
+    @Override
+    public void attachTo(ExecutionContext context) {
+        this.context = context;
     }
 
     @Override

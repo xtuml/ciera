@@ -1,19 +1,20 @@
 package io.ciera.runtime.application.task;
 
 import io.ciera.runtime.application.ExecutionContext;
+import io.ciera.runtime.application.MessageTarget;
 import io.ciera.runtime.application.Task;
 import io.ciera.runtime.domain.Message;
-import io.ciera.runtime.domain.Terminator;
 
+// TODO this assumes that whoever created the task created this message in this context
 public class ReceivedMessage extends Task {
 
-    private Terminator target;
-    private Message message;
+    private final Message message;
+    private final MessageTarget target;
 
-    public ReceivedMessage(ExecutionContext context, Terminator target, Message message) {
+    public ReceivedMessage(ExecutionContext context, Message message, MessageTarget target) {
         super(context);
-        this.target = target;
         this.message = message;
+        this.target = target;
     }
 
     @Override
