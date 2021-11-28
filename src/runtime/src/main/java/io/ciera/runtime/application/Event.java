@@ -3,7 +3,7 @@ package io.ciera.runtime.application;
 import io.ciera.runtime.types.EventHandle;
 import io.ciera.runtime.types.UniqueId;
 
-public abstract class Event implements Comparable<Event> {
+public abstract class Event implements Comparable<Event>, Named {
 
     private final EventHandle eventHandle;
     private final int eventId;
@@ -25,6 +25,7 @@ public abstract class Event implements Comparable<Event> {
         return eventId;
     }
 
+    @Override
     public String getName() {
         return getClass().getDeclaringClass().getSimpleName() + "." + getClass().getSimpleName() + "["
                 + eventHandle.toString().substring(0, 8) + "]";

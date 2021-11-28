@@ -4,7 +4,7 @@ import io.ciera.runtime.types.EventHandle;
 import io.ciera.runtime.types.TimerHandle;
 import io.ciera.runtime.types.UniqueId;
 
-public class Timer implements Comparable<Timer> {
+public class Timer implements Comparable<Timer>, Named {
 
     private TimerHandle timerHandle;
     private EventHandle eventHandle;
@@ -61,6 +61,11 @@ public class Timer implements Comparable<Timer> {
     @Override
     public int compareTo(Timer o) {
         return Long.compare(expiration, o.getExpiration());
+    }
+
+    @Override
+    public String getName() {
+        return String.format("Timer[%s]", timerHandle.toString().substring(0, 8));
     }
 
 }

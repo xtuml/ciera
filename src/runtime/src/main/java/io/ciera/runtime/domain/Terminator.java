@@ -4,9 +4,10 @@ import io.ciera.runtime.action.ActionHome;
 import io.ciera.runtime.application.ExecutionContext;
 import io.ciera.runtime.application.Logger;
 import io.ciera.runtime.application.MessageTarget;
+import io.ciera.runtime.application.Named;
 import io.ciera.runtime.application.task.ReceivedMessage;
 
-public abstract class Terminator implements ActionHome, MessageTarget {
+public abstract class Terminator implements ActionHome, MessageTarget, Named {
 
     private final String name;
     private final Domain domain;
@@ -36,6 +37,7 @@ public abstract class Terminator implements ActionHome, MessageTarget {
         this.peer = peer;
     }
 
+    @Override
     public String getName() {
         return name;
     }
@@ -58,6 +60,11 @@ public abstract class Terminator implements ActionHome, MessageTarget {
     @Override
     public Logger getLogger() {
         return logger;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("Terminator[%s]", getName());
     }
 
 }

@@ -4,15 +4,14 @@ import java.util.Set;
 import java.util.function.Predicate;
 
 import io.ciera.runtime.application.Event;
+import io.ciera.runtime.application.Named;
 import io.ciera.runtime.application.Timer;
 import io.ciera.runtime.types.EventHandle;
 import io.ciera.runtime.types.MessageHandle;
 import io.ciera.runtime.types.TimerHandle;
 import io.ciera.runtime.types.UniqueId;
 
-public interface InstancePopulation {
-
-    public String getName();
+public interface InstancePopulation extends Named {
 
     public <T extends ObjectInstance> T createInstance(Class<T> object);
 

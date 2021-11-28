@@ -14,9 +14,9 @@ import io.ciera.runtime.types.TimeStamp;
 import io.ciera.runtime.types.TimerHandle;
 import io.ciera.runtime.types.UniqueId;
 
-public class ExecutionContext implements Runnable {
+public class ExecutionContext implements Runnable, Named {
 
-    private final int id;
+    private final String name;
     private final Application application;
     private final Logger logger;
     private final ExceptionHandler exceptionHandler;
@@ -29,14 +29,14 @@ public class ExecutionContext implements Runnable {
 
     private int sequenceNumber;
 
-    public ExecutionContext(int id, Application application, InstancePopulation instancePopulation) {
-        this(id, application, instancePopulation, ExecutionMode.INTERLEAVED, ModelIntegrityMode.STRICT, false);
+    public ExecutionContext(String name, Application application, InstancePopulation instancePopulation) {
+        this(name, application, instancePopulation, ExecutionMode.INTERLEAVED, ModelIntegrityMode.STRICT, false);
 
     }
 
-    public ExecutionContext(int id, Application application, InstancePopulation instancePopulation,
+    public ExecutionContext(String name, Application application, InstancePopulation instancePopulation,
             ExecutionMode executionMode, ModelIntegrityMode modelIntegrityMode, boolean enableSimulatedTime) {
-        this.id = id;
+        this.name = name;
         this.application = application;
         this.logger = application.getLogger();
         this.exceptionHandler = application.getExceptionHandler();
@@ -177,12 +177,9 @@ public class ExecutionContext implements Runnable {
         return t;
     }
 
+    @Override
     public String getName() {
-        return "ExecutionContext-" + getId();
-    }
-
-    public int getId() {
-        return id;
+        return name;
     }
 
     public Application getApplication() {
@@ -207,6 +204,11 @@ public class ExecutionContext implements Runnable {
 
     protected int nextSequenceNumber() {
         return sequenceNumber++;
+    }
+
+    @Override
+    public String toString() {
+        return getName();
     }
 
 }

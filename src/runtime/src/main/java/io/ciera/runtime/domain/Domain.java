@@ -15,6 +15,7 @@ import io.ciera.runtime.application.Event;
 import io.ciera.runtime.application.EventTarget;
 import io.ciera.runtime.application.ExecutionContext;
 import io.ciera.runtime.application.Logger;
+import io.ciera.runtime.application.Named;
 import io.ciera.runtime.application.Timer;
 import io.ciera.runtime.exceptions.InstancePopulationException;
 import io.ciera.runtime.exceptions.ModelIntegrityException;
@@ -29,7 +30,7 @@ import io.ciera.runtime.types.UniqueId;
  * out-bound (required) interface messages and the instance population for every
  * action within it.
  */
-public abstract class Domain implements ActionHome, InstancePopulation {
+public abstract class Domain implements ActionHome, InstancePopulation, Named {
 
     private final String name;
     private final Application application;
@@ -88,7 +89,7 @@ public abstract class Domain implements ActionHome, InstancePopulation {
 
     @Override
     public String toString() {
-        return String.format("DOMAIN[%s]", name);
+        return String.format("Domain[%s]", name);
     }
 
     @Override

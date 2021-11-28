@@ -7,8 +7,8 @@ public abstract class InstanceStateMachine extends StateMachine implements Insta
 
     private final ObjectInstance self;
 
-    public InstanceStateMachine(String name, Domain domain, Enum<?> initialState, ObjectInstance self) {
-        super(name, domain, initialState);
+    public InstanceStateMachine(Domain domain, Enum<?> initialState, ObjectInstance self) {
+        super(String.format("%s [ISM]", self.getName()), domain, initialState);
         this.self = self;
     }
 
@@ -20,6 +20,16 @@ public abstract class InstanceStateMachine extends StateMachine implements Insta
     @Override
     public UniqueId getTargetHandle() {
         return self.getInstanceId();
+    }
+
+    @Override
+    public String getName() {
+        return String.format("%s [ISM]", self().getName());
+    }
+
+    @Override
+    public String toString() {
+        return getName();
     }
 
 }

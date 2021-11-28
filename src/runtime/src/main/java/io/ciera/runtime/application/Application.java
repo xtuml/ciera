@@ -5,7 +5,7 @@ import java.util.List;
 
 import io.ciera.runtime.domain.Domain;
 
-public abstract class Application {
+public abstract class Application implements Named {
 
     private String name;
     private boolean running;
@@ -24,6 +24,7 @@ public abstract class Application {
         this.exceptionHandlerr = new DefaultExceptionHandler();
     }
 
+    @Override
     public String getName() {
         return name;
     }
@@ -87,6 +88,11 @@ public abstract class Application {
 
     public boolean isRunning() {
         return running;
+    }
+
+    @Override
+    public String toString() {
+        return getName();
     }
 
 }
