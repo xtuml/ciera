@@ -1,5 +1,6 @@
 package io.ciera.runtime.domain;
 
+import io.ciera.runtime.application.Named;
 import io.ciera.runtime.exceptions.DeserializationException;
 import io.ciera.runtime.types.MessageHandle;
 
@@ -8,20 +9,18 @@ import io.ciera.runtime.types.MessageHandle;
  * message has a unique identifier to mark which message it is as well as data
  * items. Messages can be serialized and sent across a network interface.
  */
-public class Message implements Comparable<Message> {
+public class Message implements Comparable<Message>, Named {
 
     private MessageHandle messageHandle;
-    private String name;
     private int messageId;
     private Object[] parameterData;
 
     public Message() {
-        this(new MessageHandle(), null, 0, new Object[0]);
+        this(new MessageHandle(), 0, new Object[0]);
     }
 
-    public Message(MessageHandle messageHandle, String name, int id, Object... data) {
+    public Message(MessageHandle messageHandle, int id, Object... data) {
         this.messageHandle = messageHandle;
-        this.name = name;
         this.messageId = id;
         this.parameterData = data;
     }
@@ -63,8 +62,9 @@ public class Message implements Comparable<Message> {
      * 
      * @return The name of the message.
      */
+    @Override
     public String getName() {
-        return name != null ? name : getClass().getSimpleName();
+        return String.format("%s[%s]", getClass().getSimpleName(), messageHandle.toString().substring(0, 8));
     }
 
     /**
@@ -92,6 +92,11 @@ public class Message implements Comparable<Message> {
 
     public static Message fromString(Object s) {
         throw new DeserializationException("Base 'Message' is not JSON serializable.");
+    }
+
+    @Override
+    public String toString() {
+        return getName();
     }
 
 }

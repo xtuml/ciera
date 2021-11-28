@@ -5,10 +5,11 @@ import io.ciera.runtime.application.Event;
 import io.ciera.runtime.application.EventTarget;
 import io.ciera.runtime.application.ExecutionContext;
 import io.ciera.runtime.application.Logger;
+import io.ciera.runtime.application.Named;
 import io.ciera.runtime.exceptions.CannotHappenException;
 import io.ciera.runtime.exceptions.TransitionException;
 
-public abstract class StateMachine implements ActionHome, EventTarget {
+public abstract class StateMachine implements ActionHome, EventTarget, Named {
 
     private final String name;
     private final Domain domain;
@@ -25,6 +26,7 @@ public abstract class StateMachine implements ActionHome, EventTarget {
         this.currentState = initialState;
     }
 
+    @Override
     public String getName() {
         return name;
     }
@@ -93,10 +95,15 @@ public abstract class StateMachine implements ActionHome, EventTarget {
 
     private void traceTxn(String txnType, String targetName, String currentState, String eventName, String nextState,
             String nextStateColor) {
-        logger.trace("%-15s %-25s: %-50s %-50s => %-40s", txnType, targetName,
+        logger.trace("%-15s %-35s: %-50s %-50s => %-40s", txnType, targetName,
                 Logger.ANSI_CYAN + currentState + Logger.ANSI_RESET, "[ " + eventName + " ]",
                 nextStateColor + nextState + Logger.ANSI_RESET);
 
+    }
+
+    @Override
+    public String toString() {
+        return getName();
     }
 
 }

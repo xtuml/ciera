@@ -25,8 +25,8 @@ public class SerializableMessage extends Message {
         super();
     }
 
-    public SerializableMessage(MessageHandle messageHandle, String name, int id, Object... data) {
-        super(messageHandle, name, id, data);
+    public SerializableMessage(MessageHandle messageHandle, int id, Object... data) {
+        super(messageHandle, id, data);
     }
 
     @Override
@@ -47,10 +47,10 @@ public class SerializableMessage extends Message {
         try {
             JSONObject msg = new JSONObject(s);
             MessageHandle messageHandle = MessageHandle.fromString(msg.getString(MESSAGE_HANDLE));
-            String name = msg.getString(MESSAGE_NAME);
+            String name = msg.getString(MESSAGE_NAME); // TODO need this?
             int id = msg.getInt(MESSAGE_ID);
             List<Object> params = msg.getJSONArray(MESSAGE_PARAMETER_DATA).toList();
-            return new SerializableMessage(messageHandle, name, id, params);
+            return new SerializableMessage(messageHandle, id, params);
         } catch (JSONException e) {
             throw new DeserializationException("Could not parse JSON 'Message' instance", e);
         }
