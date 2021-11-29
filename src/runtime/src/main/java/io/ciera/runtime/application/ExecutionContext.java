@@ -11,8 +11,6 @@ import io.ciera.runtime.domain.InstancePopulation;
 import io.ciera.runtime.exceptions.InstancePopulationException;
 import io.ciera.runtime.types.Duration;
 import io.ciera.runtime.types.TimeStamp;
-import io.ciera.runtime.types.TimerHandle;
-import io.ciera.runtime.types.UniqueId;
 
 public class ExecutionContext implements Runnable, Named {
 
@@ -66,50 +64,47 @@ public class ExecutionContext implements Runnable, Named {
     private <E extends Event> void generateEvent(Class<E> eventType, EventTarget target, boolean toSelf,
             Object... data) {
         try {
-            Constructor<E> eventBuilder;
-            eventBuilder = eventType.getConstructor(UniqueId.class, Object[].class);
-            Event event = eventBuilder.newInstance(target.getTargetHandle(), data);
-            generateEvent(event, target, toSelf);
+            Constructor<E> eventBuilder = eventType.getConstructor(Object[].class);
+            Event event = eventBuilder.newInstance((Object)data);
+            if (toSelf) {
+                addTask(new GeneratedEventToSelf(this, event, target));
+            } else {
+                addTask(new GeneratedEvent(this, event, target));
+            }
         } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException
                 | IllegalArgumentException | InvocationTargetException e) {
             throw new InstancePopulationException("Could not generate event TODO", e);
         }
     }
 
-    private void generateEvent(Event event, EventTarget target, boolean toSelf) {
-        if (toSelf) {
-            addTask(new GeneratedEventToSelf(this, event, target));
-
-        } else {
-            addTask(new GeneratedEvent(this, event, target));
-        }
-    }
-
-    public synchronized TimerHandle scheduleEvent(Event event, EventTarget target, Timer timer) {
-        instancePopulation.removeTimer(timer.getTimerHandle());
+    public synchronized void scheduleEvent(Event event, EventTarget target, Timer timer) {
+        instancePopulation.removeTimer(timer);
         instancePopulation.addTimer(timer);
         clock.registerTimer(timer, event, target);
         notify();
-        return timer.getTimerHandle();
     }
 
-    public TimerHandle scheduleEvent(Event event, EventTarget target, TimeStamp expiration, Duration period) {
-        Timer timer = new Timer(event.getEventHandle(), target.getTargetHandle(), expiration.getValue(),
-                period.getValue());
-        return scheduleEvent(event, target, timer);
+    public Timer scheduleEvent(Event event, EventTarget target, TimeStamp expiration, Duration period) {
+        Timer timer = new Timer(event, target, expiration.getValue(), period.getValue());
+        scheduleEvent(event, target, timer);
+        return timer;
     }
 
-    public TimerHandle scheduleEvent(Event event, EventTarget target, TimeStamp expiration) {
+    public Timer scheduleEvent(Event event, EventTarget target, TimeStamp expiration) {
         return scheduleEvent(event, target, expiration, new Duration(0l));
     }
 
-    public TimerHandle scheduleEvent(Event event, EventTarget target, Duration delay, Duration period) {
+    public Timer scheduleEvent(Event event, EventTarget target, Duration delay, Duration period) {
         TimeStamp expiration = TimeStamp.now(clock).add(delay).castTo(TimeStamp.class);
         return scheduleEvent(event, target, expiration, period);
     }
 
-    public TimerHandle scheduleEvent(Event event, EventTarget target, Duration delay) {
+    public Timer scheduleEvent(Event event, EventTarget target, Duration delay) {
         return scheduleEvent(event, target, delay, new Duration(0l));
+    }
+    
+    public boolean cancelTimer(Timer timer) {
+        return clock.cancelTimer(timer);
     }
 
     private synchronized void addTask(Task newTask) {

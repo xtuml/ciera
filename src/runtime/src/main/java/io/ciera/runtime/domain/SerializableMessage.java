@@ -7,7 +7,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import io.ciera.runtime.exceptions.DeserializationException;
-import io.ciera.runtime.types.MessageHandle;
+import io.ciera.runtime.types.UniqueId;
 
 /**
  * The SerializableMessage class extends {@link Message} with the ability to
@@ -25,7 +25,7 @@ public class SerializableMessage extends Message {
         super();
     }
 
-    public SerializableMessage(MessageHandle messageHandle, int id, Object... data) {
+    public SerializableMessage(UniqueId messageHandle, int id, Object... data) {
         super(messageHandle, id, data);
     }
 
@@ -46,7 +46,7 @@ public class SerializableMessage extends Message {
     public static Message fromString(Object s) {
         try {
             JSONObject msg = new JSONObject(s);
-            MessageHandle messageHandle = MessageHandle.fromString(msg.getString(MESSAGE_HANDLE));
+            UniqueId messageHandle = UniqueId.fromString(msg.getString(MESSAGE_HANDLE));
             String name = msg.getString(MESSAGE_NAME); // TODO need this?
             int id = msg.getInt(MESSAGE_ID);
             List<Object> params = msg.getJSONArray(MESSAGE_PARAMETER_DATA).toList();

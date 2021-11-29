@@ -9,17 +9,13 @@ import java.util.Calendar;
 import java.util.TimeZone;
 
 import io.ciera.runtime.application.Event;
-import io.ciera.runtime.application.EventTarget;
 import io.ciera.runtime.application.SystemClock;
 import io.ciera.runtime.application.Timer;
 import io.ciera.runtime.domain.Domain;
 import io.ciera.runtime.domain.Utility;
 import io.ciera.runtime.types.Date;
-import io.ciera.runtime.types.Duration;
-import io.ciera.runtime.types.EventHandle;
 import io.ciera.runtime.types.ModelType;
 import io.ciera.runtime.types.TimeStamp;
-import io.ciera.runtime.types.TimerHandle;
 
 public class TIM extends Utility {
 
@@ -107,65 +103,40 @@ public class TIM extends Utility {
         return new TimeStamp(unixNanos - (cal.getTimeInMillis() * 1000000L));
     }
 
-    public boolean timer_add_time(final int microseconds, final TimerHandle timer_inst_ref) {
-        Timer timer = getDomain().getTimer(timer_inst_ref);
-        if (timer != null) {
-            Event event = getDomain().getEvent(timer.getEventHandle());
-            EventTarget target = getDomain().getTarget(timer.getTargetHandle());
-            boolean cancelled = clock.cancelTimer(timer_inst_ref);
-            if (cancelled) {
-                timer.setExpiration(timer.getExpiration() + (microseconds * 1000l));
-                getContext().scheduleEvent(event, target, timer);
-                return true;
-            }
-        }
-        return false;
+    @Deprecated(since = "3.0.0")
+    public boolean timer_add_time(final int microseconds, final Timer timer_inst_ref) {
+        throw new UnsupportedOperationException(
+                "'TIM::timer_add_time' is deprecated. TODO");  // TODO
     }
 
-    public boolean timer_cancel(final TimerHandle timer_inst_ref) {
-        return clock.cancelTimer(timer_inst_ref);
+    @Deprecated(since = "3.0.0")
+    public boolean timer_cancel(final Timer timer_inst_ref) {
+        throw new UnsupportedOperationException(
+                "'TIM::timer_cance' is deprecated. Use 'ExecutionContext.cancelTimer");
     }
 
-    public int timer_remaining_time(final TimerHandle timer_inst_ref) {
-        Timer timer = getDomain().getTimer(timer_inst_ref);
-        if (timer != null) {
-            return (int) (timer.getExpiration() - clock.getTime());
-        }
-        return 0;
+    @Deprecated(since = "3.0.0")
+    public int timer_remaining_time(final Timer timer_inst_ref) {
+        throw new UnsupportedOperationException(
+                "'TIM::timer_remaining_time' is deprecated. TODO");  // TODO
     }
 
-    public boolean timer_reset_time(final int microseconds, final TimerHandle timer_inst_ref) {
-        Timer timer = getDomain().getTimer(timer_inst_ref);
-        if (timer != null) {
-            Event event = getDomain().getEvent(timer.getEventHandle());
-            EventTarget target = getDomain().getTarget(timer.getTargetHandle());
-            boolean cancelled = clock.cancelTimer(timer_inst_ref);
-            if (cancelled) {
-                timer.setExpiration(clock.getTime() + (microseconds * 1000l));
-                getContext().scheduleEvent(event, target, timer);
-                return true;
-            }
-        }
-        return false;
+    @Deprecated(since = "3.0.0")
+    public boolean timer_reset_time(final int microseconds, final Timer timer_inst_ref) {
+        throw new UnsupportedOperationException(
+                "'TIM::timer_reset_time' is deprecated. TODO");  // TODO
     }
 
-    public TimerHandle timer_start(final EventHandle event_inst, final int microseconds) {
-        Event event = getDomain().getEvent(event_inst);
-        if (event != null) {
-            EventTarget target = getDomain().getTarget(event.getTargetHandle());
-            return getContext().scheduleEvent(event, target, new Duration(microseconds * 1000l));
-        }
-        return null;
+    @Deprecated(since = "3.0.0")
+    public Timer timer_start(final Event event_inst, final int microseconds) {
+        throw new UnsupportedOperationException(
+                "'TIM::timer_start' is deprecated. Use 'ExecutionContext.scheduleEvent'");
     }
 
-    public TimerHandle timer_start_recurring(final EventHandle event_inst, final int microseconds) {
-        Event event = getDomain().getEvent(event_inst);
-        if (event != null) {
-            EventTarget target = getDomain().getTarget(event.getTargetHandle());
-            return getContext().scheduleEvent(event, target, new Duration(microseconds * 1000l),
-                    new Duration(microseconds * 1000l));
-        }
-        return null;
+    @Deprecated(since = "3.0.0")
+    public Timer timer_start_recurring(final Event event_inst, final int microseconds) {
+        throw new UnsupportedOperationException(
+                "'TIM::timer_start_recurring' is deprecated. Use 'ExecutionContext.scheduleEvent'");
     }
 
     public String timestamp_format(final TimeStamp timestamp, final String format) {

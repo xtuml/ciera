@@ -1,43 +1,40 @@
 package io.ciera.runtime.application;
 
-import io.ciera.runtime.types.EventHandle;
-import io.ciera.runtime.types.TimerHandle;
 import io.ciera.runtime.types.UniqueId;
 
 public class Timer implements Comparable<Timer>, Named {
 
-    private TimerHandle timerHandle;
-    private EventHandle eventHandle;
-    private UniqueId targetHandle;
+    private UniqueId timerHandle;
+    private Event event;
+    private EventTarget target;
     private long expiration;
     private long period;
     private boolean recurring;
 
-    public Timer(EventHandle eventHandle, UniqueId targetHandle, long expiration, long period) {
-        this(UniqueId.random().castTo(TimerHandle.class), eventHandle, targetHandle, expiration, period);
+    public Timer(Event event, EventTarget target, long expiration, long period) {
+        this(UniqueId.random(), event, target, expiration, period);
 
     }
 
-    public Timer(TimerHandle timerHandle, EventHandle eventHandle, UniqueId targetHandle, long expiration,
-            long period) {
+    public Timer(UniqueId timerHandle, Event event, EventTarget target, long expiration, long period) {
         this.timerHandle = timerHandle;
-        this.eventHandle = eventHandle;
-        this.targetHandle = targetHandle;
+        this.event = event;
+        this.target = target;
         this.expiration = expiration;
         this.period = period;
         this.recurring = period > 0;
     }
 
-    public TimerHandle getTimerHandle() {
+    public UniqueId getTimerHandle() {
         return timerHandle;
     }
 
-    public EventHandle getEventHandle() {
-        return eventHandle;
+    public Event getEvent() {
+        return event;
     }
 
-    public UniqueId getTargetHandle() {
-        return targetHandle;
+    public EventTarget getTarget() {
+        return target;
     }
 
     public long getExpiration() {
@@ -56,6 +53,10 @@ public class Timer implements Comparable<Timer>, Named {
 
     public boolean isRecurring() {
         return recurring;
+    }
+
+    public boolean isExpired(long currentTime) {
+        return expiration <= currentTime;
     }
 
     @Override

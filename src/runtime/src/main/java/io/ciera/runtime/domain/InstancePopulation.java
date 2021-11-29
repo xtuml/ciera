@@ -6,9 +6,6 @@ import java.util.function.Predicate;
 import io.ciera.runtime.application.Event;
 import io.ciera.runtime.application.Named;
 import io.ciera.runtime.application.Timer;
-import io.ciera.runtime.types.EventHandle;
-import io.ciera.runtime.types.MessageHandle;
-import io.ciera.runtime.types.TimerHandle;
 import io.ciera.runtime.types.UniqueId;
 
 public interface InstancePopulation extends Named {
@@ -27,22 +24,22 @@ public interface InstancePopulation extends Named {
 
     public void deleteInstance(ObjectInstance instance);
 
-    public EventHandle addEvent(Event event);
+    public void addEvent(Event event);
 
-    public Event getEvent(EventHandle eventHandle);
+    public Event getEvent(UniqueId eventHandle);
 
-    public Event removeEvent(EventHandle eventHandle);
+    public void removeEvent(Event event);
 
-    public TimerHandle addTimer(Timer timer);
+    public void addTimer(Timer timer);
 
-    public Timer getTimer(TimerHandle timerHandle);
+    public Timer getTimer(UniqueId timerHandle);
 
-    public Timer removeTimer(TimerHandle timerHandle);
+    public void removeTimer(Timer timer);
 
-    public MessageHandle addMessage(Message message);
+    public void addMessage(Message message);
 
-    public Message getMessage(MessageHandle messageHandle);
+    public Message getMessage(UniqueId messageHandle);
 
-    public Message removeMessage(MessageHandle messageHandle);
+    public void removeMessage(Message message);
 
 }

@@ -32,7 +32,7 @@ public class WallClock extends SystemClock {
     @Override
     protected void waitForNextTimer() throws InterruptedException {
         if (!activeTimers.isEmpty()) {
-            long waitTime = activeTimers.peek().getTimer().getExpiration() - getTime();
+            long waitTime = activeTimers.peek().getExpiration() - getTime();
             Thread.sleep(waitTime / 1000000l, (int) (waitTime % 1000000l));
         }
     }

@@ -1,23 +1,20 @@
 package io.ciera.runtime.application;
 
-import io.ciera.runtime.types.EventHandle;
 import io.ciera.runtime.types.UniqueId;
 
 public abstract class Event implements Comparable<Event>, Named {
 
-    private final EventHandle eventHandle;
+    private final UniqueId eventHandle;
     private final int eventId;
-    private final UniqueId targetHandle;
     private final Object[] parameterData;
 
-    public Event(int eventId, UniqueId targetHandle, Object... data) {
-        this(new EventHandle(UniqueId.random()), eventId, targetHandle, data);
+    public Event(int eventId, Object... data) {
+        this(UniqueId.random(), eventId, data);
     }
 
-    public Event(EventHandle eventHandle, int eventId, UniqueId targetHandle, Object... data) {
+    public Event(UniqueId eventHandle, int eventId, Object... data) {
         this.eventHandle = eventHandle;
         this.eventId = eventId;
-        this.targetHandle = targetHandle;
         this.parameterData = data;
     }
 
@@ -31,7 +28,7 @@ public abstract class Event implements Comparable<Event>, Named {
                 + eventHandle.toString().substring(0, 8) + "]";
     }
 
-    public EventHandle getEventHandle() {
+    public UniqueId getEventHandle() {
         return eventHandle;
     }
 
@@ -41,10 +38,6 @@ public abstract class Event implements Comparable<Event>, Named {
         } else {
             throw new IndexOutOfBoundsException(index);
         }
-    }
-
-    public UniqueId getTargetHandle() {
-        return targetHandle;
     }
 
     @Override

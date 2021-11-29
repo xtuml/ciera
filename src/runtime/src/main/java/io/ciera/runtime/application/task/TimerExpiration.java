@@ -23,14 +23,14 @@ public class TimerExpiration extends Task {
     public void run() {
         // Handle the event
         target.consumeEvent(event);
-        getContext().getInstancePopulation().removeEvent(event.getEventHandle());
+        getContext().getInstancePopulation().removeEvent(event);
 
         // Re-schedule the timer if recurring
         if (timer.isRecurring()) {
             timer.reset();
             getContext().scheduleEvent(event, target, timer);
         } else {
-            getContext().getInstancePopulation().removeTimer(timer.getTimerHandle());
+            getContext().getInstancePopulation().removeTimer(timer);
         }
     }
 

@@ -25,7 +25,7 @@ public class SimulatedClock extends SystemClock {
     @Override
     protected void waitForNextTimer() {
         if (!activeTimers.isEmpty()) {
-            long nextExpiration = activeTimers.peek().getTimer().getExpiration();
+            long nextExpiration = activeTimers.peek().getExpiration();
             setTime(nextExpiration);
         }
     }
