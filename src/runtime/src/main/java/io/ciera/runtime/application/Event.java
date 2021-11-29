@@ -5,20 +5,20 @@ import io.ciera.runtime.types.UniqueId;
 public abstract class Event implements Comparable<Event>, Named {
 
     private final UniqueId eventHandle;
-    private final int eventId;
+    private final Enum<?> eventId;
     private final Object[] parameterData;
 
-    public Event(int eventId, Object... data) {
+    public Event(Enum<?> eventId, Object... data) {
         this(UniqueId.random(), eventId, data);
     }
 
-    public Event(UniqueId eventHandle, int eventId, Object... data) {
+    public Event(UniqueId eventHandle, Enum<?> eventId, Object... data) {
         this.eventHandle = eventHandle;
         this.eventId = eventId;
         this.parameterData = data;
     }
 
-    public int getEventId() {
+    public Enum<?> getEventId() {
         return eventId;
     }
 
