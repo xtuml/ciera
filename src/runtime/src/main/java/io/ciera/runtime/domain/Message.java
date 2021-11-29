@@ -2,7 +2,7 @@ package io.ciera.runtime.domain;
 
 import io.ciera.runtime.application.Named;
 import io.ciera.runtime.exceptions.DeserializationException;
-import io.ciera.runtime.types.MessageHandle;
+import io.ciera.runtime.types.UniqueId;
 
 /**
  * A message represents an asynchronous event sent across domain boundaries. A
@@ -11,15 +11,15 @@ import io.ciera.runtime.types.MessageHandle;
  */
 public class Message implements Comparable<Message>, Named {
 
-    private MessageHandle messageHandle;
+    private UniqueId messageHandle;
     private int messageId;
     private Object[] parameterData;
 
     public Message() {
-        this(new MessageHandle(), 0, new Object[0]);
+        this(new UniqueId(), 0, new Object[0]);
     }
 
-    public Message(MessageHandle messageHandle, int id, Object... data) {
+    public Message(UniqueId messageHandle, int id, Object... data) {
         this.messageHandle = messageHandle;
         this.messageId = id;
         this.parameterData = data;
@@ -53,7 +53,7 @@ public class Message implements Comparable<Message>, Named {
      * 
      * @return the message's unique ID.
      */
-    public MessageHandle getMessageHandle() {
+    public UniqueId getMessageHandle() {
         return messageHandle;
     }
 

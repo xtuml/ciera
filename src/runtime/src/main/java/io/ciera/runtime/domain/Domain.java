@@ -12,16 +12,12 @@ import java.util.function.Predicate;
 import io.ciera.runtime.action.ActionHome;
 import io.ciera.runtime.application.Application;
 import io.ciera.runtime.application.Event;
-import io.ciera.runtime.application.EventTarget;
 import io.ciera.runtime.application.ExecutionContext;
 import io.ciera.runtime.application.Logger;
 import io.ciera.runtime.application.Named;
 import io.ciera.runtime.application.Timer;
 import io.ciera.runtime.exceptions.InstancePopulationException;
 import io.ciera.runtime.exceptions.ModelIntegrityException;
-import io.ciera.runtime.types.EventHandle;
-import io.ciera.runtime.types.MessageHandle;
-import io.ciera.runtime.types.TimerHandle;
 import io.ciera.runtime.types.UniqueId;
 
 /**
@@ -38,9 +34,9 @@ public abstract class Domain implements ActionHome, InstancePopulation, Named {
     private ExecutionContext context;
 
     private final Map<Class<?>, Set<ObjectInstance>> instancePopulation;
-    private final Map<EventHandle, Event> eventPopulation;
-    private final Map<TimerHandle, Timer> timerPopulation;
-    private final Map<MessageHandle, Message> messagePopulation;
+    private final Map<UniqueId, Event> eventPopulation;
+    private final Map<UniqueId, Timer> timerPopulation;
+    private final Map<UniqueId, Message> messagePopulation;
 
     public Domain(String name, Application application) {
         this.name = name;
@@ -157,65 +153,48 @@ public abstract class Domain implements ActionHome, InstancePopulation, Named {
     }
 
     @Override
-    public EventHandle addEvent(Event event) {
+    public void addEvent(Event event) {
         eventPopulation.put(event.getEventHandle(), event);
-        return event.getEventHandle();
     }
 
     @Override
-    public Event getEvent(EventHandle eventHandle) {
+    public Event getEvent(UniqueId eventHandle) {
         return eventPopulation.get(eventHandle);
     }
 
     @Override
-    public Event removeEvent(EventHandle eventHandle) {
-        return eventPopulation.remove(eventHandle);
+    public void removeEvent(Event event) {
+        eventPopulation.remove(event.getEventHandle());
     }
 
     @Override
-    public TimerHandle addTimer(Timer timer) {
+    public void addTimer(Timer timer) {
         timerPopulation.put(timer.getTimerHandle(), timer);
-        return timer.getTimerHandle();
     }
 
     @Override
-    public Timer getTimer(TimerHandle timerHandle) {
+    public Timer getTimer(UniqueId timerHandle) {
         return timerPopulation.get(timerHandle);
     }
 
     @Override
-    public Timer removeTimer(TimerHandle timerHandle) {
-        return timerPopulation.remove(timerHandle);
+    public void removeTimer(Timer timer) {
+        timerPopulation.remove(timer.getTimerHandle());
     }
 
     @Override
-    public MessageHandle addMessage(Message message) {
+    public void addMessage(Message message) {
         messagePopulation.put(message.getMessageHandle(), message);
-        return message.getMessageHandle();
     }
 
     @Override
-    public Message getMessage(MessageHandle messageHandle) {
+    public Message getMessage(UniqueId messageHandle) {
         return messagePopulation.get(messageHandle);
     }
 
     @Override
-    public Message removeMessage(MessageHandle messageHandle) {
-        return messagePopulation.remove(messageHandle);
-    }
-
-    public EventTarget getTarget(UniqueId targetHandle) {
-        for (Class<?> object : instancePopulation.keySet()) {
-            Set<ObjectInstance> instanceSet = instancePopulation.get(object);
-            ObjectInstance instance = null != instanceSet
-                    ? instanceSet.stream().filter(o -> o.getInstanceId().equals(targetHandle)).findAny().orElse(null)
-                    : null;
-            if (instance != null) {
-                return instance;
-            }
-        }
-        // TODO check for assigner state machines
-        return null;
+    public void removeMessage(Message message) {
+        messagePopulation.remove(message.getMessageHandle());
     }
 
 }
