@@ -7,7 +7,6 @@ import java.util.concurrent.PriorityBlockingQueue;
 
 import io.ciera.runtime.application.task.GeneratedEvent;
 import io.ciera.runtime.application.task.GeneratedEventToSelf;
-import io.ciera.runtime.domain.InstancePopulation;
 import io.ciera.runtime.exceptions.InstancePopulationException;
 import io.ciera.runtime.types.Duration;
 import io.ciera.runtime.types.TimeStamp;
@@ -17,39 +16,30 @@ public class ExecutionContext implements Runnable, Named {
     private final String name;
     private final Application application;
     private final Logger logger;
+    private final SystemClock clock;
     private final ExceptionHandler exceptionHandler;
-    private final InstancePopulation instancePopulation;
     private final ExecutionMode executionMode;
     private final ModelIntegrityMode modelIntegrityMode;
-
-    private final SystemClock clock;
     private final Queue<Task> tasks;
 
-    private int sequenceNumber;
+    private int taskSequenceNumber;
 
-    public ExecutionContext(String name, Application application, InstancePopulation instancePopulation) {
-        this(name, application, instancePopulation, ExecutionMode.INTERLEAVED, ModelIntegrityMode.STRICT, false);
+    public ExecutionContext(String name, Application application) {
+        this(name, application, ExecutionMode.INTERLEAVED, ModelIntegrityMode.STRICT);
 
     }
 
-    public ExecutionContext(String name, Application application, InstancePopulation instancePopulation,
-            ExecutionMode executionMode, ModelIntegrityMode modelIntegrityMode, boolean enableSimulatedTime) {
+    public ExecutionContext(String name, Application application, ExecutionMode executionMode,
+            ModelIntegrityMode modelIntegrityMode) {
         this.name = name;
         this.application = application;
         this.logger = application.getLogger();
+        this.clock = application.getClock();
         this.exceptionHandler = application.getExceptionHandler();
-        this.instancePopulation = instancePopulation;
         this.executionMode = executionMode;
         this.modelIntegrityMode = modelIntegrityMode;
         this.tasks = new PriorityBlockingQueue<>();
-
-        if (!enableSimulatedTime) {
-            this.clock = new WallClock(this);
-        } else {
-            this.clock = new SimulatedClock(this);
-        }
-
-        this.sequenceNumber = 1;
+        this.taskSequenceNumber = 1;
     }
 
     public <E extends Event> void generateEvent(Class<E> eventType, EventTarget target, Object... data) {
@@ -65,7 +55,7 @@ public class ExecutionContext implements Runnable, Named {
             Object... data) {
         try {
             Constructor<E> eventBuilder = eventType.getConstructor(Object[].class);
-            Event event = eventBuilder.newInstance((Object)data);
+            Event event = eventBuilder.newInstance((Object) data);
             if (toSelf) {
                 addTask(new GeneratedEventToSelf(this, event, target));
             } else {
@@ -78,14 +68,12 @@ public class ExecutionContext implements Runnable, Named {
     }
 
     public synchronized void scheduleEvent(Event event, EventTarget target, Timer timer) {
-        instancePopulation.removeTimer(timer);
-        instancePopulation.addTimer(timer);
-        clock.registerTimer(timer, event, target);
+        clock.registerTimer(this, timer, event, target);
         notify();
     }
 
     public Timer scheduleEvent(Event event, EventTarget target, TimeStamp expiration, Duration period) {
-        Timer timer = new Timer(event, target, expiration.getValue(), period.getValue());
+        Timer timer = new Timer(this, event, target, expiration.getValue(), period.getValue());
         scheduleEvent(event, target, timer);
         return timer;
     }
@@ -101,10 +89,6 @@ public class ExecutionContext implements Runnable, Named {
 
     public Timer scheduleEvent(Event event, EventTarget target, Duration delay) {
         return scheduleEvent(event, target, delay, new Duration(0l));
-    }
-    
-    public boolean cancelTimer(Timer timer) {
-        return clock.cancelTimer(timer);
     }
 
     private synchronized void addTask(Task newTask) {
@@ -131,7 +115,7 @@ public class ExecutionContext implements Runnable, Named {
         while (application.isRunning()) {
 
             // check to see if any timers are expired
-            clock.checkTimers();
+            clock.checkTimers(this);
 
             // get the next task (if there are any)
             Task task = tasks.poll();
@@ -148,9 +132,9 @@ public class ExecutionContext implements Runnable, Named {
             } else {
                 // wait for something interesting to happen
                 try {
-                    if (clock.hasActiveTimers()) {
+                    if (clock.hasActiveTimers(this)) {
                         // wait for the next timer to expire
-                        clock.waitForNextTimer();
+                        clock.waitForNextTimer(this);
                     } else {
                         // wait indefinitely for an external signal or for a
                         // timer to be scheduled in this context by another thread
@@ -181,10 +165,6 @@ public class ExecutionContext implements Runnable, Named {
         return application;
     }
 
-    public InstancePopulation getInstancePopulation() {
-        return instancePopulation;
-    }
-
     public ExecutionMode getExecutionMode() {
         return executionMode;
     }
@@ -198,7 +178,7 @@ public class ExecutionContext implements Runnable, Named {
     }
 
     protected int nextSequenceNumber() {
-        return sequenceNumber++;
+        return taskSequenceNumber++;
     }
 
     @Override

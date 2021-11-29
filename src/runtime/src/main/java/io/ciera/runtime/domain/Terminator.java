@@ -25,7 +25,6 @@ public abstract class Terminator implements ActionHome, MessageTarget, Named {
 
     public void send(Message message) {
         if (peer != null) {
-            peer.getDomain().addMessage(message);
             peer.getContext().addTask(new ReceivedMessage(peer.getContext(), message, peer));
         }
     }

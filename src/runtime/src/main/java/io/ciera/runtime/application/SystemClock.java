@@ -1,6 +1,8 @@
 package io.ciera.runtime.application;
 
 import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Queue;
 
@@ -8,19 +10,13 @@ import io.ciera.runtime.application.task.TimerExpiration;
 
 public abstract class SystemClock {
 
-    private final ExecutionContext context;
-    protected final Queue<Timer> activeTimers;
+    protected final Map<ExecutionContext, Queue<Timer>> activeTimers;
 
     private Instant epoch;
 
-    public SystemClock(ExecutionContext context) {
-        this.context = context;
-        this.activeTimers = new PriorityQueue<>();
+    public SystemClock() {
+        this.activeTimers = new HashMap<>();
         this.epoch = Instant.EPOCH;
-    }
-
-    public ExecutionContext getContext() {
-        return context;
     }
 
     public abstract long getTime();
@@ -35,30 +31,33 @@ public abstract class SystemClock {
         this.epoch = epoch;
     }
 
-    protected void checkTimers() {
-        while (!activeTimers.isEmpty() && activeTimers.peek().isExpired(getTime())) {
-            Timer timer = activeTimers.poll();
+    protected void checkTimers(ExecutionContext context) {
+        Queue<Timer> contextTimers = activeTimers.get(context);
+        while (contextTimers != null && !contextTimers.isEmpty() && contextTimers.peek().isExpired()) {
+            Timer timer = contextTimers.poll();
             context.addTask(new TimerExpiration(context, timer, timer.getEvent(), timer.getTarget()));
         }
     }
 
-    protected boolean hasActiveTimers() {
-        return !activeTimers.isEmpty();
+    protected boolean hasActiveTimers(ExecutionContext context) {
+        Queue<Timer> contextTimers = activeTimers.get(context);
+        return contextTimers != null && !contextTimers.isEmpty();
     }
 
-    protected abstract void waitForNextTimer() throws InterruptedException;
+    protected abstract void waitForNextTimer(ExecutionContext context) throws InterruptedException;
 
-    public void registerTimer(Timer timer, Event event, EventTarget target) {
-        activeTimers.add(timer);
-    }
-
-    public boolean cancelTimer(Timer timer) {
-        boolean cancelled = activeTimers.remove(timer);
-        if (cancelled) {
-            getContext().getInstancePopulation().removeTimer(timer);
-            getContext().getInstancePopulation().removeEvent(timer.getEvent());
+    public void registerTimer(ExecutionContext context, Timer timer, Event event, EventTarget target) {
+        Queue<Timer> contextTimers = activeTimers.get(context);
+        if (contextTimers == null) {
+            contextTimers = new PriorityQueue<>();
+            activeTimers.put(context, contextTimers);
         }
-        return cancelled;
+        contextTimers.add(timer);
+    }
+
+    public boolean cancelTimer(ExecutionContext context, Timer timer) {
+        Queue<Timer> contextTimers = activeTimers.get(context);
+        return contextTimers != null && contextTimers.remove(timer);
     }
 
 }

@@ -4,20 +4,23 @@ import io.ciera.runtime.types.UniqueId;
 
 public class Timer implements Comparable<Timer>, Named {
 
-    private UniqueId timerHandle;
-    private Event event;
-    private EventTarget target;
+    private final UniqueId timerHandle;
+    private final ExecutionContext context;
+    private final Event event;
+    private final EventTarget target;
+    private final long period;
+    private final boolean recurring;
     private long expiration;
-    private long period;
-    private boolean recurring;
 
-    public Timer(Event event, EventTarget target, long expiration, long period) {
-        this(UniqueId.random(), event, target, expiration, period);
+    public Timer(ExecutionContext context, Event event, EventTarget target, long expiration, long period) {
+        this(UniqueId.random(), context, event, target, expiration, period);
 
     }
 
-    public Timer(UniqueId timerHandle, Event event, EventTarget target, long expiration, long period) {
+    public Timer(UniqueId timerHandle, ExecutionContext context, Event event, EventTarget target, long expiration,
+            long period) {
         this.timerHandle = timerHandle;
+        this.context = context;
         this.event = event;
         this.target = target;
         this.expiration = expiration;
@@ -41,22 +44,45 @@ public class Timer implements Comparable<Timer>, Named {
         return expiration;
     }
 
-    public void reset() {
-        if (recurring) {
-            expiration += period;
-        }
-    }
-
-    public void setExpiration(long expiration) {
-        this.expiration = expiration;
-    }
-
     public boolean isRecurring() {
         return recurring;
     }
 
-    public boolean isExpired(long currentTime) {
-        return expiration <= currentTime;
+    public boolean isExpired() {
+        return expiration <= context.getClock().getTime();
+    }
+
+    public long remainingTime() {
+        return expiration - context.getClock().getTime();
+    }
+
+    public boolean reset() {
+        if (recurring) {
+            boolean cancelled = this.cancel();
+            expiration += period;
+            context.scheduleEvent(event, target, this);
+            return cancelled;
+        } else {
+            return false;
+        }
+    }
+
+    public boolean reset(long expiration) {
+        boolean cancelled = this.cancel();
+        this.expiration = expiration;
+        context.scheduleEvent(event, target, this);
+        return cancelled;
+    }
+
+    public boolean addTime(long duration) {
+        boolean cancelled = this.cancel();
+        expiration += duration;
+        context.scheduleEvent(event, target, this);
+        return cancelled;
+    }
+
+    public boolean cancel() {
+        return context.getClock().cancelTimer(context, this);
     }
 
     @Override

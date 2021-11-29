@@ -11,11 +11,9 @@ import java.util.function.Predicate;
 
 import io.ciera.runtime.action.ActionHome;
 import io.ciera.runtime.application.Application;
-import io.ciera.runtime.application.Event;
 import io.ciera.runtime.application.ExecutionContext;
 import io.ciera.runtime.application.Logger;
 import io.ciera.runtime.application.Named;
-import io.ciera.runtime.application.Timer;
 import io.ciera.runtime.exceptions.InstancePopulationException;
 import io.ciera.runtime.exceptions.ModelIntegrityException;
 import io.ciera.runtime.types.UniqueId;
@@ -34,9 +32,6 @@ public abstract class Domain implements ActionHome, InstancePopulation, Named {
     private ExecutionContext context;
 
     private final Map<Class<?>, Set<ObjectInstance>> instancePopulation;
-    private final Map<UniqueId, Event> eventPopulation;
-    private final Map<UniqueId, Timer> timerPopulation;
-    private final Map<UniqueId, Message> messagePopulation;
 
     public Domain(String name, Application application) {
         this.name = name;
@@ -44,9 +39,6 @@ public abstract class Domain implements ActionHome, InstancePopulation, Named {
         this.logger = application.getLogger();
         this.context = null;
         this.instancePopulation = new HashMap<>();
-        this.eventPopulation = new HashMap<>();
-        this.timerPopulation = new HashMap<>();
-        this.messagePopulation = new HashMap<>();
     }
 
     @Override
@@ -150,51 +142,6 @@ public abstract class Domain implements ActionHome, InstancePopulation, Named {
             throw new ModelIntegrityException(
                     "Instance does not exist within the population of '" + getName() + "': " + instance);
         }
-    }
-
-    @Override
-    public void addEvent(Event event) {
-        eventPopulation.put(event.getEventHandle(), event);
-    }
-
-    @Override
-    public Event getEvent(UniqueId eventHandle) {
-        return eventPopulation.get(eventHandle);
-    }
-
-    @Override
-    public void removeEvent(Event event) {
-        eventPopulation.remove(event.getEventHandle());
-    }
-
-    @Override
-    public void addTimer(Timer timer) {
-        timerPopulation.put(timer.getTimerHandle(), timer);
-    }
-
-    @Override
-    public Timer getTimer(UniqueId timerHandle) {
-        return timerPopulation.get(timerHandle);
-    }
-
-    @Override
-    public void removeTimer(Timer timer) {
-        timerPopulation.remove(timer.getTimerHandle());
-    }
-
-    @Override
-    public void addMessage(Message message) {
-        messagePopulation.put(message.getMessageHandle(), message);
-    }
-
-    @Override
-    public Message getMessage(UniqueId messageHandle) {
-        return messagePopulation.get(messageHandle);
-    }
-
-    @Override
-    public void removeMessage(Message message) {
-        messagePopulation.remove(message.getMessageHandle());
     }
 
 }

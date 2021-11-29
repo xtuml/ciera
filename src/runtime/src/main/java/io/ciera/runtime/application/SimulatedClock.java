@@ -2,13 +2,13 @@ package io.ciera.runtime.application;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Queue;
 
 public class SimulatedClock extends SystemClock {
 
     private long systemTime;
 
-    public SimulatedClock(ExecutionContext context) {
-        super(context);
+    public SimulatedClock() {
         systemTime = getEpoch().until(Instant.now(), ChronoUnit.NANOS);
     }
 
@@ -23,9 +23,10 @@ public class SimulatedClock extends SystemClock {
     }
 
     @Override
-    protected void waitForNextTimer() {
-        if (!activeTimers.isEmpty()) {
-            long nextExpiration = activeTimers.peek().getExpiration();
+    protected void waitForNextTimer(ExecutionContext context) {
+        Queue<Timer> contextTimers = activeTimers.get(context);
+        if (!contextTimers.isEmpty()) {
+            long nextExpiration = contextTimers.peek().getExpiration();
             setTime(nextExpiration);
         }
     }

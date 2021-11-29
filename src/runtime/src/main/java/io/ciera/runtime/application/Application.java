@@ -7,26 +7,38 @@ import io.ciera.runtime.domain.Domain;
 
 public abstract class Application implements Named {
 
-    private String name;
-    private boolean running;
+    private final String name;
     private final List<ExecutionContext> contexts;
     private final List<Domain> domains;
+    private final String[] args;
+
+    private SystemClock clock;
     private Logger logger;
     private ExceptionHandler exceptionHandlerr;
-    private final String[] args;
+
+    private boolean running;
 
     public Application(String name, String[] args) {
         this.name = name;
         this.contexts = new ArrayList<>();
         this.domains = new ArrayList<>();
         this.args = args;
-        this.logger = new DefaultLogger(getName());
+        this.clock = new WallClock();
+        this.logger = new DefaultLogger(getName(), this);
         this.exceptionHandlerr = new DefaultExceptionHandler();
     }
 
     @Override
     public String getName() {
         return name;
+    }
+
+    public SystemClock getClock() {
+        return clock;
+    }
+
+    public void setClock(SystemClock clock) {
+        this.clock = clock;
     }
 
     public abstract void setup();
