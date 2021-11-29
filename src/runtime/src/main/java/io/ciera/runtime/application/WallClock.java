@@ -2,6 +2,7 @@ package io.ciera.runtime.application;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Queue;
 
 public class WallClock extends SystemClock {
 
@@ -11,8 +12,7 @@ public class WallClock extends SystemClock {
 
     private long systemTimeOffset;
 
-    public WallClock(ExecutionContext context) {
-        super(context);
+    public WallClock() {
         this.STARTUP_INSTANT = Instant.now();
         this.STARTUP_NANOS = System.nanoTime();
         this.STARTUP_EPOCH_NANOS = getEpoch().until(STARTUP_INSTANT, ChronoUnit.NANOS);
@@ -30,9 +30,10 @@ public class WallClock extends SystemClock {
     }
 
     @Override
-    protected void waitForNextTimer() throws InterruptedException {
-        if (!activeTimers.isEmpty()) {
-            long waitTime = activeTimers.peek().getExpiration() - getTime();
+    protected void waitForNextTimer(ExecutionContext context) throws InterruptedException {
+        Queue<Timer> contextTimers = activeTimers.get(context);
+        if (!contextTimers.isEmpty()) {
+            long waitTime = contextTimers.peek().getExpiration() - getTime();
             Thread.sleep(waitTime / 1000000l, (int) (waitTime % 1000000l));
         }
     }

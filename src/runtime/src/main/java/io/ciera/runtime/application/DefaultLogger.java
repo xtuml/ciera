@@ -15,13 +15,13 @@ import java.util.logging.SimpleFormatter;
  */
 public class DefaultLogger implements Logger {
 
-    java.util.logging.Logger internalLogger;
+    private final java.util.logging.Logger internalLogger;
 
-    public DefaultLogger(String name) {
-        this(name, Level.INFO);
+    public DefaultLogger(String name, Application application) {
+        this(name, application, Level.INFO);
     }
 
-    public DefaultLogger(String name, Level level) {
+    public DefaultLogger(String name, Application application, Level level) {
         internalLogger = java.util.logging.Logger.getLogger(name);
         internalLogger.setUseParentHandlers(false);
         internalLogger.setLevel(level);
@@ -32,7 +32,8 @@ public class DefaultLogger implements Logger {
 
             @Override
             public synchronized String format(LogRecord lr) {
-                return String.format(format, new Date(lr.getMillis()), getLevelString(lr.getLevel()), lr.getMessage());
+                return String.format(format, new Date(application.getClock().getTime() / 1000000l),
+                        getLevelString(lr.getLevel()), lr.getMessage());
             }
         });
         internalLogger.addHandler(handler);

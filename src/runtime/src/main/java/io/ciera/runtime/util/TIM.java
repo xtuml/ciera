@@ -105,26 +105,22 @@ public class TIM extends Utility {
 
     @Deprecated(since = "3.0.0")
     public boolean timer_add_time(final int microseconds, final Timer timer_inst_ref) {
-        throw new UnsupportedOperationException(
-                "'TIM::timer_add_time' is deprecated. TODO");  // TODO
+        throw new UnsupportedOperationException("'TIM::timer_add_time' is deprecated. User 'Timer.addTime'");
     }
 
     @Deprecated(since = "3.0.0")
     public boolean timer_cancel(final Timer timer_inst_ref) {
-        throw new UnsupportedOperationException(
-                "'TIM::timer_cance' is deprecated. Use 'ExecutionContext.cancelTimer");
+        throw new UnsupportedOperationException("'TIM::timer_cance' is deprecated. Use 'Timer.cancel");
     }
 
     @Deprecated(since = "3.0.0")
     public int timer_remaining_time(final Timer timer_inst_ref) {
-        throw new UnsupportedOperationException(
-                "'TIM::timer_remaining_time' is deprecated. TODO");  // TODO
+        throw new UnsupportedOperationException("'TIM::timer_remaining_time' is deprecated. Use 'Timer.remainingTime'");
     }
 
     @Deprecated(since = "3.0.0")
     public boolean timer_reset_time(final int microseconds, final Timer timer_inst_ref) {
-        throw new UnsupportedOperationException(
-                "'TIM::timer_reset_time' is deprecated. TODO");  // TODO
+        throw new UnsupportedOperationException("'TIM::timer_reset_time' is deprecated. User 'Timer.reset'");
     }
 
     @Deprecated(since = "3.0.0")
