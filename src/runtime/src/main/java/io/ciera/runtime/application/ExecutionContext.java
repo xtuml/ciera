@@ -3,6 +3,7 @@ package io.ciera.runtime.application;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Queue;
+import java.util.concurrent.Executor;
 import java.util.concurrent.PriorityBlockingQueue;
 
 import io.ciera.runtime.application.task.GeneratedEvent;
@@ -11,13 +12,10 @@ import io.ciera.runtime.exceptions.InstancePopulationException;
 import io.ciera.runtime.types.Duration;
 import io.ciera.runtime.types.TimeStamp;
 
-public class ExecutionContext implements Runnable, Named {
+public class ExecutionContext implements Runnable, Executor, Named {
 
     private final String name;
     private final Application application;
-    private final Logger logger;
-    private final SystemClock clock;
-    private final ExceptionHandler exceptionHandler;
     private final ExecutionMode executionMode;
     private final ModelIntegrityMode modelIntegrityMode;
     private final Queue<Task> tasks;
@@ -33,9 +31,6 @@ public class ExecutionContext implements Runnable, Named {
             ModelIntegrityMode modelIntegrityMode) {
         this.name = name;
         this.application = application;
-        this.logger = application.getLogger();
-        this.clock = application.getClock();
-        this.exceptionHandler = application.getExceptionHandler();
         this.executionMode = executionMode;
         this.modelIntegrityMode = modelIntegrityMode;
         this.tasks = new PriorityBlockingQueue<>();
@@ -67,8 +62,8 @@ public class ExecutionContext implements Runnable, Named {
         }
     }
 
-    public synchronized void scheduleEvent(Event event, EventTarget target, Timer timer) {
-        clock.registerTimer(this, timer, event, target);
+    protected synchronized void scheduleEvent(Event event, EventTarget target, Timer timer) {
+        getClock().registerTimer(this, timer, event, target);
         notify();
     }
 
@@ -83,7 +78,7 @@ public class ExecutionContext implements Runnable, Named {
     }
 
     public Timer scheduleEvent(Event event, EventTarget target, Duration delay, Duration period) {
-        TimeStamp expiration = TimeStamp.now(clock).add(delay).castTo(TimeStamp.class);
+        TimeStamp expiration = TimeStamp.now(getClock()).add(delay).castTo(TimeStamp.class);
         return scheduleEvent(event, target, expiration, period);
     }
 
@@ -91,20 +86,21 @@ public class ExecutionContext implements Runnable, Named {
         return scheduleEvent(event, target, delay, new Duration(0l));
     }
 
-    private synchronized void addTask(Task newTask) {
+    public synchronized void addTask(Task newTask) {
         if (tasks.offer(newTask)) {
             notify();
         } else {
-            logger.error("Could not add task to queue");
+            application.getLogger().error("Could not add task to queue");
         }
     }
 
-    public void addTask(Runnable genericTask) {
+    @Override
+    public void execute(Runnable command) {
         addTask(new Task(this) {
             @Override
             public void run() {
-                if (genericTask != null) {
-                    genericTask.run();
+                if (command != null) {
+                    command.run();
                 }
             }
         });
@@ -115,7 +111,7 @@ public class ExecutionContext implements Runnable, Named {
         while (application.isRunning()) {
 
             // check to see if any timers are expired
-            clock.checkTimers(this);
+            getClock().checkTimers(this);
 
             // get the next task (if there are any)
             Task task = tasks.poll();
@@ -127,14 +123,14 @@ public class ExecutionContext implements Runnable, Named {
                     task.run();
                     // TODO complete transaction (check integrity, persist instance pop)
                 } catch (RuntimeException e) {
-                    exceptionHandler.handle(e);
+                    application.getExceptionHandler().handle(e);
                 }
             } else {
                 // wait for something interesting to happen
                 try {
-                    if (clock.hasActiveTimers(this)) {
+                    if (getClock().hasActiveTimers(this)) {
                         // wait for the next timer to expire
-                        clock.waitForNextTimer(this);
+                        getClock().waitForNextTimer(this);
                     } else {
                         // wait indefinitely for an external signal or for a
                         // timer to be scheduled in this context by another thread
@@ -174,7 +170,7 @@ public class ExecutionContext implements Runnable, Named {
     }
 
     public SystemClock getClock() {
-        return clock;
+        return application.getClock();
     }
 
     protected int nextSequenceNumber() {

@@ -24,7 +24,7 @@ public abstract class Application implements Named {
         this.domains = new ArrayList<>();
         this.args = args;
         this.clock = new WallClock();
-        this.logger = new DefaultLogger(getName(), this);
+        this.logger = new DefaultLogger(getName() + "Logger", this);
         this.exceptionHandlerr = new DefaultExceptionHandler();
     }
 
@@ -41,16 +41,33 @@ public abstract class Application implements Named {
         this.clock = clock;
     }
 
-    public abstract void setup();
+    public void setup() {
+        // create default execution context
+        ExecutionContext context = new ExecutionContext("DefaultExecutionContext", this);
+        addContext(context);
+    }
 
-    public abstract void initialize();
+    public void initialize() {
+        for (Domain domain : getDomains()) {
+            domain.getContext().execute(() -> domain.initialize());
+        }
+    }
 
     public void start() {
         running = true;
         if (contexts.size() == 1) {
+            // run the single context in the main thread
             contexts.get(0).run();
         } else {
-            contexts.forEach(context -> context.start());
+            // run each context in its own thread and wait for them all to complete
+            contexts.stream().map(context -> context.start()).forEach(thread -> {
+                try {
+                    thread.join();
+                } catch (InterruptedException e) {
+                    logger.error("Main thread interrupted while waiting", e);
+                    System.exit(1);
+                }
+            });
         }
     }
 

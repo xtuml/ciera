@@ -1,7 +1,6 @@
 package io.ciera.runtime.domain;
 
 import io.ciera.runtime.action.InstanceActionHome;
-import io.ciera.runtime.types.UniqueId;
 
 public abstract class InstanceStateMachine extends StateMachine implements InstanceActionHome {
 
@@ -15,11 +14,6 @@ public abstract class InstanceStateMachine extends StateMachine implements Insta
     @Override
     public ObjectInstance self() {
         return self;
-    }
-
-    @Override
-    public UniqueId getTargetHandle() {
-        return self.getInstanceId();
     }
 
     @Override

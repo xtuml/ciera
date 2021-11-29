@@ -101,11 +101,6 @@ public abstract class ObjectInstance extends ModelType
     }
 
     @Override
-    public UniqueId getTargetHandle() {
-        return instanceId;
-    }
-
-    @Override
     public void consumeEvent(Event event) {
         throw new InstancePopulationException(
                 "Cannot generate event '" + event.getName() + "' to non-dynamic instance '" + getName() + "'");

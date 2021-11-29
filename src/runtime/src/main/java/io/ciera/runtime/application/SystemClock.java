@@ -46,7 +46,7 @@ public abstract class SystemClock {
 
     protected abstract void waitForNextTimer(ExecutionContext context) throws InterruptedException;
 
-    public void registerTimer(ExecutionContext context, Timer timer, Event event, EventTarget target) {
+    protected void registerTimer(ExecutionContext context, Timer timer, Event event, EventTarget target) {
         Queue<Timer> contextTimers = activeTimers.get(context);
         if (contextTimers == null) {
             contextTimers = new PriorityQueue<>();
@@ -55,7 +55,7 @@ public abstract class SystemClock {
         contextTimers.add(timer);
     }
 
-    public boolean cancelTimer(ExecutionContext context, Timer timer) {
+    protected boolean cancelTimer(ExecutionContext context, Timer timer) {
         Queue<Timer> contextTimers = activeTimers.get(context);
         return contextTimers != null && contextTimers.remove(timer);
     }
