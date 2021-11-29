@@ -43,8 +43,7 @@ public abstract class Application implements Named {
 
     public void setup() {
         // create default execution context
-        ExecutionContext context = new ExecutionContext("DefaultExecutionContext", this);
-        addContext(context);
+        addContext(new ExecutionContext("DefaultExecutionContext", this));
     }
 
     public void initialize() {
