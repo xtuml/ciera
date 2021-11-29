@@ -13,7 +13,7 @@ public abstract class Terminator implements ActionHome, MessageTarget, Named {
     private final Domain domain;
     private final Logger logger;
     private ExecutionContext context;
-    private Terminator peer;
+    private MessageTarget peer;
 
     public Terminator(String name, Domain domain) {
         this.name = name;

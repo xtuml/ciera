@@ -28,7 +28,6 @@ public abstract class Domain implements ActionHome, InstancePopulation, Named {
 
     private final String name;
     private final Application application;
-    private final Logger logger;
     private ExecutionContext context;
 
     private final Map<Class<?>, Set<ObjectInstance>> instancePopulation;
@@ -36,7 +35,6 @@ public abstract class Domain implements ActionHome, InstancePopulation, Named {
     public Domain(String name, Application application) {
         this.name = name;
         this.application = application;
-        this.logger = application.getLogger();
         this.context = null;
         this.instancePopulation = new HashMap<>();
     }
@@ -72,7 +70,7 @@ public abstract class Domain implements ActionHome, InstancePopulation, Named {
 
     @Override
     public Logger getLogger() {
-        return logger;
+        return application.getLogger();
     }
 
     @Override
