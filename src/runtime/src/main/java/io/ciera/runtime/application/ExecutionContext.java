@@ -119,9 +119,7 @@ public class ExecutionContext implements Runnable, Executor, Named {
             if (task != null) {
                 // execute the task
                 try {
-                    // TODO initialize transaction
                     task.run();
-                    // TODO complete transaction (check integrity, persist instance pop)
                 } catch (RuntimeException e) {
                     application.getExceptionHandler().handle(e);
                 }
