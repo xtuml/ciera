@@ -58,7 +58,7 @@ public class ExecutionContext implements Runnable, Executor, Named {
             }
         } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException
                 | IllegalArgumentException | InvocationTargetException e) {
-            throw new InstancePopulationException("Could not generate event TODO", e);
+            throw new InstancePopulationException("Could not generate event TODO", e); // TODO
         }
     }
 
@@ -67,23 +67,34 @@ public class ExecutionContext implements Runnable, Executor, Named {
         notify();
     }
 
-    public Timer scheduleEvent(Event event, EventTarget target, TimeStamp expiration, Duration period) {
-        Timer timer = new Timer(this, event, target, expiration.getValue(), period.getValue());
-        scheduleEvent(event, target, timer);
-        return timer;
+    public <E extends Event> Timer scheduleEvent(Class<E> eventType, EventTarget target, TimeStamp expiration,
+            Duration period, Object... eventData) {
+        try {
+            Constructor<E> eventBuilder = eventType.getConstructor(Object[].class);
+            Event event = eventBuilder.newInstance((Object) eventData);
+            Timer timer = new Timer(this, event, target, expiration.getValue(), period.getValue());
+            scheduleEvent(event, target, timer);
+            return timer;
+        } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException
+                | IllegalArgumentException | InvocationTargetException e) {
+            throw new InstancePopulationException("Could not schedule event TODO", e); // TODO
+        }
     }
 
-    public Timer scheduleEvent(Event event, EventTarget target, TimeStamp expiration) {
-        return scheduleEvent(event, target, expiration, new Duration(0l));
+    public <E extends Event> Timer scheduleEvent(Class<E> eventType, EventTarget target, TimeStamp expiration,
+            Object... eventData) {
+        return scheduleEvent(eventType, target, expiration, new Duration(0l), eventData);
     }
 
-    public Timer scheduleEvent(Event event, EventTarget target, Duration delay, Duration period) {
+    public <E extends Event> Timer scheduleEvent(Class<E> eventType, EventTarget target, Duration delay,
+            Duration period, Object... eventData) {
         TimeStamp expiration = TimeStamp.now(getClock()).add(delay).castTo(TimeStamp.class);
-        return scheduleEvent(event, target, expiration, period);
+        return scheduleEvent(eventType, target, expiration, period, eventData);
     }
 
-    public Timer scheduleEvent(Event event, EventTarget target, Duration delay) {
-        return scheduleEvent(event, target, delay, new Duration(0l));
+    public <E extends Event> Timer scheduleEvent(Class<E> eventType, EventTarget target, Duration delay,
+            Object... eventData) {
+        return scheduleEvent(eventType, target, delay, new Duration(0l), eventData);
     }
 
     public synchronized void addTask(Task newTask) {
@@ -110,7 +121,7 @@ public class ExecutionContext implements Runnable, Executor, Named {
     public void run() {
         while (application.isRunning()) {
 
-            // check to see if any timers are expired
+            // check to see if any expired timers need to be added to the task queue
             getClock().checkTimers(this);
 
             // get the next task (if there are any)
