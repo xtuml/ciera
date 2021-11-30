@@ -30,14 +30,11 @@ select one unresolved_type related by old_type->UnresolvedType[R407];
 // if there is an unresolved type, unhook and dispose it, linking
 // all references to the new type
 if ( not_empty unresolved_type )
-	select one component related by unresolved_type->ComponentDefinition[R3805];
+  select one component related by unresolved_type->ComponentDefinition[R3805];
 	unrelate unresolved_type from component across R3805;
+  unrelate old_type from s_dt across R423;
 	new_type.updateTypeReferences( old_type:old_type );
-	unrelate old_type from s_dt across R423;
-	select many typeimports related by unresolved_type->Type[R407]->TypeImport[R499.''is imported by''];
-	for each typeimport in typeimports
-		typeimport.resolve( new_type:new_type );
-	end for;
+	new_type.updateTypeImports( old_type:old_type );
 	old_type.dispose();
 end if;
 
