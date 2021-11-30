@@ -20,30 +20,55 @@ INSERT INTO O_TFR
 
 select one port related by self->Port[R420];
 select one message related by self->Message[R420];
+inbound = ( port.provider and message.to_provider ) or ( not port.provider and not message.to_provider );
+parameter_list = "";
+select one invocable related by self->InvocableObject[R427];
+// for inbound params of type inst_ref, prefix inbound the name to allow for local type down-cast.
+prefix = "";
+if ( inbound )
+	prefix = "q_";
+end if;
+parameter_list = invocable.parameter_qualified_list( prefix:prefix);
 
 T::push_buffer();
-select one invocable related by self->InvocableObject[R427];
-parameter_list = invocable.parameter_list();
-
 invocableInComp = InvocableInComponent::get( invocable:invocable, component:containing_comp_def );
 body = invocableInComp.body();
 T::pop_buffer();
 
-invocation_parameter_list = "";
 select any parm related by self->InvocableObject[R427]->FormalParameter[R429];
+// parameters are presented in reverse of declared order; re-order to expected sequence. (not strictly necessary).
 select one prev_parm related by parm->FormalParameter[R404.''follows''];
 while ( not_empty prev_parm )
   parm = prev_parm;
   select one prev_parm related by parm->FormalParameter[R404.''follows''];
 end while;
+
+if ( inbound )
+	// remove the initial brace to allow injection of possible parameter casts for inst_ref types.
+	index = STRING::indexof( haystack:body, needle:"{" );
+	body = STRING::substr( s:body, begin:index+1, end:-1 );
+end if;
+invocation_parameter_list = "";
+parmcasts = "";
 sep = "";
+T::push_buffer();
 while ( not_empty parm )
-  invocation_parameter_list = invocation_parameter_list + sep + parm.name;
-  sep = ", ";
+	if ( inbound )
+    select one comp_spec_type related by parm->TypeReference[R431.''is typed by'']->Type[R3800.''based on'']->ComponentSpecificType[R407];
+    if ( not_empty comp_spec_type )
+	  	select one inst related by comp_spec_type->ClassInComponent[R3803]->Class[R408.''maintains instances of''];
+	    if ( not_empty inst)
+	    	parm.render_cast();
+    	end if;
+    end if;
+	else
+	  invocation_parameter_list = invocation_parameter_list + sep + parm.name;
+	  sep = ", ";
+  end if;
   select one parm related by parm->FormalParameter[R404.''precedes''];
 end while;
-
-inbound = ( port.provider and message.to_provider ) or ( not port.provider and not message.to_provider );
+parmcasts = T::body();
+T::pop_buffer();
 
 T::include(file:"interface/t.portmessage.java");',
 	1,
@@ -91,11 +116,13 @@ message_parameter_list = "";
 pname = "";
 accessor = "";
 deserializer = "";
+serialize = false;
 sep = "";
 i = 0;
 
 T::push_buffer();
 while ( not_empty msg_parm )
+  context = "";
   accessor = "message.get(" + STRING::itoa( i:i ) + ")";
 	pname = msg_parm.name;
   select one parm_dt related by msg_parm->TypeReference[R431];
@@ -113,6 +140,15 @@ while ( not_empty msg_parm )
     message_parameter_list = message_parameter_list + sep + "StringUtil.deserialize(" + accessor + ")";
   else
   	deserializer = parm_dt.type_reference_name;
+    select one comp_spec_type related by parm_dt->Type[R3800.''based on'']->ComponentSpecificType[R407];
+    if ( not_empty comp_spec_type )
+      serialize = true;
+	  	select one inst related by comp_spec_type->ClassInComponent[R3803]->Class[R408.''maintains instances of''];
+	  	if ( not_empty inst )
+	  		deserializer = "(" + inst.package + "." + inst.name +") " + inst.name + "Impl";
+	  		context = ", context()";
+	  	end if;
+    end if;
     message_parameter_list = message_parameter_list + sep + parm_dt.type_reference_name + ".deserialize(" + accessor + ")";
   end if;
   T::include( file:"interface/t.deserialize.parm.java" );
@@ -123,7 +159,7 @@ end while;
 
 // select parameter-handling fragment for template, based on serialize choice.
 select one iface related by self->Message[R420.''provides implementation for'']->Interface[R419.''defines message format for''];
-if ( iface.serialize_msgs )
+if ( iface.serialize_msgs ) or ( serialize )
   message_parameter_list = T::body();
 end if;
 T::pop_buffer();

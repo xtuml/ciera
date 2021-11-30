@@ -110,6 +110,10 @@ ${state_machine_events}
     // selections
 ${selectors}
 
+// serialize/deserialize methods
+${instance_serialize}
+${instance_deserialize}
+
     @Override
     public IRunContext getRunContext() {
         return context().getRunContext();
