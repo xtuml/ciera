@@ -37,10 +37,23 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000004",
 	1,
-	'select many import_refs related by self->TypeImportReference[R402] where ( param.type == ImportType::BOTH or selected.type == ImportType::BOTH or selected.type == param.type );
-select many imports related by import_refs->TypeImport[R402];
-for each type_import in imports
-  type_import.render();
+	'// Traverse the import requests associated with this file.
+// Render those that match the requested import type - both string imports and type imports.
+//
+select many import_refs related by self->ImportReference[R402]
+ where ( param.type == ImportType::BOTH or             // add the referenced import, regardless of its type attribute
+         selected.import_type == ImportType::BOTH or   // add the import if its type is appropriate for any file
+         selected.import_type == param.type );         // add if the import type matches that of the requesting file
+
+select many reqs related by import_refs->ImportRequest[R402.''imports type via''];
+for each req in reqs
+	select one stringimport related by req->StringImport[R403];
+	if ( not_empty stringimport )
+    stringimport.render();
+  else
+  	select one typeimport related by req->TypeImport[R403];
+    typeimport.render( import_implementation:self.addImplImport() );
+  end if;
   T::append( s:"\n" );
 end for;
 import_block = T::body();
@@ -67,14 +80,16 @@ INSERT INTO S_DT_PROXY
 	VALUES ("0216eb17-fbe4-49fc-b32f-fa5387d53466",
 	"00000000-0000-0000-0000-000000000000",
 	'ImportType',
-	'',
+	'Used to indicate:
+a) a file requesting an import, either an Interface file or an Implementation file.
+b) whether an import is appropriate for a Interface file or an Implementation file or both.',
 	'',
 	'../../../types/types.xtuml');
 INSERT INTO O_TFR
 	VALUES ("0ec8b36b-4754-4b59-a8c1-38e301009abd",
 	"dc9c4877-4fcb-49df-a886-ab917b250774",
 	'knowsComponent',
-	'',
+	'Return true if it is appropriate to add imports associated with the passed-in component.',
 	"ba5eda7a-def5-0000-0000-000000000001",
 	1,
 	'return true;',
@@ -101,6 +116,23 @@ INSERT INTO S_DT_PROXY
 	'../../component/component.xtuml');
 INSERT INTO O_DEF
 	VALUES ("0ec8b36b-4754-4b59-a8c1-38e301009abd",
+	"8f0c124a-55f6-41de-9844-451b6463ab15",
+	1);
+INSERT INTO O_TFR
+	VALUES ("badd7b5e-dd31-4b4a-a1ee-e8fc3a31a285",
+	"dc9c4877-4fcb-49df-a886-ab917b250774",
+	'addImplImport',
+	'If true, request that the Type render operation add an implementation import for class/set types.',
+	"ba5eda7a-def5-0000-0000-000000000001",
+	1,
+	'return false;',
+	1,
+	'',
+	"0ec8b36b-4754-4b59-a8c1-38e301009abd",
+	0,
+	2);
+INSERT INTO O_DEF
+	VALUES ("badd7b5e-dd31-4b4a-a1ee-e8fc3a31a285",
 	"8f0c124a-55f6-41de-9844-451b6463ab15",
 	1);
 INSERT INTO O_NBATTR
@@ -186,7 +218,7 @@ INSERT INTO O_ATTR
 	"dc9c4877-4fcb-49df-a886-ab917b250774",
 	"f9775d6c-061e-43d9-a105-8447f2382921",
 	'exclude',
-	'',
+	'If true, do not emit anything for this file.',
 	'',
 	'exclude',
 	0,

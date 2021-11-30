@@ -14,22 +14,24 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'file = param.file;
+	'// Attempt to add an import of this type to a requesting file.
+
+file = param.file;
 if ( "" != self.package )//and self.package != file.package );
 	select one type_component related by self->ComponentSpecificType[R407]->ComponentDefinition[R3804.''defined by''];
 	if ( empty type_component )
     select one type_component related by self->UnresolvedType[R407]->ComponentDefinition[R3805.''referred to by''];
   end if;
   if ( not_empty type_component )
-		// filter out component-specifics that do not belong in the currently processing component.
+    // filter out component-specifics that do not belong in the component being processed
     // add the file to the imports for this type only if this type is component-independent, 
-    // or the file is associated with the same component as the component-specific type
+    // or the requesting file is associated with the same component as the component-specific type
     if file.knowsComponent( component:type_component )
-      ::addStringToImports( file:param.file, s:self.package + "." + self.name, type:param.type );
+      ::addTypeToImports( file:file, type_to_import:self, type:param.type );
     end if;
   else
   	// just add it...
-    ::addStringToImports( file:param.file, s:self.package + "." + self.name, type:param.type );
+    ::addTypeToImports( file:file, type_to_import:self, type:param.type );
   end if;
 end if;',
 	1,
@@ -66,7 +68,7 @@ INSERT INTO S_DT_PROXY
 	VALUES ("0216eb17-fbe4-49fc-b32f-fa5387d53466",
 	"00000000-0000-0000-0000-000000000000",
 	'ImportType',
-	'',
+	'Used to indicate whether an import is appropriate for an Interface file or an Implementation file or both.',
 	'',
 	'../../../types/types.xtuml');
 INSERT INTO O_TFR
@@ -225,7 +227,7 @@ INSERT INTO O_TFR
 	VALUES ("d5962256-c878-4c80-8ba8-04486e1a57d0",
 	"b5de937b-55ee-48e4-8e91-d9d73c3f0fab",
 	'updateTypeReferences',
-	'',
+	'A resolved type is replacing the old unresolved type; update all references.',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'old_type = param.old_type;
@@ -319,7 +321,7 @@ end if;
 return type;',
 	1,
 	'',
-	"d5962256-c878-4c80-8ba8-04486e1a57d0",
+	"f72189b9-fb5f-4cd0-b5b7-f0131f890c3f",
 	0,
 	2);
 INSERT INTO O_TPARM
@@ -372,6 +374,36 @@ INSERT INTO O_TPARM
 	"5e17ae98-98d9-44d5-9ae8-0386a911e9e4",
 	's_dt',
 	"4a90cd45-ece0-4e72-afe7-44996f9d7e1e",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO O_TFR
+	VALUES ("f72189b9-fb5f-4cd0-b5b7-f0131f890c3f",
+	"b5de937b-55ee-48e4-8e91-d9d73c3f0fab",
+	'updateTypeImports',
+	'A resolved type is replacing the old unresolved type; update all references.',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'// replace the unresolved referred-to type with self, the new resolved type
+//
+old_type = param.old_type;
+select many typeimports related by old_type->TypeImport[R499.''is imported by''];
+for each typeimport in typeimports
+	unrelate typeimport from old_type across R499.''imports'';
+	relate typeimport to self across R499.''imports'';
+end for;
+',
+	1,
+	'',
+	"d5962256-c878-4c80-8ba8-04486e1a57d0",
+	0,
+	4);
+INSERT INTO O_TPARM
+	VALUES ("3599a074-4485-4c9b-b871-266b9fa6756d",
+	"f72189b9-fb5f-4cd0-b5b7-f0131f890c3f",
+	'old_type',
+	"b4a754cc-b0a5-4777-ae98-df570434ea2a",
 	0,
 	'',
 	"00000000-0000-0000-0000-000000000000",

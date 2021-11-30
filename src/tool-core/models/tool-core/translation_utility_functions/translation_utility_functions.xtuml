@@ -171,7 +171,7 @@ INSERT INTO S_DT_PROXY
 	VALUES ("0216eb17-fbe4-49fc-b32f-fa5387d53466",
 	"00000000-0000-0000-0000-000000000000",
 	'ImportType',
-	'',
+	'Used to indicate whether an import is appropriate for an Interface file or an Implementation file or both.',
 	'',
 	'../types/types.xtuml');
 INSERT INTO PE_PE
@@ -185,14 +185,17 @@ INSERT INTO S_SYNC
 	"00000000-0000-0000-0000-000000000000",
 	'addStringToImports',
 	'',
-	'file = param.file;
+	'// ensure that the requested import is referred to by the requesting file.
+
+file = param.file;
+imptype = param.type;
 if ( "" != param.s )
-  select any import_ref related by file->TypeImportReference[R402] where ( selected.fully_qualified_name == param.s and selected.type == param.type );
-  if ( empty import_ref )
-    type_import = TypeImport::get_import( import:param.s );
-    create object instance import_ref of TypeImportReference;
-    import_ref.type = param.type;
-    relate type_import to file across R402 using import_ref;
+  import_req = ImportRequest::get_string_import( import_string:param.s );
+  import_reference = ImportReference::get( file:file, request:import_req, reftype:imptype );
+  if ( empty import_reference )
+    create object instance import_ref of ImportReference;
+    import_ref.import_type = imptype;
+    relate import_req to file across R402 using import_ref;
   end if;
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
@@ -238,11 +241,14 @@ INSERT INTO S_SYNC
 	"00000000-0000-0000-0000-000000000000",
 	'addTypeToImports',
 	'',
-	'type_to_import = param.type_to_import;
-
+	'file = param.file;
+imptype = param.type;
+type_to_import = param.type_to_import;
 if ( not type_to_import.primitive() and "" != type_to_import.package )
-  ::addStringToImports( file:param.file, s:type_to_import.package + "." + type_to_import.name, type:param.type );
-end if;',
+  import_req = ImportRequest::get_type_import( type:type_to_import );
+  import_reference = ImportReference::get( file:file, request:import_req, reftype:imptype );
+end if;
+',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',

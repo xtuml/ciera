@@ -1,0 +1,116 @@
+-- BP 7.1.6 content: ModelClass syschar: 3 persistence-version: 7.1.6
+
+INSERT INTO O_OBJ
+	VALUES ("e63df2c0-f890-4d2d-bc69-fec84390fbda",
+	'ImportRequest',
+	1,
+	'ImportRequest',
+	'Represents a referred-to type or formatted string which may be requested as an import to a file.',
+	"00000000-0000-0000-0000-000000000000");
+INSERT INTO O_TFR
+	VALUES ("52b3dca2-37fc-4266-9d81-b0c8ef1b32bd",
+	"e63df2c0-f890-4d2d-bc69-fec84390fbda",
+	'get_string_import',
+	'',
+	"9ea1a53b-efa1-4bfa-a5ae-7b18040f7dd1",
+	0,
+	'// Find an existing instance of the requested import string - or create one.
+
+select any string_import from instances of StringImport 
+ where ( selected.import_string == param.import_string );
+select any import_req from instances of ImportRequest where false; //decl
+if ( empty string_import )
+  create object instance string_import of StringImport;
+  string_import.import_string = param.import_string;
+  create object instance import_req of ImportRequest;
+  relate string_import to import_req across R403;
+else
+	select one import_req related by string_import->ImportRequest[R403];
+end if;
+return import_req; ',
+	1,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	0,
+	0);
+INSERT INTO O_TPARM
+	VALUES ("e319a8f6-a6c1-4035-ab1e-a456373cced0",
+	"52b3dca2-37fc-4266-9d81-b0c8ef1b32bd",
+	'import_string',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("9ea1a53b-efa1-4bfa-a5ae-7b18040f7dd1",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<ImportRequest>',
+	'',
+	'',
+	'../file.xtuml');
+INSERT INTO O_TFR
+	VALUES ("81787b01-6660-402f-8135-e5476fbbdde5",
+	"e63df2c0-f890-4d2d-bc69-fec84390fbda",
+	'get_type_import',
+	'',
+	"9ea1a53b-efa1-4bfa-a5ae-7b18040f7dd1",
+	0,
+	'// Find an existing instance of the requested import type - or create one.
+
+type = param.type;
+select any import_req from instances of ImportRequest where false; //decl
+select any type_import related by type->TypeImport[R499.''is imported by'']; 
+if ( empty type_import )
+  create object instance type_import of TypeImport;
+  relate type_import to type across R499.''imports'';
+  create object instance import_req of ImportRequest;
+  relate type_import to import_req across R403;
+else
+	select one import_req related by type_import->ImportRequest[R403];
+end if;
+return import_req; ',
+	1,
+	'',
+	"52b3dca2-37fc-4266-9d81-b0c8ef1b32bd",
+	0,
+	1);
+INSERT INTO O_TPARM
+	VALUES ("177e632f-296f-4c65-9242-f982313e592d",
+	"81787b01-6660-402f-8135-e5476fbbdde5",
+	'type',
+	"b4a754cc-b0a5-4777-ae98-df570434ea2a",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("b4a754cc-b0a5-4777-ae98-df570434ea2a",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Type>',
+	'',
+	'',
+	'../../type/type.xtuml');
+INSERT INTO O_ID
+	VALUES (0,
+	"e63df2c0-f890-4d2d-bc69-fec84390fbda");
+INSERT INTO O_ID
+	VALUES (1,
+	"e63df2c0-f890-4d2d-bc69-fec84390fbda");
+INSERT INTO O_ID
+	VALUES (2,
+	"e63df2c0-f890-4d2d-bc69-fec84390fbda");
+INSERT INTO PE_PE
+	VALUES ("e63df2c0-f890-4d2d-bc69-fec84390fbda",
+	1,
+	"3defc186-8fe9-4977-a936-f3946346a253",
+	"00000000-0000-0000-0000-000000000000",
+	4);
+INSERT INTO EP_PKG_PROXY
+	VALUES ("3defc186-8fe9-4977-a936-f3946346a253",
+	"00000000-0000-0000-0000-000000000000",
+	"9092a4a9-91f5-4e59-984b-3ca72917240d",
+	'file',
+	'',
+	0,
+	'../file.xtuml');
