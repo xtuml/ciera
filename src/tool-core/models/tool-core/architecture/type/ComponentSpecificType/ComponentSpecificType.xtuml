@@ -36,9 +36,7 @@ if ( not_empty unresolved_type )
 	unrelate old_type from s_dt across R423;
 	select many typeimports related by unresolved_type->Type[R407]->TypeImport[R499.''is imported by''];
 	for each typeimport in typeimports
-		select one unresolved related by typeimport->Type[R499.''imports''];
-		unrelate typeimport from unresolved across R499.''imports'';
-		relate typeimport to new_type across R499.''imports'';
+		typeimport.resolve( new_type:new_type );
 	end for;
 	old_type.dispose();
 end if;
