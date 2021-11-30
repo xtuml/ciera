@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.ciera.runtime.domain.Domain;
+import io.ciera.runtime.exceptions.ApplicationException;
 
 public abstract class Application implements Named {
 
@@ -57,7 +58,7 @@ public abstract class Application implements Named {
         if (contexts.size() == 1) {
             // run the single context in the main thread
             contexts.get(0).run();
-        } else {
+        } else if (contexts.size() > 1){
             // run each context in its own thread and wait for them all to complete
             contexts.stream().map(context -> context.start()).forEach(thread -> {
                 try {
@@ -67,6 +68,8 @@ public abstract class Application implements Named {
                     System.exit(1);
                 }
             });
+        } else {
+            throw new ApplicationException("Cannot run application with no execution contexts");
         }
     }
 

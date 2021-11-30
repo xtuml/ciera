@@ -13,13 +13,9 @@ import io.ciera.runtime.application.task.IdleHalt;
 
 public class TestExecutionModes {
 
-    private static enum Events {
-        EVT;
-    }
-
     private static class TestEvent extends Event {
         public TestEvent(Object... data) {
-            super(Events.EVT, data);
+            super(null, data);
         }
     }
 
