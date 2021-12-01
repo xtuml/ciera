@@ -2814,6 +2814,8 @@ end if;
 select any var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == var_access.ID );
 if ( empty var )
   // TODO bad
+  select one invocable related by smt->CodeBlock[R450]->InvocableObject[R4000];
+  LOG::LogFailure(message:"Could not find variable ''" + var_access.ID + "'' in ''" + invocable.name + "''");
 end if;
 
 // create variable reference
@@ -2926,6 +2928,7 @@ if ( not_empty body )
   ::transformRSLBody( body:body, invocable:invocable );
 else
   // TODO bad
+  LOG::LogFailure(message:"No parsed body for: ''" + filename + "''");
 end if;
 
 // unpack the symbol table
