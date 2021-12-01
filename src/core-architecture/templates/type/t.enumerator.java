@@ -1,1 +1,5 @@
-    ${self.name}( $t{self.value} )\
+    ${self.name}${line_end}\
+.if (self.comment != "")
+  /* ${self.comment} */\
+.end if
+

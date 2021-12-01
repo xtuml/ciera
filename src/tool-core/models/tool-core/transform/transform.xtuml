@@ -1370,7 +1370,7 @@ file.exclude = false;
 create object instance type of Type;
 type.name = file.name;
 type.package = file.package;
-type.default_value = type.name + ".UNINITIALIZED_ENUM";
+type.default_value = "null";
 ::Type_resolve(t:type,  s_dt:s_dt );
 create object instance edt of EnumeratedType;
 relate type to edt across R407;
@@ -1388,16 +1388,11 @@ while ( not_empty enumer )
   create object instance e of Enumerator;
   e.name = T::sub( format:"u", s:enumer.Name );
   e.value = value;
+  e.comment = enumer.Descrip;
   value = value + 1;
   relate e to edt across R415;
   select one enumer related by enumer->S_ENUM[R56.''precedes''];
-end while;
-
-// add to imports
-::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.IXtumlType", type:ImportType::IMPL );
-::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL );
-::addStringToImports( file:file, s:"java.util.regex.Pattern", type:ImportType::IMPL );
-::addStringToImports( file:file, s:"java.util.regex.Matcher", type:ImportType::IMPL );',
+end while;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
