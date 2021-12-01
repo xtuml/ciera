@@ -15,33 +15,18 @@ INSERT INTO O_TFR
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'select one file related by self->File[R401];
-imports = file.getFormattedImports( type:ImportType::IMPL );
+imports = file.getFormattedImports(type:ImportType::IMPL);
 
-instance_extent_initializers = "";
-instance_adds = "";
-instance_removes = "";
-class_directory = "";
+utility_initializers = "";
 separator = "";
-test = "if";
-select many classes related by self->Class[R408];
-for each class_in_comp in classes
-  select one class_set related by class_in_comp->ClassSet[R406];
-  instance_extent_initializers = instance_extent_initializers + separator + "        " + class_in_comp.name + "_extent = new " + class_set.name + "Impl((a, b) -> a.getInstanceId().compareTo(b.getInstanceId()));";
-  instance_adds = instance_adds + separator + "        " + test + " ( instance instanceof " + class_in_comp.name + " ) return " + class_in_comp.name + "_extent.add( (" + class_in_comp.name + ")instance );";
-  instance_removes = instance_removes + separator + "        " + test + " ( instance instanceof " + class_in_comp.name + " ) return " + class_in_comp.name + "_extent.remove( (" + class_in_comp.name + ")instance );";
-  class_directory = class_directory + separator + "        classDirectory.put(" + STRING::quote() + class_in_comp.key_letters + STRING::quote() + ", " + class_in_comp.name + "Impl.class);";
-  test = "else if";
+select many util_refs related by self->UtilityReference[R4558];
+for each util_ref in util_refs
+  util_ref.render();
+  utility_initializers = utility_initializers + separator + "        this." + util_ref.utility_name + " = new " + util_ref.utility_name + "(this);";
   separator = "\n";
 end for;
-
-relationship_extent_initializers = "";
-separator = "";
-test = "if";
-select many relationships related by self->Relationship[R448];
-for each rel in relationships
-  relationship_extent_initializers = relationship_extent_initializers + separator + "        " + rel.name + "_extent = new RelationshipSet();";
-  separator = "\n";
-end for;
+utilities = T::body();
+T::clear();
 
 select many funcs related by self->Function[R405];
 for each function in funcs
@@ -50,6 +35,7 @@ end for;
 functions = T::body();
 T::clear();
 
+select many relationships related by self->Relationship[R448];
 for each rel in relationships
   rel.render_modifiers();
 end for;
@@ -63,13 +49,6 @@ end for;
 instance_selectors = T::body();
 T::clear();
 
-select many relationship_selects related by self->RelationshipPopulationSelector[R4571];
-for each relationship_selector in relationship_selects
-  relationship_selector.render();
-end for;
-relationship_selectors = T::body();
-T::clear();
-
 select many comp_ports related by self->Port[R417];
 for each port in comp_ports
   port.render_acccessor();
@@ -77,26 +56,15 @@ end for;
 ports = T::body();
 T::clear();
 
-utility_initializers = "";
-separator = "";
-select many util_refs related by self->UtilityReference[R4558];
-for each util_ref in util_refs
-  util_ref.render();
-  utility_initializers = utility_initializers + separator + "        " + util_ref.utility_name + " = new " + util_ref.utility_name + "(this);";
-  separator = "\n";
-end for;
-utilities = T::body();
-T::clear();
-
 init = "";
 select one init_function related by self->Function[R4561];
-if ( not_empty init_function )
+if (not_empty init_function)
   init = "        " + init_function.name + "();";
 end if;
 
 T::include(file:"component/t.componentdefinition.java");
 
-T::emit( file:file.path + "/" + self.name + file.extension );
+T::emit(file:file.path + "/" + self.name + file.extension);
 T::clear();',
 	1,
 	'',
@@ -268,24 +236,6 @@ INSERT INTO O_ATTR
 	"ba5eda7a-def5-0000-0000-000000000007",
 	'',
 	'');
-INSERT INTO O_NBATTR
-	VALUES ("37028f74-f626-4e61-8143-a1bb7ebf1b98",
-	"23f9d7b1-3127-4414-9299-e535bda771bf");
-INSERT INTO O_BATTR
-	VALUES ("37028f74-f626-4e61-8143-a1bb7ebf1b98",
-	"23f9d7b1-3127-4414-9299-e535bda771bf");
-INSERT INTO O_ATTR
-	VALUES ("37028f74-f626-4e61-8143-a1bb7ebf1b98",
-	"23f9d7b1-3127-4414-9299-e535bda771bf",
-	"c67f2754-90ea-46c9-b90c-d53a651e980f",
-	'extends',
-	'',
-	'',
-	'extends',
-	0,
-	"ba5eda7a-def5-0000-0000-000000000004",
-	'',
-	'');
 INSERT INTO O_REF
 	VALUES ("23f9d7b1-3127-4414-9299-e535bda771bf",
 	"288f76ce-a868-42e3-91b6-8d834690f961",
@@ -341,7 +291,7 @@ INSERT INTO O_BATTR
 INSERT INTO O_ATTR
 	VALUES ("8ce65f02-a90c-4ab4-95e0-7f292708e103",
 	"23f9d7b1-3127-4414-9299-e535bda771bf",
-	"37028f74-f626-4e61-8143-a1bb7ebf1b98",
+	"c67f2754-90ea-46c9-b90c-d53a651e980f",
 	'version',
 	'',
 	'',

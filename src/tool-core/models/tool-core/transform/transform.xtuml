@@ -633,13 +633,7 @@ if ( empty assoc_exclude_mark )
   end if; end if; end if;
 
   // add necessary imports
-  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.classes.RelationshipSet", type:ImportType::IMPL );
-  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.classes.Relationship", type:ImportType::IMPL );
-  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.classes.IRelationshipSet", type:ImportType::IMPL );
-  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.BadArgumentException", type:ImportType::IMPL );
-  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.EmptyInstanceException", type:ImportType::IMPL );
-  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.ModelIntegrityException", type:ImportType::IMPL );
-  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"io.ciera.runtime.exceptions.EmptyInstanceException", type:ImportType::IMPL );
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -983,12 +977,7 @@ if ( empty class_exclude_mark )
 
   // add to the containing component imports
   select one component_file related by containing_comp_def->File[R401];
-  select one set_file related by obj->ClassSet[R406]->File[R401];
-  ::addFileToImports( file:component_file, file_to_import:file, type:ImportType::IMPL );
-  ::addFileToImports( file:component_file, file_to_import:set_file, type:ImportType::IMPL );
-  ::addStringToImports( file:component_file, s: ::pathToPackage( path:file.path ) + ".impl." + file.name + "Impl", type:ImportType::IMPL );
-  ::addStringToImports( file:component_file, s: ::pathToPackage( path:set_file.path ) + ".impl." + set_file.name + "Impl", type:ImportType::IMPL );
-  ::addStringToImports( file:component_file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL );
+  ::addFileToImports(file:component_file, file_to_import:file, type:ImportType::IMPL);
 
   // create the import block
   ::addFileToImports( file:file, file_to_import:component_file, type:ImportType::BOTH );
@@ -1146,20 +1135,19 @@ INSERT INTO S_SYNC
 	'',
 	'c_c = param.c_c;
 
-if ( 1 == param.pass )
+if (1 == param.pass)
 
   // create the file
   create object instance file of File;
-  file.name = ::camelCaseName( name:c_c.Name, start_lower:false );
+  file.name = ::camelCaseName(name:c_c.Name, start_lower:false);
   file.path = param.path;
-  file.package = ::pathToPackage( path:file.path );
+  file.package = ::pathToPackage(path:file.path);
   file.extension = ".java";
   file.exclude = false;
 
   // create the component definition object
   create object instance comp_def of ComponentDefinition;
   relate comp_def to file across R401;
-  comp_def.extends = "Component<" + comp_def.name + ">";
   relate c_c to comp_def across R4573;
   comp_def.version = "";
   comp_def.version_date = "";
@@ -1167,37 +1155,37 @@ if ( 1 == param.pass )
   // set version information
   component_version = "";
   select one c_c_pe related by c_c->PE_PE[R8001];
-  select any version_mark from instances of Mark where ( selected.markable_name == "Component" and
-                                                         selected.path == ::containerMarkingPath( pe:c_c_pe ) + "::" + c_c.Name and
-                                                         selected.feature_name == "Version" );
+  select any version_mark from instances of Mark where (selected.markable_name == "Component" and
+                                                         selected.path == ::containerMarkingPath(pe:c_c_pe) + "::" + c_c.Name and
+                                                         selected.feature_name == "Version");
   if (empty version_mark)
-    select any version_mark from instances of Mark where ( selected.markable_name == "*" and
+    select any version_mark from instances of Mark where (selected.markable_name == "*" and
                                                            selected.path == "*" and
-                                                           selected.feature_name == "UseVersion" );
+                                                           selected.feature_name == "UseVersion");
   end if;
   component_version = version_mark.value;
   if ("" != component_version)
     comp_def.version = component_version;
     current_date = TIM::current_date();
-    year_string = STRING::itoa( i:TIM::get_year( date:current_date ) );
-    month_string = STRING::itoa( i:TIM::get_month( date:current_date ) );
-    if ( STRING::strlen( s:month_string ) < 2 )
+    year_string = STRING::itoa(i:TIM::get_year(date:current_date));
+    month_string = STRING::itoa(i:TIM::get_month(date:current_date));
+    if (STRING::strlen(s:month_string) < 2)
       month_string = "0" + month_string;
     end if;
-    day_string = STRING::itoa( i:TIM::get_day( date:current_date ) );
-    if ( STRING::strlen( s:day_string ) < 2 )
+    day_string = STRING::itoa(i:TIM::get_day(date:current_date));
+    if (STRING::strlen(s:day_string) < 2)
       day_string = "0" + day_string;
     end if;
-    hour_string = STRING::itoa( i:TIM::get_hour( date:current_date ) );
-    if ( STRING::strlen( s:hour_string ) < 2 )
+    hour_string = STRING::itoa(i:TIM::get_hour(date:current_date));
+    if (STRING::strlen(s:hour_string) < 2)
       hour_string = "0" + hour_string;
     end if;
-    minute_string = STRING::itoa( i:TIM::get_minute( date:current_date ) );
-    if ( STRING::strlen( s:minute_string ) < 2 )
+    minute_string = STRING::itoa(i:TIM::get_minute(date:current_date));
+    if (STRING::strlen(s:minute_string) < 2)
       minute_string = "0" + minute_string;
     end if;
-    second_string = STRING::itoa( i:TIM::get_second( date:current_date ) );
-    if ( STRING::strlen( s:second_string ) < 2 )
+    second_string = STRING::itoa(i:TIM::get_second(date:current_date));
+    if (STRING::strlen(s:second_string) < 2)
       second_string = "0" + second_string;
     end if;
     comp_def.version_date = year_string + "-" + month_string + "-" + day_string + " " + hour_string + ":" + minute_string + ":" + second_string;
@@ -1206,21 +1194,21 @@ if ( 1 == param.pass )
   // transform ports
   select many c_pos related by c_c->C_PO[R4010];
   for each c_po in c_pos
-    ::transformPort( c_po:c_po, comp_def:comp_def, path:file.path + "/" + T::sub( format:"l", s:c_c.Name ) );
+    ::transformPort(c_po:c_po, comp_def:comp_def, path:file.path + "/" + T::sub(format:"l", s:c_c.Name));
   end for;
 
   // transform inner packages
   select many ep_pkgs related by c_c->PE_PE[R8003]->EP_PKG[R8001];
   for each ep_pkg in ep_pkgs
-    ::transformPackage( ep_pkg:ep_pkg, containing_comp_def:comp_def, path:file.path + "/" + T::sub( format:"l", s:c_c.Name ), pass:param.pass );
+    ::transformPackage(ep_pkg:ep_pkg, containing_comp_def:comp_def, path:file.path + "/" + T::sub(format:"l", s:c_c.Name), pass:param.pass);
   end for;
 
   // transform inner components
   select many inner_c_cs related by c_c->PE_PE[R8003]->C_C[R8001];
   for each inner_c_c in inner_c_cs
-    ::transformComponentDefinition( c_c:inner_c_c, containing_comp_def:comp_def, path:file.path + "/" + T::sub( format:"l", s:c_c.Name ), pass:1 );
-    ::transformComponentDefinition( c_c:inner_c_c, containing_comp_def:comp_def, path:file.path + "/" + T::sub( format:"l", s:c_c.Name ), pass:2 );
-    ::transformComponentDefinition( c_c:inner_c_c, containing_comp_def:comp_def, path:file.path + "/" + T::sub( format:"l", s:c_c.Name ), pass:3 );
+    ::transformComponentDefinition(c_c:inner_c_c, containing_comp_def:comp_def, path:file.path + "/" + T::sub(format:"l", s:c_c.Name), pass:1);
+    ::transformComponentDefinition(c_c:inner_c_c, containing_comp_def:comp_def, path:file.path + "/" + T::sub(format:"l", s:c_c.Name), pass:2);
+    ::transformComponentDefinition(c_c:inner_c_c, containing_comp_def:comp_def, path:file.path + "/" + T::sub(format:"l", s:c_c.Name), pass:3);
   end for;
 
   // transform instance population selectors
@@ -1248,42 +1236,29 @@ if ( 1 == param.pass )
   end if;
   
   // create import block
-  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.application.IApplication", type:ImportType::IMPL );
-  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.application.IRunContext", type:ImportType::IMPL );
-  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.components.Component", type:ImportType::IMPL );
-  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.classes.IModelInstance", type:ImportType::IMPL );
-  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL );
-  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.BadArgumentException", type:ImportType::IMPL );
-  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.EmptyInstanceException", type:ImportType::IMPL );
-
-  ::addStringToImports( file:file, s:"java.util.Map", type:ImportType::IMPL );
-  ::addStringToImports( file:file, s:"java.util.TreeMap", type:ImportType::IMPL );
+  ::addStringToImports(file:file, s:"io.ciera.runtime.application.Application", type:ImportType::IMPL);
+  ::addStringToImports(file:file, s:"io.ciera.runtime.domain.Domain", type:ImportType::IMPL);
   
-  if ("" != component_version)
-    ::addStringToImports( file:file, s:"java.io.IOException", type:ImportType::IMPL );
-    ::addStringToImports( file:file, s:"java.util.Properties", type:ImportType::IMPL );
-  end if;
+elif (2 == param.pass)
 
-elif ( 2 == param.pass )
-
-  select any file from instances of File where ( selected.name == ::camelCaseName( name:c_c.Name, start_lower:false ) and selected.package == ::pathToPackage( path:param.path ) );
+  select any file from instances of File where (selected.name == ::camelCaseName(name:c_c.Name, start_lower:false) and selected.package == ::pathToPackage(path:param.path));
   select one comp_def related by file->ComponentDefinition[R401];
 
   // transform inner packages
   select many ep_pkgs related by c_c->PE_PE[R8003]->EP_PKG[R8001];
   for each ep_pkg in ep_pkgs
-    ::transformPackage( ep_pkg:ep_pkg, containing_comp_def:comp_def, path:file.path + "/" + T::sub( format:"l", s:c_c.Name ), pass:param.pass );
+    ::transformPackage(ep_pkg:ep_pkg, containing_comp_def:comp_def, path:file.path + "/" + T::sub(format:"l", s:c_c.Name), pass:param.pass);
   end for;
 
 else
 
-  select any file from instances of File where ( selected.name == ::camelCaseName( name:c_c.Name, start_lower:false ) and selected.package == ::pathToPackage( path:param.path ) );
+  select any file from instances of File where (selected.name == ::camelCaseName(name:c_c.Name, start_lower:false) and selected.package == ::pathToPackage(path:param.path));
   select one comp_def related by file->ComponentDefinition[R401];
 
   // transform inner packages
   select many ep_pkgs related by c_c->PE_PE[R8003]->EP_PKG[R8001];
   for each ep_pkg in ep_pkgs
-    ::transformPackage( ep_pkg:ep_pkg, containing_comp_def:comp_def, path:file.path + "/" + T::sub( format:"l", s:c_c.Name ), pass:param.pass );
+    ::transformPackage(ep_pkg:ep_pkg, containing_comp_def:comp_def, path:file.path + "/" + T::sub(format:"l", s:c_c.Name), pass:param.pass);
   end for;
 
   // transform relationship population selectors
