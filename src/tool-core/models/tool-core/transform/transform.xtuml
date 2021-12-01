@@ -910,6 +910,7 @@ if ( empty class_exclude_mark )
   relate obj to file across R401;
   obj.key_letters = o_obj.Key_Lett;
   obj.extends = "ModelInstance<" + obj.name + "," + containing_comp_def.name + ">";
+  obj.comparator = "";
 
   // add the class to the component
   relate obj to containing_comp_def across R408;
@@ -946,6 +947,18 @@ if ( empty class_exclude_mark )
     end if;
     select one o_attr related by o_attr->O_ATTR[R103.''precedes''];
   end while;
+
+  // set the comparator
+  select any comparator_mark from instances of Mark where ( selected.markable_name == "*" and selected.path == "*" and selected.feature_name == "SortComparator" );
+  if ( not_empty comparator_mark )
+    select many attr_accessors related by obj->Attribute[R410]->AttributeAccessor[R4510] where ( selected.accessor_type == AttributeAccessorType::GETTER );
+    for each attr_accessor in attr_accessors
+      if ( attr_accessor.getName() == comparator_mark.value )
+        obj.comparator = comparator_mark.value;
+        break;
+      end if;
+    end for;
+  end if;
 
   // transform operations
   select many o_tfrs related by o_obj->O_TFR[R115];
@@ -1059,19 +1072,6 @@ create object instance objset of ClassSet;
 relate objset to obj across R406;
 relate objset to file across R401;
 objset.extends = "InstanceSet<" + objset.name + "," + obj.name + ">";
-objset.comparator = "";
-
-// set the comparator
-select any comparator_mark from instances of Mark where ( selected.markable_name == "*" and selected.path == "*" and selected.feature_name == "SortComparator" );
-if ( not_empty comparator_mark )
-  select many attr_accessors related by objset->Class[R406]->Attribute[R410]->AttributeAccessor[R4510] where ( selected.accessor_type == AttributeAccessorType::GETTER );
-  for each attr_accessor in attr_accessors
-    if ( attr_accessor.getName() == comparator_mark.value )
-      objset.comparator = comparator_mark.value;
-      break;
-    end if;
-  end for;
-end if;
 
 // create the instance type
 create object instance type of Type;

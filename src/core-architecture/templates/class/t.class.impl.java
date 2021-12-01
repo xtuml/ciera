@@ -127,6 +127,20 @@ ${selectors}
         else return EMPTY_$u_{self.name};
     }
 
+.if (self.comparator != "")
+    @Override
+    @SuppressWarnings("unchecked")
+    public int compareTo(${self.name} o) {
+        try {
+            Object val = ${self.comparator}();
+            int cmpval = ((Comparable<Object>)val).compareTo(o.${self.comparator}());
+            return cmpval != 0 ? cmpval : super.compareTo(o);
+        } catch (Exception e) {
+            return super.compareTo(o);
+        }
+    }
+
+.end if
 }
 
 class Empty${self.name} extends ${self.extends} implements ${self.name} {
