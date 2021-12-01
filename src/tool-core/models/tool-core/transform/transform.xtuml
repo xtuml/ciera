@@ -2774,9 +2774,9 @@ containing_comp_def = param.containing_comp_def;
 
 // create the file
 create object instance file of File;
-file.name = ::camelCaseName( name:s_ee.Key_Lett, start_lower:false );
+file.name = ::camelCaseName(name:s_ee.Key_Lett, start_lower:false);
 file.path = param.path;
-file.package = ::pathToPackage( path:file.path );
+file.package = ::pathToPackage(path:file.path);
 file.extension = ".java";
 file.exclude = param.exclude;
 
@@ -2785,24 +2785,22 @@ create object instance utility of Utility;
 relate utility to file across R401;
 
 // relate the containing component
-if ( not_empty containing_comp_def )
+if (not_empty containing_comp_def)
   create object instance util_ref of UtilityReference;
   relate utility to containing_comp_def across R4558 using util_ref;
   select one component_file related by containing_comp_def->File[R401];
-  ::addFileToImports( file:component_file, file_to_import:file, type:ImportType::IMPL );
-  ::addStringToImports( file:component_file, s: ::pathToPackage( path:file.path ) + ".impl." + file.name + "Impl", type:ImportType::IMPL );
+  ::addFileToImports(file:component_file, file_to_import:file, type:ImportType::BOTH);
 end if;
 
 // transform each utility function
 select many s_brgs related by s_ee->S_BRG[R19];
 for each s_brg in s_brgs
-  ::transformUtilityFunction( s_brg:s_brg, utility:utility );
+  ::transformUtilityFunction(s_brg:s_brg, utility:utility);
 end for;
 
 // create import block
-::addFileToImports( file:file, file_to_import:file, type:ImportType::IMPL );
-::addStringToImports( file:file, s:"io.ciera.runtime.summit.util.Utility", type:ImportType::IMPL );
-::addStringToImports( file:file, s:"io.ciera.runtime.summit.components.IComponent", type:ImportType::IMPL );',
+::addStringToImports(file:file, s:"io.ciera.runtime.domain.Domain", type:ImportType::BOTH);
+::addStringToImports(file:file, s:"io.ciera.runtime.domain.Utility", type:ImportType::BOTH);',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -2889,27 +2887,27 @@ invocable.actions = s_brg.Action_Semantics_internal;
 // link type
 select one s_dt related by s_brg->S_DT[R20];
 select many s_dims related by s_brg->S_DIM[R50];
-type = ::TypeReference_getInstance( s_dt:s_dt, s_dims:s_dims );
+type = ::TypeReference_getInstance(s_dt:s_dt, s_dims:s_dims);
 relate type to invocable across R428;
 
 // create parameters
 select any s_bparm related by s_brg->S_BPARM[R21];
 prev_s_bparm = s_bparm;
 // select first parameter
-while ( not_empty prev_s_bparm )
+while (not_empty prev_s_bparm)
   s_bparm = prev_s_bparm;
   select one prev_s_bparm related by s_bparm->S_BPARM[R55.''succeeds''];
 end while;
-while ( not_empty s_bparm )
+while (not_empty s_bparm)
   // create parameter
   create object instance parm of FormalParameter;
   parm.name = "p_" + s_bparm.Name;
-  parm.by_ref = ( 1 == s_bparm.By_Ref );
+  parm.by_ref = (1 == s_bparm.By_Ref);
   select one parm_dt related by s_bparm->S_DT[R22];
   select many s_dims related by s_bparm->S_DIM[R49];
-  parm_type = ::TypeReference_getInstance( s_dt:parm_dt, s_dims:s_dims );
+  parm_type = ::TypeReference_getInstance(s_dt:parm_dt, s_dims:s_dims);
   relate parm_type to parm across R431;
-  ::linkParameter( invocable:invocable, parameter:parm );
+  ::linkParameter(invocable:invocable, parameter:parm);
   select one s_bparm related by s_bparm->S_BPARM[R55.''precedes''];
 end while;
 

@@ -1,9 +1,11 @@
 package ${self.package};
 
 ${imports}
+public class ${self.name} extends Utility {
 
-public interface ${self.name} {
+    public ${self.name}(Domain domain) {
+        super(domain);
+    }
 
 ${utility_functions}
-
 }

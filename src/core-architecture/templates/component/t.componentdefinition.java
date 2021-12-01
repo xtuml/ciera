@@ -6,6 +6,9 @@ public class ${self.name} extends ${self.extends} {
 
     private Map<String, Class<?>> classDirectory;
 
+    // utilities
+${utilities}
+
     public ${self.name}(IApplication app, IRunContext runContext, int populationId) {
         super(app, runContext, populationId);
 ${instance_extent_initializers}
@@ -29,9 +32,6 @@ ${relationship_selectors}
 
     // ports
 ${ports}
-
-    // utilities
-${utilities}
 
     // component initialization function
     @Override
