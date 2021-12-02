@@ -167,6 +167,24 @@ if ( not_empty utility )
     select any parm related by invocable->FormalParameter[R429];
     relate invoc to act_parm across R793;
     relate parm to act_parm across R3904;
+    // if natural indentation is enabled, pass the flag to enable indentation
+    if param.use_indent
+      // create named reference expression
+      create object instance indent_expr of Expression;
+      relate indent_expr to smt across R775;
+      indent_expr.expression_number = "1.3";
+      boolean_type = ::TypeReference_getBuiltinTypeReference(name:"boolean");
+      relate boolean_type to indent_expr across R795;
+      // create named reference
+      create object instance indent_lit of Literal;
+      relate indent_lit to indent_expr across R776;
+      indent_lit.value = "true";
+      // create actual parameter
+      create object instance act_parm2 of ActualParameter;
+      relate act_parm2 to indent_expr across R794;
+      relate invoc to act_parm2 across R793;
+      relate act_parm to act_parm2 across R3905.''precedes'';
+    end if;
   else
     // TODO bad
   end if;
@@ -210,6 +228,15 @@ INSERT INTO S_DT_PROXY
 	'',
 	'',
 	'../../../../core-architecture/models/core-architecture/architecture/expression/expression.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("215baa6b-6e70-430a-8992-50646ac7df5d",
+	"72574ddd-9711-4fad-900b-dfd52a5e3bc5",
+	'use_indent',
+	"ba5eda7a-def5-0000-0000-000000000001",
+	0,
+	'',
+	"7a2da9e5-81cd-49a5-abe6-6a1d0430976f",
+	'');
 INSERT INTO PE_PE
 	VALUES ("72574ddd-9711-4fad-900b-dfd52a5e3bc5",
 	1,
@@ -235,9 +262,10 @@ end while;
 // concatenate this string to that string
 select one invoc related by prev_smt->ExpressionAsStatement[R451]->Expression[R476]->Invocation[R776];
 select one invocable related by invoc->InvocableObject[R792];
-select any string_lit related by invoc->ActualParameter[R793]->Expression[R794]->Literal[R776];
-if (not_empty invocable and "T" == invocable.parent_name and "io.ciera.runtime.template.util" == invocable.parent_package and "append" == invocable.name and not_empty string_lit)
-  string_lit.value = string_lit.value + param.str;
+select any lit related by invoc->ActualParameter[R793]->Expression[R794]->Literal[R776];
+select one lit_type related by lit->Expression[R776]->TypeReference[R795];
+if (not_empty invocable and "T" == invocable.parent_name and "io.ciera.runtime.template.util" == invocable.parent_package and "append" == invocable.name and not_empty lit and lit_type.type_reference_name == "String")
+  lit.value = lit.value + param.str;
 else
   // create a statement
   create object instance smt of Statement;
@@ -259,7 +287,7 @@ else
   create object instance lit of Literal;
   relate lit to expr_arg across R776;
   lit.value = param.str;
-  ::templateAppend( smt:smt, expr:expr_arg );
+  ::templateAppend( smt:smt, expr:expr_arg, use_indent:false );
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -2520,7 +2548,8 @@ else
   ::transformRSLNamedAccess( named_access:named_access, smt:smt, expr_number:"1.2", expr:null_expr );
 end if;
 select any expr related by smt->Expression[R775] where ( selected.expression_number == "1.2" );
-::templateAppend( smt:smt, expr:expr );
+select any natural_indentation from instances of Mark where selected.feature_name == "UseNaturalIndentation";
+::templateAppend( smt:smt, expr:expr, use_indent:(not_empty natural_indentation) );
 
 // handle line break
 select any next_buffer_element related by sub_var->Y_BufferElement[R3057]->Y_Buffer[R3056]->Y_BufferElement[R3056] where ( selected.node_id > sub_var.node_id );

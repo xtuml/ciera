@@ -1,7 +1,6 @@
 package io.ciera.runtime.template.util;
 
 import io.ciera.runtime.summit.exceptions.XtumlException;
-import io.ciera.runtime.summit.types.IXtumlType;
 
 /**
  * The T utility provides tools for working with RSL templates. The utility
@@ -29,6 +28,30 @@ public interface T {
      */
     default public void append(Object o) {
         append(o.toString());
+    }
+
+    /**
+     * Append a string to the current buffer. If {@code includeIndent} is {@literal
+     * true} and the input string is multi-line, the current indent level is
+     * inserted at the beginning of each line following the first line
+     *
+     * @param s the string value to append
+     * @param includeIndent whether or not to include indentation at the beginning of each line
+     */
+	void append(String s, boolean includeIndent);
+
+    /**
+     * Append an object to the current buffer. By default, the object gets
+     * converted to a String using the standard {@code toString} method before
+     * being added to the buffer. If {@code includeIndent} is {@literal true}
+     * and the input string is multi-line, the current indent level is inserted
+     * at the beginning of each line following the first line
+     * 
+     * @param o the object to append
+     * @param includeIndent whether or not to include indentation at the beginning of each line
+     */
+    default public void append(Object o, boolean includeIndent) {
+        append(o.toString(), includeIndent);
     }
 
     /**
