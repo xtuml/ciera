@@ -902,8 +902,6 @@ if ( empty class_exclude_mark )
   // create the object
   create object instance obj of Class;
   relate obj to file across R401;
-  obj.key_letters = o_obj.Key_Lett;
-  obj.extends = "ModelInstance<" + obj.name + "," + containing_comp_def.name + ">";
   obj.comparator = "";
 
   // add the class to the component
@@ -1048,48 +1046,24 @@ INSERT INTO S_SYNC
 	'',
 	'obj = param.obj;
 
-// create the object file
-create object instance file of File;
-file.name = obj.name + "Set";
-file.path = param.path;
-file.package = ::pathToPackage( path:file.path );
-file.extension = ".java";
-file.exclude = false;
-
-// create the class set object
-create object instance objset of ClassSet;
-relate objset to obj across R406;
-relate objset to file across R401;
-objset.extends = "InstanceSet<" + objset.name + "," + obj.name + ">";
-
 // create the instance type
 create object instance type of Type;
-type.name = objset.name;
-type.package = objset.package;
-select any s_irdt related by obj->O_OBJ[R409]->S_IRDT[R123] where ( selected.isSet );
+type.name = obj.name + ".Set";
+type.package = obj.package;
+select any s_irdt related by obj->O_OBJ[R409]->S_IRDT[R123] where (selected.isSet);
 select one s_dt related by s_irdt->S_DT[R17];
-if ( not_empty s_dt )
+if (not_empty s_dt)
   ::Type_resolve(t:type, s_dt:s_dt);
 else
   // TODO bad
 end if;
-type.default_value = "new " + objset.name + "Impl()";
-relate type to objset across R407;
+type.default_value = "new " + type.name + "()";
 
-// create the import block
-select one objfile related by obj->File[R401];
-::addFileToImports( file:file, file_to_import:file, type: ImportType::IMPL );
-::addFileToImports( file:file, file_to_import:objfile, type: ImportType::IMPL );
-::addStringToImports( file:file, s:"java.util.Arrays", type:ImportType::IMPL );
-::addStringToImports( file:file, s:"java.util.Comparator", type:ImportType::IMPL );
-::addStringToImports( file:file, s:"java.util.List", type:ImportType::IMPL );
-::addStringToImports( file:file, s:"io.ciera.runtime.summit.classes.InstanceSet", type:ImportType::IMPL );
-::addStringToImports( file:file, s:"io.ciera.runtime.summit.classes.IInstanceSet", type:ImportType::INT );
 
-select any attr related by objset->Class[R406]->Attribute[R410];
-if ( not_empty attr )
-  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::BOTH );
-end if;',
+// create the class set object
+create object instance objset of ClassSet;
+relate objset to obj across R406;
+relate objset to type across R407;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -2464,7 +2438,7 @@ state.number = number;
 
 // create invocable
 create object instance invocable of InvocableObject;
-invocable.name = T::sub( format:"_", s:sm_state.Name );
+invocable.name = T::sub( format:"_u", s:sm_state.Name );
 invocable.parent_name = sm.name;
 invocable.parent_package = sm.package;
 relate state to invocable across R427;

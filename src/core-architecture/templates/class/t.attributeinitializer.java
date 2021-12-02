@@ -1,1 +1,1 @@
-        ${self.name} = ${initializer};
+        this.${self.name} = ${self.name};

@@ -23,7 +23,7 @@ T::push_buffer();
 
 attribute_derivation = "";
 select one attr_deriv related by self->AttributeDerivation[R441];
-if ( not_empty attr_deriv )
+if (not_empty attr_deriv)
   attr_deriv.render();
   attribute_derivation = T::body();
   T::clear();
@@ -33,21 +33,20 @@ select one type related by self->Attribute[R4510]->TypeReference[R424]->Type[R38
 select one array_type related by self->Attribute[R4510]->TypeReference[R424]->ArrayTypeReference[R3801];
 is_array = not_empty array_type;
 primitive = type.primitive();
-is_string = "String" == type_name;
 
 is_getter = self.accessor_type == AttributeAccessorType::GETTER;
 
 propagations = "";
-if ( not is_getter )
+if (not is_getter)
   select many refs related by self->Attribute[R4510]->AttributeReference[R4506.''provides value for''];
   for each ref in refs
     attribute_name = ref.referred_to_attribute_name;
     select any accessor related by ref->Attribute[R4506.''provides value for'']->AttributeAccessor[R4510]
-      where ( selected.accessor_type == AttributeAccessorType::SETTER );
+      where (selected.accessor_type == AttributeAccessorType::SETTER);
     accessor_name = accessor.getName();
-    selector_name = "R" + STRING::itoa( i:ref.rel_num ) + "_";
-    if ( "" != ref.form_phrase )
-      selector_name = selector_name + T::sub( format:"_", s:ref.form_phrase ) + "_";
+    selector_name = "R" + STRING::itoa(i:ref.rel_num) + "_";
+    if ("" != ref.form_phrase)
+      selector_name = selector_name + T::sub(format:"_", s:ref.form_phrase) + "_";
     end if;
     selector_name = selector_name + ref.referring_attribute_class_name;
     T::include(file:"class/t.attributepropagation.java");
@@ -62,26 +61,6 @@ T::include(file:"class/t.attributeaccessor.java");',
 	1,
 	'',
 	"9c9b06b9-43fa-4aee-afff-5b2f1ca7fefb",
-	0,
-	0);
-INSERT INTO O_TFR
-	VALUES ("11a7ef26-ba91-46fb-9514-cffe20872751",
-	"48d9220b-5ff3-4524-9a7f-0d0f765126b6",
-	'render_interface',
-	'',
-	"ba5eda7a-def5-0000-0000-000000000000",
-	1,
-	'select one attribute related by self->Attribute[R4510];
-type_name = attribute.type_reference_name;
-
-name = self.getName();
-
-is_getter = self.accessor_type == AttributeAccessorType::GETTER;
-
-T::include(file:"class/t.attributeaccessor.int.java");',
-	1,
-	'',
-	"449a4b86-8dbd-4df5-8f90-9bf0c1f1948d",
 	0,
 	0);
 INSERT INTO O_TFR
@@ -122,24 +101,7 @@ is_getter = self.accessor_type == AttributeAccessorType::GETTER;
 T::include(file:"class/t.attributeaccessor.empty.java");',
 	1,
 	'',
-	"11a7ef26-ba91-46fb-9514-cffe20872751",
-	0,
-	0);
-INSERT INTO O_TFR
-	VALUES ("36f7516e-166b-4513-9ff7-f896c13be689",
-	"48d9220b-5ff3-4524-9a7f-0d0f765126b6",
-	'render_set',
-	'',
-	"ba5eda7a-def5-0000-0000-000000000000",
-	1,
-	'select one attribute related by self->Attribute[R4510];
-type_name = attribute.type_reference_name;
-name = self.getName();
-is_getter = self.accessor_type == AttributeAccessorType::GETTER;
-T::include(file:"class/t.attributeaccessor.set.java");',
-	1,
-	'',
-	"7f7b8953-64ee-4ec6-8adc-6d34ade06c71",
+	"449a4b86-8dbd-4df5-8f90-9bf0c1f1948d",
 	0,
 	0);
 INSERT INTO O_REF

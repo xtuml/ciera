@@ -15,66 +15,54 @@ INSERT INTO O_TFR
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'select one file related by self->File[R401];
-imports = file.getFormattedImports( type:ImportType::IMPL );
+imports = file.getFormattedImports(type:ImportType::IMPL);
 
-// TODO select ordered by
-index = 0;
-select any attribute related by self->Attribute[R410] where ( index == selected.order);
-while ( not_empty attribute ) 
-  attribute.render_initializer();
-  index = index + 1;
-  select any attribute related by self->Attribute[R410] where ( index == selected.order);
-end while;
+// get the state machine if it exists
+select one sm related by self->StateMachine[R4750];
+
+// attribute declarations
+select many attributes related by self->Attribute[R410] where SORT::ascending(attr:"order");
+for each attribute in attributes
+  attribute.render();
+end for;
+attribute_decls = T::body();
+
+// relationship link declarations
+relationship_decls = "";
+select many selects related by self->InstanceSelector[R442];
+for each selector in selects
+  selector.render_declaration();
+  select one sel related by selector->Selector[R445];
+end for;
+relationship_decls = T::body();
+T::clear();
+
+// initial state
+select any init_state related by self->StateMachine[R4750]->State[R4751] where SORT::ascending(attr:"number");
+
+// constructors
+attribute_initializer_params = "";
+attribute_initializers = "";
+for each attribute in attributes
+  attribute_initializer_params = attribute_initializer_params + ", " + attribute.type_reference_name + " " + attribute.name;
+  T::include(file:"class/t.attributeinitializer.java");
+end for;
 attribute_initializers = T::body();
 T::clear();
 
-attribute_list = "";
-attribute_invocation_list = "";
-attribute_initializers2 = "";
-index = 0;
-select any attribute related by self->Attribute[R410] where ( index == selected.order);
-while ( not_empty attribute ) 
-  attribute_list = attribute_list + ", " + attribute.type_reference_name + " " + attribute.name;
-  attribute_invocation_list = attribute_invocation_list + ", " + attribute.name;
-  attribute_initializers2 = attribute_initializers2 + "        this." + attribute.name + " = " + attribute.name + ";\n";
-  index = index + 1;
-  select any attribute related by self->Attribute[R410] where ( index == selected.order);
-end while;
-
-id1_attributes = "";
-id2_attributes = "";
-id3_attributes = "";
-sep1 = "";
-sep2 = "";
-sep3 = "";
-index = 0;
-select any attribute related by self->Attribute[R410] where ( index == selected.order);
-while ( not_empty attribute ) 
-  attribute.render();
-  select many accessors related by attribute->AttributeAccessor[R4510];
-  for each accessor in accessors
-    accessor.render();
-    if ( AttributeAccessorType::GETTER == accessor.accessor_type and attribute.identifier % 2 == 1 )
-      id1_attributes = id1_attributes + sep1 + accessor.getName() + "()";
-      sep1 = ", ";
-    end if;
-    if ( AttributeAccessorType::GETTER == accessor.accessor_type and ( attribute.identifier / 2 ) % 2 == 1 )
-      id2_attributes = id2_attributes + sep2 + accessor.getName() + "()";
-      sep2 = ", ";
-    end if;
-    if ( AttributeAccessorType::GETTER == accessor.accessor_type and ( attribute.identifier / 4 ) % 2 == 1 )
-      id3_attributes = id3_attributes + sep3 + accessor.getName() + "()";
-      sep3 = ", ";
-    end if;
-  end for;
-  index = index + 1;
-  select any attribute related by self->Attribute[R410] where ( index == selected.order);
-end while;
-attributes = T::body();
+// empty attribute accessros
+for each attribute in attributes
+  select any getter related by attribute->AttributeAccessor[R4510] where selected.accessor_type == AttributeAccessorType::GETTER;
+  select any setter related by attribute->AttributeAccessor[R4510] where selected.accessor_type == AttributeAccessorType::SETTER;
+  getter.render();
+  setter.render();
+end for;
+attribute_accessors = T::body();
 T::clear();
 
-select many class_ops related by self->Operation[R416] where ( selected.is_class_based );
-if ( not_empty class_ops )
+// class based operations
+select many class_ops related by self->Operation[R416] where (selected.is_class_based);
+if (not_empty class_ops)
   for each operation in class_ops
     operation.render();
   end for;
@@ -85,150 +73,60 @@ end if;
 static_operations = T::body();
 T::clear();
 
-select many inst_ops related by self->Operation[R416] where ( not selected.is_class_based );
+// instance based operations
+select many inst_ops related by self->Operation[R416] where (not selected.is_class_based);
 for each operation in inst_ops
   operation.render();
 end for;
 operations = T::body();
 T::clear();
 
-initial_state = "";
-initial_state2 = "";
-state_machine_initializer = "";
-state_machine_initializer2 = "";
-state_machine_decl = "";
-select one sm related by self->StateMachine[R4750];
-if ( not_empty sm )
-  initial_state = ", int initialState";
-  initial_state2 = ", initialState";
-  state_machine_initializer = "        statemachine = new " + sm.name + "(this, context());\n";
-  state_machine_initializer2 = "        statemachine = new " + sm.name + "(this, context(), initialState);\n";
-  sm.render_decl();
-  state_machine_decl = T::body();
-  T::clear();
-end if;
-
-select many evts related by sm->Event[R4752];
-for each evt in evts
-  evt.render();
-end for;
-state_machine_events = T::body();
-T::clear();
-
-select many selects related by self->InstanceSelector[R442];
-relationship_initializers = "";
+// selectors
 for each selector in selects
   selector.render();
-  select one sel related by selector->Selector[R445];
-  if ( sel.multiplicity == Mult::MANY )
-    relationship_initializers = relationship_initializers + "        " + selector.name + "_set = new " + sel.type_reference_name + "Impl();\n";
-  else
-    relationship_initializers = relationship_initializers + "        " + selector.name + "_inst = " + sel.type_reference_name + "Impl.EMPTY_" + T::sub( format:"u_", s:sel.type_reference_name ) + ";\n";
-  end if;
 end for;
 selectors = T::body();
 T::clear();
 
-index = 0;
-select any attribute related by self->Attribute[R410] where ( index == selected.order);
-while ( not_empty attribute ) 
-  select many accessors related by attribute->AttributeAccessor[R4510];
-  for each accessor in accessors
-    accessor.render_empty();
-  end for;
-  index = index + 1;
-  select any attribute related by self->Attribute[R410] where ( index == selected.order);
-end while;
+// set class
+select one inst_set related by self->ClassSet[R406];
+inst_set.render();
+set_class = T::body();
+T::clear();
+
+// empty attribute accessros
+for each attribute in attributes
+  select any getter related by attribute->AttributeAccessor[R4510] where selected.accessor_type == AttributeAccessorType::GETTER;
+  select any setter related by attribute->AttributeAccessor[R4510] where selected.accessor_type == AttributeAccessorType::SETTER;
+  getter.render_empty();
+  setter.render_empty();
+end for;
 empty_attributes = T::body();
 T::clear();
 
+// empty operations
 for each operation in inst_ops
   operation.render_empty();
 end for;
 empty_operations = T::body();
 T::clear();
 
+// empty selectors
 for each selector in selects
   selector.render_empty();
 end for;
 empty_selectors = T::body();
 T::clear();
 
-T::include(file:"class/t.class.impl.java");
-T::emit( file:file.path + "/impl/" + self.name + "Impl" + file.extension );
-T::clear();
-
-imports = file.getFormattedImports( type:ImportType::INT );
-
-index = 0;
-select any attribute related by self->Attribute[R410] where ( index == selected.order);
-while ( not_empty attribute ) 
-  select many accessors related by attribute->AttributeAccessor[R4510];
-  for each accessor in accessors
-    accessor.render_interface();
-  end for;
-  index = index + 1;
-  select any attribute related by self->Attribute[R410] where ( index == selected.order);
-end while;
-attributes = T::body();
-T::clear();
-
-for each operation in inst_ops
-  operation.render_interface();
-end for;
-operations = T::body();
-T::clear();
-
-for each selector in selects
-  selector.render_interface();
-end for;
-selectors = T::body();
-T::clear();
-
+// emit the file
 T::include(file:"class/t.class.java");
-T::emit( file:file.path + "/" + self.name + file.extension );
+T::emit(file:file.path + "/" + self.name + file.extension);
 T::clear();',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",
 	0,
 	0);
-INSERT INTO O_NBATTR
-	VALUES ("e1102dc5-96a8-43ba-8f27-735c3be3b0ac",
-	"82cf3088-71ed-48c3-850e-afe53bfc0fe5");
-INSERT INTO O_BATTR
-	VALUES ("e1102dc5-96a8-43ba-8f27-735c3be3b0ac",
-	"82cf3088-71ed-48c3-850e-afe53bfc0fe5");
-INSERT INTO O_ATTR
-	VALUES ("e1102dc5-96a8-43ba-8f27-735c3be3b0ac",
-	"82cf3088-71ed-48c3-850e-afe53bfc0fe5",
-	"cbb93527-a951-4d52-b6c5-13d33521339c",
-	'extends',
-	'',
-	'',
-	'extends',
-	0,
-	"ba5eda7a-def5-0000-0000-000000000004",
-	'',
-	'');
-INSERT INTO O_NBATTR
-	VALUES ("a97bc160-b446-4fde-8058-02e0b97739dc",
-	"82cf3088-71ed-48c3-850e-afe53bfc0fe5");
-INSERT INTO O_BATTR
-	VALUES ("a97bc160-b446-4fde-8058-02e0b97739dc",
-	"82cf3088-71ed-48c3-850e-afe53bfc0fe5");
-INSERT INTO O_ATTR
-	VALUES ("a97bc160-b446-4fde-8058-02e0b97739dc",
-	"82cf3088-71ed-48c3-850e-afe53bfc0fe5",
-	"e1102dc5-96a8-43ba-8f27-735c3be3b0ac",
-	'key_letters',
-	'',
-	'',
-	'key_letters',
-	0,
-	"ba5eda7a-def5-0000-0000-000000000004",
-	'',
-	'');
 INSERT INTO O_REF
 	VALUES ("82cf3088-71ed-48c3-850e-afe53bfc0fe5",
 	"dc9c4877-4fcb-49df-a886-ab917b250774",
@@ -475,7 +373,7 @@ INSERT INTO O_BATTR
 INSERT INTO O_ATTR
 	VALUES ("c9564b5b-70c8-4271-b1a9-915035b947cb",
 	"82cf3088-71ed-48c3-850e-afe53bfc0fe5",
-	"a97bc160-b446-4fde-8058-02e0b97739dc",
+	"cbb93527-a951-4d52-b6c5-13d33521339c",
 	'comparator',
 	'',
 	'',
