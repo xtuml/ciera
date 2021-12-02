@@ -9,7 +9,7 @@
 	        return inst;
     	}
     	catch(Exception ex ) { 
-            System.out.printf( "Employee deserialize failed: %s \n", ex.toString() );
+            System.out.printf( "${self.name} deserialize failed: %s \n", ex.toString() );
     	};
     	return (${self.name}) null;
     }

@@ -47,7 +47,7 @@ end while;
 return parameter_list;',
 	1,
 	'',
-	"085b032b-0957-4f25-9cf1-491675419d35",
+	"1deca5c4-523f-4fab-9100-3dbfebeaaf95",
 	0,
 	0);
 INSERT INTO O_TFR
@@ -76,7 +76,7 @@ signature = signature + ")";
 return signature;',
 	1,
 	'',
-	"dff37204-9330-40a9-8bab-d9af715aba36",
+	"085b032b-0957-4f25-9cf1-491675419d35",
 	0,
 	0);
 INSERT INTO O_TFR
@@ -101,10 +101,11 @@ while ( not_empty parm )
   select one comp_spec_type related by parm_type->Type[R3800.''based on'']->ComponentSpecificType[R407];
   if ( not_empty comp_spec_type )
   	select one inst related by comp_spec_type->ClassInComponent[R3803]->Class[R408.''maintains instances of''];
-    if ( not_empty inst)
-      ptype_name = inst.package + "." + inst.name;
-      param_name = param.prefix + param_name;
+  	if ( empty inst )
+  		select one inst related by comp_spec_type->ClassSet[R3803]->ClassInComponent[R406.''defines set with elements of type'']->Class[R408.''maintains instances of''];
     end if;
+	  ptype_name = inst.package + "." + ptype_name;
+    param_name = param.prefix + param_name;
   end if;
   parameter_list = parameter_list + separator + "final " + ptype_name + " "  + param_name;
   separator = ",  ";
@@ -116,7 +117,7 @@ end while;
 return parameter_list;',
 	1,
 	'',
-	"1deca5c4-523f-4fab-9100-3dbfebeaaf95",
+	"dff37204-9330-40a9-8bab-d9af715aba36",
 	0,
 	0);
 INSERT INTO O_TPARM
