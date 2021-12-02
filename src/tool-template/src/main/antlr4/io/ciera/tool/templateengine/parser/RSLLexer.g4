@@ -45,6 +45,8 @@ END:                       'end';
 DOT:                       '.';
 RCURLY:                    '}' -> popMode, popMode;
 QUOTE:                     '"' -> pushMode(STRING);
+EMPTY:                     'empty';
+NOT_EMPTY:                 'not_empty';
 NOT:                       'not';
 MINUS:                     '-';
 AND:                       'and';

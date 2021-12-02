@@ -2140,13 +2140,13 @@ INSERT INTO S_SYNC
 smt = param.smt;
 expr_number = param.expr_number;
 
-select one term related by neg->Y_Term[R3067];
+select one emp related by neg->Y_EmptyCheck[R3090];
 select one neg_op related by neg->Y_NegationOperation[R3078];
 if ( not_empty neg_op )
   // transform negation operation if it exists
   ::transformRSLNegationOperation( neg_op:neg_op, smt:smt, expr_number:expr_number );
 else
-  ::transformRSLTerm( term:term, smt:smt, expr_number:expr_number );
+  ::transformRSLEmptyCheck( emp:emp, smt:smt, expr_number:expr_number );
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -2203,8 +2203,8 @@ smt = param.smt;
 expr_number = param.expr_number;
 
 // transform the operand
-select one term related by neg_op->Y_Negation[R3078]->Y_Term[R3067];
-::transformRSLTerm( term:term, smt:smt, expr_number:expr_number + ".1" );
+select one emp related by neg_op->Y_Negation[R3078]->Y_EmptyCheck[R3090];
+::transformRSLEmptyCheck( emp:emp, smt:smt, expr_number:expr_number + ".1" );
 select any op related by smt->Expression[R775] where ( selected.expression_number == expr_number + ".1" );
 
 // create unary operation
@@ -3101,6 +3101,164 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("72925771-4268-45d6-9e81-70fb2a6232da",
+	1,
+	"3ea869ae-ac55-4a67-92db-243b6342aed5",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("5a09ed22-e72a-4154-8f12-b832247257d7",
+	"00000000-0000-0000-0000-000000000000",
+	'transformRSLEmptyCheck',
+	'',
+	'emp = param.emp;
+smt = param.smt;
+expr_number = param.expr_number;
+
+select one term related by emp->Y_Term[R3067];
+select one emp_op related by emp->Y_EmptyCheckOperation[R3091];
+if ( not_empty emp_op )
+  // transform negation operation if it exists
+  ::transformRSLEmptyCheckOperation(emp_op:emp_op, smt:smt, expr_number:expr_number);
+else
+  ::transformRSLTerm(term:term, smt:smt, expr_number:expr_number);
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	0);
+INSERT INTO S_SPARM
+	VALUES ("c768d239-18d7-4655-beac-11c8600d0311",
+	"5a09ed22-e72a-4154-8f12-b832247257d7",
+	'emp',
+	"6dc6f809-3cbc-4b94-84a9-825230d441c3",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("6dc6f809-3cbc-4b94-84a9-825230d441c3",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Empty Check>',
+	'',
+	'',
+	'../RSL/RSL.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("6c5d5728-24c8-4769-9d96-fd4612c573f3",
+	"5a09ed22-e72a-4154-8f12-b832247257d7",
+	'smt',
+	"b586ec7e-41fe-4d50-9cf3-27b173e9848a",
+	0,
+	'',
+	"c768d239-18d7-4655-beac-11c8600d0311",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("3773a82f-0d30-4d47-aa96-a7a8fe832cce",
+	"5a09ed22-e72a-4154-8f12-b832247257d7",
+	'expr_number',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"6c5d5728-24c8-4769-9d96-fd4612c573f3",
+	'');
+INSERT INTO PE_PE
+	VALUES ("5a09ed22-e72a-4154-8f12-b832247257d7",
+	1,
+	"3ea869ae-ac55-4a67-92db-243b6342aed5",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("02c391f4-64f7-49c8-98ae-d6d473a3b457",
+	"00000000-0000-0000-0000-000000000000",
+	'transformRSLEmptyCheckOperation',
+	'',
+	'emp_op = param.emp_op;
+smt = param.smt;
+expr_number = param.expr_number;
+
+// get the operand
+select one term related by emp_op->Y_EmptyCheck[R3091]->Y_Term[R3067];
+
+// create unary operation
+create object instance expr of Expression;
+relate expr to smt across R775;
+expr.expression_number = expr_number;
+boolean_type = ::TypeReference_getBuiltinTypeReference(name:"boolean");
+relate boolean_type to expr across R795;
+create object instance unary of UnaryOperation;
+relate unary to expr across R776;
+
+// translate the operator
+if ("" != emp_op.EMPTY)
+  unary.operator = "isEmpty";
+  unary.invocation = true;
+
+  // transform the operand expression
+  ::transformRSLTerm(term:term, smt:smt, expr_number:expr_number + ".1");
+  select any op related by smt->Expression[R775] where (selected.expression_number == expr_number + ".1");
+  relate op to unary across R777;
+elif ("" != emp_op.NOT_EMPTY)
+  unary.operator = "!";
+  unary.invocation = false;
+
+  // create additional ''empty'' expression
+  create object instance expr2 of Expression;
+  relate expr2 to smt across R775;
+  expr2.expression_number = expr.expression_number + ".1";
+  relate expr2 to unary across R777;
+  boolean_type = ::TypeReference_getBuiltinTypeReference(name:"boolean");
+  relate boolean_type to expr2 across R795;
+  create object instance unary2 of UnaryOperation;
+  relate unary2 to expr2 across R776;
+  unary2.operator = "isEmpty";
+  unary2.invocation = true;
+
+  // transform the operand expression
+  ::transformRSLTerm(term:term, smt:smt, expr_number:expr2.expression_number + ".1");
+  select any op related by smt->Expression[R775] where (selected.expression_number == expr2.expression_number + ".1");
+  relate op to unary2 across R777;
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	0);
+INSERT INTO S_SPARM
+	VALUES ("90f7dbe9-5e97-4501-b1ac-e404ce7b4cad",
+	"02c391f4-64f7-49c8-98ae-d6d473a3b457",
+	'emp_op',
+	"e2d02e38-cd62-43c3-96cc-42e5c761f3d3",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("e2d02e38-cd62-43c3-96cc-42e5c761f3d3",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Empty Check Operation>',
+	'',
+	'',
+	'../RSL/RSL.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("c60db6f4-1756-4675-b0d0-e1fea231edbe",
+	"02c391f4-64f7-49c8-98ae-d6d473a3b457",
+	'smt',
+	"b586ec7e-41fe-4d50-9cf3-27b173e9848a",
+	0,
+	'',
+	"90f7dbe9-5e97-4501-b1ac-e404ce7b4cad",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("78c1ebd4-db9e-43b4-8b63-bcca579a8841",
+	"02c391f4-64f7-49c8-98ae-d6d473a3b457",
+	'expr_number',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"c60db6f4-1756-4675-b0d0-e1fea231edbe",
+	'');
+INSERT INTO PE_PE
+	VALUES ("02c391f4-64f7-49c8-98ae-d6d473a3b457",
 	1,
 	"3ea869ae-ac55-4a67-92db-243b6342aed5",
 	"00000000-0000-0000-0000-000000000000",

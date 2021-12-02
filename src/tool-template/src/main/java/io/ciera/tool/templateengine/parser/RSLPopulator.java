@@ -7,6 +7,8 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import io.ciera.runtime.summit.exceptions.XtumlException;
 import io.ciera.runtime.summit.types.UniqueId;
 import io.ciera.tool.TemplateEngine;
+import io.ciera.tool.templateengine.parser.RSLParser.Empty_checkContext;
+import io.ciera.tool.templateengine.parser.RSLParser.Empty_check_operationContext;
 import io.ciera.tool.templateengine.rsl.Y_Addition;
 import io.ciera.tool.templateengine.rsl.Y_AdditionOperation;
 import io.ciera.tool.templateengine.rsl.Y_AttributeAccess;
@@ -22,6 +24,8 @@ import io.ciera.tool.templateengine.rsl.Y_Disjunction;
 import io.ciera.tool.templateengine.rsl.Y_DisjunctionOperation;
 import io.ciera.tool.templateengine.rsl.Y_ElifStatement;
 import io.ciera.tool.templateengine.rsl.Y_ElseStatement;
+import io.ciera.tool.templateengine.rsl.Y_EmptyCheck;
+import io.ciera.tool.templateengine.rsl.Y_EmptyCheckOperation;
 import io.ciera.tool.templateengine.rsl.Y_EndIfStatement;
 import io.ciera.tool.templateengine.rsl.Y_Expression;
 import io.ciera.tool.templateengine.rsl.Y_FormatChars;
@@ -53,6 +57,8 @@ import io.ciera.tool.templateengine.rsl.impl.Y_DisjunctionImpl;
 import io.ciera.tool.templateengine.rsl.impl.Y_DisjunctionOperationImpl;
 import io.ciera.tool.templateengine.rsl.impl.Y_ElifStatementImpl;
 import io.ciera.tool.templateengine.rsl.impl.Y_ElseStatementImpl;
+import io.ciera.tool.templateengine.rsl.impl.Y_EmptyCheckImpl;
+import io.ciera.tool.templateengine.rsl.impl.Y_EmptyCheckOperationImpl;
 import io.ciera.tool.templateengine.rsl.impl.Y_EndIfStatementImpl;
 import io.ciera.tool.templateengine.rsl.impl.Y_ExpressionImpl;
 import io.ciera.tool.templateengine.rsl.impl.Y_FormatCharsImpl;
@@ -402,7 +408,7 @@ public class RSLPopulator extends RSLBaseListener {
             population.getRunContext().getLog().error(e);
         }
     }
-
+    
     @Override
     public void exitNegation(RSLParser.NegationContext ctx) {
         try {
@@ -410,9 +416,9 @@ public class RSLPopulator extends RSLBaseListener {
             for (Y_NegationOperation negation_operation : population.Y_NegationOperation_instances()
                     .where((selected) -> selected.getParent_node_id() == negation.getNode_id()))
                 population.relate_R3078_Y_NegationOperation_Y_Negation(negation_operation, negation);
-            for (Y_Term term : population.Y_Term_instances()
+            for (Y_EmptyCheck emptyCheck : population.Y_EmptyCheck_instances()
                     .where((selected) -> selected.getParent_node_id() == negation.getNode_id()))
-                population.relate_R3067_Y_Term_Y_Negation(term, negation);
+                population.relate_R3090_Y_EmptyCheck_Y_Negation(emptyCheck, negation);
         } catch (XtumlException e) {
             population.getRunContext().getLog().error(e);
         }
@@ -423,6 +429,31 @@ public class RSLPopulator extends RSLBaseListener {
         try {
             Y_NegationOperationImpl.create(population, UniqueId.random(), parentIds.pop(), parentIds.peek(),
                     null == ctx.NOT() ? "" : ctx.NOT().getText(), null == ctx.MINUS() ? "" : ctx.MINUS().getText());
+        } catch (XtumlException e) {
+            population.getRunContext().getLog().error(e);
+        }
+    }
+
+    @Override
+    public void exitEmpty_check(Empty_checkContext ctx) {
+        try {
+            Y_EmptyCheck emptyCheck = Y_EmptyCheckImpl.create(population, UniqueId.random(), parentIds.pop(), parentIds.peek());
+            for (Y_EmptyCheckOperation emptyCheckOperation : population.Y_EmptyCheckOperation_instances()
+                    .where((selected) -> selected.getParent_node_id() == emptyCheck.getNode_id()))
+                population.relate_R3091_Y_EmptyCheckOperation_Y_EmptyCheck(emptyCheckOperation, emptyCheck);
+            for (Y_Term term : population.Y_Term_instances()
+                    .where((selected) -> selected.getParent_node_id() == emptyCheck.getNode_id()))
+                population.relate_R3067_Y_Term_Y_EmptyCheck(term, emptyCheck);
+        } catch (XtumlException e) {
+            population.getRunContext().getLog().error(e);
+        }
+    }
+    
+    @Override
+    public void exitEmpty_check_operation(Empty_check_operationContext ctx) {
+        try {
+            Y_EmptyCheckOperationImpl.create(population, UniqueId.random(), parentIds.pop(), parentIds.peek(),
+                    null == ctx.EMPTY() ? "" : ctx.EMPTY().getText(), null == ctx.NOT_EMPTY() ? "" : ctx.NOT_EMPTY().getText());
         } catch (XtumlException e) {
             population.getRunContext().getLog().error(e);
         }
