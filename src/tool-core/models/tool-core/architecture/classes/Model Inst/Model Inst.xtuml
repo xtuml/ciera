@@ -18,10 +18,19 @@ INSERT INTO O_TFR
 	'// Render component-independent interface for modeled class
 select one file related by self->File[R401];
 imports = file.getFormattedImports( type:ImportType::INT );
-
-T::include(file:"class/t.class.java");
+pkg = self.package;
+name = self.name;
+T::include(file:"class/t.compindependent.java");
 T::emit( file:file.path + "/" + self.name + file.extension );
-T::clear();',
+T::clear();
+
+// Render a corresponding interface for the class set - in the same package
+select any classset related by self->ClassInComponent[R408]->ClassSet[R406.''is type of single element in''];
+name = classset.name;
+T::include(file:"class/t.compindependent.java");
+T::emit( file:file.path + "/" + classset.name + file.extension );
+T::clear();
+',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",

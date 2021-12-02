@@ -65,6 +65,15 @@ end for;
 selectors = T::body();
 T::clear();
 
+// Determine whether the corresponding class is defined outside a component
+// If so, allow this interface to extend the corresponding class set independent interface.
+compIndepInterface = "";
+select one compIndClass related by self->ClassInComponent[R406.''defines set with elements of type'']->Class[R408];
+select one compIndInterfaceFile related by compIndClass->File[R401];
+if (not compIndInterfaceFile.exclude)
+	compIndepInterface = ", " + compIndClass.package + "." + self.name;
+end if;
+
 T::include(file:"class/t.classset.java");
 T::emit( file:file.path + "/" + self.name + file.extension );
 T::clear();',
