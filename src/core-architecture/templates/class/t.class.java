@@ -13,16 +13,16 @@ DynamicObjectInstance\
     public static final ${self.name} EMPTY = new Empty${self.name}();
 
     // attributes
-${attribute_decls}
+    ${attribute_decls}
 
     // relationships
-${relationship_decls}
+    ${relationship_decls}
 
     // constructors
     private ${self.name}() {}
 
     public ${self.name}(${self.comp_name} domain) {
-        super(UniqueId.random(), domain
+        super(UniqueId.random(), domain\
 .if (not_empty init_state)
 , ${self.name}StateMachine.States.${init_state.name}\
 .end if
@@ -38,23 +38,23 @@ ${relationship_decls}
 .end if
 ${attribute_initializer_params}) {
         super(instanceId, domain);
-${attribute_initializers}\
+        ${attribute_initializers}\
 .if (not_empty sm)
         setStateMachine(new ${self.name}StateMachine(domain, initialState, this));
 .end if
     }
 
     // attribute accessors
-${attribute_accessors}
+    ${attribute_accessors}
 
     // operations
-${operations}
+    ${operations}
 
     // static operations
-${static_operations}
+    ${static_operations}
 
     // selections
-${selectors}
+    ${selectors}
 
     @Override
     public ${self.comp_name} getDomain() {
@@ -82,19 +82,19 @@ ${selectors}
 .end if
 
     // set class
-${set_class}
+    ${set_class}
 
     // empty class
     private static final class Empty${self.name} extends ${self.name} implements ${self.name} {
 
         // attributes
-${empty_attributes}
+        ${empty_attributes}
 
         // operations
-${empty_operations}
+        ${empty_operations}
 
         // selections
-${empty_selectors}
+        ${empty_selectors}
 
         @Override
         public boolean isEmpty() {

@@ -5,29 +5,29 @@ ${imports}
 public class ${self.name} extends Domain {
 
     // utilities
-${utilities}
+    ${utilities}
 
     public ${self.name}(String name, Application application) {
         super(name, application);
-${utility_initializers}
+        ${utility_initializers}
     }
 
     // domain functions
-${functions}
+    ${functions}
 
     // relates and unrelates
-${relationship_modifiers}
+    ${relationship_modifiers}
 
     // instance selections
-${instance_selectors}
+    ${instance_selectors}
 
     // ports
-${ports}
+    ${ports}
 
     // component initialization function
     @Override
     public void initialize() {
-${init}
+        ${init}
     }
 
     @Override

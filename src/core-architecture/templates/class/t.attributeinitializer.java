@@ -1,1 +1,1 @@
-        this.${self.name} = ${self.name};
+this.${self.name} = ${self.name};

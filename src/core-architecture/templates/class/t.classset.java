@@ -18,7 +18,7 @@ public static final class Set extends BaseSet<${self.class_name}> {
     }
 
     // selections
-${selectors}
+    ${selectors}
 
     @Override
     public ${self.class_name} any(Predicate<${self.class_name}> where) {
