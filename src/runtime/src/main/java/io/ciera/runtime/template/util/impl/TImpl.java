@@ -4,9 +4,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.reflect.Constructor;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Stack;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import io.ciera.runtime.summit.components.IComponent;
 import io.ciera.runtime.summit.exceptions.XtumlException;
@@ -16,7 +16,13 @@ import io.ciera.runtime.template.util.T;
 
 public class TImpl<C extends IComponent<C>> extends Utility<C> implements T {
 
-    private Stack<List<String>> buffers;
+    /**
+     * Matches all horizontal whitespace characters at the beginning of a line
+     */
+    private static final Pattern LEADING_WHITESPACE = Pattern.compile("^(\\h)*", Pattern.MULTILINE);
+    private static final Pattern LINE = Pattern.compile("^.*$", Pattern.MULTILINE);
+
+    private Stack<StringBuilder> buffers;
     private ITemplateRegistry registry;
 
     private String rootDir;
@@ -36,16 +42,60 @@ public class TImpl<C extends IComponent<C>> extends Utility<C> implements T {
         push_buffer();
     }
 
+    /**
+     * Scan the current buffer from the end until the most recent newline and return
+     * all the whitespace. If non-whitespace characters exist between the end of the
+     * buffer and the beginning of the line, only return the whitespace characters
+     * from the beginning of the line up to the first non-whitespace character. This
+     * effectively gets the indentation of the current line.
+     * 
+     * @return The whitespace representing the indentation of the current line
+     */
+    private String currentIndentation() {
+        String whitespace = "";
+        Matcher m = LEADING_WHITESPACE.matcher(buffers.peek());
+        while (m.find()) {
+            whitespace = m.group();
+        }
+        return whitespace;
+    }
+
     @Override
     public void append(String s) {
-        buffers.peek().add(s);
+        append(s, false);
+    }
+
+    @Override
+    public void append(String s, boolean includeIndent) {
+        if (includeIndent) {
+            final String indent = currentIndentation();
+            StringBuilder buffer = buffers.peek();
+            int end = -1;
+            Matcher m = LINE.matcher(s);
+            while (m.find()) {
+                end = m.end();
+                String line = m.group();
+                if (m.start() > 0) {
+                    buffer.append(System.lineSeparator());
+                    if (!line.isEmpty()) { // don't insert the indent for otherwise blank lines
+                        buffer.append(indent);
+                    }
+                }
+                buffer.append(line);
+            }
+            if (end >= 0) {
+                buffer.append(s.substring(end)); // append any trailing characters (handles line separator at the end)
+            }
+        } else {
+            buffers.peek().append(s);
+        }
     }
 
     @Override
     public String body() {
-        List<String> strings = buffers.pop();
+        StringBuilder buffer = buffers.pop();
         push_buffer();
-        return String.join("", strings);
+        return buffer.toString();
     }
 
     @Override
@@ -64,9 +114,7 @@ public class TImpl<C extends IComponent<C>> extends Utility<C> implements T {
                 }
                 boolean preExists = outputFile.exists();
                 PrintStream out = new PrintStream(outputFile);
-                for (String str : buffers.peek()) {
-                    out.print(str);
-                }
+                out.print(buffers.peek().toString());
                 out.flush();
                 out.close();
                 if (preExists)
@@ -93,7 +141,7 @@ public class TImpl<C extends IComponent<C>> extends Utility<C> implements T {
 
     @Override
     public void push_buffer() {
-        buffers.push(new LinkedList<>());
+        buffers.push(new StringBuilder());
     }
 
     @Override

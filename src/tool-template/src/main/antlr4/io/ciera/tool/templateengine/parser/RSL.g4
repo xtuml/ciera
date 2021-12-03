@@ -51,9 +51,13 @@ multiplication:              negation ( multiplication_operation )*;
 
 multiplication_operation:    ( TIMES | DIVIDE | REM ) negation;
 
-negation:                    ( negation_operation )? term;
+negation:                    ( negation_operation )? empty_check;
 
 negation_operation:          NOT | MINUS;
+
+empty_check:                 ( empty_check_operation )? term;
+
+empty_check_operation:       EMPTY | NOT_EMPTY;
 
 term:                        parenthesis |
                              named_access |

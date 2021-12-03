@@ -2,6 +2,7 @@ lexer grammar RSLLexer;
 
 // THE 'INITIAL' MODE IS FOR MATCHING SEQUENCES AT THE BEGINNING OF A LINE
 
+COMMENT:                   [ \t]* '.' '/' '/'  ( ~( [\r\n] ) )+ ( '\r\n' | '\n' ) -> skip;
 INITIAL_DOT:               [ \t]* '.' -> skip, pushMode(CONTROL);
 INITIAL_BLOB:              ( [ \t]+ | [ \t]* ( ~( [$ \t\r\n.] ) | '$$' | '..' ) ( ~( [$\r\n] ) | '$$' )* ) -> type(BLOB), pushMode(BUFFER);
 INITIAL_DOLLAR:            DOLLAR -> type(DOLLAR), pushMode(BUFFER), pushMode(SUBVAR);
@@ -45,6 +46,8 @@ END:                       'end';
 DOT:                       '.';
 RCURLY:                    '}' -> popMode, popMode;
 QUOTE:                     '"' -> pushMode(STRING);
+EMPTY:                     'empty';
+NOT_EMPTY:                 'not_empty';
 NOT:                       'not';
 MINUS:                     '-';
 AND:                       'and';

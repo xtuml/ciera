@@ -167,6 +167,24 @@ if ( not_empty utility )
     select any parm related by invocable->FormalParameter[R429];
     relate invoc to act_parm across R793;
     relate parm to act_parm across R3904;
+    // if natural indentation is enabled, pass the flag to enable indentation
+    if param.use_indent
+      // create named reference expression
+      create object instance indent_expr of Expression;
+      relate indent_expr to smt across R775;
+      indent_expr.expression_number = "1.3";
+      boolean_type = ::TypeReference_getBuiltinTypeReference(name:"boolean");
+      relate boolean_type to indent_expr across R795;
+      // create named reference
+      create object instance indent_lit of Literal;
+      relate indent_lit to indent_expr across R776;
+      indent_lit.value = "true";
+      // create actual parameter
+      create object instance act_parm2 of ActualParameter;
+      relate act_parm2 to indent_expr across R794;
+      relate invoc to act_parm2 across R793;
+      relate act_parm to act_parm2 across R3905.''precedes'';
+    end if;
   else
     // TODO bad
   end if;
@@ -210,6 +228,15 @@ INSERT INTO S_DT_PROXY
 	'',
 	'',
 	'../../../../core-architecture/models/core-architecture/architecture/expression/expression.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("215baa6b-6e70-430a-8992-50646ac7df5d",
+	"72574ddd-9711-4fad-900b-dfd52a5e3bc5",
+	'use_indent',
+	"ba5eda7a-def5-0000-0000-000000000001",
+	0,
+	'',
+	"7a2da9e5-81cd-49a5-abe6-6a1d0430976f",
+	'');
 INSERT INTO PE_PE
 	VALUES ("72574ddd-9711-4fad-900b-dfd52a5e3bc5",
 	1,
@@ -235,9 +262,10 @@ end while;
 // concatenate this string to that string
 select one invoc related by prev_smt->ExpressionAsStatement[R451]->Expression[R476]->Invocation[R776];
 select one invocable related by invoc->InvocableObject[R792];
-select any string_lit related by invoc->ActualParameter[R793]->Expression[R794]->Literal[R776];
-if (not_empty invocable and "T" == invocable.parent_name and "io.ciera.runtime.template.util" == invocable.parent_package and "append" == invocable.name and not_empty string_lit)
-  string_lit.value = string_lit.value + param.str;
+select any lit related by invoc->ActualParameter[R793]->Expression[R794]->Literal[R776];
+select one lit_type related by lit->Expression[R776]->TypeReference[R795];
+if (not_empty invocable and "T" == invocable.parent_name and "io.ciera.runtime.template.util" == invocable.parent_package and "append" == invocable.name and not_empty lit and lit_type.type_reference_name == "String")
+  lit.value = lit.value + param.str;
 else
   // create a statement
   create object instance smt of Statement;
@@ -259,7 +287,7 @@ else
   create object instance lit of Literal;
   relate lit to expr_arg across R776;
   lit.value = param.str;
-  ::templateAppend( smt:smt, expr:expr_arg );
+  ::templateAppend( smt:smt, expr:expr_arg, use_indent:false );
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -2140,13 +2168,13 @@ INSERT INTO S_SYNC
 smt = param.smt;
 expr_number = param.expr_number;
 
-select one term related by neg->Y_Term[R3067];
+select one emp related by neg->Y_EmptyCheck[R3090];
 select one neg_op related by neg->Y_NegationOperation[R3078];
 if ( not_empty neg_op )
   // transform negation operation if it exists
   ::transformRSLNegationOperation( neg_op:neg_op, smt:smt, expr_number:expr_number );
 else
-  ::transformRSLTerm( term:term, smt:smt, expr_number:expr_number );
+  ::transformRSLEmptyCheck( emp:emp, smt:smt, expr_number:expr_number );
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -2203,8 +2231,8 @@ smt = param.smt;
 expr_number = param.expr_number;
 
 // transform the operand
-select one term related by neg_op->Y_Negation[R3078]->Y_Term[R3067];
-::transformRSLTerm( term:term, smt:smt, expr_number:expr_number + ".1" );
+select one emp related by neg_op->Y_Negation[R3078]->Y_EmptyCheck[R3090];
+::transformRSLEmptyCheck( emp:emp, smt:smt, expr_number:expr_number + ".1" );
 select any op related by smt->Expression[R775] where ( selected.expression_number == expr_number + ".1" );
 
 // create unary operation
@@ -2520,7 +2548,8 @@ else
   ::transformRSLNamedAccess( named_access:named_access, smt:smt, expr_number:"1.2", expr:null_expr );
 end if;
 select any expr related by smt->Expression[R775] where ( selected.expression_number == "1.2" );
-::templateAppend( smt:smt, expr:expr );
+select any natural_indentation from instances of Mark where selected.feature_name == "UseNaturalIndentation";
+::templateAppend( smt:smt, expr:expr, use_indent:(not_empty natural_indentation) );
 
 // handle line break
 select any next_buffer_element related by sub_var->Y_BufferElement[R3057]->Y_Buffer[R3056]->Y_BufferElement[R3056] where ( selected.node_id > sub_var.node_id );
@@ -2814,6 +2843,8 @@ end if;
 select any var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == var_access.ID );
 if ( empty var )
   // TODO bad
+  select one invocable related by smt->CodeBlock[R450]->InvocableObject[R4000];
+  LOG::LogFailure(message:"Could not find variable ''" + var_access.ID + "'' in ''" + invocable.name + "''");
 end if;
 
 // create variable reference
@@ -2926,6 +2957,7 @@ if ( not_empty body )
   ::transformRSLBody( body:body, invocable:invocable );
 else
   // TODO bad
+  LOG::LogFailure(message:"No parsed body for: ''" + filename + "''");
 end if;
 
 // unpack the symbol table
@@ -3098,6 +3130,164 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("72925771-4268-45d6-9e81-70fb2a6232da",
+	1,
+	"3ea869ae-ac55-4a67-92db-243b6342aed5",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("5a09ed22-e72a-4154-8f12-b832247257d7",
+	"00000000-0000-0000-0000-000000000000",
+	'transformRSLEmptyCheck',
+	'',
+	'emp = param.emp;
+smt = param.smt;
+expr_number = param.expr_number;
+
+select one term related by emp->Y_Term[R3067];
+select one emp_op related by emp->Y_EmptyCheckOperation[R3091];
+if ( not_empty emp_op )
+  // transform negation operation if it exists
+  ::transformRSLEmptyCheckOperation(emp_op:emp_op, smt:smt, expr_number:expr_number);
+else
+  ::transformRSLTerm(term:term, smt:smt, expr_number:expr_number);
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	0);
+INSERT INTO S_SPARM
+	VALUES ("c768d239-18d7-4655-beac-11c8600d0311",
+	"5a09ed22-e72a-4154-8f12-b832247257d7",
+	'emp',
+	"6dc6f809-3cbc-4b94-84a9-825230d441c3",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("6dc6f809-3cbc-4b94-84a9-825230d441c3",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Empty Check>',
+	'',
+	'',
+	'../RSL/RSL.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("6c5d5728-24c8-4769-9d96-fd4612c573f3",
+	"5a09ed22-e72a-4154-8f12-b832247257d7",
+	'smt',
+	"b586ec7e-41fe-4d50-9cf3-27b173e9848a",
+	0,
+	'',
+	"c768d239-18d7-4655-beac-11c8600d0311",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("3773a82f-0d30-4d47-aa96-a7a8fe832cce",
+	"5a09ed22-e72a-4154-8f12-b832247257d7",
+	'expr_number',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"6c5d5728-24c8-4769-9d96-fd4612c573f3",
+	'');
+INSERT INTO PE_PE
+	VALUES ("5a09ed22-e72a-4154-8f12-b832247257d7",
+	1,
+	"3ea869ae-ac55-4a67-92db-243b6342aed5",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("02c391f4-64f7-49c8-98ae-d6d473a3b457",
+	"00000000-0000-0000-0000-000000000000",
+	'transformRSLEmptyCheckOperation',
+	'',
+	'emp_op = param.emp_op;
+smt = param.smt;
+expr_number = param.expr_number;
+
+// get the operand
+select one term related by emp_op->Y_EmptyCheck[R3091]->Y_Term[R3067];
+
+// create unary operation
+create object instance expr of Expression;
+relate expr to smt across R775;
+expr.expression_number = expr_number;
+boolean_type = ::TypeReference_getBuiltinTypeReference(name:"boolean");
+relate boolean_type to expr across R795;
+create object instance unary of UnaryOperation;
+relate unary to expr across R776;
+
+// translate the operator
+if ("" != emp_op.EMPTY)
+  unary.operator = "isEmpty";
+  unary.invocation = true;
+
+  // transform the operand expression
+  ::transformRSLTerm(term:term, smt:smt, expr_number:expr_number + ".1");
+  select any op related by smt->Expression[R775] where (selected.expression_number == expr_number + ".1");
+  relate op to unary across R777;
+elif ("" != emp_op.NOT_EMPTY)
+  unary.operator = "!";
+  unary.invocation = false;
+
+  // create additional ''empty'' expression
+  create object instance expr2 of Expression;
+  relate expr2 to smt across R775;
+  expr2.expression_number = expr.expression_number + ".1";
+  relate expr2 to unary across R777;
+  boolean_type = ::TypeReference_getBuiltinTypeReference(name:"boolean");
+  relate boolean_type to expr2 across R795;
+  create object instance unary2 of UnaryOperation;
+  relate unary2 to expr2 across R776;
+  unary2.operator = "isEmpty";
+  unary2.invocation = true;
+
+  // transform the operand expression
+  ::transformRSLTerm(term:term, smt:smt, expr_number:expr2.expression_number + ".1");
+  select any op related by smt->Expression[R775] where (selected.expression_number == expr2.expression_number + ".1");
+  relate op to unary2 across R777;
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	0);
+INSERT INTO S_SPARM
+	VALUES ("90f7dbe9-5e97-4501-b1ac-e404ce7b4cad",
+	"02c391f4-64f7-49c8-98ae-d6d473a3b457",
+	'emp_op',
+	"e2d02e38-cd62-43c3-96cc-42e5c761f3d3",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("e2d02e38-cd62-43c3-96cc-42e5c761f3d3",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Empty Check Operation>',
+	'',
+	'',
+	'../RSL/RSL.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("c60db6f4-1756-4675-b0d0-e1fea231edbe",
+	"02c391f4-64f7-49c8-98ae-d6d473a3b457",
+	'smt',
+	"b586ec7e-41fe-4d50-9cf3-27b173e9848a",
+	0,
+	'',
+	"90f7dbe9-5e97-4501-b1ac-e404ce7b4cad",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("78c1ebd4-db9e-43b4-8b63-bcca579a8841",
+	"02c391f4-64f7-49c8-98ae-d6d473a3b457",
+	'expr_number',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"c60db6f4-1756-4675-b0d0-e1fea231edbe",
+	'');
+INSERT INTO PE_PE
+	VALUES ("02c391f4-64f7-49c8-98ae-d6d473a3b457",
 	1,
 	"3ea869ae-ac55-4a67-92db-243b6342aed5",
 	"00000000-0000-0000-0000-000000000000",
