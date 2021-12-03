@@ -1,6 +1,7 @@
 package io.ciera.maven;
 
 import io.ciera.runtime.summit.application.IApplication;
+import io.ciera.runtime.summit.exceptions.XtumlExitException;
 
 import java.io.File;
 import java.nio.file.Paths;
@@ -48,10 +49,14 @@ public abstract class AbstractCieraMojo extends AbstractMojo {
         args.add("--gendir");
         args.add(genDirPath);
         args.addAll(getAdditionalArguments());
-        compiler.setup(args.toArray(new String[0]), new CieraMavenLogger(getLog()));
-        compiler.initialize();
-        this.postInitialize(compiler);
-        compiler.start();
+        try {
+            compiler.setup(args.toArray(new String[0]), new CieraMavenLogger(getLog()));
+            compiler.initialize();
+            this.postInitialize(compiler);
+            compiler.start();
+        } catch (XtumlExitException e) {
+            throw new MojoExecutionException("Ciera compiler failure", e);
+        }
         copyCustomCode();
         addSrcGen();
         refreshFiles();

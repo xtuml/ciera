@@ -10,4 +10,11 @@ public interface ARCH {
      */
     public void shutdown();
 
+    /**
+     * Exit the process immediately with the specified code
+     * 
+     * @param code The exit code
+     */
+    public void exit(int code);
+
 }
