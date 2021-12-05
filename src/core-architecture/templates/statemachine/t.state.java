@@ -1,1 +1,1 @@
-    private void ${self.name}_entry_action(${parameter_list}) throws XtumlException ${body}
+private void ${self.name}EntryAction(${parameter_list}) ${body}

@@ -1378,7 +1378,7 @@ evt.id = id;
 
 // create invocable
 create object instance invocable of InvocableObject;
-invocable.name = T::sub( format:"_", s:sm_evt.Mning );
+invocable.name = T::sub( format:"cr", s:sm_evt.Mning );
 invocable.parent_name = sm.name;
 invocable.parent_package = sm.package;
 relate evt to invocable across R427;
@@ -1410,7 +1410,11 @@ while ( not_empty sm_evtdi )
 end while;
 
 // link to ooa event
-relate evt to sm_evt across R4759;',
+relate evt to sm_evt across R4759;
+
+// add imports
+select one file related by sm->File[R401];
+::addStringToImports(file:file, s:"io.ciera.runtime.application.Event", type:ImportType::IMPL);',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -2499,33 +2503,39 @@ obj = param.obj;
 // create the state machine file
 create object instance file of File;
 file.name = obj.name + "StateMachine";
-file.path = ::formatPath( path:obj.package );
+file.path = ::formatPath(path:obj.package);
 file.package = obj.package;
 file.extension = ".java";
-file.exclude = true;//false;
+file.exclude = false;
 
 // create the object
 create object instance sm of StateMachine;
 relate sm to file across R401;
 relate sm to obj across R4750;
 
-// transform the first state (the state with the lowest number must have state id 0)
-select many sm_states related by sm_sm->SM_STATE[R501];
-select any init_state from instances of SM_STATE where false;
-for each sm_state in sm_states
-  if ( empty init_state or sm_state.Numb < init_state.Numb )
-    init_state = sm_state;
-  end if;
-end for;
-if ( not_empty init_state )
-  ::transformState( sm_state:init_state, sm:sm, number:0 );
-end if;
+// create the non-existent state
+create object instance non_existent of State;
+relate non_existent to sm across R4751;
+non_existent.final = false;
+non_existent.number = 0;
 
-// transform the rest of the states
+// create invocable for non-existent state
+create object instance invocable of InvocableObject;
+invocable.name = T::sub(format:"_u", s:"Non_Existent");
+invocable.parent_name = sm.name;
+invocable.parent_package = sm.package;
+relate non_existent to invocable across R427;
+invocable.actions = "";
+
+// link type
+type = ::TypeReference_getBuiltinTypeReference(name:"void");
+relate type to invocable across R428;
+
+// transform the other states
+select many sm_states related by sm_sm->SM_STATE[R501];
 number = 1;
-sm_states = sm_states - init_state;
 for each sm_state in sm_states
-  ::transformState( sm_state:sm_state, sm:sm, number:number );
+  ::transformState(sm_state:sm_state, sm:sm, number:number);
   number = number + 1;
 end for;
 
@@ -2533,7 +2543,7 @@ end for;
 id = 0;
 select many sm_evts related by sm_sm->SM_EVT[R502]->SM_SEVT[R525]->SM_LEVT[R526]->SM_SEVT[R526]->SM_EVT[R525];
 for each sm_evt in sm_evts
-  ::transformEvent( sm_evt:sm_evt, sm:sm, id:id );
+  ::transformEvent(sm_evt:sm_evt, sm:sm, id:id);
   id = id + 1;
 end for;
 
@@ -2556,30 +2566,26 @@ for each state in states
     relate cell to evt across R4756;
     cell.index = evt.id;
     
+    
     select one sm_state related by state->SM_STATE[R4758];
     select one sm_evt related by evt->SM_EVT[R4759];
-    select any sm_seme related by sm_evt->SM_SEVT[R525]->SM_SEME[R503] where ( selected.SMstt_ID == sm_state.SMstt_ID );
-    if ( not_empty sm_seme )
-      // TODO bad
-    end if;
-    select one cant_happen related by sm_seme->SM_CH[R504];
-    if ( not_empty cant_happen )
-      cell.transition_type = TransitionType::CANT_HAPPEN;
-    else
-      select one event_ignored related by sm_seme->SM_EIGN[R504];
-      if ( not_empty event_ignored )
-        cell.transition_type = TransitionType::IGNORE;
-      else
+    
+    // handle non-existent start state
+    if (state.number == 0)
+
+      select one sm_crtxn related by sm_evt->SM_SEVT[R525]->SM_LEVT[R526]->SM_CRTXN[R509];
+      if (not_empty sm_crtxn)
+
         // create transition
         create object instance txn of Transition;
-        select one sm_txn related by sm_seme->SM_NSTXN[R504]->SM_TXN[R507];
+        select one sm_txn related by sm_crtxn->SM_TXN[R507];
         select one dest_state related by sm_txn->SM_STATE[R506]->State[R4758];
         relate dest_state to cell across R4757 using txn;
         cell.transition_type = TransitionType::TRANSITION;
 
         // create invocable
         create object instance invocable of InvocableObject;
-        invocable.name = state.name + "_txn_" + dest_state.name;
+        invocable.name = state.name + "TxnTo" + dest_state.name;
         invocable.parent_name = sm.name;
         invocable.parent_package = sm.package;
         relate txn to invocable across R427;
@@ -2588,29 +2594,85 @@ for each state in states
         
         // relate the body
         select one act_act related by sm_act->ACT_TAB[R688]->ACT_ACT[R698];
-        if ( not_empty act_act )
+        if (not_empty act_act)
           relate act_act to invocable across R432;
         end if;
         
         // link type
-        type = ::TypeReference_getBuiltinTypeReference( name:"void" );
+        type = ::TypeReference_getBuiltinTypeReference(name:"void");
         relate type to invocable across R428;
-      end if;
-    end if;
 
+      else
+        // default for creation events is always "cannot happen"
+        cell.transition_type = TransitionType::CANT_HAPPEN;
+      end if;
+
+    else
+
+      select any sm_seme related by sm_evt->SM_SEVT[R525]->SM_SEME[R503] where (selected.SMstt_ID == sm_state.SMstt_ID);
+      if (not_empty sm_seme)
+
+        // handle cannot happen
+        select one cant_happen related by sm_seme->SM_CH[R504];
+        if (not_empty cant_happen)
+          cell.transition_type = TransitionType::CANT_HAPPEN;
+        else
+
+          // handle event ignored
+          select one event_ignored related by sm_seme->SM_EIGN[R504];
+          if (not_empty event_ignored)
+            cell.transition_type = TransitionType::IGNORE;
+          
+          // handle new state transition
+          else
+
+            // create transition
+            create object instance txn of Transition;
+            select one sm_txn related by sm_seme->SM_NSTXN[R504]->SM_TXN[R507];
+            select one dest_state related by sm_txn->SM_STATE[R506]->State[R4758];
+            relate dest_state to cell across R4757 using txn;
+            cell.transition_type = TransitionType::TRANSITION;
+
+            // create invocable
+            create object instance invocable of InvocableObject;
+            invocable.name = state.name + "TxnTo" + dest_state.name;
+            invocable.parent_name = sm.name;
+            invocable.parent_package = sm.package;
+            relate txn to invocable across R427;
+            select one sm_act related by sm_txn->SM_TAH[R530]->SM_AH[R513]->SM_ACT[R514];
+            invocable.actions = sm_act.Action_Semantics_internal;
+            
+            // relate the body
+            select one act_act related by sm_act->ACT_TAB[R688]->ACT_ACT[R698];
+            if (not_empty act_act)
+              relate act_act to invocable across R432;
+            end if;
+            
+            // link type
+            type = ::TypeReference_getBuiltinTypeReference(name:"void");
+            relate type to invocable across R428;
+
+          end if;
+        end if;
+      else
+        // TODO bad
+      end if;
+
+    end if;
+      
   end for;
   
 end for;
 
 // add imports
-::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL );
-::addStringToImports( file:file, s:"io.ciera.runtime.summit.statemachine.ITransition", type:ImportType::IMPL );
-::addStringToImports( file:file, s:"io.ciera.runtime.summit.statemachine.StateMachine", type:ImportType::IMPL );
+::addStringToImports(file:file, s:"io.ciera.runtime.domain.InstanceStateMachine", type:ImportType::IMPL);
+::addStringToImports(file:file, s:"io.ciera.runtime.domain.TransitionRule", type:ImportType::IMPL);
+::addStringToImports(file:file, s:"io.ciera.runtime.exceptions.TransitionException", type:ImportType::IMPL);
 
 select one class_file related by obj->File[R401];
 select one comp_file related by obj->ComponentDefinition[R408]->File[R401];
-::addFileToImports( file:file, file_to_import:class_file, type:ImportType::IMPL );
-::addFileToImports( file:file, file_to_import:comp_file, type:ImportType::IMPL );
+::addFileToImports(file:file, file_to_import:class_file, type:ImportType::IMPL);
+::addFileToImports(file:file, file_to_import:comp_file, type:ImportType::IMPL);
 ',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
