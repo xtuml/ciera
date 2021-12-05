@@ -776,7 +776,7 @@ select one class_type_def related by other_obj->Type[R407];
 class_type = ::TypeReference_getInstanceWithDimString(type:class_type_def, dims:"");
 
 // create the instance selectors
-if ( Mult::ONE == param.mult )
+if (Mult::ONE == param.mult)
 
   // create ''one'' selector
   create object instance sel of Selector;
@@ -820,17 +820,14 @@ end if;
 
 // add imports to object file
 select one file related by obj->File[R401];
-::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::BOTH );
-if ( Cond::UNCONDITIONAL == param.cond or Mult::ONE == param.mult )
-  //::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.ModelIntegrityException", type:ImportType::IMPL );
+if (Cond::UNCONDITIONAL == param.cond or Mult::ONE == param.mult)
+  //::addStringToImports(file:file, s:"io.ciera.runtime.summit.exceptions.ModelIntegrityException", type:ImportType::IMPL);
 end if;
-if ( Mult::MANY == param.mult )
-  ::addStringToImports( file:file, s:set_type.type_package + ".impl." + set_type.type_name + "Impl", type:ImportType::IMPL );
-  select one type related by class_type->Type[R3800];
-  ::addTypeToImports( file:file, type_to_import:type, type:ImportType::BOTH );
-else
-  ::addStringToImports( file:file, s:class_type.type_package + ".impl." + class_type.type_name + "Impl", type:ImportType::IMPL );
-end if;',
+if (param.mult == Mult::MANY)
+  ::addStringToImports(file:file, s:"java.util.Collections", type:ImportType::BOTH);
+end if;
+select one type related by class_type->Type[R3800];
+::addTypeToImports(file:file, type_to_import:type, type:ImportType::BOTH);',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',

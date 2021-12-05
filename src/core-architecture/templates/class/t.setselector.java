@@ -1,4 +1,3 @@
-@Override
 public ${type_name} ${self.name}() {
     return new ${type_name}(this.stream()\
 .if (multiplicity_many)

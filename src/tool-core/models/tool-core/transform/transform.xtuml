@@ -689,7 +689,7 @@ obj = param.obj;
 // create the attribute
 create object instance attr of Attribute;
 select one rattr related by o_attr->O_RATTR[R106];
-if ( not_empty rattr )
+if (not_empty rattr)
   attr.name = "ref_" + o_attr.Name;
 else
   attr.name = "m_" + o_attr.Name;
@@ -703,18 +703,18 @@ relate attr to obj across R410;
 attr.identifier = 0;
 select many inst_ids related by o_attr->O_ID[R105];
 for each inst_id in inst_ids
-  if ( inst_id.Oid_ID == 0 )   attr.identifier = attr.identifier + 1;
-  elif ( inst_id.Oid_ID == 1 ) attr.identifier = attr.identifier + 2;
-  elif ( inst_id.Oid_ID == 2 ) attr.identifier = attr.identifier + 4;
+  if (inst_id.Oid_ID == 0)   attr.identifier = attr.identifier + 1;
+  elif (inst_id.Oid_ID == 1) attr.identifier = attr.identifier + 2;
+  elif (inst_id.Oid_ID == 2) attr.identifier = attr.identifier + 4;
   end if;
 end for;
 
 // set the type
 select one s_dt related by o_attr->S_DT[R114];
-if ( "same_as<Base_Attribute>" == s_dt.Name )
+if ("same_as<Base_Attribute>" == s_dt.Name)
   select one s_dt related by o_attr->O_RATTR[R106]->O_BATTR[R113]->O_ATTR[R106]->S_DT[R114];
 end if;
-if ( empty s_dt )
+if (empty s_dt)
   // TODO bad
 end if;
 select many s_dims related by o_attr->S_DIM[R120];
@@ -723,7 +723,7 @@ select one array_type related by type->ArrayTypeReference[R3801];
 relate type to attr across R424;
 
 // set default value for unique id attributes
-if ( "UniqueId" == type.type_name )
+if ("UniqueId" == type.type_name)
   attr.default_value = "UniqueId.random()";
 end if;
 
@@ -740,7 +740,7 @@ relate setter to attr across R4510;
 
 // transform derivation
 select one o_dbattr related by o_attr->O_BATTR[R106]->O_DBATTR[R107];
-if ( not_empty o_dbattr )
+if (not_empty o_dbattr)
   create object instance deriv of AttributeDerivation;
   relate deriv to getter across R441;
   // create invocable
@@ -754,21 +754,17 @@ if ( not_empty o_dbattr )
   relate type to invocable across R428;
   // relate the body
   select one act_act related by o_dbattr->ACT_DAB[R693]->ACT_ACT[R698];
-  if ( not_empty act_act )
+  if (not_empty act_act)
     relate act_act to invocable across R432;
   end if;
 end if;
 
 // add import to object file
 select one file related by obj->File[R401];
-::addStringToImports( file:file, s:"io.ciera.runtime.instanceloading.AttributeChangedDelta", type:ImportType::IMPL );
-::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::BOTH );
-::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.EmptyInstanceException", type:ImportType::IMPL );
-if (not_empty array_type)
-  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.ArrayUtil", type:ImportType::IMPL );
-elif ("String" == type.type_name and "" == type.type_package)
-  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.StringUtil", type:ImportType::IMPL );
-end if;',
+::addStringToImports(file:file, s:"io.ciera.runtime.exceptions.EmptyInstanceException", type:ImportType::IMPL);
+::addStringToImports(file:file, s:"io.ciera.runtime.exceptions.InstancePopulationException", type:ImportType::IMPL);
+select one type_def related by type->Type[R3800];
+::addTypeToImports(file:file, type_to_import:type_def, type:ImportType::IMPL);',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -879,23 +875,23 @@ select one ep_pkg related by o_obj->PE_PE[R8001]->EP_PKG[R8000];
 
 // get exclude mark
 select one pe related by o_obj->PE_PE[R8001];
-select any class_exclude_mark from instances of Mark where ( selected.markable_name == "Model Class" and
-                                                            selected.path == ::containerMarkingPath( pe:pe ) + "::" + o_obj.Name and
-                                                            selected.feature_name == "Exclude" );
-if ( empty class_exclude_mark )
+select any class_exclude_mark from instances of Mark where (selected.markable_name == "Model Class" and
+                                                            selected.path == ::containerMarkingPath(pe:pe) + "::" + o_obj.Name and
+                                                            selected.feature_name == "Exclude");
+if (empty class_exclude_mark)
   // get mark for naming
-  select any class_name_mark from instances of Mark where ( selected.markable_name == "Model Class" and
-                                                            selected.path == ::containerMarkingPath( pe:pe ) + "::" + o_obj.Name and
-                                                            selected.feature_name == "UseKeyLettersForName" );
+  select any class_name_mark from instances of Mark where (selected.markable_name == "Model Class" and
+                                                            selected.path == ::containerMarkingPath(pe:pe) + "::" + o_obj.Name and
+                                                            selected.feature_name == "UseKeyLettersForName");
   // create the object file
   create object instance file of File;
-  if ( empty class_name_mark )
-    file.name = ::camelCaseName( name:o_obj.Name, start_lower:false );
+  if (empty class_name_mark)
+    file.name = ::camelCaseName(name:o_obj.Name, start_lower:false);
   else
     file.name = o_obj.Key_Lett;
   end if;
   file.path = path;
-  file.package = ::pathToPackage( path:file.path );
+  file.package = ::pathToPackage(path:file.path);
   file.extension = ".java";
   file.exclude = false;
 
@@ -911,14 +907,14 @@ if ( empty class_exclude_mark )
   create object instance type of Type;
   type.name = obj.name;
   type.package = obj.package;
-  select any s_irdt related by o_obj->S_IRDT[R123] where ( not selected.isSet );
+  select any s_irdt related by o_obj->S_IRDT[R123] where (not selected.isSet);
   select one s_dt related by s_irdt->S_DT[R17];
-  if ( not_empty s_dt )
+  if (not_empty s_dt)
     ::Type_resolve(t:type, s_dt:s_dt);
   else
     // TODO bad
   end if;
-  type.default_value = obj.name + "Impl.EMPTY_" + T::sub( format:"_u", s:obj.name );
+  type.default_value = obj.name + "Impl.EMPTY_" + T::sub(format:"_u", s:obj.name);
   relate type to obj across R407;
 
   // relate to the OOA class
@@ -927,25 +923,25 @@ if ( empty class_exclude_mark )
   // transform attributes
   select any o_attr related by o_obj->O_ATTR[R102];
   select one prev_attr related by o_attr->O_ATTR[R103.''succeeds''];
-  while ( not_empty prev_attr )
+  while (not_empty prev_attr)
     o_attr = prev_attr;
     select one prev_attr related by o_attr->O_ATTR[R103.''succeeds''];
   end while;
   index = 0;
-  while ( not_empty o_attr )
-    if ( "current_state" != o_attr.Name )
-      ::transformAttribute( o_attr:o_attr, obj:obj, index:index );
+  while (not_empty o_attr)
+    if ("current_state" != o_attr.Name)
+      ::transformAttribute(o_attr:o_attr, obj:obj, index:index);
       index = index + 1;
     end if;
     select one o_attr related by o_attr->O_ATTR[R103.''precedes''];
   end while;
 
   // set the comparator
-  select any comparator_mark from instances of Mark where ( selected.markable_name == "*" and selected.path == "*" and selected.feature_name == "SortComparator" );
-  if ( not_empty comparator_mark )
-    select many attr_accessors related by obj->Attribute[R410]->AttributeAccessor[R4510] where ( selected.accessor_type == AttributeAccessorType::GETTER );
+  select any comparator_mark from instances of Mark where (selected.markable_name == "*" and selected.path == "*" and selected.feature_name == "SortComparator");
+  if (not_empty comparator_mark)
+    select many attr_accessors related by obj->Attribute[R410]->AttributeAccessor[R4510] where (selected.accessor_type == AttributeAccessorType::GETTER);
     for each attr_accessor in attr_accessors
-      if ( attr_accessor.getName() == comparator_mark.value )
+      if (attr_accessor.getName() == comparator_mark.value)
         obj.comparator = comparator_mark.value;
         break;
       end if;
@@ -955,43 +951,31 @@ if ( empty class_exclude_mark )
   // transform operations
   select many o_tfrs related by o_obj->O_TFR[R115];
   for each o_tfr in o_tfrs
-    ::transformOperation( o_tfr:o_tfr, obj:obj );
+    ::transformOperation(o_tfr:o_tfr, obj:obj);
   end for;
   
   // transform the state machine
   select one sm related by o_obj->SM_ISM[R518]->SM_SM[R517];
-  if ( not_empty sm )
-    ::transformStateMachine( sm_sm:sm, obj:obj );
-    ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL );
-    ::addStringToImports( file:file, s:"io.ciera.runtime.summit.statemachine.IEvent", type:ImportType::IMPL );
-    select any evt related by obj->StateMachine[R4750]->Event[R4752];
-    if ( not_empty evt )
-      ::addStringToImports( file:file, s:"io.ciera.runtime.summit.statemachine.Event", type:ImportType::IMPL );
-    end if;
+  if (not_empty sm)
+    ::transformStateMachine(sm_sm:sm, obj:obj);
+    ::addStringToImports(file:file, s:"io.ciera.runtime.domain.DynamicObjectInstance", type:ImportType::IMPL);
+  else
+    ::addStringToImports(file:file, s:"io.ciera.runtime.domain.ObjectInstance", type:ImportType::IMPL);
   end if;
 
   // transform the set object
-  ::transformClassSet( obj:obj, ep_pkg:ep_pkg, path:path );
+  ::transformClassSet(obj:obj, ep_pkg:ep_pkg, path:path);
 
   // add to the containing component imports
   select one component_file related by containing_comp_def->File[R401];
   ::addFileToImports(file:component_file, file_to_import:file, type:ImportType::IMPL);
 
   // create the import block
-  ::addFileToImports( file:file, file_to_import:component_file, type:ImportType::BOTH );
-
-  ::addFileToImports( file:file, file_to_import:file, type:ImportType::IMPL );
-  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.application.IRunContext", type:ImportType::IMPL );
-  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.classes.InstanceIdentifier", type:ImportType::IMPL );
-  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.classes.IInstanceIdentifier", type:ImportType::IMPL );
-  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.classes.IModelInstance", type:ImportType::INT );
-  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.classes.ModelInstance", type:ImportType::IMPL );
-  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.InstancePopulationException", type:ImportType::IMPL );
-  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL );
-  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.IWhere", type:ImportType::IMPL );
-  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.IXtumlType", type:ImportType::IMPL );
-  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.UniqueId", type:ImportType::IMPL );
-  ::addStringToImports( file:file, s:"io.ciera.runtime.instanceloading.InstanceCreatedDelta", type:ImportType::IMPL );
+  ::addFileToImports(file:file, file_to_import:component_file, type:ImportType::BOTH);
+  ::addStringToImports(file:file, s:"io.ciera.runtime.application.ExecutionContext", type:ImportType::IMPL);
+  ::addStringToImports(file:file, s:"io.ciera.runtime.application.Logger", type:ImportType::IMPL);
+  ::addStringToImports(file:file, s:"io.ciera.runtime.exceptions.EmptyInstanceException", type:ImportType::IMPL);
+  ::addStringToImports(file:file, s:"io.ciera.runtime.types.UniqueId", type:ImportType::IMPL);
   
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
@@ -1063,7 +1047,16 @@ type.default_value = "new " + type.name + "()";
 // create the class set object
 create object instance objset of ClassSet;
 relate objset to obj across R406;
-relate objset to type across R407;',
+relate objset to type across R407;
+
+// add to imports
+select one file related by obj->File[R401];
+::addStringToImports(file:file, s:"io.ciera.runtime.types.BaseSet", type:ImportType::IMPL);
+::addStringToImports(file:file, s:"java.util.Collection", type:ImportType::IMPL);
+::addStringToImports(file:file, s:"java.util.Comparator", type:ImportType::IMPL);
+::addStringToImports(file:file, s:"java.util.SortedSet", type:ImportType::IMPL);
+::addStringToImports(file:file, s:"java.util.function.Predicate", type:ImportType::IMPL);
+::addStringToImports(file:file, s:"java.util.stream.Collectors", type:ImportType::IMPL);',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -1808,43 +1801,35 @@ invocable.actions = o_tfr.Action_Semantics_internal;
 // link type
 select one s_dt related by o_tfr->S_DT[R116];
 select many s_dims related by o_tfr->S_DIM[R122];
-type = ::TypeReference_getInstance( s_dt:s_dt, s_dims:s_dims );
+type = ::TypeReference_getInstance(s_dt:s_dt, s_dims:s_dims);
 relate type to invocable across R428;
 
 // create parameters
 select any o_tparm related by o_tfr->O_TPARM[R117];
 prev_o_tparm = o_tparm;
 // select first parameter
-while ( not_empty prev_o_tparm )
+while (not_empty prev_o_tparm)
   o_tparm = prev_o_tparm;
   select one prev_o_tparm related by o_tparm->O_TPARM[R124.''succeeds''];
 end while;
-while ( not_empty o_tparm )
+while (not_empty o_tparm)
   // create parameter
   create object instance parm of FormalParameter;
   parm.name = "p_" + o_tparm.Name;
-  parm.by_ref = ( 1 == o_tparm.By_Ref );
+  parm.by_ref = (1 == o_tparm.By_Ref);
   select one parm_dt related by o_tparm->S_DT[R118];
   select many s_dims related by o_tparm->S_DIM[R121];
-  parm_type = ::TypeReference_getInstance( s_dt:parm_dt, s_dims:s_dims );
+  parm_type = ::TypeReference_getInstance(s_dt:parm_dt, s_dims:s_dims);
   relate parm_type to parm across R431;
-  ::linkParameter( invocable:invocable, parameter:parm );
+  ::linkParameter(invocable:invocable, parameter:parm);
   select one o_tparm related by o_tparm->O_TPARM[R124.''precedes''];
 end while;
 
 // relate the body
 select one act_act related by o_tfr->ACT_OPB[R696]->ACT_ACT[R698];
-if ( not_empty act_act )
+if (not_empty act_act)
   relate act_act to invocable across R432;
 end if;
-
-// add imports
-select one class_file related by obj->File[R401];
-::addStringToImports( file:class_file, s:"io.ciera.runtime.summit.exceptions.EmptyInstanceException", type:ImportType::IMPL );
-if ( op.is_class_based )
-  ::addStringToImports( file:class_file, s:"io.ciera.runtime.summit.application.ActionHome", type:ImportType::IMPL );
-end if;
-::addStringToImports( file:class_file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::BOTH );
 
 // if this is an optional deferred operation, create a second operation for the supertype implementation
 select one o_def related by o_tfr->O_DEF[R126];
@@ -1866,43 +1851,36 @@ if (not_empty o_def and o_def.required == 1)
   // link type
   select one s_dt related by o_tfr->S_DT[R116];
   select many s_dims related by o_tfr->S_DIM[R122];
-  type = ::TypeReference_getInstance( s_dt:s_dt, s_dims:s_dims );
+  type = ::TypeReference_getInstance(s_dt:s_dt, s_dims:s_dims);
   relate type to invocable across R428;
   
   // create parameters
   select any o_tparm related by o_tfr->O_TPARM[R117];
   prev_o_tparm = o_tparm;
   // select first parameter
-  while ( not_empty prev_o_tparm )
+  while (not_empty prev_o_tparm)
     o_tparm = prev_o_tparm;
     select one prev_o_tparm related by o_tparm->O_TPARM[R124.''succeeds''];
   end while;
-  while ( not_empty o_tparm )
+  while (not_empty o_tparm)
     // create parameter
     create object instance parm of FormalParameter;
     parm.name = "p_" + o_tparm.Name;
-    parm.by_ref = ( 1 == o_tparm.By_Ref );
+    parm.by_ref = (1 == o_tparm.By_Ref);
     select one parm_dt related by o_tparm->S_DT[R118];
     select many s_dims related by o_tparm->S_DIM[R121];
-    parm_type = ::TypeReference_getInstance( s_dt:parm_dt, s_dims:s_dims );
+    parm_type = ::TypeReference_getInstance(s_dt:parm_dt, s_dims:s_dims);
     relate parm_type to parm across R431;
-    ::linkParameter( invocable:invocable, parameter:parm );
+    ::linkParameter(invocable:invocable, parameter:parm);
     select one o_tparm related by o_tparm->O_TPARM[R124.''precedes''];
   end while;
   
   // relate the body
   select one act_act related by o_tfr->ACT_OPB[R696]->ACT_ACT[R698];
-  if ( not_empty act_act )
+  if (not_empty act_act)
     relate act_act to invocable across R432;
   end if;
   
-  // add imports
-  select one class_file related by obj->File[R401];
-  ::addStringToImports( file:class_file, s:"io.ciera.runtime.summit.exceptions.EmptyInstanceException", type:ImportType::IMPL );
-  if ( op.is_class_based )
-    ::addStringToImports( file:class_file, s:"io.ciera.runtime.summit.application.ActionHome", type:ImportType::IMPL );
-  end if;
-
 // if this is an required deferred operation with no body (unparsed), create an empty body
 // so that the deferral will get created correctly
 elif (not_empty o_def and o_def.required == 0 and empty act_act)
@@ -1911,7 +1889,13 @@ elif (not_empty o_def and o_def.required == 0 and empty act_act)
   relate act_act to act_opb across R698;
   relate act_opb to o_tfr across R696;
   relate act_act to invocable across R432;
-end if;',
+end if;
+
+// add imports
+select one class_file related by obj->File[R401];
+::addStringToImports(file:class_file, s:"io.ciera.runtime.exceptions.EmptyInstanceException", type:ImportType::IMPL);
+select one type_def related by type->Type[R3800];
+::addTypeToImports(file:class_file, type_to_import:type_def, type:ImportType::IMPL);',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -2518,7 +2502,7 @@ file.name = obj.name + "StateMachine";
 file.path = ::formatPath( path:obj.package );
 file.package = obj.package;
 file.extension = ".java";
-file.exclude = false;
+file.exclude = true;//false;
 
 // create the object
 create object instance sm of StateMachine;

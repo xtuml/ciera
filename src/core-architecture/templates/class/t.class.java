@@ -22,13 +22,9 @@ DynamicObjectInstance\
     private ${self.name}() {}
 
     public ${self.name}(${self.comp_name} domain) {
-        super(UniqueId.random(), domain\
-.if (not_empty init_state)
-, ${self.name}StateMachine.States.${init_state.name}\
-.end if
-);
+        super(UniqueId.random(), domain);
 .if (not_empty sm)
-        setStateMachine(new ${self.name}StateMachine(domain, initialState, this));
+        setStateMachine(new ${self.name}StateMachine(domain, ${self.name}StateMachine.States.${init_state.name}, this));
 .end if
     }
 
@@ -85,7 +81,7 @@ ${attribute_initializer_params}) {
     ${set_class}
 
     // empty class
-    private static final class Empty${self.name} extends ${self.name} implements ${self.name} {
+    private static final class Empty${self.name} extends ${self.name} {
 
         // attributes
         ${empty_attributes}
@@ -107,7 +103,7 @@ ${attribute_initializer_params}) {
         }
 
         @Override
-        public MicrowaveOven getDomain() {
+        public ${self.comp_name} getDomain() {
             throw new EmptyInstanceException("Cannot get domain of empty instance.");
         }
 
