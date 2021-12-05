@@ -15,7 +15,7 @@ import io.ciera.runtime.types.Duration;
 
 public class TestSequencesStateMachine extends InstanceStateMachine {
 
-    public static enum State {
+    public static enum States {
         NON_EXISTENT, AWAITING_TEST_SEQUENCE_INITIATION, COOKING_COMPLETE, PERFORMING_TEST_SEQUENCE_1,
         PERFORMING_TEST_SEQUENCE_2;
 
@@ -34,7 +34,7 @@ public class TestSequencesStateMachine extends InstanceStateMachine {
     }
 
     private void Cooking_Complete_entry_action() {
-        getDomain().ARCH().shutdown();
+        getDomain().ARCH.shutdown();
     }
 
     private void Performing_Test_Sequence_1_entry_action() {
@@ -105,7 +105,7 @@ public class TestSequencesStateMachine extends InstanceStateMachine {
 
     @Override
     public TransitionRule getTransition(Enum<?> currentState, Event event) {
-        State state = (State) currentState;
+        States state = (States) currentState;
         Events eventId = (Events) event.getEventId();
         switch (state) {
         case NON_EXISTENT:
@@ -126,19 +126,19 @@ public class TestSequencesStateMachine extends InstanceStateMachine {
             case PERFORM_TEST_SEQ_1:
                 return () -> {
                     Performing_Test_Sequence_1_entry_action();
-                    return State.PERFORMING_TEST_SEQUENCE_1;
+                    return States.PERFORMING_TEST_SEQUENCE_1;
                 };
             case TEST_SEQ_COMPLETE:
                 return ignore(currentState, event);
             case PERFORM_TEST_SEQ_2:
                 return () -> {
                     Performing_Test_Sequence_2_entry_action();
-                    return State.PERFORMING_TEST_SEQUENCE_2;
+                    return States.PERFORMING_TEST_SEQUENCE_2;
                 };
             case INITIALIZE:
                 return () -> {
                     Awaiting_Test_Sequence_Initiation_entry_action();
-                    return State.AWAITING_TEST_SEQUENCE_INITIATION;
+                    return States.AWAITING_TEST_SEQUENCE_INITIATION;
                 };
             default:
                 throw new TransitionException(currentState, event, "Unknown event in state");
@@ -163,7 +163,7 @@ public class TestSequencesStateMachine extends InstanceStateMachine {
             case TEST_SEQ_COMPLETE:
                 return () -> {
                     Cooking_Complete_entry_action();
-                    return State.COOKING_COMPLETE;
+                    return States.COOKING_COMPLETE;
                 };
             case PERFORM_TEST_SEQ_2:
                 return ignore(currentState, event);
@@ -179,7 +179,7 @@ public class TestSequencesStateMachine extends InstanceStateMachine {
             case TEST_SEQ_COMPLETE:
                 return () -> {
                     Cooking_Complete_entry_action();
-                    return State.COOKING_COMPLETE;
+                    return States.COOKING_COMPLETE;
                 };
             case PERFORM_TEST_SEQ_2:
                 return ignore(currentState, event);

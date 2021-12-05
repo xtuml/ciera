@@ -9,7 +9,7 @@ import io.ciera.runtime.exceptions.TransitionException;
 
 public class MagnetronTubeStateMachine extends InstanceStateMachine {
 
-    public static enum State {
+    public static enum States {
         NON_EXISTENT, OUTPUT_POWER_STABLE_AND_OFF, OUTPUT_POWER_STABLE_AND_ON, RAISING_OUTPUT_POWER,
         REDUCING_OUTPUT_POWER;
     }
@@ -48,7 +48,7 @@ public class MagnetronTubeStateMachine extends InstanceStateMachine {
 
     @Override
     public TransitionRule getTransition(Enum<?> currentState, Event event) {
-        State state = (State) currentState;
+        States state = (States) currentState;
         Events eventId = (Events) event.getEventId();
         switch (state) {
         case NON_EXISTENT:
@@ -71,31 +71,31 @@ public class MagnetronTubeStateMachine extends InstanceStateMachine {
             case INCREASE_POWER:
                 return () -> {
                     Raising_Output_Power_entry_action();
-                    return State.RAISING_OUTPUT_POWER;
+                    return States.RAISING_OUTPUT_POWER;
                 };
             case DECREASE_POWER:
                 return () -> {
                     Reducing_Output_Power_entry_action();
-                    return State.REDUCING_OUTPUT_POWER;
+                    return States.REDUCING_OUTPUT_POWER;
                 };
             case POWER_ON:
-                return () -> State.OUTPUT_POWER_STABLE_AND_ON;
+                return () -> States.OUTPUT_POWER_STABLE_AND_ON;
             default:
                 throw new TransitionException(currentState, event, "Unknown event in state");
             }
         case OUTPUT_POWER_STABLE_AND_ON:
             switch (eventId) {
             case POWER_OFF:
-                return () -> State.OUTPUT_POWER_STABLE_AND_OFF;
+                return () -> States.OUTPUT_POWER_STABLE_AND_OFF;
             case INCREASE_POWER:
                 return () -> {
                     Raising_Output_Power_entry_action();
-                    return State.RAISING_OUTPUT_POWER;
+                    return States.RAISING_OUTPUT_POWER;
                 };
             case DECREASE_POWER:
                 return () -> {
                     Reducing_Output_Power_entry_action();
-                    return State.REDUCING_OUTPUT_POWER;
+                    return States.REDUCING_OUTPUT_POWER;
                 };
             case POWER_ON:
                 return ignore(currentState, event);
@@ -105,38 +105,38 @@ public class MagnetronTubeStateMachine extends InstanceStateMachine {
         case RAISING_OUTPUT_POWER:
             switch (eventId) {
             case POWER_OFF:
-                return () -> State.OUTPUT_POWER_STABLE_AND_OFF;
+                return () -> States.OUTPUT_POWER_STABLE_AND_OFF;
             case INCREASE_POWER:
                 return () -> {
                     Raising_Output_Power_entry_action();
-                    return State.RAISING_OUTPUT_POWER;
+                    return States.RAISING_OUTPUT_POWER;
                 };
             case DECREASE_POWER:
                 return () -> {
                     Reducing_Output_Power_entry_action();
-                    return State.REDUCING_OUTPUT_POWER;
+                    return States.REDUCING_OUTPUT_POWER;
                 };
             case POWER_ON:
-                return () -> State.OUTPUT_POWER_STABLE_AND_ON;
+                return () -> States.OUTPUT_POWER_STABLE_AND_ON;
             default:
                 throw new TransitionException(currentState, event, "Unknown event in state");
             }
         case REDUCING_OUTPUT_POWER:
             switch (eventId) {
             case POWER_OFF:
-                return () -> State.OUTPUT_POWER_STABLE_AND_OFF;
+                return () -> States.OUTPUT_POWER_STABLE_AND_OFF;
             case INCREASE_POWER:
                 return () -> {
                     Raising_Output_Power_entry_action();
-                    return State.RAISING_OUTPUT_POWER;
+                    return States.RAISING_OUTPUT_POWER;
                 };
             case DECREASE_POWER:
                 return () -> {
                     Reducing_Output_Power_entry_action();
-                    return State.REDUCING_OUTPUT_POWER;
+                    return States.REDUCING_OUTPUT_POWER;
                 };
             case POWER_ON:
-                return () -> State.OUTPUT_POWER_STABLE_AND_ON;
+                return () -> States.OUTPUT_POWER_STABLE_AND_ON;
             default:
                 throw new TransitionException(currentState, event, "Unknown event in state");
             }

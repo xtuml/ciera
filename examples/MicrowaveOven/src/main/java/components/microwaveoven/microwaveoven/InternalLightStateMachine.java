@@ -8,7 +8,7 @@ import io.ciera.runtime.exceptions.TransitionException;
 
 public class InternalLightStateMachine extends InstanceStateMachine {
 
-    public static enum State {
+    public static enum States {
         NON_EXISTENT, OFF, ON;
     }
 
@@ -22,7 +22,7 @@ public class InternalLightStateMachine extends InstanceStateMachine {
 
     @Override
     public TransitionRule getTransition(Enum<?> currentState, Event event) {
-        State state = (State) currentState;
+        States state = (States) currentState;
         Events eventId = (Events) event.getEventId();
         switch (state) {
         case NON_EXISTENT:
@@ -39,14 +39,14 @@ public class InternalLightStateMachine extends InstanceStateMachine {
             case SWITCH_OFF:
                 return ignore(currentState, event);
             case SWITCH_ON:
-                return () -> State.ON;
+                return () -> States.ON;
             default:
                 throw new TransitionException(currentState, event, "Unknown event in state");
             }
         case ON:
             switch (eventId) {
             case SWITCH_OFF:
-                return () -> State.OFF;
+                return () -> States.OFF;
             case SWITCH_ON:
                 return ignore(currentState, event);
             default:

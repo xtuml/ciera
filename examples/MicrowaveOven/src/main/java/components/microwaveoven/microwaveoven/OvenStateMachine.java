@@ -9,7 +9,7 @@ import io.ciera.runtime.types.Duration;
 
 public class OvenStateMachine extends InstanceStateMachine {
 
-    public static enum State {
+    public static enum States {
         NON_EXISTENT, AWAITING_COOKING_REQUEST, ASSIGNING_COOKING_PERIOD, COOKING, COOKING_SUSPENDED,
         ENSURING_SAFE_TO_COOK, SIGNALLING_COOKING_PERIOD_OVER;
     }
@@ -77,7 +77,7 @@ public class OvenStateMachine extends InstanceStateMachine {
 
     @Override
     public TransitionRule getTransition(Enum<?> currentState, Event event) {
-        State state = (State) currentState;
+        States state = (States) currentState;
         Events eventId = (Events) event.getEventId();
         switch (state) {
         case NON_EXISTENT:
@@ -108,7 +108,7 @@ public class OvenStateMachine extends InstanceStateMachine {
             case COOKING_PERIOD:
                 return () -> {
                     Assigning_Cooking_Period_entry_action((int) event.get(0));
-                    return State.ASSIGNING_COOKING_PERIOD;
+                    return States.ASSIGNING_COOKING_PERIOD;
                 };
             case COOKING_PERIOD_OVER:
                 return ignore(currentState, event);
@@ -144,7 +144,7 @@ public class OvenStateMachine extends InstanceStateMachine {
             case START_COOKING:
                 return () -> {
                     Ensuring_Safe_to_Cook_entry_action();
-                    return State.ENSURING_SAFE_TO_COOK;
+                    return States.ENSURING_SAFE_TO_COOK;
                 };
             default:
                 throw new TransitionException(currentState, event, "Unknown event in state");
@@ -158,7 +158,7 @@ public class OvenStateMachine extends InstanceStateMachine {
             case COOKING_PERIOD_OVER:
                 return () -> {
                     Signalling_Cooking_Period_Over_entry_action();
-                    return State.SIGNALLING_COOKING_PERIOD_OVER;
+                    return States.SIGNALLING_COOKING_PERIOD_OVER;
                 };
             case INITIALISE:
                 return ignore(currentState, event);
@@ -167,7 +167,7 @@ public class OvenStateMachine extends InstanceStateMachine {
             case CANCEL_COOKING:
                 return () -> {
                     Cooking_Suspended_entry_action();
-                    return State.COOKING_SUSPENDED;
+                    return States.COOKING_SUSPENDED;
                 };
             case OVEN_INITIALISED:
                 return ignore(currentState, event);
@@ -191,14 +191,14 @@ public class OvenStateMachine extends InstanceStateMachine {
             case CANCEL_COOKING:
                 return () -> {
                     Awaiting_Cooking_Request_entry_action();
-                    return State.AWAITING_COOKING_REQUEST;
+                    return States.AWAITING_COOKING_REQUEST;
                 };
             case OVEN_INITIALISED:
                 return ignore(currentState, event);
             case START_COOKING:
                 return () -> {
                     Ensuring_Safe_to_Cook_entry_action();
-                    return State.ENSURING_SAFE_TO_COOK;
+                    return States.ENSURING_SAFE_TO_COOK;
                 };
             default:
                 throw new TransitionException(currentState, event, "Unknown event in state");
@@ -208,7 +208,7 @@ public class OvenStateMachine extends InstanceStateMachine {
             case OVEN_SAFE:
                 return () -> {
                     Cooking_entry_action();
-                    return State.COOKING;
+                    return States.COOKING;
                 };
             case COOKING_PERIOD:
                 return ignore(currentState, event);
@@ -221,14 +221,14 @@ public class OvenStateMachine extends InstanceStateMachine {
             case CANCEL_COOKING:
                 return () -> {
                     Awaiting_Cooking_Request_entry_action();
-                    return State.AWAITING_COOKING_REQUEST;
+                    return States.AWAITING_COOKING_REQUEST;
                 };
             case OVEN_INITIALISED:
                 return ignore(currentState, event);
             case START_COOKING:
                 return () -> {
                     Ensuring_Safe_to_Cook_entry_action();
-                    return State.ENSURING_SAFE_TO_COOK;
+                    return States.ENSURING_SAFE_TO_COOK;
                 };
             default:
                 throw new TransitionException(currentState, event, "Unknown event in state");
@@ -246,12 +246,12 @@ public class OvenStateMachine extends InstanceStateMachine {
             case BEEPING_OVER:
                 return () -> {
                     Awaiting_Cooking_Request_entry_action();
-                    return State.AWAITING_COOKING_REQUEST;
+                    return States.AWAITING_COOKING_REQUEST;
                 };
             case CANCEL_COOKING:
                 return () -> {
                     Awaiting_Cooking_Request_entry_action();
-                    return State.AWAITING_COOKING_REQUEST;
+                    return States.AWAITING_COOKING_REQUEST;
                 };
             case OVEN_INITIALISED:
                 return ignore(currentState, event);
