@@ -3674,7 +3674,16 @@ while ( not_empty act_smt )
   select one act_smt related by act_smt->ACT_SMT[R661.''succeeds''];
   // see if array needs to be declared
   ::resolveArrayDeclaration( smt:prev_smt );
-end while;',
+end while;
+
+// if action statements are not enabled, clear all action comments
+select any include_statement_comments from instances of Mark where (selected.feature_name == "IncludeStatementComments");
+if empty include_statement_comments
+  select many smts related by block->Statement[R450];
+  for each new_smt in smts
+    new_smt.actions = "";
+  end for;
+end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',

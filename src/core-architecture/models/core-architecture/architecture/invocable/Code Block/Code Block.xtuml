@@ -17,19 +17,22 @@ INSERT INTO O_TFR
 	1,
 	'select many smts related by self->Statement[R450];
 is_else_if = false;
-if ( cardinality smts == 1 )
+if (cardinality smts == 1)
   select one enclosing_else related by self->IfSmt[R454];
   select any if_smt related by self->Statement[R450]->IfSmt[R451];
   is_else_if = not_empty enclosing_else and not_empty if_smt and if_smt.is_else_if;
 end if;
 select any statement related by self->Statement[R450];
 select one prev_statement related by statement->Statement[R477.''executes after''];
-while ( not_empty prev_statement )
+while (not_empty prev_statement)
   statement = prev_statement;
   select one prev_statement related by statement->Statement[R477.''executes after''];
 end while;
-select any include_statement_comments from instances of Mark where (selected.feature_name == "IncludeStatementComments");
-while ( not_empty statement )
+while (not_empty statement)
+  select one if_smt related by statement->IfSmt[R451];
+  if (not_empty if_smt and if_smt.is_else_if)
+    statement.actions = "";  // action comments would be handled by parent statement
+  end if;
   T::include(file:"statement/t.statement.prefix.java");
   statement.render();
   select one statement related by statement->Statement[R477.''executes before''];

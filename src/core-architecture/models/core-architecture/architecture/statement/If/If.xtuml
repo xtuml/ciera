@@ -18,25 +18,12 @@ INSERT INTO O_TFR
 
 select one smt related by self->Statement[R451];
 
-select any action_comments_mark from instances of Mark where (selected.feature_name == "IncludeStatementComments");
-
-if_actions = "";
-select one enclosing_else related by smt->CodeBlock[R450]->IfSmt[R454];
-select many sibling_smts related by smt->CodeBlock[R450]->Statement[R450];
-if ( empty enclosing_else or cardinality sibling_smts != 1 ) // this is not an elif
-  if (not_empty action_comments_mark)
-    if_actions = smt.actions;
-  end if;
-end if;
-
-else_actions = "";
+else_if_actions = "";
 select many child_smts related by self->CodeBlock[R454]->Statement[R450];
 select any child_if related by child_smts->IfSmt[R451];
-if ( cardinality child_smts == 1 and not_empty child_if ) // else is an elif
-  if (not_empty action_comments_mark)
-		select one child_smt related by child_if->Statement[R451];
-		else_actions = child_smt.actions;
-  end if;
+if (cardinality child_smts == 1 and not_empty child_if) // else is an elif
+	select one child_smt related by child_if->Statement[R451];
+	else_if_actions = child_smt.actions;
 end if;
 
 select one cond_expression related by self->Expression[R471];
@@ -51,7 +38,7 @@ T::clear();
 
 select one else_blk related by self->CodeBlock[R454];
 else_block = "";
-if ( not_empty else_blk )
+if (not_empty else_blk)
   else_blk.render();
   else_block = T::body();
   T::clear();

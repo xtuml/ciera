@@ -1,4 +1,4 @@
-.if ((not_empty include_statement_comments) and (statement.actions != ""))
+.if (statement.actions != "")
 /* ${statement.actions} */
 .end if
 ${statement.prefix}\
