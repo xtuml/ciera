@@ -28,20 +28,13 @@ while ( not_empty prev_statement )
   statement = prev_statement;
   select one prev_statement related by statement->Statement[R477.''executes after''];
 end while;
-select any action_comments_mark from instances of Mark where (selected.feature_name == "IncludeStatementComments");
+select any include_statement_comments from instances of Mark where (selected.feature_name == "IncludeStatementComments");
 while ( not_empty statement )
-  if (empty action_comments_mark)
-    statement.actions = "";  // disable statement comments
-  end if;
+  T::include(file:"statement/t.statement.prefix.java");
   statement.render();
   select one statement related by statement->Statement[R477.''executes before''];
 end while;
 statements = T::body();
-indent = ::getIndent( tab_depth:self.tab_depth );
-select one invocable related by self->InvocableObject[R4000];
-select one return_type related by invocable->TypeReference[R428]->Type[R3800];
-select one deriv related by invocable->AttributeDerivation[R427];
-include_suffix = ( not_empty deriv or empty return_type or ( "void" == return_type.name and "" == return_type.package ) );
 T::clear();
 T::include(file:"invocable/t.codeblock.java");',
 	1,
@@ -241,24 +234,6 @@ end while',
 	'',
 	'');
 INSERT INTO O_NBATTR
-	VALUES ("0cf1f7a6-31e7-41ae-9a8e-a50ca78889fe",
-	"a7767a6f-be73-4248-86c1-dfa20e70a0a0");
-INSERT INTO O_BATTR
-	VALUES ("0cf1f7a6-31e7-41ae-9a8e-a50ca78889fe",
-	"a7767a6f-be73-4248-86c1-dfa20e70a0a0");
-INSERT INTO O_ATTR
-	VALUES ("0cf1f7a6-31e7-41ae-9a8e-a50ca78889fe",
-	"a7767a6f-be73-4248-86c1-dfa20e70a0a0",
-	"a670551f-e648-42b2-94fb-51827852d072",
-	'tab_depth',
-	'',
-	'',
-	'tab_depth',
-	0,
-	"ba5eda7a-def5-0000-0000-000000000002",
-	'',
-	'');
-INSERT INTO O_NBATTR
 	VALUES ("2adaf1d3-6c7e-4f59-abde-26d2e46ec1b5",
 	"a7767a6f-be73-4248-86c1-dfa20e70a0a0");
 INSERT INTO O_BATTR
@@ -303,7 +278,7 @@ INSERT INTO O_BATTR
 INSERT INTO O_ATTR
 	VALUES ("bc1f3a1f-a0da-4f74-b83e-791b64119d0d",
 	"a7767a6f-be73-4248-86c1-dfa20e70a0a0",
-	"0cf1f7a6-31e7-41ae-9a8e-a50ca78889fe",
+	"a670551f-e648-42b2-94fb-51827852d072",
 	'top_level',
 	'',
 	'',

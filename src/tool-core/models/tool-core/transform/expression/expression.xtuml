@@ -839,7 +839,6 @@ select one utility_file related by utility->File[R401];
 containing_comp_def = ::getCompDefForStatement( smt:smt );
 select one containing_comp_file related by containing_comp_def->File[R401];
 ::addFileToImports( file:containing_comp_file, file_to_import:utility_file, type:ImportType::IMPL );
-::addStringToImports( file:containing_comp_file, s: ::pathToPackage( path:utility_file.path ) + ".impl." + utility_file.name + "Impl", type:ImportType::IMPL );
 if ( not_empty containing_comp_def )
   select any util_ref related by utility->UtilityReference[R4558] where ( selected.comp_name == containing_comp_def.name and selected.comp_package == containing_comp_def.package );
   if ( empty util_ref )
@@ -862,7 +861,7 @@ if ( not_empty invocable )
   create object instance named_ref of NamedReference;
   relate named_ref to expr2 across R776;
   relate expr2 to invoc across R798;
-  named_ref.name = "context()." + utility.name + "()";
+  named_ref.name = "getDomain()." + utility.name;
   // transform actual parameters
   select many v_pars related by v_brv->V_PAR[R810];
   ::transformActualParameters( invocation:invoc, v_pars:v_pars, expr_number:expr.expression_number, base_num:2 );
@@ -952,7 +951,7 @@ if ( not_empty invocable )
   create object instance named_ref of NamedReference;
   relate named_ref to expr2 across R776;
   relate expr2 to invoc across R798;
-  named_ref.name = "context()";
+  named_ref.name = "getDomain()";
   // transform actual parameters
   select many v_pars related by v_fnv->V_PAR[R817];
   ::transformActualParameters( invocation:invoc, v_pars:v_pars, expr_number:expr.expression_number, base_num:2 );
@@ -1094,7 +1093,7 @@ if ( not_empty invocable )
     create object instance named_ref of NamedReference;
     relate named_ref to expr2 across R776;
     select one target_class related by invocable->Operation[R427]->Class[R416];
-    named_ref.name = "new " + target_class.name + "Impl.CLASS(context())";
+    named_ref.name = "new " + target_class.name + "Impl.CLASS(getDomain())";
     select one class_file related by target_class->File[R401];
     ::addStringToImports( file: ::getFileForStatement( smt:smt ), s: ::pathToPackage( path:class_file.path ) + ".impl." + class_file.name + "Impl", type:ImportType::IMPL );
   end if;

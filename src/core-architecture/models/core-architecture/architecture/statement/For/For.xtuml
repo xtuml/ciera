@@ -16,10 +16,6 @@ INSERT INTO O_TFR
 	1,
 	'T::push_buffer();
 
-select one smt related by self->Statement[R451];
-actions = smt.actions;
-prefix = smt.prefix;
-
 select one iter_type related by self->Variable[R459]->TypeReference[R461];
 iterator_type = iter_type.type_reference_name;
 
@@ -33,13 +29,11 @@ control_blk.render();
 control_block = T::body();
 T::clear();
 
-select one enclosing_block related by smt->CodeBlock[R450];
-indent = ::getIndent( tab_depth:enclosing_block.tab_depth + 1 );
-
 select one declaration_smt related by self->Variable[R459]->Statement[R457];
 if ( declaration_smt.statement_number == self.statement_number and declaration_smt.block_number == self.block_number )
+  select one smt related by self->Statement[R451];
   select one var_type related by self->Variable[R459]->TypeReference[R461];
-  prefix = prefix + indent + var_type.type_reference_name + " " + self.iterator_name + ";\n";
+  smt.prefix = smt.prefix + var_type.type_reference_name + " " + self.iterator_name + ";\n";
 end if;
 
 T::pop_buffer();
@@ -57,8 +51,6 @@ INSERT INTO O_TFR
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'// create block prefix
-select one enclosing_block related by self->Statement[R451]->CodeBlock[R450];
-indent = ::getIndent( tab_depth:enclosing_block.tab_depth + 2 );
 select one control_blk related by self->CodeBlock[R455];
 T::include(file:"statement/t.for.iter.java");
 control_blk.prefix = T::body();

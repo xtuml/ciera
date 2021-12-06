@@ -69,7 +69,6 @@ select one utility_file related by utility->File[R401];
 containing_comp_def = ::getCompDefForStatement( smt:smt );
 select one containing_comp_file related by containing_comp_def->File[R401];
 ::addFileToImports( file:containing_comp_file, file_to_import:utility_file, type:ImportType::IMPL );
-::addStringToImports( file:containing_comp_file, s: ::pathToPackage( path:utility_file.path ) + ".impl." + utility_file.name + "Impl", type:ImportType::IMPL );
 if ( not_empty containing_comp_def )
   select any util_ref related by utility->UtilityReference[R4558] where ( selected.comp_name == containing_comp_def.name and selected.comp_package == containing_comp_def.package );
   if ( empty util_ref )
@@ -103,7 +102,7 @@ if ( not_empty invocable )
   create object instance named_ref of NamedReference;
   relate named_ref to expr2 across R776;
   relate expr2 to invoc across R798;
-  named_ref.name = "context()." + utility.name + "()";
+  named_ref.name = "getDomain()." + utility.name;
   // transform actual parameters
   select many v_pars related by act_brg->V_PAR[R628];
   ::transformActualParameters( invocation:invoc, v_pars:v_pars, expr_number:"1", base_num:2 );
@@ -220,7 +219,7 @@ if ( not_empty invocable )
   create object instance named_ref of NamedReference;
   relate named_ref to expr2 across R776;
   relate expr2 to invoc across R798;
-  named_ref.name = "context()";
+  named_ref.name = "getDomain()";
   // transform actual parameters
   select many v_pars related by act_fnc->V_PAR[R669];
   ::transformActualParameters( invocation:invoc, v_pars:v_pars, expr_number:"1", base_num:2 );
@@ -325,7 +324,7 @@ if ( not_empty invocable )
     create object instance named_ref of NamedReference;
     relate named_ref to expr2 across R776;
     select one target_class related by invocable->Operation[R427]->Class[R416];
-    named_ref.name = "new " + target_class.name + "Impl.CLASS(context())";
+    named_ref.name = "new " + target_class.name + "Impl.CLASS(getDomain())";
     select one class_file related by target_class->File[R401];
     ::addStringToImports( file: ::getFileForStatement( smt:smt ), s: ::pathToPackage( path:class_file.path ) + ".impl." + class_file.name + "Impl", type:ImportType::IMPL );
   else // instance based operation
@@ -466,7 +465,7 @@ if ( not_empty invocable )
   // create named reference
   create object instance named_ref of NamedReference;
   relate named_ref to expr2 across R776;
-  named_ref.name = "context()." + target_port.port_name + "()";
+  named_ref.name = "getDomain()." + target_port.port_name + "()";
   // transform actual parameters
   select many v_pars related by act_sgn->V_PAR[R662];
   ::transformActualParameters( invocation:invoc, v_pars:v_pars, expr_number:"1", base_num:2 );
@@ -1648,7 +1647,6 @@ select one obj related by cr_obj->Class[R409];
 relate cr to obj across R780;
 relate r_op to binop across R778;
 select one class_file related by obj->File[R401];
-::addStringToImports( file: ::getFileForStatement( smt:smt ), s: ::pathToPackage( path:class_file.path ) + ".impl." + class_file.name + "Impl", type:ImportType::IMPL );
 // link create type to the main expression
 relate cr_type to expr across R795;',
 	"ba5eda7a-def5-0000-0000-000000000000",
@@ -1736,8 +1734,7 @@ create object instance cr of Creation;
 relate cr to expr across R776;
 select one obj related by act_cnv->O_OBJ[R672]->Class[R409];
 relate cr to obj across R780;
-select one class_file related by obj->File[R401];
-::addStringToImports( file: ::getFileForStatement( smt:smt ), s: ::pathToPackage( path:class_file.path ) + ".impl." + class_file.name + "Impl", type:ImportType::IMPL );',
+select one class_file related by obj->File[R401];',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -3148,24 +3145,9 @@ if ( not_empty act_blk )
   create object instance block of CodeBlock;
   if ( empty upper_block )
     block.top_level = true;
-    block.tab_depth = 1;
-    select one port_msg related by invocable->PortMessage[R427];
-    if ( not_empty port_msg )
-      select one port related by port_msg->Port[R420];
-      select one msg related by port_msg->Message[R420];
-      if ( ( msg.to_provider and not port.provider ) or ( not msg.to_provider and port.provider ) )
-        block.tab_depth = 2; // increase the tab depth by one for bodies which belong to outbound port messages
-      end if;
-    end if;
-    select one deriv related by invocable->AttributeDerivation[R427];
-    select one class_op related by invocable->Operation[R427] where ( selected.is_class_based );
-    if ( not_empty deriv  or not_empty class_op )
-      block.tab_depth = 2; // increase the tab depth by one for bodies which belong to derived attributes and class based operations
-    end if;
   else
     select one invocable related by upper_block->InvocableObject[R4000];
     block.top_level = false;
-    block.tab_depth = upper_block.tab_depth + 1;
   end if;
   relate block to invocable across R4000;
   block.block_number = param.block_number;
@@ -3257,7 +3239,6 @@ select one invocable related by upper_block->InvocableObject[R4000];
 create object instance block of CodeBlock;
 relate block to invocable across R4000;
 block.block_number = param.block_number;
-block.tab_depth = upper_block.tab_depth;  // keep same tab depth
 
 // copy visibile variables from upper block
 select many vars related by upper_block->Variable[R458];
@@ -3348,7 +3329,6 @@ act_blk = param.act_blk;
 // create code block
 create object instance block of CodeBlock;
 select one invocable related by upper_block->InvocableObject[R4000];
-block.tab_depth = upper_block.tab_depth + 1;
 relate block to invocable across R4000;
 block.block_number = param.block_number;
 
@@ -3928,8 +3908,6 @@ INSERT INTO S_SYNC
 	'resolveArrayDeclaration',
 	'',
 	'smt = param.smt;
-select one block related by smt->CodeBlock[R450];
-indent = ::getIndent( tab_depth:block.tab_depth + 1 );
 
 select many declared_vars related by smt->Variable[R457];
 for each declared_var in declared_vars
@@ -3959,7 +3937,7 @@ for each array_var in array_vars
     select one array_index related by earliest_array_ref->Expression[R3901];;
     T::push_buffer();
     array_index.render();
-    smt.prefix = smt.prefix + indent + var_type.type_reference_name + " " + array_var.name + " = new " + var_type.type_name + "[" + T::body() + "+1];\n";
+    smt.prefix = smt.prefix + var_type.type_reference_name + " " + array_var.name + " = new " + var_type.type_name + "[" + T::body() + "+1];\n";
     T::pop_buffer();
     // no longer need to mark the first reference as a declaration
     select many var_refs related by array_var->VariableReference[R782] where ( selected.block_number == smt.block_number and selected.statement_number == smt.statement_number );
@@ -4029,7 +4007,7 @@ if ( not_empty e_ges )
   create object instance evt_expr of Expression;
   relate evt_expr to smt across R775;
   evt_expr.expression_number = "1";
-  evt_type_ref = ::TypeReference_getBuiltinTypeReference( name:"EventHandle" );
+  evt_type_ref = ::TypeReference_getBuiltinTypeReference( name:"Event" );
   relate evt_type_ref to evt_expr across R795;
   relate evt_expr to gen_smt across R486;
   // create event creation
@@ -4113,7 +4091,7 @@ else
   create object instance expr of Expression;
   relate expr to smt across R775;
   expr.expression_number = "1";
-  evt_type_ref = ::TypeReference_getBuiltinTypeReference( name:"EventHandle" );
+  evt_type_ref = ::TypeReference_getBuiltinTypeReference( name:"Event" );
   relate evt_type_ref to expr across R795;
   // create binary operation and assignment expression
   create object instance binop of BinaryOperation;
@@ -4344,7 +4322,6 @@ select many subtypes related by deferral->R_REL[R126]->R_SUBSUP[R206]->R_SUB[R21
 // create code block
 create object instance block of CodeBlock;
 block.top_level = true;
-block.tab_depth = 1;
 relate block to invocable across R4000;
 block.block_number = "1";
 
@@ -4487,7 +4464,6 @@ for each subtype in subtypes
   then_block_number = ::getNextBlockNumber(upper_block:block);
   create object instance then_block of CodeBlock;
   then_block.top_level = false;
-  then_block.tab_depth = block.tab_depth + 1;
   relate then_block to invocable across R4000;
   then_block.block_number = then_block_number;
   relate then_block to if_smt across R453;
@@ -4575,7 +4551,6 @@ for each subtype in subtypes
   else_block_number = ::getNextBlockNumber(upper_block:block);
   create object instance else_block of CodeBlock;
   else_block.top_level = false;
-  else_block.tab_depth = block.tab_depth + 1;
   relate else_block to invocable across R4000;
   else_block.block_number = else_block_number;
   relate else_block to if_smt across R454;

@@ -1,10 +1,13 @@
-.if ( is_else_if )
+.if (is_else_if)
 ${statements}\
 .else
 {
-${self.prefix}${statements}\
-  .if ( include_suffix )
-${self.suffix}\
+  .if (self.prefix != "")
+    ${self.prefix}\
   .end if
-${indent}}
+    ${statements}\
+  .if (self.suffix != "")
+    ${self.suffix}\
+  .end if
+}
 .end if

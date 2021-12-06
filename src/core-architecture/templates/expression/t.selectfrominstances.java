@@ -1,1 +1,1 @@
-context().${self.selector_name}()\
+getDomain().${self.selector_name}()\

@@ -1,1 +1,1 @@
-${self.class_name}Impl.create( context() )\
+getDomain().createInstance(${self.class_name}.class)\
