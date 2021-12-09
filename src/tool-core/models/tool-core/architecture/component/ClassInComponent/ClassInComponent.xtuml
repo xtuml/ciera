@@ -437,12 +437,12 @@ selectors = T::body();
 T::clear();
 
 // Determine whether this class is defined outside a component
+// If so, allow this interface to extend the class independent interface.
+compIndepInterface = "";
 select one compIndInterfaceFile related by compIndClass->File[R401];
-compIndep = not compIndInterfaceFile.exclude;
-
-// Supply package and name of component-independent interface to template
-select one compIndepClass related by self->Class[R408];
-compIndepInterface = compIndepClass.package + "." + compIndepClass.name;
+if ( not compIndInterfaceFile.exclude )
+  compIndepInterface = ", " + compIndClass.package + "." + compIndClass.name;
+end if;
 
 T::include(file:"class/t.classincomp.java");
 T::emit( file:file.path + "/" + self.name + file.extension );
