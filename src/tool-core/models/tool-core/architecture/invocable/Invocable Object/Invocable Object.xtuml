@@ -86,9 +86,9 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000004",
 	1,
-	'// Render a parameter list where any class or class-set type parameters are declared with their 
-// fully qualified component-independent types.
-// Optionally, the parameter names may be modified with a supplied prefix.
+	'// Render a parameter list where any parameters of type class or class-set are declared
+// as fully qualified component-independent types.
+// Optionally, the class/class-set parameter names may be modified with a supplied prefix.
 //
 parameter_list = "";
 select any parm from instances of FormalParameter where false;
@@ -104,6 +104,8 @@ while ( not_empty parm )
   param_name = parm.name;
   select one comp_spec_type related by parm_type->Type[R3800.''based on'']->ComponentSpecificType[R407];
   if ( not_empty comp_spec_type )
+  	// this parameter is of type inst_ref or inst_ref_set.
+  	// modify the parameter name to fully qualify with the component-independent package; add prefix, if supplied.
   	select one inst related by comp_spec_type->ClassInComponent[R3803]->Class[R408.''maintains instances of''];
   	if ( empty inst )
   		select one inst related by comp_spec_type->ClassSet[R3803]->ClassInComponent[R406.''defines set with elements of type'']
