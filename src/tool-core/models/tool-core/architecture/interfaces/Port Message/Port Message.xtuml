@@ -22,9 +22,13 @@ select one port related by self->Port[R420];
 select one message related by self->Message[R420];
 parameter_list = "";
 select one invocable related by self->InvocableObject[R427];
-// Request that parameters of type inst_ref or inst_ref_set are fully qualified as component-independent.
-// Prefix this qualified name to differentiate it from the parameter name known within any port activity code.
-// This allows for a type down-cast to the known parameter name to be introduced prior to any de-reference.
+
+// Port message parameters of type inst_ref/set must be component-independent to match Interface definitions.
+// These types cannot be imported by finding type references and requesting their imports, as normal.
+// That is pre-empted by the necessary import of component-specific types needed by any code in the port activity body.
+// Accordingly, a special operation is used to explicitly type (qualify) these parameters as component-independent
+// These qualified names are also prefixed to differentiate from the parameter names known within port activity code.
+// This allows for type down-casts to the known parameter names to be introduced prior to any de-reference.
 parameter_list = invocable.parameter_qualified_list( prefix:"q_");
 
 T::push_buffer();
@@ -51,7 +55,7 @@ while ( not_empty parm )
   select one comp_spec_type related by parm->TypeReference[R431.''is typed by'']
                                            ->Type[R3800.''based on'']->ComponentSpecificType[R407];
   if ( not_empty comp_spec_type )  // this parameter is of type inst_ref/set..
-  	parm.render_cast();  // ..create the needed type down-cast.
+  	parm.render_cast();            // ..create the type down-cast to be inserted before parameter de-reference.
 	end if;
   invocation_parameter_list = invocation_parameter_list + sep + parm.name;
   sep = ", ";
@@ -517,16 +521,20 @@ INSERT INTO EP_PKG_PROXY
 	"9092a4a9-91f5-4e59-984b-3ca72917240d",
 	'interfaces',
 	'Interfaces support passing instances and sets of instances as parameters on Port Messages.
-This is only practical because components can share component independent definitions of
-classes - and, therefore, sets of class instances - through the Package Reference mechanism.
+Where commmunicating components are represented by xtUML models, this is only practical 
+because components share component independent definitions of classes - and, therefore, 
+sets of class instances - through the Package Reference mechanism.
 
-While shared attribute, ssociation and state model definitions of such classes are immutable, 
-within components the classes can be extended with component-specific associations.
+While shared attribute, association and state model definitions of such classes are immutable,
+within xtUML components, shared classes may participate in component-specific associations.
 
-Inter-component messages must use component-independent definitions of classes used as 
-instances or sets thereof, while the Port activities invoked by interface messages 
-require access to the component-specific extensions in each communicating component.
-
+Since each component-specific class interface includes methods for all associations -
+including component-specific ones - in which the class participates, each method representing 
+an inter-component message must use component-independent interfaces to declare inst_ref and 
+inst_ref_set parameters. Therefore, methods realizing port-message activities must also use 
+component-independent interfaces when declaring such parameters which are then down-cast to 
+the receiving-component-specific class or class set required by the body of the port-message 
+activity.
 ',
 	0,
 	'../interfaces.xtuml');

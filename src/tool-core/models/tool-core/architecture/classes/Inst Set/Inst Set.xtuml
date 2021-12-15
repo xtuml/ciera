@@ -37,14 +37,19 @@ end for;
 selectors = T::body();
 T::clear();
 
-// Serializer/Deserializer methods
-self.render_serializer();
-set_serialize = T::body();
-T::clear();
-
-self.render_deserializer();
-set_deserialize = T::body();
-T::clear();
+select one compIndClass related by self->ClassInComponent[R406.''defines set with elements of type'']->Class[R408];
+// Render Serializer/Deserializer methods, if required
+set_serialize = "";
+set_deserialize = "";
+if ( compIndClass.is_port_msg_param )
+	self.render_serializer();
+	set_serialize = T::body();
+	T::clear();
+	
+	self.render_deserializer();
+	set_deserialize = T::body();
+	T::clear();
+end if;
 
 
 T::include(file:"class/t.classset.impl.java");
@@ -66,9 +71,9 @@ selectors = T::body();
 T::clear();
 
 // Determine whether the corresponding class is defined outside a component
-// If so, allow this interface to extend the corresponding class set independent interface.
+// If so, allow this interface to extend the ccorresponding component-independent class set interface.
+
 compIndepInterface = "";
-select one compIndClass related by self->ClassInComponent[R406.''defines set with elements of type'']->Class[R408];
 select one compIndInterfaceFile related by compIndClass->File[R401];
 if (not compIndInterfaceFile.exclude)
 	compIndepInterface = ", " + compIndClass.package + "." + self.name;

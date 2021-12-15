@@ -110,7 +110,7 @@ ${state_machine_events}
     // selections
 ${selectors}
 
-// serialize/deserialize methods
+    // serialize/deserialize methods
 ${instance_serialize}
 ${instance_deserialize}
 
