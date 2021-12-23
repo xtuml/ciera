@@ -12,6 +12,21 @@ public class Timer implements Comparable<Timer>, Named {
     private final boolean recurring;
     private long expiration;
 
+    public Timer(ExecutionContext context, Event event, EventTarget target, long expiration) {
+        this(UniqueId.random(), context, event, target, expiration);
+
+    }
+
+    public Timer(UniqueId timerHandle, ExecutionContext context, Event event, EventTarget target, long expiration) {
+        this.timerHandle = timerHandle;
+        this.context = context;
+        this.event = event;
+        this.target = target;
+        this.expiration = expiration;
+        this.period = 0;
+        this.recurring = false;
+    }
+
     public Timer(ExecutionContext context, Event event, EventTarget target, long expiration, long period) {
         this(UniqueId.random(), context, event, target, expiration, period);
 
@@ -25,7 +40,7 @@ public class Timer implements Comparable<Timer>, Named {
         this.target = target;
         this.expiration = expiration;
         this.period = period;
-        this.recurring = period > 0;
+        this.recurring = true;
     }
 
     public UniqueId getTimerHandle() {

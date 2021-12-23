@@ -3585,7 +3585,7 @@ if ( not_empty e_ess )
 else
 select one e_gpr related by act_smt->E_GPR[R603];
 if ( not_empty e_gpr )
-  ::transformGeneratePreexistingEventStatement( e_gpr:e_gpr, block:block, prev_smt:prev_smt );
+  LOG::LogFailure(message:"Generate pre-existing event is not supported");
 
 else
   LOG::LogFailure( message:"statement type not supported" );
@@ -3669,7 +3669,12 @@ while ( not_empty act_smt )
     smt_num = smt_num + 2;
   else
     select any prev_smt related by block->Statement[R450] where ( selected.statement_number == STRING::itoa( i:smt_num ) );
-    smt_num = smt_num + 1;
+    if ( not_empty prev_smt )
+      smt_num = smt_num + 1;
+    else
+      select any prev_smt related by block->Statement[R450] where ( selected.statement_number == STRING::itoa( i:smt_num - 1 ) );
+      // No statement resulted from translation
+    end if;
   end if;
   select one act_smt related by act_smt->ACT_SMT[R661.''succeeds''];
   // see if array needs to be declared
@@ -3985,20 +3990,20 @@ block = param.block;
 prev_smt = param.prev_smt;
 select one act_smt related by e_ess->ACT_SMT[R603];
 
-// create a statement
-create object instance smt of Statement;
-relate smt to block across R450;
-if (not_empty prev_smt)
-  smt.statement_number = STRING::itoa(i:STRING::atoi(s:prev_smt.statement_number) + 1);
-  relate smt to prev_smt across R477.''executes after'';
-else
-  smt.statement_number = "1";
-end if;
-select one body related by block->InvocableObject[R4000];
-smt.actions = ::getOalStatement(body:body.actions, line_num:act_smt.LineNumber);
-
 select one e_ges related by e_ess->E_GES[R701];
 if (not_empty e_ges)
+
+  // create a statement
+  create object instance smt of Statement;
+  relate smt to block across R450;
+  if (not_empty prev_smt)
+    smt.statement_number = STRING::itoa(i:STRING::atoi(s:prev_smt.statement_number) + 1);
+    relate smt to prev_smt across R477.''executes after'';
+  else
+    smt.statement_number = "1";
+  end if;
+  select one body related by block->InvocableObject[R4000];
+  smt.actions = ::getOalStatement(body:body.actions, line_num:act_smt.LineNumber);
 
   // transform generate statements
   select one evt related by e_ges->E_GSME[R703]->SM_EVT[R707]->Event[R4759];
@@ -4022,7 +4027,7 @@ if (not_empty e_ges)
   relate void_type_ref to evt_expr across R795;
   create object instance named_ref of NamedReference;
   relate named_ref to evt_expr across R776;
-  named_ref.name = evt.name;
+  named_ref.name = evt_sm.name + "." + evt.name + ".class";
   relate evt_expr to gen_smt across R486;
 
   // create the target expression
@@ -4032,6 +4037,7 @@ if (not_empty e_ges)
   select one target_type_def related by target_v_var->V_INT[R814]->O_OBJ[R818]->Class[R409]->Type[R407];
   target_type = ::TypeReference_getInstanceWithDimString(type:target_type_def, dims:"");
   relate target_type to target_expr across R795;
+  relate target_expr to gen_smt across R487;
   select any target_var related by smt->CodeBlock[R450]->Variable[R458] where (selected.name == target_v_var.Name);
   if (not_empty target_var) // cannot declare two variables of the same name in the same scope
     create object instance var_ref of VariableReference;
@@ -4052,126 +4058,17 @@ if (not_empty e_ges)
 
   // transform event parameters
   select many v_pars related by e_ess->V_PAR[R700];
-  ::transformEventParameters(generate_smt:gen_smt, evt:evt, v_pars:v_pars, expr_number:"", base_num:3);
+  select any null_expr from instances of Expression where false;
+  ::transformEventParameters(smt:smt, expr:null_expr, evt:evt, v_pars:v_pars, base_num:3);
   
   // add import for class
   select one sm_file related by evt_sm->File[R401];
   ::addFileToImports(file: ::getFileForStatement(smt:smt), file_to_import:sm_file, type:ImportType::IMPL);
 
 else
+  
+  // event creation statements not supported except directly preceding a timer start invocation
 
-/* TODO
-  // transform create event statements
-  select one e_ces related by e_ess->E_CES[R701];
-  select one evt related by e_ces->E_CSME[R702]->SM_EVT[R706]->Event[R4759];
-  select one result_v_var related by e_ces->V_VAR[R710];
-  select one target_v_var related by e_ces->E_CSME[R702]->E_CEI[R704]->V_VAR[R711];
-  if (empty target_v_var)
-    // TODO bad
-    LOG::LogFailure(message:"Event creation to class and event creation to creator not supported.");
-  end if;
-  
-  // create expression as statement
-  create object instance eas of ExpressionAsStatement;
-  relate eas to smt across R451;
-  // create main expression
-  create object instance expr of Expression;
-  relate expr to smt across R775;
-  expr.expression_number = "1";
-  evt_type_ref = ::TypeReference_getBuiltinTypeReference(name:"Event");
-  relate evt_type_ref to expr across R795;
-  // create binary operation and assignment expression
-  create object instance binop of BinaryOperation;
-  relate binop to expr across R776;
-  binop.operator = "=";
-  binop.invocation = false;
-  // relate expression to expression as statement
-  relate eas to expr across R476;
-  // create left operand
-  create object instance l_op of Expression;
-  relate l_op to smt across R775;
-  l_op.expression_number = "1.1";
-  relate evt_type_ref to l_op across R795;
-  select any existing_var related by smt->CodeBlock[R450]->Variable[R458] where (selected.name == result_v_var.Name);
-  if (empty existing_var) // cannot declare two variables of the same name in the same scope
-    ::transformVariable(v_var:result_v_var, smt:smt);
-  end if;
-  select any result_var related by smt->CodeBlock[R450]->Variable[R458] where (selected.name == result_v_var.Name);
-  create object instance var_ref of VariableReference;
-  relate result_var to var_ref across R782;
-  relate var_ref to l_op across R776;
-  relate l_op to binop across R779;
-  select one type related by l_op->TypeReference[R795]->Type[R3800];
-  ::addTypeToImports(file: ::getFileForStatement(smt:smt), type_to_import:type, type:ImportType::IMPL);
-  // create right operand
-  create object instance r_op of Expression;
-  relate r_op to smt across R775;
-  r_op.expression_number = "1.2";
-  relate evt_type_ref to r_op across R795;
-  relate r_op to binop across R778;
-  // create event creation
-  create object instance evt_cr of EventCreation;
-  relate evt_cr to r_op across R776;
-  evt_cr.to_self = false;
-  // create the event invocation
-  create object instance invoc_expr of Expression;
-  relate invoc_expr to smt across R775;
-  invoc_expr.expression_number = r_op.expression_number + ".1";
-  relate evt_type_ref to invoc_expr across R795;
-  relate invoc_expr to evt_cr across R3903;
-  create object instance invoc of Invocation;
-  relate invoc to invoc_expr across R776;
-  select one evt_invocable related by evt->InvocableObject[R427];
-  relate invoc to evt_invocable across R792;
-  // create named reference expression
-  create object instance expr2 of Expression;
-  relate expr2 to smt across R775;
-  expr2.expression_number = invoc_expr.expression_number + ".1";
-  select one obj related by evt->StateMachine[R4752]->Class[R4750];
-  select one inst_type related by obj->Type[R407];
-  select many s_dims from instances of S_DIM where false;
-  inst_type_ref = ::TypeReference_getInstanceFromType(type:inst_type, s_dims:s_dims);
-  relate inst_type_ref to expr2 across R795;
-  // create named reference
-  create object instance named_ref of NamedReference;
-  relate named_ref to expr2 across R776;
-  relate expr2 to invoc across R798;
-  named_ref.name = obj.name + "Impl";
-  // transform actual parameters
-  select many v_pars related by e_ess->V_PAR[R700];
-  ::transformActualParameters(invocation:invoc, v_pars:v_pars, expr_number:invoc_expr.expression_number, base_num:2);
-  
-  // create the target expression
-  create object instance target_expr of Expression;
-  relate target_expr to smt across R775;
-  target_expr.expression_number = r_op.expression_number + ".2";
-  relate evt_cr to target_expr across R3902;
-  select one target_s_dt related by target_v_var->S_DT[R848];
-  select one target_obj related by target_v_var->V_INT[R814]->O_OBJ[R818];
-  target_s_dt = ::getInstRefTypeForClass(s_dt:target_s_dt, o_obj:target_obj);
-  target_type = ::TypeReference_getInstance(s_dt:target_s_dt, s_dims:s_dims);
-  relate target_type to target_expr across R795;
-  select any target_var related by smt->CodeBlock[R450]->Variable[R458] where (selected.name == target_v_var.Name);
-  if (not_empty target_var) // cannot declare two variables of the same name in the same scope
-    create object instance var_ref of VariableReference;
-    relate target_var to var_ref across R782;
-    relate var_ref to target_expr across R776;
-    select one type related by target_expr->TypeReference[R795]->Type[R3800];
-    ::addTypeToImports(file: ::getFileForStatement(smt:smt), type_to_import:type, type:ImportType::IMPL);
-  elif ("self" == target_v_var.Name)
-    // create named reference
-    create object instance self_ref of NamedReference;
-    relate self_ref to target_expr across R776;
-    self_ref.name = "self()";
-    evt_cr.to_self = true;
-  else
-    // TODO bad
-  end if;
-  
-  // add import for class
-  ::addStringToImports(file: ::getFileForStatement(smt:smt), s:obj.package + ".impl." + obj.name + "Impl", type:ImportType::IMPL);
-
-*/
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -4214,82 +4111,6 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("56579a04-8946-4a1f-ac3e-d51efab8a618",
-	1,
-	"1aa08c2b-b96c-4c66-8c25-c079950eef10",
-	"00000000-0000-0000-0000-000000000000",
-	1);
-INSERT INTO S_SYNC
-	VALUES ("72fc322d-1724-4725-9fad-9b8215ab0fd3",
-	"00000000-0000-0000-0000-000000000000",
-	'transformGeneratePreexistingEventStatement',
-	'',
-	'e_gpr = param.e_gpr;
-block = param.block;
-prev_smt = param.prev_smt;
-select one act_smt related by e_gpr->ACT_SMT[R603];
-
-// create a statement
-create object instance smt of Statement;
-relate smt to block across R450;
-if ( not_empty prev_smt )
-  smt.statement_number = STRING::itoa( i:STRING::atoi( s:prev_smt.statement_number ) + 1 );
-  relate smt to prev_smt across R477.''executes after'';
-else
-  smt.statement_number = "1";
-end if;
-select one body related by block->InvocableObject[R4000];
-smt.actions = ::getOalStatement( body:body.actions, line_num:act_smt.LineNumber );
-
-// create generate statement
-create object instance gen_smt of Generate;
-relate gen_smt to smt across R451;
-
-// create the event expression
-select one evt_v_val related by e_gpr->V_VAL[R714];
-::transformExpression( v_val:evt_v_val, expr_number:"1", smt:smt );
-select any evt_expr related by smt->Expression[R775] where ( selected.expression_number == "1" );
-relate evt_expr to gen_smt across R486;',
-	"ba5eda7a-def5-0000-0000-000000000000",
-	1,
-	'',
-	0,
-	0);
-INSERT INTO S_SPARM
-	VALUES ("2c9f8764-5e1e-4a13-a7b8-9d7d8783ea73",
-	"72fc322d-1724-4725-9fad-9b8215ab0fd3",
-	'e_gpr',
-	"13c04771-67be-42a3-a789-b68f0f9c6f54",
-	0,
-	'',
-	"00000000-0000-0000-0000-000000000000",
-	'');
-INSERT INTO S_DT_PROXY
-	VALUES ("13c04771-67be-42a3-a789-b68f0f9c6f54",
-	"00000000-0000-0000-0000-000000000000",
-	'inst_ref<Generate Preexisting Event>',
-	'',
-	'',
-	'../../../../../mcooa/models/mcooa/ooaofooa/Event/Event.xtuml');
-INSERT INTO S_SPARM
-	VALUES ("f3781110-14d6-422a-9c62-6f7d5ac63407",
-	"72fc322d-1724-4725-9fad-9b8215ab0fd3",
-	'block',
-	"60d4da0e-4cbe-4620-8c16-4e1dba1c6b8d",
-	0,
-	'',
-	"2c9f8764-5e1e-4a13-a7b8-9d7d8783ea73",
-	'');
-INSERT INTO S_SPARM
-	VALUES ("00a11383-e402-4704-9854-dc4611a6a493",
-	"72fc322d-1724-4725-9fad-9b8215ab0fd3",
-	'prev_smt',
-	"b586ec7e-41fe-4d50-9cf3-27b173e9848a",
-	0,
-	'',
-	"f3781110-14d6-422a-9c62-6f7d5ac63407",
-	'');
-INSERT INTO PE_PE
-	VALUES ("72fc322d-1724-4725-9fad-9b8215ab0fd3",
 	1,
 	"1aa08c2b-b96c-4c66-8c25-c079950eef10",
 	"00000000-0000-0000-0000-000000000000",
@@ -4685,23 +4506,33 @@ INSERT INTO S_SYNC
 	'transformEventParameters',
 	'',
 	'smt = param.smt;
+expr = param.expr;
 evt = param.evt;
 v_pars = param.v_pars;
-expr_number = param.expr_number;
 base_num = param.base_num;
 
-select one gen_smt related by smt->Generate[R451];
+expr_number = "";
+if not_empty expr
+  expr_number = expr.expression_number;
+end if;
+
+select one generate_smt related by smt->Generate[R451];
+select one schedule_expr related by expr->Schedule[R776];
 order = 1;
 
 // loop through event formal parameters in order and find a matching actual parameter
-select any evt_di related by evt->SM_EVT[R4759]->SM_EVTDI[R532];
-select one prev_evt_di related by evt_di->SM_EVTDI[R533.''succeeds''];
-while not_empty prev_evt_di
-  evt_di = prev_evt_di;
+select any formal_param related by evt->InvocableObject[R427]->FormalParameter[R429];
+select one prev_formal_param related by formal_param->FormalParameter[R404.''follows''];
+while not_empty prev_formal_param
+  formal_param = prev_formal_param;
+  select one prev_formal_param related by formal_param->FormalParameter[R404.''follows''];
+end while;
+while not_empty formal_param
   
   // wish there was a better way in OAL...
+  select any v_par from instances of V_PAR where false;
   for each v_par in v_pars
-    if v_par.Name == evt_di.Name;
+    if "p_" + v_par.Name == formal_param.name;
       break;
     end if;
   end for;
@@ -4716,18 +4547,21 @@ while not_empty prev_evt_di
   select any expr related by smt->Expression[R775] where selected.expression_number == expr_number;
   
   // relate to the statement
-  if (not_empty gen_smt)
-    create object instance evt_arg of EventArgument;
-    evt_arg.order = order;
-    relate expr to gen_smt across R488 using evt_arg;
-  end if;
+  if not_empty generate_smt
+		create object instance evt_arg of GenerateEventArgument;
+		evt_arg.order = order;
+		relate expr to generate_smt across R488 using evt_arg;
+	elif not_empty schedule_expr
+		create object instance evt_arg of ScheduleEventArgument;
+		evt_arg.order = order;
+		relate expr to schedule_expr across R3913 using evt_arg;
+	else
+	  LOG::LogFailure(message:"cannot transform event parameter");
+	end if;
   
   order = order + 1;
   base_num = base_num + 1;
-  select one prev_evt_di related by evt_di->SM_EVTDI[R533.''succeeds''];
-end while;
-while not_empty evt_di
-  select one evt_di related by evt_di->SM_EVTDI[R533.''precedes''];
+  select one formal_param related by formal_param->FormalParameter[R404.''precedes''];
 end while;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -4750,7 +4584,7 @@ INSERT INTO S_SPARM
 	"6f9d5490-60e9-489c-a2c7-507dc913da72",
 	0,
 	'',
-	"ab2c4cc4-47f1-4244-8e3b-31542f01294c",
+	"8b9c0acf-6494-480d-b8fb-20f8a2ab120e",
 	'');
 INSERT INTO S_DT_PROXY
 	VALUES ("6f9d5490-60e9-489c-a2c7-507dc913da72",
@@ -4771,12 +4605,19 @@ INSERT INTO S_SPARM
 INSERT INTO S_SPARM
 	VALUES ("8b9c0acf-6494-480d-b8fb-20f8a2ab120e",
 	"aebd9ad8-4479-40dd-abaf-2af93c833ae5",
-	'expr_number',
-	"ba5eda7a-def5-0000-0000-000000000004",
+	'expr',
+	"c732060c-653b-48f6-8ce5-99439b2a9c63",
 	0,
 	'',
-	"26f1c76c-efab-411e-9d5f-c89f452efc7d",
+	"ab2c4cc4-47f1-4244-8e3b-31542f01294c",
 	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("c732060c-653b-48f6-8ce5-99439b2a9c63",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Expression>',
+	'',
+	'',
+	'../../../../../core-architecture/models/core-architecture/architecture/expression/expression.xtuml');
 INSERT INTO S_SPARM
 	VALUES ("370634a7-d3fc-4c62-921e-0e6df9e1dcc4",
 	"aebd9ad8-4479-40dd-abaf-2af93c833ae5",
@@ -4784,7 +4625,7 @@ INSERT INTO S_SPARM
 	"ba5eda7a-def5-0000-0000-000000000002",
 	0,
 	'',
-	"8b9c0acf-6494-480d-b8fb-20f8a2ab120e",
+	"26f1c76c-efab-411e-9d5f-c89f452efc7d",
 	'');
 INSERT INTO PE_PE
 	VALUES ("aebd9ad8-4479-40dd-abaf-2af93c833ae5",

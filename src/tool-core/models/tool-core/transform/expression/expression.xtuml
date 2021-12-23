@@ -834,39 +834,49 @@ if ( empty util_func )
   select one util_func related by v_brv->S_BRG[R828]->UtilityFunction[R4570];
 end if;
 select one invocable related by util_func->InvocableObject[R427];
-select one utility related by util_func->Utility[R4559];
-select one utility_file related by utility->File[R401];
-containing_comp_def = ::getCompDefForStatement( smt:smt );
-select one containing_comp_file related by containing_comp_def->File[R401];
-::addFileToImports( file:containing_comp_file, file_to_import:utility_file, type:ImportType::IMPL );
-if ( not_empty containing_comp_def )
-  select any util_ref related by utility->UtilityReference[R4558] where ( selected.comp_name == containing_comp_def.name and selected.comp_package == containing_comp_def.package );
-  if ( empty util_ref )
-    create object instance util_ref of UtilityReference;
-    relate utility to containing_comp_def across R4558 using util_ref;
-  end if;
-end if;
-if ( not_empty invocable )
-  // create invocation
-  create object instance invoc of Invocation;
-  relate invoc to expr across R776;
-  relate invoc to invocable across R792;
-  // create named reference expression
-  create object instance expr2 of Expression;
-  relate expr2 to smt across R775;
-  expr2.expression_number = expr.expression_number + ".1";
-  void_type = ::TypeReference_getBuiltinTypeReference( name:"void" );
-  relate void_type to expr2 across R795;
-  // create named reference
-  create object instance named_ref of NamedReference;
-  relate named_ref to expr2 across R776;
-  relate expr2 to invoc across R798;
-  named_ref.name = "getDomain()." + utility.name;
-  // transform actual parameters
+
+// special case for invocations to TIM starting timers
+if invocable.parent_name == "TIM" and (invocable.name == "timer_start" or invocable.name == "timer_start_recurring")
   select many v_pars related by v_brv->V_PAR[R810];
-  ::transformActualParameters( invocation:invoc, v_pars:v_pars, expr_number:expr.expression_number, base_num:2 );
+  ::transformScheduleExpression(expr:expr, v_brv:v_brv, v_pars:v_pars, recurring: invocable.name == "timer_start_recurring");
+
 else
-  // TODO bad
+
+  select one utility related by util_func->Utility[R4559];
+  select one utility_file related by utility->File[R401];
+  containing_comp_def = ::getCompDefForStatement( smt:smt );
+  select one containing_comp_file related by containing_comp_def->File[R401];
+  ::addFileToImports( file:containing_comp_file, file_to_import:utility_file, type:ImportType::IMPL );
+  if ( not_empty containing_comp_def )
+    select any util_ref related by utility->UtilityReference[R4558] where ( selected.comp_name == containing_comp_def.name and selected.comp_package == containing_comp_def.package );
+    if ( empty util_ref )
+      create object instance util_ref of UtilityReference;
+      relate utility to containing_comp_def across R4558 using util_ref;
+    end if;
+  end if;
+  if ( not_empty invocable )
+    // create invocation
+    create object instance invoc of Invocation;
+    relate invoc to expr across R776;
+    relate invoc to invocable across R792;
+    // create named reference expression
+    create object instance expr2 of Expression;
+    relate expr2 to smt across R775;
+    expr2.expression_number = expr.expression_number + ".1";
+    void_type = ::TypeReference_getBuiltinTypeReference( name:"void" );
+    relate void_type to expr2 across R795;
+    // create named reference
+    create object instance named_ref of NamedReference;
+    relate named_ref to expr2 across R776;
+    relate expr2 to invoc across R798;
+    named_ref.name = "getDomain()." + utility.name;
+    // transform actual parameters
+    select many v_pars related by v_brv->V_PAR[R810];
+    ::transformActualParameters( invocation:invoc, v_pars:v_pars, expr_number:expr.expression_number, base_num:2 );
+  else
+    // TODO bad
+  end if;
+  
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -1392,6 +1402,7 @@ elif ("or" == T::sub(format:"l", s:v_bin.Operator))
     binary.operator = "or";
     binary.invocation = true;
   end if;
+// TODO this is broken
 elif ("==" == T::sub(format:"l", s:v_bin.Operator))
   if (l_type.primitive())
     binary.operator = "==";
@@ -1407,10 +1418,11 @@ elif ("==" == T::sub(format:"l", s:v_bin.Operator))
       binary.util = true;
       ::addStringToImports(file:file, s:"io.ciera.runtime.summit.types.StringUtil", type:ImportType::IMPL);
     else
-      binary.operator = "equality";
+      binary.operator = "equals";
       binary.invocation = true;
     end if;
   end if;
+// TODO this is broken
 elif ("!=" == T::sub(format:"l", s:v_bin.Operator))
   if (l_type.primitive())
     binary.operator = "!=";
@@ -2037,6 +2049,185 @@ INSERT INTO S_DT_PROXY
 	'../../../../../mcooa/models/mcooa/ooaofooa/Value/Value.xtuml');
 INSERT INTO PE_PE
 	VALUES ("9a987d1b-8a64-4aaf-9eec-1d4796e78a5f",
+	1,
+	"f9a85e65-cedd-4444-aef5-bae5288e31bc",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("9fbfe5ed-97d5-4adc-81e6-284f908cddbd",
+	"00000000-0000-0000-0000-000000000000",
+	'transformScheduleExpression',
+	'',
+	'expr = param.expr;
+v_brv = param.v_brv;
+v_pars = param.v_pars;
+recurring = param.recurring;
+
+select one smt related by expr->Statement[R775];
+select one invoc related by smt->CodeBlock[R450]->InvocableObject[R4000];
+select one v_val related by v_brv->V_VAL[R801];
+
+// check pre-conditions:
+// - the invocation must be the simple right hand side of an assignment
+// - the statement immediately preceding the invocation _must_ be a create event statement
+
+// If act_smt is empty, it means that the invocation was not the right hand side of an assignment
+select one act_smt related by v_brv->V_VAL[R801]->ACT_AI[R609]->ACT_SMT[R603];
+if empty act_smt
+  LOG::LogFailure(message:"Timer schedule expressions must be the simple right hand side of an assignment: " +
+                   invoc.parent_name + "#" + invoc.name + " " + STRING::itoa(i:v_val.LineNumber) + ":" + STRING::itoa(i:v_val.StartPosition));
+else
+  // select through the invocation parameter to the previous statement and back
+  // confirming that the event referenced was defined in the statement
+  // immediately prior.
+  select any e_ces related by v_pars->V_VAL[R800]->V_TVL[R801]->V_VAR[R805]->E_CES[R710];
+  select one prev_act_smt related by e_ces->E_ESS[R701]->ACT_SMT[R603];
+  select one act_smt2 related by prev_act_smt->ACT_SMT[R661.''succeeds''] where selected.Statement_ID == act_smt.Statement_ID;
+  if empty act_smt2
+    LOG::LogFailure(message:"The statement immediately preceding a timer start must be an event creation statement which defines the event to be scheduled." +
+                      invoc.parent_name + "#" + invoc.name + " " + STRING::itoa(i:v_val.LineNumber) + ":" + STRING::itoa(i:v_val.StartPosition));
+  else
+    
+    // update the actions (for action language comments)
+    smt.actions = ::getOalStatement(body:invoc.actions, line_num:prev_act_smt.LineNumber) + "\n" + smt.actions;
+
+    
+    // create the schedule expression
+    create object instance schedule of Schedule;
+    relate schedule to expr across R776;
+    schedule.is_recurring = recurring;
+    
+    // create event reference expression
+    select one evt related by e_ces->E_CSME[R702]->SM_EVT[R706]->Event[R4759];
+    select one evt_sm related by evt->StateMachine[R4752];
+    create object instance evt_expr of Expression;
+    relate evt_expr to smt across R775;
+    evt_expr.expression_number = expr.expression_number + ".1";
+    void_type_ref = ::TypeReference_getBuiltinTypeReference(name:"void");
+    relate void_type_ref to evt_expr across R795;
+    create object instance named_ref of NamedReference;
+    relate named_ref to evt_expr across R776;
+    named_ref.name = evt_sm.name + "." + evt.name + ".class";
+    relate evt_expr to schedule across R3908;
+
+    // create the target expression
+    select one target_v_var related by e_ces->E_CSME[R702]->E_CEI[R704]->V_VAR[R711];
+    create object instance target_expr of Expression;
+    relate target_expr to smt across R775;
+    target_expr.expression_number = expr.expression_number + ".2";
+    select one target_type_def related by target_v_var->V_INT[R814]->O_OBJ[R818]->Class[R409]->Type[R407];
+    target_type = ::TypeReference_getInstanceWithDimString(type:target_type_def, dims:"");
+    relate target_type to target_expr across R795;
+    relate target_expr to schedule across R3909;
+    select any target_var related by smt->CodeBlock[R450]->Variable[R458] where (selected.name == target_v_var.Name);
+    if (not_empty target_var) // cannot declare two variables of the same name in the same scope
+      create object instance var_ref of VariableReference;
+      relate target_var to var_ref across R782;
+      relate var_ref to target_expr across R776;
+      select one type related by target_expr->TypeReference[R795]->Type[R3800];
+      ::addTypeToImports(file: ::getFileForStatement(smt:smt), type_to_import:type, type:ImportType::IMPL);
+		elif (target_v_var.Name == "self")
+			// create named reference
+			create object instance self_ref of NamedReference;
+			relate self_ref to target_expr across R776;
+			self_ref.name = "self()";
+    else
+      // TODO bad
+      LOG::LogFailure(message:"unsupported schdeule statement");
+    end if;
+    
+    // create the delay expression
+    create object instance promotion_expr of Expression;
+    relate promotion_expr to smt across R775;
+    promotion_expr.expression_number = expr.expression_number + ".3";
+    duration_type_ref = ::TypeReference_getBuiltinTypeReference(name:"Duration");
+    relate duration_type_ref to promotion_expr across R795;
+    create object instance promotion of Promotion;
+    promotion.cast = false;
+    relate promotion to promotion_expr across R776;
+    relate promotion_expr to schedule across R3911;
+    select any v_par from instances of V_PAR;
+    for each v_par in v_pars
+      if v_par.Name == "microseconds"
+        break;
+      end if;
+    end for;
+    select one duration_val related by v_par->V_VAL[R800];
+    ::transformExpression(v_val:duration_val, expr_number:expr.expression_number + ".3.1", smt:smt);
+    select any duration_expr related by smt->Expression[R775] where selected.expression_number == expr.expression_number + ".3.1";
+    relate duration_expr to promotion across R3907;
+
+    
+    // transform event parameters
+    base_num = 4;
+    select many evt_pars related by e_ces->E_ESS[R701]->V_PAR[R700];
+    ::transformEventParameters(smt:smt, expr:expr, evt:evt, v_pars:evt_pars, base_num:base_num);
+  
+    // add imports
+    select one sm_file related by evt_sm->File[R401];
+    ::addFileToImports(file: ::getFileForStatement(smt:smt), file_to_import:sm_file, type:ImportType::IMPL);
+    select one duration_type related by duration_type_ref->Type[R3800];
+    ::addTypeToImports(file: ::getFileForStatement(smt:smt), type_to_import:duration_type, type:ImportType::IMPL);
+    
+  end if;
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	2);
+INSERT INTO S_SPARM
+	VALUES ("08931ac4-8f10-4488-bf03-61b8cb22e3d8",
+	"9fbfe5ed-97d5-4adc-81e6-284f908cddbd",
+	'expr',
+	"c732060c-653b-48f6-8ce5-99439b2a9c63",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("c732060c-653b-48f6-8ce5-99439b2a9c63",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Expression>',
+	'',
+	'',
+	'../../../../../core-architecture/models/core-architecture/architecture/expression/expression.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("30f630f0-1688-46e4-b40f-eb2e3d76b43d",
+	"9fbfe5ed-97d5-4adc-81e6-284f908cddbd",
+	'v_brv',
+	"cb6d600e-2e67-4485-9f1b-abd6aefb9d6e",
+	0,
+	'',
+	"08931ac4-8f10-4488-bf03-61b8cb22e3d8",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("a04a9dec-de2a-45b2-a2b5-fd1600f9712e",
+	"9fbfe5ed-97d5-4adc-81e6-284f908cddbd",
+	'v_pars',
+	"cff0610c-aa78-4735-bf53-f7fa31ce74fd",
+	0,
+	'',
+	"30f630f0-1688-46e4-b40f-eb2e3d76b43d",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("cff0610c-aa78-4735-bf53-f7fa31ce74fd",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref_set<Actual Parameter>',
+	'',
+	'',
+	'../../../../../mcooa/models/mcooa/ooaofooa/Value/Value.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("e447beed-85f5-4eef-bf23-f20d8f877fcb",
+	"9fbfe5ed-97d5-4adc-81e6-284f908cddbd",
+	'recurring',
+	"ba5eda7a-def5-0000-0000-000000000001",
+	0,
+	'',
+	"a04a9dec-de2a-45b2-a2b5-fd1600f9712e",
+	'');
+INSERT INTO PE_PE
+	VALUES ("9fbfe5ed-97d5-4adc-81e6-284f908cddbd",
 	1,
 	"f9a85e65-cedd-4444-aef5-bae5288e31bc",
 	"00000000-0000-0000-0000-000000000000",
