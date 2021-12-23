@@ -9,7 +9,6 @@ import java.util.concurrent.PriorityBlockingQueue;
 import io.ciera.runtime.application.task.GeneratedEvent;
 import io.ciera.runtime.application.task.GeneratedEventToSelf;
 import io.ciera.runtime.exceptions.InstancePopulationException;
-import io.ciera.runtime.types.Duration;
 import io.ciera.runtime.types.TimeStamp;
 
 public class ExecutionContext implements Runnable, Executor, Named {
