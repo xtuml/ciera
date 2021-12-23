@@ -1,1 +1,1 @@
-        attrs.put( "${self.name}", ${self.name} );
+        attrs.put( "${self.name}", ${gettername}() );

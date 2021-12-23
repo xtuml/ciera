@@ -1,4 +1,4 @@
-    public String serialize() {
+    public String serialize() throws XtumlException {
     	JSONObject attrs = new JSONObject();
 ${attribute_serializers}\
 .if getstate        
