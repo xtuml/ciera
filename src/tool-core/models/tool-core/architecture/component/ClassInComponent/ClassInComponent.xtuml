@@ -363,9 +363,21 @@ selectors = T::body();
 T::clear();
 
 // Render Serializer/Deserializer methods, if required
+// If class set is used as a message parameter, then instance serialization is needed.
 instance_serialize = "";
 instance_deserialize = "";
-if ( compIndClass.is_port_msg_param )
+select any pm related by self->ComponentSpecificType[R3803]
+                             ->Type[R407]->TypeReference[R3800.''referred to by'']
+                             ->FormalParameter[R431.''defines type for'']
+                             ->InvocableObject[R429.''shapes data for'']->PortMessage[R427];
+if ( empty pm )
+  select any pm related by self->ClassSet[R406.''is type of single element in'']
+                             ->ComponentSpecificType[R3803]
+                             ->Type[R407]->TypeReference[R3800.''referred to by'']
+                             ->FormalParameter[R431.''defines type for'']
+                             ->InvocableObject[R429.''shapes data for'']->PortMessage[R427];
+end if;
+if ( not_empty pm)
 	self.render_serializer();
 	instance_serialize = T::body();
 	T::clear();

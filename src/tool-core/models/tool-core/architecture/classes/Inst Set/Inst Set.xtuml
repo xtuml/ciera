@@ -41,7 +41,11 @@ select one compIndClass related by self->ClassInComponent[R406.''defines set wit
 // Render Serializer/Deserializer methods, if required
 set_serialize = "";
 set_deserialize = "";
-if ( compIndClass.is_port_msg_param )
+select any pm related by self->ComponentSpecificType[R3803]
+                             ->Type[R407]->TypeReference[R3800.''referred to by'']
+                             ->FormalParameter[R431.''defines type for'']
+                             ->InvocableObject[R429.''shapes data for'']->PortMessage[R427];
+if ( not_empty pm)
 	self.render_serializer();
 	set_serialize = T::body();
 	T::clear();
