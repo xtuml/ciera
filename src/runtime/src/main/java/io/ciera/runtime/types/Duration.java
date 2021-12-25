@@ -1,6 +1,7 @@
 package io.ciera.runtime.types;
 
 import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 import java.util.function.Function;
 
 import io.ciera.runtime.exceptions.DeserializationException;
@@ -19,6 +20,10 @@ public class Duration extends BaseLong {
 
     public Duration(long value) {
         super(value);
+    }
+
+    public Duration(long value, TemporalUnit unit) {
+        super(java.time.Duration.of(value,  unit).toNanos());
     }
 
     public Duration(BaseLong o) {

@@ -2137,26 +2137,59 @@ else
     end if;
     
     // create the delay expression
-    create object instance promotion_expr of Expression;
-    relate promotion_expr to smt across R775;
-    promotion_expr.expression_number = expr.expression_number + ".3";
-    duration_type_ref = ::TypeReference_getBuiltinTypeReference(name:"Duration");
-    relate duration_type_ref to promotion_expr across R795;
-    create object instance promotion of Promotion;
-    promotion.cast = false;
-    relate promotion to promotion_expr across R776;
-    relate promotion_expr to schedule across R3911;
+    // this is an invocation of the "Duration" constructor using microseconds as the unit
     select any v_par from instances of V_PAR;
     for each v_par in v_pars
       if v_par.Name == "microseconds"
         break;
       end if;
     end for;
-    select one duration_val related by v_par->V_VAL[R800];
-    ::transformExpression(v_val:duration_val, expr_number:expr.expression_number + ".3.1", smt:smt);
-    select any duration_expr related by smt->Expression[R775] where selected.expression_number == expr.expression_number + ".3.1";
-    relate duration_expr to promotion across R3907;
+    select one delay_val related by v_par->V_VAL[R800];
+    
+    // find or create a generic invocable for the duration type
+    // TODO maybe it makes sense to create an invocable for every type constructor?
+    duration_type_ref = ::TypeReference_getBuiltinTypeReference(name:"Duration");
+    select one duration_type related by duration_type_ref->Type[R3800];
+    select any duration_constructor from instances of InvocableObject where
+      selected.parent_name == duration_type.name and selected.parent_package == duration_type.package and selected.name == "Duration";
+    if empty duration_constructor
+      create object instance duration_constructor of InvocableObject;
+      duration_constructor.parent_name = duration_type.name;
+      duration_constructor.parent_package = duration_type.package;
+      duration_constructor.name = "Duration";
+      create object instance generic_invocable of GenericInvocable;
+      relate generic_invocable to duration_constructor across R427;
+    end if;
 
+    // Create an invocation
+    create object instance invoc_expr of Expression;
+    relate invoc_expr to smt across R775;
+    invoc_expr.expression_number = expr.expression_number + ".3";
+    relate duration_type_ref to invoc_expr across R795;
+    create object instance invocation of Invocation;
+    relate invocation to invoc_expr across R776;
+    relate duration_constructor to invocation across R792;
+    relate invoc_expr to schedule across R3911;
+    
+    // transform the actual delay value
+    ::transformExpression(v_val:delay_val, expr_number:expr.expression_number + ".3.1", smt:smt);
+    select any delay_expr related by smt->Expression[R775] where selected.expression_number == expr.expression_number + ".3.1";
+    create object instance delay_param of ActualParameter;
+    relate delay_expr to delay_param across R794;
+    relate delay_param to invocation across R793;
+    
+    // create the unit value
+    create object instance unit_expr of Expression;
+    relate unit_expr to smt across R775;
+    unit_expr.expression_number = expr.expression_number + ".3.2";
+    relate void_type_ref to unit_expr across R795;
+    create object instance named_ref of NamedReference;
+    relate named_ref to unit_expr across R776;
+    named_ref.name = "ChronoUnit.MICROS";
+    create object instance unit_param of ActualParameter;
+    relate unit_expr to unit_param across R794;
+    relate unit_param to delay_param across R3905.''follows'';
+    relate unit_param to invocation across R793;
     
     // transform event parameters
     base_num = 4;
@@ -2166,8 +2199,8 @@ else
     // add imports
     select one sm_file related by evt_sm->File[R401];
     ::addFileToImports(file: ::getFileForStatement(smt:smt), file_to_import:sm_file, type:ImportType::IMPL);
-    select one duration_type related by duration_type_ref->Type[R3800];
     ::addTypeToImports(file: ::getFileForStatement(smt:smt), type_to_import:duration_type, type:ImportType::IMPL);
+    ::addStringToImports(file: ::getFileForStatement(smt:smt), s:"java.time.temporal.ChronoUnit", type:ImportType::IMPL);
     
   end if;
 end if;',

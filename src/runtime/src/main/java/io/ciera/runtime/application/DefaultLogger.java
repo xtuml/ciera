@@ -14,6 +14,8 @@ import java.util.logging.SimpleFormatter;
  * @see java.util.logging.Logger
  */
 public class DefaultLogger implements Logger {
+    
+    private static final String LOG_LEVEL_PROP = "io.ciera.runtime.logLevel";
 
     private final java.util.logging.Logger internalLogger;
 
@@ -22,6 +24,13 @@ public class DefaultLogger implements Logger {
     }
 
     public DefaultLogger(String name, Application application, Level level) {
+        // attempt to get the log level from a system property
+        String systemLogLevel = System.getProperty(LOG_LEVEL_PROP);
+        if (systemLogLevel != null) {
+            try {
+                level = Level.parse(systemLogLevel);
+            } catch (IllegalArgumentException e) { /* fall back on passed in level */ }
+        }
         internalLogger = java.util.logging.Logger.getLogger(name);
         internalLogger.setUseParentHandlers(false);
         internalLogger.setLevel(level);
