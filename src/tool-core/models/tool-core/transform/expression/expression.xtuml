@@ -835,11 +835,84 @@ if ( empty util_func )
 end if;
 select one invocable related by util_func->InvocableObject[R427];
 
-// special case for invocations to TIM starting timers
-if invocable.parent_name == "TIM" and (invocable.name == "timer_start" or invocable.name == "timer_start_recurring")
-  select many v_pars related by v_brv->V_PAR[R810];
-  ::transformScheduleExpression(expr:expr, v_brv:v_brv, v_pars:v_pars, recurring: invocable.name == "timer_start_recurring");
+select many v_pars related by v_brv->V_PAR[R810];
 
+// handle deprecated TIM bridges
+if invocable.parent_name == "TIM" and (invocable.name == "timer_start" or invocable.name == "timer_start_recurring")
+  ::transformScheduleExpression(expr:expr, v_brv:v_brv, v_pars:v_pars, recurring: invocable.name == "timer_start_recurring");
+  
+elif invocable.parent_name == "TIM" and invocable.name == "timer_cancel"
+  // find or create a generic invocable for the call
+  invoc_name = "cancel";
+  select any tim_invocable from instances of InvocableObject
+    where selected.parent_name == "Timer" and selected.parent_package == "io.ciera.runtime.application" and selected.name == invoc_name;
+  if empty tim_invocable
+    create object instance tim_invocable of InvocableObject;
+    tim_invocable.parent_name = "Timer";
+    tim_invocable.parent_package = "io.ciera.runtime.application";
+    tim_invocable.name = invoc_name;
+    create object instance generic_invocable of GenericInvocable;
+    relate generic_invocable to tim_invocable across R427;
+  end if;
+
+  // create an invocation
+  create object instance tim_invocation of Invocation;
+  relate tim_invocation to expr across R776;
+  relate tim_invocation to tim_invocable across R792;
+  
+  // translate the timer expression
+  select any timer_par related by v_brv->V_PAR[R810] where selected.Name == "timer_inst_ref";
+  select one timer_val related by timer_par->V_VAL[R800];
+  ::transformExpression(v_val:timer_val, expr_number:expr.expression_number + ".1", smt:smt);
+  select any timer_expr related by smt->Expression[R775] where selected.expression_number == expr.expression_number + ".1";
+  relate timer_expr to tim_invocation across R798;
+
+elif invocable.parent_name == "TIM" and invocable.name == "timer_remaining_time"
+  // find or create a generic invocable for the call
+  invoc_name = "remainingTime";
+  select any tim_invocable from instances of InvocableObject
+    where selected.parent_name == "Timer" and selected.parent_package == "io.ciera.runtime.application" and selected.name == invoc_name;
+  if empty tim_invocable
+    create object instance tim_invocable of InvocableObject;
+    tim_invocable.parent_name = "Timer";
+    tim_invocable.parent_package = "io.ciera.runtime.application";
+    tim_invocable.name = invoc_name;
+    create object instance generic_invocable of GenericInvocable;
+    relate generic_invocable to tim_invocable across R427;
+  end if;
+  
+  // create a cast from long to int
+  create object instance cast of Promotion;
+  cast.cast = true;
+  relate cast to expr across R776;
+  
+  // create a new expression for the invocation
+  create object instance invoc_expr of Expression;
+	relate invoc_expr to smt across R775;
+	invoc_expr.expression_number = expr_number + ".1";
+	long_type = ::TypeReference_getBuiltinTypeReference(name:"long");
+	relate long_type to invoc_expr across R795;
+	relate invoc_expr to cast across R3907;
+
+  // create an invocation
+  create object instance tim_invocation of Invocation;
+  relate tim_invocation to invoc_expr across R776;
+  relate tim_invocation to tim_invocable across R792;
+  
+  // translate the timer expression
+  select any timer_par related by v_brv->V_PAR[R810] where selected.Name == "timer_inst_ref";
+  select one timer_val related by timer_par->V_VAL[R800];
+  ::transformExpression(v_val:timer_val, expr_number:invoc_expr.expression_number + ".1", smt:smt);
+  select any timer_expr related by smt->Expression[R775] where selected.expression_number == invoc_expr.expression_number + ".1";
+  relate timer_expr to tim_invocation across R798;
+ 
+elif invocable.parent_name == "TIM" and invocable.name == "timer_add_time"
+  LOG::LogFailure(message:"Cannot translate unsupported deprecated bridge ''TIM::timer_add_time''");
+
+elif invocable.parent_name == "TIM" and invocable.name == "timer_reset_time"
+  LOG::LogFailure(message:"Cannot translate unsupported deprecated bridge ''TIM::timer_reset_time''");
+
+// handle regular bridge calls
 else
 
   select one utility related by util_func->Utility[R4559];
@@ -871,7 +944,6 @@ else
     relate expr2 to invoc across R798;
     named_ref.name = "getDomain()." + utility.name;
     // transform actual parameters
-    select many v_pars related by v_brv->V_PAR[R810];
     ::transformActualParameters( invocation:invoc, v_pars:v_pars, expr_number:expr.expression_number, base_num:2 );
   else
     // TODO bad

@@ -110,7 +110,7 @@ public class TIM extends Utility {
 
     @Deprecated(since = "3.0.0")
     public boolean timer_cancel(final Timer timer_inst_ref) {
-        throw new UnsupportedOperationException("'TIM::timer_cance' is deprecated. Use 'Timer.cancel");
+        throw new UnsupportedOperationException("'TIM::timer_cancel' is deprecated. Use 'Timer.cancel");
     }
 
     @Deprecated(since = "3.0.0")

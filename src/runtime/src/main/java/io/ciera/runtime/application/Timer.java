@@ -89,13 +89,6 @@ public class Timer implements Comparable<Timer>, Named {
         return cancelled;
     }
 
-    public boolean addTime(long duration) {
-        boolean cancelled = this.cancel();
-        expiration += duration;
-        context.scheduleEvent(event, target, this);
-        return cancelled;
-    }
-
     public boolean cancel() {
         return context.getClock().cancelTimer(context, this);
     }
