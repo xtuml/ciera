@@ -101,7 +101,6 @@ if (param.pass == 1)
   // create the component definition object
   create object instance comp_def of ComponentDefinition;
   relate comp_def to file across R401;
-  comp_def.extends = "Component<" + comp_def.name + ">";
   comp_def.version = "";
   comp_def.version_date = "";
   
@@ -136,21 +135,8 @@ if (param.pass == 1)
   end for;
  
   // create import block
-  ::addStringToImports(file:file, s:"io.ciera.runtime.summit.application.IApplication", type:ImportType::IMPL);
-  ::addStringToImports(file:file, s:"io.ciera.runtime.summit.application.IRunContext", type:ImportType::IMPL);
-  ::addStringToImports(file:file, s:"io.ciera.runtime.summit.components.Component", type:ImportType::IMPL);
-  ::addStringToImports(file:file, s:"io.ciera.runtime.summit.classes.IModelInstance", type:ImportType::IMPL);
-  ::addStringToImports(file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL);
-  ::addStringToImports(file:file, s:"io.ciera.runtime.summit.exceptions.BadArgumentException", type:ImportType::IMPL);
-  ::addStringToImports(file:file, s:"io.ciera.runtime.summit.exceptions.EmptyInstanceException", type:ImportType::IMPL);
-
-  ::addStringToImports(file:file, s:"java.util.Map", type:ImportType::IMPL);
-  ::addStringToImports(file:file, s:"java.util.TreeMap", type:ImportType::IMPL);
-  
-  if ("" != component_version)
-    ::addStringToImports(file:file, s:"java.io.IOException", type:ImportType::IMPL);
-    ::addStringToImports(file:file, s:"java.util.Properties", type:ImportType::IMPL);
-  end if;
+  ::addStringToImports(file:file, s:"io.ciera.runtime.application.Application", type:ImportType::IMPL);
+  ::addStringToImports(file:file, s:"io.ciera.runtime.domain.Domain", type:ImportType::IMPL);
 
 elif (param.pass == 2)
 
@@ -240,8 +226,10 @@ INSERT INTO S_SYNC
 	'transformMaslApplication',
 	'',
 	'// get application marks
-select any app_name_mark from instances of Mark where ( selected.markable_name == "*" and selected.path == "*" and selected.feature_name == "ApplicationName" );
-select any app_pkg_mark from instances of Mark where ( selected.markable_name == "*" and selected.path == "*" and selected.feature_name == "ApplicationPackage" );
+select any app_name_mark from instances of Mark
+  where selected.markable_name == "*" and selected.path == "*" and selected.feature_name == "ApplicationName";
+select any app_pkg_mark from instances of Mark where
+  selected.markable_name == "*" and selected.path == "*" and selected.feature_name == "ApplicationPackage";
 
 // create the file
 create object instance file of File;
@@ -270,6 +258,13 @@ file.exclude = false;
 // create the application object
 create object instance app of Application;
 relate app to file across R401;
+
+// check simulated time
+select any sim_time_mark from instances of Mark where selected.feature_name == "EnableSimulatedTime";
+if (not_empty sim_time_mark)
+  LOG::LogInfo(message:"Enabling simulated time");
+  app.simulated_time = true;
+end if;
 
 // create application executors
 index = 0;
@@ -308,14 +303,10 @@ for each domain in domains
 end for;
 
 // create the import block
-::addStringToImports( file:file, s:"io.ciera.runtime.summit.application.tasks.HaltExecutionTask", type:ImportType::IMPL );
-::addStringToImports( file:file, s:"io.ciera.runtime.summit.application.tasks.GenericExecutionTask", type:ImportType::IMPL );
-::addStringToImports( file:file, s:"java.util.Arrays", type:ImportType::IMPL );
-::addStringToImports( file:file, s:"io.ciera.runtime.summit.application.ApplicationExecutor", type:ImportType::IMPL );
-::addStringToImports( file:file, s:"io.ciera.runtime.summit.application.IApplication", type:ImportType::IMPL );
-::addStringToImports( file:file, s:"io.ciera.runtime.summit.application.ILogger", type:ImportType::IMPL );
-::addStringToImports( file:file, s:"io.ciera.runtime.summit.components.IComponent", type:ImportType::IMPL );
-::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL );',
+::addStringToImports(file:file, s:"io.ciera.runtime.application.Application", type:ImportType::IMPL);
+if (app.simulated_time)
+  ::addStringToImports(file:file, s:"io.ciera.runtime.application.SimulatedClock", type:ImportType::IMPL);
+end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -431,11 +422,6 @@ comp_def = param.comp_def;
 select one component_file related by comp_def->File[R401];
 path = component_file.path + "/" + "classes";  // put all classes in one package called ''classes''
 
-// get key letters mark
-select any key_letter_mark from instances of Mark where (selected.markable_name == "Object" and
-  selected.feature_name == "key_letter" and
-  selected.path == "" + domain.name + "::" + object_declaration.name);
-
 // create the object file
 create object instance file of File;
 file.name = ::camelCaseName(name:object_declaration.name, start_lower:false );
@@ -447,12 +433,6 @@ file.exclude = false;
 // create the object
 create object instance obj of Class;
 relate obj to file across R401;
-if (not_empty key_letter_mark)
-  obj.key_letters = key_letter_mark.value;
-else
-  obj.key_letters = file.name;
-end if;
-obj.extends = "ModelInstance<" + obj.name + "," + comp_def.name + ">";
 
 // add the class to the component
 relate obj to comp_def across R408;
@@ -464,7 +444,7 @@ relate obj to object_declaration across R8300;
 create object instance type of Type;
 type.name = obj.name;
 type.package = obj.package;
-type.default_value = obj.name + "Impl.EMPTY_" + T::sub( format:"_u", s:obj.name );
+type.default_value = obj.name + ".EMPTY";
 relate type to obj across R407;
 
 // transform attributes
@@ -503,38 +483,29 @@ for each evt in evts
   evt_number = evt_number + 1;
 end for;
 
-// transform transition tables
-select many transition_tables related by object_declaration->TransitionTable[R6113];
-for each transition_table in transition_tables
+// transform transition table
+select any transition_table related by object_declaration->TransitionTable[R6113];
+if empty transition_table
+  ::addStringToImports(file:file, s:"io.ciera.runtime.domain.ObjectInstance", type:ImportType::IMPL);
+else
   ::transformTransitionTable(transition_table:transition_table, obj:obj);
-end for;
+  ::addStringToImports(file:file, s:"io.ciera.runtime.domain.DynamicObjectInstance", type:ImportType::IMPL);
+end if;
 
 // transform the set object
 ::transformObjectSet(obj:obj, path:path);
 
 // add to the containing component imports
-select one set_file related by obj->ClassSet[R406]->File[R401];
+select one component_file related by comp_def->File[R401];
 ::addFileToImports(file:component_file, file_to_import:file, type:ImportType::IMPL);
-::addFileToImports(file:component_file, file_to_import:set_file, type:ImportType::IMPL);
-::addStringToImports(file:component_file, s: ::pathToPackage( path:file.path ) + ".impl." + file.name + "Impl", type:ImportType::IMPL);
-::addStringToImports(file:component_file, s: ::pathToPackage( path:set_file.path ) + ".impl." + set_file.name + "Impl", type:ImportType::IMPL);
-::addStringToImports(file:component_file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL);
 
 // create the import block
 ::addFileToImports(file:file, file_to_import:component_file, type:ImportType::BOTH);
-
-::addFileToImports(file:file, file_to_import:file, type:ImportType::IMPL);
-::addStringToImports(file:file, s:"io.ciera.runtime.summit.application.IRunContext", type:ImportType::IMPL);
-::addStringToImports(file:file, s:"io.ciera.runtime.summit.classes.InstanceIdentifier", type:ImportType::IMPL);
-::addStringToImports(file:file, s:"io.ciera.runtime.summit.classes.IInstanceIdentifier", type:ImportType::IMPL);
-::addStringToImports(file:file, s:"io.ciera.runtime.summit.classes.IModelInstance", type:ImportType::INT);
-::addStringToImports(file:file, s:"io.ciera.runtime.summit.classes.ModelInstance", type:ImportType::IMPL);
-::addStringToImports(file:file, s:"io.ciera.runtime.summit.exceptions.InstancePopulationException", type:ImportType::IMPL);
-::addStringToImports(file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL);
-::addStringToImports(file:file, s:"io.ciera.runtime.summit.types.IWhere", type:ImportType::IMPL);
-::addStringToImports(file:file, s:"io.ciera.runtime.summit.types.IXtumlType", type:ImportType::IMPL);
-::addStringToImports(file:file, s:"io.ciera.runtime.summit.types.UniqueId", type:ImportType::IMPL);
-::addStringToImports(file:file, s:"io.ciera.runtime.instanceloading.InstanceCreatedDelta", type:ImportType::IMPL);',
+::addStringToImports(file:file, s:"io.ciera.runtime.application.ExecutionContext", type:ImportType::IMPL);
+::addStringToImports(file:file, s:"io.ciera.runtime.application.Logger", type:ImportType::IMPL);
+::addStringToImports(file:file, s:"io.ciera.runtime.exceptions.EmptyInstanceException", type:ImportType::IMPL);
+::addStringToImports(file:file, s:"io.ciera.runtime.types.UniqueId", type:ImportType::IMPL);
+ ',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -578,42 +549,25 @@ INSERT INTO S_SYNC
 	'',
 	'obj = param.obj;
 
-// create the object file
-create object instance file of File;
-file.name = obj.name + "Set";
-file.path = param.path;
-file.package = ::pathToPackage(path:file.path);
-file.extension = ".java";
-file.exclude = false;
+// create the instance type
+create object instance type of Type;
+type.name = obj.name + ".Set";
+type.package = obj.package;
+type.default_value = "new " + type.name + "()";
 
 // create the class set object
 create object instance objset of ClassSet;
 relate objset to obj across R406;
-relate objset to file across R401;
-objset.extends = "InstanceSet<" + objset.name + "," + obj.name + ">";
-objset.comparator = "";
+relate objset to type across R407;
 
-// create the instance type
-create object instance type of Type;
-type.name = objset.name;
-type.package = objset.package;
-type.default_value = "new " + objset.name + "Impl()";
-relate type to objset across R407;
-
-// create the import block
-select one objfile related by obj->File[R401];
-::addFileToImports(file:file, file_to_import:file, type: ImportType::IMPL);
-::addFileToImports(file:file, file_to_import:objfile, type: ImportType::IMPL);
-::addStringToImports(file:file, s:"java.util.Arrays", type:ImportType::IMPL);
+// add to imports
+select one file related by obj->File[R401];
+::addStringToImports(file:file, s:"io.ciera.runtime.types.BaseSet", type:ImportType::IMPL);
+::addStringToImports(file:file, s:"java.util.Collection", type:ImportType::IMPL);
 ::addStringToImports(file:file, s:"java.util.Comparator", type:ImportType::IMPL);
-::addStringToImports(file:file, s:"java.util.List", type:ImportType::IMPL);
-::addStringToImports(file:file, s:"io.ciera.runtime.summit.classes.InstanceSet", type:ImportType::IMPL);
-::addStringToImports(file:file, s:"io.ciera.runtime.summit.classes.IInstanceSet", type:ImportType::INT);
-
-select any attr related by objset->Class[R406]->Attribute[R410];
-if (not_empty attr)
-  ::addStringToImports(file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::BOTH);
-end if;',
+::addStringToImports(file:file, s:"java.util.SortedSet", type:ImportType::IMPL);
+::addStringToImports(file:file, s:"java.util.function.Predicate", type:ImportType::IMPL);
+::addStringToImports(file:file, s:"java.util.stream.Collectors", type:ImportType::IMPL);',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -671,10 +625,6 @@ create object instance port of Port;
 relate port to port_file across R401;
 port.port_name = ::camelCaseName(name:domain_terminator.name, start_lower:false);
 
-// set base class
-port.base_class = "Port";
-::addStringToImports(file:port_file, s:"io.ciera.runtime.summit.interfaces.Port", type:ImportType::IMPL);
-
 // set port as requirer
 port.provider = false;
 
@@ -683,7 +633,7 @@ relate port to comp_def across R417;
 
 // create the interface file
 create object instance iface_file of File;
-iface_file.name = "I" + ::camelCaseName(name:domain_terminator.name, start_lower:false);
+iface_file.name = ::camelCaseName(name:domain_terminator.name, start_lower:false);
 iface_file.path = param.path;
 iface_file.package = ::pathToPackage( path:iface_file.path );
 iface_file.extension = ".java";
@@ -704,13 +654,14 @@ end for;
 
 // add to component file
 select one component_file related by comp_def->File[R401];
+::addFileToImports(file:component_file, file_to_import:iface_file, type:ImportType::IMPL);
 ::addFileToImports(file:component_file, file_to_import:port_file, type:ImportType::IMPL);
 
-// add imports
-::addStringToImports(file:port_file, s:"io.ciera.runtime.summit.exceptions.BadArgumentException", type:ImportType::IMPL);
-::addStringToImports(file:port_file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL);
-::addStringToImports(file:port_file, s:"io.ciera.runtime.summit.interfaces.IMessage", type:ImportType::IMPL);
-::addStringToImports(file:port_file, s:"io.ciera.runtime.summit.interfaces.IPort", type:ImportType::IMPL);
+// add imports to iface file
+::addStringToImports(file:iface_file, s:"io.ciera.runtime.application.MessageTarget", type:ImportType::IMPL);
+
+// add imports to port file
+::addStringToImports(file:port_file, s:"io.ciera.runtime.domain.Terminator", type:ImportType::IMPL);
 ::addFileToImports(file:port_file, file_to_import:component_file, type:ImportType::IMPL);
 ::addFileToImports(file:port_file, file_to_import:iface_file, type:ImportType::IMPL);',
 	"ba5eda7a-def5-0000-0000-000000000000",
@@ -767,6 +718,7 @@ INSERT INTO S_SYNC
 select one service related by terminator_service->Service[R5203];
 iface = param.iface;
 index = param.index;
+port = param.port;
 
 // create message object
 create object instance msg of Message;
@@ -775,12 +727,6 @@ msg.to_provider = true;
 msg.id = index;
 relate msg to iface across R419;
 
-select one iface_file related by iface->File[R401];
-::addStringToImports( file:iface_file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL );
-::addStringToImports( file:iface_file, s:"io.ciera.runtime.summit.interfaces.Message", type:ImportType::IMPL );
-
-port = param.port;
-select one port_file related by port->File[R401];
 
 // create port message
 create object instance port_msg of PortMessage;
@@ -812,7 +758,11 @@ relate type to invocable across R428;
 
 // create parameters
 select one first_parameter related by service->ParameterDefinition[R5204];
-::transformParameterList(first_parameter:first_parameter, invocable:invocable);',
+::transformParameterList(first_parameter:first_parameter, invocable:invocable);
+
+// add imports to iface file
+select one iface_file related by iface->File[R401];
+::addStringToImports(file:iface_file, s:"io.ciera.runtime.domain.Message", type:ImportType::IMPL);',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -1128,13 +1078,7 @@ if (not_empty assoc)
 end if; end if; end if;
 
 // add necessary imports
-::addStringToImports(file:file, s:"io.ciera.runtime.summit.classes.RelationshipSet", type:ImportType::IMPL);
-::addStringToImports(file:file, s:"io.ciera.runtime.summit.classes.Relationship", type:ImportType::IMPL);
-::addStringToImports(file:file, s:"io.ciera.runtime.summit.classes.IRelationshipSet", type:ImportType::IMPL);
-::addStringToImports(file:file, s:"io.ciera.runtime.summit.exceptions.BadArgumentException", type:ImportType::IMPL);
-::addStringToImports(file:file, s:"io.ciera.runtime.summit.exceptions.EmptyInstanceException", type:ImportType::IMPL);
-::addStringToImports(file:file, s:"io.ciera.runtime.summit.exceptions.ModelIntegrityException", type:ImportType::IMPL);
-::addStringToImports(file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL);',
+::addStringToImports( file:file, s:"io.ciera.runtime.exceptions.EmptyInstanceException", type:ImportType::IMPL );',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -1223,12 +1167,10 @@ relate setter to attr across R4510;
 
 // add import to object file
 select one file related by obj->File[R401];
-::addStringToImports(file:file, s:"io.ciera.runtime.instanceloading.AttributeChangedDelta", type:ImportType::IMPL);
-::addStringToImports(file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::BOTH);
-::addStringToImports(file:file, s:"io.ciera.runtime.summit.exceptions.EmptyInstanceException", type:ImportType::IMPL);
-if (type.type_name == "String" and type.type_package == "")
-  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.StringUtil", type:ImportType::IMPL );
-end if;',
+::addStringToImports(file:file, s:"io.ciera.runtime.exceptions.EmptyInstanceException", type:ImportType::IMPL);
+::addStringToImports(file:file, s:"io.ciera.runtime.exceptions.InstancePopulationException", type:ImportType::IMPL);
+select one type_def related by type->Type[R3800];
+::addTypeToImports(file:file, type_to_import:type_def, type:ImportType::IMPL);',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -1318,11 +1260,9 @@ select one first_parameter related by service->ParameterDefinition[R5204];
 
 // add imports
 select one class_file related by obj->File[R401];
-::addStringToImports(file:class_file, s:"io.ciera.runtime.summit.exceptions.EmptyInstanceException", type:ImportType::IMPL);
-if (op.is_class_based)
-  ::addStringToImports(file:class_file, s:"io.ciera.runtime.summit.application.ActionHome", type:ImportType::IMPL);
-end if;
-::addStringToImports(file:class_file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::BOTH);
+::addStringToImports(file:class_file, s:"io.ciera.runtime.exceptions.EmptyInstanceException", type:ImportType::IMPL);
+select one type_def related by type->Type[R3800];
+::addTypeToImports(file:class_file, type_to_import:type_def, type:ImportType::IMPL);
 
 // if this is an optional deferred operation, create a second operation for the supertype implementation
 // TODO',
@@ -1393,7 +1333,7 @@ state.number = param.number;
 
 // create invocable
 create object instance invocable of InvocableObject;
-invocable.name = T::sub(format:"_", s:maslstate.name);
+invocable.name = T::sub(format:"_u", s:maslstate.name);
 invocable.parent_name = sm.name;
 invocable.parent_package = sm.package;
 relate state to invocable across R427;
@@ -1495,12 +1435,12 @@ relate type to invocable across R428;
 select one first_parameter related by maslevt->ParameterDefinition[R6100];
 ::transformParameterList(first_parameter:first_parameter, invocable:invocable);
 
-// add import
-select one class_file related by obj->File[R401];
-::addStringToImports(file:class_file, s:"io.ciera.runtime.summit.statemachine.Event", type:ImportType::IMPL);
-
 // link to masl event
-relate evt to maslevt across R8303;',
+relate evt to maslevt across R8303;
+
+// add imports
+select one file related by sm->File[R401];
+::addStringToImports(file:file, s:"io.ciera.runtime.application.Event", type:ImportType::IMPL);',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',

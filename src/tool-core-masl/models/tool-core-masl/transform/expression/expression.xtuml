@@ -223,9 +223,9 @@ select one console_literal related by literal_expression->ConsoleLiteral[R5700];
 if not_empty console_literal
 	create object instance named_ref of NamedReference;
 	relate named_ref to expr across R776;
-  named_ref.name = "BaseDevice.console()";
+  named_ref.name = "Device.console()";
   file = ::getFileForStatement(smt:smt);
-  ::addStringToImports(file:file, s:"io.ciera.runtime.summit.types.BaseDevice", type:ImportType::IMPL);
+  ::addStringToImports(file:file, s:"io.ciera.runtime.types.Device", type:ImportType::IMPL);
 end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; ',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -372,7 +372,7 @@ relate cr to obj across R780;
 select one class_file related by obj->File[R401];
 
 // add import
-::addStringToImports(file: ::getFileForStatement(smt:smt), s: ::pathToPackage(path:class_file.path) + ".impl." + class_file.name + "Impl", type:ImportType::IMPL);',
+::addTypeToImports(file: ::getFileForStatement(smt:smt), type_to_import:inst_type, type:ImportType::IMPL);',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -600,29 +600,15 @@ else
 		if (l_type.primitive())
 			binary.operator = "==";
 		else
-			if ("String" == l_type.name and "" == l_type.package)
-				binary.operator = "StringUtil.equality";
-				binary.invocation = true;
-				binary.util = true;
-				::addStringToImports(file:file, s:"io.ciera.runtime.summit.types.StringUtil", type:ImportType::IMPL);
-			else
-				binary.operator = "equality";
-				binary.invocation = true;
-			end if;
+			binary.operator = "equals";
+			binary.invocation = true;
 		end if;
 	elif (binary_expression.operator == Operator::notequal)
 		if (l_type.primitive())
 			binary.operator = "!=";
 		else
-			if ("String" == l_type.name and "" == l_type.package)
-				binary.operator = "StringUtil.inequality";
-				binary.invocation = true;
-				binary.util = true;
-				::addStringToImports(file:file, s:"io.ciera.runtime.summit.types.StringUtil", type:ImportType::IMPL);
-			else
-				binary.operator = "inequality";
-				binary.invocation = true;
-			end if;
+			binary.operator = "inequality";  // TODO
+			binary.invocation = true;
 		end if;
 	elif (binary_expression.operator == Operator::lessthan)
 		if (l_type.primitive())
@@ -865,7 +851,7 @@ if (not_empty domain_service_invocation)
 		create object instance named_ref of NamedReference;
 		relate named_ref to expr2 across R776;
 		relate expr2 to invoc across R798;
-		named_ref.name = "context()";
+		named_ref.name = "getDomain()";
 		// transform actual parameters
 		select one first_argument related by call_expression->Argument[R5575];
 		if (not_empty first_argument)

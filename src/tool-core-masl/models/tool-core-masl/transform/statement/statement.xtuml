@@ -48,23 +48,9 @@ invocable = param.invocable;
 create object instance block of CodeBlock;
 if (empty upper_block)
 	block.top_level = true;
-	block.tab_depth = 1;
-	select one port_msg related by invocable->PortMessage[R427];
-	if (not_empty port_msg)
-		select one port related by port_msg->Port[R420];
-		select one msg related by port_msg->Message[R420];
-		if ((msg.to_provider and not port.provider) or (not msg.to_provider and port.provider))
-			block.tab_depth = 2; // increase the tab depth by one for bodies which belong to outbound port messages
-		end if;
-	end if;
-	select one class_op related by invocable->Operation[R427] where (selected.is_class_based);
-	if (not_empty class_op)
-		block.tab_depth = 2; // increase the tab depth by one for bodies which belong to class based operations
-	end if;
 else
 	select one invocable related by upper_block->InvocableObject[R4000];
 	block.top_level = false;
-	block.tab_depth = upper_block.tab_depth + 1;
 end if;
 relate block to invocable across R4000;
 block.block_number = param.block_number;
@@ -601,11 +587,6 @@ else
 	create object instance named_expr of NamedReference;
 	named_expr.name = expr_type.default_value;
 	relate named_expr to r_op across R776;
-	// if this is an instance type, must import the implementation class
-	select one class_file related by expr_type->Class[R407]->File[R401];
-	if (not_empty class_file)
-    ::addStringToImports(file: ::getFileForStatement(smt:smt), s: ::pathToPackage(path:class_file.path) + ".impl." + class_file.name + "Impl", type:ImportType::IMPL);
-  end if;
 end if;
 select any r_op related by smt->Expression[R775] where (selected.expression_number == "1.2");
 relate r_op to binop across R778;
@@ -768,7 +749,6 @@ select one invocable related by upper_block->InvocableObject[R4000];
 create object instance block of CodeBlock;
 relate block to invocable across R4000;
 block.block_number = param.block_number;
-block.tab_depth = upper_block.tab_depth;  // keep same tab depth
 
 // copy visibile variables from upper block
 select many vars related by upper_block->Variable[R458];
@@ -1094,7 +1074,7 @@ if (not_empty domain_service_invocation)
 		create object instance named_ref of NamedReference;
 		relate named_ref to expr2 across R776;
 		relate expr2 to invoc across R798;
-		named_ref.name = "context()";
+		named_ref.name = "getDomain()";
 		// transform actual parameters
 		select one first_argument related by service_call->ServiceInvocation[R5161]->CallExpression[R5500]->Argument[R5575];
 		if (not_empty first_argument)
@@ -1136,7 +1116,7 @@ if (not_empty terminator_service_invocation)
 		// create named reference
 		create object instance named_ref of NamedReference;
 		relate named_ref to expr2 across R776;
-		named_ref.name = "context()." + target_port.port_name + "()";
+		named_ref.name = "getDomain()." + target_port.port_name + "()";
 		// transform actual parameters
 		select one first_argument related by service_call->ServiceInvocation[R5161]->CallExpression[R5500]->Argument[R5575];
 		if (not_empty first_argument)
@@ -1415,65 +1395,42 @@ end if;
 smt.actions = masl_statement.actions;
 
 select one evt related by generate_statement->EventDeclaration[R5112]->Event[R8303];
+select one evt_sm related by evt->StateMachine[R4752];
 select one target related by generate_statement->MaslExpression[R5113]; // TODO if empty, assigner or creation
 
 // create generate statement
 create object instance gen_smt of Generate;
 relate gen_smt to smt across R451;
+gen_smt.to_self = false;
 
-// create the event expression
+// create event reference expression
 create object instance evt_expr of Expression;
 relate evt_expr to smt across R775;
 evt_expr.expression_number = "1";
-evt_type_ref = ::TypeReference_getBuiltinTypeReference(name:"EventHandle");
-relate evt_type_ref to evt_expr across R795;
+void_type_ref = ::TypeReference_getBuiltinTypeReference(name:"void");
+relate void_type_ref to evt_expr across R795;
+create object instance named_ref of NamedReference;
+relate named_ref to evt_expr across R776;
+named_ref.name = evt_sm.name + "." + evt.name + ".class";
 relate evt_expr to gen_smt across R486;
 
-// create event creation
-create object instance evt_cr of EventCreation;
-relate evt_cr to evt_expr across R776;
-select one this_literal related by target->LiteralExpression[R5517]->ThisLiteral[R5700];
-evt_cr.to_self = not_empty this_literal;
-
-// create the event invocation
-create object instance invoc_expr of Expression;
-relate invoc_expr to smt across R775;
-invoc_expr.expression_number = evt_expr.expression_number + ".1";
-relate evt_type_ref to invoc_expr across R795;
-relate invoc_expr to evt_cr across R3903;
-create object instance invoc of Invocation;
-relate invoc to invoc_expr across R776;
-select one evt_invocable related by evt->InvocableObject[R427];
-relate invoc to evt_invocable across R792;
-
-// create named reference expression
-create object instance expr2 of Expression;
-relate expr2 to smt across R775;
-expr2.expression_number = invoc_expr.expression_number + ".1";
-select one obj related by evt->StateMachine[R4752]->Class[R4750];
-select one inst_type related by obj->Type[R407];
-inst_type_ref = ::TypeReference_getInstanceWithDimString(type:inst_type, dims:"");
-relate inst_type_ref to expr2 across R795;
-
-// create named reference
-create object instance named_ref of NamedReference;
-relate named_ref to expr2 across R776;
-relate expr2 to invoc across R798;
-named_ref.name = obj.name + "Impl";
+// translate the target expression
+::transformMaslExpression(masl_expression:target, expr_number:"2", smt:smt);
+select any target_expr related by smt->Expression[R775] where (selected.expression_number == "2");
+relate target_expr to gen_smt across R487;
+select one this_lit related by target->LiteralExpression[R5517]->ThisLiteral[R5700];
+gen_smt.to_self = not_empty this_lit;
 
 // transform actual parameters
 select one first_argument related by generate_statement->Argument[R5114];
 if (not_empty first_argument)
-	::transformArguments(invocation:invoc, first_argument:first_argument, expr_number:invoc_expr.expression_number, base_num:2);
+  select any null_expr from Expression where false;
+  ::transformEventArguments(smt:smt, expr:null_expr, evt:evt, first_argument:first_argument, base_num:3);
 end if;
 
-// translate the target expression
-::transformMaslExpression(masl_expression:target, expr_number:evt_expr.expression_number + ".2", smt:smt);
-select any target_expr related by smt->Expression[R775] where (selected.expression_number == evt_expr.expression_number + ".2");
-relate evt_cr to target_expr across R3902;
-
 // add import for class
-::addStringToImports(file: ::getFileForStatement(smt:smt), s:obj.package + ".impl." + obj.name + "Impl", type:ImportType::IMPL);',
+select one sm_file related by evt_sm->File[R401];
+::addFileToImports(file: ::getFileForStatement(smt:smt), file_to_import:sm_file, type:ImportType::IMPL);',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -1515,6 +1472,132 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("c8d9feec-a01c-423a-b5dd-4018603cf34c",
+	1,
+	"c45f2f21-d5ff-4652-999f-d4808df1e2ef",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("f1e1f580-d2e9-48bd-96b7-0a51baad4b9a",
+	"00000000-0000-0000-0000-000000000000",
+	'transformEventArguments',
+	'',
+	'smt = param.smt;
+expr = param.expr;
+evt = param.evt;
+argument = param.first_argument;
+base_num = param.base_num;
+
+expr_number = "";
+if not_empty expr
+  expr_number = expr.expression_number;
+end if;
+
+select one generate_smt related by smt->Generate[R451];
+select one schedule_expr related by expr->Schedule[R776];
+order = 1;
+
+// loop through and transform each argument 
+while not_empty argument
+  
+  // transform the expression
+  select one masl_expr related by argument->MaslExpression[R5577];
+  if (expr_number != "")
+    expr_number = expr_number + ".";
+  end if;
+  expr_number = expr_number + STRING::itoa(i:base_num);
+  ::transformMaslExpression(masl_expression:masl_expr, expr_number:expr_number, smt:smt);
+  select any expr related by smt->Expression[R775] where selected.expression_number == expr_number;
+  
+  // relate to the statement
+  if not_empty generate_smt
+		create object instance evt_arg of GenerateEventArgument;
+		evt_arg.order = order;
+		relate expr to generate_smt across R488 using evt_arg;
+	elif not_empty schedule_expr
+		create object instance evt_arg of ScheduleEventArgument;
+		evt_arg.order = order;
+		relate expr to schedule_expr across R3913 using evt_arg;
+	else
+	  LOG::LogFailure(message:"cannot transform event parameter");
+	end if;
+  
+  order = order + 1;
+  base_num = base_num + 1;
+  select one argument related by argument->Argument[R5576.''precedes''];
+end while;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	1);
+INSERT INTO S_SPARM
+	VALUES ("87514003-a556-4df1-8440-59c3b64ce81d",
+	"f1e1f580-d2e9-48bd-96b7-0a51baad4b9a",
+	'smt',
+	"b586ec7e-41fe-4d50-9cf3-27b173e9848a",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("13198f57-b8a6-448f-9847-e6da15babd53",
+	"f1e1f580-d2e9-48bd-96b7-0a51baad4b9a",
+	'evt',
+	"6f9d5490-60e9-489c-a2c7-507dc913da72",
+	0,
+	'',
+	"2738430d-a58c-4337-b21e-fe000f797d98",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("6f9d5490-60e9-489c-a2c7-507dc913da72",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Event>',
+	'',
+	'',
+	'../../../../../core-architecture/models/core-architecture/architecture/statemachine/statemachine.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("589022bd-afc0-447c-87cb-c452f77f109e",
+	"f1e1f580-d2e9-48bd-96b7-0a51baad4b9a",
+	'first_argument',
+	"55087eb6-f47a-4ad0-9d03-015c8f3c3663",
+	0,
+	'',
+	"13198f57-b8a6-448f-9847-e6da15babd53",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("55087eb6-f47a-4ad0-9d03-015c8f3c3663",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Argument>',
+	'',
+	'',
+	'../../../../../ooamasl/models/ooamasl/ooamasl/expression/expression.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("2738430d-a58c-4337-b21e-fe000f797d98",
+	"f1e1f580-d2e9-48bd-96b7-0a51baad4b9a",
+	'expr',
+	"c732060c-653b-48f6-8ce5-99439b2a9c63",
+	0,
+	'',
+	"87514003-a556-4df1-8440-59c3b64ce81d",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("c732060c-653b-48f6-8ce5-99439b2a9c63",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Expression>',
+	'',
+	'',
+	'../../../../../core-architecture/models/core-architecture/architecture/expression/expression.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("b710a87b-de9c-41b0-acfa-9a3e514f5bc3",
+	"f1e1f580-d2e9-48bd-96b7-0a51baad4b9a",
+	'base_num',
+	"ba5eda7a-def5-0000-0000-000000000002",
+	0,
+	'',
+	"589022bd-afc0-447c-87cb-c452f77f109e",
+	'');
+INSERT INTO PE_PE
+	VALUES ("f1e1f580-d2e9-48bd-96b7-0a51baad4b9a",
 	1,
 	"c45f2f21-d5ff-4652-999f-d4808df1e2ef",
 	"00000000-0000-0000-0000-000000000000",

@@ -54,13 +54,13 @@ for each masltype in masltypes
 		type_primitive = true;
 		type_default_value = "false";
   elif (masltype_name == "event")
-		type_name = "EventHandle";
-		type_package = "io.ciera.runtime.summit.statemachine";
-		type_default_value = "new EventHandle()";
+		type_name = "Event";
+		type_package = "io.ciera.runtime.application";
+		type_default_value = "null";
   elif (masltype_name == "timer")
-		type_name = "TimerHandle";
-		type_package = "io.ciera.runtime.summit.time";
-		type_default_value = "new TimerHandle()";
+		type_name = "Timer";
+		type_package = "io.ciera.runtime.application";
+		type_default_value = "null";
   elif (masltype_name == "integer")
 		type_name = "int";
 		type_primitive = true;
@@ -78,17 +78,17 @@ for each masltype in masltypes
 		type_primitive = true;
 		type_default_value = "0L";
   elif (masltype_name == "duration")
-		type_name = "long";
-		type_primitive = true;
-		type_default_value = "0L";
+		type_name = "Duration";
+		type_package = "io.ciera.runtime.types";
+		type_default_value = "new Duration(0l)";
   elif (masltype_name == "instance")
-		type_name = "IModelInstance";
-		type_package = "io.ciera.runtime.summit.classes";
+		type_name = "ObjectInstance";
+		type_package = "io.ciera.runtime.domain";
 		type_inst = true;
 		type_default_value = "null";
   elif (masltype_name == "device")
 		type_name = "Device";
-		type_package = "io.ciera.runtime.summit.types";
+		type_package = "io.ciera.runtime.types";
 		type_default_value = "null";
 /* TODO other masl types
   elif (masltype_name == "byte")
@@ -130,7 +130,7 @@ builtin1.instset = false;
 // create unique id type
 create object instance type2 of Type;
 type2.name = "UniqueId";
-type2.package = "io.ciera.runtime.summit.types";
+type2.package = "io.ciera.runtime.types";
 type2.default_value = "new UniqueId()";
 create object instance builtin2 of BuiltInType;
 relate builtin2 to type2 across R407;
@@ -170,17 +170,14 @@ relate sm to file across R401;
 relate sm to obj across R4750;
 
 // add imports
-::addStringToImports(file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL);
-::addStringToImports(file:file, s:"io.ciera.runtime.summit.statemachine.ITransition", type:ImportType::IMPL);
-::addStringToImports(file:file, s:"io.ciera.runtime.summit.statemachine.StateMachine", type:ImportType::IMPL);
+::addStringToImports(file:file, s:"io.ciera.runtime.domain.InstanceStateMachine", type:ImportType::IMPL);
+::addStringToImports(file:file, s:"io.ciera.runtime.domain.TransitionRule", type:ImportType::IMPL);
+::addStringToImports(file:file, s:"io.ciera.runtime.exceptions.TransitionException", type:ImportType::IMPL);
 
 select one class_file related by obj->File[R401];
 select one comp_file related by obj->ComponentDefinition[R408]->File[R401];
 ::addFileToImports(file:file, file_to_import:class_file, type:ImportType::IMPL);
-::addFileToImports(file:file, file_to_import:comp_file, type:ImportType::IMPL);
-
-::addStringToImports(file:class_file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL);
-::addStringToImports(file:class_file, s:"io.ciera.runtime.summit.statemachine.IEvent", type:ImportType::IMPL);',
+::addFileToImports(file:file, file_to_import:comp_file, type:ImportType::IMPL);',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
