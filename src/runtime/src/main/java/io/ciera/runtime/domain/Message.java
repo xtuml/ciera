@@ -12,14 +12,18 @@ import io.ciera.runtime.types.UniqueId;
 public class Message implements Comparable<Message>, Named {
 
     private UniqueId messageHandle;
-    private int messageId;
+    private Enum<?> messageId;
     private Object[] parameterData;
 
     public Message() {
-        this(new UniqueId(), 0, new Object[0]);
+        this(new UniqueId(), null, new Object[0]);
+    }
+    
+    public Message(Enum<?> id, Object...data) {
+        this(UniqueId.random(), id, data);
     }
 
-    public Message(UniqueId messageHandle, int id, Object... data) {
+    public Message(UniqueId messageHandle, Enum<?> id, Object... data) {
         this.messageHandle = messageHandle;
         this.messageId = id;
         this.parameterData = data;
@@ -71,7 +75,7 @@ public class Message implements Comparable<Message>, Named {
      * Get the message number for this message. This number uniquely identifies an
      * abstract message in an interface.
      */
-    public int getId() {
+    public Enum<?> getId() {
         return messageId;
     }
 

@@ -6,6 +6,7 @@ import io.ciera.runtime.application.Logger;
 import io.ciera.runtime.application.MessageTarget;
 import io.ciera.runtime.application.Named;
 import io.ciera.runtime.application.task.ReceivedMessage;
+import io.ciera.runtime.exceptions.TerminatorException;
 
 public abstract class Terminator implements ActionHome, MessageTarget, Named {
 
@@ -30,10 +31,16 @@ public abstract class Terminator implements ActionHome, MessageTarget, Named {
     }
 
     @Override
-    public abstract void deliver(Message message);
+    public void deliver(Message message) {
+        throw new TerminatorException("Terminator " + getName() + " does not implement any incoming message types.");
+    }
 
     public void setPeer(Terminator peer) {
         this.peer = peer;
+    }
+
+    public boolean satisfied() {
+        return peer != null;
     }
 
     @Override

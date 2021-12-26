@@ -25,7 +25,7 @@ public class SerializableMessage extends Message {
         super();
     }
 
-    public SerializableMessage(UniqueId messageHandle, int id, Object... data) {
+    public SerializableMessage(UniqueId messageHandle, Enum<?> id, Object... data) {
         super(messageHandle, id, data);
     }
 
@@ -50,7 +50,7 @@ public class SerializableMessage extends Message {
             String name = msg.getString(MESSAGE_NAME); // TODO need this?
             int id = msg.getInt(MESSAGE_ID);
             List<Object> params = msg.getJSONArray(MESSAGE_PARAMETER_DATA).toList();
-            return new SerializableMessage(messageHandle, id, params);
+            return null;//new SerializableMessage(messageHandle, id, params); TODO
         } catch (JSONException e) {
             throw new DeserializationException("Could not parse JSON 'Message' instance", e);
         }

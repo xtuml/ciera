@@ -7,9 +7,13 @@ public class ${self.name} extends Domain {
     // utilities
     ${utilities}
 
+    // ports
+    ${ports}
+
     public ${self.name}(String name, Application application) {
         super(name, application);
         ${utility_initializers}
+        ${port_initializers}
     }
 
     // domain functions
@@ -21,8 +25,8 @@ public class ${self.name} extends Domain {
     // instance selections
     ${instance_selectors}
 
-    // ports
-    ${ports}
+    // port accessors
+    ${port_accessors}
 
     // component initialization function
     @Override

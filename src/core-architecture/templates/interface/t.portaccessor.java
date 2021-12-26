@@ -1,5 +1,3 @@
-    private ${self.name} ${self.name};
-    public ${self.name} ${self.port_name}() {
-        if ( null == ${self.name} ) ${self.name} = new ${self.name}( this, null );
-        return ${self.name};
-    }
+public ${self.iface_name} ${self.port_name}() {
+    return ${self.name};
+}
