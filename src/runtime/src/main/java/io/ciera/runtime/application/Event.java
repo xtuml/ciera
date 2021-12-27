@@ -24,8 +24,8 @@ public abstract class Event implements Comparable<Event>, Named {
 
     @Override
     public String getName() {
-        return getClass().getDeclaringClass().getSimpleName() + "." + getClass().getSimpleName() + "["
-                + eventHandle.toString().substring(0, 8) + "]";
+        return String.format("%s.%s[%.8s]", getClass().getDeclaringClass().getSimpleName(), getClass().getSimpleName(),
+                eventHandle);
     }
 
     public UniqueId getEventHandle() {

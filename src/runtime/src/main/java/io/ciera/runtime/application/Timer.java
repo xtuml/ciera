@@ -100,7 +100,7 @@ public class Timer implements Comparable<Timer>, Named {
 
     @Override
     public String getName() {
-        return String.format("Timer[%s]", timerHandle.toString().substring(0, 8));
+        return String.format("Timer[%.8s]", timerHandle);
     }
 
 }

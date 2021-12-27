@@ -18,7 +18,7 @@ public class Message implements Comparable<Message>, Named {
     public Message() {
         this(new UniqueId(), null, new Object[0]);
     }
-    
+
     public Message(Enum<?> id, Object...data) {
         this(UniqueId.random(), id, data);
     }
@@ -68,7 +68,7 @@ public class Message implements Comparable<Message>, Named {
      */
     @Override
     public String getName() {
-        return String.format("%s[%s]", getClass().getSimpleName(), messageHandle.toString().substring(0, 8));
+        return String.format("%s[%.8s]", getClass().getSimpleName(), messageHandle);
     }
 
     /**

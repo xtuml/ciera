@@ -45,7 +45,7 @@ public abstract class ObjectInstance extends ModelType
 
     @Override
     public String getName() {
-        return String.format("%s[%s]", getClass().getSimpleName(), instanceId.toString().substring(0, 8));
+        return String.format("%s[%.8s]", getClass().getSimpleName(), instanceId);
     }
 
     public void delete() {
