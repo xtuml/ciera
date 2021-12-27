@@ -1,6 +1,6 @@
 if (${cond_expr}) ${then_block}\
 .if (else_block != "")
-  .if (else_if_actions != "")
+  .if (include_comments and else_if_actions != "")
 /* ${else_if_actions} */
   .end if
 else ${else_block}\

@@ -40,14 +40,16 @@ INSERT INTO S_SYNC
 	'',
 	'select any project_root from instances of Mark where selected.markable_name == "*" and selected.path == "*" and selected.feature_name == "ProjectRoot";
 if ( "" != project_root.value )
-  i = 0; values[7] = "";
-  while ( i < 8 )
-  values[i] = "                                                                                                                                                                                          ";
-  i = i + 1;
-  end while;
+  // Load marks
   LOG::LogInfo( message:"Loading marking data." );
-  //Feature::load( filename:project_root.value + "/gen/features.mark", values:values );
+  values[7] = "";
   Mark::load( filename:project_root.value + "/gen/application.mark", values:values );
+  
+  // Set system properties for system level marks
+  select many system_marks from instances of Mark where selected.markable_name == "*" and selected.path == "*";
+  for each system_mark in system_marks
+    PROP::setProperty(key:"io.ciera." + system_mark.feature_name, value:system_mark.value);
+  end for;
 else
   LOG::LogInfo( message:"No project root specified." );
 end if;',
