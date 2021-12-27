@@ -1637,7 +1637,7 @@ if ( empty iface )
 
   // create the file
   create object instance file of File;
-  file.name = "I" + ::camelCaseName( name:c_i.Name, start_lower:false );
+  file.name = ::camelCaseName( name:c_i.Name, start_lower:false );
   file.path = param.path;
   file.package = ::pathToPackage( path:file.path );
   file.extension = ".java";
@@ -1658,6 +1658,9 @@ if ( empty iface )
     ::transformMessage( c_ep:c_ep, iface:iface, index:index );
     index = index + 1;
   end for;
+  
+  // add imports to iface file                                                                                                                                                                                    
+  ::addStringToImports(file:file, s:"io.ciera.runtime.application.MessageTarget", type:ImportType::IMPL);
 
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
@@ -1723,9 +1726,10 @@ relate msg to iface across R419;
 
 end if;
 
-select one file related by iface->File[R401];
-::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL );
-::addStringToImports( file:file, s:"io.ciera.runtime.summit.interfaces.Message", type:ImportType::IMPL );',
+// add imports to iface file
+select one iface_file related by iface->File[R401];
+::addStringToImports(file:iface_file, s:"io.ciera.runtime.domain.Message", type:ImportType::IMPL);
+',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -2120,28 +2124,6 @@ relate port to file across R401;
 relate port to c_po across R422;
 port.port_name = ::camelCaseName( name:c_po.Name, start_lower:false );
 
-// set base class
-select any base_class_mark from instances of Mark where ( selected.markable_name == "Port" and
-                                                          selected.path == ::containerMarkingPath( pe:pe ) + "::" + c_c.Name + "::" + c_po.Name and
-                                                          selected.feature_name == "BaseClass" );
-if ( not_empty base_class_mark )
-  port.base_class = base_class_mark.value;
-  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.interfaces." + base_class_mark.value, type:ImportType::IMPL );
-else
-  port.base_class = "Port";
-  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.interfaces.Port", type:ImportType::IMPL );
-end if;
-
-// add extra for http port
-if ( "HttpPort" == port.base_class )
-  select one c_c related by c_po->C_C[R4010];
-  select one pe related by c_c->PE_PE[R8001];
-  select any http_endpoint_mark from instances of Mark where ( selected.markable_name == "Port" and
-                                                               selected.path == ::containerMarkingPath( pe:pe ) + "::" + c_c.Name + "::" + c_po.Name and
-                                                               selected.feature_name == "HttpEndpoint" );
-  port.endpoint = http_endpoint_mark.value;
-end if;
-
 // set port as provider or requirer
 select any c_p related by c_po->C_IR[R4016]->C_P[R4009];
 port.provider = not_empty c_p;
@@ -2175,14 +2157,11 @@ end if;
 select one component_file related by comp_def->File[R401];
 ::addFileToImports( file:component_file, file_to_import:file, type:ImportType::IMPL );
 
-// add imports
-::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.BadArgumentException", type:ImportType::IMPL );
-::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL );
-::addStringToImports( file:file, s:"io.ciera.runtime.summit.interfaces.IMessage", type:ImportType::IMPL );
-::addStringToImports( file:file, s:"io.ciera.runtime.summit.interfaces.IPort", type:ImportType::IMPL );
-::addFileToImports( file:file, file_to_import:component_file, type:ImportType::IMPL );
+// add imports to port file                                                                                                                                                                                     
+::addStringToImports(file:file, s:"io.ciera.runtime.domain.Terminator", type:ImportType::IMPL);                                                                                                            
+::addFileToImports(file:file, file_to_import:component_file, type:ImportType::IMPL);                                                                                                                       
 select one iface_file related by iface->File[R401];
-::addFileToImports( file:file, file_to_import:iface_file, type:ImportType::IMPL );',
+::addFileToImports(file:file, file_to_import:iface_file, type:ImportType::IMPL);',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -2303,6 +2282,7 @@ while ( not_empty c_pp )
   relate parm_type_ref to parm across R431;
   ::linkParameter( invocable:invocable, parameter:parm );
   select one c_pp related by c_pp->C_PP[R4021.''precedes''];
+  // TODO this is broken
   if ((msg.to_provider and port.provider) or (not msg.to_provider and not port.provider))
     if ( "boolean" == parm_type_ref.type_name )
       ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.BooleanUtil", type:ImportType::IMPL );
@@ -2324,6 +2304,12 @@ if ( not_empty act_act )
   relate act_act to invocable across R432;
 else
   // TODO bad
+end if;
+
+// add imports to port file
+if ((msg.to_provider and port.provider) or (not msg.to_provider and not port.provider))
+  // Add only for inbound messages
+  ::addStringToImports(file:file, s:"io.ciera.runtime.domain.Message", type:ImportType::IMPL);
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
