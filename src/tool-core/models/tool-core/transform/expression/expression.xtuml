@@ -1163,6 +1163,9 @@ if ( not_empty invocable )
       select one sel_type related by op_cls->Type[R407];
       ::addTypeToImports(file: ::getFileForStatement(smt:smt), type_to_import:sel_type, type:ImportType::IMPL);
     end if;
+		// transform actual parameters
+		select many v_pars related by v_trv->V_PAR[R811];
+		::transformActualParameters( invocation:invoc, v_pars:v_pars, expr_number:expr.expression_number, base_num:2 );
   else // class based operation
     // create named reference expression
     create object instance expr2 of Expression;
@@ -1175,13 +1178,28 @@ if ( not_empty invocable )
     create object instance named_ref of NamedReference;
     relate named_ref to expr2 across R776;
     select one target_class related by invocable->Operation[R427]->Class[R416];
-    named_ref.name = "new " + target_class.name + "Impl.CLASS(getDomain())";
+    named_ref.name = target_class.name;
     select one class_file related by target_class->File[R401];
-    ::addStringToImports( file: ::getFileForStatement( smt:smt ), s: ::pathToPackage( path:class_file.path ) + ".impl." + class_file.name + "Impl", type:ImportType::IMPL );
+    ::addFileToImports(file: ::getFileForStatement( smt:smt ), file_to_import: class_file, type:ImportType::IMPL);
+    
+    // for class based operations, add domain as first parameter
+    create object instance expr3 of Expression;
+    relate expr3 to smt across R775;
+    expr3.expression_number = expr.expression_number + ".2";
+    relate void_type to expr3 across R795;
+    // create named reference
+    create object instance named_ref of NamedReference;
+    relate named_ref to expr3 across R776;
+    named_ref.name = "getDomain()";
+    // create actual param
+    create object instance domain_param of ActualParameter;
+    relate domain_param to expr3 across R794;
+    relate domain_param to invoc across R793;
+
+		// transform actual parameters
+		select many v_pars related by v_trv->V_PAR[R811];
+		::transformActualParameters( invocation:invoc, v_pars:v_pars, expr_number:expr.expression_number, base_num:3 );
   end if;
-  // transform actual parameters
-  select many v_pars related by v_trv->V_PAR[R811];
-  ::transformActualParameters( invocation:invoc, v_pars:v_pars, expr_number:expr.expression_number, base_num:2 );
 else
   // TODO bad
 end if; ',
@@ -1474,119 +1492,94 @@ elif ("or" == T::sub(format:"l", s:v_bin.Operator))
     binary.operator = "or";
     binary.invocation = true;
   end if;
-// TODO this is broken
 elif ("==" == T::sub(format:"l", s:v_bin.Operator))
   if (l_type.primitive())
     binary.operator = "==";
   else
     if (not_empty array_type)
-      binary.operator = "ArrayUtil.equality";
+      binary.operator = "Arrays.equals";
       binary.invocation = true;
       binary.util = true;
-      ::addStringToImports(file:file, s:"io.ciera.runtime.summit.types.ArrayUtil", type:ImportType::IMPL);
-    elif ("String" == l_type.name and "" == l_type.package)
-      binary.operator = "StringUtil.equality";
-      binary.invocation = true;
-      binary.util = true;
-      ::addStringToImports(file:file, s:"io.ciera.runtime.summit.types.StringUtil", type:ImportType::IMPL);
+      ::addStringToImports(file:file, s:"java.util.Arrays", type:ImportType::IMPL);
     else
       binary.operator = "equals";
       binary.invocation = true;
     end if;
   end if;
-// TODO this is broken
 elif ("!=" == T::sub(format:"l", s:v_bin.Operator))
   if (l_type.primitive())
     binary.operator = "!=";
   else
+    // create a logical negation unary operation
+    unrelate binary from expr across R776;
+    create object instance unary of UnaryOperation;
+    relate unary to expr across R776;
+    unary.operator = "!";
+    // create sub expression for the binop
+    create object instance sub_expr of Expression;
+    sub_expr.expression_number = expr.expression_number + ".1";
+    relate type to sub_expr across R795;
+    relate sub_expr to unary across R777;
+    relate binary to sub_expr across R776;
     if (not_empty array_type)
-      binary.operator = "ArrayUtil.inequality";
+      binary.operator = "Arrays.equals";
       binary.invocation = true;
       binary.util = true;
-      ::addStringToImports(file:file, s:"io.ciera.runtime.summit.types.ArrayUtil", type:ImportType::IMPL);
-    elif ("String" == l_type.name and "" == l_type.package)
-      binary.operator = "StringUtil.inequality";
-      binary.invocation = true;
-      binary.util = true;
-      ::addStringToImports(file:file, s:"io.ciera.runtime.summit.types.StringUtil", type:ImportType::IMPL);
+      ::addStringToImports(file:file, s:"java.util.Arrays", type:ImportType::IMPL);
     else
-      binary.operator = "inequality";
+      binary.operator = "equals";
       binary.invocation = true;
     end if;
   end if;
 elif ("<" == T::sub(format:"l", s:v_bin.Operator))
-  if (l_type.primitive())
-    binary.operator = "<";
-  else
+  binary.operator = "<";
+  if (not l_type.primitive())
     if (not_empty array_type)
-      binary.operator = "ArrayUtil.lessThan";
+      binary.comparison_operator = "Arrays.compare";
       binary.invocation = true;
       binary.util = true;
-      ::addStringToImports(file:file, s:"io.ciera.runtime.summit.types.ArrayUtil", type:ImportType::IMPL);
-    elif ("String" == l_type.name and "" == l_type.package)
-      binary.operator = "StringUtil.lessThan";
-      binary.invocation = true;
-      binary.util = true;
-      ::addStringToImports(file:file, s:"io.ciera.runtime.summit.types.StringUtil", type:ImportType::IMPL);
+      ::addStringToImports(file:file, s:"java.util.Arrays", type:ImportType::IMPL);
     else
-      binary.operator = "lessThan";
+      binary.comparison_operator = "compareTo";
       binary.invocation = true;
     end if;
   end if;
 elif ("<=" == T::sub(format:"l", s:v_bin.Operator))
-  if (l_type.primitive())
-    binary.operator = "<=";
-  else
+  binary.operator = "<=";
+  if (not l_type.primitive())
     if (not_empty array_type)
-      binary.operator = "ArrayUtil.lessThanOrEqual";
+      binary.comparison_operator = "Arrays.compare";
       binary.invocation = true;
       binary.util = true;
-      ::addStringToImports(file:file, s:"io.ciera.runtime.summit.types.ArrayUtil", type:ImportType::IMPL);
-    elif ("String" == l_type.name and "" == l_type.package)
-      binary.operator = "StringUtil.lessThanOrEqual";
-      binary.invocation = true;
-      binary.util = true;
-      ::addStringToImports(file:file, s:"io.ciera.runtime.summit.types.StringUtil", type:ImportType::IMPL);
+      ::addStringToImports(file:file, s:"java.util.Arrays", type:ImportType::IMPL);
     else
-      binary.operator = "lessThanOrEqual";
+      binary.comparison_operator = "compareTo";
       binary.invocation = true;
     end if;
   end if;
 elif (">" == T::sub(format:"l", s:v_bin.Operator))
-  if (l_type.primitive())
-    binary.operator = ">";
-  else
+  binary.operator = ">";
+  if (not l_type.primitive())
     if (not_empty array_type)
-      binary.operator = "ArrayUtil.greaterThan";
+      binary.comparison_operator = "Arrays.compare";
       binary.invocation = true;
       binary.util = true;
-      ::addStringToImports(file:file, s:"io.ciera.runtime.summit.types.ArrayUtil", type:ImportType::IMPL);
-    elif ("String" == l_type.name and "" == l_type.package)
-      binary.operator = "StringUtil.greaterThan";
-      binary.invocation = true;
-      binary.util = true;
-      ::addStringToImports(file:file, s:"io.ciera.runtime.summit.types.StringUtil", type:ImportType::IMPL);
+      ::addStringToImports(file:file, s:"java.util.Arrays", type:ImportType::IMPL);
     else
-      binary.operator = "greaterThan";
+      binary.comparison_operator = "compareTo";
       binary.invocation = true;
     end if;
   end if;
 elif (">=" == T::sub(format:"l", s:v_bin.Operator))
-  if (l_type.primitive())
-    binary.operator = ">=";
-  else
+  binary.operator = ">=";
+  if (not l_type.primitive())
     if (not_empty array_type)
-      binary.operator = "ArrayUtil.greaterThanOrEqual";
+      binary.comparison_operator = "Arrays.compare";
       binary.invocation = true;
       binary.util = true;
-      ::addStringToImports(file:file, s:"io.ciera.runtime.summit.types.ArrayUtil", type:ImportType::IMPL);
-    elif ("String" == l_type.name and "" == l_type.package)
-      binary.operator = "StringUtil.greaterThanOrEqual";
-      binary.invocation = true;
-      binary.util = true;
-      ::addStringToImports(file:file, s:"io.ciera.runtime.summit.types.StringUtil", type:ImportType::IMPL);
+      ::addStringToImports(file:file, s:"java.util.Arrays", type:ImportType::IMPL);
     else
-      binary.operator = "greaterThanOrEqual";
+      binary.comparison_operator = "compareTo";
       binary.invocation = true;
     end if;
   end if;

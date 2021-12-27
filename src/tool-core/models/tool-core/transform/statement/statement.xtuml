@@ -324,9 +324,28 @@ if ( not_empty invocable )
     create object instance named_ref of NamedReference;
     relate named_ref to expr2 across R776;
     select one target_class related by invocable->Operation[R427]->Class[R416];
-    named_ref.name = "new " + target_class.name + "Impl.CLASS(getDomain())";
+    named_ref.name = target_class.name;
     select one class_file related by target_class->File[R401];
-    ::addStringToImports( file: ::getFileForStatement( smt:smt ), s: ::pathToPackage( path:class_file.path ) + ".impl." + class_file.name + "Impl", type:ImportType::IMPL );
+    ::addFileToImports(file: ::getFileForStatement( smt:smt ), file_to_import: class_file, type:ImportType::IMPL);
+
+    // for class based operations, add domain as first parameter
+    create object instance expr3 of Expression;
+    relate expr3 to smt across R775;
+    expr3.expression_number = "1.2";
+    relate void_type to expr3 across R795;
+    // create named reference
+    create object instance named_ref of NamedReference;
+    relate named_ref to expr3 across R776;
+    named_ref.name = "getDomain()";
+    // create actual param
+    create object instance domain_param of ActualParameter;
+    relate domain_param to expr3 across R794;
+    relate domain_param to invoc across R793;
+
+		// transform actual parameters
+		select many v_pars related by act_tfm->V_PAR[R627];
+		::transformActualParameters( invocation:invoc, v_pars:v_pars, expr_number:"1", base_num:3 );
+
   else // instance based operation
     // create variable reference expression
     create object instance expr2 of Expression;
@@ -354,10 +373,10 @@ if ( not_empty invocable )
     else
       // TODO bad
     end if;
+		// transform actual parameters
+		select many v_pars related by act_tfm->V_PAR[R627];
+		::transformActualParameters( invocation:invoc, v_pars:v_pars, expr_number:"1", base_num:2 );
   end if;
-  // transform actual parameters
-  select many v_pars related by act_tfm->V_PAR[R627];
-  ::transformActualParameters( invocation:invoc, v_pars:v_pars, expr_number:"1", base_num:2 );
 else
   // TODO bad
 end if;',
@@ -3060,10 +3079,17 @@ while ( not_empty prev_parm )
   select one prev_parm related by parm->FormalParameter[R404.''follows''];
 end while;
 
+// get the last parameter in the current list
+select any prev_act_parm related by invocation->ActualParameter[R793];
+select one prev_prev_act_parm related by prev_act_parm->ActualParameter[R3905.''follows''];
+while not_empty prev_prev_act_parm
+  prev_act_parm = prev_prev_act_parm;
+  select one prev_prev_act_parm related by prev_act_parm->ActualParameter[R3905.''follows''];
+end while;
+
 // transform each parameter
 num = base_num;
 select any v_par from instances of V_PAR where false;
-select any prev_act_parm from instances of ActualParameter where false;
 while ( not_empty parm )
   for each par in v_pars
     if ( "p_" + par.Name == parm.name )

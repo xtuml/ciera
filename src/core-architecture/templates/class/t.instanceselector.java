@@ -15,7 +15,7 @@ public void set${self.name}(${inst_type_name} inst) {
 .end if
 public ${type_name} ${self.name}() {
 .if (multiplicity_many)
-    return Collections.unmodifiableSortedSet(${self.name}_set);
+    return new ${type_name}(${self.name}_set);
 .else
     return ${self.name}_inst;
 .end if

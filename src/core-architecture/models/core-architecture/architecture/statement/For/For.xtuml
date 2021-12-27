@@ -29,14 +29,11 @@ control_blk.render();
 control_block = T::body();
 T::clear();
 
-select one declaration_smt related by self->Variable[R459]->Statement[R457];
-if ( declaration_smt.statement_number == self.statement_number and declaration_smt.block_number == self.block_number )
-  select one smt related by self->Statement[R451];
-  select one var_type related by self->Variable[R459]->TypeReference[R461];
-  smt.prefix = smt.prefix + var_type.type_reference_name + " " + self.iterator_name + ";\n";
-end if;
-
 T::pop_buffer();
+select one declaration_smt related by self->Variable[R459]->Statement[R457];
+if (declaration_smt.statement_number == self.statement_number and declaration_smt.block_number == self.block_number)
+  T::include(file:"statement/t.for.decl.java");
+end if;
 T::include(file:"statement/t.for.java");',
 	1,
 	'',

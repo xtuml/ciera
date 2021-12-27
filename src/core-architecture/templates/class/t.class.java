@@ -47,7 +47,7 @@ ${attribute_initializer_params}) {
     ${operations}
 
     // static operations
-    ${static_operations}
+    ${class_operations}
 
     // selections
     ${selectors}

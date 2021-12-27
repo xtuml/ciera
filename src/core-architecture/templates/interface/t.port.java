@@ -28,6 +28,11 @@ public class ${self.name} extends Terminator implements ${self.iface_name} {
             throw new IllegalArgumentException("Cannot deliver null message.");
         }
     }
+
 .end if
+    @Override
+    public ${self.comp_name} getDomain() {
+        return (${self.comp_name}) super.getDomain();
+    }
 
 }

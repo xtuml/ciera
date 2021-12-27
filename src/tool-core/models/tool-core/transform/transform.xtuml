@@ -913,6 +913,7 @@ if (empty class_exclude_mark)
   end if;
   type.default_value = obj.name + "Impl.EMPTY_" + T::sub(format:"_u", s:obj.name);
   relate type to obj across R407;
+  relate type to file across R3803;
 
   // relate to the OOA class
   relate obj to o_obj across R409;
@@ -1039,6 +1040,8 @@ else
   // TODO bad
 end if;
 type.default_value = "new " + type.name + "()";
+select one file related by obj->File[R401];
+relate type to file across R3803;
 
 
 // create the class set object
@@ -1047,11 +1050,10 @@ relate objset to obj across R406;
 relate objset to type across R407;
 
 // add to imports
-select one file related by obj->File[R401];
-::addStringToImports(file:file, s:"io.ciera.runtime.types.BaseSet", type:ImportType::IMPL);
 ::addStringToImports(file:file, s:"java.util.Collection", type:ImportType::IMPL);
 ::addStringToImports(file:file, s:"java.util.Comparator", type:ImportType::IMPL);
 ::addStringToImports(file:file, s:"java.util.SortedSet", type:ImportType::IMPL);
+::addStringToImports(file:file, s:"java.util.TreeSet", type:ImportType::IMPL);
 ::addStringToImports(file:file, s:"java.util.function.Predicate", type:ImportType::IMPL);
 ::addStringToImports(file:file, s:"java.util.stream.Collectors", type:ImportType::IMPL);',
 	"ba5eda7a-def5-0000-0000-000000000000",
@@ -1314,6 +1316,7 @@ type.default_value = "null";
 create object instance edt of EnumeratedType;
 relate type to edt across R407;
 relate edt to file across R401;
+relate type to file across R3803;
 
 // transform enumerators
 select any enumer related by s_dt->S_EDT[R17]->S_ENUM[R27];
@@ -1898,7 +1901,11 @@ end if;
 
 // add imports
 select one class_file related by obj->File[R401];
-::addStringToImports(file:class_file, s:"io.ciera.runtime.exceptions.EmptyInstanceException", type:ImportType::IMPL);
+if op.is_class_based
+  ::addStringToImports(file:class_file, s:"io.ciera.runtime.action.DynamicActionHome", type:ImportType::IMPL);
+else
+  ::addStringToImports(file:class_file, s:"io.ciera.runtime.exceptions.EmptyInstanceException", type:ImportType::IMPL);
+end if;
 select one type_def related by type->Type[R3800];
 ::addTypeToImports(file:class_file, type_to_import:type_def, type:ImportType::IMPL);',
 	"ba5eda7a-def5-0000-0000-000000000000",
@@ -2152,15 +2159,16 @@ if ( not_empty iface )
 else
   // TODO bad
 end if;
+select one iface_file related by iface->File[R401];
 
 // add to component file
 select one component_file related by comp_def->File[R401];
 ::addFileToImports( file:component_file, file_to_import:file, type:ImportType::IMPL );
+::addFileToImports( file:component_file, file_to_import:iface_file, type:ImportType::IMPL );
 
 // add imports to port file                                                                                                                                                                                     
 ::addStringToImports(file:file, s:"io.ciera.runtime.domain.Terminator", type:ImportType::IMPL);                                                                                                            
 ::addFileToImports(file:file, file_to_import:component_file, type:ImportType::IMPL);                                                                                                                       
-select one iface_file related by iface->File[R401];
 ::addFileToImports(file:file, file_to_import:iface_file, type:ImportType::IMPL);',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -2718,6 +2726,7 @@ type.default_value = "new " + type.name + "()";
 create object instance udt of UserDefinedType;
 relate type to udt across R407;
 relate udt to file across R401;
+relate type to file across R3803;
 
 // add import
 ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL );
