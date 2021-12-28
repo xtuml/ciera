@@ -29,7 +29,41 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'T::include(file:"interface/t.message.id.java");',
+	'select any invocable related by self->PortMessage[R420]->InvocableObject[R427];
+
+T::push_buffer();
+select any parm from instances of FormalParameter where false;
+select any prev_parm related by invocable->FormalParameter[R429];
+while ( not_empty prev_parm )
+  parm = prev_parm;
+  select one prev_parm related by parm->FormalParameter[R404.''follows''];
+end while;
+sep = "";
+while ( not_empty parm )
+  T::include(file:"interface/t.message.param.name.java");
+  sep = ",  ";
+  select one parm related by parm->FormalParameter[R404.''precedes''];
+end while;
+names_list = T::body();
+T::pop_buffer();
+
+T::push_buffer();
+select any parm from instances of FormalParameter where false;
+select any prev_parm related by invocable->FormalParameter[R429];
+while ( not_empty prev_parm )
+  parm = prev_parm;
+  select one prev_parm related by parm->FormalParameter[R404.''follows''];
+end while;
+sep = "";
+while ( not_empty parm )
+  T::include(file:"interface/t.message.param.type.java");
+  sep = ",  ";
+  select one parm related by parm->FormalParameter[R404.''precedes''];
+end while;
+types_list = T::body();
+T::pop_buffer();
+
+T::include(file:"interface/t.message.id.java");',
 	1,
 	'',
 	"df440f1c-1f71-4122-82f1-fc71336cf426",
@@ -50,7 +84,6 @@ select many parms related by invocable->FormalParameter[R429];
 if (cardinality parms > 10)
   LOG::LogFailure(message:"Port messages can''t have more than 10 parameters");
 end if;
-invocation_parameter_list = "";
 select any parm from instances of FormalParameter where false;
 select any prev_parm related by invocable->FormalParameter[R429];
 while ( not_empty prev_parm )

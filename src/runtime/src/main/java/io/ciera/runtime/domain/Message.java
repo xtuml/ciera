@@ -1,5 +1,9 @@
 package io.ciera.runtime.domain;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.util.Map;
 import java.util.Optional;
 import io.ciera.runtime.application.Named;
@@ -108,4 +112,16 @@ public class Message implements Comparable<Message>, Named {
         return String.format("%s[%.8s]", getName(), messageHandle);
     }
     
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.FIELD)
+    public static @interface Names {
+        String[] names();
+    }
+
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.FIELD)
+    public static @interface Types {
+        Class<?>[] types();
+    }
+
 }
