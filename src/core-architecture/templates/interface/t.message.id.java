@@ -1,1 +1,1 @@
-$u_{self.name}${line_end}
+public static final int $u_{self.name} = ${self.id};

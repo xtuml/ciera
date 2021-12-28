@@ -2,12 +2,10 @@ package ${self.package};
 
 ${imports}
 
-public interface ${self.name} extends MessageTarget {
+public interface ${self.name} extends Port {
 
     // messages IDs
-    public static enum Messages {
-        ${message_id_declarations}\
-    }
+    ${message_id_declarations}\
 
     // message classes
     ${message_declarations}\

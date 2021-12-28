@@ -62,25 +62,18 @@ while ( not_empty prev_msg_parm )
   select one prev_msg_parm related by msg_parm->FormalParameter[R404.''follows''];
 end while;
 sep = "";
+T::push_buffer();
 i = 0;
 while ( not_empty msg_parm )
-  accessor = "message.get(" + STRING::itoa( i:i ) + ")";
   select one parm_dt related by msg_parm->TypeReference[R431];
-  if ( "boolean" == parm_dt.type_name )
-    message_parameter_list = message_parameter_list + sep + "BooleanUtil.deserialize(" + accessor + ")";
-  elif ( "int" == parm_dt.type_name )
-    message_parameter_list = message_parameter_list + sep + "IntegerUtil.deserialize(" + accessor + ")";
-  elif ( "double" == parm_dt.type_name )
-    message_parameter_list = message_parameter_list + sep + "RealUtil.deserialize(" + accessor + ")";
-  elif ( "String" == parm_dt.type_name )
-    message_parameter_list = message_parameter_list + sep + "StringUtil.deserialize(" + accessor + ")";
-  else
-    message_parameter_list = message_parameter_list + sep + parm_dt.type_reference_name + ".deserialize(" + accessor + ")";
-  end if;
+  type_name = parm_dt.type_reference_name;
+  T::include(file:"interface/t.message.deliver.param.java");
   sep = ", ";
   i = i + 1;
   select one msg_parm related by msg_parm->FormalParameter[R404.''precedes''];
 end while;
+message_parameter_list = T::body();
+T::pop_buffer();
 T::include(file:"interface/t.message.deliver.java");',
 	1,
 	'',

@@ -1,5 +1,7 @@
 package io.ciera.runtime.domain;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.List;
 
 import org.json.JSONArray;
@@ -21,12 +23,44 @@ public class SerializableMessage extends Message {
     public static final String MESSAGE_ID = "id";
     public static final String MESSAGE_PARAMETER_DATA = "parameterData";
 
-    public SerializableMessage() {
-        super();
+    public SerializableMessage(Message message) {
+        this(message.getMessageHandle(), message.getId(), message.getName(), message.getAll());
     }
 
-    public SerializableMessage(UniqueId messageHandle, Enum<?> id, Object... data) {
-        super(messageHandle, id, data);
+    public SerializableMessage(UniqueId messageHandle, int id, String name, Object... data) {
+        super(messageHandle, id, name, data);
+    }
+
+    public SerializableMessage deserializeData(Class<?>... parameterTypes) {
+        Object[] parameterData = getAll();
+        if (parameterTypes != null && parameterData.length == parameterTypes.length) {
+            for (int i = 0; i < parameterData.length; i++) {
+                Class<?> type = parameterTypes[i];
+                try {
+                    if (int.class.isAssignableFrom(type)) {
+                        parameterData[i] = ((Number) parameterData[i]).intValue();
+                    } else if (long.class.isAssignableFrom(type)) {
+                        parameterData[i] = ((Number) parameterData[i]).longValue();
+                    } else if (double.class.isAssignableFrom(type)) {
+                        parameterData[i] = ((Number) parameterData[i]).doubleValue();
+                    } else if (boolean.class.isAssignableFrom(type)) {
+                        parameterData[i] = (boolean) parameterData[i];
+                    } else if (Enum.class.isAssignableFrom(type)) {
+                        Method loader = type.getMethod("valueOf", Class.class, String.class);
+                        parameterData[i] = loader.invoke(null, type, parameterData[i]);
+                    } else {
+                        Method loader = type.getMethod("fromString", String.class);
+                        parameterData[i] = loader.invoke(null, parameterData[i]);
+                    }
+                } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException
+                        | InvocationTargetException e) {
+                    throw new DeserializationException(e);
+                }
+            }
+            return new SerializableMessage(getMessageHandle(), getId(), getName(), parameterData);
+        } else {
+            throw new IllegalArgumentException();
+        }
     }
 
     @Override
@@ -43,14 +77,14 @@ public class SerializableMessage extends Message {
         return msg.toString();
     }
 
-    public static Message fromString(Object s) {
+    public static SerializableMessage fromString(String s) {
         try {
             JSONObject msg = new JSONObject(s);
             UniqueId messageHandle = UniqueId.fromString(msg.getString(MESSAGE_HANDLE));
-            String name = msg.getString(MESSAGE_NAME); // TODO need this?
             int id = msg.getInt(MESSAGE_ID);
+            String name = msg.getString(MESSAGE_NAME);
             List<Object> params = msg.getJSONArray(MESSAGE_PARAMETER_DATA).toList();
-            return null;//new SerializableMessage(messageHandle, id, params); TODO
+            return new SerializableMessage(messageHandle, id, name, params.toArray());
         } catch (JSONException e) {
             throw new DeserializationException("Could not parse JSON 'Message' instance", e);
         }

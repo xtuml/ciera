@@ -1,3 +1,3 @@
-public ${self.iface_name} ${self.port_name}() {
+public ${self.name} ${self.name}() {
     return ${self.name};
 }

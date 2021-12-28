@@ -10,22 +10,26 @@ import io.ciera.runtime.types.UniqueId;
  * items. Messages can be serialized and sent across a network interface.
  */
 public class Message implements Comparable<Message>, Named {
+    
+    public static final int NULL_SIGNAL = 0;
 
-    private UniqueId messageHandle;
-    private Enum<?> messageId;
-    private Object[] parameterData;
+    private final UniqueId messageHandle;
+    private final int messageId;
+    private final String name;
+    private final Object[] parameterData;
 
     public Message() {
-        this(new UniqueId(), null, new Object[0]);
+        this(new UniqueId(), NULL_SIGNAL, null, new Object[0]);
     }
 
-    public Message(Enum<?> id, Object...data) {
-        this(UniqueId.random(), id, data);
+    public Message(int id, Object...data) {
+        this(UniqueId.random(), id, null, data);
     }
 
-    public Message(UniqueId messageHandle, Enum<?> id, Object... data) {
+    public Message(UniqueId messageHandle, int id, String name, Object... data) {
         this.messageHandle = messageHandle;
         this.messageId = id;
+        this.name = name;
         this.parameterData = data;
     }
 
@@ -68,14 +72,14 @@ public class Message implements Comparable<Message>, Named {
      */
     @Override
     public String getName() {
-        return String.format("%s[%.8s]", getClass().getSimpleName(), messageHandle);
+        return name != null ? name : getClass().getSimpleName();
     }
 
     /**
      * Get the message number for this message. This number uniquely identifies an
      * abstract message in an interface.
      */
-    public Enum<?> getId() {
+    public int getId() {
         return messageId;
     }
 
@@ -100,7 +104,7 @@ public class Message implements Comparable<Message>, Named {
 
     @Override
     public String toString() {
-        return getName();
+        return String.format("%s[%.8s]", getName(), messageHandle);
     }
 
 }

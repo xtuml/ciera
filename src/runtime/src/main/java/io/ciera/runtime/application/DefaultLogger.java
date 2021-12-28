@@ -1,5 +1,6 @@
 package io.ciera.runtime.application;
 
+import java.io.OutputStream;
 import java.util.Date;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
@@ -19,11 +20,15 @@ public class DefaultLogger implements Logger {
 
     private final java.util.logging.Logger internalLogger;
 
-    public DefaultLogger(String name, Application application) {
-        this(name, application, Level.INFO);
+    public DefaultLogger(String name) {
+        this(name, null, Level.INFO, System.out);
     }
 
-    public DefaultLogger(String name, Application application, Level level) {
+    public DefaultLogger(String name, Application application) {
+        this(name, application, Level.INFO, System.out);
+    }
+
+    public DefaultLogger(String name, Application application, Level level, OutputStream out) {
         // attempt to get the log level from a system property
         String systemLogLevel = System.getProperty(LOG_LEVEL_PROP);
         if (systemLogLevel != null) {
@@ -41,7 +46,7 @@ public class DefaultLogger implements Logger {
 
             @Override
             public synchronized String format(LogRecord lr) {
-                return String.format(format, new Date(application.getClock().getTime() / 1000000l),
+                return String.format(format, application != null ? new Date(application.getClock().getTime() / 1000000l) : new Date(),
                         getLevelString(lr.getLevel()), lr.getMessage());
             }
         });

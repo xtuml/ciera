@@ -18,8 +18,7 @@ public class ${self.name} extends Terminator implements ${self.iface_name} {
     @Override
     public void deliver(Message message) {
         if (message != null) {
-            ${self.iface_name}.Messages messageId = (${self.iface_name}.Messages) message.getId();
-            switch (messageId) {
+            switch (message.getId()) {
             ${message_switch_block}\
             default:
                 throw new IllegalArgumentException("Message not implemented by this port. TODO");

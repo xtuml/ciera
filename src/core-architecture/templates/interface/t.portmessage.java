@@ -5,6 +5,6 @@ ${body}
 {
     if (satisfied()) {
         send(new ${self.iface_name}.$c{self.msg_name}(${invocation_parameter_list}));
-    } else ${body}\
+    } else ${body}
 }
 .end if

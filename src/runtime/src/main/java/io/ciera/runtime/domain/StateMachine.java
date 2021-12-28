@@ -43,7 +43,7 @@ public abstract class StateMachine implements ActionHome, EventTarget, Named {
         traceTxn("TXN START:", getName(), currentState.name(), event.getName(), "...", Logger.ANSI_RESET);
         try {
             Enum<?> newState = transition.execute();
-            if (!newState.equals(currentState)) {
+            if (newState != null) {
                 traceTxn("TXN END:", getName(), currentState.name(), event.getName(), newState.name(),
                         Logger.ANSI_GREEN);
                 currentState = newState;
@@ -89,7 +89,7 @@ public abstract class StateMachine implements ActionHome, EventTarget, Named {
     public TransitionRule ignore(Enum<?> currentState, Event event) {
         return () -> {
             traceTxn("TXN END:", getName(), currentState.name(), event.getName(), "IGNORE", Logger.ANSI_YELLOW);
-            return currentState;
+            return null;
         };
     }
 

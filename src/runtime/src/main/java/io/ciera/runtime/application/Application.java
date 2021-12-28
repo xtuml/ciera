@@ -1,7 +1,10 @@
 package io.ciera.runtime.application;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 import io.ciera.runtime.domain.Domain;
 import io.ciera.runtime.exceptions.ApplicationException;
@@ -10,7 +13,7 @@ public abstract class Application implements Named {
 
     private final String name;
     private final List<ExecutionContext> contexts;
-    private final List<Domain> domains;
+    private final Map<String, Domain> domains;
     private final String[] args;
 
     private SystemClock clock;
@@ -22,7 +25,7 @@ public abstract class Application implements Named {
     public Application(String name, String[] args) {
         this.name = name;
         this.contexts = new ArrayList<>();
-        this.domains = new ArrayList<>();
+        this.domains = new TreeMap<>();
         this.args = args;
         this.clock = new WallClock();
         this.logger = new DefaultLogger(getName() + "Logger", this);
@@ -89,12 +92,21 @@ public abstract class Application implements Named {
         this.contexts.add(context);
     }
 
-    public List<Domain> getDomains() {
-        return domains;
+    public Collection<Domain> getDomains() {
+        return domains.values();
+    }
+    
+    public Domain getDomain(String name) {
+        return domains.get(name);
+    }
+    
+    @SuppressWarnings("unchecked")
+    public <T extends Domain> T getDomain(String name, Class<T> cls) {
+        return (T) getDomain(name);
     }
 
     public void addDomain(Domain domain) {
-        this.domains.add(domain);
+        this.domains.put(domain.getName(), domain);
     }
 
     public Logger getLogger() {

@@ -8,7 +8,7 @@ import io.ciera.runtime.application.Named;
 import io.ciera.runtime.application.task.ReceivedMessage;
 import io.ciera.runtime.exceptions.TerminatorException;
 
-public abstract class Terminator implements ActionHome, MessageTarget, Named {
+public abstract class Terminator implements Port, ActionHome, Named {
 
     private final String name;
     private final Domain domain;
@@ -24,6 +24,7 @@ public abstract class Terminator implements ActionHome, MessageTarget, Named {
         this.peer = null;
     }
 
+    @Override
     public void send(Message message) {
         if (peer != null) {
             peer.getContext().addTask(new ReceivedMessage(peer.getContext(), message, peer));
@@ -35,10 +36,12 @@ public abstract class Terminator implements ActionHome, MessageTarget, Named {
         throw new TerminatorException("Terminator " + getName() + " does not implement any incoming message types.");
     }
 
-    public void setPeer(Terminator peer) {
+    @Override
+    public void setPeer(Port peer) {
         this.peer = peer;
     }
 
+    @Override
     public boolean satisfied() {
         return peer != null;
     }

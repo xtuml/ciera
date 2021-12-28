@@ -23,6 +23,9 @@ public class ${self.name} extends Application {
         // create domains
         ${domains}
 
+        // link ports
+        ${component_satisfactions}
+
 .if (self.simulated_time)
         // create simulated clock
         setClock(new SimulatedClock());
