@@ -5,10 +5,10 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 /**
- * The <code>ConnectionHandler</code> sits and waits for clients
- * to connect. As soon as a new connection is detected, any existing
- * connections are released, allowing the most recently connected client
- * to control and be controlled by the GUI.
+ * The <code>ConnectionHandler</code> sits and waits for clients to connect. As
+ * soon as a new connection is detected, any existing connections are released,
+ * allowing the most recently connected client to control and be controlled by
+ * the GUI.
  */
 public class ConnectionHandler extends Thread {
 
@@ -23,7 +23,7 @@ public class ConnectionHandler extends Thread {
     public void run() {
         try {
             providerSocket = new ServerSocket(2003);
-            System.err.println("Waiting for connection");
+            app.getLogger().info("Waiting for connection");
             Socket connection = providerSocket.accept();
             while (true) {
                 new ApplicationConnection(app, connection).start();
@@ -32,14 +32,15 @@ public class ConnectionHandler extends Thread {
                 connection = newConnection;
                 try {
                     Thread.sleep(10);
-                } catch (InterruptedException e) {}
+                } catch (InterruptedException e) {
+                }
             }
         } catch (IOException ioException) {
             ioException.printStackTrace();
         } finally {
             try {
                 providerSocket.close();
-            } catch(IOException ioException){
+            } catch (IOException ioException) {
                 ioException.printStackTrace();
             }
             new ConnectionHandler(app).start();

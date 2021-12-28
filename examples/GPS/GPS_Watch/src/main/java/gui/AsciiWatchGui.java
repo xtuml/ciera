@@ -7,6 +7,10 @@ import com.googlecode.lanterna.graphics.TextGraphics;
 import com.googlecode.lanterna.graphics.TextImage;
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
 import com.googlecode.lanterna.terminal.Terminal;
+
+import io.ciera.runtime.application.DefaultLogger;
+import io.ciera.runtime.domain.SerializableMessage;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -14,47 +18,23 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.logging.Level;
+
 import tracking.shared.Indicator;
 import tracking.shared.Unit;
 import ui.shared.IUI;
 
 public class AsciiWatchGui implements WatchGui {
 
-    private static final int[][] DIGIT_COORDS = {
-        new int[] {14, 6},
-        new int[] {17, 6},
-        new int[] {21, 6},
-        new int[] {24, 6}
-    };
+    private static final int[][] DIGIT_COORDS = { new int[] { 14, 6 }, new int[] { 17, 6 }, new int[] { 21, 6 },
+            new int[] { 24, 6 } };
 
     private static final int DATA_X = 14;
     private static final int DATA_Y = 5;
     private static final int DATA_LEN = 13;
 
-    private static final String[] UNIT_LABELS = new String[] {
-        "km", 
-        "meters",
-        "min/km",
-        "km/h",
-        "miles",
-        "yds",
-        "ft",
-        "min/mile",
-        "mph",
-        "bpm",
-        "laps"
-    };
-    private static final int UNIT_KM           = 0;
-    private static final int UNIT_METERS       = 1;
-    private static final int UNIT_MIN_PER_KM   = 2;
-    private static final int UNIT_KM_PER_HOUR  = 3;
-    private static final int UNIT_MILES        = 4;
-    private static final int UNIT_YDS          = 5;
-    private static final int UNIT_FT           = 6;
-    private static final int UNIT_MIN_PER_MILE = 7;
-    private static final int UNIT_MPH          = 8;
-    private static final int UNIT_BPM          = 9;
-    private static final int UNIT_LAPS         = 10;
+    private static final String[] UNIT_LABELS = new String[] { "km", "meters", "min/km", "km/h", "miles", "yds", "ft",
+            "min/mile", "mph", "bpm", "laps" };
 
     private TextImage[] numerals;
     private TextImage watchFace;
@@ -62,14 +42,14 @@ public class AsciiWatchGui implements WatchGui {
     private Terminal terminal;
     private TextGraphics watchGraphics;
 
-    private Gui signalHandler;
+    private Gui app;
 
     public AsciiWatchGui(Gui gui) {
         // set to headless mode
         System.setProperty("java.awt.headless", "true");
 
         // set the gui connection
-        signalHandler = gui;
+        app = gui;
 
         // load resources
         numerals = loadNumerals();
@@ -85,9 +65,13 @@ public class AsciiWatchGui implements WatchGui {
             watchGraphics = terminal.newTextGraphics();
             watchGraphics.drawImage(TerminalPosition.TOP_LEFT_CORNER, watchFace);
 
-            // set standard error to print out beneath the watch
-            System.setErr(new PrintStream(new TerminalOutputStream(terminal, 0, watchFace.getSize().getRows())));
-        } catch (IOException e) { /* do nothing */ }
+            // set up logger and standard error
+            OutputStream out = new TerminalOutputStream(terminal, 0, watchFace.getSize().getRows());
+            System.setErr(new PrintStream(out));
+            app.setLogger(new DefaultLogger("GPSWatch GUI", null, Level.INFO, out));
+
+        } catch (IOException e) {
+            /* do nothing */ }
     }
 
     @Override
@@ -95,59 +79,60 @@ public class AsciiWatchGui implements WatchGui {
         setTime(0);
         setData(0, Unit.METERS);
         char command = ' ';
-        while(command != 'x') {
+        while (command != 'x') {
             try {
                 command = terminal.readInput().getCharacter();
                 switch (command) {
                 case 's':
-                    signalHandler.sendSignal(new IUI.StartStopPressed());
-                    System.err.println("Sending start/stop");
+                    app.sendSignal(new SerializableMessage(new IUI.StartStopPressed()));
+                    app.getLogger().trace("Sending start/stop");
                     break;
                 case 'r':
-                    signalHandler.sendSignal(new IUI.LapResetPressed());
-                    System.err.println("Sending reset/lap");
+                    app.sendSignal(new SerializableMessage(new IUI.LapResetPressed()));
+                    app.getLogger().trace("Sending reset/lap");
                     break;
                 case 'm':
-                    signalHandler.sendSignal(new IUI.ModePressed());
-                    System.err.println("Sending mode");
+                    app.sendSignal(new SerializableMessage(new IUI.ModePressed()));
+                    app.getLogger().trace("Sending mode");
                     break;
                 }
             } catch (IOException e) {
                 command = 'x';
             }
         }
-        System.err.println("Exiting...");
-            
+        app.getLogger().trace("Exiting...");
+
         // clear screen and exit
         try {
             terminal.setCursorPosition(0, 0);
             terminal.setCursorVisible(true);
             terminal.clearScreen();
-        } catch (IOException e) { /* do nothing */ }
+        } catch (IOException e) {
+            /* do nothing */ }
         System.exit(0);
     }
 
     @Override
-    public void setData(float value, Unit unit) {
+    public void setData(double value, Unit unit) {
         String valueString = "";
-        String unitString = UNIT_LABELS[unit.getValue()];
-        switch (unit.getValue()) {
-        case UNIT_KM:
-        case UNIT_MILES:        
-        case UNIT_KM_PER_HOUR:
-        case UNIT_MPH:
+        String unitString = UNIT_LABELS[unit.ordinal()];
+        switch (unit) {
+        case KM:
+        case MILES:
+        case KMPERHOUR:
+        case MPH:
             valueString = String.format("%.2f", value);
             break;
-        case UNIT_METERS:
-        case UNIT_YDS:
-        case UNIT_FT:
-        case UNIT_BPM:
-        case UNIT_LAPS:
-            valueString = String.format("%d", (int)value);
+        case METERS:
+        case YARDS:
+        case FEET:
+        case BPM:
+        case LAPS:
+            valueString = String.format("%d", (int) value);
             break;
-        case UNIT_MIN_PER_KM:
-        case UNIT_MIN_PER_MILE:
-            valueString = String.format("%d:%02d", (int)value % 60, (int)(60 * value) % 60);
+        case MINPERKM:
+        case MINPERMILE:
+            valueString = String.format("%d:%02d", (int) value % 60, (int) (60 * value) % 60);
             break;
         default:
             break;
@@ -174,9 +159,11 @@ public class AsciiWatchGui implements WatchGui {
     public void setTime(int time) {
         int min = (time % 3600) / 60;
         int sec = time % 60;
-        watchGraphics.drawImage(new TerminalPosition(DIGIT_COORDS[0][0], DIGIT_COORDS[0][1]), numerals[(min / 10) % 10]);
+        watchGraphics.drawImage(new TerminalPosition(DIGIT_COORDS[0][0], DIGIT_COORDS[0][1]),
+                numerals[(min / 10) % 10]);
         watchGraphics.drawImage(new TerminalPosition(DIGIT_COORDS[1][0], DIGIT_COORDS[1][1]), numerals[min % 10]);
-        watchGraphics.drawImage(new TerminalPosition(DIGIT_COORDS[2][0], DIGIT_COORDS[2][1]), numerals[(sec / 10) % 10]);
+        watchGraphics.drawImage(new TerminalPosition(DIGIT_COORDS[2][0], DIGIT_COORDS[2][1]),
+                numerals[(sec / 10) % 10]);
         watchGraphics.drawImage(new TerminalPosition(DIGIT_COORDS[3][0], DIGIT_COORDS[3][1]), numerals[sec % 10]);
     }
 
@@ -187,11 +174,12 @@ public class AsciiWatchGui implements WatchGui {
 
     private TextImage[] loadNumerals() {
         List<TextImage> numerals = new ArrayList<>();
-        List<String> lines = new ArrayList<>();;
+        List<String> lines = new ArrayList<>();
+        ;
         URL txtURL = ClassLoader.getSystemResource("gui/txt/numbers.txt");
         try {
             Scanner sc = new Scanner(txtURL.openStream());
-            while(sc.hasNextLine()) {
+            while (sc.hasNextLine()) {
                 if (lines.size() >= 3) {
                     numerals.add(fromLines(lines));
                     lines = new ArrayList<>();
@@ -200,7 +188,8 @@ public class AsciiWatchGui implements WatchGui {
             }
             numerals.add(fromLines(lines));
             sc.close();
-        } catch (IOException e) { /* do nothing */ }
+        } catch (IOException e) {
+            /* do nothing */ }
         return numerals.toArray(new TextImage[0]);
     }
 
@@ -209,11 +198,12 @@ public class AsciiWatchGui implements WatchGui {
         URL txtURL = ClassLoader.getSystemResource("gui/txt/watchface.txt");
         try {
             Scanner sc = new Scanner(txtURL.openStream());
-            while(sc.hasNextLine()) {
+            while (sc.hasNextLine()) {
                 lines.add(sc.nextLine());
             }
             sc.close();
-        } catch (IOException e) { /* do nothing */ }
+        } catch (IOException e) {
+            /* do nothing */ }
         return fromLines(lines);
     }
 
@@ -221,10 +211,10 @@ public class AsciiWatchGui implements WatchGui {
         int numColumns = lines.stream().max((a, b) -> a.length() - b.length()).get().length();
         int numLines = lines.size();
         TextImage newImage = new BasicTextImage(numColumns, numLines);
-        newImage.setAll(new TextCharacter(' '));
+        newImage.setAll(TextCharacter.fromCharacter(' ')[0]);
         for (int y = 0; y < lines.size(); y++) {
             for (int x = 0; x < lines.get(y).length(); x++) {
-                newImage.setCharacterAt(x, y, new TextCharacter(lines.get(y).charAt(x)));
+                newImage.setCharacterAt(x, y, TextCharacter.fromCharacter(lines.get(y).charAt(x))[0]);
             }
         }
         return newImage;
@@ -232,29 +222,44 @@ public class AsciiWatchGui implements WatchGui {
 
     private class TerminalOutputStream extends OutputStream {
 
+        private final int initCursorX;
         private int cursorX;
         private int cursorY;
         private Terminal terminal;
+        private StringBuilder buffer;
 
         public TerminalOutputStream(Terminal t, int x, int y) {
             terminal = t;
+            initCursorX = x;
             cursorX = x;
             cursorY = y;
+            buffer = new StringBuilder();
         }
 
+        @Override
         public void write(int b) {
-            char c = (char)b;
-            try {
-                terminal.setCursorPosition(cursorX, cursorY);
-                terminal.putCharacter(c);
-                if (c == '\n') {
-                    cursorY++;
-                    cursorX = 0;
+            char c = (char) b;
+            buffer.append(c);
+            if (c == '\n') {
+                try {
+                    flush();
+                } catch (IOException e) {
+                    // do nothing
                 }
-                else {
-                    cursorX++;
-                }
-            } catch (IOException e) { /* do nothing */ }
+            }
+        }
+        
+        @Override
+        public void flush() throws IOException {
+            TextGraphics tg = terminal.newTextGraphics();
+            tg.putCSIStyledString(cursorX, cursorY, buffer.toString());
+            if (buffer.indexOf("\n") != -1) {
+                cursorX = initCursorX;
+                cursorY++;
+            } else {
+                cursorX += buffer.length();
+            }
+            buffer = new StringBuilder();
         }
 
     }

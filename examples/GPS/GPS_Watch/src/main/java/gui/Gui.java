@@ -1,19 +1,21 @@
 package gui;
 
-import io.ciera.runtime.summit.interfaces.IMessage;
+import io.ciera.runtime.application.Logger;
+import io.ciera.runtime.domain.SerializableMessage;
 
 public class Gui {
 
     WatchGui guiDisplay = null;
     ApplicationConnection server = null;
     ConnectionHandler connHandler = null;
+    Logger logger;
 
     public void start(String[] args) {
+
         // Create GUI
         if (args.length == 1 && "--console".equals(args[0])) {
             guiDisplay = new AsciiWatchGui(this);
-        }
-        else {
+        } else {
             guiDisplay = new SwingWatchGui(this);
         }
 
@@ -31,12 +33,25 @@ public class Gui {
         this.server = server;
     }
 
-    public void sendSignal(IMessage message) {
-        server.sendSignal(message);
+    public void sendSignal(SerializableMessage message) {
+        if (server != null) {
+            server.sendSignal(message);
+        } else {
+            logger.error("Server is not connected");
+        }
+
     }
 
     public WatchGui getGuiDisplay() {
         return guiDisplay;
+    }
+
+    public Logger getLogger() {
+        return logger;
+    }
+
+    public void setLogger(Logger logger) {
+        this.logger = logger;
     }
 
     public static void main(String[] args) {
