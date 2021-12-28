@@ -45,6 +45,11 @@ INSERT INTO O_TFR
 	'select any invocable related by self->PortMessage[R420]->InvocableObject[R427];
 parameter_list = invocable.parameter_list();
 
+T::push_buffer();
+select many parms related by invocable->FormalParameter[R429];
+if (cardinality parms > 10)
+  LOG::LogFailure(message:"Port messages can''t have more than 10 parameters");
+end if;
 invocation_parameter_list = "";
 select any parm from instances of FormalParameter where false;
 select any prev_parm related by invocable->FormalParameter[R429];
@@ -52,12 +57,14 @@ while ( not_empty prev_parm )
   parm = prev_parm;
   select one prev_parm related by parm->FormalParameter[R404.''follows''];
 end while;
-separator = "";
+sep = "";
 while ( not_empty parm )
-  invocation_parameter_list = invocation_parameter_list + separator + parm.name;
-  separator = ",  ";
+  T::include(file:"interface/t.message.param.java");
+  sep = ",  ";
   select one parm related by parm->FormalParameter[R404.''precedes''];
 end while;
+invocation_parameter_list = T::body();
+T::pop_buffer();
 
 T::include(file:"interface/t.message.decl.java");',
 	1,

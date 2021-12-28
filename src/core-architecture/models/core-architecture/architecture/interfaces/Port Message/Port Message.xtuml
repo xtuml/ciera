@@ -25,7 +25,7 @@ parameter_list = invocable.parameter_list();
 body = invocable.body();
 T::pop_buffer();
 
-invocation_parameter_list = "";
+T::push_buffer();
 select any parm related by self->InvocableObject[R427]->FormalParameter[R429];
 select one prev_parm related by parm->FormalParameter[R404.''follows''];
 while ( not_empty prev_parm )
@@ -34,10 +34,12 @@ while ( not_empty prev_parm )
 end while;
 sep = "";
 while ( not_empty parm )
-  invocation_parameter_list = invocation_parameter_list + sep + parm.name;
+  T::include(file:"interface/t.portmessage.param.java");
   sep = ", ";
   select one parm related by parm->FormalParameter[R404.''precedes''];
 end while;
+invocation_parameter_list = T::body();
+T::pop_buffer();
 
 inbound = ( port.provider and message.to_provider ) or ( not port.provider and not message.to_provider );
 
@@ -67,14 +69,14 @@ i = 0;
 while ( not_empty msg_parm )
   select one parm_dt related by msg_parm->TypeReference[R431];
   type_name = parm_dt.type_reference_name;
-  T::include(file:"interface/t.message.deliver.param.java");
+  T::include(file:"interface/t.portmessage.deliver.param.java");
   sep = ", ";
   i = i + 1;
   select one msg_parm related by msg_parm->FormalParameter[R404.''precedes''];
 end while;
 message_parameter_list = T::body();
 T::pop_buffer();
-T::include(file:"interface/t.message.deliver.java");',
+T::include(file:"interface/t.portmessage.deliver.java");',
 	1,
 	'',
 	"ebb83977-1afb-439f-99ff-6fcf7a82d93c",

@@ -1,5 +1,7 @@
 package io.ciera.runtime.domain;
 
+import java.util.Map;
+import java.util.Optional;
 import io.ciera.runtime.application.Named;
 import io.ciera.runtime.exceptions.DeserializationException;
 import io.ciera.runtime.types.UniqueId;
@@ -16,21 +18,25 @@ public class Message implements Comparable<Message>, Named {
     private final UniqueId messageHandle;
     private final int messageId;
     private final String name;
-    private final Object[] parameterData;
+    private final Map<String, Object> parameterData;
 
     public Message() {
-        this(new UniqueId(), NULL_SIGNAL, null, new Object[0]);
+        this(new UniqueId(), NULL_SIGNAL, null, Map.<String, Object>of());
     }
 
-    public Message(int id, Object...data) {
-        this(UniqueId.random(), id, null, data);
+    public Message(int id) {
+        this(id, Map.<String, Object>of());
     }
 
-    public Message(UniqueId messageHandle, int id, String name, Object... data) {
+    public Message(int id, Map<String, Object> parameterData) {
+        this(UniqueId.random(), id, null, parameterData);
+    }
+
+    public Message(UniqueId messageHandle, int id, String name, Map<String, Object> parameterData) {
         this.messageHandle = messageHandle;
         this.messageId = id;
         this.name = name;
-        this.parameterData = data;
+        this.parameterData = parameterData;
     }
 
     /**
@@ -39,20 +45,15 @@ public class Message implements Comparable<Message>, Named {
      * @param index The index at which to access the datum.
      * @return The parameter datum.
      */
-    public Object get(int index) {
-        if (index >= 0 && index < parameterData.length) {
-            return parameterData[index];
-        } else {
-            throw new IndexOutOfBoundsException(index);
-        }
+    public Object get(String key) {
+        return Optional.of(parameterData.get(key)).orElseThrow();
     }
-
-    /**
-     * Get all data items as an array.
-     * 
-     * @return The array of paramter data.
-     */
-    public Object[] getAll() {
+    
+    public void put(String key, Object value) {
+        parameterData.put(key, value);
+    }
+    
+    public Map<String, Object> getParameterData() {
         return parameterData;
     }
 
@@ -106,5 +107,5 @@ public class Message implements Comparable<Message>, Named {
     public String toString() {
         return String.format("%s[%.8s]", getName(), messageHandle);
     }
-
+    
 }

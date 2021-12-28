@@ -2,9 +2,9 @@ package io.ciera.runtime.domain;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.List;
-
-import org.json.JSONArray;
+import java.util.Collections;
+import java.util.Map;
+import java.util.TreeMap;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -24,40 +24,40 @@ public class SerializableMessage extends Message {
     public static final String MESSAGE_PARAMETER_DATA = "parameterData";
 
     public SerializableMessage(Message message) {
-        this(message.getMessageHandle(), message.getId(), message.getName(), message.getAll());
+        this(message.getMessageHandle(), message.getId(), message.getName(), message.getParameterData());
     }
 
-    public SerializableMessage(UniqueId messageHandle, int id, String name, Object... data) {
-        super(messageHandle, id, name, data);
+    public SerializableMessage(UniqueId messageHandle, int id, String name, Map<String, Object> parameterData) {
+        super(messageHandle, id, name, parameterData);
     }
 
-    public SerializableMessage deserializeData(Class<?>... parameterTypes) {
-        Object[] parameterData = getAll();
-        if (parameterTypes != null && parameterData.length == parameterTypes.length) {
-            for (int i = 0; i < parameterData.length; i++) {
-                Class<?> type = parameterTypes[i];
+    public SerializableMessage deserializeData(Map<String, Class<?>> parameterTypes) {
+        Map<String, Object> parameterData = new TreeMap<>();
+        if (getParameterData().keySet().equals(parameterTypes.keySet())) {
+            for (String key : getParameterData().keySet()) {
+                Class<?> type = parameterTypes.get(key);
                 try {
                     if (int.class.isAssignableFrom(type)) {
-                        parameterData[i] = ((Number) parameterData[i]).intValue();
+                        parameterData.put(key, ((Number) get(key)).intValue());
                     } else if (long.class.isAssignableFrom(type)) {
-                        parameterData[i] = ((Number) parameterData[i]).longValue();
+                        parameterData.put(key, ((Number) get(key)).longValue());
                     } else if (double.class.isAssignableFrom(type)) {
-                        parameterData[i] = ((Number) parameterData[i]).doubleValue();
+                        parameterData.put(key, ((Number) get(key)).doubleValue());
                     } else if (boolean.class.isAssignableFrom(type)) {
-                        parameterData[i] = (boolean) parameterData[i];
+                        parameterData.put(key, (boolean) get(key));
                     } else if (Enum.class.isAssignableFrom(type)) {
                         Method loader = type.getMethod("valueOf", Class.class, String.class);
-                        parameterData[i] = loader.invoke(null, type, parameterData[i]);
+                        parameterData.put(key, loader.invoke(null, type, get(key)));
                     } else {
                         Method loader = type.getMethod("fromString", String.class);
-                        parameterData[i] = loader.invoke(null, parameterData[i]);
+                        parameterData.put(key, loader.invoke(null, get(key)));
                     }
                 } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException
                         | InvocationTargetException e) {
                     throw new DeserializationException(e);
                 }
             }
-            return new SerializableMessage(getMessageHandle(), getId(), getName(), parameterData);
+            return new SerializableMessage(getMessageHandle(), getId(), getName(), Collections.unmodifiableMap(parameterData));
         } else {
             throw new IllegalArgumentException();
         }
@@ -69,11 +69,8 @@ public class SerializableMessage extends Message {
         msg.put(MESSAGE_HANDLE, getMessageHandle());
         msg.put(MESSAGE_NAME, getName());
         msg.put(MESSAGE_ID, getId());
-        JSONArray params = new JSONArray();
+        JSONObject params = new JSONObject(getParameterData());
         msg.put(MESSAGE_PARAMETER_DATA, params);
-        for (Object param : getAll()) {
-            params.put(param);
-        }
         return msg.toString();
     }
 
@@ -83,8 +80,8 @@ public class SerializableMessage extends Message {
             UniqueId messageHandle = UniqueId.fromString(msg.getString(MESSAGE_HANDLE));
             int id = msg.getInt(MESSAGE_ID);
             String name = msg.getString(MESSAGE_NAME);
-            List<Object> params = msg.getJSONArray(MESSAGE_PARAMETER_DATA).toList();
-            return new SerializableMessage(messageHandle, id, name, params.toArray());
+            Map<String, Object> params = msg.getJSONObject(MESSAGE_PARAMETER_DATA).toMap();
+            return new SerializableMessage(messageHandle, id, name, params);
         } catch (JSONException e) {
             throw new DeserializationException("Could not parse JSON 'Message' instance", e);
         }
