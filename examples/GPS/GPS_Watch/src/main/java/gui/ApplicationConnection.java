@@ -5,6 +5,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
+import java.util.Map;
 
 import io.ciera.runtime.domain.SerializableMessage;
 import tracking.shared.Indicator;
@@ -63,16 +64,16 @@ public class ApplicationConnection extends Thread {
                     // and set the action (run()) to be carried out
                     switch (data.getId()) {
                     case IUI.SETDATA:
-                        data = data.deserializeData(double.class, Unit.class);
-                        app.getGuiDisplay().setData((double) data.get(0), (Unit) data.get(1));
+                        data = data.deserializeData(Map.<String, Class<?>>of("p_value", double.class, "p_unit", Unit.class));
+                        app.getGuiDisplay().setData((double) data.get("p_value"), (Unit) data.get("p_unit"));
                         break;
                     case IUI.SETTIME:
-                        data = data.deserializeData(int.class);
-                        app.getGuiDisplay().setTime((int) data.get(0));
+                        data = data.deserializeData(Map.<String, Class<?>>of("p_time", int.class));
+                        app.getGuiDisplay().setTime((int) data.get("p_time"));
                         break;
                     case IUI.SETINDICATOR:
-                        data = data.deserializeData(Indicator.class);
-                        app.getGuiDisplay().setIndicator((Indicator) data.get(0));
+                        data = data.deserializeData(Map.<String, Class<?>>of("p_indicator", Indicator.class));
+                        app.getGuiDisplay().setIndicator((Indicator) data.get("p_indicator"));
                         break;
                     default:
                         break;
