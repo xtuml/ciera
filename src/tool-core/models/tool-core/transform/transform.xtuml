@@ -1277,20 +1277,6 @@ if ( empty class_exclude_mark )
   relate obj to file across R401;
   obj.key_letters = o_obj.Key_Lett;
 
-  // create a type for this class
-  create object instance type of Type;
-  type.name = obj.name;
-  type.package = obj.package;
-  select any s_irdt related by o_obj->S_IRDT[R123] where ( not selected.isSet );
-  select one s_dt related by s_irdt->S_DT[R17];
-  if ( not_empty s_dt )
-    type.resolveCompIndepClass( s_dt:s_dt );
-  else
-    // TODO bad
-  end if;
-  type.default_value = obj.name + "Impl.EMPTY_" + T::sub( format:"_u", s:obj.name );
-  relate type to obj across R407;
-
   // relate to the OOA class
   relate obj to o_obj across R409;
 
