@@ -14,6 +14,11 @@ import java.time.format.DateTimeParseException;
  */
 public class Duration extends BaseLong {
 
+    /**
+     * Default value
+     */
+    public static final Duration ZERO = new Duration();
+
     public Duration() {
         super();
     }

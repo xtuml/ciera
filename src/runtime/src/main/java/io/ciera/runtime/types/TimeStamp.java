@@ -13,6 +13,11 @@ import io.ciera.runtime.application.SystemClock;
  */
 public class TimeStamp extends BaseLong {
 
+    /**
+     * Default value
+     */
+    public static final TimeStamp ZERO = new TimeStamp();
+
     public TimeStamp() {
         super();
     }

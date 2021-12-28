@@ -10,6 +10,11 @@ import io.ciera.runtime.exceptions.DeserializationException;
  */
 public class UniqueId extends ModelType implements Comparable<UniqueId> {
 
+    /**
+     * Default value
+     */
+    public static final UniqueId ZERO = new UniqueId();
+
     private UUID id;
 
     public UniqueId() {

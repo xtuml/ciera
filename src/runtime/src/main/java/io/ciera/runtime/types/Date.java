@@ -14,6 +14,11 @@ import io.ciera.runtime.application.SystemClock;
 import io.ciera.runtime.exceptions.DeserializationException;
 
 public class Date extends TimeStamp {
+    
+    /**
+     * Default value
+     */
+    public static final Date ZERO = new Date();
 
     /**
      * Use ISO-8601 date/time format.
