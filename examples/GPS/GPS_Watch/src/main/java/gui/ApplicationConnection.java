@@ -57,22 +57,19 @@ public class ApplicationConnection extends Thread {
                         continue;
 
                     // data arrives as a JSON message
-                    app.getLogger().trace(msg);
-                    SerializableMessage data = SerializableMessage.fromString(msg);
+                    //app.getLogger().trace(msg);
+                    SerializableMessage data = SerializableMessage.fromString(msg, IUI.class);
 
                     // work out the data type of the incoming message
                     // and set the action (run()) to be carried out
                     switch (data.getId()) {
                     case IUI.SETDATA:
-                        data = data.deserializeData(Map.<String, Class<?>>of("p_value", double.class, "p_unit", Unit.class));
                         app.getGuiDisplay().setData((double) data.get("p_value"), (Unit) data.get("p_unit"));
                         break;
                     case IUI.SETTIME:
-                        data = data.deserializeData(Map.<String, Class<?>>of("p_time", int.class));
                         app.getGuiDisplay().setTime((int) data.get("p_time"));
                         break;
                     case IUI.SETINDICATOR:
-                        data = data.deserializeData(Map.<String, Class<?>>of("p_indicator", Indicator.class));
                         app.getGuiDisplay().setIndicator((Indicator) data.get("p_indicator"));
                         break;
                     default:
