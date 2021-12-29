@@ -200,8 +200,12 @@ select one schedule_statement related by masl_statement->ScheduleStatement[R5135
 if (not_empty schedule_statement)
   ::transformScheduleStatement(schedule_statement:schedule_statement, block:block, prev_smt:prev_smt);
 else
+select one cancel_timer_statement related by masl_statement->CancelTimerStatement[R5135];
+if (not_empty cancel_timer_statement)
+  ::transformCancelTimerStatement(cancel_timer_statement:cancel_timer_statement, block:block, prev_smt:prev_smt);
+else
   LOG::LogFailure(message:"statement type not supported: ''" + masl_statement.actions + "''");
-end if; end if; end if; end if; end if; end if; end if; end if;',
+end if; end if; end if; end if; end if; end if; end if; end if; end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -1744,6 +1748,104 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("b1e2b52d-45b8-41d8-bd59-93971bf8c4ab",
+	1,
+	"c45f2f21-d5ff-4652-999f-d4808df1e2ef",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("a7cc437b-077d-4e88-aa3d-77c6647618e4",
+	"00000000-0000-0000-0000-000000000000",
+	'transformCancelTimerStatement',
+	'',
+	'cancel_timer_statement = param.cancel_timer_statement;
+block = param.block;
+prev_smt = param.prev_smt;
+select one masl_statement related by cancel_timer_statement->MaslStatement[R5135];
+
+// create a statement
+create object instance smt of Statement;
+relate smt to block across R450;
+if (not_empty prev_smt)
+  smt.statement_number = STRING::itoa(i:STRING::atoi(s:prev_smt.statement_number) + 1);
+  relate smt to prev_smt across R477.''executes after'';
+else
+  smt.statement_number = "1";
+end if;
+smt.actions = masl_statement.actions;
+
+// create expression as statement
+create object instance expr_as_smt of ExpressionAsStatement;
+relate expr_as_smt to smt across R451;
+
+// find or create an invocable for cancel
+invoc_name = "cancel";
+select any cancel_invocable from instances of InvocableObject
+  where selected.parent_name == "Timer" and selected.parent_package == "io.ciera.runtime.application" and selected.name == invoc_name;
+if empty cancel_invocable
+  create object instance cancel_invocable of InvocableObject;
+  cancel_invocable.parent_name = "Timer";
+  cancel_invocable.parent_package = "io.ciera.runtime.application";
+  cancel_invocable.name = invoc_name;
+  create object instance generic_invocable of GenericInvocable;
+  relate generic_invocable to cancel_invocable across R427;
+end if;
+
+// create an invocation for the cancel operation
+create object instance expr of Expression;
+expr.expression_number = "1";
+relate expr to expr_as_smt across R476;
+boolean_type = ::TypeReference_getBuiltinTypeReference(name:"boolean");
+relate boolean_type to expr across R795;
+create object instance cancel_invocation of Invocation;
+relate cancel_invocation to expr across R776;
+relate cancel_invocation to cancel_invocable across R792;
+
+// translate the timer reference expression
+select one timer_ref related by cancel_timer_statement->MaslExpression[R5102];
+::transformMaslExpression(masl_expression:timer_ref, expr_number:"1.1", smt:smt);
+select any timer_expr related by smt->Expression[R775] where selected.expression_number == "1.1";
+relate timer_expr to cancel_invocation across R798;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	0);
+INSERT INTO S_SPARM
+	VALUES ("b4f48fd0-86a6-461b-ba1f-e3067bcd8b5e",
+	"a7cc437b-077d-4e88-aa3d-77c6647618e4",
+	'cancel_timer_statement',
+	"cb322e7e-147b-4aed-b9ff-b8d77ce20386",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("cb322e7e-147b-4aed-b9ff-b8d77ce20386",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<CancelTimerStatement>',
+	'',
+	'',
+	'../../../../../ooamasl/models/ooamasl/ooamasl/statement/statement.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("422b5c80-1ede-4628-980c-5218c8ca9821",
+	"a7cc437b-077d-4e88-aa3d-77c6647618e4",
+	'block',
+	"60d4da0e-4cbe-4620-8c16-4e1dba1c6b8d",
+	0,
+	'',
+	"b4f48fd0-86a6-461b-ba1f-e3067bcd8b5e",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("489a347c-99ee-488c-8715-a03ae6b91354",
+	"a7cc437b-077d-4e88-aa3d-77c6647618e4",
+	'prev_smt',
+	"b586ec7e-41fe-4d50-9cf3-27b173e9848a",
+	0,
+	'',
+	"422b5c80-1ede-4628-980c-5218c8ca9821",
+	'');
+INSERT INTO PE_PE
+	VALUES ("a7cc437b-077d-4e88-aa3d-77c6647618e4",
 	1,
 	"c45f2f21-d5ff-4652-999f-d4808df1e2ef",
 	"00000000-0000-0000-0000-000000000000",
