@@ -20,21 +20,24 @@ base_expression.render();
 root_expression_body = T::body();
 T::clear();
 T::pop_buffer();
-select one type related by self->Expression[R776]->TypeReference[R795]->Type[R3800];
-select one input_type_builtin related by self->Expression[R3907]->TypeReference[R795]->Type[R3800]->BuiltInType[R407];
-type_name = type.name;
-cast_function = "";
-if self.cast and (empty input_type_builtin or not input_type_builtin.primitive)
-  if ("boolean" == type_name)
-    cast_function = "cast";
-  elif ("int" == type_name)
-    cast_function = "cast";
-  elif ("double" == type_name)
-    cast_function = "cast";
-  elif ("String" == type_name)
-    cast_function = "cast";
-  end if;
+
+select one output_type related by self->Expression[R776]->TypeReference[R795]->Type[R3800];
+select one output_type_builtin related by output_type->BuiltInType[R407];
+select one input_type related by self->Expression[R3907]->TypeReference[R795]->Type[R3800];
+select one input_type_builtin related by input_type->BuiltInType[R407];
+
+input_type_primitive = not_empty input_type_builtin and (input_type_builtin.primitive or input_type.name == "String");
+if input_type_primitive
+  // TODO move this out of render -- just here for temporary convenience
+  select one smt related by self->Expression[R776]->Statement[R775];
+  ::addStringToImports(file: ::getFileForStatement(smt:smt), s:"io.ciera.runtime.types.ModelType", type:ImportType::IMPL);
 end if;
+
+output_type_name = output_type.name;
+if not_empty output_type_builtin and output_type_builtin.primitive
+  output_type_name = output_type_builtin.object_name;
+end if;
+
 T::include(file:"expression/t.promotion.java");',
 	1,
 	'',
@@ -492,24 +495,6 @@ INSERT INTO O_ATTR
 	'expression_number',
 	1,
 	"ba5eda7a-def5-0000-0000-000000000007",
-	'',
-	'');
-INSERT INTO O_NBATTR
-	VALUES ("3be9d0d4-7582-4635-bc65-8cd065cc6265",
-	"6aa34b8a-5c7f-441c-b95d-5061f977b97b");
-INSERT INTO O_BATTR
-	VALUES ("3be9d0d4-7582-4635-bc65-8cd065cc6265",
-	"6aa34b8a-5c7f-441c-b95d-5061f977b97b");
-INSERT INTO O_ATTR
-	VALUES ("3be9d0d4-7582-4635-bc65-8cd065cc6265",
-	"6aa34b8a-5c7f-441c-b95d-5061f977b97b",
-	"3480dffb-61c1-4474-80bb-1c0059fa70ab",
-	'cast',
-	'',
-	'',
-	'cast',
-	0,
-	"ba5eda7a-def5-0000-0000-000000000001",
 	'',
 	'');
 INSERT INTO O_ID

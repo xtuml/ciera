@@ -525,6 +525,20 @@ for each type in types
   for each file in both_files
     type.addToImports( file:file, type:ImportType::BOTH );
   end for;
+end for;
+
+// TODO tempororily here for convenience
+select many promotions from instances of Promotion;
+for each promotion in promotions
+  LOG::LogInfo(message: "LEVI in promotion");
+  select one input_type related by promotion->Expression[R3907]->TypeReference[R795]->Type[R3800];
+  select one input_type_builtin related by input_type->BuiltInType[R407];
+	input_type_primitive = not_empty input_type_builtin and (input_type_builtin.primitive or input_type.name == "String");
+	if input_type_primitive
+    LOG::LogInfo(message: "LEVI in promotion2");
+		select one smt related by promotion->Expression[R776]->Statement[R775];
+		::addStringToImports(file: ::getFileForStatement(smt:smt), s:"io.ciera.runtime.types.ModelType", type:ImportType::IMPL);
+	end if;
 end for;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,

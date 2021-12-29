@@ -1,9 +1,5 @@
-.if (self.cast)
-  .if ("" == cast_function)
-((${type_name})(${root_expression_body}))\
-  .else
-${root_expression_body}.${cast_function}()\
-  .end if
+.if (input_type_primitive)
+ModelType.castTo(${output_type_name}.class, ${root_expression_body})\
 .else
-new ${type_name}(${root_expression_body})\
+${root_expression_body}.castTo(${output_type_name}.class)\
 .end if
