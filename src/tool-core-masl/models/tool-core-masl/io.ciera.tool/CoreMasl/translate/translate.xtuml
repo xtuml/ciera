@@ -55,6 +55,12 @@ CMD::read_command_line();
 project_root = CMD::get_value(name:"cwd");
 ::create_mark(markable:"*", feature:"ProjectRoot", path:"*", value:project_root);
 
+// set system properties for all system level marks
+select many system_marks from instances of Mark where selected.markable_name == "*" and selected.path == "*";
+for each system_mark in system_marks
+  PROP::setProperty(key:"io.ciera." + system_mark.feature_name, value:system_mark.value);
+end for;
+
 T::set_output_directory(dir:project_root + "/" + CMD::get_value(name:"gendir"));
 
 // translate

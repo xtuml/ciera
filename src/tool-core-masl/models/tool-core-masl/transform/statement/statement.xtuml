@@ -196,8 +196,12 @@ select one generate_statement related by masl_statement->GenerateStatement[R5135
 if (not_empty generate_statement)
   ::transformGenerateStatement(generate_statement:generate_statement, block:block, prev_smt:prev_smt);
 else
+select one schedule_statement related by masl_statement->ScheduleStatement[R5135];
+if (not_empty schedule_statement)
+  ::transformScheduleStatement(schedule_statement:schedule_statement, block:block, prev_smt:prev_smt);
+else
   LOG::LogFailure(message:"statement type not supported: ''" + masl_statement.actions + "''");
-end if; end if; end if; end if; end if; end if; end if;',
+end if; end if; end if; end if; end if; end if; end if; end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -1598,6 +1602,148 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("f1e1f580-d2e9-48bd-96b7-0a51baad4b9a",
+	1,
+	"c45f2f21-d5ff-4652-999f-d4808df1e2ef",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("b1e2b52d-45b8-41d8-bd59-93971bf8c4ab",
+	"00000000-0000-0000-0000-000000000000",
+	'transformScheduleStatement',
+	'',
+	'schedule_statement = param.schedule_statement;
+block = param.block;
+prev_smt = param.prev_smt;
+select one masl_statement related by schedule_statement->MaslStatement[R5135];
+select one generate_statement related by schedule_statement->GenerateStatement[R5129];
+
+// create a statement
+create object instance smt of Statement;
+relate smt to block across R450;
+if (not_empty prev_smt)
+  smt.statement_number = STRING::itoa(i:STRING::atoi(s:prev_smt.statement_number) + 1);
+  relate smt to prev_smt across R477.''executes after'';
+else
+  smt.statement_number = "1";
+end if;
+smt.actions = masl_statement.actions;
+
+// create expression as statement
+create object instance expr_as_smt of ExpressionAsStatement;
+relate expr_as_smt to smt across R451;
+
+// create binary operation for assignment of the timer
+create object instance expr of Expression;
+expr.expression_number = "1";
+relate expr to expr_as_smt across R476;
+timer_type = ::TypeReference_getBuiltinTypeReference(name:"Timer");
+relate timer_type to expr across R795;
+create object instance binop of BinaryOperation;
+relate binop to expr across R776;
+binop.operator = "=";
+
+// translate the timer reference expression
+select one timer_ref related by schedule_statement->MaslExpression[R5132];
+::transformMaslExpression(masl_expression:timer_ref, expr_number:"1.1", smt:smt);
+select any timer_expr related by smt->Expression[R775] where selected.expression_number == "1.1";
+relate timer_expr to binop across R779;
+
+// create schedule expression
+create object instance sched_expr of Expression;
+sched_expr.expression_number = "1.2";
+relate timer_type to sched_expr across R795;
+relate sched_expr to binop across R778;
+create object instance schedule of Schedule;
+relate schedule to sched_expr across R776;
+
+// create event reference expression
+create object instance evt_expr of Expression;
+relate evt_expr to smt across R775;
+evt_expr.expression_number = sched_expr.expression_number + ".1";
+void_type_ref = ::TypeReference_getBuiltinTypeReference(name:"void");
+relate void_type_ref to evt_expr across R795;
+create object instance named_ref of NamedReference;
+relate named_ref to evt_expr across R776;
+select one evt related by generate_statement->EventDeclaration[R5112]->Event[R8303];
+select one evt_sm related by evt->StateMachine[R4752];
+named_ref.name = evt_sm.name + "." + evt.name + ".class";
+relate evt_expr to schedule across R3908;
+
+// translate the target expression
+select one target related by generate_statement->MaslExpression[R5113]; // TODO if empty, assigner or creation
+::transformMaslExpression(masl_expression:target, expr_number:sched_expr.expression_number + ".2", smt:smt);
+select any target_expr related by smt->Expression[R775] where (selected.expression_number == sched_expr.expression_number + ".2");
+relate target_expr to schedule across R3909;
+
+// translate the time expression
+select one time_val related by schedule_statement->MaslExpression[R5130];
+::transformMaslExpression(masl_expression:time_val, expr_number:sched_expr.expression_number + ".3", smt:smt);
+select any time_expr related by smt->Expression[R775] where (selected.expression_number == sched_expr.expression_number + ".3");
+if schedule_statement.isAbsolute
+  relate time_expr to schedule across R3910;
+else
+  relate time_expr to schedule across R3911;
+end if;
+
+// translate the optional period expression
+select one period_val related by schedule_statement->MaslExpression[R5131];
+if not_empty period_val
+  schedule.is_recurring = true;
+	::transformMaslExpression(masl_expression:period_val, expr_number:sched_expr.expression_number + ".4", smt:smt);
+	select any period_expr related by smt->Expression[R775] where (selected.expression_number == sched_expr.expression_number + ".4");
+  relate period_expr to schedule across R3912;
+end if;
+
+// transform actual parameters
+select one first_argument related by generate_statement->Argument[R5114];
+if (not_empty first_argument)
+  ::transformEventArguments(smt:smt, expr:sched_expr, evt:evt, first_argument:first_argument, base_num:4);
+end if;
+
+// add import for class
+select one sm_file related by evt_sm->File[R401];
+::addFileToImports(file: ::getFileForStatement(smt:smt), file_to_import:sm_file, type:ImportType::IMPL);',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	0);
+INSERT INTO S_SPARM
+	VALUES ("d5a031fb-0af7-46b5-a959-e5da7773f503",
+	"b1e2b52d-45b8-41d8-bd59-93971bf8c4ab",
+	'schedule_statement',
+	"3308c2f3-61d3-4fc1-8818-9897c77e99fe",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("3308c2f3-61d3-4fc1-8818-9897c77e99fe",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<ScheduleStatement>',
+	'',
+	'',
+	'../../../../../ooamasl/models/ooamasl/ooamasl/statement/statement.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("27bf6e25-1a43-42ee-98ed-4d06f1af2c47",
+	"b1e2b52d-45b8-41d8-bd59-93971bf8c4ab",
+	'block',
+	"60d4da0e-4cbe-4620-8c16-4e1dba1c6b8d",
+	0,
+	'',
+	"d5a031fb-0af7-46b5-a959-e5da7773f503",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("18ac4a79-0a7f-48eb-8b53-167b7330451b",
+	"b1e2b52d-45b8-41d8-bd59-93971bf8c4ab",
+	'prev_smt',
+	"b586ec7e-41fe-4d50-9cf3-27b173e9848a",
+	0,
+	'',
+	"27bf6e25-1a43-42ee-98ed-4d06f1af2c47",
+	'');
+INSERT INTO PE_PE
+	VALUES ("b1e2b52d-45b8-41d8-bd59-93971bf8c4ab",
 	1,
 	"c45f2f21-d5ff-4652-999f-d4808df1e2ef",
 	"00000000-0000-0000-0000-000000000000",

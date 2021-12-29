@@ -179,11 +179,19 @@ if (not_empty string_literal)
 else
 select one timestamp_literal related by literal_expression->TimestampLiteral[R5700];
 if (not_empty timestamp_literal)
-  // TODO
+	create object instance lit of Literal;
+	relate lit to expr across R776;
+	lit.value = "Date.fromString(" + STRING::quote() + timestamp_literal.original + STRING::quote() + ")";
+  file = ::getFileForStatement(smt:smt);
+  ::addStringToImports(file:file, s:"io.ciera.runtime.types.Date", type:ImportType::IMPL);
 else
 select one duration_literal related by literal_expression->DurationLiteral[R5700];
 if (not_empty duration_literal)
-  // TODO
+	create object instance lit of Literal;
+	relate lit to expr across R776;
+	lit.value = "Duration.fromString(" + STRING::quote() + duration_literal.literal + STRING::quote() + ")";
+  file = ::getFileForStatement(smt:smt);
+  ::addStringToImports(file:file, s:"io.ciera.runtime.types.Duration", type:ImportType::IMPL);
 else
 select one boolean_literal related by literal_expression->BooleanLiteral[R5700];
 if (not_empty boolean_literal)
