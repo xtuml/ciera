@@ -45,7 +45,7 @@ public abstract class ObjectInstance extends ModelType
 
     @Override
     public String getName() {
-        return String.format("%s[%.8s]", getClass().getSimpleName(), instanceId);
+        return instanceId.toString();
     }
 
     public void delete() {
@@ -88,7 +88,7 @@ public abstract class ObjectInstance extends ModelType
 
     @Override
     public String toString() {
-        return getName();
+        return String.format("%s[%.8s]", getClass().getSimpleName(), getName());
     }
 
     public static ObjectInstance fromString() {

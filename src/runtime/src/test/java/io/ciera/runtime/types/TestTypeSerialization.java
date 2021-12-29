@@ -42,6 +42,10 @@ public class TestTypeSerialization {
         String s2 = "2021-11-21T23:36:01Z";
         Date d2 = Date.fromString(s2);
         assertEquals(1637537761000000000l, d2.getValue());
+
+        String s3 = "2021-11-21T18:36:01-05:00";
+        Date d3 = Date.fromString(s3);
+        assertEquals(1637537761000000000l, d3.getValue());
     }
 
     @Test

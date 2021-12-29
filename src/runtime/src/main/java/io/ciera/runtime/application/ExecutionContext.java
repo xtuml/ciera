@@ -9,6 +9,7 @@ import java.util.concurrent.PriorityBlockingQueue;
 import io.ciera.runtime.application.task.GeneratedEvent;
 import io.ciera.runtime.application.task.GeneratedEventToSelf;
 import io.ciera.runtime.exceptions.InstancePopulationException;
+import io.ciera.runtime.types.Date;
 import io.ciera.runtime.types.Duration;
 import io.ciera.runtime.types.TimeStamp;
 
@@ -63,11 +64,14 @@ public class ExecutionContext implements Runnable, Executor, Named {
     }
 
     protected synchronized void scheduleEvent(Event event, EventTarget target, Timer timer) {
+        application.getLogger().trace("TMR: Scheduling timer: %s: %s -> %s at %s", timer, event, target,
+                new Date(timer.getExpiration()));
         getClock().registerTimer(this, timer, event, target);
         notify();
     }
 
-    public <E extends Event> Timer scheduleEvent(Class<E> eventType, EventTarget target, TimeStamp expiration, Object... eventData) {
+    public <E extends Event> Timer scheduleEvent(Class<E> eventType, EventTarget target, TimeStamp expiration,
+            Object... eventData) {
         try {
             Constructor<E> eventBuilder = eventType.getConstructor(Object[].class);
             Event event = eventBuilder.newInstance((Object) eventData);
@@ -80,12 +84,14 @@ public class ExecutionContext implements Runnable, Executor, Named {
         }
     }
 
-    public <E extends Event> Timer scheduleEvent(Class<E> eventType, EventTarget target, Duration delay, Object... eventData) {
+    public <E extends Event> Timer scheduleEvent(Class<E> eventType, EventTarget target, Duration delay,
+            Object... eventData) {
         TimeStamp expiration = TimeStamp.now(getClock()).add(delay).castTo(TimeStamp.class);
         return scheduleEvent(eventType, target, expiration, eventData);
     }
 
-    public <E extends Event> Timer scheduleRecurringEvent(Class<E> eventType, EventTarget target, TimeStamp expiration, Duration period, Object... eventData) {
+    public <E extends Event> Timer scheduleRecurringEvent(Class<E> eventType, EventTarget target, TimeStamp expiration,
+            Duration period, Object... eventData) {
         try {
             Constructor<E> eventBuilder = eventType.getConstructor(Object[].class);
             Event event = eventBuilder.newInstance((Object) eventData);
@@ -98,7 +104,8 @@ public class ExecutionContext implements Runnable, Executor, Named {
         }
     }
 
-    public <E extends Event> Timer scheduleRecurringEvent(Class<E> eventType, EventTarget target, Duration delay, Duration period, Object... eventData) {
+    public <E extends Event> Timer scheduleRecurringEvent(Class<E> eventType, EventTarget target, Duration delay,
+            Duration period, Object... eventData) {
         TimeStamp expiration = TimeStamp.now(getClock()).add(delay).castTo(TimeStamp.class);
         return scheduleRecurringEvent(eventType, target, expiration, period != null ? period : delay, eventData);
     }

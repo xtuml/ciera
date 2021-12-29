@@ -14,16 +14,13 @@ import io.ciera.runtime.application.SystemClock;
 import io.ciera.runtime.exceptions.DeserializationException;
 
 public class Date extends TimeStamp {
-    
-    /**
-     * Default value
-     */
+
     public static final Date ZERO = new Date();
 
-    /**
-     * Use ISO-8601 date/time format.
-     */
-    private static DateTimeFormatter FORMAT = DateTimeFormatter.ISO_INSTANT;
+    private static final DateTimeFormatter SERIALIZE_FORMAT = DateTimeFormatter.ISO_INSTANT;
+
+    private static final DateTimeFormatter[] PARSE_FORMATS = new DateTimeFormatter[] { DateTimeFormatter.ISO_INSTANT,
+            DateTimeFormatter.ISO_DATE_TIME };
 
     /**
      * The calendar instance is initialized with the time stamp given interpreted as
@@ -189,7 +186,7 @@ public class Date extends TimeStamp {
      */
     @Override
     public String toString() {
-        return FORMAT.format(cal.toInstant());
+        return SERIALIZE_FORMAT.format(cal.toInstant());
     }
 
     /**
@@ -199,14 +196,17 @@ public class Date extends TimeStamp {
      * @return an instance of Date representative of the input string.
      */
     public static Date fromString(String s) {
-        try {
-            TemporalAccessor t = FORMAT.parse(s);
-            return new Date(
-                    (t.getLong(ChronoField.INSTANT_SECONDS) * 1000000000l) + t.getLong(ChronoField.NANO_OF_SECOND));
-        } catch (NullPointerException | DateTimeParseException e) {
-            throw new DeserializationException("Could not parse date", e);
+        RuntimeException err = null;
+        for (DateTimeFormatter format : PARSE_FORMATS) {
+            try {
+                TemporalAccessor t = format.parse(s);
+                return new Date(
+                        (t.getLong(ChronoField.INSTANT_SECONDS) * 1000000000l) + t.getLong(ChronoField.NANO_OF_SECOND));
+            } catch (NullPointerException | DateTimeParseException e) {
+                err = new DeserializationException("Could not parse date", e);
+            }
         }
-
+        throw err;
     }
 
 }

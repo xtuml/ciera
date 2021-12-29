@@ -90,6 +90,7 @@ public class Timer implements Comparable<Timer>, Named {
     }
 
     public boolean cancel() {
+        context.getApplication().getLogger().trace("TMR: Cancelling timer: %s", this);
         return context.getClock().cancelTimer(context, this);
     }
 
@@ -100,7 +101,12 @@ public class Timer implements Comparable<Timer>, Named {
 
     @Override
     public String getName() {
-        return String.format("Timer[%.8s]", timerHandle);
+        return timerHandle.toString();
+    }
+
+    @Override
+    public String toString() {
+        return String.format("Timer[%.8s]", getName());
     }
 
 }
