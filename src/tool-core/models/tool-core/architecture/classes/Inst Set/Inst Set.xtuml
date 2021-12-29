@@ -37,6 +37,25 @@ end for;
 selectors = T::body();
 T::clear();
 
+select one compIndClass related by self->ClassInComponent[R406.''defines set with elements of type'']->Class[R408];
+// Render Serializer/Deserializer methods, if required
+set_serialize = "";
+set_deserialize = "";
+select any pm related by self->ComponentSpecificType[R3803]
+                             ->Type[R407]->TypeReference[R3800.''referred to by'']
+                             ->FormalParameter[R431.''defines type for'']
+                             ->InvocableObject[R429.''shapes data for'']->PortMessage[R427];
+if ( not_empty pm)
+	self.render_serializer();
+	set_serialize = T::body();
+	T::clear();
+	
+	self.render_deserializer();
+	set_deserialize = T::body();
+	T::clear();
+end if;
+
+
 T::include(file:"class/t.classset.impl.java");
 T::emit( file:file.path + "/impl/" + self.name + "Impl" + file.extension );
 T::clear();
@@ -55,12 +74,21 @@ end for;
 selectors = T::body();
 T::clear();
 
+// Determine whether the corresponding class is defined outside a component
+// If so, allow this interface to extend the ccorresponding component-independent class set interface.
+
+compIndepInterface = "";
+select one compIndInterfaceFile related by compIndClass->File[R401];
+if (not compIndInterfaceFile.exclude)
+	compIndepInterface = ", " + compIndClass.package + "." + self.name;
+end if;
+
 T::include(file:"class/t.classset.java");
 T::emit( file:file.path + "/" + self.name + file.extension );
 T::clear();',
 	1,
 	'',
-	"00000000-0000-0000-0000-000000000000",
+	"674c21e6-532c-458a-a0dc-f4405d710d28",
 	0,
 	0);
 INSERT INTO O_TFR
@@ -81,7 +109,7 @@ select one cls_set related by classInComp->ClassSet[R406];
 return cls_set;',
 	1,
 	'',
-	"8f3679b7-f8c5-48f8-8830-8ae8df2994ad",
+	"00000000-0000-0000-0000-000000000000",
 	0,
 	1);
 INSERT INTO O_TPARM
@@ -156,6 +184,42 @@ INSERT INTO S_DT_PROXY
 	'',
 	'',
 	'../../component/component.xtuml');
+INSERT INTO O_TFR
+	VALUES ("8a43e46f-6751-4c59-b564-e5b467d3916e",
+	"43699922-b535-49cc-93b6-00f0e04845a5",
+	'render_serializer',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'// render a key-value pair set serializer method for this class.
+//
+select one membertype related by self->ClassInComponent[R406.''defines set with elements of type''];
+membername = membertype.name;
+T::include(file:"class/t.classset.serialize.java");',
+	1,
+	'',
+	"8f3679b7-f8c5-48f8-8830-8ae8df2994ad",
+	0,
+	5);
+INSERT INTO O_TFR
+	VALUES ("e832da3e-7fb9-436c-9cec-a93dcffbfd21",
+	"43699922-b535-49cc-93b6-00f0e04845a5",
+	'render_deserializer',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'// render a key-value pair set deserializer method for this class.
+//
+select one membertype related by self->ClassInComponent[R406.''defines set with elements of type''];
+membername = membertype.name;
+select one comp related by membertype->ComponentDefinition[R408.''forms instance population of''];
+compname = comp.name;
+T::include(file:"class/t.classset.deserialize.java");',
+	1,
+	'',
+	"8a43e46f-6751-4c59-b564-e5b467d3916e",
+	0,
+	5);
 INSERT INTO O_NBATTR
 	VALUES ("0c9b0595-dadd-46e8-b3a3-65a5e602a407",
 	"43699922-b535-49cc-93b6-00f0e04845a5");

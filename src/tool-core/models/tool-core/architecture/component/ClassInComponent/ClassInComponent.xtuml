@@ -9,7 +9,225 @@ INSERT INTO O_OBJ
 a particular component.',
 	"00000000-0000-0000-0000-000000000000");
 INSERT INTO O_TFR
-	VALUES ("6d2a38bb-4995-4fed-a9e9-4f164f0bf25d",
+	VALUES ("2195e150-c60c-48a0-8e67-718b2731f433",
+	"92e3fa0e-1804-4f88-84c7-46a11e6cb56d",
+	'getMany',
+	'',
+	"bcecc117-fbce-4715-b5b5-afc251779591",
+	0,
+	'component = param.component;
+objs = param.objs;
+
+// find and return the set of instances related to the incoming parameters
+// https://support.onefact.net/issues/12231
+select many classInComps_class related by objs->ClassInComponent[R408];
+select many classInComps_comp related by component->ClassInComponent[R408];
+classInComps = classInComps_class & classInComps_comp;
+
+return classInComps;',
+	1,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	0,
+	2);
+INSERT INTO O_TPARM
+	VALUES ("bd7b3697-e44b-4769-b931-17f3442bd396",
+	"2195e150-c60c-48a0-8e67-718b2731f433",
+	'component',
+	"109e90cb-1d66-46ee-88db-a568044879d0",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("109e90cb-1d66-46ee-88db-a568044879d0",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Component Definition>',
+	'',
+	'',
+	'../component.xtuml');
+INSERT INTO O_TPARM
+	VALUES ("d14a51f6-c69c-435d-b041-cbd9f47e4d09",
+	"2195e150-c60c-48a0-8e67-718b2731f433",
+	'objs',
+	"bf94cd7d-c170-4840-9094-1cec4a2aa7d2",
+	0,
+	'',
+	"bd7b3697-e44b-4769-b931-17f3442bd396",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("bf94cd7d-c170-4840-9094-1cec4a2aa7d2",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref_set<Model Inst>',
+	'',
+	'',
+	'../../classes/classes.xtuml');
+INSERT INTO S_DT_PROXY
+	VALUES ("bcecc117-fbce-4715-b5b5-afc251779591",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref_set<ClassInComponent>',
+	'',
+	'',
+	'../component.xtuml');
+INSERT INTO O_TFR
+	VALUES ("b18b1fb9-467f-4ff1-b82f-1f78b3fc8336",
+	"92e3fa0e-1804-4f88-84c7-46a11e6cb56d",
+	'get',
+	'',
+	"53e504e6-9b65-4f56-a685-839b95582a5e",
+	0,
+	'component = param.component;
+obj = param.obj;
+
+// find and return the one instance related to the incoming parameters
+// https://support.onefact.net/issues/12231
+select many classInComps_class related by obj->ClassInComponent[R408];
+select many classInComps_comp related by component->ClassInComponent[R408];
+classInComps = classInComps_class & classInComps_comp;
+
+// return either an empty handle or the one instance in the set
+select any retVal from instances of ClassInComponent where false;  // Decl
+for each classInComp in classInComps
+  retVal = classInComp;
+end for;
+return retVal;',
+	1,
+	'',
+	"2195e150-c60c-48a0-8e67-718b2731f433",
+	0,
+	3);
+INSERT INTO O_TPARM
+	VALUES ("20e787ce-f122-4b74-890d-e59456625b11",
+	"b18b1fb9-467f-4ff1-b82f-1f78b3fc8336",
+	'obj',
+	"a519e323-b117-4a03-9435-b88e56c2443d",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("a519e323-b117-4a03-9435-b88e56c2443d",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Model Inst>',
+	'',
+	'',
+	'../../classes/classes.xtuml');
+INSERT INTO O_TPARM
+	VALUES ("52a03235-46c4-4b07-8df0-4f642fc47f4c",
+	"b18b1fb9-467f-4ff1-b82f-1f78b3fc8336",
+	'component',
+	"109e90cb-1d66-46ee-88db-a568044879d0",
+	0,
+	'',
+	"20e787ce-f122-4b74-890d-e59456625b11",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("53e504e6-9b65-4f56-a685-839b95582a5e",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<ClassInComponent>',
+	'',
+	'',
+	'../component.xtuml');
+INSERT INTO O_TFR
+	VALUES ("38dbdf86-36a6-43da-97e7-dbd95c457c8f",
+	"92e3fa0e-1804-4f88-84c7-46a11e6cb56d",
+	'knowsComponent',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000001",
+	1,
+	'select one comp_def related by self->ComponentDefinition[R408.''forms instance population of''];
+if ( comp_def == param.component )
+  return true;
+end if;
+return false;',
+	1,
+	'',
+	"b18b1fb9-467f-4ff1-b82f-1f78b3fc8336",
+	0,
+	4);
+INSERT INTO O_TPARM
+	VALUES ("f6c72542-33c5-49b9-9faa-d7a5a10a2312",
+	"38dbdf86-36a6-43da-97e7-dbd95c457c8f",
+	'component',
+	"109e90cb-1d66-46ee-88db-a568044879d0",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO O_TFR
+	VALUES ("bcd056f6-d45f-42fc-8d19-eb5881a1e989",
+	"92e3fa0e-1804-4f88-84c7-46a11e6cb56d",
+	'render_serializer',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'// render a key-value pair attribute serializer method for this class.
+//
+T::push_buffer();
+getstate = false;
+index = 0;
+select any attribute related by self->Class[R408.''maintains instances of'']->Attribute[R410.''data abstracted by'']
+ where ( index == selected.order);
+while ( not_empty attribute )
+  attribute.render_serializer();
+  index = index + 1;
+  select any attribute related by self->Class[R408.''maintains instances of'']->Attribute[R410]
+   where ( index == selected.order);
+end while;
+attribute_serializers = "";
+if ( index != 0 )
+  attribute_serializers = T::body();
+end if;
+T::pop_buffer();
+select one sm related by self->StateMachine[R4750.''behavior modeled by''];
+if ( not_empty sm )
+	getstate = true;
+end if;
+T::include(file:"class/t.classincomp.serialize.java");',
+	1,
+	'',
+	"d489222f-d1ef-45ce-94f7-006ce29c2084",
+	0,
+	5);
+INSERT INTO O_TFR
+	VALUES ("8ff17ac4-26d1-41a9-8822-02f4001b3355",
+	"92e3fa0e-1804-4f88-84c7-46a11e6cb56d",
+	'render_deserializer',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'// render a key-value pair attribute deserializer method for this class.
+//
+select one comp related by self->ComponentDefinition[R408.''forms instance population of''];
+compname = comp.name;
+T::push_buffer();
+index = 0;
+select any attribute related by self->Class[R408.''maintains instances of'']->Attribute[R410.''data abstracted by'']
+ where ( index == selected.order);
+while ( not_empty attribute )
+  attribute.render_deserializer();
+  index = index + 1;
+  select any attribute related by self->Class[R408.''maintains instances of'']->Attribute[R410]
+   where ( index == selected.order);
+end while;
+attribute_deserializers = "";
+if ( index != 0 )
+  attribute_deserializers = T::body();
+end if;
+T::pop_buffer();
+getstate = false;
+select one sm related by self->StateMachine[R4750.''behavior modeled by''];
+if ( not_empty sm )
+	getstate = true;
+end if;
+T::include(file:"class/t.classincomp.deserialize.java");',
+	1,
+	'',
+	"bcd056f6-d45f-42fc-8d19-eb5881a1e989",
+	0,
+	5);
+INSERT INTO O_TFR
+	VALUES ("d489222f-d1ef-45ce-94f7-006ce29c2084",
 	"92e3fa0e-1804-4f88-84c7-46a11e6cb56d",
 	'render',
 	'',
@@ -144,7 +362,32 @@ end for;
 selectors = T::body();
 T::clear();
 
-// Attribute Accessors
+// Render Serializer/Deserializer methods, if required
+// If class set is used as a message parameter, then instance serialization is needed.
+instance_serialize = "";
+instance_deserialize = "";
+select any pm related by self->ComponentSpecificType[R3803]
+                             ->Type[R407]->TypeReference[R3800.''referred to by'']
+                             ->FormalParameter[R431.''defines type for'']
+                             ->InvocableObject[R429.''shapes data for'']->PortMessage[R427];
+if ( empty pm )
+  select any pm related by self->ClassSet[R406.''is type of single element in'']
+                             ->ComponentSpecificType[R3803]
+                             ->Type[R407]->TypeReference[R3800.''referred to by'']
+                             ->FormalParameter[R431.''defines type for'']
+                             ->InvocableObject[R429.''shapes data for'']->PortMessage[R427];
+end if;
+if ( not_empty pm)
+	self.render_serializer();
+	instance_serialize = T::body();
+	T::clear();
+	
+	self.render_deserializer();
+	instance_deserialize = T::body();
+	T::clear();
+end if;
+
+// Attribute, operations, selectors for ''empty'' class
 index = 0;
 select any attribute related by compIndClass->Attribute[R410] where ( index == selected.order);
 while ( not_empty attribute )
@@ -162,6 +405,10 @@ for each operation in inst_ops
   operation.render_empty();
 end for;
 empty_operations = T::body();
+T::clear();
+
+T::include(file:"class/t.classincomp.serialize.empty.java");
+empty_serialize = T::body();
 T::clear();
 
 for each iselector in iselects
@@ -206,167 +453,21 @@ selectors = T::body();
 T::clear();
 
 // Determine whether this class is defined outside a component
+// If so, allow this interface to extend the class independent interface.
+compIndepInterface = "";
 select one compIndInterfaceFile related by compIndClass->File[R401];
-compIndep = not compIndInterfaceFile.exclude;
-
-// Supply package and name of component-independent interface to template
-select one compIndepClass related by self->Class[R408];
-compIndepInterface = compIndepClass.package + "." + compIndepClass.name;
+if ( not compIndInterfaceFile.exclude )
+  compIndepInterface = ", " + compIndClass.package + "." + compIndClass.name;
+end if;
 
 T::include(file:"class/t.classincomp.java");
 T::emit( file:file.path + "/" + self.name + file.extension );
 T::clear();',
 	1,
 	'',
-	"00000000-0000-0000-0000-000000000000",
+	"38dbdf86-36a6-43da-97e7-dbd95c457c8f",
 	0,
 	1);
-INSERT INTO O_TFR
-	VALUES ("2195e150-c60c-48a0-8e67-718b2731f433",
-	"92e3fa0e-1804-4f88-84c7-46a11e6cb56d",
-	'getMany',
-	'',
-	"bcecc117-fbce-4715-b5b5-afc251779591",
-	0,
-	'component = param.component;
-objs = param.objs;
-
-// find and return the set of instances related to the incoming parameters
-// https://support.onefact.net/issues/12231
-select many classInComps_class related by objs->ClassInComponent[R408];
-select many classInComps_comp related by component->ClassInComponent[R408];
-classInComps = classInComps_class & classInComps_comp;
-
-return classInComps;',
-	1,
-	'',
-	"6d2a38bb-4995-4fed-a9e9-4f164f0bf25d",
-	0,
-	2);
-INSERT INTO O_TPARM
-	VALUES ("bd7b3697-e44b-4769-b931-17f3442bd396",
-	"2195e150-c60c-48a0-8e67-718b2731f433",
-	'component',
-	"109e90cb-1d66-46ee-88db-a568044879d0",
-	0,
-	'',
-	"00000000-0000-0000-0000-000000000000",
-	'');
-INSERT INTO S_DT_PROXY
-	VALUES ("109e90cb-1d66-46ee-88db-a568044879d0",
-	"00000000-0000-0000-0000-000000000000",
-	'inst_ref<Component Definition>',
-	'',
-	'',
-	'../component.xtuml');
-INSERT INTO O_TPARM
-	VALUES ("d14a51f6-c69c-435d-b041-cbd9f47e4d09",
-	"2195e150-c60c-48a0-8e67-718b2731f433",
-	'objs',
-	"bf94cd7d-c170-4840-9094-1cec4a2aa7d2",
-	0,
-	'',
-	"bd7b3697-e44b-4769-b931-17f3442bd396",
-	'');
-INSERT INTO S_DT_PROXY
-	VALUES ("bf94cd7d-c170-4840-9094-1cec4a2aa7d2",
-	"00000000-0000-0000-0000-000000000000",
-	'inst_ref_set<Model Inst>',
-	'',
-	'',
-	'../../classes/classes.xtuml');
-INSERT INTO S_DT_PROXY
-	VALUES ("bcecc117-fbce-4715-b5b5-afc251779591",
-	"00000000-0000-0000-0000-000000000000",
-	'inst_ref_set<ClassInComponent>',
-	'',
-	'',
-	'../component.xtuml');
-INSERT INTO O_TFR
-	VALUES ("b18b1fb9-467f-4ff1-b82f-1f78b3fc8336",
-	"92e3fa0e-1804-4f88-84c7-46a11e6cb56d",
-	'get',
-	'',
-	"53e504e6-9b65-4f56-a685-839b95582a5e",
-	0,
-	'component = param.component;
-obj = param.obj;
-
-// find and return the one instance related to the incoming parameters
-// https://support.onefact.net/issues/12231
-select many classInComps_class related by obj->ClassInComponent[R408];
-select many classInComps_comp related by component->ClassInComponent[R408];
-classInComps = classInComps_class & classInComps_comp;
-
-// return either an empty handle or the one instance in the set
-select any retVal from instances of ClassInComponent where false;  // Decl
-for each classInComp in classInComps
-  retVal = classInComp;
-end for;
-return retVal;',
-	1,
-	'',
-	"2195e150-c60c-48a0-8e67-718b2731f433",
-	0,
-	3);
-INSERT INTO O_TPARM
-	VALUES ("20e787ce-f122-4b74-890d-e59456625b11",
-	"b18b1fb9-467f-4ff1-b82f-1f78b3fc8336",
-	'obj',
-	"a519e323-b117-4a03-9435-b88e56c2443d",
-	0,
-	'',
-	"00000000-0000-0000-0000-000000000000",
-	'');
-INSERT INTO S_DT_PROXY
-	VALUES ("a519e323-b117-4a03-9435-b88e56c2443d",
-	"00000000-0000-0000-0000-000000000000",
-	'inst_ref<Model Inst>',
-	'',
-	'',
-	'../../classes/classes.xtuml');
-INSERT INTO O_TPARM
-	VALUES ("52a03235-46c4-4b07-8df0-4f642fc47f4c",
-	"b18b1fb9-467f-4ff1-b82f-1f78b3fc8336",
-	'component',
-	"109e90cb-1d66-46ee-88db-a568044879d0",
-	0,
-	'',
-	"20e787ce-f122-4b74-890d-e59456625b11",
-	'');
-INSERT INTO S_DT_PROXY
-	VALUES ("53e504e6-9b65-4f56-a685-839b95582a5e",
-	"00000000-0000-0000-0000-000000000000",
-	'inst_ref<ClassInComponent>',
-	'',
-	'',
-	'../component.xtuml');
-INSERT INTO O_TFR
-	VALUES ("38dbdf86-36a6-43da-97e7-dbd95c457c8f",
-	"92e3fa0e-1804-4f88-84c7-46a11e6cb56d",
-	'knowsComponent',
-	'',
-	"ba5eda7a-def5-0000-0000-000000000001",
-	1,
-	'select one comp_def related by self->ComponentDefinition[R408.''forms instance population of''];
-if ( comp_def == param.component )
-  return true;
-end if;
-return false;',
-	1,
-	'',
-	"b18b1fb9-467f-4ff1-b82f-1f78b3fc8336",
-	0,
-	4);
-INSERT INTO O_TPARM
-	VALUES ("f6c72542-33c5-49b9-9faa-d7a5a10a2312",
-	"38dbdf86-36a6-43da-97e7-dbd95c457c8f",
-	'component',
-	"109e90cb-1d66-46ee-88db-a568044879d0",
-	0,
-	'',
-	"00000000-0000-0000-0000-000000000000",
-	'');
 INSERT INTO O_NBATTR
 	VALUES ("68224d74-eba7-4939-9b78-c07e12e76c13",
 	"92e3fa0e-1804-4f88-84c7-46a11e6cb56d");

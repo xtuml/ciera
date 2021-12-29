@@ -17,6 +17,10 @@ ${attributes}
     // selections
 ${selectors}
 
+	//serialize/deserialize methods
+${set_serialize}
+${set_deserialize}
+
     @Override
     public ${self.class_name} nullElement() {
         return ${self.class_name}Impl.EMPTY_$u_{self.class_name};

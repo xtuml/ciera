@@ -1015,7 +1015,6 @@ classInComp = ClassInComponent::get( obj:obj, component: containing_comp_def );
 select one file related by classInComp->File[R401];
 ::addStringToImports( file:file, s:"io.ciera.runtime.instanceloading.AttributeChangedDelta", type:ImportType::IMPL );
 ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::BOTH );
-::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.EmptyInstanceException", type:ImportType::IMPL );
 if (not_empty array_type)
   ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.ArrayUtil", type:ImportType::IMPL );
 elif ("String" == type.type_name and "" == type.type_package)
@@ -1278,20 +1277,6 @@ if ( empty class_exclude_mark )
   relate obj to file across R401;
   obj.key_letters = o_obj.Key_Lett;
 
-  // create a type for this class
-  create object instance type of Type;
-  type.name = obj.name;
-  type.package = obj.package;
-  select any s_irdt related by o_obj->S_IRDT[R123] where ( not selected.isSet );
-  select one s_dt related by s_irdt->S_DT[R17];
-  if ( not_empty s_dt )
-    type.resolveCompIndepClass( s_dt:s_dt );
-  else
-    // TODO bad
-  end if;
-  type.default_value = obj.name + "Impl.EMPTY_" + T::sub( format:"_u", s:obj.name );
-  relate type to obj across R407;
-
   // relate to the OOA class
   relate obj to o_obj across R409;
 
@@ -1389,7 +1374,9 @@ relate compSpecType to objset across R3803;
 
 
 // create the import block
+select one component_file related by defining_comp->File[R401];
 select one classInCompFile related by classInComp->File[R401];
+::addFileToImports( file:file, file_to_import:component_file, type:ImportType::BOTH );
 ::addFileToImports( file:file, file_to_import:file, type: ImportType::IMPL );
 ::addFileToImports( file:file, file_to_import:classInCompFile, type: ImportType::IMPL );
 ::addStringToImports( file:file, s:"java.util.Arrays", type:ImportType::IMPL );
@@ -1397,11 +1384,10 @@ select one classInCompFile related by classInComp->File[R401];
 ::addStringToImports( file:file, s:"java.util.List", type:ImportType::IMPL );
 ::addStringToImports( file:file, s:"io.ciera.runtime.summit.classes.InstanceSet", type:ImportType::IMPL );
 ::addStringToImports( file:file, s:"io.ciera.runtime.summit.classes.IInstanceSet", type:ImportType::INT );
-
-select any attr related by objset->ClassInComponent[R406]->Class[R408]->Attribute[R410];
-if ( not_empty attr )
-  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::BOTH );
-end if;',
+::addStringToImports( file:file, s:"org.json.JSONObject", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"org.json.JSONArray", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::BOTH );
+',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -2309,7 +2295,6 @@ end if;
   
 // add imports
 select one class_file related by class_in_comp->File[R401];
-::addStringToImports( file:class_file, s:"io.ciera.runtime.summit.exceptions.EmptyInstanceException", type:ImportType::IMPL );
 if ( op.is_class_based )
   ::addStringToImports( file:class_file, s:"io.ciera.runtime.summit.application.ActionHome", type:ImportType::IMPL );
 end if;
@@ -2596,6 +2581,7 @@ select one component_file related by comp_def->File[R401];
 ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL );
 ::addStringToImports( file:file, s:"io.ciera.runtime.summit.interfaces.IMessage", type:ImportType::IMPL );
 ::addStringToImports( file:file, s:"io.ciera.runtime.summit.interfaces.IPort", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"java.util.Iterator", type:ImportType::IMPL );
 ::addFileToImports( file:file, file_to_import:component_file, type:ImportType::IMPL );
 select one iface_file related by iface->File[R401];
 ::addFileToImports( file:file, file_to_import:iface_file, type:ImportType::IMPL );',
@@ -3572,11 +3558,13 @@ if ( empty class_exclude_mark )
   ::addStringToImports( file:file, s:"io.ciera.runtime.summit.classes.IModelInstance", type:ImportType::INT );
   ::addStringToImports( file:file, s:"io.ciera.runtime.summit.classes.ModelInstance", type:ImportType::IMPL );
   ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.InstancePopulationException", type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.EmptyInstanceException", type:ImportType::IMPL );
   ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL );
   ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.IWhere", type:ImportType::IMPL );
   ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.IXtumlType", type:ImportType::IMPL );
   ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.UniqueId", type:ImportType::IMPL );
   ::addStringToImports( file:file, s:"io.ciera.runtime.instanceloading.InstanceCreatedDelta", type:ImportType::IMPL );
+  ::addStringToImports( file:file, s:"org.json.JSONObject", type:ImportType::IMPL );
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,

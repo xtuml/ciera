@@ -1,0 +1,1 @@
+        attrs.put( "${self.name}", ${gettername}() );

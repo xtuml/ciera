@@ -80,17 +80,12 @@ INSERT INTO O_TFR
 	1,
 	'// unresolved
 // builtin
-// class
 // class set
 // class in component
 // enum
 select one unresolved_type related by self->UnresolvedType[R407];
 if ( not_empty unresolved_type )
   unresolved_type.dispose();
-end if;
-select one obj related by self->Class[R407];
-if ( not_empty obj )
-  unrelate self from obj across R407;
 end if;
 select one objset related by self->ComponentSpecificType[R407]->ClassSet[R3803];
 if ( not_empty objset )
@@ -166,10 +161,8 @@ INSERT INTO O_TFR
 defining_comp = param.defining_comp;
 
 // if it exists, find the (one) unresolved type for this S_DT and the defining component
-select many unresolved_types_sdt related by s_dt->Type[R423]->UnresolvedType[R407]
-  where( not selected.comp_indep_class );
-select many unresolved_types_comp related by defining_comp->UnresolvedType[R3805]
-  where( not selected.comp_indep_class );
+select many unresolved_types_sdt related by s_dt->Type[R423]->UnresolvedType[R407];
+select many unresolved_types_comp related by defining_comp->UnresolvedType[R3805];
 unresolved_types = unresolved_types_sdt & unresolved_types_comp;
 select any old_type related by unresolved_types->Type[R407];
 select one unresolved_type related by old_type->UnresolvedType[R407];
@@ -275,7 +268,7 @@ for each old_type_ref in old_type_refs
 end for;',
 	1,
 	'',
-	"5e17ae98-98d9-44d5-9ae8-0386a911e9e4",
+	"89690c94-da17-43cb-b88e-165cde11c3f6",
 	0,
 	1);
 INSERT INTO O_TPARM
@@ -341,42 +334,6 @@ INSERT INTO O_TPARM
 	0,
 	'',
 	"98d5054f-087c-482c-b2c7-09b82c579fc6",
-	'');
-INSERT INTO O_TFR
-	VALUES ("5e17ae98-98d9-44d5-9ae8-0386a911e9e4",
-	"b5de937b-55ee-48e4-8e91-d9d73c3f0fab",
-	'resolveCompIndepClass',
-	'',
-	"ba5eda7a-def5-0000-0000-000000000000",
-	1,
-	's_dt = param.s_dt;
-
-// combine multiple, component-referred unresolved types into 
-// a single, component-independent resolved class type
-select many unresolved_types related by s_dt->Type[R423]->UnresolvedType[R407]
-  where ( selected.comp_indep_class );
-for each unresolved_type in unresolved_types
-  select one component related by unresolved_type->ComponentDefinition[R3805];
-  unrelate unresolved_type from component across R3805;
-  select one old_type related by unresolved_type->Type[R407];
-  self.updateTypeReferences( old_type:old_type );
-  unrelate old_type from s_dt across R423;
-  old_type.dispose();
-end for;
-relate self to s_dt across R423;',
-	1,
-	'',
-	"89690c94-da17-43cb-b88e-165cde11c3f6",
-	0,
-	3);
-INSERT INTO O_TPARM
-	VALUES ("e2631773-31db-42b6-ac3d-6161b150be45",
-	"5e17ae98-98d9-44d5-9ae8-0386a911e9e4",
-	's_dt',
-	"4a90cd45-ece0-4e72-afe7-44996f9d7e1e",
-	0,
-	'',
-	"00000000-0000-0000-0000-000000000000",
 	'');
 INSERT INTO O_TFR
 	VALUES ("f72189b9-fb5f-4cd0-b5b7-f0131f890c3f",

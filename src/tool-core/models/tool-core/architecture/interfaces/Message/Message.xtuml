@@ -14,12 +14,20 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'// Generate the interface methods to create Port Messages.
-// An Interface mark may specify message parameters passed as JSON strings, rather than indexed array.
-// Parameter-handling for both mechanisms are built; one is then chosen based on that marked value.
+	'// Render methods which create instances of Port Messages.
+// Note that any parameters of type inst_ref or inst_ref_set must be fully qualified as component-independent.
+// Here, make use of the capability necessary to support component-independent parameters for Port Messages.
+// (See invocable request for a ''qualified'' parameter list.)
+//
+// An Interface ''mark'' may specify message parameters be passed as key-value pair strings, rather than an indexed array.
+// Additionally, discovery of an inst_ref/set parameter type triggers message serialization.
+// Parameter-handling fragments for rendering both mechanisms (array/string) in the template are prepared; 
+// the appropriate fragments are then presented to the template, based on serialization consideration.
 
 select any invocable related by self->PortMessage[R420]->InvocableObject[R427];
-parameter_list = invocable.parameter_list();
+// Request that any parameters of type inst_ref or inst_ref_set are fully qualified as component-independent.
+// Note: no distinguishing prefixing of inst_ref/set parameters is needed when rendering the interface methods.
+parameter_list = invocable.parameter_qualified_list( prefix:"" );
 
 // parameters are presented in reverse of declared order; re-order to expected sequence.
 select any parm from instances of FormalParameter where false;
@@ -38,6 +46,13 @@ serialize = false;
 
 T::push_buffer();
 while ( not_empty parm )
+	// If this parameter is a component-specific type, it is either an instance reference or a set reference;
+	// either case requires that the message be serialized.
+  select one comp_specific related by parm->TypeReference[R431.''is typed by'']
+                                           ->Type[R3800.''based on'']->ComponentSpecificType[R407];
+  if ( not_empty comp_specific )
+  	serialize = true;
+  end if;
   invocation_parameter_list = invocation_parameter_list + separator + parm.name;
   separator = ", ";
   pname = parm.name;
@@ -47,7 +62,7 @@ end while;
 
 // select/modify fragments to be passed to template, based on serialize choice.
 select one iface related by self->Interface[R419.''defines message format for''];
-if ( iface.serialize_msgs )
+if ( iface.serialize_msgs ) or ( serialize )
   addparms = T::body();
   invocation_parameter_list = "";
   serialize = true;
@@ -246,6 +261,21 @@ INSERT INTO EP_PKG_PROXY
 	"00000000-0000-0000-0000-000000000000",
 	"9092a4a9-91f5-4e59-984b-3ca72917240d",
 	'interfaces',
-	'',
+	'Interfaces support passing instances and sets of instances as parameters on Port Messages.
+Where commmunicating components are represented by xtUML models, this is only practical 
+because components share component independent definitions of classes - and, therefore, 
+sets of class instances - through the Package Reference mechanism.
+
+While shared attribute, association and state model definitions of such classes are immutable,
+within xtUML components, shared classes may participate in component-specific associations.
+
+Since each component-specific class interface includes methods for all associations -
+including component-specific ones - in which the class participates, each method representing 
+an inter-component message must use component-independent interfaces to declare inst_ref and 
+inst_ref_set parameters. Therefore, methods realizing port-message activities must also use 
+component-independent interfaces when declaring such parameters which are then down-cast to 
+the receiving-component-specific class or class set required by the body of the port-message 
+activity.
+',
 	0,
 	'../interfaces.xtuml');
