@@ -24,9 +24,9 @@ public class SimulatedClock extends SystemClock {
 
     @Override
     protected void waitForNextTimer(ExecutionContext context) {
-        Queue<Timer> contextTimers = activeTimers.get(context);
-        if (!contextTimers.isEmpty()) {
-            long nextExpiration = contextTimers.peek().getExpiration();
+        Queue<Timer> timers = scheduledTimersMap.get(context);
+        if (!timers.isEmpty()) {
+            long nextExpiration = timers.peek().expiration;
             setTime(nextExpiration);
         }
     }

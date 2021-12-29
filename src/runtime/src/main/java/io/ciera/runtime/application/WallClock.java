@@ -31,9 +31,9 @@ public class WallClock extends SystemClock {
 
     @Override
     protected void waitForNextTimer(ExecutionContext context) throws InterruptedException {
-        Queue<Timer> contextTimers = activeTimers.get(context);
-        if (!contextTimers.isEmpty()) {
-            long waitTime = contextTimers.peek().getExpiration() - getTime();
+        Queue<Timer> timers = scheduledTimersMap.get(context);
+        if (!timers.isEmpty()) {
+            long waitTime = timers.peek().expiration - getTime();
             Thread.sleep(waitTime / 1000000l, (int) (waitTime % 1000000l));
         }
     }

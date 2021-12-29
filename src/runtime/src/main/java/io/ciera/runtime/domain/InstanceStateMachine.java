@@ -18,7 +18,7 @@ public abstract class InstanceStateMachine extends StateMachine implements Insta
 
     @Override
     public String getName() {
-        return String.format("%s [ISM]", self().getName());
+        return String.format("%s [ISM]", self().toString());
     }
 
     @Override

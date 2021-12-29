@@ -66,7 +66,8 @@ public class TestExecutionModes {
     @Test
     public void testDefaultMode() {
         // create fake application
-        Application app = new Application("testInterleavedMode", new String[0]) {};
+        Application app = new Application("testInterleavedMode", new String[0]) {
+        };
         app.setup();
 
         app.getLogger().trace("Testing default (interleaved) mode.");
@@ -118,6 +119,11 @@ public class TestExecutionModes {
 
             @Override
             public void attachTo(ExecutionContext context) {
+            }
+
+            @Override
+            public String toString() {
+                return "TestTarget";
             }
         };
 

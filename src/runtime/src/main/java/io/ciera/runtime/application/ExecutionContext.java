@@ -9,7 +9,6 @@ import java.util.concurrent.PriorityBlockingQueue;
 import io.ciera.runtime.application.task.GeneratedEvent;
 import io.ciera.runtime.application.task.GeneratedEventToSelf;
 import io.ciera.runtime.exceptions.InstancePopulationException;
-import io.ciera.runtime.types.Date;
 import io.ciera.runtime.types.Duration;
 import io.ciera.runtime.types.TimeStamp;
 
@@ -63,51 +62,44 @@ public class ExecutionContext implements Runnable, Executor, Named {
         }
     }
 
-    protected synchronized void scheduleEvent(Event event, EventTarget target, Timer timer) {
-        application.getLogger().trace("TMR: Scheduling timer: %s: %s -> %s at %s", timer, event, target,
-                new Date(timer.getExpiration()));
-        getClock().registerTimer(this, timer, event, target);
-        notify();
+    public <E extends Event> Timer scheduleEvent(Class<E> eventType, EventTarget target, Duration delay,
+            Object... eventData) {
+        try {
+            Constructor<E> eventBuilder = eventType.getConstructor(Object[].class);
+            Event event = eventBuilder.newInstance((Object) eventData);
+            Timer timer = new Timer(this, event, target);
+            timer.schedule(delay.getValue());
+            return timer;
+        } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException
+                | IllegalArgumentException | InvocationTargetException e) {
+            throw new InstancePopulationException("Could not schedule event TODO", e); // TODO
+        }
     }
 
     public <E extends Event> Timer scheduleEvent(Class<E> eventType, EventTarget target, TimeStamp expiration,
             Object... eventData) {
-        try {
-            Constructor<E> eventBuilder = eventType.getConstructor(Object[].class);
-            Event event = eventBuilder.newInstance((Object) eventData);
-            Timer timer = new Timer(this, event, target, expiration.getValue());
-            scheduleEvent(event, target, timer);
-            return timer;
-        } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException
-                | IllegalArgumentException | InvocationTargetException e) {
-            throw new InstancePopulationException("Could not schedule event TODO", e); // TODO
-        }
-    }
-
-    public <E extends Event> Timer scheduleEvent(Class<E> eventType, EventTarget target, Duration delay,
-            Object... eventData) {
-        TimeStamp expiration = TimeStamp.now(getClock()).add(delay).castTo(TimeStamp.class);
-        return scheduleEvent(eventType, target, expiration, eventData);
-    }
-
-    public <E extends Event> Timer scheduleRecurringEvent(Class<E> eventType, EventTarget target, TimeStamp expiration,
-            Duration period, Object... eventData) {
-        try {
-            Constructor<E> eventBuilder = eventType.getConstructor(Object[].class);
-            Event event = eventBuilder.newInstance((Object) eventData);
-            Timer timer = new Timer(this, event, target, expiration.getValue(), period.getValue());
-            scheduleEvent(event, target, timer);
-            return timer;
-        } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException
-                | IllegalArgumentException | InvocationTargetException e) {
-            throw new InstancePopulationException("Could not schedule event TODO", e); // TODO
-        }
+        Duration delay = expiration.subtract(TimeStamp.now(getClock())).castTo(Duration.class);
+        return scheduleEvent(eventType, target, delay, eventData);
     }
 
     public <E extends Event> Timer scheduleRecurringEvent(Class<E> eventType, EventTarget target, Duration delay,
             Duration period, Object... eventData) {
-        TimeStamp expiration = TimeStamp.now(getClock()).add(delay).castTo(TimeStamp.class);
-        return scheduleRecurringEvent(eventType, target, expiration, period != null ? period : delay, eventData);
+        try {
+            Constructor<E> eventBuilder = eventType.getConstructor(Object[].class);
+            Event event = eventBuilder.newInstance((Object) eventData);
+            Timer timer = new Timer(this, event, target, period != null ? period : delay);
+            timer.schedule(delay.getValue());
+            return timer;
+        } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException
+                | IllegalArgumentException | InvocationTargetException e) {
+            throw new InstancePopulationException("Could not schedule event TODO", e); // TODO
+        }
+    }
+
+    public <E extends Event> Timer scheduleRecurringEvent(Class<E> eventType, EventTarget target, TimeStamp expiration,
+            Duration period, Object... eventData) {
+        Duration delay = expiration.subtract(TimeStamp.now(getClock())).castTo(Duration.class);
+        return scheduleRecurringEvent(eventType, target, delay, period, eventData);
     }
 
     public synchronized void addTask(Task newTask) {
@@ -150,7 +142,7 @@ public class ExecutionContext implements Runnable, Executor, Named {
             } else {
                 // wait for something interesting to happen
                 try {
-                    if (getClock().hasActiveTimers(this)) {
+                    if (getClock().hasScheduledTimers(this)) {
                         // wait for the next timer to expire
                         getClock().waitForNextTimer(this);
                     } else {
