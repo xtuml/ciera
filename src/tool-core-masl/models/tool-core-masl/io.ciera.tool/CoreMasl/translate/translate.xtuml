@@ -124,19 +124,6 @@ LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
 // Translate application
 LOG::LogInfo( message:"Translating..." );
 ::transformMaslApplication();
-
-// resolve types
-LOG::LogInfo( message:"  Resolving type references..." );
-::resolveTypeImports();
-LOG::LogInfo( message:"  done." );
-LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
-
-// resolve user defined types
-LOG::LogInfo( message:"  Resolving user defined types..." );
-//::resolveUserDefinedTypes();  TODO
-LOG::LogInfo( message:"  done." );
-LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
-
 // translate bodies
 select many invocables from instances of InvocableObject;
 select many invocables related by invocables->MaslCodeBlock[R8306]->InvocableObject[R8306];  // only translate bodies that have code
@@ -146,6 +133,18 @@ for each invocable in invocables
   LOG::LogInfo(message:"  Translating ''" + invocable.parent_package + "." + invocable.parent_name + "#" + invocable.name + "'' ...");
   ::transformMaslBody(invocable:invocable);
 end for;
+LOG::LogInfo( message:"  done." );
+LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
+
+// resolve user defined types
+LOG::LogInfo( message:"  Resolving user defined types..." );
+//::resolveUserDefinedTypes();  TODO
+LOG::LogInfo( message:"  done." );
+LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
+
+// resolve types
+LOG::LogInfo( message:"  Resolving type references..." );
+::resolveTypeImports();
 LOG::LogInfo( message:"  done." );
 LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
 
