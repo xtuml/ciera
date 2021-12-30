@@ -1,13 +1,17 @@
-.if (is_else_if)
-${statements}\
+.if (statements == "")
+{}
 .else
+  .if (is_else_if)
+${statements}\
+  .else
 {
-  .if (self.prefix != "")
+    .if (self.prefix != "")
     ${self.prefix}\
-  .end if
+    .end if
     ${statements}\
-  .if (self.suffix != "")
+    .if (self.suffix != "")
     ${self.suffix}\
-  .end if
+    .end if
 }
+  .end if
 .end if

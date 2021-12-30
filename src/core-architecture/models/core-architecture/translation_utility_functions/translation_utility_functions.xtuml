@@ -530,12 +530,10 @@ end for;
 // TODO tempororily here for convenience
 select many promotions from instances of Promotion;
 for each promotion in promotions
-  LOG::LogInfo(message: "LEVI in promotion");
   select one input_type related by promotion->Expression[R3907]->TypeReference[R795]->Type[R3800];
   select one input_type_builtin related by input_type->BuiltInType[R407];
 	input_type_primitive = not_empty input_type_builtin and (input_type_builtin.primitive or input_type.name == "String");
 	if input_type_primitive
-    LOG::LogInfo(message: "LEVI in promotion2");
 		select one smt related by promotion->Expression[R776]->Statement[R775];
 		::addStringToImports(file: ::getFileForStatement(smt:smt), s:"io.ciera.runtime.types.ModelType", type:ImportType::IMPL);
 	end if;
@@ -597,8 +595,10 @@ select many then_blocks related by upper_block->Statement[R450]->IfSmt[R451]->Co
 select many else_blocks related by upper_block->Statement[R450]->IfSmt[R451]->CodeBlock[R454];
 select many while_blocks related by upper_block->Statement[R450]->WhileSmt[R451]->CodeBlock[R456];
 select many for_blocks related by upper_block->Statement[R450]->ForSmt[R451]->CodeBlock[R455];
+select many try_blocks related by upper_block->Statement[R450]->TrySmt[R451]->CodeBlock[R491];
+select many catch_blocks related by upper_block->Statement[R450]->TrySmt[R451]->CodeBlock[R492];
 
-child_blocks = then_blocks + else_blocks + while_blocks + for_blocks;
+child_blocks = then_blocks + else_blocks + while_blocks + for_blocks + try_blocks + catch_blocks;
 
 // find the most recent child block
 block_number = "0";
