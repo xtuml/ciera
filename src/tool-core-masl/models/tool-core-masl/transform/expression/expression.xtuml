@@ -880,8 +880,50 @@ if (not_empty cast_expression)
 	select any prom_val related by smt->Expression[R775] where (selected.expression_number == expr_number + ".1");
 	relate prom_val to prom across R3907;
 else
+select one characteristic_expression related by call_expression->CharacteristicExpression[R5500];
+if (not_empty characteristic_expression)
+
+  // TODO make sure this works for "class based" type characterstics
+
+  // translate the root expression
+  select one base_masl_expression related by characteristic_expression->MaslExpression[R5504];
+	::transformMaslExpression(masl_expression:base_masl_expression, expr_number:expr_number + ".1", smt:smt);
+	select any base_expr related by smt->Expression[R775] where (selected.expression_number == expr_number + ".1");
+	select one base_type related by base_expr->TypeReference[R795]->Type[R3800];
+
+  // find the characteristic
+  characteristic_name = "";
+  if characteristic_expression.characteristic == "delta"
+    characteristic_name = "getPeriod";
+  elif characteristic_expression.characteristic == "scheduled_at"
+    characteristic_name = "getScheduledExpirationTime";
+  elif characteristic_expression.characteristic == "expired_at"
+    characteristic_name = "getLastExpirationTime";
+  elif characteristic_expression.characteristic == "scheduled"
+    characteristic_name = "isScheduled";
+  elif characteristic_expression.characteristic == "expired"
+    characteristic_name = "isExpired";
+  else
+    LOG::LogFailure(message:"Unsupported type characterstic ''" + characteristic_expression.characteristic + "'' for type: " + base_type.name);
+  end if;
+  select any characteristic related by base_type->Characteristic[R3804] where selected.name == characteristic_name;
+  select one invocable related by characteristic->InvocableObject[R427];
+
+  // create an invocation
+	create object instance invoc of Invocation;
+	relate invoc to expr across R776;
+	relate invoc to invocable across R792;
+	relate base_expr to invoc across R798;
+
+	// transform actual parameters
+	select one first_argument related by call_expression->Argument[R5575];
+	if (not_empty first_argument)
+	  ::transformArguments(invocation:invoc, first_argument:first_argument, expr_number:expr.expression_number, base_num:2);
+	end if;
+
+else
   // TODO
-end if; end if;',
+end if; end if; end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
