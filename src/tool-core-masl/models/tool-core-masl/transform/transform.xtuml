@@ -159,15 +159,6 @@ else
     ::transformSelectors(obj:obj);
   end for;
 
-  // transform relationship population selectors
-  select many rels related by comp_def->Relationship[R448];
-  for each rel in rels
-    create object instance rel_pop_selector of RelationshipPopulationSelector;
-    rel_pop_selector.name = rel.name + "s";
-    relate rel_pop_selector to comp_def across R4571;
-    relate rel_pop_selector to rel across R4572;
-  end for;
-
   // transform attribute references
   select many objs related by comp_def->Class[R408];
   for each obj in objs
@@ -665,7 +656,7 @@ select one component_file related by comp_def->File[R401];
 ::addStringToImports(file:iface_file, s:"io.ciera.runtime.domain.Port", type:ImportType::IMPL);
 
 // add imports to port file
-::addStringToImports(file:port_file, s:"io.ciera.runtime.domain.Terminator", type:ImportType::IMPL);
+::addStringToImports(file:port_file, s:"io.ciera.runtime.domain.AbstractPort", type:ImportType::IMPL);
 ::addFileToImports(file:port_file, file_to_import:component_file, type:ImportType::IMPL);
 ::addFileToImports(file:port_file, file_to_import:iface_file, type:ImportType::IMPL);',
 	"ba5eda7a-def5-0000-0000-000000000000",
@@ -1173,7 +1164,7 @@ relate setter to attr across R4510;
 // add import to object file
 select one file related by obj->File[R401];
 ::addStringToImports(file:file, s:"io.ciera.runtime.exceptions.EmptyInstanceException", type:ImportType::IMPL);
-::addStringToImports(file:file, s:"io.ciera.runtime.exceptions.InstancePopulationException", type:ImportType::IMPL);
+::addStringToImports(file:file, s:"io.ciera.runtime.exceptions.DeletedInstanceException", type:ImportType::IMPL);
 select one type_def related by type->Type[R3800];
 ::addTypeToImports(file:file, type_to_import:type_def, type:ImportType::IMPL);',
 	"ba5eda7a-def5-0000-0000-000000000000",
