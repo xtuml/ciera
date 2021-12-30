@@ -9,7 +9,7 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import io.ciera.runtime.exceptions.TimerException;
+import io.ciera.runtime.exceptions.TimerScheduleException;
 import io.ciera.runtime.types.Duration;
 
 public abstract class SystemClock {
@@ -71,8 +71,8 @@ public abstract class SystemClock {
                 return false;
             }
         } else {
-            throw new TimerException(
-                    String.format("Attempt to schedule timer %s in the past: %s", timer, new Duration(-delay)));
+            throw new TimerScheduleException(
+                    String.format("Attempt to schedule timer %s in the past", timer), timer, new Duration(-delay));
         }
     }
 

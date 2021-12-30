@@ -7,7 +7,7 @@ import io.ciera.runtime.application.ExecutionContext;
 import io.ciera.runtime.application.Logger;
 import io.ciera.runtime.application.Named;
 import io.ciera.runtime.exceptions.CannotHappenException;
-import io.ciera.runtime.exceptions.TransitionException;
+import io.ciera.runtime.exceptions.StateMachineActionException;
 
 public abstract class StateMachine implements ActionHome, EventTarget, Named {
 
@@ -16,7 +16,7 @@ public abstract class StateMachine implements ActionHome, EventTarget, Named {
     private final Logger logger;
     private ExecutionContext context;
 
-    private Enum<?> currentState;
+    protected Enum<?> currentState;
 
     public StateMachine(String name, Domain domain, Enum<?> initialState) {
         this.name = name;
@@ -37,25 +37,23 @@ public abstract class StateMachine implements ActionHome, EventTarget, Named {
 
     public abstract TransitionRule getTransition(Enum<?> currentState, Event event);
 
-    @Override
-    public void consumeEvent(Event event) {
+    protected void executeTransition(Event event) {
         TransitionRule transition = getTransition(currentState, event);
         traceTxn("TXN START:", getName(), currentState.name(), event.getName(), "...", Logger.ANSI_RESET);
+        Enum<?> newState = transition.execute();
+        if (newState != null) {
+            traceTxn("TXN END:", getName(), currentState.name(), event.getName(), newState.name(), Logger.ANSI_GREEN);
+            currentState = newState;
+        }
+    }
+
+    @Override
+    public void consumeEvent(Event event) {
         try {
-            Enum<?> newState = transition.execute();
-            if (newState != null) {
-                traceTxn("TXN END:", getName(), currentState.name(), event.getName(), newState.name(),
-                        Logger.ANSI_GREEN);
-                currentState = newState;
-            }
+            executeTransition(event);
         } catch (RuntimeException e) {
-            if (!(e instanceof TransitionException)) {
-                // Inject transition context information
-                throw new TransitionException(currentState, event,
-                        "Exception executing transition or state entry action", e);
-            } else {
-                throw e;
-            }
+            throw new StateMachineActionException("Exception occurred while executing transition or state entry action", e, this,
+                    currentState, this, event);
         }
     }
 
@@ -82,7 +80,7 @@ public abstract class StateMachine implements ActionHome, EventTarget, Named {
     public TransitionRule cannotHappen(Enum<?> currentState, Event event) {
         return () -> {
             traceTxn("TXN END:", getName(), currentState.name(), event.getName(), "CANNOT HAPPEN", Logger.ANSI_RED);
-            throw new CannotHappenException(currentState, event, "Event cannot happen.");
+            throw new CannotHappenException();
         };
     }
 

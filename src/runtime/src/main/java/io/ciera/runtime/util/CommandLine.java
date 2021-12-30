@@ -8,8 +8,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import io.ciera.runtime.exceptions.CommandLineException;
-
 public class CommandLine {
 
     private Map<String, Option> options;
@@ -43,21 +41,21 @@ public class CommandLine {
 
     public boolean get_flag(String name) {
         if (null == flags || null == values)
-            throw new CommandLineException("Commandline has not been loaded.");
+            throw new IllegalStateException("Commandline has not been loaded.");
         if (!options.containsKey(name))
-            throw new CommandLineException("Option '" + name + "' has not been registered.");
+            throw new IllegalArgumentException("Option '" + name + "' has not been registered.");
         if (options.get(name).type != Option.FLAG)
-            throw new CommandLineException("Option '" + name + "' requires a value.");
+            throw new IllegalArgumentException("Option '" + name + "' requires a value.");
         return flags.contains(name);
     }
 
     public String get_value(String name) {
         if (null == flags || null == values)
-            throw new CommandLineException("Commandline has not been loaded.");
+            throw new IllegalStateException("Commandline has not been loaded.");
         if (!options.containsKey(name))
-            throw new CommandLineException("Option '" + name + "' has not been registered.");
+            throw new IllegalArgumentException("Option '" + name + "' has not been registered.");
         if (options.get(name).type != Option.VALUE)
-            throw new CommandLineException("Option '" + name + "' does not carry a value.");
+            throw new IllegalArgumentException("Option '" + name + "' does not carry a value.");
         if (values.containsKey(name))
             return values.get(name);
         else
@@ -66,26 +64,26 @@ public class CommandLine {
 
     public void read_command_line() {
         if (null != flags && null != values)
-            throw new CommandLineException("Commandline is already loaded.");
+            throw new IllegalStateException("Commandline is already loaded.");
         validateCommandLine();
     }
 
     public void register_flag(String name, String usage) {
         if (null != flags && null != values)
-            throw new CommandLineException("Commandline is already loaded.");
+            throw new IllegalStateException("Commandline is already loaded.");
         validateName(name);
         Option flag = new Option();
         flag.type = Option.FLAG;
         flag.name = name;
         flag.usage = null != usage ? usage : "";
         if (options.containsKey(name))
-            throw new CommandLineException("Option '" + name + "' already registered.");
+            throw new IllegalArgumentException("Option '" + name + "' already registered.");
         options.put(name, flag);
     }
 
     public void register_value(String name, String value_name, String usage, String default_value, boolean required) {
         if (null != flags && null != values)
-            throw new CommandLineException("Commandline is already loaded.");
+            throw new IllegalStateException("Commandline is already loaded.");
         validateName(name);
         Option value = new Option();
         value.type = Option.VALUE;
@@ -95,17 +93,17 @@ public class CommandLine {
         value.defaultValue = null != default_value ? default_value : "";
         value.required = required;
         if (options.containsKey(name))
-            throw new CommandLineException("Option '" + name + "' already registered.");
+            throw new IllegalArgumentException("Option '" + name + "' already registered.");
         options.put(name, value);
     }
 
     // check whether a string is a valid option name
-    private void validateName(String name) throws CommandLineException {
+    private void validateName(String name) {
         if (null == name || !Pattern.compile("[a-zA-Z][a-zA-Z0-9_\\-]*").matcher(name).matches())
-            throw new CommandLineException(
+            throw new IllegalArgumentException(
                     "Option name must be one or more alphanumeric characters, hyphens, or underscores.");
         else if ("h".equals(name) || "help".equals(name)) {
-            throw new CommandLineException(String.format("Cannot register reserved flag '%s'.", name));
+            throw new IllegalArgumentException(String.format("Cannot register reserved flag '%s'.", name));
         }
     }
 
@@ -126,7 +124,7 @@ public class CommandLine {
                 errors = true;
         if (errors || flags.contains("h") || flags.contains("help")) {
             printUsage();
-            throw new CommandLineException();
+            throw new RuntimeException();
         }
     }
 

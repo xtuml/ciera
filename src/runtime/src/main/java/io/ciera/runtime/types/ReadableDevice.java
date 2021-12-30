@@ -1,11 +1,11 @@
 package io.ciera.runtime.types;
 
+import java.io.EOFException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Scanner;
 
-import io.ciera.runtime.exceptions.DeserializationException;
 import io.ciera.runtime.exceptions.DeviceReadException;
 
 public class ReadableDevice extends Device {
@@ -27,12 +27,12 @@ public class ReadableDevice extends Device {
                 return (T) deserialize.invoke(null, token);
             } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException
                     | InvocationTargetException e) {
-                throw new DeserializationException(
-                        "Could not deserialize token '" + token + "' for type '" + cls.getName() + "'", e);
+                throw new DeviceReadException(
+                        "Could not deserialize token '" + token + "' for type '" + cls.getName() + "'", e, this);
             }
 
         } else {
-            throw new DeviceReadException("Could not read token from device");
+            throw new DeviceReadException("Could not get next token from device.", new EOFException(), this);
         }
     }
 
@@ -41,7 +41,7 @@ public class ReadableDevice extends Device {
         if (sc.hasNextLine()) {
             return sc.nextLine();
         } else {
-            throw new DeviceReadException("Could not read token from device");
+            throw new DeviceReadException("Could not get next line from device.", new EOFException(), this);
         }
     }
 

@@ -1,12 +1,11 @@
 package io.ciera.runtime.types;
 
+import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalUnit;
 import java.util.function.Function;
 
 import io.ciera.runtime.exceptions.DeserializationException;
-
-import java.time.format.DateTimeParseException;
 
 /**
  * The Duration class represents a period of time. It is represented as a

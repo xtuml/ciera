@@ -6,8 +6,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.util.Map;
 import java.util.Optional;
+
 import io.ciera.runtime.application.Named;
-import io.ciera.runtime.exceptions.DeserializationException;
 import io.ciera.runtime.types.UniqueId;
 
 /**
@@ -104,7 +104,7 @@ public class Message implements Comparable<Message>, Named {
     }
 
     public static Message fromString(Object s) {
-        throw new DeserializationException("Base 'Message' is not JSON serializable.");
+        throw new UnsupportedOperationException("Base 'Message' is not JSON serializable.");
     }
 
     @Override

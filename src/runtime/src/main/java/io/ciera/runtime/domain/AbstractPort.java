@@ -6,9 +6,9 @@ import io.ciera.runtime.application.Logger;
 import io.ciera.runtime.application.MessageTarget;
 import io.ciera.runtime.application.Named;
 import io.ciera.runtime.application.task.ReceivedMessage;
-import io.ciera.runtime.exceptions.TerminatorException;
+import io.ciera.runtime.exceptions.PortMessageException;
 
-public abstract class Terminator implements Port, ActionHome, Named {
+public abstract class AbstractPort implements Port, ActionHome, Named {
 
     private final String name;
     private final Domain domain;
@@ -16,7 +16,7 @@ public abstract class Terminator implements Port, ActionHome, Named {
     private ExecutionContext context;
     private MessageTarget peer;
 
-    public Terminator(String name, Domain domain) {
+    public AbstractPort(String name, Domain domain) {
         this.name = name;
         this.domain = domain;
         this.logger = domain.getLogger();
@@ -30,10 +30,18 @@ public abstract class Terminator implements Port, ActionHome, Named {
             peer.getContext().addTask(new ReceivedMessage(peer.getContext(), message, peer));
         }
     }
+    
+    public void runMessageHandler(Message receivedMessage, Runnable messageHandler) {
+        try {
+            messageHandler.run();
+        } catch (RuntimeException e) {
+            throw new PortMessageException("Exception occurred while executing transition or state entry action", e, getDomain(), this, receivedMessage);
+        }
+    }
 
     @Override
     public void deliver(Message message) {
-        throw new TerminatorException("Terminator " + getName() + " does not implement any incoming message types.");
+        throw new UnsupportedOperationException("Port " + getName() + " does not implement any incoming message types.");
     }
 
     @Override
@@ -73,7 +81,7 @@ public abstract class Terminator implements Port, ActionHome, Named {
 
     @Override
     public String toString() {
-        return String.format("Terminator[%s]", getName());
+        return String.format("Port[%s]", getName());
     }
 
 }

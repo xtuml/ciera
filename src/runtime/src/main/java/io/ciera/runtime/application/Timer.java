@@ -1,7 +1,6 @@
 package io.ciera.runtime.application;
 
 import io.ciera.runtime.application.task.TimerExpiration;
-import io.ciera.runtime.exceptions.TimerException;
 import io.ciera.runtime.types.Date;
 import io.ciera.runtime.types.Duration;
 import io.ciera.runtime.types.TimeStamp;
@@ -96,7 +95,7 @@ public class Timer implements Comparable<Timer>, Named {
         if (scheduled) {
             return new TimeStamp(expiration);
         } else {
-            throw new TimerException("Timer has not been scheduled: " + this);
+            throw new IllegalStateException("Timer has not been scheduled: " + this);
         }
     }
 
@@ -106,7 +105,7 @@ public class Timer implements Comparable<Timer>, Named {
         if (expired) {
             return new TimeStamp(scheduled ? expiration - period : expiration);
         } else {
-            throw new TimerException("Timer is not expired: " + this);
+            throw new IllegalStateException("Timer is not expired: " + this);
         }
     }
 

@@ -1,18 +1,30 @@
 package io.ciera.runtime.domain;
 
 import io.ciera.runtime.action.InstanceActionHome;
+import io.ciera.runtime.application.Event;
+import io.ciera.runtime.exceptions.InstanceStateMachineActionException;
 
 public abstract class InstanceStateMachine extends StateMachine implements InstanceActionHome {
 
-    private final ObjectInstance self;
+    private final DynamicObjectInstance self;
 
-    public InstanceStateMachine(Domain domain, Enum<?> initialState, ObjectInstance self) {
+    public InstanceStateMachine(Domain domain, Enum<?> initialState, DynamicObjectInstance self) {
         super(String.format("%s [ISM]", self.getName()), domain, initialState);
         this.self = self;
     }
 
     @Override
-    public ObjectInstance self() {
+    public void consumeEvent(Event event) {
+        try {
+            executeTransition(event);
+        } catch (RuntimeException e) {
+            throw new InstanceStateMachineActionException("Exception occurred while executing transition or state entry action", e, this,
+                    currentState, self(), event);
+        }
+    }
+
+    @Override
+    public DynamicObjectInstance self() {
         return self;
     }
 

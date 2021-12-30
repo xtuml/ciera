@@ -1,8 +1,9 @@
 package io.ciera.runtime.domain;
 
 import io.ciera.runtime.application.Event;
+import io.ciera.runtime.exceptions.DeletedInstanceException;
 import io.ciera.runtime.exceptions.EmptyInstanceException;
-import io.ciera.runtime.exceptions.InstancePopulationException;
+import io.ciera.runtime.exceptions.EventTargetException;
 import io.ciera.runtime.types.UniqueId;
 
 public abstract class DynamicObjectInstance extends ObjectInstance {
@@ -33,7 +34,7 @@ public abstract class DynamicObjectInstance extends ObjectInstance {
         if (stateMachine != null) {
             return stateMachine.getCurrentState();
         } else {
-            throw new InstancePopulationException("Dynamic instance has no state machine");
+            throw new IllegalStateException("Dynamic instance has no state machine");
         }
     }
 
@@ -42,13 +43,21 @@ public abstract class DynamicObjectInstance extends ObjectInstance {
         if (isAlive()) {
             if (!isEmpty()) {
                 if (stateMachine != null) {
-                    stateMachine.consumeEvent(event);
+                    if (event != null) {
+                        stateMachine.consumeEvent(event);
+                    } else {
+                        throw new EventTargetException("Cannot consume null event", this, event);
+                    }
                 } else {
-                    throw new InstancePopulationException("Dynamic instance has no state machine");
+                    throw new IllegalStateException("Dynamic instance has no state machine");
                 }
             } else {
-                throw new EmptyInstanceException("Empty instance cannot process event");
+                throw new EventTargetException("Failed to deliver event.",
+                        new EmptyInstanceException("Empty instance cannot process event", getDomain(), this), this, event);
             }
+        } else {
+            throw new EventTargetException("Failed to deliver event.",
+                    new DeletedInstanceException("Cannot deliver event to deleted instance", getDomain(), this), this, event);
         }
     }
 }

@@ -1,27 +1,20 @@
 package io.ciera.runtime.exceptions;
 
+import io.ciera.runtime.types.Device;
+
 public class DeviceReadException extends RuntimeException {
 
     private static final long serialVersionUID = 1l;
+    
+    private final Device device;
 
-    public DeviceReadException() {
-        super();
-    }
-
-    public DeviceReadException(String message) {
-        super(message);
-    }
-
-    public DeviceReadException(String message, Throwable cause) {
+    public DeviceReadException(String message, Throwable cause, Device device) {
         super(message, cause);
+        this.device = device;
     }
-
-    public DeviceReadException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
-    }
-
-    public DeviceReadException(Throwable cause) {
-        super(cause);
+    
+    public Device getDevice() {
+        return device;
     }
 
 }

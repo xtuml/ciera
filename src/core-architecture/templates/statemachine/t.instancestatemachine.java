@@ -29,7 +29,7 @@ public class ${self.name} extends InstanceStateMachine {
         switch (state) {
         ${transition_table_rows}\
         default:
-            throw new TransitionException(currentState, event, "Unknown state");
+            throw new IllegalStateException("Unknown state.");
         }
     }
 

@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.Test;
 
-import io.ciera.runtime.exceptions.TypeException;
+import io.ciera.runtime.exceptions.TypeConversionException;
 
 public class TestTypeConversion {
 
@@ -67,7 +67,7 @@ public class TestTypeConversion {
     @Test
     public void dateToDevice() {
         Date input = new Date(123456789l);
-        Exception e = assertThrows(TypeException.class, () -> {
+        Exception e = assertThrows(TypeConversionException.class, () -> {
             input.castTo(Device.class);
         });
         assertEquals("Could not cast type 'io.ciera.runtime.types.Date' to 'io.ciera.runtime.types.Device'",

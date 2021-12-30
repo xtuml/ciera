@@ -2,7 +2,7 @@ package ${self.package};
 
 ${imports}
 
-public class ${self.name} extends Terminator implements ${self.iface_name} {
+public class ${self.name} extends AbstractPort implements ${self.iface_name} {
 
     public ${self.name}(${self.comp_name} domain) {
         super("${self.name}", domain);
@@ -21,10 +21,10 @@ public class ${self.name} extends Terminator implements ${self.iface_name} {
             switch (message.getId()) {
             ${message_switch_block}\
             default:
-                throw new IllegalArgumentException("Message not implemented by this port. TODO");
+                throw new PortMessageException("Message not implemented by this port", getDomain(), this, message);
             }
         } else {
-            throw new IllegalArgumentException("Cannot deliver null message.");
+            throw new PortMessageException("Cannot deliver null message", getDomain(), this, message);
         }
     }
 

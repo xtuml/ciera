@@ -6,8 +6,7 @@ import io.ciera.runtime.application.EventTarget;
 import io.ciera.runtime.application.ExecutionContext;
 import io.ciera.runtime.application.Logger;
 import io.ciera.runtime.application.Named;
-import io.ciera.runtime.exceptions.DeserializationException;
-import io.ciera.runtime.exceptions.InstancePopulationException;
+import io.ciera.runtime.exceptions.EventTargetException;
 import io.ciera.runtime.types.ModelType;
 import io.ciera.runtime.types.UniqueId;
 
@@ -92,7 +91,7 @@ public abstract class ObjectInstance extends ModelType
     }
 
     public static ObjectInstance fromString() {
-        throw new DeserializationException("Object instances cannot be deserialized.");
+        throw new UnsupportedOperationException("Object instances cannot be deserialized.");
     }
 
     @Override
@@ -102,8 +101,8 @@ public abstract class ObjectInstance extends ModelType
 
     @Override
     public void consumeEvent(Event event) {
-        throw new InstancePopulationException(
-                "Cannot generate event '" + event.getName() + "' to non-dynamic instance '" + getName() + "'");
+        throw new EventTargetException(
+                "Cannot generate event '" + event.getName() + "' to non-dynamic instance '" + getName() + "'", this, event);
     }
 
 }

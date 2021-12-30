@@ -15,7 +15,6 @@ import io.ciera.runtime.application.ExecutionContext;
 import io.ciera.runtime.application.Logger;
 import io.ciera.runtime.application.Named;
 import io.ciera.runtime.exceptions.InstancePopulationException;
-import io.ciera.runtime.exceptions.ModelIntegrityException;
 import io.ciera.runtime.types.UniqueId;
 
 /**
@@ -87,7 +86,7 @@ public abstract class Domain implements ActionHome, InstancePopulation, Named {
             return instance;
         } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException
                 | IllegalArgumentException | InvocationTargetException e) {
-            throw new InstancePopulationException("Could not create instance of type '" + type.getSimpleName() + "'",
+            throw new IllegalArgumentException("Could not create instance of type '" + type.getSimpleName() + "'",
                     e);
         }
     }
@@ -102,8 +101,8 @@ public abstract class Domain implements ActionHome, InstancePopulation, Named {
         }
         boolean success = objectPopulation.add(instance);
         if (!success) {
-            throw new ModelIntegrityException(
-                    "Instance is not unique within the population of '" + getName() + "': " + instance);
+            throw new InstancePopulationException(
+                    "Instance is not unique within the population of '" + getName() + "': " + instance, this, instance);
         }
     }
 
@@ -137,8 +136,8 @@ public abstract class Domain implements ActionHome, InstancePopulation, Named {
         Set<ObjectInstance> objectPopulation = instancePopulation.get(object);
         boolean success = objectPopulation != null ? objectPopulation.remove(instance) : false;
         if (!success) {
-            throw new ModelIntegrityException(
-                    "Instance does not exist within the population of '" + getName() + "': " + instance);
+            throw new InstancePopulationException(
+                    "Instance does not exist within the population of '" + getName() + "': " + instance, this, instance);
         }
     }
 

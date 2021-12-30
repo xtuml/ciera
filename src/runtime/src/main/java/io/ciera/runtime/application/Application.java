@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import io.ciera.runtime.domain.Domain;
-import io.ciera.runtime.exceptions.ApplicationException;
 
 public abstract class Application implements Named {
 
@@ -72,7 +71,7 @@ public abstract class Application implements Named {
                 }
             });
         } else {
-            throw new ApplicationException("Cannot run application with no execution contexts");
+            throw new IllegalStateException("Cannot run application with no execution contexts");
         }
     }
 

@@ -5,7 +5,7 @@ import java.lang.reflect.Method;
 import java.util.function.Function;
 
 import io.ciera.runtime.exceptions.DeserializationException;
-import io.ciera.runtime.exceptions.TypeException;
+import io.ciera.runtime.exceptions.TypeConversionException;
 
 /**
  * ModelType is the base type for all modeled types.
@@ -39,7 +39,7 @@ public abstract class ModelType {
      * 
      * @param type The type to convert to.
      * @return an instance of {@code type}.
-     * @throws {@link TypeException} if no suitable conversion could be found.
+     * @throws {@link TypeConversionException} if no suitable conversion could be found.
      */
     public <R extends Object> R castTo(Class<R> type) {
         return castTo(type, this);
@@ -51,7 +51,7 @@ public abstract class ModelType {
      * @param type  The type to convert to.
      * @param value The value to convert.
      * @return an instance of {@code type}.
-     * @throws {@link TypeException} if no suitable conversion could be found.
+     * @throws {@link TypeConversionException} if no suitable conversion could be found.
      */
     @SuppressWarnings("unchecked")
     public static <R extends Object> R castTo(Class<R> type, Object value) {
@@ -82,14 +82,14 @@ public abstract class ModelType {
             if (f != null) {
                 return f.apply(value);
             } else {
-                throw new TypeException(
-                        "Could not cast type '" + value.getClass().getName() + "' to '" + type.getName() + "'");
+                throw new TypeConversionException(
+                        "Could not cast type '" + value.getClass().getName() + "' to '" + type.getName() + "'", value.getClass(), type);
 
             }
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException
                 | SecurityException e) {
-            throw new TypeException(
-                    "Could not cast type '" + value.getClass().getName() + "' to '" + type.getName() + "'", e);
+            throw new TypeConversionException(
+                    "Could not cast type '" + value.getClass().getName() + "' to '" + type.getName() + "'", e, value.getClass(), type);
         }
     }
 

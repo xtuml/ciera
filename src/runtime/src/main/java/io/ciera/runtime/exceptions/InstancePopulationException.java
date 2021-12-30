@@ -1,28 +1,27 @@
 package io.ciera.runtime.exceptions;
 
+import io.ciera.runtime.domain.InstancePopulation;
+import io.ciera.runtime.domain.ObjectInstance;
+
 public class InstancePopulationException extends RuntimeException {
 
     private static final long serialVersionUID = 1l;
 
-    public InstancePopulationException() {
-        super();
-    }
+    private final InstancePopulation population;
+    private final ObjectInstance instance;
 
-    public InstancePopulationException(String message) {
+    public InstancePopulationException(String message, InstancePopulation population, ObjectInstance instance) {
         super(message);
+        this.population = population;
+        this.instance = instance;
     }
 
-    public InstancePopulationException(String message, Throwable cause) {
-        super(message, cause);
+    public InstancePopulation getPopulation() {
+        return population;
     }
 
-    public InstancePopulationException(String message, Throwable cause, boolean enableSuppression,
-            boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
-    }
-
-    public InstancePopulationException(Throwable cause) {
-        super(cause);
+    public ObjectInstance getInstance() {
+        return instance;
     }
 
 }
