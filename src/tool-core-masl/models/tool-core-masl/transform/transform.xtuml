@@ -124,6 +124,12 @@ if (param.pass == 1)
   for each object_declaration in object_declarations
     ::transformObject(object_declaration:object_declaration, comp_def:comp_def);
   end for;
+  
+  // transform exceptions
+  select many exception_declarations related by domain->ExceptionDeclaration[R5400];
+  for each exception_declaration in exception_declarations
+    ::transformMaslException(exception_declaration: exception_declaration, comp_def:comp_def);
+  end for;
 
   // transform instance population selectors
   select many objs related by comp_def->Class[R408];
@@ -1726,6 +1732,79 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("c352eb0f-0c3e-481a-97fb-af66f7d79a60",
+	1,
+	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("547b37dd-8782-43e5-b030-2fd67a8ffb26",
+	"00000000-0000-0000-0000-000000000000",
+	'transformMaslException',
+	'',
+	'exception_declaration = param.exception_declaration;
+select one domain related by exception_declaration->Domain[R5400];
+comp_def = param.comp_def;
+
+select one component_file related by comp_def->File[R401];
+path = component_file.path + "/" + "exceptions";  // put all exceptions in one package called ''exceptions''
+
+// create the object file
+create object instance file of File;
+file.name = ::camelCaseName(name:exception_declaration.name, start_lower:false );
+file.path = path;
+file.package = ::pathToPackage(path:file.path);
+file.extension = ".java";
+file.exclude = false;
+
+// create the type
+create object instance type of Type;
+type.name = file.name;
+type.package = file.package;
+
+// create the exception
+create object instance exp of ExceptionType;
+relate exp to type across R407;
+create object instance ude of UserDefinedException;
+relate ude to exp across R3805;
+relate ude to file across R401;
+
+// connect to the arch model
+relate exception_declaration to ude across R8307;
+
+// create the import block
+::addStringToImports(file:file, s:"io.ciera.runtime.exceptions.ActionException", type:ImportType::IMPL);',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	3);
+INSERT INTO S_SPARM
+	VALUES ("62431a64-c1ce-48aa-a1e3-586a53b20bf2",
+	"547b37dd-8782-43e5-b030-2fd67a8ffb26",
+	'exception_declaration',
+	"fcbc46ab-aa9a-4a5f-a61c-93953c3dcf03",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("fcbc46ab-aa9a-4a5f-a61c-93953c3dcf03",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<ExceptionDeclaration>',
+	'',
+	'',
+	'../../../../ooamasl/models/ooamasl/ooamasl/domain/domain.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("b8b24aa5-5a7d-4b30-9e20-ef0c2d517ae5",
+	"547b37dd-8782-43e5-b030-2fd67a8ffb26",
+	'comp_def',
+	"109e90cb-1d66-46ee-88db-a568044879d0",
+	0,
+	'',
+	"62431a64-c1ce-48aa-a1e3-586a53b20bf2",
+	'');
+INSERT INTO PE_PE
+	VALUES ("547b37dd-8782-43e5-b030-2fd67a8ffb26",
 	1,
 	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
 	"00000000-0000-0000-0000-000000000000",
