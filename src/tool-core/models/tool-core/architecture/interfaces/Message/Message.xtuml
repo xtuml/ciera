@@ -75,6 +75,97 @@ T::include(file:"interface/t.message.java");',
 	"00000000-0000-0000-0000-000000000000",
 	0,
 	0);
+INSERT INTO O_TFR
+	VALUES ("84ee45b7-7c16-48b1-a413-4c090a90874d",
+	"8f02fe11-ef0d-4fb7-a888-408deb5ae3c8",
+	'render_msgclass',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'// Render a Java class that corresponds to a message defined by an interface.
+// The member names are derived by stripping the "p_" prefix from the FormalParameter names. @TODO
+// For each parameter of the message, render it first as a String data member.
+// Then, for each, render the get and set methods.
+// Note: method names must be formatted as required by the framework. 
+// - Spring requires an upper case character immediately after get/set method prefixes.
+// Finally, emit the class definition as a file in the same package as the interface.
+// The auxiliary ''messageName'' member support is scripted in the class template.
+//
+
+select any invocable related by self->PortMessage[R420]->InvocableObject[R427];
+// The following traversal of parameters is matched to message render...
+// parameters are presented in reverse of declared order; re-order to expected sequence.
+select any parm from instances of FormalParameter where false;
+select any prev_parm related by invocable->FormalParameter[R429];
+while ( not_empty prev_parm )
+  parm = prev_parm;
+  select one prev_parm related by parm->FormalParameter[R404.''follows''];
+end while;
+first_parm = parm;
+
+data_block = "";
+code_block = "";
+parm_block = "";
+parmlist = "";
+
+if ( empty first_parm )
+	mname = "payload";  // at least one data member is required - even though it is never set/get accessed.
+  T::include(file:"interface/t.msgclass.member.java");
+else
+  while ( not_empty parm )
+	  mname = STRING::substr( s:parm.name, begin:2, end:-1 );
+	  T::include(file:"interface/t.msgclass.member.java");
+    select one parm related by parm->FormalParameter[R404.''precedes''];
+	end while;
+end if;
+data_block = T::body();
+T::clear();
+
+sep = "";
+if ( not self.to_provider )
+	mname = "messageName";
+	parmlist = "String " + mname;
+	sep = ",";
+  T::include(file:"interface/t.msgclass.parm.java");
+end if;
+if ( not_empty first_parm )
+  parm = first_parm;
+  while ( not_empty parm )
+	  mname = STRING::substr( s:parm.name, begin:2, end:-1 );
+	  T::include(file:"interface/t.msgclass.parm.java");
+	  parmlist = parmlist + sep + " String " + mname;
+	  sep = ",";
+    select one parm related by parm->FormalParameter[R404.''precedes''];
+	end while;
+	parm_block = T::body();
+	T::clear();
+
+	parm = first_parm;
+  while ( not_empty parm )
+	  mname = STRING::substr( s:parm.name, begin:2, end:-1 );
+	  firstchar = STRING::substr( s:mname, begin:0, end:1 );
+	  fname = T::sub( format:"c", s:firstchar ) + STRING::substr( s:mname, begin:1, end:-1 );
+	  getm = "get" + fname;
+	  setm = "set" + fname;
+	  T::include(file:"interface/t.msgclass.methods.java");
+    select one parm related by parm->FormalParameter[R404.''precedes''];
+	end while;
+	code_block = T::body();
+end if;
+T::clear();
+
+// use the file package and path from the interface that defines these messages
+select one iface related by self->Interface[R419.''defines message format for''];
+pkg = iface.package;
+T::include(file:"interface/t.msgclass.java");
+select one file related by iface->File[R401];
+T::emit( file:file.path + "/" + self.name + "Msg.java" );
+T::clear();',
+	1,
+	'',
+	"df440f1c-1f71-4122-82f1-fc71336cf426",
+	0,
+	1);
 INSERT INTO O_NBATTR
 	VALUES ("7ad04da4-0d63-47e6-86a4-dfc351516b37",
 	"8f02fe11-ef0d-4fb7-a888-408deb5ae3c8");
