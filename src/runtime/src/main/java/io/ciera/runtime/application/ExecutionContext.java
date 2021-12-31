@@ -8,6 +8,7 @@ import java.util.concurrent.PriorityBlockingQueue;
 
 import io.ciera.runtime.application.task.GeneratedEvent;
 import io.ciera.runtime.application.task.GeneratedEventToSelf;
+import io.ciera.runtime.exceptions.EventTargetException;
 import io.ciera.runtime.types.Duration;
 import io.ciera.runtime.types.TimeStamp;
 
@@ -57,7 +58,8 @@ public class ExecutionContext implements Runnable, Executor, Named {
             }
         } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException
                 | IllegalArgumentException | InvocationTargetException e) {
-            throw new IllegalArgumentException(String.format("Could not generate event '%s' to %s", eventType.getSimpleName(), target), e);
+            throw new EventTargetException(String.format("Could not generate event '%s'", eventType.getSimpleName()), e,
+                    target, null);
         }
     }
 
@@ -71,7 +73,8 @@ public class ExecutionContext implements Runnable, Executor, Named {
             return timer;
         } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException
                 | IllegalArgumentException | InvocationTargetException e) {
-            throw new IllegalArgumentException(String.format("Could not schedule event '%s' to %s", eventType.getSimpleName(), target), e);
+            throw new EventTargetException(String.format("Could not schedule event '%s'", eventType.getSimpleName()), e,
+                    target, null);
         }
     }
 
@@ -91,7 +94,8 @@ public class ExecutionContext implements Runnable, Executor, Named {
             return timer;
         } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException
                 | IllegalArgumentException | InvocationTargetException e) {
-            throw new IllegalArgumentException(String.format("Could not schedule recurring event '%s' to %s", eventType.getSimpleName(), target), e);
+            throw new EventTargetException(String.format("Could not schedule event '%s'", eventType.getSimpleName()), e,
+                    target, null);
         }
     }
 

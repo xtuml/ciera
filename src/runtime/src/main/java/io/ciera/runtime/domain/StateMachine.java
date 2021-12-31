@@ -52,8 +52,8 @@ public abstract class StateMachine implements ActionHome, EventTarget, Named {
         try {
             executeTransition(event);
         } catch (RuntimeException e) {
-            throw new StateMachineActionException("Exception occurred while executing transition or state entry action", e, this,
-                    currentState, this, event);
+            throw new StateMachineActionException("Exception in state machine action", e, this, currentState, this,
+                    event);
         }
     }
 

@@ -27,7 +27,7 @@ public class Duration extends BaseLong {
     }
 
     public Duration(long value, TemporalUnit unit) {
-        super(java.time.Duration.of(value,  unit).toNanos());
+        super(java.time.Duration.of(value, unit).toNanos());
     }
 
     public Duration(BaseLong o) {

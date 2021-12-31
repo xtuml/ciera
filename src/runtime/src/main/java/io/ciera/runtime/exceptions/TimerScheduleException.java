@@ -24,4 +24,9 @@ public class TimerScheduleException extends RuntimeException {
         return delay;
     }
 
+    @Override
+    public String getMessage() {
+        return super.getMessage() + ": [timer=" + timer + ", delay=" + delay + "]";
+    }
+
 }

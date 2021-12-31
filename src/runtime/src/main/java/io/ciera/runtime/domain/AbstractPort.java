@@ -30,18 +30,18 @@ public abstract class AbstractPort implements Port, ActionHome, Named {
             peer.getContext().addTask(new ReceivedMessage(peer.getContext(), message, peer));
         }
     }
-    
+
     public void runMessageHandler(Message receivedMessage, Runnable messageHandler) {
         try {
             messageHandler.run();
         } catch (RuntimeException e) {
-            throw new PortMessageException("Exception occurred while executing transition or state entry action", e, getDomain(), this, receivedMessage);
+            throw new PortMessageException("Exception in state machine action", e, getDomain(), this, receivedMessage);
         }
     }
 
     @Override
     public void deliver(Message message) {
-        throw new UnsupportedOperationException("Port " + getName() + " does not implement any incoming message types.");
+        throw new PortMessageException("Port does not implement any incoming message types", getDomain(), this, null);
     }
 
     @Override

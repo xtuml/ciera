@@ -18,8 +18,8 @@ public abstract class InstanceStateMachine extends StateMachine implements Insta
         try {
             executeTransition(event);
         } catch (RuntimeException e) {
-            throw new InstanceStateMachineActionException("Exception occurred while executing transition or state entry action", e, this,
-                    currentState, self(), event);
+            throw new InstanceStateMachineActionException("Exception in state machine action", e, this, currentState,
+                    self(), event);
         }
     }
 

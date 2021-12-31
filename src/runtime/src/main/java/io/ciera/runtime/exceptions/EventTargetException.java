@@ -6,7 +6,7 @@ import io.ciera.runtime.application.EventTarget;
 public class EventTargetException extends RuntimeException {
 
     private static final long serialVersionUID = 1l;
-    
+
     private final EventTarget target;
     private final Event receivedEvent;
 
@@ -15,19 +15,28 @@ public class EventTargetException extends RuntimeException {
         this.target = target;
         this.receivedEvent = receivedEvent;
     }
-    
+
     public EventTargetException(String message, Throwable cause, EventTarget target, Event receivedEvent) {
         super(message, cause);
         this.target = target;
         this.receivedEvent = receivedEvent;
     }
-    
+
     public EventTarget getTarget() {
         return target;
     }
-    
+
     public Event getReceivedEvent() {
         return receivedEvent;
     }
-    
+
+    public String getOriginalMessage() {
+        return super.getMessage();
+    }
+
+    @Override
+    public String getMessage() {
+        return super.getMessage() + ": [target=" + target + ", receivedEvent=" + receivedEvent + "]";
+    }
+
 }

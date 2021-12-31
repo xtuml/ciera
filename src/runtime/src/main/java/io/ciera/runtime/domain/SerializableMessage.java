@@ -44,7 +44,7 @@ public class SerializableMessage extends Message {
         if (parametersAreValid) {
             return super.get(key);
         } else {
-            throw new DeserializationException("Attempt to get a parameter of a partially deserialized message");
+            throw new DeserializationException("Cannot access data on a partially deserialized message: " + this);
         }
     }
 
@@ -83,7 +83,7 @@ public class SerializableMessage extends Message {
             }
             return new SerializableMessage(messageHandle, id, name, params, false);
         } catch (JSONException e) {
-            throw new DeserializationException("Could not parse JSON 'Message' instance", e);
+            throw new DeserializationException("Could not parse JSON 'Message' instance: " + s, e);
         }
     }
 

@@ -71,8 +71,8 @@ public abstract class SystemClock {
                 return false;
             }
         } else {
-            throw new TimerScheduleException(
-                    String.format("Attempt to schedule timer %s in the past", timer), timer, new Duration(-delay));
+            throw new TimerScheduleException(String.format("Attempt to schedule timer %s in the past", timer), timer,
+                    new Duration(-delay));
         }
     }
 

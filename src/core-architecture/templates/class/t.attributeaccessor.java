@@ -6,7 +6,7 @@ public ${type_name} ${name}() {
   .end if
         return ${self.attribute_name};
     } else {
-        throw new DeletedInstanceException("Cannot get attribute of deleted instance", getDomain(), this);
+        throw new DeletedInstanceException("Cannot get attribute '${self.attribute_name}' of deleted instance", getDomain(), this);
     }
 }
 
@@ -26,7 +26,7 @@ public void ${name}(${type_name} ${self.attribute_name}) {
   .end if
         }
     } else {
-        throw new DeletedInstanceException("Cannot set attribute of deleted instance", getDomain(), this);
+        throw new DeletedInstanceException("Cannot set attribute '${self.attribute_name}' of deleted instance", getDomain(), this);
     }
 }
 

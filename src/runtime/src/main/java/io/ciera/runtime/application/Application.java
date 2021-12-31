@@ -60,7 +60,7 @@ public abstract class Application implements Named {
         if (contexts.size() == 1) {
             // run the single context in the main thread
             contexts.get(0).run();
-        } else if (contexts.size() > 1){
+        } else if (contexts.size() > 1) {
             // run each context in its own thread and wait for them all to complete
             contexts.stream().map(context -> context.start()).forEach(thread -> {
                 try {
@@ -94,11 +94,11 @@ public abstract class Application implements Named {
     public Collection<Domain> getDomains() {
         return domains.values();
     }
-    
+
     public Domain getDomain(String name) {
         return domains.get(name);
     }
-    
+
     @SuppressWarnings("unchecked")
     public <T extends Domain> T getDomain(String name, Class<T> cls) {
         return (T) getDomain(name);

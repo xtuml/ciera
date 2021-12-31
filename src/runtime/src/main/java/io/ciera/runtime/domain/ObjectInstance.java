@@ -101,8 +101,7 @@ public abstract class ObjectInstance extends ModelType
 
     @Override
     public void consumeEvent(Event event) {
-        throw new EventTargetException(
-                "Cannot generate event '" + event.getName() + "' to non-dynamic instance '" + getName() + "'", this, event);
+        throw new EventTargetException("Cannot generate event to non-dynamic instance", this, event);
     }
 
 }

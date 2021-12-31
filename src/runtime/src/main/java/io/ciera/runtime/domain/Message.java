@@ -16,7 +16,7 @@ import io.ciera.runtime.types.UniqueId;
  * items. Messages can be serialized and sent across a network interface.
  */
 public class Message implements Comparable<Message>, Named {
-    
+
     public static final int NULL_SIGNAL = 0;
 
     private final UniqueId messageHandle;
@@ -52,11 +52,11 @@ public class Message implements Comparable<Message>, Named {
     public Object get(String key) {
         return Optional.of(parameterData.get(key)).orElseThrow();
     }
-    
+
     public void put(String key, Object value) {
         parameterData.put(key, value);
     }
-    
+
     public Map<String, Object> getParameterData() {
         return parameterData;
     }
@@ -111,7 +111,7 @@ public class Message implements Comparable<Message>, Named {
     public String toString() {
         return String.format("%s[%.8s]", getName(), messageHandle);
     }
-    
+
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.FIELD)
     public static @interface Names {

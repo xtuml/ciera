@@ -70,7 +70,7 @@ public class TestTypeConversion {
         Exception e = assertThrows(TypeConversionException.class, () -> {
             input.castTo(Device.class);
         });
-        assertEquals("Could not cast type 'io.ciera.runtime.types.Date' to 'io.ciera.runtime.types.Device'",
+        assertEquals("Could not cast type: [source=io.ciera.runtime.types.Date, target=io.ciera.runtime.types.Device]",
                 e.getMessage());
     }
 

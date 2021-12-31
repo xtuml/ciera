@@ -15,7 +15,7 @@ import java.util.logging.SimpleFormatter;
  * @see java.util.logging.Logger
  */
 public class DefaultLogger implements Logger {
-    
+
     private static final String LOG_LEVEL_PROP = "io.ciera.runtime.logLevel";
 
     private final java.util.logging.Logger internalLogger;
@@ -34,7 +34,8 @@ public class DefaultLogger implements Logger {
         if (systemLogLevel != null) {
             try {
                 level = Level.parse(systemLogLevel);
-            } catch (IllegalArgumentException e) { /* fall back on passed in level */ }
+            } catch (IllegalArgumentException e) {
+                /* fall back on passed in level */ }
         }
         internalLogger = java.util.logging.Logger.getLogger(name);
         internalLogger.setUseParentHandlers(false);
@@ -46,7 +47,8 @@ public class DefaultLogger implements Logger {
 
             @Override
             public synchronized String format(LogRecord lr) {
-                return String.format(format, application != null ? new Date(application.getClock().getTime() / 1000000l) : new Date(),
+                return String.format(format,
+                        application != null ? new Date(application.getClock().getTime() / 1000000l) : new Date(),
                         getLevelString(lr.getLevel()), lr.getMessage());
             }
         });

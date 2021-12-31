@@ -27,4 +27,10 @@ public class TypeConversionException extends RuntimeException {
         return target;
     }
 
+    @Override
+    public String getMessage() {
+        return super.getMessage() + ": [source=" + (source != null ? source.getName() : "null") + ", target="
+                + (target != null ? target.getName() : "null") + "]";
+    }
+
 }

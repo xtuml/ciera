@@ -86,8 +86,8 @@ public abstract class Domain implements ActionHome, InstancePopulation, Named {
             return instance;
         } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException
                 | IllegalArgumentException | InvocationTargetException e) {
-            throw new IllegalArgumentException("Could not create instance of type '" + type.getSimpleName() + "'",
-                    e);
+            throw new InstancePopulationException("Could not create instance of type '" + type.getSimpleName() + "'", e,
+                    this, null);
         }
     }
 
@@ -101,8 +101,7 @@ public abstract class Domain implements ActionHome, InstancePopulation, Named {
         }
         boolean success = objectPopulation.add(instance);
         if (!success) {
-            throw new InstancePopulationException(
-                    "Instance is not unique within the population of '" + getName() + "': " + instance, this, instance);
+            throw new InstancePopulationException("Instance is not unique within the population", this, instance);
         }
     }
 
@@ -136,8 +135,7 @@ public abstract class Domain implements ActionHome, InstancePopulation, Named {
         Set<ObjectInstance> objectPopulation = instancePopulation.get(object);
         boolean success = objectPopulation != null ? objectPopulation.remove(instance) : false;
         if (!success) {
-            throw new InstancePopulationException(
-                    "Instance does not exist within the population of '" + getName() + "': " + instance, this, instance);
+            throw new InstancePopulationException("Instance does not exist within the population", this, instance);
         }
     }
 

@@ -39,7 +39,8 @@ public abstract class ModelType {
      * 
      * @param type The type to convert to.
      * @return an instance of {@code type}.
-     * @throws {@link TypeConversionException} if no suitable conversion could be found.
+     * @throws {@link TypeConversionException} if no suitable conversion could be
+     *                found.
      */
     public <R extends Object> R castTo(Class<R> type) {
         return castTo(type, this);
@@ -51,7 +52,8 @@ public abstract class ModelType {
      * @param type  The type to convert to.
      * @param value The value to convert.
      * @return an instance of {@code type}.
-     * @throws {@link TypeConversionException} if no suitable conversion could be found.
+     * @throws {@link TypeConversionException} if no suitable conversion could be
+     *                found.
      */
     @SuppressWarnings("unchecked")
     public static <R extends Object> R castTo(Class<R> type, Object value) {
@@ -82,14 +84,12 @@ public abstract class ModelType {
             if (f != null) {
                 return f.apply(value);
             } else {
-                throw new TypeConversionException(
-                        "Could not cast type '" + value.getClass().getName() + "' to '" + type.getName() + "'", value.getClass(), type);
+                throw new TypeConversionException("Could not cast type", value.getClass(), type);
 
             }
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException
                 | SecurityException e) {
-            throw new TypeConversionException(
-                    "Could not cast type '" + value.getClass().getName() + "' to '" + type.getName() + "'", e, value.getClass(), type);
+            throw new TypeConversionException("Could not cast type", e, value.getClass(), type);
         }
     }
 
