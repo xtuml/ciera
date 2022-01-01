@@ -56,10 +56,12 @@ relate block to invocable across R4000;
 block.block_number = param.block_number;
 
 // copy visibile variables from upper block
-select many vars related by upper_block->Variable[R458];
+select many vars related by upper_block->VariableInScope[R458];
 for each var in vars
 	create object instance var_in_scope of VariableInScope;
-	relate var to block across R458 using var_in_scope;
+	var_in_scope.distance = var.distance + 1;
+	select one var_decl related by var->Variable[R458];
+	relate var_decl to block across R458 using var_in_scope;
 end for;
 
 // create variable declarations for this code block
@@ -777,10 +779,12 @@ relate block to invocable across R4000;
 block.block_number = param.block_number;
 
 // copy visibile variables from upper block
-select many vars related by upper_block->Variable[R458];
+select many vars related by upper_block->VariableInScope[R458];
 for each var in vars
-  create object instance var_in_scope of VariableInScope;
-  relate var to block across R458 using var_in_scope;
+	create object instance var_in_scope of VariableInScope;
+	var_in_scope.distance = var.distance + 1;
+	select one var_decl related by var->Variable[R458];
+	relate var_decl to block across R458 using var_in_scope;
 end for;
 
 // create single statement in block
@@ -2037,48 +2041,49 @@ while not_empty handler
   end if;
   prev_catch = catch_clause;
   
-  // create the exception variable
-  if not handler.isother
-
-    // get the exception type
-    select any exception_type from instances of Type where false;
-    select one exception_reference related by handler->ExceptionReference[R5108];
-    select one masl_builtin_exception related by exception_reference->BuiltinException[R5401];
-    if not_empty masl_builtin_exception
-      select any builtin_exception from instances of BuiltInException where selected.name == masl_builtin_exception.flavor;
-      select one exception_type related by builtin_exception->ExceptionType[R3805]->Type[R407];
-    else
-      select one ude related by exception_reference->UserDefinedExceptionReference[R5401]->ExceptionDeclaration[R5402]->UserDefinedException[R8307];
-      select one exception_type related by ude->ExceptionType[R3805]->Type[R407];
-      select one exception_file related by ude->File[R401];
-      ::addFileToImports(file: ::getFileForStatement(smt:smt), file_to_import:exception_file, type:ImportType::IMPL);
-    end if;
-
-    // declare a new variable
-    create object instance new_var of Variable;
-    relate new_var to smt across R457;
-    new_var.name = "_exception";
-    new_var.readonly = true;
-    exp_type = ::TypeReference_getInstanceWithDimString(type:exception_type, dims:"");
-    relate exp_type to new_var across R461;
-    
-    // link the variable to the catch clause
-    select one exp related by exception_type->ExceptionType[R407];
-    create object instance exp_var of ExceptionVariable;
-    relate exp_var to new_var across R495;
-    relate catch_clause to exp across R493 using exp_var;
-
-  end if;
-  
-  // transform the exception variable
-
   // create the handler code block
   select one handler_first_smt related by handler->MaslStatement[R5152];
   handler_block_number = ::getNextBlockNumber(upper_block:block);
   ::transformMaslBlock(upper_block:block, code_block:empty_code_block, first_statement:handler_first_smt, block_number:handler_block_number, invocable:empty_invocable);
   select any handler_block related by block->InvocableObject[R4000]->CodeBlock[R4000] where (selected.block_number == handler_block_number);
   relate handler_block to try_smt across R492 using catch_clause;
+
+  // get the exception type
+	select any exception_type from instances of Type where false;
+  if handler.isother
+    select any exception_type from instances of Type where selected.name == "RuntimeException";
+  else
+		select one exception_reference related by handler->ExceptionReference[R5108];
+		select one masl_builtin_exception related by exception_reference->BuiltinException[R5401];
+		if not_empty masl_builtin_exception
+			select any builtin_exception from instances of BuiltInException where selected.name == masl_builtin_exception.flavor;
+			select one exception_type related by builtin_exception->ExceptionType[R3805]->Type[R407];
+		else
+			select one ude related by exception_reference->UserDefinedExceptionReference[R5401]->ExceptionDeclaration[R5402]->UserDefinedException[R8307];
+			select one exception_type related by ude->ExceptionType[R3805]->Type[R407];
+			select one exception_file related by ude->File[R401];
+			::addFileToImports(file: ::getFileForStatement(smt:smt), file_to_import:exception_file, type:ImportType::IMPL);
+		end if;
+	end if;
+
+  // declare a new variable
+  create object instance new_var of Variable;
+  relate new_var to smt across R457;
+  new_var.name = "_exception";
+  new_var.readonly = true;
+  exp_type = ::TypeReference_getInstanceWithDimString(type:exception_type, dims:"");
+  relate exp_type to new_var across R461;
   
+  // link the variable in the handler block scope
+  create object instance var_in_scope of VariableInScope;
+  relate new_var to handler_block across R458 using var_in_scope;
+  
+  // link the variable to the catch clause
+  select one exp related by exception_type->ExceptionType[R407];
+  create object instance exp_var of ExceptionVariable;
+  relate exp_var to new_var across R495;
+  relate catch_clause to exp across R493 using exp_var;
+
   // select the next handler
   select one handler related by handler->ExceptionHandler[R5162.''precedes''];
 
