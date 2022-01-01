@@ -19,12 +19,12 @@ public class ActionException extends RuntimeException {
         this(message, null, null);
     }
 
-    public ActionException(Object data) {
-        this(null, null, data);
-    }
-
     public ActionException(Throwable cause) {
         this(null, cause, null);
+    }
+
+    public ActionException(Object data) {
+        this(null, null, data);
     }
 
     private ActionException(String message, Throwable cause, Object data) {

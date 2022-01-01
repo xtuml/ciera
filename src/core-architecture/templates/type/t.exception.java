@@ -14,6 +14,10 @@ public class ${self.name} extends ActionException {
         super(message);
     }
 
+    public ${self.name}(Throwable cause) {
+        super(cause);
+    }
+
     public ${self.name}(Object data) {
         super(data);
     }

@@ -3168,10 +3168,12 @@ if (not_empty act_blk and not_empty act_smt)
   block.block_number = param.block_number;
 
   // copy visibile variables from upper block
-  select many vars related by upper_block->Variable[R458];
+  select many vars related by upper_block->VariableInScope[R458];
   for each var in vars
-    create object instance var_in_scope of VariableInScope;
-    relate var to block across R458 using var_in_scope;
+		create object instance var_in_scope of VariableInScope;
+		var_in_scope.distance = var.distance + 1;
+		select one var_decl related by var->Variable[R458];
+		relate var_decl to block across R458 using var_in_scope;
   end for;
 
   // transform all statements
@@ -3256,10 +3258,12 @@ relate block to invocable across R4000;
 block.block_number = param.block_number;
 
 // copy visibile variables from upper block
-select many vars related by upper_block->Variable[R458];
+select many vars related by upper_block->VariableInScope[R458];
 for each var in vars
-  create object instance var_in_scope of VariableInScope;
-  relate var to block across R458 using var_in_scope;
+	create object instance var_in_scope of VariableInScope;
+	var_in_scope.distance = var.distance + 1;
+	select one var_decl related by var->Variable[R458];
+	relate var_decl to block across R458 using var_in_scope;
 end for;
 
 // create single statement in block
@@ -3348,10 +3352,12 @@ relate block to invocable across R4000;
 block.block_number = param.block_number;
 
 // copy visibile variables from upper block
-select many vars related by upper_block->Variable[R458];
+select many vars related by upper_block->VariableInScope[R458];
 for each var in vars
-  create object instance var_in_scope of VariableInScope;
-  relate var to block across R458 using var_in_scope;
+	create object instance var_in_scope of VariableInScope;
+	var_in_scope.distance = var.distance + 1;
+	select one var_decl related by var->Variable[R458];
+	relate var_decl to block across R458 using var_in_scope;
 end for;
 
 // transform all statements
