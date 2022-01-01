@@ -352,6 +352,7 @@ while not_empty stream_operator
 	end if;
 	if first_statement
 		smt.actions = masl_statement.actions;
+    smt.line_number = masl_statement.line_number;
 		first_statement = false;
 	end if;
 
@@ -553,6 +554,7 @@ else
   smt.statement_number = "1";
 end if;
 smt.actions = variable_declaration.actions;
+smt.line_number = variable_declaration.line_number;
 
 // create expression as statement
 create object instance eas of ExpressionAsStatement;
@@ -650,6 +652,7 @@ INSERT INTO S_SYNC
 	'transformMaslIfStatement',
 	'',
 	'if_statement = param.if_statement;
+select one masl_statement related by if_statement->MaslStatement[R5135];
 block = param.block;
 prev_smt = param.prev_smt;
 select any empty_invocable from instances of InvocableObject where false;
@@ -665,6 +668,7 @@ else
   smt.statement_number = "1";
 end if;
 smt.actions = if_statement.actions;
+smt.line_number = masl_statement.line_number;
 
 // create if statement
 create object instance if_smt of IfSmt;
@@ -868,6 +872,7 @@ else
   smt.statement_number = "1";
 end if;
 smt.actions = masl_statement.actions;
+smt.line_number = masl_statement.line_number;
 
 // collect info
 select one left_expr related by assign_statement->MaslExpression[R5101];
@@ -985,6 +990,7 @@ else
   smt.statement_number = "1";
 end if;
 smt.actions = masl_statement.actions;
+smt.line_number = masl_statement.line_number;
 
 // create return statement
 create object instance ret of ReturnSmt;
@@ -1063,6 +1069,7 @@ else
   smt.statement_number = "1";
 end if;
 smt.actions = masl_statement.actions;
+smt.line_number = masl_statement.line_number;
 
 select one domain_service_invocation related by service_call->ServiceInvocation[R5161]->DomainServiceInvocation[R5610];
 if (not_empty domain_service_invocation)
@@ -1249,6 +1256,7 @@ else
   smt.statement_number = "1";
 end if;
 smt.actions = masl_statement.actions;
+smt.line_number = masl_statement.line_number;
 
 // gather info
 select one rel_spec related by link_unlink_statement->RelationshipSpecification[R5120];
@@ -1414,6 +1422,7 @@ else
   smt.statement_number = "1";
 end if;
 smt.actions = masl_statement.actions;
+smt.line_number = masl_statement.line_number;
 
 select one evt related by generate_statement->EventDeclaration[R5112]->Event[R8303];
 select one evt_sm related by evt->StateMachine[R4752];
@@ -1644,6 +1653,7 @@ else
   smt.statement_number = "1";
 end if;
 smt.actions = masl_statement.actions;
+smt.line_number = masl_statement.line_number;
 
 // create expression as statement
 create object instance expr_as_smt of ExpressionAsStatement;
@@ -1785,6 +1795,7 @@ else
   smt.statement_number = "1";
 end if;
 smt.actions = masl_statement.actions;
+smt.line_number = masl_statement.line_number;
 
 // create expression as statement
 create object instance expr_as_smt of ExpressionAsStatement;
@@ -1883,6 +1894,7 @@ else
   smt.statement_number = "1";
 end if;
 smt.actions = masl_statement.actions;
+smt.line_number = masl_statement.line_number;
 
 // create throw statement
 create object instance throw_smt of ThrowSmt;
@@ -1990,6 +2002,7 @@ else
   smt.statement_number = "1";
 end if;
 smt.actions = "";
+smt.line_number = masl_statement.line_number;
 
 // create the try statement
 create object instance try_smt of TrySmt;

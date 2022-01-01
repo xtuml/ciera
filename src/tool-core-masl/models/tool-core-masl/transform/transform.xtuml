@@ -335,12 +335,14 @@ create object instance invocable of InvocableObject;
 invocable.name = service.name;
 invocable.parent_name = comp_def.name;
 invocable.parent_package = comp_def.package;
+invocable.original_parent_name = "" + domain.name;
+invocable.original_body_name = "" + service.name;
+invocable.original_filename = service.filename;
 relate func to invocable across R427;
 
 // copy actions
 select one code_block related by service->MaslCodeBlock[R5403];
 if not_empty code_block
-  invocable.actions = code_block.actions;
   relate code_block to invocable across R8306;
 end if;
 
@@ -717,6 +719,8 @@ INSERT INTO S_SYNC
 	'',
 	'terminator_service = param.terminator_service;
 select one service related by terminator_service->Service[R5203];
+select one terminator related by terminator_service->DomainTerminator[R5306];
+select one domain related by terminator->Domain[R5304];
 iface = param.iface;
 index = param.index;
 port = param.port;
@@ -738,12 +742,14 @@ create object instance invocable of InvocableObject;
 invocable.name = msg.name;
 invocable.parent_name = port.name;
 invocable.parent_package = port.package;
+invocable.original_parent_name = "" + domain.name + "::" + terminator.name;
+invocable.original_body_name = "" + service.name;
+invocable.original_filename = service.filename;
 relate port_msg to invocable across R427;
 
 // copy actions
 select one code_block related by service->MaslCodeBlock[R5403];
 if not_empty code_block
-  invocable.actions = code_block.actions;
   relate code_block to invocable across R8306;
 end if;
 
@@ -1225,6 +1231,8 @@ INSERT INTO S_SYNC
 	'',
 	'object_service = param.object_service;
 select one service related by object_service->Service[R5203];
+select one masl_object related by object_service->ObjectDeclaration[R5808];
+select one domain related by masl_object->Domain[R5805];
 obj = param.obj;
 
 // create operation object
@@ -1237,12 +1245,14 @@ create object instance invocable of InvocableObject;
 invocable.name = service.name;
 invocable.parent_name = op.class_name;
 invocable.parent_package = op.class_package;
+invocable.original_parent_name = "" + domain.name + "::" + masl_object.name;
+invocable.original_body_name = "" + service.name;
+invocable.original_filename = service.filename;
 relate op to invocable across R427;
 
 // copy actions
 select one code_block related by service->MaslCodeBlock[R5403];
 if not_empty code_block
-  invocable.actions = code_block.actions;
   relate code_block to invocable across R8306;
 end if;
 
@@ -1310,6 +1320,8 @@ INSERT INTO S_SYNC
 	'transformMaslState',
 	'',
 	'maslstate = param.state;
+select one masl_object related by maslstate->ObjectDeclaration[R6105];
+select one domain related by masl_object->Domain[R5805];
 obj = param.obj;
 
 if (maslstate.flavor == StateType::assigner or 
@@ -1338,12 +1350,14 @@ create object instance invocable of InvocableObject;
 invocable.name = T::sub(format:"_u", s:maslstate.name);
 invocable.parent_name = sm.name;
 invocable.parent_package = sm.package;
+invocable.original_parent_name = "" + domain.name + "::" + masl_object.name;
+invocable.original_body_name = "" + maslstate.name;
+invocable.original_filename = maslstate.filename;
 relate state to invocable across R427;
 
 // copy actions
 select one code_block related by maslstate->MaslCodeBlock[R6115];
 if not_empty code_block
-  invocable.actions = code_block.actions;
   relate code_block to invocable across R8306;
 end if;
 
@@ -1702,8 +1716,9 @@ INSERT INTO S_SYNC
 	'',
 	'invocable = param.invocable;
 select one code_block related by invocable->MaslCodeBlock[R8306];
+select one first_statement related by code_block->MaslStatement[R5150];
 select any empty_statement from instances of MaslStatement where false;
-if (not_empty code_block and not_empty invocable)
+if (not_empty first_statement)
     
   // check if deferred operation TODO
 
@@ -1712,6 +1727,10 @@ if (not_empty code_block and not_empty invocable)
     
   // finalize variables referenced from within a where clause
   ::resloveVariableFinalizations( invocable:invocable );
+  
+  // add imports
+  // TODO if trace enabled
+  ::addStringToImports(file: ::getFileForInvocable(invocable:invocable), s:"io.ciera.runtime.exceptions.ActionException", type:ImportType::IMPL);
 
 else
   // TODO bad
