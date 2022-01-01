@@ -1,19 +1,19 @@
 package io.ciera.maven;
 
-import io.ciera.runtime.summit.application.IApplication;
-import io.ciera.runtime.summit.exceptions.XtumlExitException;
-
 import java.io.File;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
-
 import org.sonatype.plexus.build.incremental.BuildContext;
+
+import io.ciera.runtime.summit.application.IApplication;
+import io.ciera.runtime.summit.exceptions.XtumlExitException;
 
 public abstract class AbstractCieraMojo extends AbstractMojo {
 
@@ -32,8 +32,12 @@ public abstract class AbstractCieraMojo extends AbstractMojo {
     @Parameter(readonly = true, defaultValue = "${project}")
     protected MavenProject project;
 
+    @Parameter
+    private Map<String, String> systemMarks;
+
     @Override
     public void execute() throws MojoExecutionException {
+        initProperties();
         String inFile = null == input ? "" : project.getBasedir().toURI().relativize(new File(input).toURI()).getPath();
         String outFile = null == output ? ""
                 : project.getBasedir().toURI().relativize(new File(output).toURI()).getPath();
@@ -64,6 +68,14 @@ public abstract class AbstractCieraMojo extends AbstractMojo {
 
     protected void postInitialize(IApplication compiler) {
         // no-op
+    }
+
+    private void initProperties() {
+        if (systemMarks != null) {
+            for (String prop : systemMarks.keySet()) {
+                System.setProperty("io.ciera." + prop, systemMarks.get(prop));
+            }
+        }
     }
 
     private void refreshFiles() {
