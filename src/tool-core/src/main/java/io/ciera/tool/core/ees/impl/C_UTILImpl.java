@@ -5,6 +5,8 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.json.JSONObject;
+
 import io.ciera.runtime.summit.components.IComponent;
 import io.ciera.runtime.summit.util.Utility;
 import io.ciera.tool.core.ees.C_UTIL;
@@ -72,6 +74,14 @@ public class C_UTILImpl<C extends IComponent<C>> extends Utility<C> implements C
                 return false;
             }
         }
+    }
+
+    // Hacky way to use the JSON library to cleanse a string
+    public String cleanActionString(final String actions) {
+        JSONObject obj = new JSONObject();
+        obj.put("str", actions);
+        String jsonString = obj.toString();
+        return jsonString.substring("str".length() + 5, jsonString.length()-2);
     }
 
 }

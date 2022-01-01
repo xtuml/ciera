@@ -9,7 +9,7 @@ return \
 .end if
 new DynamicActionHome<${type_name2}, ${self.comp_name}>(domain) {
         @Override
-        public ${type_name2} runAction() ${body}\
+        public ${type_name2} runAction() ${body}
     }.runAction();
 }
 
