@@ -96,7 +96,7 @@ public class PyxtumlPreBuildMojo extends AbstractPreBuildMojo {
                     getLog().error(sc.nextLine());
                 }
                 sc.close();
-                if (proc.exitValue() == 0) {
+                if (proc.waitFor() == 0) {
                     int duration = (int)(System.currentTimeMillis() - startTime);
                     int mins = duration / 60000;
                     int secs = (duration % 60000) / 1000;
@@ -107,7 +107,7 @@ public class PyxtumlPreBuildMojo extends AbstractPreBuildMojo {
                     getLog().error(String.format("pyxtuml exited with code %d", proc.exitValue()));
                     throw new MojoFailureException(String.format("pyxtuml exited with code %d", proc.exitValue()));
                 }
-            } catch (IOException e) {
+            } catch (IOException | InterruptedException e) {
                 getLog().error("Problem executing pre-builder:", e);
                 throw new MojoFailureException("Problem executing pre-builder", e);
             }
