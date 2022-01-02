@@ -228,8 +228,12 @@ select one exit_statement related by masl_statement->ExitStatement[R5135];
 if (not_empty exit_statement)
   ::transformExitStatement(exit_statement:exit_statement, block:block, prev_smt:prev_smt);
 else
+select one delay_statement related by masl_statement->DelayStatement[R5135];
+if (not_empty delay_statement)
+  ::transformDelayStatement(delay_statement:delay_statement, block:block, prev_smt:prev_smt);
+else
   LOG::LogFailure(message:"statement type not supported: ''" + masl_statement.actions + "''");
-end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if;',
+end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -2380,6 +2384,119 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("3d6edf6d-d91b-4384-953f-6b2b65c4c26e",
+	1,
+	"c45f2f21-d5ff-4652-999f-d4808df1e2ef",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("aad8d42b-955c-4d32-83f8-0f70af596c19",
+	"00000000-0000-0000-0000-000000000000",
+	'transformDelayStatement',
+	'',
+	'delay_statement = param.delay_statement;
+block = param.block;
+prev_smt = param.prev_smt;
+select one masl_statement related by delay_statement->MaslStatement[R5135];
+
+LOG::LogInfo(message:"WARNING: using deprecated ''delay'' statement");
+
+// create a statement
+create object instance smt of Statement;
+relate smt to block across R450;
+if (not_empty prev_smt)
+  smt.statement_number = STRING::itoa(i:STRING::atoi(s:prev_smt.statement_number) + 1);
+  relate smt to prev_smt across R477.''executes after'';
+else
+  smt.statement_number = "1";
+end if;
+smt.actions = masl_statement.actions;
+smt.line_number = masl_statement.line_number;
+
+// create expression as statement
+create object instance expr_as_smt of ExpressionAsStatement;
+relate expr_as_smt to smt across R451;
+
+// find or create an invocable for delay
+invoc_name = "delay";
+select any delay_invocable from instances of InvocableObject
+  where selected.parent_name == "ExecutionContext" and selected.parent_package == "io.ciera.runtime.application" and selected.name == invoc_name;
+if empty delay_invocable
+  create object instance delay_invocable of InvocableObject;
+  delay_invocable.parent_name = "ExecutionContext";
+  delay_invocable.parent_package = "io.ciera.runtime.application";
+  delay_invocable.name = invoc_name;
+  create object instance generic_invocable of GenericInvocable;
+  relate generic_invocable to delay_invocable across R427;
+end if;
+
+// create an invocation for the delay operation
+create object instance expr of Expression;
+expr.expression_number = "1";
+relate expr to expr_as_smt across R476;
+boolean_type = ::TypeReference_getBuiltinTypeReference(name:"boolean");
+relate boolean_type to expr across R795;
+create object instance delay_invocation of Invocation;
+relate delay_invocation to expr across R776;
+relate delay_invocation to delay_invocable across R792;
+
+// create a named ref to reference the run context
+create object instance expr2 of Expression;
+expr2.expression_number = "1.1";
+void_type = ::TypeReference_getBuiltinTypeReference(name:"void");
+relate void_type to expr across R795;
+create object instance named_ref of NamedReference;
+named_ref.name = "getContext()";
+relate named_ref to expr2 across R776;
+relate expr2 to delay_invocation across R798;
+
+// translate the delay argument
+select one delay_val related by delay_statement->MaslExpression[R5104];
+::transformMaslExpression(masl_expression:delay_val, expr_number:"1.2", smt:smt);
+select any delay_expr related by smt->Expression[R775] where selected.expression_number == "1.2";
+create object instance delay_arg of ActualParameter;
+relate delay_expr to delay_arg across R794;
+relate delay_arg to delay_invocation across R793;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	0);
+INSERT INTO S_SPARM
+	VALUES ("ff740ad9-9e7c-476c-a116-e66c755a7bf1",
+	"aad8d42b-955c-4d32-83f8-0f70af596c19",
+	'delay_statement',
+	"a1e636a7-3da6-4e96-ab26-a1bc2563ed98",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("a1e636a7-3da6-4e96-ab26-a1bc2563ed98",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<DelayStatement>',
+	'',
+	'',
+	'../../../../../ooamasl/models/ooamasl/ooamasl/statement/statement.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("23c22df6-efd6-4af1-b4df-2302111bd6ba",
+	"aad8d42b-955c-4d32-83f8-0f70af596c19",
+	'block',
+	"60d4da0e-4cbe-4620-8c16-4e1dba1c6b8d",
+	0,
+	'',
+	"ff740ad9-9e7c-476c-a116-e66c755a7bf1",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("2465f82d-a89e-4458-80b6-6714cd0d4ff6",
+	"aad8d42b-955c-4d32-83f8-0f70af596c19",
+	'prev_smt',
+	"b586ec7e-41fe-4d50-9cf3-27b173e9848a",
+	0,
+	'',
+	"23c22df6-efd6-4af1-b4df-2302111bd6ba",
+	'');
+INSERT INTO PE_PE
+	VALUES ("aad8d42b-955c-4d32-83f8-0f70af596c19",
 	1,
 	"c45f2f21-d5ff-4652-999f-d4808df1e2ef",
 	"00000000-0000-0000-0000-000000000000",
