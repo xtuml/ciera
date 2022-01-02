@@ -1086,7 +1086,10 @@ if (not_empty assoc)
 end if; end if; end if;
 
 // add necessary imports
-::addStringToImports( file:file, s:"io.ciera.runtime.exceptions.EmptyInstanceException", type:ImportType::IMPL );',
+::addStringToImports( file:file, s:"io.ciera.runtime.domain.ObjectInstance", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.runtime.exceptions.DeletedInstanceException", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.runtime.exceptions.EmptyInstanceException", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"java.util.stream.Stream", type:ImportType::IMPL );',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -1729,8 +1732,9 @@ if (not_empty first_statement)
   ::resloveVariableFinalizations( invocable:invocable );
   
   // add imports
-  // TODO if trace enabled
-  ::addStringToImports(file: ::getFileForInvocable(invocable:invocable), s:"io.ciera.runtime.exceptions.ActionException", type:ImportType::IMPL);
+  if (not PROP::getFlag(key:"io.ciera.DisableCodeTracing"))
+    ::addStringToImports(file: ::getFileForInvocable(invocable:invocable), s:"io.ciera.runtime.exceptions.ActionException", type:ImportType::IMPL);
+  end if;
 
 else
   // TODO bad
