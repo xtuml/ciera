@@ -1,1 +1,1 @@
-while (${cond_expr}) ${control_block}\
+while (${cond_expr}) ${control_block}
