@@ -220,8 +220,16 @@ select one raise_statement related by masl_statement->RaiseStatement[R5135];
 if (not_empty raise_statement)
   ::transformRaiseStatement(raise_statement:raise_statement, block:block, prev_smt:prev_smt);
 else
+select one while_statement related by masl_statement->WhileStatement[R5135];
+if (not_empty while_statement)
+  ::transformMaslWhileStatement(while_statement:while_statement, block:block, prev_smt:prev_smt);
+else
+select one exit_statement related by masl_statement->ExitStatement[R5135];
+if (not_empty exit_statement)
+  ::transformExitStatement(exit_statement:exit_statement, block:block, prev_smt:prev_smt);
+else
   LOG::LogFailure(message:"statement type not supported: ''" + masl_statement.actions + "''");
-end if; end if; end if; end if; end if; end if; end if; end if; end if; end if;',
+end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -2189,6 +2197,189 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("fe66ceb5-8c12-4b28-80dc-a43108013a1e",
+	1,
+	"c45f2f21-d5ff-4652-999f-d4808df1e2ef",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("9af30ecb-2f37-41a9-a41e-063c5e7f9d77",
+	"00000000-0000-0000-0000-000000000000",
+	'transformMaslWhileStatement',
+	'',
+	'while_statement = param.while_statement;
+block = param.block;
+prev_smt = param.prev_smt;
+select one masl_statement related by while_statement->MaslStatement[R5135];
+
+// create a statement
+create object instance smt of Statement;
+relate smt to block across R450;
+if (not_empty prev_smt)
+  smt.statement_number = STRING::itoa(i:STRING::atoi(s:prev_smt.statement_number) + 1);
+  relate smt to prev_smt across R477.''executes after'';
+else
+  smt.statement_number = "1";
+end if;
+smt.actions = masl_statement.actions;
+smt.line_number = masl_statement.line_number;
+
+// create while statement
+create object instance while_smt of WhileSmt;
+relate while_smt to smt across R451;
+
+// translate while condition
+select one while_val related by while_statement->MaslExpression[R5142];
+::transformMaslExpression(masl_expression:while_val, expr_number:"1", smt:smt);
+select any while_expr related by smt->Expression[R775] where (selected.expression_number == "1");
+relate while_expr to while_smt across R472;
+
+// create control block
+control_block_number = ::getNextBlockNumber(upper_block:block);
+select any empty_invocable from instances of InvocableObject where false;
+select any empty_code_block from instances of MaslCodeBlock where false;
+select one first_statement related by while_statement->MaslStatement[R5141];
+::transformMaslBlock(upper_block:block, code_block:empty_code_block, first_statement:first_statement, block_number:control_block_number, invocable:empty_invocable);
+select any control_block related by block->InvocableObject[R4000]->CodeBlock[R4000] where (selected.block_number == control_block_number);
+relate control_block to while_smt across R456;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	0);
+INSERT INTO S_SPARM
+	VALUES ("b33113a0-045a-4a34-b4f5-67e74a1e14d2",
+	"9af30ecb-2f37-41a9-a41e-063c5e7f9d77",
+	'while_statement',
+	"025112f3-9f1b-4800-9a80-fe8607be68c7",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("025112f3-9f1b-4800-9a80-fe8607be68c7",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<WhileStatement>',
+	'',
+	'',
+	'../../../../../ooamasl/models/ooamasl/ooamasl/statement/statement.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("c2e64246-9f96-4df0-985a-c0e2b6e94296",
+	"9af30ecb-2f37-41a9-a41e-063c5e7f9d77",
+	'block',
+	"60d4da0e-4cbe-4620-8c16-4e1dba1c6b8d",
+	0,
+	'',
+	"b33113a0-045a-4a34-b4f5-67e74a1e14d2",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("8f2a451d-7138-4c68-8134-aef05c4f6cda",
+	"9af30ecb-2f37-41a9-a41e-063c5e7f9d77",
+	'prev_smt',
+	"b586ec7e-41fe-4d50-9cf3-27b173e9848a",
+	0,
+	'',
+	"c2e64246-9f96-4df0-985a-c0e2b6e94296",
+	'');
+INSERT INTO PE_PE
+	VALUES ("9af30ecb-2f37-41a9-a41e-063c5e7f9d77",
+	1,
+	"c45f2f21-d5ff-4652-999f-d4808df1e2ef",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("3d6edf6d-d91b-4384-953f-6b2b65c4c26e",
+	"00000000-0000-0000-0000-000000000000",
+	'transformExitStatement',
+	'',
+	'exit_statement = param.exit_statement;
+block = param.block;
+prev_smt = param.prev_smt;
+select one masl_statement related by exit_statement->MaslStatement[R5135];
+
+// create a statement
+create object instance smt of Statement;
+relate smt to block across R450;
+if (not_empty prev_smt)
+  smt.statement_number = STRING::itoa(i:STRING::atoi(s:prev_smt.statement_number) + 1);
+  relate smt to prev_smt across R477.''executes after'';
+else
+  smt.statement_number = "1";
+end if;
+smt.actions = masl_statement.actions;
+smt.line_number = masl_statement.line_number;
+
+// translate the optional condition
+select one exit_condition related by exit_statement->MaslExpression[R5109];
+if not_empty exit_condition
+  
+  // create an if statement first with a single break statement inside
+	create object instance if_smt of IfSmt;
+	relate if_smt to smt across R451;
+	if_smt.is_else_if = false;
+
+	// translate if condition expression
+	::transformMaslExpression(masl_expression:exit_condition, expr_number:"1", smt:smt);
+	select any if_expr related by smt->Expression[R775] where (selected.expression_number == "1");
+	relate if_expr to if_smt across R471;
+
+	// create then block (don''t bother copying variable declarations into scope...
+  create object instance break_block of CodeBlock;
+	select one invocable related by block->InvocableObject[R4000];
+  relate break_block to invocable across R4000;
+  break_block.block_number = ::getNextBlockNumber(upper_block:block);
+  relate break_block to if_smt across R453;
+  
+  // create a new statement in the block
+  create object instance smt of Statement;
+  relate smt to break_block across R450;
+  smt.statement_number = "1";
+
+end if;
+
+// create break statement
+create object instance break_smt of BreakSmt;
+relate break_smt to smt across R451;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	0);
+INSERT INTO S_SPARM
+	VALUES ("3213a495-b908-4fa9-9c74-340a260642d8",
+	"3d6edf6d-d91b-4384-953f-6b2b65c4c26e",
+	'exit_statement',
+	"0596ed1a-d570-429a-99b8-b9bf571ca860",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("0596ed1a-d570-429a-99b8-b9bf571ca860",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<ExitStatement>',
+	'',
+	'',
+	'../../../../../ooamasl/models/ooamasl/ooamasl/statement/statement.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("7176f135-62e2-468e-a7a9-021568fda514",
+	"3d6edf6d-d91b-4384-953f-6b2b65c4c26e",
+	'block',
+	"60d4da0e-4cbe-4620-8c16-4e1dba1c6b8d",
+	0,
+	'',
+	"3213a495-b908-4fa9-9c74-340a260642d8",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("ec100e34-08aa-4cbb-99c4-ba4f60b8455c",
+	"3d6edf6d-d91b-4384-953f-6b2b65c4c26e",
+	'prev_smt',
+	"b586ec7e-41fe-4d50-9cf3-27b173e9848a",
+	0,
+	'',
+	"7176f135-62e2-468e-a7a9-021568fda514",
+	'');
+INSERT INTO PE_PE
+	VALUES ("3d6edf6d-d91b-4384-953f-6b2b65c4c26e",
 	1,
 	"c45f2f21-d5ff-4652-999f-d4808df1e2ef",
 	"00000000-0000-0000-0000-000000000000",
