@@ -839,6 +839,7 @@ select one builtin related by call_expression->MaslExpression[R5517]->BasicType[
 type = ::TypeReference_getBuiltinTypeReference(name:builtin.name);
 relate type to expr across R795;
 
+// domain service invocation
 select one domain_service_invocation related by call_expression->ServiceInvocation[R5500]->DomainServiceInvocation[R5610];
 if (not_empty domain_service_invocation)
   select one service related by domain_service_invocation->DomainService[R5611]->Service[R5203];
@@ -869,6 +870,81 @@ if (not_empty domain_service_invocation)
 		// TODO bad
 	end if;
 else
+
+// object instance service invocation
+select one instance_service_invocation related by call_expression->ServiceInvocation[R5500]->InstanceServiceInvocation[R5610];
+if (not_empty instance_service_invocation)
+  select one object_service related by instance_service_invocation->ObjectService[R5614];
+  select one service related by object_service->Service[R5203];
+	select any invocable related by object_service->ObjectDeclaration[R5808]->Class[R8300]->Operation[R416]->InvocableObject[R427] where (selected.name == "" + service.name);
+	if (not_empty invocable)
+		// create invocation
+		create object instance invoc of Invocation;
+		relate invoc to expr across R776;
+		relate invoc to invocable across R792;
+		// relate expression to expression as statement
+		select one inst_val related by instance_service_invocation->MaslExpression[R5615];
+		select one this_literal related by inst_val->LiteralExpression[R5517]->ThisLiteral[R5700];
+		::transformMaslExpression(masl_expression:inst_val, expr_number:expr.expression_number + ".1", smt:smt);
+		select any expr2 related by smt->Expression[R775] where (selected.expression_number == expr.expression_number + ".1");
+		relate expr2 to invoc across R798;
+		// transform actual parameters
+		select one first_argument related by call_expression->ServiceInvocation[R5500]->CallExpression[R5500]->Argument[R5575];
+		if (not_empty first_argument)
+			::transformArguments(invocation:invoc, first_argument:first_argument, expr_number:expr.expression_number, base_num:2);
+		end if;
+	else
+		// TODO bad
+	end if;
+else
+
+// object instance service invocation
+select one object_service_invocation related by call_expression->ServiceInvocation[R5500]->ObjectServiceInvocation[R5610];
+if (not_empty object_service_invocation)
+  select one object_service related by object_service_invocation->ObjectService[R5613];
+  select one service related by object_service->Service[R5203];
+	select any invocable related by object_service->ObjectDeclaration[R5808]->Class[R8300]->Operation[R416]->InvocableObject[R427] where (selected.name == "" + service.name);
+	if (not_empty invocable)
+		// create invocation
+		create object instance invoc of Invocation;
+		relate invoc to expr across R776;
+		relate invoc to invocable across R792;
+		// create class reference expression
+		create object instance expr2 of Expression;
+		expr2.expression_number = expr.expression_number + ".1";
+		void_type = ::TypeReference_getBuiltinTypeReference(name:"void");
+		relate void_type to expr2 across R795;
+		create object instance class_ref of NamedReference;
+		relate class_ref to expr2 across R776;
+		select one obj related by object_service->ObjectDeclaration[R5808]->Class[R8300];
+		class_ref.name = obj.name;
+		relate expr2 to invoc across R798;
+		select one obj_file related by obj->File[R401];
+		::addFileToImports(file: ::getFileForStatement(smt:smt), file_to_import:obj_file, type:ImportType::IMPL);
+    // for class based operations, add domain as first parameter
+    create object instance expr3 of Expression;
+    relate expr3 to smt across R775;
+    expr3.expression_number = expr.expression_number + ".2";
+    relate void_type to expr3 across R795;
+    // create named reference
+    create object instance named_ref of NamedReference;
+    relate named_ref to expr3 across R776;
+    named_ref.name = "getDomain()";
+    // create actual param
+    create object instance domain_param of ActualParameter;
+    relate domain_param to expr3 across R794;
+    relate domain_param to invoc across R793;
+		// transform actual parameters
+		select one first_argument related by call_expression->ServiceInvocation[R5500]->CallExpression[R5500]->Argument[R5575];
+		if (not_empty first_argument)
+			::transformArguments(invocation:invoc, first_argument:first_argument, expr_number:expr.expression_number, base_num:3);
+		end if;
+	else
+		// TODO bad
+	end if;
+else
+
+// cast expression  
 select one cast_expression related by call_expression->CastExpression[R5500];
 if (not_empty cast_expression)
   // create type promotion
@@ -880,6 +956,8 @@ if (not_empty cast_expression)
 	select any prom_val related by smt->Expression[R775] where (selected.expression_number == expr_number + ".1");
 	relate prom_val to prom across R3907;
 else
+  
+// type characteristic expression
 select one characteristic_expression related by call_expression->CharacteristicExpression[R5500];
 if (not_empty characteristic_expression)
 
@@ -923,7 +1001,7 @@ if (not_empty characteristic_expression)
 
 else
   // TODO
-end if; end if; end if;',
+end if; end if; end if; end if; end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
