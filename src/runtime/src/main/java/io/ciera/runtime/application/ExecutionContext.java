@@ -105,6 +105,16 @@ public class ExecutionContext implements Runnable, Executor, Named {
         return scheduleRecurringEvent(eventType, target, delay, period, eventData);
     }
 
+    @Deprecated
+    public void delay(Duration delay) {
+        getLogger().trace("DEL: delaying for %s", delay);
+        try {
+            Thread.sleep(delay.getValue() / 1000000l, (int) delay.getValue() % 1000000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public synchronized void addTask(Task newTask) {
         if (tasks.offer(newTask)) {
             notify();
@@ -188,6 +198,10 @@ public class ExecutionContext implements Runnable, Executor, Named {
 
     public SystemClock getClock() {
         return application.getClock();
+    }
+    
+    public Logger getLogger() {
+        return application.getLogger();
     }
 
     protected int nextSequenceNumber() {
