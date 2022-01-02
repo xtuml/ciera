@@ -8,9 +8,7 @@ public class TypeConversionException extends RuntimeException {
     private final Class<?> target;
 
     public TypeConversionException(String message, Class<?> source, Class<?> target) {
-        super(message);
-        this.source = source;
-        this.target = target;
+        this(message, null, source, target);
     }
 
     public TypeConversionException(String message, Throwable cause, Class<?> source, Class<?> target) {

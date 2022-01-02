@@ -16,15 +16,6 @@ INSERT INTO O_TFR
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'select many smts related by self->Statement[R450];
-select one invocable related by self->InvocableObject[R4000];
-
-// check if this is an else if block
-is_else_if = false;
-if (cardinality smts == 1)
-  select one enclosing_else related by self->IfSmt[R454];
-  select any if_smt related by self->Statement[R450]->IfSmt[R451];
-  is_else_if = not_empty enclosing_else and not_empty if_smt and if_smt.is_else_if;
-end if;
 
 // get the first statement
 select any statement related by self->Statement[R450];
@@ -36,18 +27,7 @@ end while;
 
 // render each statement
 while (not_empty statement)
-  actions = statement.actions;
-  if is_else_if
-    actions = "";
-  end if;
-  disable_tracing = PROP::getFlag(key:"io.ciera.DisableCodeTracing");
-  exclude_comments = PROP::getFlag(key:"io.ciera.ExcludeStatementComments");
-  enable_statement_logging = PROP::getFlag(key:"io.ciera.EnableStatementLogging");
-  trace_actions = "";
-  if (enable_statement_logging)
-    trace_actions = C_UTIL::cleanActionString(actions:actions);
-  end if;
-  T::include(file:"statement/t.statement.prefix.java");
+  statement.render_prefix();
   statement.render();
   select one statement related by statement->Statement[R477.''executes before''];
 end while;

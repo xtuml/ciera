@@ -1,5 +1,8 @@
 package io.ciera.runtime.exceptions;
 
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import io.ciera.runtime.domain.InstancePopulation;
 import io.ciera.runtime.domain.ObjectInstance;
 
@@ -8,32 +11,32 @@ public class InstancePopulationException extends RuntimeException {
     private static final long serialVersionUID = 1l;
 
     private final InstancePopulation population;
-    private final ObjectInstance instance;
+    private final ObjectInstance[] instances;
 
-    public InstancePopulationException(String message, InstancePopulation population, ObjectInstance instance) {
-        super(message);
-        this.population = population;
-        this.instance = instance;
+    public InstancePopulationException(String message, InstancePopulation population, ObjectInstance... instances) {
+        this(message, null, population, instances);
     }
 
     public InstancePopulationException(String message, Throwable cause, InstancePopulation population,
-            ObjectInstance instance) {
+            ObjectInstance... instances) {
         super(message, cause);
         this.population = population;
-        this.instance = instance;
+        this.instances = instances;
     }
 
     public InstancePopulation getPopulation() {
         return population;
     }
 
-    public ObjectInstance getInstance() {
-        return instance;
+    public ObjectInstance[] getInstances() {
+        return instances;
     }
 
     @Override
     public String getMessage() {
-        return super.getMessage() + ": [population=" + population + ", instance=" + instance + "]";
+        return super.getMessage() + ": [population=" + population + ", instances=[" + 
+        Stream.of(instances).map(inst -> inst.toString()).collect(Collectors.joining(", "))
+        + "]]";
     }
 
 }

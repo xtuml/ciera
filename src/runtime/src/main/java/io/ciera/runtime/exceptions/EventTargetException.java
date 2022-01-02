@@ -11,9 +11,7 @@ public class EventTargetException extends RuntimeException {
     private final Event receivedEvent;
 
     public EventTargetException(String message, EventTarget target, Event receivedEvent) {
-        super(message);
-        this.target = target;
-        this.receivedEvent = receivedEvent;
+        this(message, null, target, receivedEvent);
     }
 
     public EventTargetException(String message, Throwable cause, EventTarget target, Event receivedEvent) {

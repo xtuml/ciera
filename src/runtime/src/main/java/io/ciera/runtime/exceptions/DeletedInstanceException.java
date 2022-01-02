@@ -7,8 +7,8 @@ public class DeletedInstanceException extends InstancePopulationException {
 
     private static final long serialVersionUID = 1l;
 
-    public DeletedInstanceException(String message, InstancePopulation population, ObjectInstance instance) {
-        super(message, population, instance);
+    public DeletedInstanceException(String message, InstancePopulation population, ObjectInstance... instances) {
+        super(message, population, instances);
     }
 
 }

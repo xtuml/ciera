@@ -11,9 +11,7 @@ public class MessageTargetException extends RuntimeException {
     private final Message receivedMessage;
 
     public MessageTargetException(String message, MessageTarget target, Message receivedMessage) {
-        super(message);
-        this.target = target;
-        this.receivedMessage = receivedMessage;
+        this(message, null, target, receivedMessage);
     }
 
     public MessageTargetException(String message, Throwable cause, MessageTarget target, Message receivedMessage) {

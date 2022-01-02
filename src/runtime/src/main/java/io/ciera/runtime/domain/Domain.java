@@ -87,7 +87,7 @@ public abstract class Domain implements ActionHome, InstancePopulation, Named {
         } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException
                 | IllegalArgumentException | InvocationTargetException e) {
             throw new InstancePopulationException("Could not create instance of type '" + type.getSimpleName() + "'", e,
-                    this, null);
+                    this);
         }
     }
 

@@ -1,5 +1,5 @@
 .if (ret_expression_body == "")
-return;  // TODO
+return;
 .else
-return ${ret_expression_body};  // TODO
+return ${ret_expression_body};
 .end if

@@ -11,8 +11,7 @@ public class PortMessageException extends MessageTargetException {
     private final Domain domain;
 
     public PortMessageException(String message, Domain domain, Port port, Message receivedMessage) {
-        super(message, port, receivedMessage);
-        this.domain = domain;
+        this(message, null, domain, port, receivedMessage);
     }
 
     public PortMessageException(String message, Throwable cause, Domain domain, Port port, Message receivedMessage) {

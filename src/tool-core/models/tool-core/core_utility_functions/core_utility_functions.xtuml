@@ -330,49 +330,96 @@ INSERT INTO S_SYNC
 	"00000000-0000-0000-0000-000000000000",
 	'getOalStatement',
 	'',
-	'// TODO this routine assumes a statement is only one line long
+	'act_smt = param.act_smt;
 
-body = param.body;
-line_num = param.line_num;
+// basic case
+actions = act_smt.Label;
 
-i = 0;
-line = "";
-while ( i < line_num )
-  end_of_line = STRING::indexof( haystack:body, needle:"\n" );
-  if ( -1 != end_of_line )
-    line = STRING::substr( s:body, begin:0, end:end_of_line );
-    body = STRING::substr( s:body, begin:end_of_line+1, end:-1 );
+// if this is a statement that containts inner blocks, we only want part of the actions
+// NOTE: this could fail if you have two statements that start on the same line
+// since sorting on multiple attributes is not currently supported. This case is
+// so rare that I''m not really worried about it. The failure would only be in
+// appearance of the generated code anyway...
+
+// if statements
+select one if_smt related by act_smt->ACT_IF[R603];
+if not_empty if_smt
+  select any first_smt related by if_smt->ACT_BLK[R607]->ACT_SMT[R602] where SORT::ascending(attr:"LineNumber"); //and SORT::ascending(attr:"StartPosition");
+  if not_empty first_smt
+    actions = STRING::substr(s:actions, begin:0, end: STRING::indexof(haystack:actions, needle:first_smt.Label));
   else
-    line = body;
-    break;
+    end_index = STRING::indexof(haystack:actions, needle:"elif");
+    if end_index == -1
+      end_index = STRING::indexof(haystack:actions, needle:"else");
+      if end_index == -1
+        end_index = STRING::indexof(haystack:actions, needle:"end if;");
+      end if;
+    end if;
+    actions = STRING::substr(s:actions, begin:0, end:end_index);
   end if;
-  i = i + 1;
-end while;
+else
+  
+// elif statements
+select one elif_smt related by act_smt->ACT_EL[R603];
+if not_empty elif_smt
+  select any first_smt related by elif_smt->ACT_BLK[R658]->ACT_SMT[R602] where SORT::ascending(attr:"LineNumber"); //and SORT::ascending(attr:"StartPosition");
+  if not_empty first_smt
+    actions = "elif " + STRING::substr(s:actions, begin:0, end: STRING::indexof(haystack:actions, needle:first_smt.Label));
+  else
+    end_index = STRING::indexof(haystack:actions, needle:"else");
+    if end_index == -1
+      actions = "elif " + actions;
+    else
+      actions = "elif " + STRING::substr(s:actions, begin:0, end: end_index);
+    end if;
+  end if;
+else
 
-return STRING::trim( s:line );',
+// for statements
+select one for_smt related by act_smt->ACT_FOR[R603];
+if not_empty for_smt
+  select any first_smt related by for_smt->ACT_BLK[R605]->ACT_SMT[R602] where SORT::ascending(attr:"LineNumber"); //and SORT::ascending(attr:"StartPosition");
+  if not_empty first_smt
+    actions = STRING::substr(s:actions, begin:0, end: STRING::indexof(haystack:actions, needle:first_smt.Label));
+  else
+    actions = STRING::substr(s:actions, begin:0, end: STRING::indexof(haystack:actions, needle:"end for;"));
+  end if;
+else
+
+// while statements
+select one while_smt related by act_smt->ACT_WHL[R603];
+if not_empty while_smt
+  select any first_smt related by while_smt->ACT_BLK[R608]->ACT_SMT[R602] where SORT::ascending(attr:"LineNumber"); //and SORT::ascending(attr:"StartPosition");
+  if not_empty first_smt
+    actions = STRING::substr(s:actions, begin:0, end: STRING::indexof(haystack:actions, needle:first_smt.Label));
+  else
+    actions = STRING::substr(s:actions, begin:0, end: STRING::indexof(haystack:actions, needle:"end while;"));
+  end if;
+end if; end if; end if; end if;
+
+// trim the final string
+return STRING::trim(s:actions);',
 	"ba5eda7a-def5-0000-0000-000000000004",
 	1,
 	'',
 	0,
 	0);
 INSERT INTO S_SPARM
-	VALUES ("67fd0ddd-1560-4db2-be9f-245148f5c09f",
+	VALUES ("2a545b81-823f-4e9e-981e-c2413710ee44",
 	"49e1849f-89ff-4aad-a91a-b882a0e32410",
-	'body',
-	"ba5eda7a-def5-0000-0000-000000000004",
+	'act_smt',
+	"8ca0ad46-f8b8-47ba-9456-548bf0777490",
 	0,
 	'',
 	"00000000-0000-0000-0000-000000000000",
 	'');
-INSERT INTO S_SPARM
-	VALUES ("a492c3af-35d7-41c1-99b1-15e289d4d8f8",
-	"49e1849f-89ff-4aad-a91a-b882a0e32410",
-	'line_num',
-	"ba5eda7a-def5-0000-0000-000000000002",
-	0,
+INSERT INTO S_DT_PROXY
+	VALUES ("8ca0ad46-f8b8-47ba-9456-548bf0777490",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Statement>',
 	'',
-	"67fd0ddd-1560-4db2-be9f-245148f5c09f",
-	'');
+	'',
+	'../../../../mcooa/models/mcooa/ooaofooa/Body/Body.xtuml');
 INSERT INTO PE_PE
 	VALUES ("49e1849f-89ff-4aad-a91a-b882a0e32410",
 	1,
@@ -1376,6 +1423,64 @@ end for;',
 	0);
 INSERT INTO PE_PE
 	VALUES ("59e4b4ae-a559-4bcc-b859-851adb7ee179",
+	1,
+	"5c0e4147-5dfb-48d3-a70d-1020d78fa1e2",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("8fb7f1e1-31fc-4cf6-b803-3e5c69af23f2",
+	"00000000-0000-0000-0000-000000000000",
+	'setOriginalNames',
+	'',
+	'invocable = param.invocable;
+label = param.label;
+
+// split a double colon delimited string into two segments around the last occurance of double colon
+// the first segment is assigned as the parent name and the second segment is assigned as the body name
+
+dcolon_index = STRING::indexof(haystack:label, needle:"::");
+split_index = -2;
+while dcolon_index != -1;
+  split_index = split_index + 2 + dcolon_index;
+  dcolon_index = STRING::indexof(haystack:STRING::substr(s:label, begin:split_index + 2, end:-1), needle:"::");
+end while;
+
+if split_index != -1;
+  invocable.original_parent_name = STRING::substr(s:label, begin:0, end:split_index);
+  invocable.original_body_name = STRING::substr(s:label, begin:split_index + 2, end:-1);
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	6);
+INSERT INTO S_SPARM
+	VALUES ("15a1bddd-0876-4c20-9a92-195e1a216965",
+	"8fb7f1e1-31fc-4cf6-b803-3e5c69af23f2",
+	'invocable',
+	"3ab44839-4426-4754-b12a-0a00ce4dae1a",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("3ab44839-4426-4754-b12a-0a00ce4dae1a",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Invocable Object>',
+	'',
+	'',
+	'../../../../core-architecture/models/core-architecture/architecture/invocable/invocable.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("b1097c45-f345-40bf-81cb-bc179175ffb4",
+	"8fb7f1e1-31fc-4cf6-b803-3e5c69af23f2",
+	'label',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"15a1bddd-0876-4c20-9a92-195e1a216965",
+	'');
+INSERT INTO PE_PE
+	VALUES ("8fb7f1e1-31fc-4cf6-b803-3e5c69af23f2",
 	1,
 	"5c0e4147-5dfb-48d3-a70d-1020d78fa1e2",
 	"00000000-0000-0000-0000-000000000000",
