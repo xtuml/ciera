@@ -52,12 +52,12 @@ public abstract class DynamicObjectInstance extends ObjectInstance {
                     throw new IllegalStateException("Dynamic instance has no state machine");
                 }
             } else {
-                throw new EventTargetException("Failed to deliver event.",
+                throw new EventTargetException("Failed to deliver event",
                         new EmptyInstanceException("Empty instance cannot process event", getDomain(), this), this,
                         event);
             }
         } else {
-            throw new EventTargetException("Failed to deliver event.",
+            throw new EventTargetException("Failed to deliver event",
                     new DeletedInstanceException("Cannot deliver event to deleted instance", getDomain(), this), this,
                     event);
         }

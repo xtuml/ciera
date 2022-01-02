@@ -99,22 +99,22 @@ ${attribute_initializer_params}) {
 
         @Override
         public UniqueId getInstanceId() {
-            throw new EmptyInstanceException("Cannot get instance ID of empty instance.", null, this);
+            throw new EmptyInstanceException("Cannot get instance ID of empty instance", null, this);
         }
 
         @Override
         public ${self.comp_name} getDomain() {
-            throw new EmptyInstanceException("Cannot get domain of empty instance.", null, this);
+            throw new EmptyInstanceException("Cannot get domain of empty instance", null, this);
         }
 
         @Override
         public ExecutionContext getContext() {
-            throw new EmptyInstanceException("Cannot get execution context of empty instance.", null, this);
+            throw new EmptyInstanceException("Cannot get execution context of empty instance", null, this);
         }
 
         @Override
         public Logger getLogger() {
-            throw new EmptyInstanceException("Cannot get logger of empty instance.", null, this);
+            throw new EmptyInstanceException("Cannot get logger of empty instance", null, this);
         }
 
     }

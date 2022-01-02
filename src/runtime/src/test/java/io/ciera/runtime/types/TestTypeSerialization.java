@@ -57,7 +57,7 @@ public class TestTypeSerialization {
         Exception e = assertThrows(DeserializationException.class, () -> {
             Device.fromString(s1);
         });
-        assertEquals("'Device' type is not serializable.", e.getMessage());
+        assertEquals("'Device' type is not serializable", e.getMessage());
     }
 
     @Test

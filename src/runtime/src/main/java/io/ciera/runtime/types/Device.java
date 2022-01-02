@@ -69,7 +69,7 @@ public abstract class Device extends ModelType {
     }
 
     public static Device fromString(String s) {
-        throw new DeserializationException("'Device' type is not serializable.");
+        throw new DeserializationException("'Device' type is not serializable");
     }
 
 }

@@ -104,7 +104,7 @@ public class Message implements Comparable<Message>, Named {
     }
 
     public static Message fromString(Object s) {
-        throw new UnsupportedOperationException("Base 'Message' is not JSON serializable.");
+        throw new UnsupportedOperationException("Base 'Message' is not JSON serializable");
     }
 
     @Override

@@ -91,7 +91,7 @@ public abstract class ObjectInstance extends ModelType
     }
 
     public static ObjectInstance fromString() {
-        throw new UnsupportedOperationException("Object instances cannot be deserialized.");
+        throw new UnsupportedOperationException("Object instances cannot be deserialized");
     }
 
     @Override

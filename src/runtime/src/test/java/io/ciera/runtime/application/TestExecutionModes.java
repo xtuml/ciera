@@ -33,7 +33,7 @@ public class TestExecutionModes {
         };
         app.setup();
 
-        app.getLogger().trace("Testing interleaved mode.");
+        app.getLogger().trace("Testing interleaved mode");
 
         // run test
         String[] output = runEventSequence(app);
@@ -54,7 +54,7 @@ public class TestExecutionModes {
         };
         app.setup();
 
-        app.getLogger().trace("Testing sequential mode.");
+        app.getLogger().trace("Testing sequential mode");
 
         // run test
         String[] output = runEventSequence(app);
@@ -70,7 +70,7 @@ public class TestExecutionModes {
         };
         app.setup();
 
-        app.getLogger().trace("Testing default (interleaved) mode.");
+        app.getLogger().trace("Testing default (interleaved) mode");
 
         // run test
         String[] output = runEventSequence(app);

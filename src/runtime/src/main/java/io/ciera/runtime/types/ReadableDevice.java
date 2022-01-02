@@ -32,7 +32,7 @@ public class ReadableDevice extends Device {
             }
 
         } else {
-            throw new DeviceReadException("Could not get next token from device.", new EOFException(), this);
+            throw new DeviceReadException("Could not get next token from device", new EOFException(), this);
         }
     }
 
@@ -41,7 +41,7 @@ public class ReadableDevice extends Device {
         if (sc.hasNextLine()) {
             return sc.nextLine();
         } else {
-            throw new DeviceReadException("Could not get next line from device.", new EOFException(), this);
+            throw new DeviceReadException("Could not get next line from device", new EOFException(), this);
         }
     }
 
