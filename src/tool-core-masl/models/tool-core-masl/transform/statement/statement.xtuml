@@ -232,8 +232,12 @@ select one delay_statement related by masl_statement->DelayStatement[R5135];
 if (not_empty delay_statement)
   ::transformDelayStatement(delay_statement:delay_statement, block:block, prev_smt:prev_smt);
 else
+select one delete_statement related by masl_statement->DeleteStatement[R5135];
+if (not_empty delete_statement)
+  ::transformDeleteStatement(delete_statement:delete_statement, block:block, prev_smt:prev_smt);
+else
   LOG::LogFailure(message:"statement type not supported: ''" + masl_statement.actions + "''");
-end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if;',
+end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -2497,6 +2501,99 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("aad8d42b-955c-4d32-83f8-0f70af596c19",
+	1,
+	"c45f2f21-d5ff-4652-999f-d4808df1e2ef",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("804d2319-1935-4114-9d2d-ee6a27de7ea5",
+	"00000000-0000-0000-0000-000000000000",
+	'transformDeleteStatement',
+	'',
+	'delete_statement = param.delete_statement;
+block = param.block;
+prev_smt = param.prev_smt;
+select one masl_statement related by delete_statement->MaslStatement[R5135];
+
+// verify that the delete expression is an instance type and that if it is
+// "this", it is not within a non-terminal state
+select one del_val related by delete_statement->MaslExpression[R5105];
+select one del_inst_type related by del_val->BasicType[R5570]->InstanceType[R6205];
+select one del_this related by del_val->LiteralExpression[R5517]->ThisLiteral[R5700];
+select one state related by block->InvocableObject[R4000]->State[R427];
+if not_empty del_inst_type
+  if empty del_this or empty state or state.final
+    
+    // create a statement
+    create object instance smt of Statement;
+    relate smt to block across R450;
+    if (not_empty prev_smt)
+      smt.statement_number = STRING::itoa(i:STRING::atoi(s:prev_smt.statement_number) + 1);
+      relate smt to prev_smt across R477.''executes after'';
+    else
+      smt.statement_number = "1";
+    end if;
+    smt.actions = masl_statement.actions;
+    smt.line_number = masl_statement.line_number;
+    
+    // create delete statement
+    create object instance del of DeleteSmt;
+    relate del to smt across R451;
+    
+    // translate delete expression
+    ::transformMaslExpression(masl_expression:del_val, expr_number:"1.1", smt:smt);
+    select any del_expr related by smt->Expression[R775] where selected.expression_number == "1.1";
+    relate del to del_expr across R462;
+
+  else
+    LOG::LogFailure(message:"Cannot delete ''this'' reference within non-terminal state");
+    ARCH::exit(code:1);
+  end if;
+else
+  LOG::LogFailure(message:"Cannot delete reference to non-instance type");
+  ARCH::exit(code:1);
+end if; ',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	0);
+INSERT INTO S_SPARM
+	VALUES ("a00fdf3d-fba5-4e30-9100-a4a54488a7d5",
+	"804d2319-1935-4114-9d2d-ee6a27de7ea5",
+	'delete_statement',
+	"5c4f399f-dea0-4296-ae97-2f9e06f6be21",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("5c4f399f-dea0-4296-ae97-2f9e06f6be21",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<DeleteStatement>',
+	'',
+	'',
+	'../../../../../ooamasl/models/ooamasl/ooamasl/statement/statement.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("3d9aa58c-1f81-4b57-883a-375a0dab45b4",
+	"804d2319-1935-4114-9d2d-ee6a27de7ea5",
+	'block',
+	"60d4da0e-4cbe-4620-8c16-4e1dba1c6b8d",
+	0,
+	'',
+	"a00fdf3d-fba5-4e30-9100-a4a54488a7d5",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("43e15026-3413-458f-8a48-a6f6c718cfef",
+	"804d2319-1935-4114-9d2d-ee6a27de7ea5",
+	'prev_smt',
+	"b586ec7e-41fe-4d50-9cf3-27b173e9848a",
+	0,
+	'',
+	"3d9aa58c-1f81-4b57-883a-375a0dab45b4",
+	'');
+INSERT INTO PE_PE
+	VALUES ("804d2319-1935-4114-9d2d-ee6a27de7ea5",
 	1,
 	"c45f2f21-d5ff-4652-999f-d4808df1e2ef",
 	"00000000-0000-0000-0000-000000000000",
