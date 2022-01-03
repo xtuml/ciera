@@ -58,6 +58,7 @@ block.block_number = param.block_number;
 // copy visibile variables from upper block
 select many vars related by upper_block->VariableInScope[R458];
 for each var in vars
+  LOG::LogInfo(message:"LEVI upper_block: " + upper_block.block_number + ", block: " + block.block_number + ", var: " + var.var_name);
 	create object instance var_in_scope of VariableInScope;
 	var_in_scope.distance = var.distance + 1;
 	select one var_decl related by var->Variable[R458];
@@ -68,7 +69,10 @@ end for;
 if (not_empty code_block)
 	select many variable_declarations related by code_block->VariableDefinition[R5151];
 	for each variable_declaration in variable_declarations
-		::transformVariableInitialization(variable_declaration:variable_declaration, block:block);
+	  select one for_loop_spec related by variable_declaration->LoopSpec[R5154];
+	  if empty for_loop_spec  // don''t pre-declare variables that are declared in for loops
+		  ::transformVariableInitialization(variable_declaration:variable_declaration, block:block);
+		end if;
 	end for;
 end if;
 
@@ -236,8 +240,12 @@ select one delete_statement related by masl_statement->DeleteStatement[R5135];
 if (not_empty delete_statement)
   ::transformDeleteStatement(delete_statement:delete_statement, block:block, prev_smt:prev_smt);
 else
+select one for_statement related by masl_statement->ForStatement[R5135];
+if (not_empty for_statement)
+  ::transformMaslForStatement(for_statement:for_statement, block:block, prev_smt:prev_smt);
+else
   LOG::LogFailure(message:"statement type not supported: ''" + masl_statement.actions + "''");
-end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if;',
+end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -490,15 +498,17 @@ new_var.name = variable_declaration.name;
 new_var.readonly = variable_declaration.isreadonly;
 
 // link in scope
-select one scope related by smt->CodeBlock[R450];
-select any existing_var_in_scope related by scope->VariableInScope[R458] where (selected.var_name == new_var.name);
-if ( not_empty existing_var_in_scope )  // shadow variable of same name
-  LOG::LogInfo( message:"warning: shadowing variable" );
-  select one existing_var related by existing_var_in_scope->Variable[R458];
-  unrelate existing_var from scope across R458 using existing_var_in_scope;
+if param.link_in_scope
+  select one scope related by smt->CodeBlock[R450];
+  select any existing_var_in_scope related by scope->VariableInScope[R458] where (selected.var_name == new_var.name);
+  if ( not_empty existing_var_in_scope )  // shadow variable of same name
+    LOG::LogInfo(message:"warning: shadowing variable: " + new_var.name + " in block: "+ scope.block_number);
+    select one existing_var related by existing_var_in_scope->Variable[R458];
+    unrelate existing_var from scope across R458 using existing_var_in_scope;
+  end if;
+  create object instance var_in_scope of VariableInScope;
+  relate new_var to scope across R458 using var_in_scope;
 end if;
-create object instance var_in_scope of VariableInScope;
-relate new_var to scope across R458 using var_in_scope;
 
 // link data type
 select any type from instances of TypeReference where false;
@@ -543,6 +553,15 @@ INSERT INTO S_SPARM
 	0,
 	'',
 	"a76bf727-ba9d-474a-8a66-b0a3f4dc361d",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("6d4fedd6-0b39-4e03-927a-03883a9a3405",
+	"04159730-c15c-4433-a923-ec64dfaa746a",
+	'link_in_scope',
+	"ba5eda7a-def5-0000-0000-000000000001",
+	0,
+	'',
+	"56bdc5c4-f731-48e7-bfe9-f30227ba5372",
 	'');
 INSERT INTO PE_PE
 	VALUES ("04159730-c15c-4433-a923-ec64dfaa746a",
@@ -591,7 +610,7 @@ binop.operator = "=";
 binop.invocation = false;
 
 // create new variable
-::transformVariableDeclaration(variable_declaration:variable_declaration, smt:smt);
+::transformVariableDeclaration(variable_declaration:variable_declaration, smt:smt, link_in_scope:true);
 select any var related by smt->CodeBlock[R450]->Variable[R458] where (selected.name == "" + variable_declaration.name);
 
 // create variable reference for left operand
@@ -2594,6 +2613,134 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("804d2319-1935-4114-9d2d-ee6a27de7ea5",
+	1,
+	"c45f2f21-d5ff-4652-999f-d4808df1e2ef",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("f630d624-d601-4f3b-ac6f-9b3c404e43da",
+	"00000000-0000-0000-0000-000000000000",
+	'transformMaslForStatement',
+	'',
+	'for_statement = param.for_statement;
+select one masl_statement related by for_statement->MaslStatement[R5135];
+block = param.block;
+prev_smt = param.prev_smt;
+
+// create a statement
+create object instance smt of Statement;
+relate smt to block across R450;
+if (not_empty prev_smt)
+  smt.statement_number = STRING::itoa(i:STRING::atoi(s:prev_smt.statement_number) + 1);
+  relate smt to prev_smt across R477.''executes after'';
+else
+  smt.statement_number = "1";
+end if;
+smt.actions = masl_statement.actions;
+smt.line_number = masl_statement.line_number;
+
+// create for statement
+create object instance for_smt of ForSmt;
+relate for_smt to smt across R451;
+select one loop_spec related by for_statement->LoopSpec[R5110];
+for_smt.reversed = loop_spec.isreverse;
+
+// translate iterable expression
+select any iterable_expr from instances of Expression where false;
+select one variable_elements related by loop_spec->VariableElements[R5123];
+if not_empty variable_elements
+  select one elements_val related by variable_elements->MaslExpression[R5139];
+  ::transformMaslExpression(masl_expression:elements_val, expr_number:"1", smt:smt);
+  select any iterable_expr related by smt->Expression[R775] where selected.expression_number == "1";
+  relate iterable_expr to for_smt across R478;
+else
+  // TODO support other range type expressions
+  LOG::LogFailure(message:"Unsupported loop spec");
+  ARCH::exit(code:1);
+end if;
+
+// create iterator variable
+select one iter_var_def related by loop_spec->VariableDefinition[R5154];
+::transformVariableDeclaration(variable_declaration:iter_var_def, smt:smt, link_in_scope:false);
+select any iter_var related by smt->Variable[R457];
+relate iter_var to for_smt across R459;
+
+// create control block
+create object instance control_block of CodeBlock;
+select one invocable related by block->InvocableObject[R4000];
+relate control_block to invocable across R4000;
+control_block.block_number = ::getNextBlockNumber(upper_block:block);
+relate control_block to for_smt across R455;
+
+// copy visibile variables from current block
+select many vars related by block->VariableInScope[R458];
+for each var in vars
+	create object instance var_in_scope of VariableInScope;
+	var_in_scope.distance = var.distance + 1;
+	select one var_decl related by var->Variable[R458];
+	relate var_decl to control_block across R458 using var_in_scope;
+end for;
+
+// link the iterator variable in the scope of the new block
+select any existing_var_in_scope related by control_block->VariableInScope[R458] where (selected.var_name == iter_var.name);
+if (not_empty existing_var_in_scope)  // shadow variable of same name
+  LOG::LogInfo(message:"warning: shadowing variable: " + iter_var.name + " in block: "+ control_block.block_number);
+  select one existing_var related by existing_var_in_scope->Variable[R458];
+  unrelate existing_var from control_block across R458 using existing_var_in_scope;
+end if;
+create object instance var_in_scope of VariableInScope;
+relate iter_var to control_block across R458 using var_in_scope;
+
+// transform all statements
+select one first_statement related by for_statement->MaslStatement[R5153];
+select any empty_code_block from instances of MaslCodeBlock where false;
+::transformMaslStatements(code_block:empty_code_block, first_statement:first_statement, block:control_block);
+
+// add import
+if for_smt.reversed
+  ::addStringToImports(file: ::getFileForStatement(smt:smt), s:"java.util.ArrayDeque", type:ImportType::IMPL);
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	2);
+INSERT INTO S_SPARM
+	VALUES ("992bc426-3468-4217-a04c-91016f9e7704",
+	"f630d624-d601-4f3b-ac6f-9b3c404e43da",
+	'for_statement',
+	"a52c5842-7e02-4382-bf92-385af6ff4446",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("a52c5842-7e02-4382-bf92-385af6ff4446",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<ForStatement>',
+	'',
+	'',
+	'../../../../../ooamasl/models/ooamasl/ooamasl/statement/statement.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("8dfd040a-4eb4-4f83-a578-96e6c011ed82",
+	"f630d624-d601-4f3b-ac6f-9b3c404e43da",
+	'block',
+	"60d4da0e-4cbe-4620-8c16-4e1dba1c6b8d",
+	0,
+	'',
+	"992bc426-3468-4217-a04c-91016f9e7704",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("6f1d1f3a-e7bc-46a0-9f78-3fa28a9cd947",
+	"f630d624-d601-4f3b-ac6f-9b3c404e43da",
+	'prev_smt',
+	"b586ec7e-41fe-4d50-9cf3-27b173e9848a",
+	0,
+	'',
+	"8dfd040a-4eb4-4f83-a578-96e6c011ed82",
+	'');
+INSERT INTO PE_PE
+	VALUES ("f630d624-d601-4f3b-ac6f-9b3c404e43da",
 	1,
 	"c45f2f21-d5ff-4652-999f-d4808df1e2ef",
 	"00000000-0000-0000-0000-000000000000",
