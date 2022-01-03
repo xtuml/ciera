@@ -1057,6 +1057,8 @@ smt.line_number = act_smt.LineNumber;
 // create for statement
 create object instance for_smt of ForSmt;
 relate for_smt to smt across R451;
+for_smt.external_loop_variable = true;  // OAL defines the loop variable in the outer scope
+
 // translate iterable expression
 select one iterable_v_var related by act_for->V_VAR[R652];
 select one iterable_o_obj related by iterable_v_var->V_INS[R814]->O_OBJ[R819];
@@ -1075,25 +1077,23 @@ relate var_ref to expr across R776;
 relate expr to for_smt across R478;
 select one expr_type related by expr->TypeReference[R795]->Type[R3800];
 ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:expr_type, type:ImportType::IMPL );
+
 // create iterator variable
 select one iter_v_var related by act_for->V_VAR[R614];
-select any existing_var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == iter_v_var.Name );
-if ( empty existing_var ) // cannot declare two variables of the same name in the same scope
-  ::transformVariable( v_var:iter_v_var, smt:smt );
-end if;
 select any iter_var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == iter_v_var.Name );
 relate iter_var to for_smt across R459;
+
 // link iterator variable type
 select one iter_type related by iter_var->TypeReference[R461]->Type[R3800];
 ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:iter_type, type:ImportType::IMPL );
+
 // create control block
 control_block_number = ::getNextBlockNumber( upper_block:block );
 select one control_blk related by act_for->ACT_BLK[R605];
-::transformBlockForFor( upper_block:block, act_blk:control_blk, block_number:control_block_number, iter_var:iter_var, for_smt:for_smt );
+select any empty_invocable from instances of InvocableObject where false;
+::transformBlock(upper_block:block, act_blk:control_blk, block_number:control_block_number, invocable:empty_invocable);
 select any control_block related by block->InvocableObject[R4000]->CodeBlock[R4000] where ( selected.block_number == control_block_number );
-relate control_block to for_smt across R455;
-for_smt.initializeIterator();
-::addStringToImports( file: ::getFileForStatement( smt:smt ), s:"java.util.Iterator", type:ImportType::IMPL );',
+relate control_block to for_smt across R455;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -1187,10 +1187,6 @@ select_s_dt = ::getInstRefTypeForClass( s_dt:select_s_dt, o_obj:select_obj );
 select many s_dims related by select_v_var->S_DIM[R849];
 select_type = ::TypeReference_getInstance( s_dt:select_s_dt, s_dims:s_dims );
 relate select_type to l_op across R795;
-select any existing_var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == select_v_var.Name );
-if ( empty existing_var ) // cannot declare two variables of the same name in the same scope
-  ::transformVariable( v_var:select_v_var, smt:smt );
-end if;
 select any select_var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == select_v_var.Name );
 create object instance var_ref of VariableReference;
 relate select_var to var_ref across R782;
@@ -1318,10 +1314,6 @@ select_s_dt = ::getInstRefTypeForClass( s_dt:select_s_dt, o_obj:select_obj );
 select many s_dims related by select_v_var->S_DIM[R849];
 select_type = ::TypeReference_getInstance( s_dt:select_s_dt, s_dims:s_dims );
 relate select_type to l_op across R795;
-select any existing_var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == select_v_var.Name );
-if ( empty existing_var ) // cannot declare two variables of the same name in the same scope
-  ::transformVariable( v_var:select_v_var, smt:smt );
-end if;
 select any select_var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == select_v_var.Name );
 create object instance var_ref of VariableReference;
 relate select_var to var_ref across R782;
@@ -1483,10 +1475,6 @@ select_s_dt = ::getInstRefTypeForClass( s_dt:select_s_dt, o_obj:select_obj );
 select many s_dims related by select_v_var->S_DIM[R849];
 select_type = ::TypeReference_getInstance( s_dt:select_s_dt, s_dims:s_dims );
 relate select_type to l_op across R795;
-select any existing_var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == select_v_var.Name );
-if ( empty existing_var ) // cannot declare two variables of the same name in the same scope
-  ::transformVariable( v_var:select_v_var, smt:smt );
-end if;
 select any select_var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == select_v_var.Name );
 create object instance var_ref of VariableReference;
 relate select_var to var_ref across R782;
@@ -1654,10 +1642,6 @@ cr_s_dt = ::getInstRefTypeForClass( s_dt:cr_s_dt, o_obj:cr_obj );
 select many s_dims related by cr_v_var->S_DIM[R849];
 cr_type = ::TypeReference_getInstance( s_dt:cr_s_dt, s_dims:s_dims );
 relate cr_type to l_op across R795;
-select any existing_var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == cr_v_var.Name );
-if ( empty existing_var ) // cannot declare two variables of the same name in the same scope
-  ::transformVariable( v_var:cr_v_var, smt:smt );
-end if;
 select any cr_var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == cr_v_var.Name );
 create object instance var_ref of VariableReference;
 relate cr_var to var_ref across R782;
@@ -3197,6 +3181,9 @@ if (not_empty act_blk)
 		relate var_decl to block across R458 using var_in_scope;
   end for;
 
+  // create variable declarations for this code block
+  ::transformVariables(act_blk:act_blk, block:block);
+
   // transform all statements
   ::transformStatements( act_blk:act_blk, block:block );
 
@@ -3355,101 +3342,6 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("1f9fe480-5772-4b3b-9bc1-137bca58c156",
-	1,
-	"1aa08c2b-b96c-4c66-8c25-c079950eef10",
-	"00000000-0000-0000-0000-000000000000",
-	1);
-INSERT INTO S_SYNC
-	VALUES ("a1626421-4c40-4eec-96aa-f6a8308f9d49",
-	"00000000-0000-0000-0000-000000000000",
-	'transformBlockForFor',
-	'',
-	'upper_block = param.upper_block;
-act_blk = param.act_blk;
-
-// create code block
-create object instance block of CodeBlock;
-select one invocable related by upper_block->InvocableObject[R4000];
-relate block to invocable across R4000;
-block.block_number = param.block_number;
-
-// copy visibile variables from upper block
-select many vars related by upper_block->VariableInScope[R458];
-for each var in vars
-	create object instance var_in_scope of VariableInScope;
-	var_in_scope.distance = var.distance + 1;
-	select one var_decl related by var->Variable[R458];
-	relate var_decl to block across R458 using var_in_scope;
-end for;
-
-// transform all statements
-::transformStatements( act_blk:act_blk, block:block );',
-	"ba5eda7a-def5-0000-0000-000000000000",
-	1,
-	'',
-	0,
-	0);
-INSERT INTO S_SPARM
-	VALUES ("95163797-f92a-4cde-8bd1-653fc93e495e",
-	"a1626421-4c40-4eec-96aa-f6a8308f9d49",
-	'upper_block',
-	"60d4da0e-4cbe-4620-8c16-4e1dba1c6b8d",
-	0,
-	'',
-	"00000000-0000-0000-0000-000000000000",
-	'');
-INSERT INTO S_SPARM
-	VALUES ("56ae9715-a512-4828-af92-32914de2ed6b",
-	"a1626421-4c40-4eec-96aa-f6a8308f9d49",
-	'act_blk',
-	"069f7c9f-7387-4d78-8d66-5f72c773e58e",
-	0,
-	'',
-	"95163797-f92a-4cde-8bd1-653fc93e495e",
-	'');
-INSERT INTO S_SPARM
-	VALUES ("f8f85dfe-4bcf-4059-90da-40fd4d6da916",
-	"a1626421-4c40-4eec-96aa-f6a8308f9d49",
-	'block_number',
-	"ba5eda7a-def5-0000-0000-000000000004",
-	0,
-	'',
-	"56ae9715-a512-4828-af92-32914de2ed6b",
-	'');
-INSERT INTO S_SPARM
-	VALUES ("13db2b19-4749-4b6f-9dff-db535c20e770",
-	"a1626421-4c40-4eec-96aa-f6a8308f9d49",
-	'iter_var',
-	"c9708af9-d7e3-4342-b794-8c2671da2530",
-	0,
-	'',
-	"f8f85dfe-4bcf-4059-90da-40fd4d6da916",
-	'');
-INSERT INTO S_DT_PROXY
-	VALUES ("c9708af9-d7e3-4342-b794-8c2671da2530",
-	"00000000-0000-0000-0000-000000000000",
-	'inst_ref<Variable>',
-	'',
-	'',
-	'../../../../../core-architecture/models/core-architecture/architecture/statement/statement.xtuml');
-INSERT INTO S_SPARM
-	VALUES ("5135db2b-c762-4330-9272-898ef5a621f4",
-	"a1626421-4c40-4eec-96aa-f6a8308f9d49",
-	'for_smt',
-	"5b47ee89-895b-438a-928d-743a7ac25fa3",
-	0,
-	'',
-	"13db2b19-4749-4b6f-9dff-db535c20e770",
-	'');
-INSERT INTO S_DT_PROXY
-	VALUES ("5b47ee89-895b-438a-928d-743a7ac25fa3",
-	"00000000-0000-0000-0000-000000000000",
-	'inst_ref<For>',
-	'',
-	'',
-	'../../../../../core-architecture/models/core-architecture/architecture/statement/statement.xtuml');
-INSERT INTO PE_PE
-	VALUES ("a1626421-4c40-4eec-96aa-f6a8308f9d49",
 	1,
 	"1aa08c2b-b96c-4c66-8c25-c079950eef10",
 	"00000000-0000-0000-0000-000000000000",
@@ -3709,25 +3601,19 @@ for each smt in act_smts
   end if;
 end for;
 
-select any prev_smt from instances of Statement where false;
-smt_num = 1;
+prev_smt = ::lastStatementInBlock(block:block);
 while ( not_empty act_smt )
+  // transform the statement
   ::transformStatement( act_smt:act_smt, block:block, prev_smt:prev_smt );
-  select any prev_smt related by block->Statement[R450] where ( selected.statement_number == STRING::itoa( i:smt_num + 1 ) ); // for OAL statements that result in 2 statements
-  if ( not_empty prev_smt )
-    smt_num = smt_num + 2;
-  else
-    select any prev_smt related by block->Statement[R450] where ( selected.statement_number == STRING::itoa( i:smt_num ) );
-    if ( not_empty prev_smt )
-      smt_num = smt_num + 1;
-    else
-      select any prev_smt related by block->Statement[R450] where ( selected.statement_number == STRING::itoa( i:smt_num - 1 ) );
-      // No statement resulted from translation
-    end if;
-  end if;
-  select one act_smt related by act_smt->ACT_SMT[R661.''succeeds''];
+
+  // get the last created statement by selecting any ordered descending by statement number
+  prev_smt = ::lastStatementInBlock(block:block);
+  smt_num = STRING::atoi(s:prev_smt.statement_number) + 1;
+
   // see if array needs to be declared
-  ::resolveArrayDeclaration( smt:prev_smt );
+  ::resolveArrayDeclaration(smt:prev_smt);
+
+  select one act_smt related by act_smt->ACT_SMT[R661.''succeeds''];
 end while;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -3754,76 +3640,6 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("bb386e4f-49ba-4b23-b465-577216ff4555",
-	1,
-	"1aa08c2b-b96c-4c66-8c25-c079950eef10",
-	"00000000-0000-0000-0000-000000000000",
-	1);
-INSERT INTO S_SYNC
-	VALUES ("85cbd402-8906-4b60-9700-a81e119bef37",
-	"00000000-0000-0000-0000-000000000000",
-	'transformVariable',
-	'',
-	'v_var = param.v_var;
-smt = param.smt;
-
-// create new variable
-create object instance new_var of Variable;
-relate new_var to smt across R457;
-new_var.name = v_var.Name;
-
-// link in scope
-select one scope related by smt->CodeBlock[R450];
-select any existing_var_in_scope related by scope->VariableInScope[R458] where ( selected.var_name == new_var.name );
-if ( not_empty existing_var_in_scope )  // shadow variable of same name
-  LOG::LogInfo( message:"warning: shadowing variable" );
-  select one existing_var related by existing_var_in_scope->Variable[R458];
-  unrelate existing_var from scope across R458 using existing_var_in_scope;
-end if;
-create object instance var_in_scope of VariableInScope;
-relate new_var to scope across R458 using var_in_scope;
-
-// link data type
-select one var_dt related by v_var->S_DT[R848];
-select one var_obj related by v_var->V_INT[R814]->O_OBJ[R818];
-if ( empty var_obj )
-  select one var_obj related by v_var->V_INS[R814]->O_OBJ[R819];
-end if;
-var_dt = ::getInstRefTypeForClass( s_dt:var_dt, o_obj:var_obj );
-select many s_dims related by v_var->S_DIM[R849];
-var_type = ::TypeReference_getInstance( s_dt:var_dt, s_dims:s_dims );
-relate var_type to new_var across R461;',
-	"ba5eda7a-def5-0000-0000-000000000000",
-	1,
-	'',
-	0,
-	0);
-INSERT INTO S_SPARM
-	VALUES ("953bf602-54fb-42df-842d-b8e5e6f19fe8",
-	"85cbd402-8906-4b60-9700-a81e119bef37",
-	'v_var',
-	"0e65b778-e815-4f26-b470-456b52561157",
-	0,
-	'',
-	"00000000-0000-0000-0000-000000000000",
-	'');
-INSERT INTO S_DT_PROXY
-	VALUES ("0e65b778-e815-4f26-b470-456b52561157",
-	"00000000-0000-0000-0000-000000000000",
-	'inst_ref<Variable>',
-	'',
-	'',
-	'../../../../../mcooa/models/mcooa/ooaofooa/Value/Value.xtuml');
-INSERT INTO S_SPARM
-	VALUES ("a0768183-bea9-4ca2-95b9-595cd6261b39",
-	"85cbd402-8906-4b60-9700-a81e119bef37",
-	'smt',
-	"b586ec7e-41fe-4d50-9cf3-27b173e9848a",
-	0,
-	'',
-	"953bf602-54fb-42df-842d-b8e5e6f19fe8",
-	'');
-INSERT INTO PE_PE
-	VALUES ("85cbd402-8906-4b60-9700-a81e119bef37",
 	1,
 	"1aa08c2b-b96c-4c66-8c25-c079950eef10",
 	"00000000-0000-0000-0000-000000000000",
@@ -4670,6 +4486,134 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("aebd9ad8-4479-40dd-abaf-2af93c833ae5",
+	1,
+	"1aa08c2b-b96c-4c66-8c25-c079950eef10",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("031efdba-e4fd-4f49-a706-41adaee562a2",
+	"00000000-0000-0000-0000-000000000000",
+	'transformVariables',
+	'',
+	'act_blk = param.act_blk;
+block = param.block;
+
+// create a forward delcaration for all vars defined in this scope
+// ignore the deprecated event type and references to "self"
+select any evt_dt from instances of S_DT where selected.Name == "inst<Event>";
+select many v_vars related by act_blk->V_VAR[R823] where selected.DT_ID != evt_dt.DT_ID and selected.Name != "self";
+for each v_var in v_vars
+  
+  // create a statement
+  prev_smt = ::lastStatementInBlock(block:block);
+  create object instance smt of Statement;
+  relate smt to block across R450;
+  if (not_empty prev_smt)
+    smt.statement_number = STRING::itoa(i:STRING::atoi(s:prev_smt.statement_number) + 1);
+    relate smt to prev_smt across R477.''executes after'';
+  else
+    smt.statement_number = "1";
+  end if;
+
+  // create expression as statement
+  create object instance eas of ExpressionAsStatement;
+  relate eas to smt across R451;
+
+  // create main expression
+  create object instance expr of Expression;
+  relate expr to smt across R775;
+  expr.expression_number = "1";
+  relate expr to eas across R476;
+
+  // create binary operation and assignment expression
+  create object instance binop of BinaryOperation;
+  relate binop to expr across R776;
+  binop.operator = "=";
+  binop.invocation = false;
+
+  // create new variable
+  create object instance new_var of Variable;
+  relate new_var to smt across R457;
+  new_var.name = v_var.Name;
+  
+  // link in scope
+  select one scope related by smt->CodeBlock[R450];
+  create object instance var_in_scope of VariableInScope;
+  relate new_var to scope across R458 using var_in_scope;
+  
+  // link data type
+  select one var_dt related by v_var->S_DT[R848];
+  select one var_obj related by v_var->V_INT[R814]->O_OBJ[R818];
+  if ( empty var_obj )
+    select one var_obj related by v_var->V_INS[R814]->O_OBJ[R819];
+  end if;
+  // This call converts "inst_ref<Object>" to the specific inst_ref type. It is
+  // a simple pass through for non instance types
+  var_dt = ::getInstRefTypeForClass( s_dt:var_dt, o_obj:var_obj );
+  select many s_dims related by v_var->S_DIM[R849];
+  var_type = ::TypeReference_getInstance( s_dt:var_dt, s_dims:s_dims );
+  relate var_type to new_var across R461;
+
+  // create variable reference for left operand
+  create object instance l_op of Expression;
+  relate l_op to smt across R775;
+  l_op.expression_number = "1.1";
+  relate l_op to binop across R779;
+
+  // link type
+  relate var_type to l_op across R795;
+
+// create variable reference
+  create object instance var_ref of VariableReference;
+  relate new_var to var_ref across R782;
+  relate var_ref to l_op across R776;
+  var_ref.declaration = true;
+
+  // add type reference to file
+  select one expr_type related by var_type->Type[R3800];
+  ::addTypeToImports(file: ::getFileForStatement(smt:smt), type_to_import:expr_type, type:ImportType::IMPL);
+
+  // create right operand
+	create object instance r_op of Expression;
+	relate r_op to smt across R775;
+	r_op.expression_number = "1.2";
+	// link type
+	relate var_type to r_op across R795;
+	// create a named expression
+	create object instance named_expr of NamedReference;
+	named_expr.name = expr_type.default_value;
+	relate named_expr to r_op across R776;
+  relate r_op to binop across R778;
+
+  // link l_op type to the main expression
+  relate var_type to expr across R795;
+
+end for;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	2);
+INSERT INTO S_SPARM
+	VALUES ("71ce16cc-35bd-4dec-a4fc-9902743e213c",
+	"031efdba-e4fd-4f49-a706-41adaee562a2",
+	'act_blk',
+	"069f7c9f-7387-4d78-8d66-5f72c773e58e",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("8bcadfc8-90ba-40cd-88b8-2d87434e9e20",
+	"031efdba-e4fd-4f49-a706-41adaee562a2",
+	'block',
+	"60d4da0e-4cbe-4620-8c16-4e1dba1c6b8d",
+	0,
+	'',
+	"71ce16cc-35bd-4dec-a4fc-9902743e213c",
+	'');
+INSERT INTO PE_PE
+	VALUES ("031efdba-e4fd-4f49-a706-41adaee562a2",
 	1,
 	"1aa08c2b-b96c-4c66-8c25-c079950eef10",
 	"00000000-0000-0000-0000-000000000000",

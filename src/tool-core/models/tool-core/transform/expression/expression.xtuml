@@ -420,14 +420,8 @@ select many s_dims from instances of S_DIM where false;
 type = ::TypeReference_getInstance( s_dt:s_dt, s_dims:s_dims );
 relate type to expr across R795;
 
-// if this is the first location, create a new variable
-select one v_var related by v_tvl->V_VAR[R805];
-select any existing_var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == v_var.Name );
-if ( empty existing_var ) // cannot declare two variables of the same name in the same scope
-  ::transformVariable( v_var:v_var, smt:smt );
-end if;
-
 // create variable reference
+select one v_var related by v_tvl->V_VAR[R805];
 select any var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == v_var.Name );
 create object instance var_ref of VariableReference;
 relate var to var_ref across R782;
@@ -508,10 +502,6 @@ if ( "self" == T::sub( format:"l", s:v_var.Name ) ) // reference to self
   relate self_ref to expr across R776;
   self_ref.name = "self()";
 else
-  select any existing_var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == v_var.Name );
-  if ( empty existing_var ) // cannot declare two variables of the same name in the same scope
-    ::transformVariable( v_var:v_var, smt:smt );
-  end if;
   // create variable reference
   select any var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == v_var.Name );
   create object instance var_ref of VariableReference;
@@ -586,14 +576,8 @@ select many s_dims from instances of S_DIM where false;
 type = ::TypeReference_getInstance( s_dt:s_dt, s_dims:s_dims );
 relate type to expr across R795;
 
-// if this is the first location, create a new variable
-select one v_var related by v_isr->V_VAR[R809];
-select any existing_var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == v_var.Name );
-if ( empty existing_var ) // cannot declare two variables of the same name in the same scope
-  ::transformVariable( v_var:v_var, smt:smt );
-end if;
-
 // create variable reference
+select one v_var related by v_isr->V_VAR[R809];
 select any var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == v_var.Name );
 create object instance var_ref of VariableReference;
 relate var to var_ref across R782;

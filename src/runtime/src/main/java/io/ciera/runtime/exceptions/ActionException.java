@@ -23,8 +23,8 @@ public class ActionException extends RuntimeException {
     public ActionException(Throwable cause) {
         this(null, null);
         final List<StackTraceElement> trace = List.of(getStackTrace());
-        cause.setStackTrace(Stream.of(cause.getStackTrace()).filter(ste -> !trace.contains(ste))
-                .toArray(StackTraceElement[]::new));
+        cause.setStackTrace(
+                Stream.of(cause.getStackTrace()).filter(ste -> !trace.contains(ste)).toArray(StackTraceElement[]::new));
         initCause(cause);
     }
 
@@ -36,9 +36,6 @@ public class ActionException extends RuntimeException {
         super(message);
         this.data = data;
         stack = new LinkedList<>();
-        Integer i = Integer.valueOf(1);
-        Double d = Double.valueOf(2);
-        Stream.of(i, d);
     }
 
     public void updateStack(String parentName, String bodyName, String fileName, int lineNumber) {

@@ -1,1 +1,1 @@
-for (Iterator<${iterator_type}> _${self.iterator_name}_iter = ${iterable_expr}.iterator(); _${self.iterator_name}_iter.hasNext();) ${control_block}\
+for (final ${iterator_type} ${self.iterator_name} : ${iterable_expr}) ${control_block}
