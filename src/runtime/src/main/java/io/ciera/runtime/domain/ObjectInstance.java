@@ -103,7 +103,7 @@ public abstract class ObjectInstance extends ModelType
 
     @Override
     public int compareTo(ObjectInstance o) {
-        return getName().compareTo(o.getName());
+        return instanceId.compareTo(o.instanceId);
     }
 
     @Override
