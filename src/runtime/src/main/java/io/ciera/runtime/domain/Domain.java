@@ -133,8 +133,7 @@ public abstract class Domain implements ActionHome, InstancePopulation, Named {
     public void deleteInstance(ObjectInstance instance) {
         Class<?> object = instance.getClass();
         Set<ObjectInstance> objectPopulation = instancePopulation.get(object);
-        boolean success = objectPopulation != null ? objectPopulation.remove(instance) : false;
-        if (!success) {
+        if (!(objectPopulation != null ? objectPopulation.remove(instance) : false)) {
             throw new InstancePopulationException("Instance does not exist within the population", this, instance);
         }
     }

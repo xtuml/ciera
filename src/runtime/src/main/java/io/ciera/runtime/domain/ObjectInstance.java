@@ -6,6 +6,7 @@ import io.ciera.runtime.application.EventTarget;
 import io.ciera.runtime.application.ExecutionContext;
 import io.ciera.runtime.application.Logger;
 import io.ciera.runtime.application.Named;
+import io.ciera.runtime.exceptions.DeletedInstanceException;
 import io.ciera.runtime.exceptions.EventTargetException;
 import io.ciera.runtime.types.ModelType;
 import io.ciera.runtime.types.UniqueId;
@@ -24,6 +25,7 @@ public abstract class ObjectInstance extends ModelType
         this.domain = null;
         this.context = null;
         this.logger = null;
+        this.alive = false;
     }
 
     public ObjectInstance(Domain domain) {
@@ -48,8 +50,13 @@ public abstract class ObjectInstance extends ModelType
     }
 
     public void delete() {
-        alive = false;
-        domain.deleteInstance(this);
+        if (isAlive()) {
+            alive = false;
+            domain.deleteInstance(this);
+        } else {
+            throw new DeletedInstanceException("Cannot delete instance that has already been deleted", getDomain(),
+                    this);
+        }
     }
 
     public boolean isEmpty() {
