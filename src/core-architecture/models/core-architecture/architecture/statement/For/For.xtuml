@@ -16,8 +16,13 @@ INSERT INTO O_TFR
 	1,
 	'T::push_buffer();
 
-select one iter_type related by self->Variable[R459]->TypeReference[R461];
+select one iterator_var related by self->Variable[R459];
+select one iter_type related by iterator_var->TypeReference[R461];
 iterator_type = iter_type.type_reference_name;
+iterator_name = iterator_var.name;
+if iterator_var.is_shadowing
+  iterator_name = iterator_name + "_" + STRING::replaceall(s:iterator_var.block_number, pattern:"\\.", replacement:"_");
+end if;
 
 select one iterable_expression related by self->Expression[R478];
 iterable_expression.render();
