@@ -70,4 +70,9 @@ public class STRINGImpl<C extends IComponent<C>> extends Utility<C> implements S
         return s.replaceAll("''", "'");
     }
 
+    @Override
+    public String replaceall(final String s, final String pattern, final String replacement) {
+        return s.replaceAll(pattern, replacement);
+    }
+
 }

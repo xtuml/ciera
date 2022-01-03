@@ -98,4 +98,16 @@ public interface STRING {
      */
     public String unescapetics(final String s);
 
+    /**
+     * Replace all occurances of {@code pattern} with one {@code replacement}
+     * quote for unescaping SQL insert statements.
+     *
+     * @param s the input string
+     * @param the regex pattern string to find and replace
+     * @param replacement the string to insert
+     * @return the input string with all occurances of two adjacent single
+     * quotes replaced with one single quote
+     */
+    public String replaceall(final String s, final String pattern, final String replacement);
+
 }
