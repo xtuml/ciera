@@ -28,21 +28,17 @@ end if;
 data_expression = T::body();
 T::pop_buffer();
 
-LOG::LogInfo(message:"LEVI rendering throw");
-select one code_block related by self->Statement[R451]->CodeBlock[R450];
-select many eviss related by code_block->Variable[R458]->ExceptionVariable[R495]->Variable[R495]->VariableInScope[R458];
-for each evis in eviss
-  LOG::LogInfo(message:"LEVI2 cb: " + code_block.block_number + ", var: " + evis.var_name + ", dist: " + STRING::itoa(i:evis.distance));
-end for;
-
 // get the exception variable if we are in a catch block scope
 cause = "";
-select one code_block related by self->Statement[R451]->CodeBlock[R450];
-select any exception_var_in_scope related by code_block->Variable[R458]->ExceptionVariable[R495]->Variable[R495]->VariableInScope[R458]
-  where SORT::ascending(attr:"distance") and selected.block_number == code_block.block_number;
-if not_empty exception_var_in_scope
-  cause = exception_var_in_scope.var_name;
-end if;
+select many vars_in_scope related by self->Statement[R451]->CodeBlock[R450]->VariableInScope[R458] where SORT::ascending(attr:"distance");
+for each var_in_scope in vars_in_scope
+  select one exp_var_in_scope related by var_in_scope->Variable[R458]->ExceptionVariable[R495];
+  if not_empty exp_var_in_scope
+    select one var related by var_in_scope->Variable[R458];
+    cause = var.scope_unique_name;
+    break;
+  end if;
+end for;
   
 T::include(file:"statement/t.throw.java");',
 	1,

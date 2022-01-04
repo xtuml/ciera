@@ -2,7 +2,7 @@
 
 /* ${self.actions} */
 .end if
-catch (\
+catch (final \
 .if (exception_name == "")
 RuntimeException\
 .else

@@ -449,30 +449,6 @@ INSERT INTO O_ATTR
 	"ba5eda7a-def5-0000-0000-000000000001",
 	'',
 	'');
-INSERT INTO O_DBATTR
-	VALUES ("a8cc9a6f-c429-49e1-be0d-7c6bb2364f0f",
-	"84ff5a40-cad6-43e3-a97a-c28fa7b435b6",
-	'// get any variable in scope declared with the same name as this one
-select any shadowed_var related by self->CodeBlock[R496]->Variable[R458]
-  where selected.name == self.name and selected.block_number != self.block_number;
-self.is_shadowing = not_empty shadowed_var;',
-	1,
-	0);
-INSERT INTO O_BATTR
-	VALUES ("a8cc9a6f-c429-49e1-be0d-7c6bb2364f0f",
-	"84ff5a40-cad6-43e3-a97a-c28fa7b435b6");
-INSERT INTO O_ATTR
-	VALUES ("a8cc9a6f-c429-49e1-be0d-7c6bb2364f0f",
-	"84ff5a40-cad6-43e3-a97a-c28fa7b435b6",
-	"3c81e8c0-9243-4296-98db-a9d996f1c103",
-	'is_shadowing',
-	'',
-	'',
-	'is_shadowing',
-	0,
-	"ba5eda7a-def5-0000-0000-000000000001",
-	'',
-	'');
 INSERT INTO O_REF
 	VALUES ("84ff5a40-cad6-43e3-a97a-c28fa7b435b6",
 	"12794545-34a7-4b5f-a404-55aac07c5051",
@@ -559,6 +535,38 @@ INSERT INTO O_ATTR
 	'block_number',
 	1,
 	"ba5eda7a-def5-0000-0000-000000000007",
+	'',
+	'');
+INSERT INTO O_DBATTR
+	VALUES ("57eee850-47af-436b-88c5-f6f48464c91e",
+	"84ff5a40-cad6-43e3-a97a-c28fa7b435b6",
+	'// get any variable in scope declared with the same name as this one
+select many shadowed_vars related by self->CodeBlock[R496]->Variable[R458]
+  where selected.name == self.name and selected.block_number != self.block_number;
+if not_empty shadowed_vars
+  scope_unique_name = self.name + STRING::itoa(i:cardinality shadowed_vars);
+  if STRING::indexof(haystack:scope_unique_name, needle:"_") != 0
+    scope_unique_name = "_" + scope_unique_name;
+  end if;
+  self.scope_unique_name = scope_unique_name;
+else
+  self.scope_unique_name = self.name;
+end if;',
+	1,
+	0);
+INSERT INTO O_BATTR
+	VALUES ("57eee850-47af-436b-88c5-f6f48464c91e",
+	"84ff5a40-cad6-43e3-a97a-c28fa7b435b6");
+INSERT INTO O_ATTR
+	VALUES ("57eee850-47af-436b-88c5-f6f48464c91e",
+	"84ff5a40-cad6-43e3-a97a-c28fa7b435b6",
+	"3c81e8c0-9243-4296-98db-a9d996f1c103",
+	'scope_unique_name',
+	'',
+	'',
+	'scope_unique_name',
+	0,
+	"ba5eda7a-def5-0000-0000-000000000004",
 	'',
 	'');
 INSERT INTO O_ID
