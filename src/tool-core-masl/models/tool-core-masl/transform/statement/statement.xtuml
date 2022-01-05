@@ -51,6 +51,7 @@ if (empty upper_block)
 else
 	select one invocable related by upper_block->InvocableObject[R4000];
 	block.top_level = false;
+  relate block to upper_block across R498.''contained by'';
 end if;
 relate block to invocable across R4000;
 block.block_number = param.block_number;
@@ -837,6 +838,7 @@ select one invocable related by upper_block->InvocableObject[R4000];
 create object instance block of CodeBlock;
 relate block to invocable across R4000;
 block.block_number = param.block_number;
+relate block to upper_block across R498.''contained by'';
 
 // copy visibile variables from upper block
 select many vars related by upper_block->VariableInScope[R458];
@@ -2348,49 +2350,65 @@ block = param.block;
 prev_smt = param.prev_smt;
 select one masl_statement related by exit_statement->MaslStatement[R5135];
 
-// create a statement
-create object instance smt of Statement;
-relate smt to block across R450;
-if (not_empty prev_smt)
-  smt.statement_number = STRING::itoa(i:STRING::atoi(s:prev_smt.statement_number) + 1);
-  relate smt to prev_smt across R477.''executes after'';
-else
-  smt.statement_number = "1";
+// find a for or while statement in a block that is a direct ancestor of the current block
+select any loop_smt related by block->InvocableObject[R4000]->CodeBlock[R4000]->Statement[R450]->ForSmt[R451]->Statement[R451]
+  where (selected.block_number != block.block_number and STRING::indexof(haystack:block.block_number, needle:selected.block_number) == 0);
+if empty loop_smt
+  select any loop_smt related by block->InvocableObject[R4000]->CodeBlock[R4000]->Statement[R450]->WhileSmt[R451]->Statement[R451]
+    where (selected.block_number != block.block_number and STRING::indexof(haystack:block.block_number, needle:selected.block_number) == 0);
 end if;
-smt.actions = masl_statement.actions;
-smt.line_number = masl_statement.line_number;
 
-// translate the optional condition
-select one exit_condition related by exit_statement->MaslExpression[R5109];
-if not_empty exit_condition
-  
-  // create an if statement first with a single break statement inside
-	create object instance if_smt of IfSmt;
-	relate if_smt to smt across R451;
-	if_smt.is_else_if = false;
+if not_empty loop_smt
 
-	// translate if condition expression
-	::transformMaslExpression(masl_expression:exit_condition, expr_number:"1", smt:smt);
-	select any if_expr related by smt->Expression[R775] where (selected.expression_number == "1");
-	relate if_expr to if_smt across R471;
-
-	// create then block (don''t bother copying variable declarations into scope...
-  create object instance break_block of CodeBlock;
-	select one invocable related by block->InvocableObject[R4000];
-  relate break_block to invocable across R4000;
-  break_block.block_number = ::getNextBlockNumber(upper_block:block);
-  relate break_block to if_smt across R453;
-  
-  // create a new statement in the block
+  // create a statement
   create object instance smt of Statement;
-  relate smt to break_block across R450;
-  smt.statement_number = "1";
+  relate smt to block across R450;
+  if (not_empty prev_smt)
+    smt.statement_number = STRING::itoa(i:STRING::atoi(s:prev_smt.statement_number) + 1);
+    relate smt to prev_smt across R477.''executes after'';
+  else
+    smt.statement_number = "1";
+  end if;
+  smt.actions = masl_statement.actions;
+  smt.line_number = masl_statement.line_number;
+  
+  // translate the optional condition
+  select one exit_condition related by exit_statement->MaslExpression[R5109];
+  if not_empty exit_condition
+    
+    // create an if statement first with a single break statement inside
+  	create object instance if_smt of IfSmt;
+  	relate if_smt to smt across R451;
+  	if_smt.is_else_if = false;
+  
+  	// translate if condition expression
+  	::transformMaslExpression(masl_expression:exit_condition, expr_number:"1", smt:smt);
+  	select any if_expr related by smt->Expression[R775] where (selected.expression_number == "1");
+  	relate if_expr to if_smt across R471;
+  
+  	// create then block (don''t bother copying variable declarations into scope...
+    create object instance break_block of CodeBlock;
+  	select one invocable related by block->InvocableObject[R4000];
+    relate break_block to invocable across R4000;
+    break_block.block_number = ::getNextBlockNumber(upper_block:block);
+    relate break_block to if_smt across R453;
+    relate break_block to block across R498.''contained by'';
+    
+    // create a new statement in the block
+    create object instance smt of Statement;
+    relate smt to break_block across R450;
+    smt.statement_number = "1";
+  
+  end if;
+  
+  // create break statement
+  create object instance break_smt of BreakSmt;
+  relate break_smt to smt across R451;
 
-end if;
-
-// create break statement
-create object instance break_smt of BreakSmt;
-relate break_smt to smt across R451;',
+else
+  select one invocable related by block->InvocableObject[R4000];
+  ::semanticError(invocable:invocable, line_number:masl_statement.line_number, message:"''exit'' statement must be within a loop");
+end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
