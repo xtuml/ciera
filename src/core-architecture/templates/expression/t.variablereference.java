@@ -4,7 +4,7 @@ final \
   .end if
 ${type_name} \
 .end if
-.if (finalization_num > -1)
+.if (finalization_num > 0)
 _final${finalization_num}_\
 .end if
 ${var_name}\

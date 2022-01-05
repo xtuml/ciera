@@ -7,4 +7,3 @@ getLogger().trace("SMT: [${invocable.original_parent_name}.${invocable.original_
 .if (not disable_tracing and self.line_number > 0)
 _lineNumber = ${self.line_number};
 .end if
-${self.prefix}\

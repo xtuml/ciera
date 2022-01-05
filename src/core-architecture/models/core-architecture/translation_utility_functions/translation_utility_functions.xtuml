@@ -1004,39 +1004,41 @@ INSERT INTO S_SYNC
 	'',
 	'invocable = param.invocable;
 
-select many affected_smts from instances of Statement where false;
+// Since where clauses are implemented as anonymous instances of Predicates
+// (defined using lambda syntax) any local variable referenced must be final or
+// "effectively final" (not modified anymore in the local scope). Because of
+// this constraint, finalizations must be used to copy local variables into
+// another location (declared as a final local variable)
 
-select many where_clauses from instances of WhereExpr where ( selected.parent_name == invocable.parent_name and
-                                                              selected.parent_package == invocable.parent_package and
-                                                              selected.body_name == invocable.name );
+select many where_clauses from instances of WhereExpr
+  where (selected.parent_name == invocable.parent_name and
+         selected.parent_package == invocable.parent_package and
+         selected.body_name == invocable.name);
 for each where_clause in where_clauses
   select one where_expr related by where_clause->Expression[R796];
-  select many var_refs from instances of VariableReference where ( selected.parent_name == invocable.parent_name and
-                                                                   selected.parent_package == invocable.parent_package and
-                                                                   selected.body_name == invocable.name and
-                                                                   selected.block_number == where_expr.block_number and
-                                                                   selected.statement_number == where_expr.statement_number and
-                                                                   0 == STRING::indexof( haystack:selected.expression_number, needle:where_expr.expression_number ) );
+  // select all variable reference expressions which are a sub expression of the
+  // overall "where" condition expression.
+  select many var_refs from instances of VariableReference
+    where (selected.parent_name == invocable.parent_name and
+           selected.parent_package == invocable.parent_package and
+           selected.body_name == invocable.name and
+           selected.block_number == where_expr.block_number and
+           selected.statement_number == where_expr.statement_number and
+           STRING::indexof(haystack:selected.expression_number, needle:where_expr.expression_number) == 0);
   for each var_ref in var_refs
-    select many var_assignments related by var_ref->Variable[R782]->VariableReference[R782]->Expression[R776]->BinaryOperation[R779] where ( selected.operator == "=" );
+    // get any re-assignements of the variable later in the block
+    select many var_assignments related by var_ref->Variable[R782]->VariableReference[R782]->Expression[R776]->BinaryOperation[R779]
+      where (selected.operator == "=");
     select one for_smt related by var_ref->Variable[R782]->ForSmt[R459];
-    if ( cardinality var_assignments > 1 or not_empty for_smt ) // the variable needs to be finalized because it is assigned later
+    if (cardinality var_assignments > 1 or not_empty for_smt)
       select one smt related by var_ref->Expression[R776]->Statement[R775];
       select one var related by var_ref->Variable[R782];
-      select any finalization related by smt->Finalization[R485] where ( selected.var_block_number == var.block_number and selected.var_name == var.name );
-      if ( empty finalization )
+      select any finalization related by smt->Finalization[R485] where (selected.var_block_number == var.block_number and selected.var_name == var.name);
+      if (empty finalization)
         create object instance finalization of Finalization;
         relate smt to var across R485 using finalization;
-        affected_smts = affected_smts + smt;
       end if;
     end if;
-  end for;
-end for;
-
-for each smt in affected_smts
-  select many finalizations related by smt->Finalization[R485];
-  for each finalization in finalizations
-    finalization.render();
   end for;
 end for;',
 	"ba5eda7a-def5-0000-0000-000000000000",
@@ -1191,6 +1193,51 @@ INSERT INTO S_DT_PROXY
 	'',
 	'',
 	'../architecture/statement/statement.xtuml');
+INSERT INTO S_SYNC
+	VALUES ("86099b19-641c-4b1f-8d3a-fdd04ebb0b4d",
+	"00000000-0000-0000-0000-000000000000",
+	'semanticError',
+	'',
+	'LOG::LogFailure(message:"Semantic error [" + param.invocable.original_filename + ":" + STRING::itoa(i:param.line_number) + "]: " + param.message);
+ARCH::exit(code:1);',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	14);
+INSERT INTO S_SPARM
+	VALUES ("7f73c8e9-41e2-4df2-bfb4-507d5a28c68a",
+	"86099b19-641c-4b1f-8d3a-fdd04ebb0b4d",
+	'invocable',
+	"3ab44839-4426-4754-b12a-0a00ce4dae1a",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("197cfcc7-5f5b-471f-8f39-d862ad409c09",
+	"86099b19-641c-4b1f-8d3a-fdd04ebb0b4d",
+	'line_number',
+	"ba5eda7a-def5-0000-0000-000000000002",
+	0,
+	'',
+	"7f73c8e9-41e2-4df2-bfb4-507d5a28c68a",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("cc2440dc-5e5b-4dc0-b111-0e4581f3c5a0",
+	"86099b19-641c-4b1f-8d3a-fdd04ebb0b4d",
+	'message',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"197cfcc7-5f5b-471f-8f39-d862ad409c09",
+	'');
+INSERT INTO PE_PE
+	VALUES ("86099b19-641c-4b1f-8d3a-fdd04ebb0b4d",
+	1,
+	"2e49e10f-3016-47ee-8a39-12e683e7075e",
+	"00000000-0000-0000-0000-000000000000",
+	1);
 INSERT INTO PE_PE
 	VALUES ("2e49e10f-3016-47ee-8a39-12e683e7075e",
 	1,
