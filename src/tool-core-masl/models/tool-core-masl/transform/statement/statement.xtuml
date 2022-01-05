@@ -268,8 +268,12 @@ select one code_block_statement related by masl_statement->CodeBlockStatement[R5
 if (not_empty code_block_statement)
   ::transformCodeBlockStatement(code_block_statement:code_block_statement, block:block, prev_smt:prev_smt);
 else
+select one case_statement related by masl_statement->CaseStatement[R5135];
+if (not_empty case_statement)
+  ::transformCaseStatement(case_statement:case_statement, block:block, prev_smt:prev_smt);
+else
   LOG::LogFailure(message:"statement type not supported: ''" + masl_statement.actions + "''");
-end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if;',
+end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -861,7 +865,7 @@ relate if_smt to smt across R451;
 if_smt.is_else_if = true;
 
 // translate if expression
-select one if_cond related by alternative->MaslExpression[R5147];
+select any if_cond related by alternative->MaslExpression[R5147];
 ::transformMaslExpression(masl_expression:if_cond, expr_number:"1", smt:smt);
 select any if_expr related by smt->Expression[R775] where (selected.expression_number == "1");
 relate if_expr to if_smt across R471;
@@ -2846,6 +2850,148 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("dd2951f0-2792-449f-8fb2-e81612bb6faf",
+	1,
+	"c45f2f21-d5ff-4652-999f-d4808df1e2ef",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("774b7786-0b92-40c0-bcb1-e547c04f38ec",
+	"00000000-0000-0000-0000-000000000000",
+	'transformCaseStatement',
+	'',
+	'case_statement = param.case_statement;
+block = param.block;
+prev_smt = param.prev_smt;
+select one masl_statement related by case_statement->MaslStatement[R5135];
+
+// create a statement
+create object instance smt of Statement;
+relate smt to block across R450;
+if (not_empty prev_smt)
+  smt.statement_number = STRING::itoa(i:STRING::atoi(s:prev_smt.statement_number) + 1);
+  relate smt to prev_smt across R477.''executes after'';
+else
+  smt.statement_number = "1";
+end if;
+smt.actions = case_statement.actions;
+smt.line_number = masl_statement.line_number;
+
+// create delete statement
+create object instance switch_smt of SwitchSmt;
+relate switch_smt to smt across R451;
+
+// transform switch expression
+select one cond_val related by case_statement->MaslExpression[R5103];
+::transformMaslExpression(masl_expression:cond_val, expr_number:"1", smt:smt);
+select any cond_expr related by smt->Expression[R775] where selected.expression_number == "1";
+relate cond_expr to switch_smt across R521;
+
+// transform each case alternative
+expr_num = 2;
+select any prev_case_label from instances of CaseLabel where false;
+select many additional_vars from instances of Variable where false;
+select any empty_code_block from instances of MaslCodeBlock where false;
+select any empty_invocable from instances of InvocableObject where false;
+select any alternative related by case_statement->Alternative[R5146];
+select one prev_alternative related by alternative->Alternative[R5158.''succeeds''];
+while not_empty prev_alternative
+  alternative = prev_alternative;
+  select one prev_alternative related by alternative->Alternative[R5158.''succeeds''];
+end while;
+while not_empty alternative
+  
+  // transform the code block
+  then_block_number = ::getNextBlockNumber(upper_block:block);
+  select one then_first_statement related by alternative->MaslStatement[R5148];
+  ::transformMaslBlock(upper_block:block, code_block:empty_code_block, first_statement:then_first_statement, block_number:then_block_number, invocable:empty_invocable, additional_vars:additional_vars);
+  select any then_block related by block->InvocableObject[R4000]->CodeBlock[R4000] where (selected.block_number == then_block_number);
+  
+  // create a label for each expression in the alternative
+  select many alt_vals related by alternative->AlternativeExpression[R5147] where SORT::ascending(attr:"order");
+  if not_empty alt_vals
+    for each alt_val in alt_vals
+      
+      // create a case label
+      create object instance case_label of CaseLabel;
+      relate case_label to switch_smt across R499;
+      relate then_block to case_label across R520;
+      if not_empty prev_case_label
+        relate case_label to prev_case_label across R522.''follows'';
+      end if;
+      prev_case_label = case_label;
+      
+      // transform the case expression
+      select one masl_val related by alt_val->MaslExpression[R5147];
+      ::transformMaslExpression(masl_expression:masl_val, expr_number:STRING::itoa(i:expr_num), smt:smt);
+      select any alt_expr related by smt->Expression[R775] where selected.expression_number == STRING::itoa(i:expr_num);
+      relate alt_expr to case_label across R500;
+      expr_num = expr_num + 1;
+      
+      // only assign actions for the first alternative
+      select any other_case related by switch_smt->CaseLabel[R499]
+        where selected.then_block_number == case_label.then_block_number and
+              selected.cond_expression_number != case_label.cond_expression_number;
+      if empty other_case
+        case_label.actions = alternative.actions;
+      end if;
+      
+    end for;
+  else
+
+    // transform default case
+    create object instance case_label of CaseLabel;
+    case_label.actions = alternative.actions;
+    relate case_label to switch_smt across R499;
+    relate then_block to case_label across R520;
+    if not_empty prev_case_label
+      relate case_label to prev_case_label across R522.''follows'';
+    end if;
+
+  end if;
+  
+  select one alternative related by alternative->Alternative[R5158.''precedes''];
+end while;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	0);
+INSERT INTO S_SPARM
+	VALUES ("8bf3b71d-59ed-435c-931c-9bda0b0a1187",
+	"774b7786-0b92-40c0-bcb1-e547c04f38ec",
+	'case_statement',
+	"aa4213e7-0030-4b0e-8675-70f67641ae27",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("aa4213e7-0030-4b0e-8675-70f67641ae27",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<CaseStatement>',
+	'',
+	'',
+	'../../../../../ooamasl/models/ooamasl/ooamasl/statement/statement.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("27a2e314-37e8-4fbd-82ee-4d3b58b73800",
+	"774b7786-0b92-40c0-bcb1-e547c04f38ec",
+	'block',
+	"60d4da0e-4cbe-4620-8c16-4e1dba1c6b8d",
+	0,
+	'',
+	"8bf3b71d-59ed-435c-931c-9bda0b0a1187",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("4de9cfb7-b05c-465e-a885-ed6b29375c95",
+	"774b7786-0b92-40c0-bcb1-e547c04f38ec",
+	'prev_smt',
+	"b586ec7e-41fe-4d50-9cf3-27b173e9848a",
+	0,
+	'',
+	"27a2e314-37e8-4fbd-82ee-4d3b58b73800",
+	'');
+INSERT INTO PE_PE
+	VALUES ("774b7786-0b92-40c0-bcb1-e547c04f38ec",
 	1,
 	"c45f2f21-d5ff-4652-999f-d4808df1e2ef",
 	"00000000-0000-0000-0000-000000000000",
