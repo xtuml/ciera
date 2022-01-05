@@ -108,33 +108,20 @@ code_block = "";
 parm_block = "";
 parmlist = "";
 
-if ( empty first_parm )
-	mname = "payload";  // at least one data member is required - even though it is never set/get accessed.
+while ( not_empty parm )
+  mname = STRING::substr( s:parm.name, begin:2, end:-1 );
   T::include(file:"interface/t.msgclass.member.java");
-else
-  while ( not_empty parm )
-	  mname = STRING::substr( s:parm.name, begin:2, end:-1 );
-	  T::include(file:"interface/t.msgclass.member.java");
-    select one parm related by parm->FormalParameter[R404.''precedes''];
-	end while;
-end if;
+  select one parm related by parm->FormalParameter[R404.''precedes''];
+end while;
 data_block = T::body();
 T::clear();
 
-sep = "";
-if ( not self.to_provider )
-	mname = "messageName";
-	parmlist = "String " + mname;
-	sep = ",";
-  T::include(file:"interface/t.msgclass.parm.java");
-end if;
 if ( not_empty first_parm )
   parm = first_parm;
   while ( not_empty parm )
 	  mname = STRING::substr( s:parm.name, begin:2, end:-1 );
+	  parmlist = parmlist + ", String " + mname;
 	  T::include(file:"interface/t.msgclass.parm.java");
-	  parmlist = parmlist + sep + " String " + mname;
-	  sep = ",";
     select one parm related by parm->FormalParameter[R404.''precedes''];
 	end while;
 	parm_block = T::body();
