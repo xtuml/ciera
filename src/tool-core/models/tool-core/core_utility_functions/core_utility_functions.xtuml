@@ -1435,8 +1435,11 @@ INSERT INTO S_SYNC
 	'invocable = param.invocable;
 label = param.label;
 
-// split a double colon delimited string into two segments around the last occurance of double colon
-// the first segment is assigned as the parent name and the second segment is assigned as the body name
+// Split a double colon delimited string into two segments around the last
+// occurance of double colon the first segment is assigned as the parent name
+// and the second segment is assigned as the body name. If there is no double
+// colon in the label, assume the whole thing is the body name and do not
+// assign the parent name.
 
 dcolon_index = STRING::indexof(haystack:label, needle:"::");
 split_index = -2;
@@ -1448,6 +1451,9 @@ end while;
 if split_index != -1;
   invocable.original_parent_name = STRING::substr(s:label, begin:0, end:split_index);
   invocable.original_body_name = STRING::substr(s:label, begin:split_index + 2, end:-1);
+else
+  invocable.original_parent_name = "";
+  invocable.original_body_name = label;
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
