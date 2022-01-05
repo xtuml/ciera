@@ -3629,8 +3629,18 @@ while ( not_empty act_smt )
 
   // see if array needs to be declared
   ::resolveArrayDeclaration(smt:prev_smt);
-
+  
+  // get next statement
   select one act_smt related by act_smt->ACT_SMT[R661.''succeeds''];
+  
+  // skip remaining statements if previous statement causes exit
+  exiting_statement = ::getExitingStatement(block:block);
+  if not_empty act_smt and not_empty exiting_statement
+    select one invocable related by block->InvocableObject[R4000];
+    ::semanticWarning(invocable:invocable, line_number:prev_smt.line_number, message:"Warning! Skipping unreachable statements after block exiting statement");
+    return;
+  end if;
+
 end while;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,

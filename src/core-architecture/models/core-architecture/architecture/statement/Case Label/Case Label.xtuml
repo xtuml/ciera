@@ -36,6 +36,9 @@ exclude_comments = PROP::getFlag(key:"io.ciera.ExcludeStatementComments");
 
 select one switch_smt related by self->SwitchSmt[R499];
 if switch_smt.is_primitive
+  // see if the block contains an uncoditional exiting statement
+  select one block related by self->CodeBlock[R520];
+  exiting_statement = ::getExitingStatement(block:block);
   T::include(file:"statement/t.case.java");
 else
   // for non-primitive case labels, some extra info is needed

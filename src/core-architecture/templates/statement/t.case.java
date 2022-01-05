@@ -10,5 +10,7 @@ default:
   .if (then_block != "")
     ${then_block}
   .end if
+  .if (empty exiting_statement)
     break;
+  .end if
 .end if
