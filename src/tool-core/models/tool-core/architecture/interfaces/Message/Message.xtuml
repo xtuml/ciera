@@ -141,12 +141,13 @@ if ( not_empty first_parm )
 end if;
 T::clear();
 
-// use the file package and path from the interface that defines these messages
+// derive the msgclass package and path from the interface that defines these messages
 select one iface related by self->Interface[R419.''defines message format for''];
-pkg = iface.package;
+msgpkg = T::sub( format:"l", s:STRING::substr( s:iface.name, begin:1, end:-1 ));
+pkg = iface.package + "." + msgpkg;
 T::include(file:"interface/t.msgclass.java");
 select one file related by iface->File[R401];
-T::emit( file:file.path + "/" + self.name + "Msg.java" );
+T::emit( file:file.path + "/" + msgpkg + "/" + self.name + "Msg.java" );
 T::clear();',
 	1,
 	'',
