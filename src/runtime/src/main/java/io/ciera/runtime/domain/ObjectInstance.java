@@ -4,7 +4,6 @@ import io.ciera.runtime.action.InstanceActionHome;
 import io.ciera.runtime.application.Event;
 import io.ciera.runtime.application.EventTarget;
 import io.ciera.runtime.application.ExecutionContext;
-import io.ciera.runtime.application.Logger;
 import io.ciera.runtime.exceptions.DeletedInstanceException;
 import io.ciera.runtime.exceptions.EventTargetException;
 import io.ciera.runtime.types.ModelType;
@@ -15,7 +14,6 @@ public abstract class ObjectInstance extends ModelType
 
     private final UniqueId instanceId;
     private final Domain domain;
-    private final Logger logger;
     private ExecutionContext context;
     private boolean alive;
 
@@ -23,7 +21,6 @@ public abstract class ObjectInstance extends ModelType
         this.instanceId = null;
         this.domain = null;
         this.context = null;
-        this.logger = null;
         this.alive = false;
     }
 
@@ -34,7 +31,6 @@ public abstract class ObjectInstance extends ModelType
     public ObjectInstance(UniqueId instanceId, Domain domain) {
         this.instanceId = instanceId;
         this.domain = domain;
-        this.logger = domain.getLogger();
         this.context = null;
         this.alive = true;
     }
@@ -74,11 +70,6 @@ public abstract class ObjectInstance extends ModelType
     @Override
     public void attachTo(ExecutionContext context) {
         this.context = context;
-    }
-
-    @Override
-    public Logger getLogger() {
-        return logger;
     }
 
     @Override

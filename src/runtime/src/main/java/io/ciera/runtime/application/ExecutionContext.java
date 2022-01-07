@@ -112,7 +112,7 @@ public class ExecutionContext implements Runnable, Executor {
 
     @Deprecated
     public void delay(Duration delay) {
-        getLogger().trace("DEL: delaying for %s", delay);
+        application.getLogger().trace("DEL: delaying for %s", delay);
         try {
             Thread.sleep(delay.getValue() / 1000000l, (int) delay.getValue() % 1000000);
         } catch (InterruptedException e) {
@@ -198,10 +198,6 @@ public class ExecutionContext implements Runnable, Executor {
 
     public SystemClock getClock() {
         return application.getClock();
-    }
-
-    public Logger getLogger() {
-        return application.getLogger();
     }
 
     protected int nextSequenceNumber() {

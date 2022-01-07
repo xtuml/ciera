@@ -116,11 +116,6 @@ ${attribute_initializer_params}) {
         }
 
         @Override
-        public Logger getLogger() {
-            throw new EmptyInstanceException("Cannot get logger of empty instance", null, this);
-        }
-
-        @Override
         public String toString() {
             return "EMPTY_$u{self.name}";
         }

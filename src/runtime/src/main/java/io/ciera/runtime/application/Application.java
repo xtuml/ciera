@@ -17,7 +17,7 @@ public abstract class Application {
 
     private SystemClock clock;
     private Logger logger;
-    private ExceptionHandler exceptionHandlerr;
+    private ExceptionHandler exceptionHandler;
 
     private boolean running;
 
@@ -28,7 +28,7 @@ public abstract class Application {
         this.args = args;
         this.clock = new WallClock();
         this.logger = new DefaultLogger(name + "Logger", this);
-        this.exceptionHandlerr = new DefaultExceptionHandler();
+        this.exceptionHandler = new DefaultExceptionHandler();
     }
 
     public SystemClock getClock() {
@@ -108,11 +108,11 @@ public abstract class Application {
     }
 
     public ExceptionHandler getExceptionHandler() {
-        return exceptionHandlerr;
+        return exceptionHandler;
     }
 
     public void setExceptionHandler(ExceptionHandler exceptionHandler) {
-        this.exceptionHandlerr = exceptionHandler;
+        this.exceptionHandler = exceptionHandler;
     }
 
     public String[] getArgs() {

@@ -39,7 +39,7 @@ public class Timer implements Comparable<Timer> {
     }
 
     protected boolean schedule(long delay) {
-        getLogger().trace("TMR: Scheduling timer: %s: %s -> %s at %s", this, event, target,
+        context.getApplication().getLogger().trace("TMR: Scheduling timer: %s: %s -> %s at %s", this, event, target,
                 new Date(context.getClock().getTime() + delay));
         synchronized (context) {
             scheduled = context.getClock().scheduleTimer(context, this, event, target, delay);
@@ -50,7 +50,7 @@ public class Timer implements Comparable<Timer> {
 
     // trigger the scheduled event and reschedule recurring timers
     protected void fire() {
-        getLogger().trace("TMR: Firing timer: %s", this);
+        context.getApplication().getLogger().trace("TMR: Firing timer: %s", this);
         expired = true;
         context.addTask(new TimerExpiration(context, event, target));
         if (period > 0l) {
@@ -63,7 +63,7 @@ public class Timer implements Comparable<Timer> {
     // attempt to cancel the timer
     // return true if successful
     public boolean cancel() {
-        getLogger().trace("TMR: Cancelling timer: %s", this);
+        context.getApplication().getLogger().trace("TMR: Cancelling timer: %s", this);
         scheduled = false;
         expired = false;
         if (context.getClock().cancelTimer(context, this)) {
@@ -123,10 +123,6 @@ public class Timer implements Comparable<Timer> {
 
     public EventTarget getTarget() {
         return target;
-    }
-
-    private Logger getLogger() {
-        return context.getApplication().getLogger();
     }
 
     @Override

@@ -1,5 +1,5 @@
 {
-    getLogger().trace("SMT: Enter action: ${original_parent_name}.${original_body_name}");
+    getApplication().getLogger().trace("SMT: Enter action: ${original_parent_name}.${original_body_name}");
     int _lineNumber = -1;
     try ${code} catch (RuntimeException _e) {
         if (!(_e instanceof ActionException)) {
@@ -14,6 +14,6 @@
 , _lineNumber);
         throw _e;
     } finally {
-        getLogger().trace("SMT: Exit action: ${original_parent_name}.${original_body_name}");
+        getApplication().getLogger().trace("SMT: Exit action: ${original_parent_name}.${original_body_name}");
     }
 }

@@ -12,7 +12,6 @@ public abstract class StateMachine implements ActionHome, EventTarget {
 
     private final String name;
     private final Domain domain;
-    private final Logger logger;
     private ExecutionContext context;
 
     protected Enum<?> currentState;
@@ -20,7 +19,6 @@ public abstract class StateMachine implements ActionHome, EventTarget {
     public StateMachine(String name, Domain domain, Enum<?> initialState) {
         this.name = name;
         this.domain = domain;
-        this.logger = domain.getLogger();
         this.context = null;
         this.currentState = initialState;
     }
@@ -66,11 +64,6 @@ public abstract class StateMachine implements ActionHome, EventTarget {
         this.context = context;
     }
 
-    @Override
-    public Logger getLogger() {
-        return logger;
-    }
-
     public TransitionRule cannotHappen(Enum<?> currentState, Event event) {
         return () -> {
             traceTxn("TXN END:", name, currentState.name(), event.toString(), "CANNOT HAPPEN", Logger.ANSI_RED);
@@ -87,7 +80,7 @@ public abstract class StateMachine implements ActionHome, EventTarget {
 
     private void traceTxn(String txnType, String targetName, String currentState, String eventName, String nextState,
             String nextStateColor) {
-        logger.trace("%-15s %-35s: %-50s %-50s => %-40s", txnType, targetName,
+        getApplication().getLogger().trace("%-15s %-35s: %-50s %-50s => %-40s", txnType, targetName,
                 Logger.ANSI_CYAN + currentState + Logger.ANSI_RESET, "[ " + eventName + " ]",
                 nextStateColor + nextState + Logger.ANSI_RESET);
 

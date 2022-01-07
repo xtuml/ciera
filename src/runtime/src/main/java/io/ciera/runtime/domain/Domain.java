@@ -12,7 +12,6 @@ import java.util.function.Predicate;
 import io.ciera.runtime.action.ActionHome;
 import io.ciera.runtime.application.Application;
 import io.ciera.runtime.application.ExecutionContext;
-import io.ciera.runtime.application.Logger;
 import io.ciera.runtime.exceptions.InstancePopulationException;
 import io.ciera.runtime.types.UniqueId;
 
@@ -37,10 +36,6 @@ public abstract class Domain implements ActionHome, InstancePopulation {
         this.instancePopulation = new HashMap<>();
     }
 
-    public Application getApplication() {
-        return application;
-    }
-
     /**
      * Execute application level initialization functions.
      */
@@ -55,15 +50,15 @@ public abstract class Domain implements ActionHome, InstancePopulation {
     public ExecutionContext getContext() {
         return context != null ? context : getApplication().defaultContext();
     }
+    
+    @Override
+    public Application getApplication() {
+        return application;
+    }
 
     // TODO should this be in an interface somewhere???
     public void attachTo(ExecutionContext context) {
         this.context = context;
-    }
-
-    @Override
-    public Logger getLogger() {
-        return application.getLogger();
     }
 
     @Override

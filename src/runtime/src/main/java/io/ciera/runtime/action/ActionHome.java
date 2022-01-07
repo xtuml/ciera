@@ -1,9 +1,9 @@
 package io.ciera.runtime.action;
 
+import io.ciera.runtime.application.Application;
 import io.ciera.runtime.application.Event;
 import io.ciera.runtime.application.EventTarget;
 import io.ciera.runtime.application.ExecutionContext;
-import io.ciera.runtime.application.Logger;
 import io.ciera.runtime.application.Timer;
 import io.ciera.runtime.domain.Domain;
 import io.ciera.runtime.types.Duration;
@@ -27,19 +27,16 @@ public interface ActionHome {
     public Domain getDomain();
 
     /**
-     * Get the logger instance.
-     * 
-     * @return {@link Logger} the logger for this application.
-     */
-    public Logger getLogger();
-
-    /**
      * Get the execution context.
      * 
      * @return {@link ExecutionContext} the execution context within which the
      *         actions run.
      */
     public ExecutionContext getContext();
+
+    public default Application getApplication() {
+        return getContext().getApplication();
+    }
 
     public default <E extends Event> void _generateEvent(Class<E> eventType, EventTarget target, Object... data) {
         getContext().generateEvent(eventType, target, data);
