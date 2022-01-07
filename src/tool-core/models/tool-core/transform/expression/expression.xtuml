@@ -904,9 +904,9 @@ else
   select one containing_comp_file related by containing_comp_def->File[R401];
   ::addFileToImports( file:containing_comp_file, file_to_import:utility_file, type:ImportType::IMPL );
   if ( not_empty containing_comp_def )
-    select any util_ref related by utility->UtilityReference[R4558] where ( selected.comp_name == containing_comp_def.name and selected.comp_package == containing_comp_def.package );
+    select any util_ref related by utility->UtilityInComponent[R4558] where ( selected.comp_name == containing_comp_def.name and selected.comp_package == containing_comp_def.package );
     if ( empty util_ref )
-      create object instance util_ref of UtilityReference;
+      create object instance util_ref of UtilityInComponent;
       relate utility to containing_comp_def across R4558 using util_ref;
     end if;
   end if;
@@ -921,11 +921,11 @@ else
     expr2.expression_number = expr.expression_number + ".1";
     void_type = ::TypeReference_getBuiltinTypeReference( name:"void" );
     relate void_type to expr2 across R795;
-    // create named reference
-    create object instance named_ref of NamedReference;
-    relate named_ref to expr2 across R776;
+    // create utility reference
+    create object instance utility_ref of UtilityReference;
+    relate utility_ref to utility across R3914;
+    relate utility_ref to expr2 across R776;
     relate expr2 to invoc across R798;
-    named_ref.name = "getDomain()." + utility.name;
     // transform actual parameters
     ::transformActualParameters( invocation:invoc, v_pars:v_pars, expr_number:expr.expression_number, base_num:2 );
   else
@@ -1013,10 +1013,9 @@ if ( not_empty invocable )
   void_type = ::TypeReference_getBuiltinTypeReference( name:"void" );
   relate void_type to expr2 across R795;
   // create named reference
-  create object instance named_ref of NamedReference;
-  relate named_ref to expr2 across R776;
+  create object instance domain_ref of DomainReference;
+  relate domain_ref to expr2 across R776;
   relate expr2 to invoc across R798;
-  named_ref.name = "getDomain()";
   // transform actual parameters
   select many v_pars related by v_fnv->V_PAR[R817];
   ::transformActualParameters( invocation:invoc, v_pars:v_pars, expr_number:expr.expression_number, base_num:2 );
@@ -1160,9 +1159,8 @@ if ( not_empty invocable )
     relate void_type to expr3 across R795;
     relate expr3 to invoc across R798;
     // create named reference
-    create object instance named_ref of NamedReference;
-    relate named_ref to expr3 across R776;
-    named_ref.name = "getDomain()";
+    create object instance domain_ref of DomainReference;
+    relate domain_ref to expr3 across R776;
 
 		// transform actual parameters
 		select many v_pars related by v_trv->V_PAR[R811];
