@@ -1089,7 +1089,9 @@ type = ::TypeReference_getInstance( s_dt:s_dt, s_dims:s_dims );
 relate type to expr across R795;
 
 select one o_tfr related by v_trv->O_TFR[R829];
-select any invocable related by o_tfr->O_OBJ[R115]->Class[R409]->Operation[R416]->InvocableObject[R427] where ( selected.name == o_tfr.Name );
+select one obj related by o_tfr->O_OBJ[R115]->Class[R409];
+select any invocable related by obj->Operation[R416]->InvocableObject[R427]
+  where ( selected.name == o_tfr.Name or selected.name == "_" + obj.name + "_" + o_tfr.Name );
 if ( not_empty invocable )
   // create invocation
   create object instance invoc of Invocation;
@@ -1150,38 +1152,21 @@ if ( not_empty invocable )
 		select many v_pars related by v_trv->V_PAR[R811];
 		::transformActualParameters( invocation:invoc, v_pars:v_pars, expr_number:expr.expression_number, base_num:2 );
   else // class based operation
-    // create named reference expression
-    create object instance expr2 of Expression;
-    relate expr2 to smt across R775;
-    expr2.expression_number = expr.expression_number + ".1";
-    relate expr2 to invoc across R798;
-    void_type = ::TypeReference_getBuiltinTypeReference( name:"void" );
-    relate void_type to expr2 across R795;
-    // create named reference
-    create object instance named_ref of NamedReference;
-    relate named_ref to expr2 across R776;
-    select one target_class related by invocable->Operation[R427]->Class[R416];
-    named_ref.name = target_class.name;
-    select one class_file related by target_class->File[R401];
-    ::addFileToImports(file: ::getFileForStatement( smt:smt ), file_to_import: class_file, type:ImportType::IMPL);
-    
     // for class based operations, add domain as first parameter
     create object instance expr3 of Expression;
     relate expr3 to smt across R775;
-    expr3.expression_number = expr.expression_number + ".2";
+    expr3.expression_number = expr.expression_number + ".1";
+    void_type = ::TypeReference_getBuiltinTypeReference( name:"void" );
     relate void_type to expr3 across R795;
+    relate expr3 to invoc across R798;
     // create named reference
     create object instance named_ref of NamedReference;
     relate named_ref to expr3 across R776;
     named_ref.name = "getDomain()";
-    // create actual param
-    create object instance domain_param of ActualParameter;
-    relate domain_param to expr3 across R794;
-    relate domain_param to invoc across R793;
 
 		// transform actual parameters
 		select many v_pars related by v_trv->V_PAR[R811];
-		::transformActualParameters( invocation:invoc, v_pars:v_pars, expr_number:expr.expression_number, base_num:3 );
+		::transformActualParameters( invocation:invoc, v_pars:v_pars, expr_number:expr.expression_number, base_num:2 );
   end if;
 else
   // TODO bad

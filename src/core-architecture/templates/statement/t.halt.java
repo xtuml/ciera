@@ -1,1 +1,1 @@
-getContext().addTask(new HaltExecutionTask());
+_halt();

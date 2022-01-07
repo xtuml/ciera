@@ -1,4 +1,4 @@
-getContext().generateEvent\
+_generateEvent\
 .if (self.to_self)
 ToSelf\
 .end if

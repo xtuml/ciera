@@ -17,28 +17,13 @@ INSERT INTO O_TFR
 	'select one type related by self->InvocableObject[R427]->TypeReference[R428];
 type_name = type.type_reference_name;
 
-select one invocable related by self->InvocableObject[R427];
-
-// special handling for class based operations
-type_name2 = type_name;
-if self.is_class_based
-  // for primitive types, get the appropriate type class
-  select one builtin related by type->Type[R3800]->BuiltInType[R407];
-  if not_empty builtin and builtin.primitive
-    type_name2 = builtin.object_name;
-  end if;
-end if;
-
 T::push_buffer();
+select one invocable related by self->InvocableObject[R427];
 parameter_list = invocable.parameter_list();
 body = invocable.body();
 T::pop_buffer();
 
-if self.is_class_based
-  T::include(file:"class/t.operation.static.java");
-else
-  T::include(file:"class/t.operation.java");
-end if;',
+T::include(file:"class/t.operation.java");',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",

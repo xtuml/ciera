@@ -19,6 +19,9 @@ public class ${self.name} extends Domain {
     // domain functions
     ${functions}
 
+    // static class operations
+    ${class_operations}
+
     // relates and unrelates
     ${relationship_modifiers}
 

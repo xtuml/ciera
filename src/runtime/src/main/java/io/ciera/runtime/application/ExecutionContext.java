@@ -8,6 +8,7 @@ import java.util.concurrent.PriorityBlockingQueue;
 
 import io.ciera.runtime.application.task.GeneratedEvent;
 import io.ciera.runtime.application.task.GeneratedEventToSelf;
+import io.ciera.runtime.application.task.Halt;
 import io.ciera.runtime.exceptions.EventTargetException;
 import io.ciera.runtime.types.Duration;
 import io.ciera.runtime.types.TimeStamp;
@@ -103,6 +104,10 @@ public class ExecutionContext implements Runnable, Executor, Named {
             Duration period, Object... eventData) {
         Duration delay = expiration.subtract(TimeStamp.now(getClock())).castTo(Duration.class);
         return scheduleRecurringEvent(eventType, target, delay, period, eventData);
+    }
+    
+    public void halt() {
+        addTask(new Halt(this));
     }
 
     @Deprecated

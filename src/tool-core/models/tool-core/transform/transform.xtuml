@@ -1793,6 +1793,9 @@ relate op to obj across R416;
 // create invocable
 create object instance invocable of InvocableObject;
 invocable.name = o_tfr.Name;
+if op.is_class_based
+  invocable.name = "_" + obj.name + "_" + invocable.name;
+end if;
 invocable.parent_name = op.class_name;
 invocable.parent_package = op.class_package;
 relate op to invocable across R427;
@@ -1893,14 +1896,15 @@ elif (not_empty o_def and o_def.required == 0 and empty act_act)
 end if;
 
 // add imports
-select one class_file related by obj->File[R401];
-if op.is_class_based
-  ::addStringToImports(file:class_file, s:"io.ciera.runtime.action.DynamicActionHome", type:ImportType::IMPL);
-else
-  ::addStringToImports(file:class_file, s:"io.ciera.runtime.exceptions.EmptyInstanceException", type:ImportType::IMPL);
-end if;
 select one type_def related by type->Type[R3800];
-::addTypeToImports(file:class_file, type_to_import:type_def, type:ImportType::IMPL);',
+if op.is_class_based
+  select one comp_file related by obj->ComponentDefinition[R408]->File[R401];
+  ::addTypeToImports(file:comp_file, type_to_import:type_def, type:ImportType::IMPL);
+else
+  select one class_file related by obj->File[R401];
+  ::addStringToImports(file:class_file, s:"io.ciera.runtime.exceptions.EmptyInstanceException", type:ImportType::IMPL);
+  ::addTypeToImports(file:class_file, type_to_import:type_def, type:ImportType::IMPL);
+end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
