@@ -5,14 +5,13 @@ import io.ciera.runtime.application.Event;
 import io.ciera.runtime.application.EventTarget;
 import io.ciera.runtime.application.ExecutionContext;
 import io.ciera.runtime.application.Logger;
-import io.ciera.runtime.application.Named;
 import io.ciera.runtime.exceptions.DeletedInstanceException;
 import io.ciera.runtime.exceptions.EventTargetException;
 import io.ciera.runtime.types.ModelType;
 import io.ciera.runtime.types.UniqueId;
 
 public abstract class ObjectInstance extends ModelType
-        implements InstanceActionHome, EventTarget, Comparable<ObjectInstance>, Named {
+        implements InstanceActionHome, EventTarget, Comparable<ObjectInstance> {
 
     private final UniqueId instanceId;
     private final Domain domain;
@@ -42,11 +41,6 @@ public abstract class ObjectInstance extends ModelType
 
     public UniqueId getInstanceId() {
         return instanceId;
-    }
-
-    @Override
-    public String getName() {
-        return instanceId.toString();
     }
 
     public void delete() {
@@ -94,7 +88,7 @@ public abstract class ObjectInstance extends ModelType
 
     @Override
     public String toString() {
-        return String.format("%s[%.8s]", getClass().getSimpleName(), getName());
+        return String.format("%s[%.8s]", getClass().getSimpleName(), instanceId);
     }
 
     public static ObjectInstance fromString() {

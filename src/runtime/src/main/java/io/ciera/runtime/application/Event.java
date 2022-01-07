@@ -2,7 +2,7 @@ package io.ciera.runtime.application;
 
 import io.ciera.runtime.types.UniqueId;
 
-public abstract class Event implements Comparable<Event>, Named {
+public abstract class Event implements Comparable<Event> {
 
     private final UniqueId eventHandle;
     private final Enum<?> eventId;
@@ -20,12 +20,6 @@ public abstract class Event implements Comparable<Event>, Named {
 
     public Enum<?> getEventId() {
         return eventId;
-    }
-
-    @Override
-    public String getName() {
-        return String.format("%s.%s[%.8s]", getClass().getDeclaringClass().getSimpleName(), getClass().getSimpleName(),
-                eventHandle);
     }
 
     public UniqueId getEventHandle() {
@@ -57,7 +51,8 @@ public abstract class Event implements Comparable<Event>, Named {
 
     @Override
     public String toString() {
-        return getName();
+        return String.format("%s.%s[%.8s]", getClass().getDeclaringClass().getSimpleName(), getClass().getSimpleName(),
+                eventHandle);
     }
 
 }

@@ -2,7 +2,7 @@ package io.ciera.runtime.application;
 
 import java.util.Arrays;
 
-public abstract class Task implements Runnable, Comparable<Task>, Named {
+public abstract class Task implements Runnable, Comparable<Task> {
 
     public static final int SELF_EVENT_PRIORITY = 0x30;
     public static final int SEQUENTIAL_EVENT_PRIORITY = 0x20;
@@ -35,13 +35,8 @@ public abstract class Task implements Runnable, Comparable<Task>, Named {
     }
 
     @Override
-    public String getName() {
-        return String.format("%s[0x%X, %d]", getClass().getSimpleName(), getPriority(), getSequenceNumber());
-    }
-
-    @Override
     public String toString() {
-        return getName();
+        return String.format("%s[0x%X, %d]", getClass().getSimpleName(), getPriority(), getSequenceNumber());
     }
 
 }

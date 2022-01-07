@@ -3,10 +3,9 @@ package io.ciera.runtime.domain;
 import java.util.Set;
 import java.util.function.Predicate;
 
-import io.ciera.runtime.application.Named;
 import io.ciera.runtime.types.UniqueId;
 
-public interface InstancePopulation extends Named {
+public interface InstancePopulation {
 
     public <T extends ObjectInstance> T createInstance(Class<T> object);
 

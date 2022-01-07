@@ -2,17 +2,17 @@ package io.ciera.runtime.application;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 
 import io.ciera.runtime.domain.Domain;
 
-public abstract class Application implements Named {
+public abstract class Application {
 
     private final String name;
     private final List<ExecutionContext> contexts;
-    private final Map<String, Domain> domains;
+    private final Map<Class<?>, Domain> domains;
     private final String[] args;
 
     private SystemClock clock;
@@ -24,16 +24,11 @@ public abstract class Application implements Named {
     public Application(String name, String[] args) {
         this.name = name;
         this.contexts = new ArrayList<>();
-        this.domains = new TreeMap<>();
+        this.domains = new HashMap<>();
         this.args = args;
         this.clock = new WallClock();
-        this.logger = new DefaultLogger(getName() + "Logger", this);
+        this.logger = new DefaultLogger(name + "Logger", this);
         this.exceptionHandlerr = new DefaultExceptionHandler();
-    }
-
-    @Override
-    public String getName() {
-        return name;
     }
 
     public SystemClock getClock() {
@@ -95,17 +90,13 @@ public abstract class Application implements Named {
         return domains.values();
     }
 
-    public Domain getDomain(String name) {
-        return domains.get(name);
-    }
-
     @SuppressWarnings("unchecked")
-    public <T extends Domain> T getDomain(String name, Class<T> cls) {
-        return (T) getDomain(name);
+    public <T extends Domain> T getDomain(Class<T> cls) {
+        return (T) domains.get(cls);
     }
 
     public void addDomain(Domain domain) {
-        this.domains.put(domain.getName(), domain);
+        this.domains.put(domain.getClass(), domain);
     }
 
     public Logger getLogger() {
@@ -134,7 +125,7 @@ public abstract class Application implements Named {
 
     @Override
     public String toString() {
-        return getName();
+        return name;
     }
 
 }

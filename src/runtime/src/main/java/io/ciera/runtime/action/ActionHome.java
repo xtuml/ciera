@@ -25,7 +25,7 @@ public interface ActionHome {
      *         defined.
      */
     public Domain getDomain();
-    
+
     /**
      * Get the logger instance.
      * 
@@ -48,7 +48,7 @@ public interface ActionHome {
     public default <E extends Event> void _generateEventToSelf(Class<E> eventType, EventTarget target, Object... data) {
         getContext().generateEventToSelf(eventType, target, data);
     }
-    
+
     public default <E extends Event> Timer _scheduleEvent(Class<E> eventType, EventTarget target, Duration delay,
             Object... eventData) {
         return getContext().scheduleEvent(eventType, target, delay, eventData);
@@ -59,16 +59,16 @@ public interface ActionHome {
         return getContext().scheduleEvent(eventType, target, expiration, eventData);
     }
 
-    public default <E extends Event> Timer _scheduleRecurringEvent(Class<E> eventType, EventTarget target, Duration delay,
-            Duration period, Object... eventData) {
+    public default <E extends Event> Timer _scheduleRecurringEvent(Class<E> eventType, EventTarget target,
+            Duration delay, Duration period, Object... eventData) {
         return getContext().scheduleRecurringEvent(eventType, target, delay, period, eventData);
     }
 
-    public default <E extends Event> Timer _scheduleRecurringEvent(Class<E> eventType, EventTarget target, TimeStamp expiration,
-            Duration period, Object... eventData) {
+    public default <E extends Event> Timer _scheduleRecurringEvent(Class<E> eventType, EventTarget target,
+            TimeStamp expiration, Duration period, Object... eventData) {
         return getContext().scheduleRecurringEvent(eventType, target, expiration, period, eventData);
     }
-    
+
     public default void _halt() {
         getContext().halt();
     }

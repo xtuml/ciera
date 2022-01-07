@@ -6,7 +6,7 @@ import io.ciera.runtime.types.Duration;
 import io.ciera.runtime.types.TimeStamp;
 import io.ciera.runtime.types.UniqueId;
 
-public class Timer implements Comparable<Timer>, Named {
+public class Timer implements Comparable<Timer> {
 
     private final UniqueId timerHandle;
     private final ExecutionContext context;
@@ -135,13 +135,8 @@ public class Timer implements Comparable<Timer>, Named {
     }
 
     @Override
-    public String getName() {
-        return timerHandle.toString();
-    }
-
-    @Override
     public String toString() {
-        return String.format("Timer[%.8s]", getName());
+        return String.format("Timer[%.8s]", timerHandle);
     }
 
 }

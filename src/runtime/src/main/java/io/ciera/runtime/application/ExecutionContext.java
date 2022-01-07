@@ -13,7 +13,7 @@ import io.ciera.runtime.exceptions.EventTargetException;
 import io.ciera.runtime.types.Duration;
 import io.ciera.runtime.types.TimeStamp;
 
-public class ExecutionContext implements Runnable, Executor, Named {
+public class ExecutionContext implements Runnable, Executor {
 
     private final String name;
     private final Application application;
@@ -105,7 +105,7 @@ public class ExecutionContext implements Runnable, Executor, Named {
         Duration delay = expiration.subtract(TimeStamp.now(getClock())).castTo(Duration.class);
         return scheduleRecurringEvent(eventType, target, delay, period, eventData);
     }
-    
+
     public void halt() {
         addTask(new Halt(this));
     }
@@ -179,14 +179,9 @@ public class ExecutionContext implements Runnable, Executor, Named {
     }
 
     public Thread start() {
-        Thread t = new Thread(this, getName());
+        Thread t = new Thread(this, name);
         t.start();
         return t;
-    }
-
-    @Override
-    public String getName() {
-        return name;
     }
 
     public Application getApplication() {
@@ -204,7 +199,7 @@ public class ExecutionContext implements Runnable, Executor, Named {
     public SystemClock getClock() {
         return application.getClock();
     }
-    
+
     public Logger getLogger() {
         return application.getLogger();
     }
@@ -215,7 +210,7 @@ public class ExecutionContext implements Runnable, Executor, Named {
 
     @Override
     public String toString() {
-        return getName();
+        return name;
     }
 
 }

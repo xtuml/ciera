@@ -4,11 +4,10 @@ import io.ciera.runtime.action.ActionHome;
 import io.ciera.runtime.application.ExecutionContext;
 import io.ciera.runtime.application.Logger;
 import io.ciera.runtime.application.MessageTarget;
-import io.ciera.runtime.application.Named;
 import io.ciera.runtime.application.task.ReceivedMessage;
 import io.ciera.runtime.exceptions.PortMessageException;
 
-public abstract class AbstractPort implements Port, ActionHome, Named {
+public abstract class AbstractPort implements Port, ActionHome {
 
     private final String name;
     private final Domain domain;
@@ -55,11 +54,6 @@ public abstract class AbstractPort implements Port, ActionHome, Named {
     }
 
     @Override
-    public String getName() {
-        return name;
-    }
-
-    @Override
     public Domain getDomain() {
         return domain;
     }
@@ -81,7 +75,7 @@ public abstract class AbstractPort implements Port, ActionHome, Named {
 
     @Override
     public String toString() {
-        return String.format("Port[%s]", getName());
+        return String.format("Port[%s]", name);
     }
 
 }

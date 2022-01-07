@@ -7,7 +7,6 @@ import java.lang.annotation.Target;
 import java.util.Map;
 import java.util.Optional;
 
-import io.ciera.runtime.application.Named;
 import io.ciera.runtime.types.UniqueId;
 
 /**
@@ -15,7 +14,7 @@ import io.ciera.runtime.types.UniqueId;
  * message has a unique identifier to mark which message it is as well as data
  * items. Messages can be serialized and sent across a network interface.
  */
-public class Message implements Comparable<Message>, Named {
+public class Message implements Comparable<Message> {
 
     public static final int NULL_SIGNAL = 0;
 
@@ -75,7 +74,6 @@ public class Message implements Comparable<Message>, Named {
      * 
      * @return The name of the message.
      */
-    @Override
     public String getName() {
         return name != null ? name : getClass().getSimpleName();
     }

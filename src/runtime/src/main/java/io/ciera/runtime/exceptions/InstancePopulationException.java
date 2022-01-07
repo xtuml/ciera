@@ -34,9 +34,8 @@ public class InstancePopulationException extends RuntimeException {
 
     @Override
     public String getMessage() {
-        return super.getMessage() + ": [population=" + population + ", instances=[" + 
-        Stream.of(instances).map(inst -> inst.toString()).collect(Collectors.joining(", "))
-        + "]]";
+        return super.getMessage() + ": [population=" + population + ", instances=["
+                + Stream.of(instances).map(inst -> inst.toString()).collect(Collectors.joining(", ")) + "]]";
     }
 
 }

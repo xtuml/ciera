@@ -5,11 +5,10 @@ import io.ciera.runtime.application.Event;
 import io.ciera.runtime.application.EventTarget;
 import io.ciera.runtime.application.ExecutionContext;
 import io.ciera.runtime.application.Logger;
-import io.ciera.runtime.application.Named;
 import io.ciera.runtime.exceptions.CannotHappenException;
 import io.ciera.runtime.exceptions.StateMachineActionException;
 
-public abstract class StateMachine implements ActionHome, EventTarget, Named {
+public abstract class StateMachine implements ActionHome, EventTarget {
 
     private final String name;
     private final Domain domain;
@@ -26,11 +25,6 @@ public abstract class StateMachine implements ActionHome, EventTarget, Named {
         this.currentState = initialState;
     }
 
-    @Override
-    public String getName() {
-        return name;
-    }
-
     public Enum<?> getCurrentState() {
         return currentState;
     }
@@ -39,10 +33,10 @@ public abstract class StateMachine implements ActionHome, EventTarget, Named {
 
     protected void executeTransition(Event event) {
         TransitionRule transition = getTransition(currentState, event);
-        traceTxn("TXN START:", getName(), currentState.name(), event.getName(), "...", Logger.ANSI_RESET);
+        traceTxn("TXN START:", name, currentState.name(), event.toString(), "...", Logger.ANSI_RESET);
         Enum<?> newState = transition.execute();
         if (newState != null) {
-            traceTxn("TXN END:", getName(), currentState.name(), event.getName(), newState.name(), Logger.ANSI_GREEN);
+            traceTxn("TXN END:", name, currentState.name(), event.toString(), newState.name(), Logger.ANSI_GREEN);
             currentState = newState;
         }
     }
@@ -79,14 +73,14 @@ public abstract class StateMachine implements ActionHome, EventTarget, Named {
 
     public TransitionRule cannotHappen(Enum<?> currentState, Event event) {
         return () -> {
-            traceTxn("TXN END:", getName(), currentState.name(), event.getName(), "CANNOT HAPPEN", Logger.ANSI_RED);
+            traceTxn("TXN END:", name, currentState.name(), event.toString(), "CANNOT HAPPEN", Logger.ANSI_RED);
             throw new CannotHappenException();
         };
     }
 
     public TransitionRule ignore(Enum<?> currentState, Event event) {
         return () -> {
-            traceTxn("TXN END:", getName(), currentState.name(), event.getName(), "IGNORE", Logger.ANSI_YELLOW);
+            traceTxn("TXN END:", name, currentState.name(), event.toString(), "IGNORE", Logger.ANSI_YELLOW);
             return null;
         };
     }
@@ -101,7 +95,7 @@ public abstract class StateMachine implements ActionHome, EventTarget, Named {
 
     @Override
     public String toString() {
-        return getName();
+        return name;
     }
 
 }

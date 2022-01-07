@@ -9,7 +9,7 @@ public abstract class InstanceStateMachine extends StateMachine implements Insta
     private final DynamicObjectInstance self;
 
     public InstanceStateMachine(Domain domain, Enum<?> initialState, DynamicObjectInstance self) {
-        super(String.format("%s [ISM]", self.getName()), domain, initialState);
+        super(String.format("%s [ISM]", self), domain, initialState);
         this.self = self;
     }
 
@@ -29,13 +29,8 @@ public abstract class InstanceStateMachine extends StateMachine implements Insta
     }
 
     @Override
-    public String getName() {
-        return String.format("%s [ISM]", self().toString());
-    }
-
-    @Override
     public String toString() {
-        return getName();
+        return String.format("%s [ISM]", self());
     }
 
 }
