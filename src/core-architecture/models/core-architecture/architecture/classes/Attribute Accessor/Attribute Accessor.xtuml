@@ -21,13 +21,11 @@ name = self.getName();
 
 T::push_buffer();
 
-attribute_derivation = "";
 select one attr_deriv related by self->AttributeDerivation[R441];
 if (not_empty attr_deriv)
   attr_deriv.render();
-  attribute_derivation = T::body();
-  T::clear();
 end if;
+attribute_derivation = T::body();
 
 select one type related by self->Attribute[R4510]->TypeReference[R424]->Type[R3800];
 select one array_type related by self->Attribute[R4510]->TypeReference[R424]->ArrayTypeReference[R3801];
@@ -36,7 +34,6 @@ primitive = type.primitive();
 
 is_getter = self.accessor_type == AttributeAccessorType::GETTER;
 
-propagations = "";
 if (not is_getter)
   select many refs related by self->Attribute[R4510]->AttributeReference[R4506.''provides value for''];
   for each ref in refs
@@ -51,9 +48,8 @@ if (not is_getter)
     selector_name = selector_name + ref.referring_attribute_class_name;
     T::include(file:"class/t.attributepropagation.java");
   end for;
-  propagations = T::body();
-  T::clear();
 end if;
+propagations = T::body();
 
 T::pop_buffer();
 

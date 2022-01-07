@@ -25,7 +25,6 @@ for each port_msg in inbound_port_msgs
   port_msg.render();
 end for;
 inbound_message_block = T::body();
-T::clear();
 
 // render outbound messages
 select many outbound_msgs related by self->Interface[R418]->Message[R419]
@@ -35,14 +34,12 @@ for each port_msg in outbound_port_msgs
   port_msg.render();
 end for;
 outbound_message_block = T::body();
-T::clear();
 
 // render switch block
 for each msg in inbound_port_msgs
   msg.render_deliver();
 end for;
 message_switch_block = T::body();
-T::clear();
 
 T::include(file:"interface/t.port.java");
 T::emit(file:file.path + "/" + self.name + file.extension);

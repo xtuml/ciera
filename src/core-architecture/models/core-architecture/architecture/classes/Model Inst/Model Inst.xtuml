@@ -28,27 +28,23 @@ end for;
 attribute_decls = T::body();
 
 // relationship link declarations
-relationship_decls = "";
 select many selects related by self->InstanceSelector[R442];
 for each selector in selects
   selector.render_declaration();
   select one sel related by selector->Selector[R445];
 end for;
 relationship_decls = T::body();
-T::clear();
 
 // initial state
 select any init_state related by self->StateMachine[R4750]->State[R4751] where SORT::ascending(attr:"number") and selected.number > 0;
 
 // constructors
 attribute_initializer_params = "";
-attribute_initializers = "";
 for each attribute in attributes
   attribute_initializer_params = attribute_initializer_params + ", " + attribute.type_reference_name + " " + attribute.name;
   T::include(file:"class/t.attributeinitializer.java");
 end for;
 attribute_initializers = T::body();
-T::clear();
 
 // empty attribute accessros
 for each attribute in attributes
@@ -58,7 +54,6 @@ for each attribute in attributes
   setter.render();
 end for;
 attribute_accessors = T::body();
-T::clear();
 
 // class based operations
 select many class_ops related by self->Operation[R416] where (selected.is_class_based);
@@ -66,7 +61,6 @@ for each operation in class_ops
   operation.render();
 end for;
 class_operations = T::body();
-T::clear();
 
 // instance based operations
 select many inst_ops related by self->Operation[R416] where (not selected.is_class_based);
@@ -74,20 +68,17 @@ for each operation in inst_ops
   operation.render();
 end for;
 operations = T::body();
-T::clear();
 
 // selectors
 for each selector in selects
   selector.render();
 end for;
 selectors = T::body();
-T::clear();
 
 // set class
 select one inst_set related by self->ClassSet[R406];
 inst_set.render();
 set_class = T::body();
-T::clear();
 
 // empty attribute accessros
 for each attribute in attributes
@@ -97,21 +88,18 @@ for each attribute in attributes
   setter.render_empty();
 end for;
 empty_attributes = T::body();
-T::clear();
 
 // empty operations
 for each operation in inst_ops
   operation.render_empty();
 end for;
 empty_operations = T::body();
-T::clear();
 
 // empty selectors
 for each selector in selects
   selector.render_empty();
 end for;
 empty_selectors = T::body();
-T::clear();
 
 // emit the file
 T::include(file:"class/t.class.java");
