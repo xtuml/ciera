@@ -38,6 +38,8 @@ if ( not_empty inst_type )
   inst_type_name = inst_type.name;
 end if;
 multiplicity_many = selector.multiplicity == Mult::MANY;
+select one rel related by selector->Relationship[R4512];
+is_super = rel.rel_type == RelationshipType::SuperSubtype and self.class_name == rel.part_name;
 T::include(file:"class/t.instanceselector.java");',
 	1,
 	'',
@@ -56,7 +58,19 @@ type_reference_name = selector.type_reference_name;
 if (selector.multiplicity == Mult::MANY)
   T::include(file:"class/t.relationshiplink.many.java");
 else
-  T::include(file:"class/t.relationshiplink.one.java");
+  select one rel related by selector->Relationship[R4512];
+  // check if this is a supertype selecting to a subtype
+  if rel.rel_type == RelationshipType::SuperSubtype and self.class_name == rel.part_name and self.class_package == rel.part_package
+    // only render one declaration
+    select many rels related by rel->Class[R434]->Relationship[R434] where selected.num == rel.num;
+    select any first_sel related by rels->Selector[R4512]->InstanceSelector[R445] where SORT::ascending(attr:"name") and
+      selected.class_name == self.class_name and selected.class_package == self.class_package;
+    if not_empty first_sel and first_sel.name == self.name
+      T::include(file:"class/t.relationshiplink.sub.java");
+    end if;
+  else
+    T::include(file:"class/t.relationshiplink.one.java");
+  end if;
 end if;',
 	1,
 	'',

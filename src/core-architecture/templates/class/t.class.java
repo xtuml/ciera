@@ -8,6 +8,9 @@ ObjectInstance\
 .else
 DynamicObjectInstance\
 .end if
+.if (supertypes != "")
+ implements ${supertypes}\
+.end if
  {
 
     public static final ${self.name} EMPTY = new Empty${self.name}();
@@ -76,6 +79,9 @@ ${attribute_initializer_params}) {
     }
 
 .end if
+
+    // subtype interfaces
+    ${subtype_interfaces}
 
     // set class
     ${set_class}

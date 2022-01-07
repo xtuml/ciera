@@ -20,6 +20,16 @@ imports = file.getFormattedImports(type:ImportType::IMPL);
 // get the state machine if it exists
 select one sm related by self->StateMachine[R4750];
 
+// get any subtype interfaces this class implements
+sep = "";
+select many subsuper_rels related by self->Relationship[R435] where selected.rel_type == RelationshipType::SuperSubtype;
+for each rel in subsuper_rels
+  T::append(s:sep);
+  rel.render_supertype_implementation();
+  sep = ", ";
+end for;
+supertypes = T::body();
+
 // attribute declarations
 select many attributes related by self->Attribute[R410] where SORT::ascending(attr:"order");
 for each attribute in attributes
@@ -28,7 +38,7 @@ end for;
 attribute_decls = T::body();
 
 // relationship link declarations
-select many selects related by self->InstanceSelector[R442];
+select many selects related by self->InstanceSelector[R442] where SORT::ascending(attr:"name");
 for each selector in selects
   selector.render_declaration();
   select one sel related by selector->Selector[R445];
@@ -74,6 +84,18 @@ for each selector in selects
   selector.render();
 end for;
 selectors = T::body();
+
+// subtype interfaces
+select many subsuper_rels related by self->Relationship[R434] where SORT::ascending(attr:"number") and selected.rel_type == RelationshipType::SuperSubtype;
+for each rel in subsuper_rels
+  // only want to render one interface for each unique rel num
+  select any first_rel related by self->Relationship[R434] where SORT::ascending(attr:"number") and
+    selected.rel_type == RelationshipType::SuperSubtype and selected.num == rel.num;
+  if first_rel.name != rel.name
+    rel.render_subtype_interface();
+  end if;
+end for;
+subtype_interfaces = T::body();
 
 // set class
 select one inst_set related by self->ClassSet[R406];
