@@ -155,7 +155,7 @@ public class ExecutionContext implements Runnable, Executor {
                 try {
                     task.run();
                 } catch (RuntimeException e) {
-                    application.getExceptionHandler().handle(e);
+                    application.getExceptionHandler().handleError(e);
                 }
             } else {
                 // wait for something interesting to happen

@@ -2,6 +2,7 @@ package io.ciera.runtime.application;
 
 public interface ExceptionHandler {
 
-    public void handle(RuntimeException e);
+    public void handleError(RuntimeException e);
+    public void handleSoftError(RuntimeException e);
 
 }
