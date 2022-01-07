@@ -5,58 +5,58 @@ import io.ciera.runtime.domain.SerializableMessage;
 
 public class Gui {
 
-    WatchGui guiDisplay = null;
-    ApplicationConnection server = null;
-    ConnectionHandler connHandler = null;
-    Logger logger;
+	WatchGui guiDisplay = null;
+	ApplicationConnection server = null;
+	ConnectionHandler connHandler = null;
+	Logger logger;
 
-    public void start(String[] args) {
+	public void start(String[] args) {
 
-        // Create GUI
-        if (args.length == 1 && "--console".equals(args[0])) {
-            guiDisplay = new AsciiWatchGui(this);
-        } else {
-            guiDisplay = new SwingWatchGui(this);
-        }
+		// Create GUI
+		if (args.length == 1 && "--console".equals(args[0])) {
+			guiDisplay = new AsciiWatchGui(this);
+		} else {
+			guiDisplay = new SwingWatchGui(this);
+		}
 
-        // The connection handle lives for the entire duration of this program
-        connHandler = new ConnectionHandler(this);
+		// The connection handle lives for the entire duration of this program
+		connHandler = new ConnectionHandler(this);
 
-        // Start the connection handler
-        connHandler.start();
+		// Start the connection handler
+		connHandler.start();
 
-        // Display the GUI
-        guiDisplay.display();
-    }
+		// Display the GUI
+		guiDisplay.display();
+	}
 
-    public void setApplicationConnection(ApplicationConnection server) {
-        this.server = server;
-    }
+	public void setApplicationConnection(ApplicationConnection server) {
+		this.server = server;
+	}
 
-    public void sendSignal(SerializableMessage message) {
-        if (server != null) {
-            server.sendSignal(message);
-        } else {
-            logger.error("Server is not connected");
-        }
+	public void sendSignal(SerializableMessage message) {
+		if (server != null) {
+			server.sendSignal(message);
+		} else {
+			logger.error("Server is not connected");
+		}
 
-    }
+	}
 
-    public WatchGui getGuiDisplay() {
-        return guiDisplay;
-    }
+	public WatchGui getGuiDisplay() {
+		return guiDisplay;
+	}
 
-    public Logger getLogger() {
-        return logger;
-    }
+	public Logger getLogger() {
+		return logger;
+	}
 
-    public void setLogger(Logger logger) {
-        this.logger = logger;
-    }
+	public void setLogger(Logger logger) {
+		this.logger = logger;
+	}
 
-    public static void main(String[] args) {
-        Gui gui = new Gui();
-        gui.start(args);
-    }
+	public static void main(String[] args) {
+		Gui gui = new Gui();
+		gui.start(args);
+	}
 
 }

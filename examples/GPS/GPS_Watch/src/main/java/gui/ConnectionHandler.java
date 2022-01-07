@@ -12,39 +12,39 @@ import java.net.Socket;
  */
 public class ConnectionHandler extends Thread {
 
-    private ServerSocket providerSocket;
-    private Gui app;
+	private ServerSocket providerSocket;
+	private Gui app;
 
-    public ConnectionHandler(Gui app) {
-        this.app = app;
-    }
+	public ConnectionHandler(Gui app) {
+		this.app = app;
+	}
 
-    @Override
-    public void run() {
-        try {
-            providerSocket = new ServerSocket(2003);
-            app.getLogger().info("Waiting for connection");
-            Socket connection = providerSocket.accept();
-            while (true) {
-                new ApplicationConnection(app, connection).start();
-                Socket newConnection = providerSocket.accept();
-                connection.close();
-                connection = newConnection;
-                try {
-                    Thread.sleep(10);
-                } catch (InterruptedException e) {
-                }
-            }
-        } catch (IOException ioException) {
-            ioException.printStackTrace();
-        } finally {
-            try {
-                providerSocket.close();
-            } catch (IOException ioException) {
-                ioException.printStackTrace();
-            }
-            new ConnectionHandler(app).start();
-        }
-    }
+	@Override
+	public void run() {
+		try {
+			providerSocket = new ServerSocket(2003);
+			app.getLogger().info("Waiting for connection");
+			Socket connection = providerSocket.accept();
+			while (true) {
+				new ApplicationConnection(app, connection).start();
+				Socket newConnection = providerSocket.accept();
+				connection.close();
+				connection = newConnection;
+				try {
+					Thread.sleep(10);
+				} catch (InterruptedException e) {
+				}
+			}
+		} catch (IOException ioException) {
+			ioException.printStackTrace();
+		} finally {
+			try {
+				providerSocket.close();
+			} catch (IOException ioException) {
+				ioException.printStackTrace();
+			}
+			new ConnectionHandler(app).start();
+		}
+	}
 
 }
