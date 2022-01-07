@@ -1246,6 +1246,9 @@ relate op to obj across R416;
 // create invocable
 create object instance invocable of InvocableObject;
 invocable.name = service.name;
+if op.is_class_based
+  invocable.name = "_" + obj.name + "_" + invocable.name;
+end if;
 invocable.parent_name = op.class_name;
 invocable.parent_package = op.class_package;
 invocable.original_parent_name = "" + domain.name + "::" + masl_object.name;
@@ -1274,12 +1277,14 @@ select one first_parameter related by service->ParameterDefinition[R5204];
 ::transformParameterList(first_parameter:first_parameter, invocable:invocable);
 
 // add imports
-select one class_file related by obj->File[R401];
-::addStringToImports(file:class_file, s:"io.ciera.runtime.exceptions.EmptyInstanceException", type:ImportType::IMPL);
 select one type_def related by type->Type[R3800];
-::addTypeToImports(file:class_file, type_to_import:type_def, type:ImportType::IMPL);
 if op.is_class_based
-  ::addStringToImports(file:class_file, s:"io.ciera.runtime.action.DynamicActionHome", type:ImportType::IMPL);
+  select one comp_file related by obj->ComponentDefinition[R408]->File[R401];
+  ::addTypeToImports(file:comp_file, type_to_import:type_def, type:ImportType::IMPL);
+else
+  select one class_file related by obj->File[R401];
+  ::addStringToImports(file:class_file, s:"io.ciera.runtime.exceptions.EmptyInstanceException", type:ImportType::IMPL);
+  ::addTypeToImports(file:class_file, type_to_import:type_def, type:ImportType::IMPL);
 end if;
 
 // if this is an optional deferred operation, create a second operation for the supertype implementation

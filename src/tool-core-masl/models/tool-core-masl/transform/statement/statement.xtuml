@@ -1256,7 +1256,9 @@ select one object_service_invocation related by service_call->ServiceInvocation[
 if (not_empty object_service_invocation)
   select one object_service related by object_service_invocation->ObjectService[R5613];
   select one service related by object_service->Service[R5203];
-	select any invocable related by object_service->ObjectDeclaration[R5808]->Class[R8300]->Operation[R416]->InvocableObject[R427] where (selected.name == "" + service.name);
+	select one obj related by object_service->ObjectDeclaration[R5808]->Class[R8300];
+	select any invocable related by obj->Operation[R416]->InvocableObject[R427]
+	  where (selected.name == "" + service.name or selected.name == "_" + obj.name + "_" + service.name);
 	if (not_empty invocable)
 		// create expression as statement
 		create object instance eas of ExpressionAsStatement;
@@ -1272,34 +1274,20 @@ if (not_empty object_service_invocation)
 		create object instance invoc of Invocation;
 		relate invoc to expr across R776;
 		relate invoc to invocable across R792;
-		// create class reference expression
-		create object instance expr2 of Expression;
-		expr2.expression_number = "1.1";
-		relate void_type to expr2 across R795;
-		create object instance class_ref of NamedReference;
-		relate class_ref to expr2 across R776;
-		select one obj related by object_service->ObjectDeclaration[R5808]->Class[R8300];
-		class_ref.name = obj.name;
-		relate expr2 to invoc across R798;
-		select one obj_file related by obj->File[R401];
-		::addFileToImports(file: ::getFileForStatement(smt:smt), file_to_import:obj_file, type:ImportType::IMPL);
     // for class based operations, add domain as first parameter
     create object instance expr3 of Expression;
     relate expr3 to smt across R775;
-    expr3.expression_number = "1.2";
+    expr3.expression_number = "1.1";
     relate void_type to expr3 across R795;
+    relate expr3 to invoc across R798;
     // create named reference
     create object instance named_ref of NamedReference;
     relate named_ref to expr3 across R776;
     named_ref.name = "getDomain()";
-    // create actual param
-    create object instance domain_param of ActualParameter;
-    relate domain_param to expr3 across R794;
-    relate domain_param to invoc across R793;
 		// transform actual parameters
 		select one first_argument related by service_call->ServiceInvocation[R5161]->CallExpression[R5500]->Argument[R5575];
 		if (not_empty first_argument)
-			::transformArguments(invocation:invoc, first_argument:first_argument, expr_number:expr.expression_number, base_num:3);
+			::transformArguments(invocation:invoc, first_argument:first_argument, expr_number:expr.expression_number, base_num:2);
 		end if;
 	else
 		// TODO bad
@@ -2515,7 +2503,7 @@ create object instance expr_as_smt of ExpressionAsStatement;
 relate expr_as_smt to smt across R451;
 
 // find or create an invocable for delay
-invoc_name = "delay";
+invoc_name = "_delay";
 select any delay_invocable from instances of InvocableObject
   where selected.parent_name == "ExecutionContext" and selected.parent_package == "io.ciera.runtime.application" and selected.name == invoc_name;
 if empty delay_invocable
@@ -2537,20 +2525,10 @@ create object instance delay_invocation of Invocation;
 relate delay_invocation to expr across R776;
 relate delay_invocation to delay_invocable across R792;
 
-// create a named ref to reference the run context
-create object instance expr2 of Expression;
-expr2.expression_number = "1.1";
-void_type = ::TypeReference_getBuiltinTypeReference(name:"void");
-relate void_type to expr across R795;
-create object instance named_ref of NamedReference;
-named_ref.name = "getContext()";
-relate named_ref to expr2 across R776;
-relate expr2 to delay_invocation across R798;
-
 // translate the delay argument
 select one delay_val related by delay_statement->MaslExpression[R5104];
-::transformMaslExpression(masl_expression:delay_val, expr_number:"1.2", smt:smt);
-select any delay_expr related by smt->Expression[R775] where selected.expression_number == "1.2";
+::transformMaslExpression(masl_expression:delay_val, expr_number:"1.1", smt:smt);
+select any delay_expr related by smt->Expression[R775] where selected.expression_number == "1.1";
 create object instance delay_arg of ActualParameter;
 relate delay_expr to delay_arg across R794;
 relate delay_arg to delay_invocation across R793;',
