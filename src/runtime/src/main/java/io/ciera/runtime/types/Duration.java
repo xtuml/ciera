@@ -11,27 +11,37 @@ import io.ciera.runtime.exceptions.DeserializationException;
  * The Duration class represents a period of time. It is represented as a
  * quantity of nanoseconds. Durations can be represented as ISO-8601 strings.
  */
-public class Duration extends BaseLong {
+public class Duration extends ModelType {
 
     /**
      * Default value
      */
     public static final Duration ZERO = new Duration();
+    
+    private final long value;
 
     public Duration() {
-        super();
+        this(0l);
     }
 
     public Duration(long value) {
-        super(value);
+        if (value >= 0) {
+            this.value = value;
+        } else {
+            throw new IllegalArgumentException("Cannot create a negative delay");
+        }
     }
 
     public Duration(long value, TemporalUnit unit) {
-        super(java.time.Duration.of(value, unit).toNanos());
+        this(java.time.Duration.of(value, unit).toNanos());
     }
 
-    public Duration(BaseLong o) {
+    public Duration(Duration o) {
         this(o.getValue());
+    }
+    
+    public long getValue() {
+        return value;
     }
 
     public static <T extends Object> Function<T, ModelType> getCastFunction(Class<T> sourceType) {
@@ -39,17 +49,8 @@ public class Duration extends BaseLong {
         if (Duration.class.isAssignableFrom(sourceType)) {
             return o -> (Duration) o;
         }
-
-        // Direct conversion from superclass
-        if (BaseLong.class.equals(sourceType)) {
-            return o -> new Duration((BaseLong) o);
-        }
-
-        // Search in superclass for indirect conversion
-        Function<T, ModelType> f = BaseLong.getCastFunction(sourceType);
-        if (f != null) {
-            return o -> getCastFunction(BaseLong.class).apply((BaseLong) f.apply(o));
-        }
+        
+        // TODO conversion from other numerics
 
         // Didn't find any applicable cast functions
         return null;
@@ -79,5 +80,31 @@ public class Duration extends BaseLong {
             throw new DeserializationException("Could not parse duration", e);
         }
     }
+    
+    // Arithmetic operations
+    public TimeStamp add(TimeStamp t) {
+        return new TimeStamp(value + t.getValue());
+    }
 
+    public Duration add(Duration d) {
+        return new Duration(value + d.getValue());
+    }
+
+    public Duration subtract(Duration d) {
+        return new Duration(value - d.getValue());
+    }
+
+    public Duration multiply(Number n) {
+        return new Duration(value * n.longValue());
+    }
+
+    public Duration divide(Number n) {
+        return new Duration(value / n.longValue());
+    }
+
+    public long divide(Duration n) {
+        return value / n.value;
+    }
+    
+    // TODO mod, remainder, others?
 }

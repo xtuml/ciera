@@ -11,23 +11,29 @@ import io.ciera.runtime.application.SystemClock;
  * from, but will be interpreted by the runtime based on the current settings of
  * the {@link SystemClock}.
  */
-public class TimeStamp extends BaseLong {
+public class TimeStamp extends ModelType {
 
     /**
      * Default value
      */
     public static final TimeStamp ZERO = new TimeStamp();
+    
+    private final long value;
 
     public TimeStamp() {
-        super();
+        this(0l);
     }
 
     public TimeStamp(long value) {
-        super(value);
+        this.value = value;
     }
 
-    public TimeStamp(BaseLong o) {
+    public TimeStamp(TimeStamp o) {
         this(o.getValue());
+    }
+    
+    public long getValue() {
+        return value;
     }
 
     /**
@@ -46,24 +52,28 @@ public class TimeStamp extends BaseLong {
         if (TimeStamp.class.isAssignableFrom(sourceType)) {
             return o -> (TimeStamp) o;
         }
-
-        // Direct conversion from superclass
-        if (BaseLong.class.equals(sourceType)) {
-            return o -> new TimeStamp((BaseLong) o);
-        }
-
-        // Search in superclass for indirect conversion
-        Function<T, ModelType> f = BaseLong.getCastFunction(sourceType);
-        if (f != null) {
-            return o -> getCastFunction(BaseLong.class).apply((BaseLong) f.apply(o));
-        }
+        
+        // TODO conversion from other numeric types
 
         // Didn't find any applicable cast functions
         return null;
     }
 
     public static TimeStamp fromString(String s) {
-        return new TimeStamp(BaseLong.fromString(s));
+        return new TimeStamp(Long.parseLong(s));
+    }
+    
+    // Arithmetic operations
+    public TimeStamp add(Duration d) {
+        return new TimeStamp(value + d.getValue());
+    }
+
+    public TimeStamp subtract(Duration d) {
+        return new TimeStamp(value - d.getValue());
+    }
+
+    public Duration subtract(TimeStamp t) {
+        return new Duration(value - t.getValue());
     }
 
 }

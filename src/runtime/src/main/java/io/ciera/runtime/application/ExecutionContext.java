@@ -81,7 +81,7 @@ public class ExecutionContext implements Runnable, Executor {
 
     public <E extends Event> Timer scheduleEvent(Class<E> eventType, EventTarget target, TimeStamp expiration,
             Object... eventData) {
-        Duration delay = expiration.subtract(TimeStamp.now(getClock())).castTo(Duration.class);
+        Duration delay = expiration.subtract(TimeStamp.now(getClock()));
         return scheduleEvent(eventType, target, delay, eventData);
     }
 
@@ -102,7 +102,7 @@ public class ExecutionContext implements Runnable, Executor {
 
     public <E extends Event> Timer scheduleRecurringEvent(Class<E> eventType, EventTarget target, TimeStamp expiration,
             Duration period, Object... eventData) {
-        Duration delay = expiration.subtract(TimeStamp.now(getClock())).castTo(Duration.class);
+        Duration delay = expiration.subtract(TimeStamp.now(getClock()));
         return scheduleRecurringEvent(eventType, target, delay, period, eventData);
     }
 

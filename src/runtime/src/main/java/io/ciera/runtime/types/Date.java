@@ -26,7 +26,7 @@ public class Date extends TimeStamp {
      * The calendar instance is initialized with the time stamp given interpreted as
      * nanoseconds since the Unix epoch. The time zone is UTC.
      */
-    private Calendar cal;
+    private final Calendar cal;
 
     public Date() {
         this(0l, Instant.EPOCH);
@@ -36,7 +36,7 @@ public class Date extends TimeStamp {
         this(timestamp, Instant.EPOCH);
     }
 
-    public Date(BaseLong o) {
+    public Date(TimeStamp o) {
         this(o.getValue());
     }
 
@@ -45,10 +45,6 @@ public class Date extends TimeStamp {
         cal = Calendar.getInstance();
         cal.setTimeZone(TimeZone.getTimeZone("UTC"));
         cal.setTimeInMillis((timestamp / 1000000l) - epoch.until(Instant.EPOCH, ChronoUnit.MILLIS));
-    }
-
-    public Date(Calendar cal) {
-        // TODO
     }
 
     /**
@@ -115,48 +111,6 @@ public class Date extends TimeStamp {
      */
     public static Date now(SystemClock clock) {
         return new Date(clock.getTime(), clock.getEpoch());
-    }
-
-    @Override
-    public Date add(Object o) {
-        return super.add(o).castTo(Date.class);
-    }
-
-    @Override
-    public Date subtract(Object o) {
-        return super.subtract(o).castTo(Date.class);
-    }
-
-    @Override
-    public Date multiply(Object o) {
-        throw new UnsupportedOperationException(
-                "Multiplication is not supported for types 'Date' and '" + o != null ? o.getClass().getName()
-                        : "null" + "'");
-    }
-
-    @Override
-    public Date divide(Object o) {
-        throw new UnsupportedOperationException(
-                "Division is not supported for types 'Date' and '" + o != null ? o.getClass().getName() : "null" + "'");
-    }
-
-    @Override
-    public Date modulo(Object o) {
-        throw new UnsupportedOperationException(
-                "Modulo is not supported for types 'Date' and '" + o != null ? o.getClass().getName() : "null" + "'");
-    }
-
-    @Override
-    public Date remainder(Object o) {
-        throw new UnsupportedOperationException(
-                "Remainder is not supported for types 'Date' and '" + o != null ? o.getClass().getName()
-                        : "null" + "'");
-    }
-
-    @Override
-    public Date power(Object o) {
-        throw new UnsupportedOperationException(
-                "Power is not supported for types 'Date' and '" + o != null ? o.getClass().getName() : "null" + "'");
     }
 
     public static <T extends Object> Function<T, ModelType> getCastFunction(Class<T> sourceType) {

@@ -35,7 +35,7 @@ public class TIM extends Utility {
             final int year) {
         Calendar cal = Calendar.getInstance();
         cal.set(year, month - 1, day, hour, minute, second);
-        return new Date(cal);
+        return null;  // TODO
     }
 
     public TimeStamp current_clock() {
@@ -47,7 +47,8 @@ public class TIM extends Utility {
     }
 
     public int current_seconds() {
-        return ModelType.castTo(Integer.class, current_clock().divide(1000000000l));
+        //return ModelType.castTo(Integer.class, current_clock().divide(1000000000l));
+        return 0;  // TODO
     }
 
     public int get_day(final Date date) {

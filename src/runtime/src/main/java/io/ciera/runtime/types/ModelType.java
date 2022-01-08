@@ -58,6 +58,7 @@ public abstract class ModelType {
     @SuppressWarnings("unchecked")
     public static <R extends Object> R castTo(Class<R> type, Object value) {
         // Handle Java primitives
+        /*
         if (Boolean.class.equals(type)) {
             return (R) Boolean.valueOf(castTo(BaseBoolean.class, value).getValue());
         } else if (Byte.class.equals(type)) {
@@ -75,6 +76,7 @@ public abstract class ModelType {
         } else if (String.class.equals(type)) {
             return (R) String.valueOf(castTo(BaseString.class, value).getValue());
         }
+        */
 
         // Search for a cast function in the target type
         Function<Object, R> f = null;
