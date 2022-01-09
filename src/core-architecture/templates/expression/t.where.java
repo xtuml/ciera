@@ -5,7 +5,7 @@ ${root_expression_body}\
 .if (sorted)
 ..sorted((_a, _b) -> {try {int comp = \
   .if (use_util)
-${util_name}.compareTo(_a.${accessor}(), _b.${accessor}())\
+${util_name}.compare(_a.${accessor}(), _b.${accessor}())\
   .else
 _a.${accessor}().compareTo(_b.${accessor}())\
   .end if

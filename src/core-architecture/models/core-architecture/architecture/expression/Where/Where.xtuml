@@ -21,14 +21,10 @@ use_util = false;
 util_name = "";
 accessor = "";
 if (sorted)
-  select one sort_attr_type related by self->Attribute[R3906]->TypeReference[R424]->Type[R3800];
-  use_util = sort_attr_type.primitive();
-  if ("boolean" == sort_attr_type.name)
-    util_name = "BooleanUtil";
-  elif ("int" == sort_attr_type.name)
-    util_name = "IntegerUtil";
-  elif ("double" == sort_attr_type.name)
-    util_name = "RealUtil";
+  select one sort_attr_type related by self->Attribute[R3906]->TypeReference[R424]->BasicTypeReference[R3801]->TypeReference[R3801]->Type[R3800]->BuiltInType[R407];
+  if not_empty sort_attr_type and sort_attr_type.primitive
+    use_util = true;
+    util_name = sort_attr_type.object_name;
   end if;
   select any attr_accessor related by self->Attribute[R3906]->AttributeAccessor[R4510] where (selected.accessor_type == AttributeAccessorType::GETTER);
   accessor = attr_accessor.getName();

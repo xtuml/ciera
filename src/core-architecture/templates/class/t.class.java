@@ -81,7 +81,42 @@ ${attribute_initializer_params}) {
     ${subtype_interfaces}
 
     // set class
-    ${set_class}
+    public static final class Set extends TreeSet<${self.name}> {
+
+        private static final long serialVersionUID = 1l;
+
+        public Set() {}
+
+        public Set(Collection<? extends ${self.name}> c) {
+            super(c);
+        }
+
+        public Set(Comparator<? super ${self.name}> comparator) {
+            super(comparator);
+        }
+
+        public Set(SortedSet<${self.name}> s) {
+            super(s);
+        }
+
+        // attribute setters
+        ${set_setters}
+
+        // selections
+        ${set_selectors}
+
+        public ${self.name} any() {
+            return stream().findAny().orElse(${self.name}.EMPTY);
+        }
+
+        public ${self.name} any(Predicate<${self.name}> where) {
+            return stream().filter(where).findAny().orElse(${self.name}.EMPTY);
+        }
+
+        public Set where(Predicate<${self.name}> where) {
+            return new Set(stream().filter(where).collect(Collectors.toSet()));
+        }
+    }
 
     // empty class
     private static final class Empty${self.name} extends ${self.name} {

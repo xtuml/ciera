@@ -15,8 +15,6 @@ public void ${name}(${type_name} ${self.attribute_name}) {
     if (isAlive()) {
   .if (primitive)
         if (${self.attribute_name} != this.${self.attribute_name}) {
-  .elif (is_array)
-        if (!Arrays.equals(${self.attribute_name}, this.${self.attribute_name})) {
   .else
         if (!${self.attribute_name}.equals(this.${self.attribute_name})) {
   .end if

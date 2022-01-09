@@ -25,13 +25,6 @@ select one output_type_builtin related by output_type->BuiltInType[R407];
 select one input_type related by self->Expression[R3907]->TypeReference[R795]->Type[R3800];
 select one input_type_builtin related by input_type->BuiltInType[R407];
 
-input_type_primitive = not_empty input_type_builtin and (input_type_builtin.primitive or input_type.name == "String");
-if input_type_primitive
-  // TODO move this out of render -- just here for temporary convenience
-  select one smt related by self->Expression[R776]->Statement[R775];
-  ::addStringToImports(file: ::getFileForStatement(smt:smt), s:"io.ciera.runtime.types.ModelType", type:ImportType::IMPL);
-end if;
-
 output_type_name = output_type.name;
 if not_empty output_type_builtin and output_type_builtin.primitive
   output_type_name = output_type_builtin.object_name;
@@ -52,8 +45,7 @@ INSERT INTO O_TFR
 	1,
 	'select one expr related by self->Expression[R3907];
 select one type_ref related by self->Expression[R776]->TypeReference[R795];
-select one type related by type_ref->Type[R3800];
-return expr.is_constant() and type_ref.type_reference_name == "String" or type.primitive();',
+return expr.is_constant() and type_ref.type_reference == "String" or type_ref.primitive;',
 	1,
 	'',
 	"03289e90-8cdb-4136-981d-5f141a61e179",
