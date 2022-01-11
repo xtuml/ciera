@@ -14,10 +14,7 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'select one file related by self->File[R401];
-imports = file.getFormattedImports( type:ImportType::IMPL );
-
-// render message IDs
+	'// render message IDs
 select many messages related by self->Message[R419] where SORT::ascending(attr:"id");
 for each msg in messages
   msg.render_id();
@@ -43,6 +40,11 @@ for each msg in from_provider_msgs
   msg.render();
 end for;
 from_provider_message_block = T::body();
+
+::addStringImport(package:"io.ciera.runtime.domain", class_name:"Port");
+
+select one file related by self->File[R401];
+imports = file.get_imports();
 
 T::include(file:"interface/t.interface.java");
 T::emit( file:file.path + "/" + self.name + file.extension );

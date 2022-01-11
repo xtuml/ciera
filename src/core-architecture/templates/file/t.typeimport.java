@@ -1,1 +1,1 @@
-import ${self.fully_qualified_name};
+import ${self.package}.${self.class_name};

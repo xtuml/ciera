@@ -14,10 +14,7 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'select one file related by self->File[R401];
-imports = file.getFormattedImports(type:ImportType::IMPL);
-
-utility_initializers = "";
+	'utility_initializers = "";
 separator = "";
 select many util_refs related by self->UtilityInComponent[R4558];
 for each util_ref in util_refs
@@ -76,8 +73,13 @@ if (not_empty init_function)
   init = init_function.name + "();";
 end if;
 
-T::include(file:"component/t.componentdefinition.java");
+::addStringImport(package:"io.ciera.runtime.application", class_name:"Application");
+::addStringImport(package:"io.ciera.runtime.domain", class_name:"Domain");
 
+select one file related by self->File[R401];
+imports = file.get_imports();
+
+T::include(file:"component/t.componentdefinition.java");
 T::emit(file:file.path + "/" + self.name + file.extension);
 T::clear();',
 	1,

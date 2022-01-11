@@ -14,14 +14,17 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'select one file related by self->File[R401];
-imports = file.getFormattedImports(type:ImportType::BOTH);
-
-select many util_funcs related by self->UtilityFunction[R4559];
+	'select many util_funcs related by self->UtilityFunction[R4559];
 for each utility_function in util_funcs
   utility_function.render();
 end for;
 utility_functions = T::body();
+
+::addStringImport(package:"io.ciera.runtime.domain", class_name:"Domain");
+::addStringImport(package:"io.ciera.runtime.domain", class_name:"Utility");
+
+select one file related by self->File[R401];
+imports = file.get_imports();
 
 T::include(file:"component/t.utility.java");
 T::emit(file:file.path + "/" + self.name + file.extension);

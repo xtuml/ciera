@@ -43,6 +43,11 @@ T::pop_buffer();
 
 inbound = ( port.provider and message.to_provider ) or ( not port.provider and not message.to_provider );
 
+if not inbound
+  select one iface_file related by self->Message[R420]->Interface[R419]->File[R401];
+  ::addFileImport(file:iface_file);
+end if;
+
 T::include(file:"interface/t.portmessage.java");',
 	1,
 	'',
@@ -67,6 +72,7 @@ T::push_buffer();
 i = 0;
 while ( not_empty msg_parm )
   select one parm_dt related by msg_parm->TypeReference[R431];
+  ::resolveImportsForTypeReference(type_ref:parm_dt);
   type_name = parm_dt.type_reference;
   T::include(file:"interface/t.portmessage.deliver.param.java");
   sep = ", ";
@@ -75,6 +81,8 @@ while ( not_empty msg_parm )
 end while;
 message_parameter_list = T::body();
 T::pop_buffer();
+select one iface_file related by self->Message[R420]->Interface[R419]->File[R401];
+::addFileImport(file:iface_file);
 T::include(file:"interface/t.portmessage.deliver.java");',
 	1,
 	'',

@@ -25,6 +25,7 @@ end while;
 separator = "";
 while ( not_empty parm )
   select one parm_type related by parm->TypeReference[R431];
+  ::resolveImportsForTypeReference(type_ref:parm_type);
   parameter_list = parameter_list + separator + "final " + parm_type.type_reference + " "  + parm.name;
   separator = ",  ";
   select one parm related by parm->FormalParameter[R404.''precedes''];
@@ -68,6 +69,7 @@ if (not_empty statement)
     if (STRING::indexof(haystack:original_body_name, needle:" ") != -1)
       original_body_name = "''" + self.original_body_name + "''";
     end if;
+    ::addStringImport(package:"io.ciera.runtime.exceptions", class_name:"ActionException");
     T::include(file:"invocable/t.invocable.trace.java");
     body = T::body();
     T::pop_buffer();

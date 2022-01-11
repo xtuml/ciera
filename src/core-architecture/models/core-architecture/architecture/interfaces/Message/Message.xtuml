@@ -56,7 +56,9 @@ while ( not_empty prev_parm )
 end while;
 sep = "";
 while ( not_empty parm )
-  select one type related by parm->TypeReference[R431]->Type[R3800];
+  select one type_ref related by parm->TypeReference[R431];
+  ::resolveImportsForTypeReference(type_ref:type_ref);
+  select one type related by type_ref->Type[R3800];
   type_name = type.name;
   T::include(file:"interface/t.message.param.type.java");
   sep = ",  ";
@@ -100,6 +102,9 @@ while ( not_empty parm )
 end while;
 invocation_parameter_list = T::body();
 T::pop_buffer();
+
+::addStringImport(package:"io.ciera.runtime.domain", class_name:"Message");
+::addStringImport(package:"java.util", class_name:"Map");
 
 T::include(file:"interface/t.message.decl.java");',
 	1,

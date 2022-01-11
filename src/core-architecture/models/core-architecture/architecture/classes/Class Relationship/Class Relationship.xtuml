@@ -59,8 +59,18 @@ else
   relationship_setters = relationship_setters + "form.set" + part_selector.name + "(part);\n";
   relationship_unsetters = relationship_unsetters + "form.set" + part_selector.name + "(" + part_selector.type_reference + ".EMPTY);\n";
 end if;
-
 T::pop_buffer();
+
+// resolve imports
+::addStringImport(package:"io.ciera.runtime.domain", class_name:"ObjectInstance");
+::addStringImport(package:"io.ciera.runtime.exceptions", class_name:"DeletedInstanceException");
+::addStringImport(package:"io.ciera.runtime.exceptions", class_name:"EmptyInstanceException");
+::addStringImport(package:"java.util.stream", class_name:"Stream");
+select one part_class_file related by self->Class[R434]->File[R401];
+::addFileImport(file:part_class_file);
+select one form_class_file related by self->Class[R435]->File[R401];
+::addFileImport(file:form_class_file);
+
 T::include(file:"relationship/t.relationshipmodifiers.java");',
 	1,
 	'',
@@ -87,7 +97,9 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'T::include(file:"class/t.supertype.java");',
+	'select one part_file related by self->Class[R434]->File[R401];
+::addFileImport(file:part_file);
+T::include(file:"class/t.supertype.java");',
 	1,
 	'',
 	"aa2127d2-d3b3-44b4-b79e-25ed2ad71d2e",

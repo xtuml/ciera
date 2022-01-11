@@ -14,11 +14,15 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'select one file related by self->File[R401];
-imports = file.getFormattedImports(type:ImportType::IMPL);
-
-// get the state machine if it exists
+	'// get the state machine if it exists
 select one sm related by self->StateMachine[R4750];
+if empty sm
+  ::addStringImport(package:"io.ciera.runtime.domain", class_name:"ObjectInstance");
+  select one sm_file related by sm->File[R401];
+  ::addFileImport(file:sm_file);
+else
+  ::addStringImport(package:"io.ciera.runtime.domain", class_name:"DynamicObjectInstance");
+end if;
 
 // get any subtype interfaces this class implements
 sep = "";
@@ -124,6 +128,21 @@ for each selector in selects
   selector.render_empty();
 end for;
 empty_selectors = T::body();
+
+::addStringImport(package:"io.ciera.runtime.application", class_name:"ExecutionContext");
+::addStringImport(package:"io.ciera.runtime.exceptions", class_name:"EmptyInstanceException");
+::addStringImport(package:"io.ciera.runtime.types", class_name:"UniqueId");
+::addStringImport(package:"java.util.function", class_name:"Predicate");
+::addStringImport(package:"java.util.stream", class_name:"Collectors");
+::addStringImport(package:"java.util", class_name:"Collection");
+::addStringImport(package:"java.util", class_name:"Comparator");
+::addStringImport(package:"java.util", class_name:"SortedSet");
+::addStringImport(package:"java.util", class_name:"TreeSet");
+select one comp_file related by self->ComponentDefinition[R408]->File[R401];
+::addFileImport(file:comp_file);
+
+select one file related by self->File[R401];
+imports = file.get_imports();
 
 // emit the file
 T::include(file:"class/t.class.java");

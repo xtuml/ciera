@@ -1,0 +1,147 @@
+-- BP 7.1.6 content: Package syschar: 3 persistence-version: 7.1.6
+
+INSERT INTO EP_PKG
+	VALUES ("7419235c-8b53-4e04-8604-72d362a36aaf",
+	"00000000-0000-0000-0000-000000000000",
+	"21d38790-b93a-4ad6-b0a2-e3ba56baed8a",
+	'import functions',
+	'',
+	0);
+INSERT INTO GD_MD
+	VALUES ("3c4f00d8-c833-4979-a5ad-3d2c6f39b12c",
+	112,
+	"7419235c-8b53-4e04-8604-72d362a36aaf",
+	108,
+	0,
+	0,
+	1,
+	1,
+	1,
+	12,
+	1,
+	0,
+	0,
+	0,
+	0,
+	0,
+	'',
+	'core-architecture::architecture::file::import functions');
+INSERT INTO DIM_DIA
+	VALUES ("3c4f00d8-c833-4979-a5ad-3d2c6f39b12c",
+	'',
+	1.000000,
+	0.000000,
+	0.000000,
+	"00000000-0000-0000-0000-000000000000");
+INSERT INTO S_SYNC
+	VALUES ("5f38af04-404d-4723-a184-3db026951f01",
+	"00000000-0000-0000-0000-000000000000",
+	'addStringImport',
+	'',
+	'// select all rendering files
+// exclude files which are defined in the same pacakge as the import
+select many files from instances of File where selected.package != param.package and selected.rendering;
+if not_empty files
+  
+  // select or create an import
+  select any type_import from instances of TypeImport where selected.package == param.package and selected.class_name == param.class_name;
+  if empty type_import
+    create object instance type_import of TypeImport;
+    type_import.package = param.package;
+    type_import.class_name = param.class_name;
+  end if;
+  
+  // apply the type import to each file in active render
+  for each file in files
+    select any existing_import_ref related by file->TypeImportReference[R402] where selected.import_package == type_import.package and selected.import_class_name == type_import.class_name;
+    if empty existing_import_ref
+      create object instance import_ref of TypeImportReference;
+      relate file to type_import across R402 using import_ref;
+    end if;
+  end for;
+
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	1);
+INSERT INTO S_SPARM
+	VALUES ("347c036e-c7b5-4df9-97aa-8e12b364852a",
+	"5f38af04-404d-4723-a184-3db026951f01",
+	'package',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("9551f441-5e76-4396-8f77-e980b23ce616",
+	"5f38af04-404d-4723-a184-3db026951f01",
+	'class_name',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"347c036e-c7b5-4df9-97aa-8e12b364852a",
+	'');
+INSERT INTO PE_PE
+	VALUES ("5f38af04-404d-4723-a184-3db026951f01",
+	1,
+	"7419235c-8b53-4e04-8604-72d362a36aaf",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("5ec555f0-dd7c-4db2-98f4-325e7ccd99f4",
+	"00000000-0000-0000-0000-000000000000",
+	'addFileImport',
+	'',
+	'file = param.file;
+if not_empty file
+  ::addStringImport(package:file.package, class_name:file.name);
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	2);
+INSERT INTO S_SPARM
+	VALUES ("906a646b-ac8c-49ea-b4da-152549819cdb",
+	"5ec555f0-dd7c-4db2-98f4-325e7ccd99f4",
+	'file',
+	"133d5e7b-5ad2-41dd-b534-afe8f7cf56a8",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("133d5e7b-5ad2-41dd-b534-afe8f7cf56a8",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<File>',
+	'',
+	'',
+	'../file.xtuml');
+INSERT INTO PE_PE
+	VALUES ("5ec555f0-dd7c-4db2-98f4-325e7ccd99f4",
+	1,
+	"7419235c-8b53-4e04-8604-72d362a36aaf",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO PE_PE
+	VALUES ("7419235c-8b53-4e04-8604-72d362a36aaf",
+	1,
+	"3defc186-8fe9-4977-a936-f3946346a253",
+	"00000000-0000-0000-0000-000000000000",
+	7);
+INSERT INTO EP_PKG_PROXY
+	VALUES ("3defc186-8fe9-4977-a936-f3946346a253",
+	"00000000-0000-0000-0000-000000000000",
+	"21d38790-b93a-4ad6-b0a2-e3ba56baed8a",
+	'file',
+	'',
+	0,
+	'../file.xtuml');
+INSERT INTO S_SYS_PROXY
+	VALUES ("21d38790-b93a-4ad6-b0a2-e3ba56baed8a",
+	'core-architecture',
+	1,
+	'../../../core-architecture.xtuml');

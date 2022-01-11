@@ -20,6 +20,7 @@ select one iterator_var related by self->Variable[R459];
 select one iter_type related by iterator_var->TypeReference[R461];
 iterator_type = iter_type.type_reference;
 iterator_name = iterator_var.scope_unique_name;
+::resolveImportsForTypeReference(type_ref:iter_type);
 
 select one iterable_expression related by self->Expression[R478];
 iterable_expression.render();
@@ -29,6 +30,10 @@ select one control_blk related by self->CodeBlock[R455];
 control_blk.render();
 control_block = T::body();
 T::pop_buffer();
+
+if self.reversed
+  ::addStringImport(package:"java.util", class_name:"ArrayDeque");
+end if;
 
 if self.external_loop_variable
   T::include(file:"statement/t.for.ext.java");

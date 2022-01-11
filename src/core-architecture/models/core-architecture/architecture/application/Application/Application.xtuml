@@ -16,20 +16,27 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'select one file related by self->File[R401];
-imports = file.getFormattedImports(type:ImportType::IMPL);
-
-// domains
+	'// domains
 select many comps related by self->ComponentInstantiation[R426];
 for each comp in comps
   comp.render();
 end for;
 domains = T::body();
 
+// satisfactions
 for each comp in comps
   comp.render_satisfactions();
 end for;
 component_satisfactions = T::body();
+
+// resolve imports
+if self.simulated_time
+  ::addStringImport(package:"io.ciera.runtime.application", class_name:"SimulatedClock");
+end if;
+::addStringImport(package:"io.ciera.runtime.application", class_name:"Application");
+
+select one file related by self->File[R401];
+imports = file.get_imports();
 
 T::include(file:"application/t.application.java");
 T::emit(file:file.path + "/" + self.name + file.extension);

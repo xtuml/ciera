@@ -14,10 +14,7 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'select one file related by self->File[R401];
-imports = file.getFormattedImports( type:ImportType::IMPL );
-
-// state declarations
+	'// state declarations
 select many states related by self->State[R4751] where SORT::ascending(attr:"number");
 for each state in states
   state.render_decl();
@@ -64,6 +61,17 @@ for each evt in events
   evt.render();
 end for;
 event_definitions = T::body();
+
+::addStringImport(package:"io.ciera.runtime.application", class_name:"Event");
+::addStringImport(package:"io.ciera.runtime.domain", class_name:"InstanceStateMachine");
+::addStringImport(package:"io.ciera.runtime.domain", class_name:"TransitionRule");
+select one class_file related by self->Class[R4750]->File[R401];
+::addFileImport(file:class_file);
+select one comp_file related by self->Class[R4750]->ComponentDefinition[R408]->File[R401];
+::addFileImport(file:comp_file);
+
+select one file related by self->File[R401];
+imports = file.get_imports();
 
 T::include(file:"statemachine/t.instancestatemachine.java");
 T::emit( file:file.path + "/" + self.name + file.extension );

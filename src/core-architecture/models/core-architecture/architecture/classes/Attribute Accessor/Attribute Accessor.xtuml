@@ -50,6 +50,10 @@ propagations = T::body();
 
 T::pop_buffer();
 
+// resolve imports
+::resolveImportsForTypeReference(type_ref:type_ref);
+::addStringImport(package:"io.ciera.runtime.exceptions", class_name:"DeletedInstanceException");
+
 T::include(file:"class/t.attributeaccessor.java");',
 	1,
 	'',
@@ -91,6 +95,11 @@ name = self.getName();
 
 is_getter = self.accessor_type == AttributeAccessorType::GETTER;
 
+// resolve imports
+select one type_ref related by attribute->TypeReference[R424];
+::resolveImportsForTypeReference(type_ref:type_ref);
+::addStringImport(package:"io.ciera.runtime.exceptions", class_name:"EmptyInstanceException");
+
 T::include(file:"class/t.attributeaccessor.empty.java");',
 	1,
 	'',
@@ -104,9 +113,10 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'select one attribute related by self->Attribute[R4510];
-type_name = attribute.type_reference;
+	'select one type_ref related by self->Attribute[R4510]->TypeReference[R424];
+type_name = type_ref.type_reference;
 name = self.getName();
+::resolveImportsForTypeReference(type_ref:type_ref);
 T::include(file:"class/t.attributeaccessor.set.java");',
 	1,
 	'',

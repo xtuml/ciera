@@ -14,10 +14,7 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'select one file related by self->File[R401];
-imports = file.getFormattedImports(type:ImportType::IMPL);
-
-// render inbound messages
+	'// render inbound messages
 select many inbound_msgs related by self->Interface[R418]->Message[R419]
   where SORT::ascending(attr:"id") and ((not selected.to_provider and not self.provider) or (selected.to_provider and self.provider));
 select many inbound_port_msgs related by inbound_msgs->PortMessage[R420] where selected.port_name == self.name;
@@ -36,10 +33,23 @@ end for;
 outbound_message_block = T::body();
 
 // render switch block
-for each msg in inbound_port_msgs
-  msg.render_deliver();
-end for;
+if not_empty inbound_port_msgs
+  for each msg in inbound_port_msgs
+    msg.render_deliver();
+  end for;
+  ::addStringImport(package:"io.ciera.runtime.domain", class_name:"Message");
+  ::addStringImport(package:"io.ciera.runtime.exceptions", class_name:"PortMessageException");
+end if;
 message_switch_block = T::body();
+
+::addStringImport(package:"io.ciera.runtime.domain", class_name:"AbstractPort");
+select one iface_file related by self->Interface[R418]->File[R401];
+::addFileImport(file:iface_file);
+select one comp_file related by self->ComponentDefinition[R417]->File[R401];
+::addFileImport(file:comp_file);
+
+select one file related by self->File[R401];
+imports = file.get_imports();
 
 T::include(file:"interface/t.port.java");
 T::emit(file:file.path + "/" + self.name + file.extension);
@@ -56,7 +66,9 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'T::include(file:"interface/t.portaccessor.java");',
+	'select one iface_file related by self->Interface[R418]->File[R401];
+::addFileImport(file:iface_file);
+T::include(file:"interface/t.portaccessor.java");',
 	1,
 	'',
 	"a8cd2a5e-e4c5-4db2-b940-626a586c3f07",
@@ -82,7 +94,9 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'T::include(file:"interface/t.portaccessor.decl.java");',
+	'select one iface_file related by self->Interface[R418]->File[R401];
+::addFileImport(file:iface_file);
+T::include(file:"interface/t.portaccessor.decl.java");',
 	1,
 	'',
 	"d540c8a2-3a5a-42f2-a330-0387e1e79715",

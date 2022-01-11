@@ -373,6 +373,108 @@ INSERT INTO PE_PE
 	"181c88bd-e2a3-491d-81d4-90a42e0f11c1",
 	"00000000-0000-0000-0000-000000000000",
 	1);
+INSERT INTO S_SYNC
+	VALUES ("56f1e195-6c93-4728-a4fe-2a9bbea8c5a9",
+	"00000000-0000-0000-0000-000000000000",
+	'resolveImportsForTypeReference',
+	'',
+	'type_ref = param.type_ref;
+
+// basic type refs
+select one basic_type_ref related by type_ref->BasicTypeReference[R3801];
+if not_empty basic_type_ref
+  select one root_type related by type_ref->Type[R3800];
+  ::resolveImportsForType(type:root_type);
+end if;
+
+// instance type refs
+select one inst_type_ref related by type_ref->InstanceTypeReference[R3801];
+if not_empty inst_type_ref
+  select one class_file related by inst_type_ref->Class[R3808]->File[R401];
+  ::addFileImport(file:class_file);
+end if;
+
+// collection type refs
+select one coll_type_ref related by type_ref->CollectionTypeReference[R3801];
+if not_empty coll_type_ref
+  // instance sets are special
+  select one inst_set_class_file related by coll_type_ref->SetTypeReference[R3806]->CollectionTypeReference[R3806]
+    ->TypeReference[R3805]->InstanceTypeReference[R3801]->Class[R3808]->File[R401];
+  if not_empty inst_set_class_file
+    ::addFileImport(file:inst_set_class_file);
+  else
+    // import the root type and the type reference of the elements
+    select one root_type related by type_ref->Type[R3800];
+    ::resolveImportsForType(type:root_type);
+    select one element_type_ref related by coll_type_ref->TypeReference[R3805];
+    ::resolveImportsForTypeReference(type_ref:element_type_ref);
+  end if;
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	5);
+INSERT INTO S_SPARM
+	VALUES ("4988a057-cbbd-4e9d-a043-b42e13b71429",
+	"56f1e195-6c93-4728-a4fe-2a9bbea8c5a9",
+	'type_ref',
+	"096d9dad-f227-4793-bb43-a1915881b825",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO PE_PE
+	VALUES ("56f1e195-6c93-4728-a4fe-2a9bbea8c5a9",
+	1,
+	"181c88bd-e2a3-491d-81d4-90a42e0f11c1",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("e27deb2f-3473-464c-90be-ffe53176eba9",
+	"00000000-0000-0000-0000-000000000000",
+	'resolveImportsForType',
+	'',
+	'type = param.type;
+
+// TODO structured type
+
+// enumerated type
+select one edt related by type->EnumeratedType[R407];
+if not_empty edt
+  select one edt_file related by edt->File[R401];
+  ::addFileImport(file:edt_file);
+end if;
+
+// built in types
+select one builtin related by type->BuiltInType[R407];
+if not_empty builtin
+  if type.package != ""
+    ::addStringImport(package:type.package, class_name:type.name);
+  end if;
+end if;
+
+// TODO named types',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	5);
+INSERT INTO S_SPARM
+	VALUES ("de3fff2c-aa71-48d7-89b4-8431b8d61924",
+	"e27deb2f-3473-464c-90be-ffe53176eba9",
+	'type',
+	"b4a754cc-b0a5-4777-ae98-df570434ea2a",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO PE_PE
+	VALUES ("e27deb2f-3473-464c-90be-ffe53176eba9",
+	1,
+	"181c88bd-e2a3-491d-81d4-90a42e0f11c1",
+	"00000000-0000-0000-0000-000000000000",
+	1);
 INSERT INTO PE_PE
 	VALUES ("181c88bd-e2a3-491d-81d4-90a42e0f11c1",
 	1,
