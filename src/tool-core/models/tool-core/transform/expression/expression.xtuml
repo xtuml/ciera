@@ -50,7 +50,7 @@ expr.expression_number = expr_number;
 // link type
 select one s_dt related by v_lst->V_VAL[R801]->S_DT[R820];
 select many s_dims from instances of S_DIM where false;
-type = ::TypeReference_getInstance( s_dt:s_dt, s_dims:s_dims );
+type = ::getTypeReferenceForS_DTWithDims( s_dt:s_dt, s_dims:s_dims );
 relate type to expr across R795;
 
 // create literal
@@ -126,7 +126,7 @@ expr.expression_number = expr_number;
 // link type
 select one s_dt related by v_lbo->V_VAL[R801]->S_DT[R820];
 select many s_dims from instances of S_DIM where false;
-type = ::TypeReference_getInstance( s_dt:s_dt, s_dims:s_dims );
+type = ::getTypeReferenceForS_DTWithDims( s_dt:s_dt, s_dims:s_dims );
 relate type to expr across R795;
 
 // create literal
@@ -199,7 +199,7 @@ expr.expression_number = expr_number;
 // link type
 select one s_dt related by v_lin->V_VAL[R801]->S_DT[R820];
 select many s_dims from instances of S_DIM where false;
-type = ::TypeReference_getInstance( s_dt:s_dt, s_dims:s_dims );
+type = ::getTypeReferenceForS_DTWithDims( s_dt:s_dt, s_dims:s_dims );
 relate type to expr across R795;
 
 // create literal
@@ -271,7 +271,7 @@ expr.expression_number = expr_number;
 // link type
 select one s_dt related by v_lrl->V_VAL[R801]->S_DT[R820];
 select many s_dims from instances of S_DIM where false;
-type = ::TypeReference_getInstance( s_dt:s_dt, s_dims:s_dims );
+type = ::getTypeReferenceForS_DTWithDims( s_dt:s_dt, s_dims:s_dims );
 relate type to expr across R795;
 
 // create literal
@@ -340,17 +340,16 @@ expr.expression_number = expr_number;
 // link type
 select one s_dt related by v_len->V_VAL[R801]->S_DT[R820];
 select many s_dims from instances of S_DIM where false;
-type = ::TypeReference_getInstance( s_dt:s_dt, s_dims:s_dims );
+type = ::getTypeReferenceForS_DTWithDims( s_dt:s_dt, s_dims:s_dims );
 relate type to expr across R795;
 
 // create enumerator reference
 create object instance enum_ref of EnumeratorReference;
 relate enum_ref to expr across R776;
 select one s_enum related by v_len->S_ENUM[R824];
-select any enumer related by s_enum->S_EDT[R27]->S_DT[R17]->Type[R423]->EnumeratedType[R407]->Enumerator[R415] where ( selected.name == T::sub( format:"u", s:s_enum.Name ) );
+//select any enumer related by s_enum->S_EDT[R27]->S_DT[R17]->Type[R423]->EnumeratedType[R407]->Enumerator[R415] where ( selected.name == T::sub( format:"u", s:s_enum.Name ) );
+select any enumer from instances of Enumerator where false; // TODO
 if ( not_empty enumer )
-  select one edt_file related by enumer->EnumeratedType[R415]->File[R401];
-  ::addFileToImports( file: ::getFileForStatement( smt:smt ), file_to_import:edt_file, type:ImportType::IMPL );
   relate enumer to enum_ref across R786;
 else
   // TODO bad
@@ -417,7 +416,7 @@ expr.expression_number = expr_number;
 // link type
 select one s_dt related by v_tvl->V_VAL[R801]->S_DT[R820];
 select many s_dims from instances of S_DIM where false;
-type = ::TypeReference_getInstance( s_dt:s_dt, s_dims:s_dims );
+type = ::getTypeReferenceForS_DTWithDims( s_dt:s_dt, s_dims:s_dims );
 relate type to expr across R795;
 
 // create variable reference
@@ -425,10 +424,7 @@ select one v_var related by v_tvl->V_VAR[R805];
 var = ::getVariableInScope(smt:smt, name:v_var.Name);
 create object instance var_ref of VariableReference;
 relate var to var_ref across R782;
-relate var_ref to expr across R776;
-// add type reference to file
-select one expr_type related by var->TypeReference[R461]->Type[R3800];
-::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:expr_type, type:ImportType::IMPL );',
+relate var_ref to expr across R776;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -491,7 +487,7 @@ expr.expression_number = expr_number;
 // link type
 select one s_dt related by v_irf->V_VAL[R801]->S_DT[R820];
 select many s_dims from instances of S_DIM where false;
-type = ::TypeReference_getInstance( s_dt:s_dt, s_dims:s_dims );
+type = ::getTypeReferenceForS_DTWithDims( s_dt:s_dt, s_dims:s_dims );
 relate type to expr across R795;
 
 // if this is the first location, create a new variable
@@ -507,9 +503,6 @@ else
   create object instance var_ref of VariableReference;
   relate var to var_ref across R782;
   relate var_ref to expr across R776;
-  // add type reference to file
-  select one expr_type related by var->TypeReference[R461]->Type[R3800];
-  ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:expr_type, type:ImportType::IMPL );
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -573,7 +566,7 @@ expr.expression_number = expr_number;
 // link type
 select one s_dt related by v_isr->V_VAL[R801]->S_DT[R820];
 select many s_dims from instances of S_DIM where false;
-type = ::TypeReference_getInstance( s_dt:s_dt, s_dims:s_dims );
+type = ::getTypeReferenceForS_DTWithDims( s_dt:s_dt, s_dims:s_dims );
 relate type to expr across R795;
 
 // create variable reference
@@ -581,10 +574,7 @@ select one v_var related by v_isr->V_VAR[R809];
 var = ::getVariableInScope(smt:smt, name:v_var.Name);
 create object instance var_ref of VariableReference;
 relate var to var_ref across R782;
-relate var_ref to expr across R776;
-// add type reference to file
-select one expr_type related by var->TypeReference[R461]->Type[R3800];
-::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:expr_type, type:ImportType::IMPL );',
+relate var_ref to expr across R776;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -647,7 +637,7 @@ expr.expression_number = expr_number;
 // link type
 select one s_dt related by v_avl->V_VAL[R801]->S_DT[R820];
 select many s_dims from instances of S_DIM where false;
-type = ::TypeReference_getInstance( s_dt:s_dt, s_dims:s_dims );
+type = ::getTypeReferenceForS_DTWithDims( s_dt:s_dt, s_dims:s_dims );
 relate type to expr across R795;
 
 create object instance acc of AttributeAccess;
@@ -720,7 +710,7 @@ expr.expression_number = expr_number;
 // link type
 select one s_dt related by v_pvl->V_VAL[R801]->S_DT[R820];
 select many s_dims from instances of S_DIM where false;
-type = ::TypeReference_getInstance( s_dt:s_dt, s_dims:s_dims );
+type = ::getTypeReferenceForS_DTWithDims( s_dt:s_dt, s_dims:s_dims );
 relate type to expr across R795;
 
 create object instance ref of ParameterReference;
@@ -806,7 +796,7 @@ expr.expression_number = expr_number;
 // link type
 select one s_dt related by v_brv->V_VAL[R801]->S_DT[R820];
 select many s_dims from instances of S_DIM where false;
-type = ::TypeReference_getInstance( s_dt:s_dt, s_dims:s_dims );
+type = ::getTypeReferenceForS_DTWithDims( s_dt:s_dt, s_dims:s_dims );
 relate type to expr across R795;
 
 select one util_func related by v_brv->S_BRG[R828]->UtilityFunction[R4570];
@@ -873,7 +863,7 @@ elif invocable.parent_name == "TIM" and invocable.name == "timer_remaining_time"
   create object instance invoc_expr of Expression;
 	relate invoc_expr to smt across R775;
 	invoc_expr.expression_number = expr_number + ".1";
-	timestamp_type = ::TypeReference_getBuiltinTypeReference(name:"TimeStamp");
+	timestamp_type = ::getBuiltinTypeReference(name:"TimeStamp");
 	relate timestamp_type to invoc_expr across R795;
 	relate invoc_expr to cast across R3907;
 
@@ -901,8 +891,6 @@ else
   select one utility related by util_func->Utility[R4559];
   select one utility_file related by utility->File[R401];
   containing_comp_def = ::getCompDefForStatement( smt:smt );
-  select one containing_comp_file related by containing_comp_def->File[R401];
-  ::addFileToImports( file:containing_comp_file, file_to_import:utility_file, type:ImportType::IMPL );
   if ( not_empty containing_comp_def )
     select any util_ref related by utility->UtilityInComponent[R4558] where ( selected.comp_name == containing_comp_def.name and selected.comp_package == containing_comp_def.package );
     if ( empty util_ref )
@@ -919,7 +907,7 @@ else
     create object instance expr2 of Expression;
     relate expr2 to smt across R775;
     expr2.expression_number = expr.expression_number + ".1";
-    void_type = ::TypeReference_getBuiltinTypeReference( name:"void" );
+    void_type = ::getBuiltinTypeReference( name:"void" );
     relate void_type to expr2 across R795;
     // create utility reference
     create object instance utility_ref of UtilityReference;
@@ -995,7 +983,7 @@ expr.expression_number = expr_number;
 // link type
 select one s_dt related by v_fnv->V_VAL[R801]->S_DT[R820];
 select many s_dims from instances of S_DIM where false;
-type = ::TypeReference_getInstance( s_dt:s_dt, s_dims:s_dims );
+type = ::getTypeReferenceForS_DTWithDims( s_dt:s_dt, s_dims:s_dims );
 relate type to expr across R795;
 
 select one s_sync related by v_fnv->S_SYNC[R827];
@@ -1010,7 +998,7 @@ if ( not_empty invocable )
   create object instance expr2 of Expression;
   relate expr2 to smt across R775;
   expr2.expression_number = expr.expression_number + ".1";
-  void_type = ::TypeReference_getBuiltinTypeReference( name:"void" );
+  void_type = ::getBuiltinTypeReference( name:"void" );
   relate void_type to expr2 across R795;
   // create named reference
   create object instance domain_ref of DomainReference;
@@ -1084,7 +1072,7 @@ expr.expression_number = expr_number;
 // link type
 select one s_dt related by v_trv->V_VAL[R801]->S_DT[R820];
 select many s_dims from instances of S_DIM where false;
-type = ::TypeReference_getInstance( s_dt:s_dt, s_dims:s_dims );
+type = ::getTypeReferenceForS_DTWithDims( s_dt:s_dt, s_dims:s_dims );
 relate type to expr across R795;
 
 select one o_tfr related by v_trv->O_TFR[R829];
@@ -1105,20 +1093,13 @@ if ( not_empty invocable )
       relate expr2 to smt across R775;
       expr2.expression_number = expr.expression_number + ".1";
       relate expr2 to invoc across R798;
-      select one op_s_dt related by op_v_var->S_DT[R848];
-      select one op_obj related by o_tfr->O_OBJ[R115];
-      op_s_dt = ::getInstRefTypeForClass( s_dt:op_s_dt, o_obj:op_obj );
-      select many s_dims related by op_v_var->S_DIM[R849];
-      op_type = ::TypeReference_getInstance( s_dt:op_s_dt, s_dims:s_dims );
-      relate op_type to expr2 across R795;
       op_var = ::getVariableInScope(smt:smt, name:op_v_var.Name);
+      op_type = ::getObjectReference(obj:obj);
+      relate op_type to expr2 across R795;
       if ( not_empty op_var ) // cannot declare two variables of the same name in the same scope
         create object instance var_ref of VariableReference;
         relate op_var to var_ref across R782;
         relate var_ref to expr2 across R776;
-        // add type reference to file
-        select one expr_type related by expr2->TypeReference[R795]->Type[R3800];
-        ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:expr_type, type:ImportType::IMPL );
       elif ( "self" == op_v_var.Name )
         // create named reference
         create object instance self_ref of NamedReference;
@@ -1133,19 +1114,11 @@ if ( not_empty invocable )
       relate expr2 to smt across R775;
       expr2.expression_number = expr.expression_number + ".1";
       relate expr2 to invoc across R798;
-      select any s_irdt related by o_tfr->O_OBJ[R115]->S_IRDT[R123] where ( not selected.isSet );
-      select one s_dt related by s_irdt->S_DT[R17];
-      select many s_dims from instances of S_DIM where false;
-      op_type = ::TypeReference_getInstance( s_dt:s_dt, s_dims:s_dims );
+      op_type = ::getObjectReference(obj:obj);
       relate op_type to expr2 across R795;
       // create selected reference
-      select one op_cls related by o_tfr->O_OBJ[R115]->Class[R409];
       create object instance sel of SelectedExpr;
-      sel.cast = op_cls.name;
       relate sel to expr2 across R776;
-      // add import
-      select one sel_type related by op_cls->Type[R407];
-      ::addTypeToImports(file: ::getFileForStatement(smt:smt), type_to_import:sel_type, type:ImportType::IMPL);
     end if;
 		// transform actual parameters
 		select many v_pars related by v_trv->V_PAR[R811];
@@ -1155,7 +1128,7 @@ if ( not_empty invocable )
     create object instance expr3 of Expression;
     relate expr3 to smt across R775;
     expr3.expression_number = expr.expression_number + ".1";
-    void_type = ::TypeReference_getBuiltinTypeReference( name:"void" );
+    void_type = ::getBuiltinTypeReference( name:"void" );
     relate void_type to expr3 across R795;
     relate expr3 to invoc across R798;
     // create named reference
@@ -1229,33 +1202,22 @@ relate expr to smt across R775;
 expr.expression_number = expr_number;
 
 // link type
-select one s_dt related by v_slr->V_VAL[R801]->S_DT[R820];
-select many s_dims from instances of S_DIM where false;
-type = ::TypeReference_getInstance( s_dt:s_dt, s_dims:s_dims );
-relate type to expr across R795;
+// this assumes that there is only one where clause per statement (which is currently
+// always the case in OAL)
+select any select_expr related by smt->Expression[R775]->WhereExpr[R776]->Expression[R790];
+select one sel_type related by select_expr->TypeReference[R795]->InstanceTypeReference[R3801]->TypeReference[R3801];
+if empty sel_type
+  select one sel_cls related by select_expr->TypeReference[R795]->CollectionTypeReference[R3801]->TypeReference[R3805]->InstanceTypeReference[R3801]->TypeReference[R3801];
+end if;
+if not_empty sel_type
+  relate sel_type to expr across R795;
+else
+  // TODO bad
+end if;
 
 // create selected reference
 create object instance sel of SelectedExpr;
-relate sel to expr across R776;
-
-// this assumes that the select expression is the right hand operand of a
-// binary operation used as a statement (which is currently always the case in
-// OAL)
-select one select_expr related by smt->ExpressionAsStatement[R451]->Expression[R476]->BinaryOperation[R776]->Expression[R778]
-                                   ->WhereExpr[R776]->Expression[R790]->SelectExpr[R776];
-select one sel_cls related by select_expr->SelectRelated[R789]->Selector[R797]->TypeReference[R446]->Type[R3800]->Class[R407];
-if empty sel_cls
-  select one sel_cls related by select_expr->SelectRelated[R789]->Selector[R797]->TypeReference[R446]->Type[R3800]->ClassSet[R407]->Class[R406];
-  if empty sel_cls
-    select one sel_cls related by select_expr->SelectFromInstances[R789]->InstancePopulationSelector[R799]->Class[R449];
-  end if;
-end if;
-sel.cast = sel_cls.name;
-
-// add import
-select one sel_type related by sel_cls->Type[R407];
-file = ::getFileForStatement(smt:smt);
-::addTypeToImports(file:file, type_to_import:sel_type, type: ImportType::IMPL);',
+relate sel to expr across R776;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -1318,7 +1280,7 @@ expr.expression_number = expr_number;
 // link type
 select one s_dt related by v_uny->V_VAL[R801]->S_DT[R820];
 select many s_dims from instances of S_DIM where false;
-type = ::TypeReference_getInstance( s_dt:s_dt, s_dims:s_dims );
+type = ::getTypeReferenceForS_DTWithDims( s_dt:s_dt, s_dims:s_dims );
 relate type to expr across R795;
 
 // create the unary expression
@@ -1333,7 +1295,7 @@ if ( "not_empty" == T::sub( format:"l", s:v_uny.Operator ) ) // create an additi
   relate expr2 to smt across R775;
   expr2.expression_number = expr.expression_number + ".1";
   relate expr2 to unary across R777;
-  boolean_type = ::TypeReference_getBuiltinTypeReference( name:"boolean" );
+  boolean_type = ::getBuiltinTypeReference( name:"boolean" );
   relate boolean_type to expr2 across R795;
   create object instance unary2 of UnaryOperation;
   relate unary2 to expr2 across R776;
@@ -1428,10 +1390,9 @@ expr.expression_number = expr_number;
 // link type
 select one v_val related by v_bin->V_VAL[R801];
 select one s_dt related by v_val->S_DT[R820];
-select many s_dims from instances of S_DIM where false;
-type = ::TypeReference_getInstance(s_dt:s_dt, s_dims:s_dims);
-select one array_type related by type->ArrayTypeReference[R3801];
+type = ::getTypeReferenceForS_DT(s_dt:s_dt);
 relate type to expr across R795;
+select one array_type related by type->CollectionTypeReference[R3801]->ArrayTypeReference[R3806];
 
 // create the binary expression
 create object instance binary of BinaryOperation;
@@ -1439,41 +1400,41 @@ relate binary to expr across R776;
 select one l_val related by v_bin->V_VAL[R802];
 select one r_val related by v_bin->V_VAL[R803];
 select one l_s_dt related by l_val->S_DT[R820];
-select one l_type related by l_s_dt->Type[R423];
-select one l_set related by l_type->ClassSet[R407];
+l_type = ::getTypeReferenceForS_DT(s_dt:l_s_dt);
+select one l_set related by l_type->CollectionTypeReference[R3801]->SetTypeReference[R3806];
+
 // translate the operator
 binary.invocation = false;
 binary.util = false;
 if ("and" == T::sub(format:"l", s:v_bin.Operator))
-  if (l_type.primitive())
+  if (l_type.primitive)
     binary.operator = "&&";
   else
     binary.operator = "and";
     binary.invocation = true;
   end if;
 elif ("or" == T::sub(format:"l", s:v_bin.Operator))
-  if (l_type.primitive())
+  if (l_type.primitive)
     binary.operator = "||";
   else
     binary.operator = "or";
     binary.invocation = true;
   end if;
 elif ("==" == T::sub(format:"l", s:v_bin.Operator))
-  if (l_type.primitive())
+  if (l_type.primitive)
     binary.operator = "==";
   else
     if (not_empty array_type)
       binary.operator = "Arrays.equals";
       binary.invocation = true;
       binary.util = true;
-      ::addStringToImports(file:file, s:"java.util.Arrays", type:ImportType::IMPL);
     else
       binary.operator = "equals";
       binary.invocation = true;
     end if;
   end if;
 elif ("!=" == T::sub(format:"l", s:v_bin.Operator))
-  if (l_type.primitive())
+  if (l_type.primitive)
     binary.operator = "!=";
   else
     // create a logical negation unary operation
@@ -1491,7 +1452,6 @@ elif ("!=" == T::sub(format:"l", s:v_bin.Operator))
       binary.operator = "Arrays.equals";
       binary.invocation = true;
       binary.util = true;
-      ::addStringToImports(file:file, s:"java.util.Arrays", type:ImportType::IMPL);
     else
       binary.operator = "equals";
       binary.invocation = true;
@@ -1499,12 +1459,11 @@ elif ("!=" == T::sub(format:"l", s:v_bin.Operator))
   end if;
 elif ("<" == T::sub(format:"l", s:v_bin.Operator))
   binary.operator = "<";
-  if (not l_type.primitive())
+  if (not l_type.primitive)
     if (not_empty array_type)
       binary.comparison_operator = "Arrays.compare";
       binary.invocation = true;
       binary.util = true;
-      ::addStringToImports(file:file, s:"java.util.Arrays", type:ImportType::IMPL);
     else
       binary.comparison_operator = "compareTo";
       binary.invocation = true;
@@ -1512,12 +1471,11 @@ elif ("<" == T::sub(format:"l", s:v_bin.Operator))
   end if;
 elif ("<=" == T::sub(format:"l", s:v_bin.Operator))
   binary.operator = "<=";
-  if (not l_type.primitive())
+  if (not l_type.primitive)
     if (not_empty array_type)
       binary.comparison_operator = "Arrays.compare";
       binary.invocation = true;
       binary.util = true;
-      ::addStringToImports(file:file, s:"java.util.Arrays", type:ImportType::IMPL);
     else
       binary.comparison_operator = "compareTo";
       binary.invocation = true;
@@ -1525,12 +1483,11 @@ elif ("<=" == T::sub(format:"l", s:v_bin.Operator))
   end if;
 elif (">" == T::sub(format:"l", s:v_bin.Operator))
   binary.operator = ">";
-  if (not l_type.primitive())
+  if (not l_type.primitive)
     if (not_empty array_type)
       binary.comparison_operator = "Arrays.compare";
       binary.invocation = true;
       binary.util = true;
-      ::addStringToImports(file:file, s:"java.util.Arrays", type:ImportType::IMPL);
     else
       binary.comparison_operator = "compareTo";
       binary.invocation = true;
@@ -1538,26 +1495,25 @@ elif (">" == T::sub(format:"l", s:v_bin.Operator))
   end if;
 elif (">=" == T::sub(format:"l", s:v_bin.Operator))
   binary.operator = ">=";
-  if (not l_type.primitive())
+  if (not l_type.primitive)
     if (not_empty array_type)
       binary.comparison_operator = "Arrays.compare";
       binary.invocation = true;
       binary.util = true;
-      ::addStringToImports(file:file, s:"java.util.Arrays", type:ImportType::IMPL);
     else
       binary.comparison_operator = "compareTo";
       binary.invocation = true;
     end if;
   end if;
 elif ("+" == T::sub(format:"l", s:v_bin.Operator))
-  if (l_type.primitive())
+  if (l_type.primitive)
     binary.operator = "+";
   else
     if (not_empty l_set) // set type
       binary.operator = "union";
       binary.invocation = true;
-      binary.cast = l_type.name;
-    elif ("String" == l_type.name and "" == l_type.package)
+      binary.cast = l_type.type_reference;
+    elif ("String" == l_type.type_reference)
       binary.operator = "+";
     else
       binary.operator = "add";
@@ -1565,33 +1521,33 @@ elif ("+" == T::sub(format:"l", s:v_bin.Operator))
     end if;
   end if;
 elif ("-" == T::sub(format:"l", s:v_bin.Operator))
-  if (l_type.primitive())
+  if (l_type.primitive)
     binary.operator = "-";
   else
     if (not_empty l_set) // set type
       binary.operator = "difference";
-      binary.cast = l_type.name;
+      binary.cast = l_type.type_reference;
     else
       binary.operator = "subtract";
     end if;
     binary.invocation = true;
   end if;
 elif ("*" == T::sub(format:"l", s:v_bin.Operator))
-  if (l_type.primitive())
+  if (l_type.primitive)
     binary.operator = "*";
   else
     binary.operator = "multiply";
     binary.invocation = true;
   end if;
 elif ("/" == T::sub(format:"l", s:v_bin.Operator))
-  if (l_type.primitive())
+  if (l_type.primitive)
     binary.operator = "/";
   else
     binary.operator = "divide";
     binary.invocation = true;
   end if;
 elif ("%" == T::sub(format:"l", s:v_bin.Operator))
-  if (l_type.primitive())
+  if (l_type.primitive)
     binary.operator = "%";
   else
     binary.operator = "remainder";
@@ -1600,15 +1556,15 @@ elif ("%" == T::sub(format:"l", s:v_bin.Operator))
 elif ("|" == T::sub(format:"l", s:v_bin.Operator))
   binary.operator = "union";
   binary.invocation = true;
-  binary.cast = l_type.name;
+  binary.cast = l_type.type_reference;
 elif ("&" == T::sub(format:"l", s:v_bin.Operator))
   binary.operator = "intersection";
   binary.invocation = true;
-  binary.cast = l_type.name;
+  binary.cast = l_type.type_reference;
 elif ("^" == T::sub(format:"l", s:v_bin.Operator))
   binary.operator = "disunion";
   binary.invocation = true;
-  binary.cast = l_type.name;
+  binary.cast = l_type.type_reference;
 end if;
 // translate the left operand
 if (::precedenceCheck(val1:l_val, val2:v_val) <= 0) // if the left operand is lower precedence than the current operator, force it to be evaluated first with parentheses
@@ -1714,7 +1670,7 @@ expr.expression_number = expr_number;
 // link type
 select one s_dt related by v_aer->V_VAL[R801]->S_DT[R820];
 select many s_dims from instances of S_DIM where false;
-type = ::TypeReference_getInstance( s_dt:s_dt, s_dims:s_dims );
+type = ::getTypeReferenceForS_DTWithDims( s_dt:s_dt, s_dims:s_dims );
 relate type to expr across R795;
 
 // transform root expression
@@ -1943,7 +1899,7 @@ expr.expression_number = expr_number;
 // link type
 select one s_dt related by v_scv->V_VAL[R801]->S_DT[R820];
 select many s_dims from instances of S_DIM where false;
-type = ::TypeReference_getInstance( s_dt:s_dt, s_dims:s_dims );
+type = ::getTypeReferenceForS_DTWithDims(s_dt:s_dt, s_dims:s_dims);
 relate type to expr across R795;
 
 // create literal
@@ -1953,7 +1909,7 @@ select one cnst_lsc related by v_scv->CNST_SYC[R850]->CNST_LFSC[R1502]->CNST_LSC
 const_ref.value = cnst_lsc.Value;
 
 // check if it is a long constant
-if (type.type_reference_name == "long")
+if (type.type_reference == "long")
   const_ref.value = const_ref.value + "L";
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
@@ -2018,7 +1974,7 @@ expr.expression_number = expr_number;
 // link type
 select one s_dt related by v_edv->V_VAL[R801]->S_DT[R820];
 select many s_dims from instances of S_DIM where false;
-type = ::TypeReference_getInstance( s_dt:s_dt, s_dims:s_dims );
+type = ::getTypeReferenceForS_DTWithDims( s_dt:s_dt, s_dims:s_dims );
 relate type to expr across R795;
 
 create object instance ref of ParameterReference;
@@ -2135,8 +2091,8 @@ else
     create object instance evt_expr of Expression;
     relate evt_expr to smt across R775;
     evt_expr.expression_number = expr.expression_number + ".1";
-    void_type_ref = ::TypeReference_getBuiltinTypeReference(name:"void");
-    relate void_type_ref to evt_expr across R795;
+    obj_type_ref = ::getBuiltinTypeReference(name:"Object");
+    relate obj_type_ref to evt_expr across R795;
     create object instance named_ref of NamedReference;
     relate named_ref to evt_expr across R776;
     named_ref.name = evt_sm.name + "." + evt.name + ".class";
@@ -2147,8 +2103,8 @@ else
     create object instance target_expr of Expression;
     relate target_expr to smt across R775;
     target_expr.expression_number = expr.expression_number + ".2";
-    select one target_type_def related by target_v_var->V_INT[R814]->O_OBJ[R818]->Class[R409]->Type[R407];
-    target_type = ::TypeReference_getInstanceWithDimString(type:target_type_def, dims:"");
+    select one target_obj related by target_v_var->V_INT[R814]->O_OBJ[R818]->Class[R409];
+    target_type = ::getObjectReference(obj:target_obj);
     relate target_type to target_expr across R795;
     relate target_expr to schedule across R3909;
     target_var = ::getVariableInScope(smt:smt, name:target_v_var.Name);
@@ -2156,8 +2112,6 @@ else
       create object instance var_ref of VariableReference;
       relate target_var to var_ref across R782;
       relate var_ref to target_expr across R776;
-      select one type related by target_expr->TypeReference[R795]->Type[R3800];
-      ::addTypeToImports(file: ::getFileForStatement(smt:smt), type_to_import:type, type:ImportType::IMPL);
 		elif (target_v_var.Name == "self")
 			// create named reference
 			create object instance self_ref of NamedReference;
@@ -2180,7 +2134,7 @@ else
     
     // find or create a generic invocable for the duration type
     // TODO maybe it makes sense to create an invocable for every type constructor?
-    duration_type_ref = ::TypeReference_getBuiltinTypeReference(name:"Duration");
+    duration_type_ref = ::getBuiltinTypeReference(name:"Duration");
     select one duration_type related by duration_type_ref->Type[R3800];
     select any duration_constructor from instances of InvocableObject where
       selected.parent_name == duration_type.name and selected.parent_package == duration_type.package and selected.name == "Duration";
@@ -2214,7 +2168,7 @@ else
     create object instance unit_expr of Expression;
     relate unit_expr to smt across R775;
     unit_expr.expression_number = expr.expression_number + ".3.2";
-    relate void_type_ref to unit_expr across R795;
+    relate obj_type_ref to unit_expr across R795;
     create object instance named_ref of NamedReference;
     relate named_ref to unit_expr across R776;
     named_ref.name = "ChronoUnit.MICROS";
@@ -2227,12 +2181,6 @@ else
     base_num = 4;
     select many evt_pars related by e_ces->E_ESS[R701]->V_PAR[R700];
     ::transformEventParameters(smt:smt, expr:expr, evt:evt, v_pars:evt_pars, base_num:base_num);
-  
-    // add imports
-    select one sm_file related by evt_sm->File[R401];
-    ::addFileToImports(file: ::getFileForStatement(smt:smt), file_to_import:sm_file, type:ImportType::IMPL);
-    ::addTypeToImports(file: ::getFileForStatement(smt:smt), type_to_import:duration_type, type:ImportType::IMPL);
-    ::addStringToImports(file: ::getFileForStatement(smt:smt), s:"java.time.temporal.ChronoUnit", type:ImportType::IMPL);
     
   end if;
 end if;',

@@ -262,8 +262,6 @@ for each c_c in c_cs
   end if;
   create object instance comp_inst of ComponentInstantiation;
   relate  comp_def to app across R426 using comp_inst;
-  select one comp_def_file related by comp_def->File[R401];
-  ::addFileToImports(file:file, file_to_import:comp_def_file, type:ImportType::IMPL);
   select any executor related by app->ApplicationExecutor[R4027]; // single executor for now
   relate executor to comp_inst across R4028;
   if (not_empty current_comp_inst)
@@ -280,7 +278,6 @@ for each c_c in c_cs
                                                               selected.feature_name == "InstanceLoading");
   if (not_empty inst_loading_mark)
     comp_inst.instance_loading = inst_loading_mark.value;
-    ::addStringToImports(file:file, s:comp_inst.comp_package + "." + comp_inst.comp_name + inst_loading_mark.value + "Loader", type:ImportType::IMPL);
   end if;
 
   current_comp_inst = comp_inst;
@@ -290,28 +287,7 @@ end for;
 select many c_sfs related by root_package->PE_PE[R8000]->C_SF[R8001];
 for each c_sf in c_sfs
   ::transformSatisfaction(c_sf:c_sf);
-end for;
-
-// create the import block
-// TODO
-if (app.async)
-  ::addStringToImports(file:file, s:"java.io.File", type:ImportType::IMPL);
-  ::addStringToImports(file:file, s:"java.io.IOException", type:ImportType::IMPL);
-  ::addStringToImports(file:file, s:"java.lang.reflect.InvocationTargetException", type:ImportType::IMPL);
-  ::addStringToImports(file:file, s:"java.lang.reflect.Method", type:ImportType::IMPL);
-  ::addStringToImports(file:file, s:"java.util.Scanner", type:ImportType::IMPL);
-  ::addStringToImports(file:file, s:"org.json.JSONObject", type:ImportType::IMPL);
-  ::addStringToImports(file:file, s:"io.ciera.runtime.summit.application.tasks.ReceivedMessageTask", type:ImportType::IMPL);
-  ::addStringToImports(file:file, s:"io.ciera.runtime.summit.interfaces.IPort", type:ImportType::IMPL);
-  ::addStringToImports(file:file, s:"io.ciera.runtime.summit.interfaces.Message", type:ImportType::IMPL);
-  ::addStringToImports(file:file, s:"io.ciera.runtime.summit.util.CommandLine", type:ImportType::IMPL);
-  ::addStringToImports(file:file, s:"io.ciera.runtime.instanceloading.IChangeLog", type:ImportType::IMPL);
-end if;
-
-::addStringToImports(file:file, s:"io.ciera.runtime.application.Application", type:ImportType::IMPL);
-if (app.simulated_time)
-  ::addStringToImports(file:file, s:"io.ciera.runtime.application.SimulatedClock", type:ImportType::IMPL);
-end if;',
+end for;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -628,12 +604,6 @@ if ( empty assoc_exclude_mark )
   else
     // TODO bad
   end if; end if; end if;
-
-  // add necessary imports
-  ::addStringToImports( file:file, s:"io.ciera.runtime.domain.ObjectInstance", type:ImportType::IMPL );
-  ::addStringToImports( file:file, s:"io.ciera.runtime.exceptions.DeletedInstanceException", type:ImportType::IMPL );
-  ::addStringToImports( file:file, s:"io.ciera.runtime.exceptions.EmptyInstanceException", type:ImportType::IMPL );
-  ::addStringToImports( file:file, s:"java.util.stream.Stream", type:ImportType::IMPL );
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -718,12 +688,11 @@ if (empty s_dt)
   // TODO bad
 end if;
 select many s_dims related by o_attr->S_DIM[R120];
-type = ::TypeReference_getInstance(s_dt:s_dt, s_dims:s_dims);
-select one array_type related by type->ArrayTypeReference[R3801];
+type = ::getTypeReferenceForS_DTWithDims(s_dt:s_dt, s_dims:s_dims);
 relate type to attr across R424;
 
 // set default value for unique id attributes
-if ("UniqueId" == type.type_name)
+if (type.type_reference == "UniqueId")
   attr.default_value = "UniqueId.random()";
 end if;
 
@@ -757,14 +726,7 @@ if (not_empty o_dbattr)
     relate act_act to invocable across R432;
     ::setOriginalNames(invocable:invocable, label:act_act.Label);
   end if;
-end if;
-
-// add import to object file
-select one file related by obj->File[R401];
-::addStringToImports(file:file, s:"io.ciera.runtime.exceptions.EmptyInstanceException", type:ImportType::IMPL);
-::addStringToImports(file:file, s:"io.ciera.runtime.exceptions.DeletedInstanceException", type:ImportType::IMPL);
-select one type_def related by type->Type[R3800];
-::addTypeToImports(file:file, type_to_import:type_def, type:ImportType::IMPL);',
+end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -903,21 +865,6 @@ if (empty class_exclude_mark)
   // add the class to the component
   relate obj to containing_comp_def across R408;
 
-  // create the instance type
-  create object instance type of Type;
-  type.name = obj.name;
-  type.package = obj.package;
-  select any s_irdt related by o_obj->S_IRDT[R123] where (not selected.isSet);
-  select one s_dt related by s_irdt->S_DT[R17];
-  if (not_empty s_dt)
-    ::Type_resolve(t:type, s_dt:s_dt);
-  else
-    // TODO bad
-  end if;
-  type.default_value = obj.name + ".EMPTY";
-  relate type to obj across R407;
-  relate type to file across R3803;
-
   // relate to the OOA class
   relate obj to o_obj across R409;
 
@@ -959,24 +906,8 @@ if (empty class_exclude_mark)
   select one sm related by o_obj->SM_ISM[R518]->SM_SM[R517];
   if (not_empty sm)
     ::transformStateMachine(sm_sm:sm, obj:obj);
-    ::addStringToImports(file:file, s:"io.ciera.runtime.domain.DynamicObjectInstance", type:ImportType::IMPL);
-  else
-    ::addStringToImports(file:file, s:"io.ciera.runtime.domain.ObjectInstance", type:ImportType::IMPL);
   end if;
 
-  // transform the set object
-  ::transformClassSet(obj:obj, ep_pkg:ep_pkg, path:path);
-
-  // add to the containing component imports
-  select one component_file related by containing_comp_def->File[R401];
-  ::addFileToImports(file:component_file, file_to_import:file, type:ImportType::IMPL);
-
-  // create the import block
-  ::addFileToImports(file:file, file_to_import:component_file, type:ImportType::BOTH);
-  ::addStringToImports(file:file, s:"io.ciera.runtime.application.ExecutionContext", type:ImportType::IMPL);
-  ::addStringToImports(file:file, s:"io.ciera.runtime.exceptions.EmptyInstanceException", type:ImportType::IMPL);
-  ::addStringToImports(file:file, s:"io.ciera.runtime.types.UniqueId", type:ImportType::IMPL);
-  
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -1019,79 +950,6 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("39485529-37f5-43d9-bbd1-92027e9dd6d6",
-	1,
-	"302d02ea-52a7-489d-a14b-18b29f3c8d86",
-	"00000000-0000-0000-0000-000000000000",
-	1);
-INSERT INTO S_SYNC
-	VALUES ("8bc831e7-b772-4237-b2a5-e423d381379b",
-	"00000000-0000-0000-0000-000000000000",
-	'transformClassSet',
-	'',
-	'obj = param.obj;
-
-// create the instance type
-create object instance type of Type;
-type.name = obj.name + ".Set";
-type.package = obj.package;
-select any s_irdt related by obj->O_OBJ[R409]->S_IRDT[R123] where (selected.isSet);
-select one s_dt related by s_irdt->S_DT[R17];
-if (not_empty s_dt)
-  ::Type_resolve(t:type, s_dt:s_dt);
-else
-  // TODO bad
-end if;
-type.default_value = "new " + type.name + "()";
-select one file related by obj->File[R401];
-relate type to file across R3803;
-
-
-// create the class set object
-create object instance objset of ClassSet;
-relate objset to obj across R406;
-relate objset to type across R407;
-
-// add to imports
-::addStringToImports(file:file, s:"java.util.Collection", type:ImportType::IMPL);
-::addStringToImports(file:file, s:"java.util.Comparator", type:ImportType::IMPL);
-::addStringToImports(file:file, s:"java.util.SortedSet", type:ImportType::IMPL);
-::addStringToImports(file:file, s:"java.util.TreeSet", type:ImportType::IMPL);
-::addStringToImports(file:file, s:"java.util.function.Predicate", type:ImportType::IMPL);
-::addStringToImports(file:file, s:"java.util.stream.Collectors", type:ImportType::IMPL);',
-	"ba5eda7a-def5-0000-0000-000000000000",
-	1,
-	'',
-	0,
-	0);
-INSERT INTO S_SPARM
-	VALUES ("8ed3e4d3-66bd-4a27-bbd4-8ed9c0496aa7",
-	"8bc831e7-b772-4237-b2a5-e423d381379b",
-	'obj',
-	"a519e323-b117-4a03-9435-b88e56c2443d",
-	0,
-	'',
-	"00000000-0000-0000-0000-000000000000",
-	'');
-INSERT INTO S_SPARM
-	VALUES ("a3108481-ac1e-4978-b55f-e7904a2b234b",
-	"8bc831e7-b772-4237-b2a5-e423d381379b",
-	'ep_pkg',
-	"9939c670-a721-4742-a824-ed4b0df4acd6",
-	0,
-	'',
-	"8ed3e4d3-66bd-4a27-bbd4-8ed9c0496aa7",
-	'');
-INSERT INTO S_SPARM
-	VALUES ("78e96da2-cc85-4688-aa2e-24323899ec51",
-	"8bc831e7-b772-4237-b2a5-e423d381379b",
-	'path',
-	"ba5eda7a-def5-0000-0000-000000000004",
-	0,
-	'',
-	"a3108481-ac1e-4978-b55f-e7904a2b234b",
-	'');
-INSERT INTO PE_PE
-	VALUES ("8bc831e7-b772-4237-b2a5-e423d381379b",
 	1,
 	"302d02ea-52a7-489d-a14b-18b29f3c8d86",
 	"00000000-0000-0000-0000-000000000000",
@@ -1202,10 +1060,6 @@ if (1 == param.pass)
     gen_file.contents = T::body();
   end if;
   
-  // create import block
-  ::addStringToImports(file:file, s:"io.ciera.runtime.application.Application", type:ImportType::IMPL);
-  ::addStringToImports(file:file, s:"io.ciera.runtime.domain.Domain", type:ImportType::IMPL);
-  
 elif (2 == param.pass)
 
   select any file from instances of File where (selected.name == ::camelCaseName(name:c_c.Name, start_lower:false) and selected.package == ::pathToPackage(path:param.path));
@@ -1304,7 +1158,6 @@ create object instance type of Type;
 type.name = file.name;
 type.package = file.package;
 type.default_value = "null";
-::Type_resolve(t:type,  s_dt:s_dt );
 create object instance edt of EnumeratedType;
 relate type to edt across R407;
 relate edt to file across R401;
@@ -1376,7 +1229,7 @@ invocable.parent_package = sm.package;
 relate evt to invocable across R427;
 
 // link type
-type = ::TypeReference_getBuiltinTypeReference( name:"void" );
+type = ::getBuiltinTypeReference( name:"void" );
 relate type to invocable across R428;
 
 // create parameters
@@ -1394,18 +1247,14 @@ while ( not_empty sm_evtdi )
   parm.by_ref = false;
   select one parm_dt related by sm_evtdi->S_DT[R524];
   select many s_dims related by sm_evtdi->S_DIM[R531];
-  parm_type = ::TypeReference_getInstance( s_dt:parm_dt, s_dims:s_dims );
+  parm_type = ::getTypeReferenceForS_DTWithDims( s_dt:parm_dt, s_dims:s_dims );
   relate parm_type to parm across R431;
   ::linkParameter( invocable:invocable, parameter:parm );
   select one sm_evtdi related by sm_evtdi->SM_EVTDI[R533.''precedes''];
 end while;
 
 // link to ooa event
-relate evt to sm_evt across R4759;
-
-// add imports
-select one file related by sm->File[R401];
-::addStringToImports(file:file, s:"io.ciera.runtime.application.Event", type:ImportType::IMPL);',
+relate evt to sm_evt across R4759;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -1480,7 +1329,7 @@ relate func to invocable across R427;
 // link type
 select one s_dt related by s_sync->S_DT[R25];
 select many s_dims related by s_sync->S_DIM[R51];
-type = ::TypeReference_getInstance( s_dt:s_dt, s_dims:s_dims );
+type = ::getTypeReferenceForS_DTWithDims( s_dt:s_dt, s_dims:s_dims );
 relate type to invocable across R428;
 
 // create parameters
@@ -1498,7 +1347,7 @@ while ( not_empty s_sparm )
   parm.by_ref = ( 1 == s_sparm.By_Ref );
   select one parm_dt related by s_sparm->S_DT[R26];
   select many s_dims related by s_sparm->S_DIM[R52];
-  parm_type = ::TypeReference_getInstance( s_dt:parm_dt, s_dims:s_dims );
+  parm_type = ::getTypeReferenceForS_DTWithDims( s_dt:parm_dt, s_dims:s_dims );
   relate parm_type to parm across R431;
   ::linkParameter( invocable:invocable, parameter:parm );
   select one s_sparm related by s_sparm->S_SPARM[R54.''precedes''];
@@ -1652,9 +1501,6 @@ if ( empty iface )
     ::transformMessage( c_ep:c_ep, iface:iface, index:index );
     index = index + 1;
   end for;
-  
-  // add imports to iface file                                                                                                                                                                                    
-  ::addStringToImports(file:file, s:"io.ciera.runtime.domain.Port", type:ImportType::IMPL);
 
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
@@ -1718,12 +1564,7 @@ elif ( not_empty c_io )
 end if;
 relate msg to iface across R419;
 
-end if;
-
-// add imports to iface file
-select one iface_file related by iface->File[R401];
-::addStringToImports(file:iface_file, s:"io.ciera.runtime.domain.Message", type:ImportType::IMPL);
-::addStringToImports(file:iface_file, s:"java.util.Map", type:ImportType::IMPL);',
+end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -1803,7 +1644,7 @@ select one o_obj related by o_tfr->O_OBJ[R115];
 // link type
 select one s_dt related by o_tfr->S_DT[R116];
 select many s_dims related by o_tfr->S_DIM[R122];
-type = ::TypeReference_getInstance(s_dt:s_dt, s_dims:s_dims);
+type = ::getTypeReferenceForS_DTWithDims(s_dt:s_dt, s_dims:s_dims);
 relate type to invocable across R428;
 
 // create parameters
@@ -1821,7 +1662,7 @@ while (not_empty o_tparm)
   parm.by_ref = (1 == o_tparm.By_Ref);
   select one parm_dt related by o_tparm->S_DT[R118];
   select many s_dims related by o_tparm->S_DIM[R121];
-  parm_type = ::TypeReference_getInstance(s_dt:parm_dt, s_dims:s_dims);
+  parm_type = ::getTypeReferenceForS_DTWithDims(s_dt:parm_dt, s_dims:s_dims);
   relate parm_type to parm across R431;
   ::linkParameter(invocable:invocable, parameter:parm);
   select one o_tparm related by o_tparm->O_TPARM[R124.''precedes''];
@@ -1853,7 +1694,7 @@ if (not_empty o_def and o_def.required == 1)
   // link type
   select one s_dt related by o_tfr->S_DT[R116];
   select many s_dims related by o_tfr->S_DIM[R122];
-  type = ::TypeReference_getInstance(s_dt:s_dt, s_dims:s_dims);
+  type = ::getTypeReferenceForS_DTWithDims(s_dt:s_dt, s_dims:s_dims);
   relate type to invocable across R428;
   
   // create parameters
@@ -1871,7 +1712,7 @@ if (not_empty o_def and o_def.required == 1)
     parm.by_ref = (1 == o_tparm.By_Ref);
     select one parm_dt related by o_tparm->S_DT[R118];
     select many s_dims related by o_tparm->S_DIM[R121];
-    parm_type = ::TypeReference_getInstance(s_dt:parm_dt, s_dims:s_dims);
+    parm_type = ::getTypeReferenceForS_DTWithDims(s_dt:parm_dt, s_dims:s_dims);
     relate parm_type to parm across R431;
     ::linkParameter(invocable:invocable, parameter:parm);
     select one o_tparm related by o_tparm->O_TPARM[R124.''precedes''];
@@ -1892,17 +1733,6 @@ elif (not_empty o_def and o_def.required == 0 and empty act_act)
   relate act_act to act_opb across R698;
   relate act_opb to o_tfr across R696;
   relate act_act to invocable across R432;
-end if;
-
-// add imports
-select one type_def related by type->Type[R3800];
-if op.is_class_based
-  select one comp_file related by obj->ComponentDefinition[R408]->File[R401];
-  ::addTypeToImports(file:comp_file, type_to_import:type_def, type:ImportType::IMPL);
-else
-  select one class_file related by obj->File[R401];
-  ::addStringToImports(file:class_file, s:"io.ciera.runtime.exceptions.EmptyInstanceException", type:ImportType::IMPL);
-  ::addTypeToImports(file:class_file, type_to_import:type_def, type:ImportType::IMPL);
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -2150,22 +1980,9 @@ if ( not_empty iface )
   for each msg in msgs
     ::transformPortMessage( port:port, msg:msg );
   end for;
-  select one iface_file related by iface->File[R401];
-  ::addFileToImports( file:file, file_to_import:iface_file, type:ImportType::IMPL );
 else
   // TODO bad
-end if;
-select one iface_file related by iface->File[R401];
-
-// add to component file
-select one component_file related by comp_def->File[R401];
-::addFileToImports( file:component_file, file_to_import:file, type:ImportType::IMPL );
-::addFileToImports( file:component_file, file_to_import:iface_file, type:ImportType::IMPL );
-
-// add imports to port file                                                                                                                                                                                     
-::addStringToImports(file:file, s:"io.ciera.runtime.domain.AbstractPort", type:ImportType::IMPL);                                                                                                            
-::addFileToImports(file:file, file_to_import:component_file, type:ImportType::IMPL);                                                                                                                       
-::addFileToImports(file:file, file_to_import:iface_file, type:ImportType::IMPL);',
+end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -2259,7 +2076,7 @@ else
 end if;
 
 // link type
-type = ::TypeReference_getBuiltinTypeReference( name:"void" );
+type = ::getBuiltinTypeReference( name:"void" );
 relate type to invocable across R428;
 
 // create parameters
@@ -2277,7 +2094,7 @@ while ( not_empty c_pp )
   parm.by_ref = ( 1 == c_pp.By_Ref );
   select one parm_dt related by c_pp->S_DT[R4007];
   select many s_dims related by c_pp->S_DIM[R4017];
-  parm_type_ref = ::TypeReference_getInstance( s_dt:parm_dt, s_dims:s_dims );
+  parm_type_ref = ::getTypeReferenceForS_DTWithDims( s_dt:parm_dt, s_dims:s_dims );
   relate parm_type_ref to parm across R431;
   ::linkParameter( invocable:invocable, parameter:parm );
   select one c_pp related by c_pp->C_PP[R4021.''precedes''];
@@ -2289,13 +2106,6 @@ if ( not_empty act_act )
   ::setOriginalNames(invocable:invocable, label:act_act.Label);
 else
   // TODO bad
-end if;
-
-// add imports to port file
-if ((msg.to_provider and port.provider) or (not msg.to_provider and not port.provider))
-  // Add only for inbound messages
-  ::addStringToImports(file:file, s:"io.ciera.runtime.domain.Message", type:ImportType::IMPL);
-  ::addStringToImports(file:file, s:"io.ciera.runtime.exceptions.PortMessageException", type:ImportType::IMPL);
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -2409,7 +2219,7 @@ if ( not_empty act_act )
 end if;
 
 // link type
-type = ::TypeReference_getBuiltinTypeReference( name:"void" );
+type = ::getBuiltinTypeReference( name:"void" );
 relate type to invocable across R428;
 
 // link to ooa state
@@ -2496,7 +2306,7 @@ invocable.parent_package = sm.package;
 relate non_existent to invocable across R427;
 
 // link type
-type = ::TypeReference_getBuiltinTypeReference(name:"void");
+type = ::getBuiltinTypeReference(name:"void");
 relate type to invocable across R428;
 
 // transform the other states
@@ -2568,7 +2378,7 @@ for each state in states
         end if;
         
         // link type
-        type = ::TypeReference_getBuiltinTypeReference(name:"void");
+        type = ::getBuiltinTypeReference(name:"void");
         relate type to invocable across R428;
 
       else
@@ -2619,7 +2429,7 @@ for each state in states
             end if;
             
             // link type
-            type = ::TypeReference_getBuiltinTypeReference(name:"void");
+            type = ::getBuiltinTypeReference(name:"void");
             relate type to invocable across R428;
 
           end if;
@@ -2632,17 +2442,7 @@ for each state in states
       
   end for;
   
-end for;
-
-// add imports
-::addStringToImports(file:file, s:"io.ciera.runtime.domain.InstanceStateMachine", type:ImportType::IMPL);
-::addStringToImports(file:file, s:"io.ciera.runtime.domain.TransitionRule", type:ImportType::IMPL);
-
-select one class_file related by obj->File[R401];
-select one comp_file related by obj->ComponentDefinition[R408]->File[R401];
-::addFileToImports(file:file, file_to_import:class_file, type:ImportType::IMPL);
-::addFileToImports(file:file, file_to_import:comp_file, type:ImportType::IMPL);
-',
+end for;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -2684,7 +2484,8 @@ INSERT INTO S_SYNC
 	"00000000-0000-0000-0000-000000000000",
 	'transformUserDefinedType',
 	'',
-	's_dt = param.s_dt;
+	'/* TODO
+s_dt = param.s_dt;
 select one ep_pkg related by s_dt->PE_PE[R8001]->EP_PKG[R8000];
 
 // create the file
@@ -2700,15 +2501,11 @@ create object instance type of Type;
 type.name = file.name;
 type.package = file.package;
 type.default_value = "new " + type.name + "()";
-::Type_resolve(t:type,  s_dt:s_dt );
 create object instance udt of UserDefinedType;
 relate type to udt across R407;
 relate udt to file across R401;
 relate type to file across R3803;
-
-// add import
-::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL );
-::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.IXtumlType", type:ImportType::IMPL );',
+*/',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -2753,19 +2550,13 @@ relate utility to file across R401;
 if (not_empty containing_comp_def)
   create object instance util_ref of UtilityInComponent;
   relate utility to containing_comp_def across R4558 using util_ref;
-  select one component_file related by containing_comp_def->File[R401];
-  ::addFileToImports(file:component_file, file_to_import:file, type:ImportType::BOTH);
 end if;
 
 // transform each utility function
 select many s_brgs related by s_ee->S_BRG[R19];
 for each s_brg in s_brgs
   ::transformUtilityFunction(s_brg:s_brg, utility:utility);
-end for;
-
-// create import block
-::addStringToImports(file:file, s:"io.ciera.runtime.domain.Domain", type:ImportType::BOTH);
-::addStringToImports(file:file, s:"io.ciera.runtime.domain.Utility", type:ImportType::BOTH);',
+end for;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -2852,7 +2643,7 @@ select one s_ee related by s_brg->S_EE[R19];
 // link type
 select one s_dt related by s_brg->S_DT[R20];
 select many s_dims related by s_brg->S_DIM[R50];
-type = ::TypeReference_getInstance(s_dt:s_dt, s_dims:s_dims);
+type = ::getTypeReferenceForS_DTWithDims(s_dt:s_dt, s_dims:s_dims);
 relate type to invocable across R428;
 
 // create parameters
@@ -2870,7 +2661,7 @@ while (not_empty s_bparm)
   parm.by_ref = (1 == s_bparm.By_Ref);
   select one parm_dt related by s_bparm->S_DT[R22];
   select many s_dims related by s_bparm->S_DIM[R49];
-  parm_type = ::TypeReference_getInstance(s_dt:parm_dt, s_dims:s_dims);
+  parm_type = ::getTypeReferenceForS_DTWithDims(s_dt:parm_dt, s_dims:s_dims);
   relate parm_type to parm across R431;
   ::linkParameter(invocable:invocable, parameter:parm);
   select one s_bparm related by s_bparm->S_BPARM[R55.''precedes''];

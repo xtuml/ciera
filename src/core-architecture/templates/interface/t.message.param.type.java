@@ -1,1 +1,1 @@
-${sep}${parm.type_name}.class\
+${sep}${type_name}.class\

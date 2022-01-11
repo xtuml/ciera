@@ -1,6 +1,3 @@
-.if (("many" == self.multiplicity) or ("one" == self.multiplicity))
-((${self.cast})\
-.end if
 ${root_expression_body}\
 .if (sorted)
 ..sorted((_a, _b) -> {try {int comp = \
