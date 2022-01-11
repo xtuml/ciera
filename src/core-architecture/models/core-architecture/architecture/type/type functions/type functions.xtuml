@@ -63,6 +63,13 @@ new_builtin.primitive = true;
 new_builtin.object_name = "Character";
 
 create object instance new_type of Type;
+new_type.name = "Date";
+new_type.package = "io.ciera.runtime.types";
+new_type.default_value = "Date.ZERO";
+create object instance new_builtin of BuiltInType;
+relate new_builtin to new_type across R407;
+
+create object instance new_type of Type;
 new_type.name = "Device";
 new_type.package = "io.ciera.runtime.types";
 new_type.default_value = "null";
@@ -166,6 +173,13 @@ create object instance new_type of Type;
 new_type.name = "TimeStamp";
 new_type.package = "io.ciera.runtime.types";
 new_type.default_value = "TimeStamp.ZERO";
+create object instance new_builtin of BuiltInType;
+relate new_builtin to new_type across R407;
+
+create object instance new_type of Type;
+new_type.name = "UniqueId";
+new_type.package = "io.ciera.runtime.types";
+new_type.default_value = "UniqueId.ZERO";
 create object instance new_builtin of BuiltInType;
 relate new_builtin to new_type across R407;
 
@@ -313,6 +327,48 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("3d026f0b-c888-48a8-b2bc-a6abcaa0986f",
+	1,
+	"181c88bd-e2a3-491d-81d4-90a42e0f11c1",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("e062e0db-9e3f-48cc-86fb-b14c410867a4",
+	"00000000-0000-0000-0000-000000000000",
+	'getBasicTypeReference',
+	'',
+	'type = param.type;
+select any type_ref related by type->TypeReference[R3800]->BasicTypeReference[R3801]->TypeReference[R3801];
+if empty type_ref
+  create object instance type_ref of TypeReference;
+  type_ref.type_reference = type.name;
+  create object instance basic_ref of BasicTypeReference;
+  relate basic_ref to type_ref across R3801;
+  relate type_ref to type across R3800;
+end if;
+return type_ref;',
+	"096d9dad-f227-4793-bb43-a1915881b825",
+	1,
+	'',
+	0,
+	4);
+INSERT INTO S_SPARM
+	VALUES ("6b1b97f8-798f-4f83-88cb-aeaa068289f1",
+	"e062e0db-9e3f-48cc-86fb-b14c410867a4",
+	'type',
+	"b4a754cc-b0a5-4777-ae98-df570434ea2a",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("b4a754cc-b0a5-4777-ae98-df570434ea2a",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Type>',
+	'',
+	'',
+	'../type.xtuml');
+INSERT INTO PE_PE
+	VALUES ("e062e0db-9e3f-48cc-86fb-b14c410867a4",
 	1,
 	"181c88bd-e2a3-491d-81d4-90a42e0f11c1",
 	"00000000-0000-0000-0000-000000000000",

@@ -1162,6 +1162,7 @@ create object instance edt of EnumeratedType;
 relate type to edt across R407;
 relate edt to file across R401;
 relate type to file across R3803;
+relate type to s_dt across R423;
 
 // transform enumerators
 select any enumer related by s_dt->S_EDT[R17]->S_ENUM[R27];
@@ -1329,7 +1330,7 @@ relate func to invocable across R427;
 // link type
 select one s_dt related by s_sync->S_DT[R25];
 select many s_dims related by s_sync->S_DIM[R51];
-type = ::getTypeReferenceForS_DTWithDims( s_dt:s_dt, s_dims:s_dims );
+type = ::getTypeReferenceForS_DTWithDims(s_dt:s_dt, s_dims:s_dims);
 relate type to invocable across R428;
 
 // create parameters
@@ -1411,60 +1412,6 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("3775f12f-f551-4b87-b37b-bcdae037314c",
-	1,
-	"302d02ea-52a7-489d-a14b-18b29f3c8d86",
-	"00000000-0000-0000-0000-000000000000",
-	1);
-INSERT INTO S_SYNC
-	VALUES ("194b8d45-3d39-4bab-ba2c-c3f10ade50d6",
-	"00000000-0000-0000-0000-000000000000",
-	'transformInstanceReferenceTypes',
-	'',
-	'// make sure an instance reference type is created for every class
-select many o_objs from instances of O_OBJ;
-for each o_obj in o_objs
-  select one packageableElem related by o_obj->PE_PE[R8001];
-  select one pkg related by packageableElem->EP_PKG[R8000];
-
-  // Make sure the IRDTs don''t already exist before creating new ones.  Check
-  // the single and set version and create whatever does not exist.
-  select any existing_irdt related by o_obj->S_IRDT[R123] where selected.isSet == false;
-  if (empty existing_irdt)
-    create object instance pe of PE_PE;
-    relate pe to pkg across R8000;
-    pe.Visibility = Visibility::Public;
-    pe.type = ElementTypeConstants::DATATYPE;
-    create object instance dt of S_DT;
-    relate pe to dt across R8001;
-    create object instance irdt of S_IRDT;
-    irdt.isSet = false;
-    relate dt to irdt across R17;
-    dt.Name = "inst_ref<" + o_obj.Name + ">" ;
-    relate o_obj to irdt across R123;
-  end if;
-
-  select any existing_irdt_set related by o_obj->S_IRDT[R123] where selected.isSet == true;
-  if (empty existing_irdt_set)
-    create object instance pe of PE_PE;
-    relate pe to pkg across R8000;
-    pe.Visibility = Visibility::Public;
-    pe.type = ElementTypeConstants::DATATYPE;
-    create object instance dt2 of S_DT;
-    relate pe to dt2 across R8001;
-    create object instance irsdt of S_IRDT;
-    irsdt.isSet = true;
-    relate irsdt to dt2 across R17;
-    dt2.Name = "inst_ref_set<" + o_obj.Name + ">" ;
-    relate o_obj to irsdt across R123;
-  end if;
-end for;',
-	"ba5eda7a-def5-0000-0000-000000000000",
-	1,
-	'',
-	0,
-	0);
-INSERT INTO PE_PE
-	VALUES ("194b8d45-3d39-4bab-ba2c-c3f10ade50d6",
 	1,
 	"302d02ea-52a7-489d-a14b-18b29f3c8d86",
 	"00000000-0000-0000-0000-000000000000",

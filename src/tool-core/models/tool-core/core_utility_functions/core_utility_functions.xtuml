@@ -1045,34 +1045,76 @@ INSERT INTO S_SYNC
 	'',
 	's_dt = param.s_dt;
 
-select any type_ref from instances of TypeReference where false;
+select any empty_type_ref from instances of TypeReference where false;
 
+// xtUML core data types
+select one cdt related by s_dt->S_CDT[R17];
+if not_empty cdt
+  // map from xtUML builtins to Ciera builtins
+  if s_dt.Name == "void"
+    return ::getBuiltinTypeReference(name:"void");
+  elif s_dt.Name == "boolean"
+    return ::getBuiltinTypeReference(name:"boolean");
+  elif s_dt.Name == "integer"
+    return ::getBuiltinTypeReference(name:"int");
+  elif s_dt.Name == "real"
+    return ::getBuiltinTypeReference(name:"double");
+  elif s_dt.Name == "string"
+    return ::getBuiltinTypeReference(name:"String");
+  elif s_dt.Name == "unique_id"
+    return ::getBuiltinTypeReference(name:"UniqueId");
+  elif s_dt.Name == "inst<Event>"
+    // return ''Object'' for deprecated inst<Event> type
+    return ::getBuiltinTypeReference(name:"Object");
+  else
+    // for unsupported builtins, return an empty type reference
+    return empty_type_ref;
+  end if;
+end if;
+
+select one udt related by s_dt->S_UDT[R17];
+if not_empty udt
+  
+  // xtUML built in types defined as UDTs
+  if s_dt.Name == "date"
+    return ::getBuiltinTypeReference(name:"Date");
+  elif s_dt.Name == "inst_ref<Timer>"
+    return ::getBuiltinTypeReference(name:"Timer");
+  elif s_dt.Name == "timestamp"
+    return ::getBuiltinTypeReference(name:"TimeStamp");
+  else
+    // User defined types
+    // TODO
+
+  end if;
+  
+end if;
+
+// instance reference data types
+select one irdt related by s_dt->S_IRDT[R17];
+if not_empty irdt
+  select one obj related by irdt->O_OBJ[R123]->Class[R409];
+  if irdt.isSet
+    return ::getObjectSetReference(obj:obj);
+  else
+    return ::getObjectReference(obj:obj);
+  end if;
+end if;
+
+// enumerated data types
+select one edt related by s_dt->S_EDT[R17];
+if not_empty edt
+  select one type related by edt->S_DT[R17]->Type[R423];
+  if not_empty type
+    return ::getBasicTypeReference(type:type);
+  end if;
+end if;
 
 /*
-// TODO
-EDT
-UDT
-CDT
-IRDT
-SDT
-
-test.arc: 5:  INFO:  void
-test.arc: 5:  INFO:  boolean
-test.arc: 5:  INFO:  integer
-test.arc: 5:  INFO:  real
-test.arc: 5:  INFO:  string
-test.arc: 5:  INFO:  unique_id
-test.arc: 5:  INFO:  state<State_Model>
-test.arc: 5:  INFO:  same_as<Base_Attribute>
-test.arc: 5:  INFO:  inst_ref<Object>
-test.arc: 5:  INFO:  inst_ref_set<Object>
-test.arc: 5:  INFO:  inst<Event>
-test.arc: 5:  INFO:  inst<Mapping>
-test.arc: 5:  INFO:  inst_ref<Mapping>
-test.arc: 5:  INFO:  component_ref
+_ SDT
 */
 
-return type_ref;',
+return empty_type_ref;',
 	"096d9dad-f227-4793-bb43-a1915881b825",
 	1,
 	'',
