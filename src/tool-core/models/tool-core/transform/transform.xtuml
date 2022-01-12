@@ -2531,9 +2531,11 @@ relate port to file across R401;
 relate port to c_po across R422;
 port.port_name = ::camelCaseName( name:c_po.Name, start_lower:false );
 
+path_for_mark = ::containerMarkingPath( pe:pe ) + "::" + c_c.Name + "::" + c_po.Name;
+
 // set base class
 select any base_class_mark from instances of Mark where ( selected.markable_name == "Port" and
-                                                          selected.path == ::containerMarkingPath( pe:pe ) + "::" + c_c.Name + "::" + c_po.Name and
+                                                          selected.path == path_for_mark and
                                                           selected.feature_name == "BaseClass" );
 if ( not_empty base_class_mark )
   port.base_class = base_class_mark.value;
@@ -2541,6 +2543,14 @@ if ( not_empty base_class_mark )
 else
   port.base_class = "Port";
   ::addStringToImports( file:file, s:"io.ciera.runtime.summit.interfaces.Port", type:ImportType::IMPL );
+end if;
+
+// look for any special-casing of this port
+select any port_type_mark from instances of Mark where ( selected.markable_name == "Port" and
+                                                          selected.path == path_for_mark and
+                                                          selected.feature_name == "PortType" );
+if ( not_empty port_type_mark )
+	port.marked_type = port_type_mark.value;
 end if;
 
 // set port as provider or requirer

@@ -56,6 +56,7 @@ while ( not_empty parm )
   invocation_parameter_list = invocation_parameter_list + separator + parm.name;
   separator = ", ";
   pname = parm.name;
+  key = STRING::substr( s:pname, begin:2, end:-1 );
   T::include( file:"interface/t.portmessage.parm.java");
   select one parm related by parm->FormalParameter[R404.''precedes''];
 end while;
@@ -154,6 +155,26 @@ T::clear();',
 	"df440f1c-1f71-4122-82f1-fc71336cf426",
 	0,
 	1);
+INSERT INTO O_TFR
+	VALUES ("769fbf57-e509-4048-a3a3-60ffe054cd59",
+	"8f02fe11-ef0d-4fb7-a888-408deb5ae3c8",
+	'render_def',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'// render a message definition that receives a single message class parameter.
+// add the message class to the interface imports.
+select one iface related by self->Interface[R419.''defines message format for''];
+select one file related by iface->File[R401];
+msgpkg = T::sub( format:"l", s:STRING::substr( s:iface.name, begin:1, end:-1 ));
+pkg = iface.package + "." + msgpkg;
+::addStringToImports( file:file, s:pkg + "." + self.name + "Msg", type: ImportType::IMPL );
+T::include(file:"interface/t.message.def.java");',
+	1,
+	'',
+	"84ee45b7-7c16-48b1-a413-4c090a90874d",
+	0,
+	2);
 INSERT INTO O_NBATTR
 	VALUES ("7ad04da4-0d63-47e6-86a4-dfc351516b37",
 	"8f02fe11-ef0d-4fb7-a888-408deb5ae3c8");

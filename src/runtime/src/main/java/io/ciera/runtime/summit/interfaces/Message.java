@@ -119,4 +119,8 @@ public abstract class Message implements IMessage, Comparable<IMessage> {
     public Object getParm(String key ) {
     	return keyValueParms.get(key);
     }
+    
+    public JSONObject getParms() {
+    	return keyValueParms;
+    }
 }

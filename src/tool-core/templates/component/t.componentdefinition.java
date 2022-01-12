@@ -6,8 +6,13 @@ public class ${self.name} extends ${self.extends} {
 
     private Map<String, Class<?>> classDirectory;
 
-    public ${self.name}(IApplication app, IRunContext runContext, int populationId) {
+	private static ${self.name} singleton;
+	public static ${self.name} Singleton() {
+		return singleton;
+	}
+public ${self.name}(IApplication app, IRunContext runContext, int populationId) {
         super(app, runContext, populationId);
+        singleton = this;
 ${instance_extent_initializers}
 ${relationship_extent_initializers}
 ${utility_initializers}

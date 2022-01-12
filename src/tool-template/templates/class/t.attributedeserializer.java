@@ -1,1 +1,1 @@
-, jobj.${get_type}("${self.name}")\
+, jobj.${get_type}("${key}")\

@@ -16,14 +16,14 @@ INSERT INTO O_TFR
 	1,
 	'select one containing_comp_def related by self->ComponentDefinition[R417];
 
-select one file related by self->File[R401];
-imports = file.getFormattedImports( type:ImportType::IMPL );
-
 // render inbound messages
 select many inbound_msgs related by self->Interface[R418]->Message[R419] where ( ( not selected.to_provider and not self.provider ) or
                                                                                  ( selected.to_provider and self.provider ) );
 select many inbound_port_msgs related by inbound_msgs->PortMessage[R420] where ( selected.port_name == self.name );
 for each port_msg in inbound_port_msgs
+	if ( self.marked_type == "SpringWebSocket" )
+		port_msg.render_msg_decode();
+	end if;
   port_msg.render( containing_comp_def:containing_comp_def );
 end for;
 inbound_message_block = T::body();
@@ -39,12 +39,15 @@ end for;
 outbound_message_block = T::body();
 T::clear();
 
-// render switch block
-for each msg in inbound_port_msgs
-  msg.render_deliver();
-end for;
-message_switch_block = T::body();
-T::clear();
+message_switch_block = "";
+if ( self.marked_type != "SpringWebSocket" )
+	// render switch block
+	for each msg in inbound_port_msgs
+	  msg.render_deliver();
+	end for;
+	message_switch_block = T::body();
+	T::clear();
+end if;
 
 // render extra parameters
 extra_parameters = "";
@@ -61,6 +64,9 @@ if ( "HttpPort" == self.base_class )
   T::clear();
 end if;
 
+select one file related by self->File[R401];
+imports = file.getFormattedImports( type:ImportType::IMPL );
+
 T::include(file:"interface/t.port.java");
 T::emit( file:file.path + "/" + self.name + file.extension );
 T::clear();',
@@ -76,7 +82,11 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'T::include(file:"interface/t.portaccessor.java");',
+	'use_singleton = false;
+if ( self.marked_type == "SpringWebSocket" )
+	use_singleton = true;
+end if;
+T::include(file:"interface/t.portaccessor.java");',
 	1,
 	'',
 	"a8cd2a5e-e4c5-4db2-b940-626a586c3f07",
@@ -598,6 +608,24 @@ INSERT INTO O_ATTR
 	"ba5eda7a-def5-0000-0000-000000000007",
 	'',
 	'');
+INSERT INTO O_NBATTR
+	VALUES ("cd8a6e3b-6858-4cfb-ac0a-24589808b2ef",
+	"28dc1d65-54a1-4be8-98f3-a6f65c69cdff");
+INSERT INTO O_BATTR
+	VALUES ("cd8a6e3b-6858-4cfb-ac0a-24589808b2ef",
+	"28dc1d65-54a1-4be8-98f3-a6f65c69cdff");
+INSERT INTO O_ATTR
+	VALUES ("cd8a6e3b-6858-4cfb-ac0a-24589808b2ef",
+	"28dc1d65-54a1-4be8-98f3-a6f65c69cdff",
+	"a7a46caf-41e7-4966-a2cf-bb02675b223e",
+	'marked_type',
+	'',
+	'',
+	'marked_type',
+	0,
+	"ba5eda7a-def5-0000-0000-000000000004",
+	'',
+	'');
 INSERT INTO O_ID
 	VALUES (0,
 	"28dc1d65-54a1-4be8-98f3-a6f65c69cdff");
@@ -628,6 +656,21 @@ INSERT INTO EP_PKG_PROXY
 	"00000000-0000-0000-0000-000000000000",
 	"9092a4a9-91f5-4e59-984b-3ca72917240d",
 	'interfaces',
-	'',
+	'Interfaces support passing instances and sets of instances as parameters on Port Messages.
+Where commmunicating components are represented by xtUML models, this is only practical 
+because components share component independent definitions of classes - and, therefore, 
+sets of class instances - through the Package Reference mechanism.
+
+While shared attribute, association and state model definitions of such classes are immutable,
+within xtUML components, shared classes may participate in component-specific associations.
+
+Since each component-specific class interface includes methods for all associations -
+including component-specific ones - in which the class participates, each method representing 
+an inter-component message must use component-independent interfaces to declare inst_ref and 
+inst_ref_set parameters. Therefore, methods realizing port-message activities must also use 
+component-independent interfaces when declaring such parameters which are then down-cast to 
+the receiving-component-specific class or class set required by the body of the port-message 
+activity.
+',
 	0,
 	'../interfaces.xtuml');

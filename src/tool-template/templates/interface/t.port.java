@@ -4,8 +4,13 @@ ${imports}
 
 public class ${self.name} extends ${self.base_class}<${self.comp_name}> implements ${self.iface_name} {
 
+	private static ${self.name} singleton;
+	public static ${self.name} Singleton() {
+		return singleton;
+	}
     public ${self.name}( ${self.comp_name} context, IPort<?> peer ) {
         super( context, peer );
+        singleton = this;
     }
 
     // inbound messages

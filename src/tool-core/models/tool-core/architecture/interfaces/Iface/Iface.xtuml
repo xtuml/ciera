@@ -14,12 +14,16 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'select one file related by self->File[R401];
-imports = file.getFormattedImports( type:ImportType::IMPL );
-
-select many to_provider_msgs related by self->Message[R419] where ( selected.to_provider );
+	'select many to_provider_msgs related by self->Message[R419] where ( selected.to_provider );
+select any port from instances of Port where ( false ); // decl
 for each msg in to_provider_msgs
-  msg.render();
+	select any port related by msg->Port[R420.''is implemented within'']
+	 where ( selected.marked_type == "SpringWebSocket" );
+	if ( not_empty port )
+		msg.render_def();
+	else
+    msg.render();
+  end if;
 end for;
 to_provider_message_block = T::body();
 T::clear();
@@ -31,6 +35,9 @@ end for;
 from_provider_message_block = T::body();
 T::clear();
 
+select one file related by self->File[R401];
+imports = file.getFormattedImports( type:ImportType::IMPL );
+
 T::include(file:"interface/t.interface.java");
 T::emit( file:file.path + "/" + self.name + file.extension );
 T::clear();
@@ -38,14 +45,16 @@ T::clear();
 // If this interface is marked for message class generation, render the classes.
 select any msgclass_mark from instances of Mark where ( selected.markable_name == "Interface" )
                                               and ( selected.feature_name == "GenerateMessageClasses" )
-											  and ( selected.value == self.name );
+											                        and ( selected.value == self.name );
 if ( not_empty msgclass_mark )
 	for each msg in to_provider_msgs
 	  msg.render_msgclass();
 	end for;
-	for each msg in from_provider_msgs
-	  msg.render_msgclass();
-	end for;
+	if ( empty port )  // not a SpringWebSocket port; they use a generic message class
+		for each msg in from_provider_msgs
+		  msg.render_msgclass();
+		end for;
+	end if;
 end if;
 ',
 	1,
