@@ -75,5 +75,10 @@ public class TimeStamp extends ModelType {
     public Duration subtract(TimeStamp t) {
         return new Duration(value - t.getValue());
     }
+    
+    @Override
+    public String toString() {
+        return Long.toString(value);
+    }
 
 }
