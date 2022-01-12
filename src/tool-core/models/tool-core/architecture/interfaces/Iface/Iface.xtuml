@@ -14,12 +14,21 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'select many to_provider_msgs related by self->Message[R419] where ( selected.to_provider );
-select any port from instances of Port where ( false ); // decl
+	'// A port marked as supporting Spring websocket needs a different interface for incoming messagesa.
+// It also needs a generic message class for outgoing message ''sends''.
+spring_controller = false;
+select one file related by self->File[R401];
+select any port related by self->Port[R418.''is implemented by'']
+ where ( selected.marked_type == "SpringWebSocket" );
+if ( not_empty port )
+	if ( port.marked_type == "SpringWebSocket" )
+	  spring_controller = true;
+	end if;
+end if;
+
+select many to_provider_msgs related by self->Message[R419] where ( selected.to_provider );
 for each msg in to_provider_msgs
-	select any port related by msg->Port[R420.''is implemented within'']
-	 where ( selected.marked_type == "SpringWebSocket" );
-	if ( not_empty port )
+	if ( spring_controller )
 		msg.render_def();
 	else
     msg.render();
@@ -35,7 +44,6 @@ end for;
 from_provider_message_block = T::body();
 T::clear();
 
-select one file related by self->File[R401];
 imports = file.getFormattedImports( type:ImportType::IMPL );
 
 T::include(file:"interface/t.interface.java");
@@ -50,7 +58,7 @@ if ( not_empty msgclass_mark )
 	for each msg in to_provider_msgs
 	  msg.render_msgclass();
 	end for;
-	if ( empty port )  // not a SpringWebSocket port; they use a generic message class
+	if ( not spring_controller )  // not a SpringWebSocket port; they use a generic message class
 		for each msg in from_provider_msgs
 		  msg.render_msgclass();
 		end for;

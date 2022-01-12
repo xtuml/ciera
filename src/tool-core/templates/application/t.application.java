@@ -2,14 +2,25 @@ package ${self.package};
 
 ${imports}
 
+.if spring_controller
+@SpringBootApplication
+.end if
 public class ${self.name} implements IApplication {
 
     private IComponent<?>[] components;
     private ApplicationExecutor[] executors;
+.if spring_controller
+    private static ${self.name} singleton;
+.end if
 
     public ${self.name}() {
         components = new IComponent<?>[$t{num_component_instances}];
         executors = new ApplicationExecutor[$t{num_executors}];
+        singleton = this;
+.if spring_controller
+        setup( null, null );
+        initialize();
+.end if;
     }
 
     @Override
@@ -73,6 +84,10 @@ ${component_getters}
     }
 
     public static void main( String[] args ) {
+.if spring_controller
+    	SpringApplication.run( ${self.name}.class, args );
+    	singleton.start();
+.else
         IApplication app = new ${self.name}();
         app.setup( args, null );
         if ( Arrays.asList(args).contains("-v") || Arrays.asList(args).contains("--version") ) {
@@ -82,6 +97,7 @@ ${component_getters}
             app.initialize();
             app.start();
         }
+.end if        
     }
 
 }

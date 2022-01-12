@@ -15,14 +15,31 @@ INSERT INTO O_TFR
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'select one containing_comp_def related by self->ComponentDefinition[R417];
+select any app related by containing_comp_def->Application[R426.''is instantiated by''];
+select one file related by self->File[R401];
+spring_controller = false;
+pkg = "";
+if ( self.marked_type == "SpringWebSocket" )
+  spring_controller = true;
+  ::addStringToImports( file:file, s:"org.springframework.messaging.simp.SimpMessagingTemplate", type: ImportType::IMPL );
+  ::addStringToImports( file:file, s:"org.springframework.messaging.handler.annotation.MessageMapping", type: ImportType::IMPL );
+  ::addStringToImports( file:file, s:"org.springframework.stereotype.Controller", type: ImportType::IMPL );
+  ::addStringToImports( file:file, s:"org.springframework.beans.factory.annotation.Autowired", type: ImportType::IMPL );
+  ::addStringToImports( file:file, s:app.package + ".SpringMsg", type: ImportType::IMPL );
+	select one iface related by self->Interface[R418.''implements''];
+	msgpkg = T::sub( format:"l", s:STRING::substr( s:iface.name, begin:1, end:-1 ));
+	pkg = iface.package + "." + msgpkg;
+end if;
+	
 
 // render inbound messages
 select many inbound_msgs related by self->Interface[R418]->Message[R419] where ( ( not selected.to_provider and not self.provider ) or
                                                                                  ( selected.to_provider and self.provider ) );
 select many inbound_port_msgs related by inbound_msgs->PortMessage[R420] where ( selected.port_name == self.name );
 for each port_msg in inbound_port_msgs
-	if ( self.marked_type == "SpringWebSocket" )
-		port_msg.render_msg_decode();
+	if ( spring_controller )
+		::addStringToImports( file:file, s:pkg + "." + port_msg.msg_name + "Msg", type: ImportType::IMPL );
+    port_msg.render_msg_decode();
 	end if;
   port_msg.render( containing_comp_def:containing_comp_def );
 end for;
@@ -40,7 +57,7 @@ outbound_message_block = T::body();
 T::clear();
 
 message_switch_block = "";
-if ( self.marked_type != "SpringWebSocket" )
+if ( not spring_controller )
 	// render switch block
 	for each msg in inbound_port_msgs
 	  msg.render_deliver();

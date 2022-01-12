@@ -17,7 +17,7 @@ INSERT INTO O_TFR
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'select one file related by self->File[R401];
-imports = file.getFormattedImports( type:ImportType::IMPL );
+
 select many comps related by self->ComponentInstantiation[R426];
 for each comp in comps
   comp.render();
@@ -37,6 +37,20 @@ T::clear();
 num_component_instances = cardinality comps;
 select many executors related by self->ApplicationExecutor[R4027];
 num_executors = cardinality executors;
+
+spring_controller = false;
+select any port from instances of Port
+ where ( selected.marked_type == "SpringWebSocket" );
+if ( not_empty port )
+	spring_controller = true;
+  pkg = self.package;
+  T::include(file:"interface/t.spring.msg.java");
+  T::emit( file:file.path + "/SpringMsg" + file.extension );
+  ::addStringToImports( file:file, s:"org.springframework.boot.SpringApplication", type: ImportType::IMPL );
+  ::addStringToImports( file:file, s:"org.springframework.boot.autoconfigure.SpringBootApplication", type: ImportType::IMPL );
+end if;
+
+imports = file.getFormattedImports( type:ImportType::IMPL );
 if ( self.async )
   T::include(file:"application/t.application.async.java");
 else
