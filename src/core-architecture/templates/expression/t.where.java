@@ -13,9 +13,9 @@ _a.${accessor}().compareTo(_b.${accessor}())\
 )\
 .end if
 .if ("one" == self.multiplicity)
-..oneWhere(selected -> ${where_expression_body}))\
+..oneWhere(selected -> ${where_expression_body})\
 .elif ("any" == self.multiplicity)
 ..any(selected -> ${where_expression_body})\
 .else
-..where(selected -> ${where_expression_body}))\
+..where(selected -> ${where_expression_body})\
 .end if

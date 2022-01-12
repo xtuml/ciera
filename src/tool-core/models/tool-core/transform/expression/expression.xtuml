@@ -477,11 +477,6 @@ create object instance expr of Expression;
 relate expr to smt across R775;
 expr.expression_number = expr_number;
 
-// link type
-select one v_var related by v_irf->V_VAR[R808];
-type = ::getTypeReferenceForV_VAR(v_var:v_var);
-relate type to expr across R795;
-
 // create the variable reference
 select one v_var related by v_irf->V_VAR[R808];
 if ( "self" == T::sub( format:"l", s:v_var.Name ) ) // reference to self
@@ -495,7 +490,11 @@ else
   create object instance var_ref of VariableReference;
   relate var to var_ref across R782;
   relate var_ref to expr across R776;
-end if;',
+end if;
+
+// link type
+type = ::getTypeReferenceForV_VAR(v_var:v_var);
+relate type to expr across R795;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -555,17 +554,16 @@ create object instance expr of Expression;
 relate expr to smt across R775;
 expr.expression_number = expr_number;
 
-// link type
-select one s_dt related by v_isr->V_VAL[R801]->S_DT[R820];
-type = ::getTypeReferenceForS_DT(s_dt:s_dt);
-relate type to expr across R795;
-
 // create variable reference
 select one v_var related by v_isr->V_VAR[R809];
 var = ::getVariableInScope(smt:smt, name:v_var.Name);
 create object instance var_ref of VariableReference;
 relate var to var_ref across R782;
-relate var_ref to expr across R776;',
+relate var_ref to expr across R776;
+
+// link type
+type = ::getTypeReferenceForV_VAR(v_var:v_var);
+relate type to expr across R795;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -1191,15 +1189,17 @@ expr.expression_number = expr_number;
 // this assumes that there is only one where clause per statement (which is currently
 // always the case in OAL)
 select any select_expr related by smt->Expression[R775]->WhereExpr[R776]->Expression[R790];
-select one sel_type related by select_expr->TypeReference[R795]->InstanceTypeReference[R3801]->TypeReference[R3801];
+select one sel_type related by select_expr->TypeReference[R795]->CollectionTypeReference[R3801]->TypeReference[R3805]->InstanceTypeReference[R3801]->TypeReference[R3801];
 if empty sel_type
-  select one sel_cls related by select_expr->TypeReference[R795]->CollectionTypeReference[R3801]->TypeReference[R3805]->InstanceTypeReference[R3801]->TypeReference[R3801];
+  select one sel_type related by select_expr->TypeReference[R795]->InstanceTypeReference[R3801]->TypeReference[R3801];
 end if;
 if not_empty sel_type
   relate sel_type to expr across R795;
 else
+  LOG::LogInfo(message:"LEVI couldn''t find type for selected ref");
   // TODO bad
 end if;
+LOG::LogInfo(message:"LEVI here");
 
 // create selected reference
 create object instance sel of SelectedExpr;
