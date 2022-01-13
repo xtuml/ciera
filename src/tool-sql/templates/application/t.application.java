@@ -16,8 +16,8 @@ public class ${self.name} implements IApplication {
     public ${self.name}() {
         components = new IComponent<?>[$t{num_component_instances}];
         executors = new ApplicationExecutor[$t{num_executors}];
-        singleton = this;
 .if spring_controller
+        singleton = this;
         setup( null, null );
         initialize();
 .end if;

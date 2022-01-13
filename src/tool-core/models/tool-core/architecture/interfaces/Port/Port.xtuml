@@ -57,14 +57,20 @@ outbound_message_block = T::body();
 T::clear();
 
 message_switch_block = "";
+sendmethod = "";
+topic = "HRuser";
+discriminant = "";
 if ( not spring_controller )
 	// render switch block
 	for each msg in inbound_port_msgs
 	  msg.render_deliver();
 	end for;
 	message_switch_block = T::body();
-	T::clear();
+else
+  T::include(file:"interface/t.port.send.java");
+  sendmethod = T::body();	
 end if;
+T::clear();
 
 // render extra parameters
 extra_parameters = "";

@@ -3,6 +3,8 @@ package ${self.package};
 ${imports}
 
 .if (spring_controller )
+import org.json.JSONObject;
+
 @Controller
 .end if
 public class ${self.name} extends ${self.base_class}<${self.comp_name}> implements ${self.iface_name} {
@@ -33,16 +35,7 @@ ${inbound_message_block}
     // outbound messages
 ${outbound_message_block}
 
-.if (spring_controller )
-    @Override 
-    public void send(IMessage message) throws XtumlException {
-    	String msgname = message.getName();
-     	String payload = (String)message.getParms().toString();
-    	SpringMsg springmsg = new SpringMsg ( msgname, payload );
-        String topic = "/topic/HRuser/";
-    	this.template.convertAndSend( topic, springmsg );
-    }
-.end if
+${sendmethod}
 
     @Override
     public void deliver( IMessage message ) throws XtumlException {
