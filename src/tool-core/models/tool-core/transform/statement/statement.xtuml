@@ -1164,13 +1164,12 @@ relate select_var to var_ref across R782;
 relate var_ref to l_op across R776;
 relate l_op to binop across R779;
 // create right operand
-select one selector related by act_fio->O_OBJ[R677]->Class[R409]->InstancePopulationSelector[R449];
+select one obj related by act_fio->O_OBJ[R677]->Class[R409];
 create object instance r_op of Expression;
 relate r_op to smt across R775;
 r_op.expression_number = "1.2";
 relate r_op to binop across R778;
-select one obj related by act_fio->O_OBJ[R677]->Class[R409];
-fio_type = ::getObjectSetReference(obj:obj);
+fio_type = ::getObjectStreamReference(obj:obj);
 relate fio_type to r_op across R795;
 if ( "any" == act_fio.cardinality ) // create another expression for the ''any''. Note that this is a little tricky because the local var ''r_op'' is being reused
   create object instance any_expr of AnyExpr;
@@ -1178,14 +1177,14 @@ if ( "any" == act_fio.cardinality ) // create another expression for the ''any''
   create object instance r_op of Expression;
   relate r_op to smt across R775;
   r_op.expression_number = "1.2.1";
-  relate select_type to r_op across R795;
+  relate fio_type to r_op across R795;
   relate r_op to any_expr across R783;
 end if;
 create object instance sel of SelectExpr;
 relate sel to r_op across R776;
 create object instance sel_fi of SelectFromInstances;
 relate sel_fi to sel across R789;
-relate selector to sel_fi across R799;
+relate obj to sel_fi across R799;
 // link select type to the main expression
 relate select_type to expr across R795;',
 	"ba5eda7a-def5-0000-0000-000000000000",
@@ -1296,7 +1295,7 @@ if ( not_empty where_clause_lbo and ( "false" == T::sub( format:"l", s:where_cla
   select one select_type_def related by select_type->Type[R3800];
   named_expr.name = select_type_def.default_value;
 else
-  select one selector related by act_fiw->O_OBJ[R676]->Class[R409]->InstancePopulationSelector[R449];
+  select one obj related by act_fiw->O_OBJ[R676]->Class[R409];
   create object instance r_op of Expression;
   relate r_op to smt across R775;
   r_op.expression_number = "1.2";
@@ -1310,15 +1309,14 @@ else
   create object instance sel_expr of Expression;
   relate sel_expr to smt across R775;
   sel_expr.expression_number = "1.2.1";
-  select one obj related by act_fiw->O_OBJ[R676]->Class[R409];
-  fiw_type = ::getObjectSetReference(obj:obj);
+  fiw_type = ::getObjectStreamReference(obj:obj);
   relate fiw_type to sel_expr across R795;
   relate sel_expr to where_expr across R790;
   create object instance sel of SelectExpr;
   relate sel to sel_expr across R776;
   create object instance sel_fi of SelectFromInstances;
   relate sel_fi to sel across R789;
-  relate selector to sel_fi across R799;
+  relate obj to sel_fi across R799;
   // transform the where clause condition
   ::transformExpression( v_val:where_clause_val, expr_number:"1.2.2", smt:smt );
   select any where_clause_expr related by smt->Expression[R775] where ( selected.expression_number == "1.2.2" );
@@ -3523,7 +3521,7 @@ expr.expression_number = expr_number;
 // link type
 select one target_class related by act_lnk->O_OBJ[R678]->Class[R409];
 if ::act_lnkGetMult( act_lnk:act_lnk ) == Mult::MANY
-  type = ::getObjectSetReference(obj:target_class);
+  type = ::getObjectStreamReference(obj:target_class);
   relate type to expr across R795;
 else
   type = ::getObjectReference(obj:target_class);
@@ -3578,10 +3576,7 @@ if ( "" != phrase )
   selector_name = selector_name + T::sub( format:"_", s:phrase ) + "_";
 end if;
 selector_name = selector_name + target_class.name;
-select any selector related by base_class->InstanceSelector[R442]->Selector[R445] where ( selected.name == selector_name );
-if (empty selector)
-  select any selector related by base_class->SetSelector[R444]->Selector[R445] where ( selected.name == selector_name );
-end if;
+select any selector related by base_class->Selector[R442] where ( selected.name == selector_name );
 if ( not_empty selector )
   relate selector to sel_rel across R797;
 else
@@ -3928,7 +3923,7 @@ for each subtype in subtypes
                                                                  selected.form_name == select_class.name and
                                                                  selected.part_name == self_class.name ); // if no phrase was included, the target and base class must be different
   selector_name = "R" + STRING::itoa( i:r_rel.Numb ) + "_is_a_" + select_class.name;
-  select any selector related by self_class->InstanceSelector[R442]->Selector[R445] where ( selected.name == selector_name );
+  select any selector related by self_class->Selector[R442] where ( selected.name == selector_name );
   if ( not_empty selector )
     relate selector to sel_rel across R797;
   else

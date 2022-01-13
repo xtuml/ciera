@@ -361,41 +361,18 @@ if ( "" != param.phrase )
 end if;
 name = name + other_obj.name;
 
-// create set selectors
-// create ''many'' selector
-create object instance sel of Selector;
-sel.parent_name = obj.name;
-sel.parent_package = obj.package;
-sel.name = name;
-sel.multiplicity = param.mult;
-relate rel to sel across R4512;
-create object instance set_sel of SetSelector;
-relate set_sel to sel across R445;
-relate set_sel to obj across R444;
-
-// link up type
-set_type = ::getObjectSetReference(obj:other_obj);
-relate set_type to sel across R446;
-
 class_type = ::getObjectReference(obj:other_obj);
+stream_type = ::getObjectStreamReference(obj:other_obj);
 
 // create the instance selectors
 if (Mult::ONE == param.mult)
 
   // create ''one'' selector
   create object instance sel of Selector;
-  sel.parent_name = obj.name;
-  sel.parent_package = obj.package;
+  relate sel to obj across R442;
+  relate sel to rel across R4512;
   sel.name = name;
   sel.multiplicity = param.mult;
-  relate rel to sel across R4512;
-  create object instance inst_sel of InstanceSelector;
-  inst_sel.rel_num = rel.num;
-  inst_sel.conditionality = param.cond;
-  inst_sel.formalizer = param.formalizer;
-  relate inst_sel to sel across R445;
-  relate inst_sel to obj across R442;
-  relate inst_sel to set_sel across R4505;
 
   // link up type
   relate class_type to sel across R446;
@@ -404,21 +381,13 @@ else
 
   // create ''many'' selector
   create object instance sel of Selector;
-  sel.parent_name = obj.name;
-  sel.parent_package = obj.package;
+  relate sel to obj across R442;
+  relate sel to rel across R4512;
   sel.name = name;
   sel.multiplicity = param.mult;
-  relate rel to sel across R4512;
-  create object instance inst_sel of InstanceSelector;
-  inst_sel.rel_num = rel.num;
-  inst_sel.conditionality = param.cond;
-  inst_sel.formalizer = param.formalizer;
-  relate inst_sel to sel across R445;
-  relate inst_sel to obj across R442;
-  relate inst_sel to set_sel across R4505;
 
   // link up type
-  relate set_type to sel across R446;
+  relate stream_type to sel across R446;
 
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",

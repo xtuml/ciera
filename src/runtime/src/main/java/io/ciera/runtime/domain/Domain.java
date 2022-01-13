@@ -2,12 +2,13 @@ package io.ciera.runtime.domain;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 import io.ciera.runtime.action.ActionHome;
 import io.ciera.runtime.application.Application;
@@ -112,10 +113,8 @@ public abstract class Domain implements ActionHome, InstancePopulation {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public <T extends ObjectInstance> Set<T> getAllInstances(Class<T> object) {
-        Set<T> objectPopulation = (Set<T>) instancePopulation.get(object);
-        return Collections.unmodifiableSet(objectPopulation != null ? objectPopulation : new TreeSet<>());
+    public <T extends ObjectInstance> Stream<T> getAllInstances(Class<T> object) {
+        return Optional.of(instancePopulation.get(object)).orElse(Set.of()).stream().map(object::cast);
     }
 
     @Override

@@ -16,19 +16,16 @@ INSERT INTO O_TFR
 	1,
 	'T::push_buffer();
 sorted = self.sorted != SortType::NONE;
-sort_descending = self.sorted == SortType::DESCENDING;
-use_util = false;
-util_name = "";
-accessor = "";
+select one element_type related by self->Expression[R790]->TypeReference[R795]->StreamTypeReference[R3801]->TypeReference[R3812];
+default_value = element_type.default_value;
 if (sorted)
-  select one sort_attr_type related by self->Attribute[R3906]->TypeReference[R424]->BasicTypeReference[R3801]->TypeReference[R3801]->Type[R3800]->BuiltInType[R407];
-  if not_empty sort_attr_type and sort_attr_type.primitive
-    use_util = true;
-    util_name = sort_attr_type.object_name;
-  end if;
+  sort_descending = self.sorted == SortType::DESCENDING;
   select any attr_accessor related by self->Attribute[R3906]->AttributeAccessor[R4510] where (selected.accessor_type == AttributeAccessorType::GETTER);
   accessor = attr_accessor.getName();
+  element_type_name = element_type.type_reference;
+  T::include(file:"expression/t.sorted.java");
 end if;
+sort_expr = T::body();
 select one base_expression related by self->Expression[R790];
 base_expression.render();
 root_expression_body = T::body();
@@ -36,6 +33,9 @@ select one where_expression related by self->Expression[R796];
 where_expression.render();
 where_expression_body = T::body();
 T::pop_buffer();
+if self.multiplicity == "one"
+  ::addStringImport(package:"java.util", class_name:"Optional");
+end if;
 T::include(file:"expression/t.where.java");',
 	1,
 	'',

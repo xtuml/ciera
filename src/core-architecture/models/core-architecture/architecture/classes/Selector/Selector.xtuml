@@ -7,6 +7,85 @@ INSERT INTO O_OBJ
 	'Selector',
 	'',
 	"00000000-0000-0000-0000-000000000000");
+INSERT INTO O_TFR
+	VALUES ("163d2074-6204-4c8a-81c2-d9a61188dcd5",
+	"49f03569-1ab3-4237-af87-899e99ffc284",
+	'render',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'select one selector_type related by self->TypeReference[R446];
+::resolveImportsForTypeReference(type_ref:selector_type);
+type_name = selector_type.type_reference;
+inst_type_name = type_name;
+select one inst_type related by self->TypeReference[R446]->CollectionTypeReference[R3801]->TypeReference[R3805]->InstanceTypeReference[R3801]->TypeReference[R3801];
+if not_empty inst_type
+  inst_type_name = inst_type.type_reference;
+  ::resolveImportsForTypeReference(type_ref:inst_type);
+end if;
+multiplicity_many = self.multiplicity == Mult::MANY;
+select one rel related by self->Relationship[R4512];
+is_super = rel.rel_type == RelationshipType::SuperSubtype and self.class_name == rel.part_name;
+T::include(file:"class/t.selector.java");',
+	1,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	0,
+	1);
+INSERT INTO O_TFR
+	VALUES ("def4e24d-d1be-4bcc-8c17-62a1fde7e4fd",
+	"49f03569-1ab3-4237-af87-899e99ffc284",
+	'render_empty',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'select one type_ref related by self->TypeReference[R446];
+type_name = type_ref.type_reference;
+::resolveImportsForTypeReference(type_ref:type_ref);
+multiplicity_many = self.multiplicity == Mult::MANY;
+T::include(file:"class/t.selector.empty.java");',
+	1,
+	'',
+	"163d2074-6204-4c8a-81c2-d9a61188dcd5",
+	0,
+	2);
+INSERT INTO O_TFR
+	VALUES ("2c717bcb-79fc-4d8a-822e-436b4ab018e5",
+	"49f03569-1ab3-4237-af87-899e99ffc284",
+	'render_declaration',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'if (self.multiplicity == Mult::MANY)
+  select one element_type_ref related by self->TypeReference[R446]->StreamTypeReference[R3801]->TypeReference[R3812];
+  type_ref = ::getSetReference(element_type:element_type_ref);
+  type_reference_name = type_ref.type_reference;
+  ::resolveImportsForTypeReference(type_ref:type_ref);
+  ::addStringImport(package:"java.util", class_name:"TreeSet");
+  T::include(file:"class/t.relationshiplink.many.java");
+else
+  select one type_ref related by self->TypeReference[R446];
+  type_reference_name = type_ref.type_reference;
+  ::resolveImportsForTypeReference(type_ref:type_ref);
+  select one rel related by self->Relationship[R4512];
+  // check if this is a supertype selecting to a subtype
+  if rel.rel_type == RelationshipType::SuperSubtype and self.class_name == rel.part_name and self.class_package == rel.part_package
+    // only render one declaration
+    select many rels related by rel->Class[R434]->Relationship[R434] where selected.num == rel.num;
+    select any first_sel related by rels->Selector[R4512] where SORT::ascending(attr:"name") and
+      selected.class_name == self.class_name and selected.class_package == self.class_package;
+    if not_empty first_sel and first_sel.name == self.name
+      T::include(file:"class/t.relationshiplink.sub.java");
+    end if;
+  else
+    T::include(file:"class/t.relationshiplink.one.java");
+  end if;
+end if;',
+	1,
+	'',
+	"def4e24d-d1be-4bcc-8c17-62a1fde7e4fd",
+	0,
+	3);
 INSERT INTO O_NBATTR
 	VALUES ("9f7cf2bd-bd88-4367-a2fb-c7019e803b54",
 	"49f03569-1ab3-4237-af87-899e99ffc284");
@@ -42,47 +121,11 @@ INSERT INTO O_BATTR
 INSERT INTO O_ATTR
 	VALUES ("ff856e3b-17d1-4e27-986b-015e45f12a8d",
 	"49f03569-1ab3-4237-af87-899e99ffc284",
-	"67e4fc56-ef5a-4d29-8dcc-e7b3f0067a6b",
+	"9fb2fbc8-3c17-4f3d-a8ee-89d063fd4c9f",
 	'name',
 	'',
 	'',
 	'name',
-	0,
-	"ba5eda7a-def5-0000-0000-000000000004",
-	'',
-	'');
-INSERT INTO O_NBATTR
-	VALUES ("67e4fc56-ef5a-4d29-8dcc-e7b3f0067a6b",
-	"49f03569-1ab3-4237-af87-899e99ffc284");
-INSERT INTO O_BATTR
-	VALUES ("67e4fc56-ef5a-4d29-8dcc-e7b3f0067a6b",
-	"49f03569-1ab3-4237-af87-899e99ffc284");
-INSERT INTO O_ATTR
-	VALUES ("67e4fc56-ef5a-4d29-8dcc-e7b3f0067a6b",
-	"49f03569-1ab3-4237-af87-899e99ffc284",
-	"071ceb30-a2ff-430d-8763-98b0dbdd5dd6",
-	'parent_package',
-	'',
-	'',
-	'parent_package',
-	0,
-	"ba5eda7a-def5-0000-0000-000000000004",
-	'',
-	'');
-INSERT INTO O_NBATTR
-	VALUES ("071ceb30-a2ff-430d-8763-98b0dbdd5dd6",
-	"49f03569-1ab3-4237-af87-899e99ffc284");
-INSERT INTO O_BATTR
-	VALUES ("071ceb30-a2ff-430d-8763-98b0dbdd5dd6",
-	"49f03569-1ab3-4237-af87-899e99ffc284");
-INSERT INTO O_ATTR
-	VALUES ("071ceb30-a2ff-430d-8763-98b0dbdd5dd6",
-	"49f03569-1ab3-4237-af87-899e99ffc284",
-	"00000000-0000-0000-0000-000000000000",
-	'parent_name',
-	'',
-	'',
-	'parent_name',
 	0,
 	"ba5eda7a-def5-0000-0000-000000000004",
 	'',
@@ -212,6 +255,34 @@ INSERT INTO O_RTIDA_PROXY
 	"7d66feb0-884d-432d-b562-4ff23ce34f2b",
 	"ccc860f3-072b-4ea9-911c-428d058dc957",
 	'../classes.xtuml');
+INSERT INTO O_REF
+	VALUES ("49f03569-1ab3-4237-af87-899e99ffc284",
+	"82cf3088-71ed-48c3-850e-afe53bfc0fe5",
+	0,
+	"bf4ce6a6-191b-4aea-9e20-ddab5cd71f28",
+	"b145d3ad-2681-46dc-ba7a-073884ed87fa",
+	"7cb2345a-e0c7-43b2-9cfa-e7f6653d3e48",
+	"a9cd10dc-fb57-4904-b5b8-b49f958def62",
+	"d22095e9-83cd-4ed1-b91c-0326fc9a8164",
+	"cc8fff96-cf81-489e-ba0c-aab8279ecc51",
+	"ae30ffb4-689c-430e-8277-c95baf9f8490",
+	0,
+	'',
+	'Model Inst',
+	'comp_name',
+	'R442.''navigates from''');
+INSERT INTO R_RGO_PROXY
+	VALUES ("49f03569-1ab3-4237-af87-899e99ffc284",
+	"b145d3ad-2681-46dc-ba7a-073884ed87fa",
+	"7cb2345a-e0c7-43b2-9cfa-e7f6653d3e48",
+	'../classes.xtuml');
+INSERT INTO O_RTIDA_PROXY
+	VALUES ("bf4ce6a6-191b-4aea-9e20-ddab5cd71f28",
+	"82cf3088-71ed-48c3-850e-afe53bfc0fe5",
+	0,
+	"b145d3ad-2681-46dc-ba7a-073884ed87fa",
+	"a9cd10dc-fb57-4904-b5b8-b49f958def62",
+	'../classes.xtuml');
 INSERT INTO O_RATTR
 	VALUES ("d22095e9-83cd-4ed1-b91c-0326fc9a8164",
 	"49f03569-1ab3-4237-af87-899e99ffc284",
@@ -227,11 +298,13 @@ INSERT INTO O_ATTR
 	VALUES ("d22095e9-83cd-4ed1-b91c-0326fc9a8164",
 	"49f03569-1ab3-4237-af87-899e99ffc284",
 	"9f7cf2bd-bd88-4367-a2fb-c7019e803b54",
-	'rel_comp_name',
-	'',
-	'rel_comp_',
 	'comp_name',
-	1,
+	'
+
+',
+	'',
+	'comp_name',
+	2,
 	"ba5eda7a-def5-0000-0000-000000000007",
 	'',
 	'');
@@ -258,6 +331,29 @@ INSERT INTO O_RTIDA_PROXY
 	"7d66feb0-884d-432d-b562-4ff23ce34f2b",
 	"ccc860f3-072b-4ea9-911c-428d058dc957",
 	'../classes.xtuml');
+INSERT INTO O_REF
+	VALUES ("49f03569-1ab3-4237-af87-899e99ffc284",
+	"82cf3088-71ed-48c3-850e-afe53bfc0fe5",
+	0,
+	"32b87916-1a30-461e-a591-0302ce7260c7",
+	"b145d3ad-2681-46dc-ba7a-073884ed87fa",
+	"7cb2345a-e0c7-43b2-9cfa-e7f6653d3e48",
+	"a9cd10dc-fb57-4904-b5b8-b49f958def62",
+	"2e9a3eaa-7e4e-4587-8a86-d96458d4adb1",
+	"1ef2927e-9539-44a0-b284-b4ad437ebe04",
+	"b483051d-6013-4d85-a20a-14a38fd42d89",
+	0,
+	'',
+	'Model Inst',
+	'comp_package',
+	'R442.''navigates from''');
+INSERT INTO O_RTIDA_PROXY
+	VALUES ("32b87916-1a30-461e-a591-0302ce7260c7",
+	"82cf3088-71ed-48c3-850e-afe53bfc0fe5",
+	0,
+	"b145d3ad-2681-46dc-ba7a-073884ed87fa",
+	"a9cd10dc-fb57-4904-b5b8-b49f958def62",
+	'../classes.xtuml');
 INSERT INTO O_RATTR
 	VALUES ("2e9a3eaa-7e4e-4587-8a86-d96458d4adb1",
 	"49f03569-1ab3-4237-af87-899e99ffc284",
@@ -273,10 +369,96 @@ INSERT INTO O_ATTR
 	VALUES ("2e9a3eaa-7e4e-4587-8a86-d96458d4adb1",
 	"49f03569-1ab3-4237-af87-899e99ffc284",
 	"d22095e9-83cd-4ed1-b91c-0326fc9a8164",
-	'rel_comp_package',
-	'',
-	'rel_comp_',
 	'comp_package',
+	'
+
+',
+	'',
+	'comp_package',
+	2,
+	"ba5eda7a-def5-0000-0000-000000000007",
+	'',
+	'');
+INSERT INTO O_REF
+	VALUES ("49f03569-1ab3-4237-af87-899e99ffc284",
+	"82cf3088-71ed-48c3-850e-afe53bfc0fe5",
+	0,
+	"cbb93527-a951-4d52-b6c5-13d33521339c",
+	"b145d3ad-2681-46dc-ba7a-073884ed87fa",
+	"7cb2345a-e0c7-43b2-9cfa-e7f6653d3e48",
+	"a9cd10dc-fb57-4904-b5b8-b49f958def62",
+	"9fb2fbc8-3c17-4f3d-a8ee-89d063fd4c9f",
+	"9b6d4a93-4ccd-4dee-9d4a-98ba1c5c34ca",
+	"00000000-0000-0000-0000-000000000000",
+	0,
+	'',
+	'Model Inst',
+	'package',
+	'R442.''navigates from''');
+INSERT INTO O_RTIDA_PROXY
+	VALUES ("cbb93527-a951-4d52-b6c5-13d33521339c",
+	"82cf3088-71ed-48c3-850e-afe53bfc0fe5",
+	0,
+	"b145d3ad-2681-46dc-ba7a-073884ed87fa",
+	"a9cd10dc-fb57-4904-b5b8-b49f958def62",
+	'../classes.xtuml');
+INSERT INTO O_RATTR
+	VALUES ("9fb2fbc8-3c17-4f3d-a8ee-89d063fd4c9f",
+	"49f03569-1ab3-4237-af87-899e99ffc284",
+	"3dfc4c02-94c0-4383-8964-c3bfa4b2e9bd",
+	"dc9c4877-4fcb-49df-a886-ab917b250774",
+	1,
+	'package');
+INSERT INTO O_ATTR
+	VALUES ("9fb2fbc8-3c17-4f3d-a8ee-89d063fd4c9f",
+	"49f03569-1ab3-4237-af87-899e99ffc284",
+	"e90404ce-e4d3-46ae-8742-b81a0751ffdf",
+	'class_package',
+	'',
+	'class_',
+	'package',
+	1,
+	"ba5eda7a-def5-0000-0000-000000000007",
+	'',
+	'');
+INSERT INTO O_REF
+	VALUES ("49f03569-1ab3-4237-af87-899e99ffc284",
+	"82cf3088-71ed-48c3-850e-afe53bfc0fe5",
+	0,
+	"ae4de985-deee-4396-a035-f8874abd3c23",
+	"b145d3ad-2681-46dc-ba7a-073884ed87fa",
+	"7cb2345a-e0c7-43b2-9cfa-e7f6653d3e48",
+	"a9cd10dc-fb57-4904-b5b8-b49f958def62",
+	"e90404ce-e4d3-46ae-8742-b81a0751ffdf",
+	"8df29df1-7962-426a-85c5-8b6d36726064",
+	"00000000-0000-0000-0000-000000000000",
+	0,
+	'',
+	'Model Inst',
+	'name',
+	'R442.''navigates from''');
+INSERT INTO O_RTIDA_PROXY
+	VALUES ("ae4de985-deee-4396-a035-f8874abd3c23",
+	"82cf3088-71ed-48c3-850e-afe53bfc0fe5",
+	0,
+	"b145d3ad-2681-46dc-ba7a-073884ed87fa",
+	"a9cd10dc-fb57-4904-b5b8-b49f958def62",
+	'../classes.xtuml');
+INSERT INTO O_RATTR
+	VALUES ("e90404ce-e4d3-46ae-8742-b81a0751ffdf",
+	"49f03569-1ab3-4237-af87-899e99ffc284",
+	"c49819d1-92ba-4732-98e5-2b3eca8bc470",
+	"dc9c4877-4fcb-49df-a886-ab917b250774",
+	1,
+	'name');
+INSERT INTO O_ATTR
+	VALUES ("e90404ce-e4d3-46ae-8742-b81a0751ffdf",
+	"49f03569-1ab3-4237-af87-899e99ffc284",
+	"00000000-0000-0000-0000-000000000000",
+	'class_name',
+	'',
+	'class_',
+	'name',
 	1,
 	"ba5eda7a-def5-0000-0000-000000000007",
 	'',
@@ -296,15 +478,15 @@ INSERT INTO O_OIDA
 	0,
 	'name');
 INSERT INTO O_OIDA
-	VALUES ("67e4fc56-ef5a-4d29-8dcc-e7b3f0067a6b",
+	VALUES ("e90404ce-e4d3-46ae-8742-b81a0751ffdf",
 	"49f03569-1ab3-4237-af87-899e99ffc284",
 	0,
-	'parent_package');
+	'class_name');
 INSERT INTO O_OIDA
-	VALUES ("071ceb30-a2ff-430d-8763-98b0dbdd5dd6",
+	VALUES ("9fb2fbc8-3c17-4f3d-a8ee-89d063fd4c9f",
 	"49f03569-1ab3-4237-af87-899e99ffc284",
 	0,
-	'parent_name');
+	'class_package');
 INSERT INTO PE_PE
 	VALUES ("49f03569-1ab3-4237-af87-899e99ffc284",
 	1,

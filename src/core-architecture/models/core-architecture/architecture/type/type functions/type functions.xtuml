@@ -157,6 +157,13 @@ new_builtin.primitive = true;
 new_builtin.object_name = "Short";
 
 create object instance new_type of Type;
+new_type.name = "Stream";
+new_type.package = "java.util.stream";
+new_type.default_value = "null";
+create object instance new_builtin of BuiltInType;
+relate new_builtin to new_type across R407;
+
+create object instance new_type of Type;
 new_type.name = "String";
 new_type.default_value = STRING::quote() + STRING::quote();
 create object instance new_builtin of BuiltInType;
@@ -257,22 +264,8 @@ INSERT INTO S_SYNC
 	'getObjectSetReference',
 	'',
 	'obj = param.obj;
-
-select any set_ref related by obj->InstanceTypeReference[R3808]->TypeReference[R3801]->CollectionTypeReference[R3805]->SetTypeReference[R3806]->CollectionTypeReference[R3806]->TypeReference[R3801];
-if empty set_ref
-  select any base_type from instances of Type where selected.name == "Set";
-  create object instance set_ref of TypeReference;
-  set_ref.type_reference = obj.name + ".Set";
-  relate set_ref to base_type across R3800;
-  create object instance col_ref of CollectionTypeReference;
-  relate col_ref to set_ref across R3801;
-  obj_ref = ::getObjectReference(obj:obj);
-  relate col_ref to obj_ref across R3805;
-  create object instance set_ref2 of SetTypeReference;
-  relate set_ref2 to col_ref across R3806;
-end if;
-
-return set_ref;',
+obj_ref = ::getObjectReference(obj:obj);
+return ::getSetReference(element_type:obj_ref);',
 	"096d9dad-f227-4793-bb43-a1915881b825",
 	1,
 	'',
@@ -397,18 +390,21 @@ end if;
 // collection type refs
 select one coll_type_ref related by type_ref->CollectionTypeReference[R3801];
 if not_empty coll_type_ref
-  // instance sets are special
-  select one inst_set_class_file related by coll_type_ref->SetTypeReference[R3806]->CollectionTypeReference[R3806]
-    ->TypeReference[R3805]->InstanceTypeReference[R3801]->Class[R3808]->File[R401];
-  if not_empty inst_set_class_file
-    ::addFileImport(file:inst_set_class_file);
-  else
-    // import the root type and the type reference of the elements
-    select one root_type related by type_ref->Type[R3800];
-    ::resolveImportsForType(type:root_type);
-    select one element_type_ref related by coll_type_ref->TypeReference[R3805];
-    ::resolveImportsForTypeReference(type_ref:element_type_ref);
-  end if;
+  // import the root type and the type reference of the elements
+  select one root_type related by type_ref->Type[R3800];
+  ::resolveImportsForType(type:root_type);
+  select one element_type_ref related by coll_type_ref->TypeReference[R3805];
+  ::resolveImportsForTypeReference(type_ref:element_type_ref);
+end if;
+
+// stream type refs
+select one stream_type_ref related by type_ref->StreamTypeReference[R3801];
+if not_empty stream_type_ref
+  // import the root type and the type reference of the elements
+  select one root_type related by type_ref->Type[R3800];
+  ::resolveImportsForType(type:root_type);
+  select one element_type_ref related by coll_type_ref->TypeReference[R3805];
+  ::resolveImportsForTypeReference(type_ref:element_type_ref);
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -471,6 +467,114 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("e27deb2f-3473-464c-90be-ffe53176eba9",
+	1,
+	"181c88bd-e2a3-491d-81d4-90a42e0f11c1",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("1b9b803c-8182-4eaf-8607-8e575ad19201",
+	"00000000-0000-0000-0000-000000000000",
+	'getObjectStreamReference',
+	'',
+	'obj = param.obj;
+obj_ref = ::getObjectReference(obj:obj);
+return ::getStreamReference(element_type:obj_ref);',
+	"096d9dad-f227-4793-bb43-a1915881b825",
+	1,
+	'',
+	0,
+	3);
+INSERT INTO S_SPARM
+	VALUES ("1c839db5-7af2-4a80-bc52-318a34d87e2f",
+	"1b9b803c-8182-4eaf-8607-8e575ad19201",
+	'obj',
+	"a519e323-b117-4a03-9435-b88e56c2443d",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO PE_PE
+	VALUES ("1b9b803c-8182-4eaf-8607-8e575ad19201",
+	1,
+	"181c88bd-e2a3-491d-81d4-90a42e0f11c1",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("13fa6f71-eb8a-4938-af68-bc109dd0fcbf",
+	"00000000-0000-0000-0000-000000000000",
+	'getStreamReference',
+	'',
+	'element_type = param.element_type;
+
+select any type_ref related by element_type->StreamTypeReference[R3812]->TypeReference[R3801];
+if empty type_ref
+  select any base_type from instances of Type where selected.name == "Stream";
+  create object instance type_ref of TypeReference;
+  type_ref.type_reference = base_type.name + "<" + element_type.type_reference + ">";
+  relate type_ref to base_type across R3800;
+  create object instance stream_ref of StreamTypeReference;
+  relate stream_ref to type_ref across R3801;
+  relate stream_ref to element_type across R3812;
+end if;
+
+return type_ref;',
+	"096d9dad-f227-4793-bb43-a1915881b825",
+	1,
+	'',
+	0,
+	3);
+INSERT INTO S_SPARM
+	VALUES ("3a72d9f0-f08e-4cd2-b9d3-3c772493aae7",
+	"13fa6f71-eb8a-4938-af68-bc109dd0fcbf",
+	'element_type',
+	"096d9dad-f227-4793-bb43-a1915881b825",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO PE_PE
+	VALUES ("13fa6f71-eb8a-4938-af68-bc109dd0fcbf",
+	1,
+	"181c88bd-e2a3-491d-81d4-90a42e0f11c1",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("8f4381c4-ac12-4efb-910d-984df4f934d0",
+	"00000000-0000-0000-0000-000000000000",
+	'getSetReference',
+	'',
+	'element_type = param.element_type;
+
+select any type_ref related by element_type->CollectionTypeReference[R3805]->SetTypeReference[R3806]->CollectionTypeReference[R3806]->TypeReference[R3801];
+if empty type_ref
+  select any base_type from instances of Type where selected.name == "Set";
+  create object instance type_ref of TypeReference;
+  type_ref.type_reference = base_type.name + "<" + element_type.type_reference + ">";
+  relate type_ref to base_type across R3800;
+  create object instance col_ref of CollectionTypeReference;
+  relate col_ref to type_ref across R3801;
+  relate col_ref to element_type across R3805;
+  create object instance set_ref of SetTypeReference;
+  relate set_ref to col_ref across R3806;
+end if;
+
+return type_ref;',
+	"096d9dad-f227-4793-bb43-a1915881b825",
+	1,
+	'',
+	0,
+	3);
+INSERT INTO S_SPARM
+	VALUES ("3c218463-3826-48bd-b45b-dab46d54c976",
+	"8f4381c4-ac12-4efb-910d-984df4f934d0",
+	'element_type',
+	"096d9dad-f227-4793-bb43-a1915881b825",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO PE_PE
+	VALUES ("8f4381c4-ac12-4efb-910d-984df4f934d0",
 	1,
 	"181c88bd-e2a3-491d-81d4-90a42e0f11c1",
 	"00000000-0000-0000-0000-000000000000",

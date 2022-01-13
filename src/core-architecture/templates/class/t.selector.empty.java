@@ -1,7 +1,7 @@
 .if (multiplicity_many)
 @Override
 public ${type_name} ${self.name}() {
-    return new ${type_name}();
+    return Stream.of();
 }
 
 .else

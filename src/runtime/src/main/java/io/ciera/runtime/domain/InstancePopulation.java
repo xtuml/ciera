@@ -1,7 +1,7 @@
 package io.ciera.runtime.domain;
 
-import java.util.Set;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 import io.ciera.runtime.types.UniqueId;
 
@@ -17,7 +17,7 @@ public interface InstancePopulation {
 
     public <T extends ObjectInstance> T getInstance(Class<T> object);
 
-    public <T extends ObjectInstance> Set<T> getAllInstances(Class<T> object);
+    public <T extends ObjectInstance> Stream<T> getAllInstances(Class<T> object);
 
     public void deleteInstance(ObjectInstance instance);
 

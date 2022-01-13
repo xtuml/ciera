@@ -22,7 +22,7 @@ public void set${self.name}(${inst_type_name} inst) {
 .end if
 public ${type_name} ${self.name}() {
 .if (multiplicity_many)
-    return new ${type_name}(${self.name}_set);
+    return ${self.name}_set.stream();
 .else
   .if (is_super)
     return (${type_name}) R${rel.num}_subtype;

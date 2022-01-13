@@ -42,10 +42,9 @@ end for;
 attribute_decls = T::body();
 
 // relationship link declarations
-select many selects related by self->InstanceSelector[R442] where SORT::ascending(attr:"name");
+select many selects related by self->Selector[R442] where SORT::ascending(attr:"name");
 for each selector in selects
   selector.render_declaration();
-  select one sel related by selector->Selector[R445];
 end for;
 relationship_decls = T::body();
 
@@ -94,20 +93,6 @@ for each rel in subsuper_rels
 end for;
 subtype_interfaces = T::body();
 
-// attribute setters
-select many setters related by self->Attribute[R410]->AttributeAccessor[R4510] where selected.accessor_type == AttributeAccessorType::SETTER;
-for each setter in setters
-  setter.render_set();
-end for;
-set_setters = T::body();
-
-// selectors
-select many set_selects related by self->SetSelector[R444];
-for each set_selector in set_selects
-  set_selector.render();
-end for;
-set_selectors = T::body();
-
 // empty attribute accessros
 for each attribute in attributes
   select any getter related by attribute->AttributeAccessor[R4510] where selected.accessor_type == AttributeAccessorType::GETTER;
@@ -131,13 +116,9 @@ empty_selectors = T::body();
 
 ::addStringImport(package:"io.ciera.runtime.application", class_name:"ExecutionContext");
 ::addStringImport(package:"io.ciera.runtime.exceptions", class_name:"EmptyInstanceException");
+::addStringImport(package:"io.ciera.runtime.types", class_name:"AbstractStream");
 ::addStringImport(package:"io.ciera.runtime.types", class_name:"UniqueId");
-::addStringImport(package:"java.util.function", class_name:"Predicate");
-::addStringImport(package:"java.util.stream", class_name:"Collectors");
-::addStringImport(package:"java.util", class_name:"Collection");
-::addStringImport(package:"java.util", class_name:"Comparator");
-::addStringImport(package:"java.util", class_name:"SortedSet");
-::addStringImport(package:"java.util", class_name:"TreeSet");
+::addStringImport(package:"java.util.stream", class_name:"Stream");
 select one comp_file related by self->ComponentDefinition[R408]->File[R401];
 ::addFileImport(file:comp_file);
 

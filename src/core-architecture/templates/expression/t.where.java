@@ -1,21 +1,12 @@
-${root_expression_body}\
-.if (sorted)
-..sorted((_a, _b) -> {int comp = \
-  .if (use_util)
-${util_name}.compare(_a.${accessor}(), _b.${accessor}())\
-  .else
-_a.${accessor}().compareTo(_b.${accessor}())\
-  .end if
-;return comp == 0 ? _a.compareTo(_b) : comp;}
-  .if (sort_descending)
-, false\
-  .end if
-)\
-.end if
 .if ("one" == self.multiplicity)
-..oneWhere(selected -> ${where_expression_body})\
-.elif ("any" == self.multiplicity)
-..any(selected -> ${where_expression_body})\
+Optional.of(${root_expression_body}).filter(selected -> ${where_expression_body}).orElse(${default_value})\
 .else
-..where(selected -> ${where_expression_body})\
+${root_expression_body}\
+  .if (sorted)
+${sort_expr}\
+  .end if
+..filter(selected -> ${where_expression_body})\
+  .if ("any" == self.multiplicity)
+..findAny().orElse(${default_value})\
+  .end if
 .end if

@@ -1,1 +1,5 @@
-${root_expression_body}.any()\
+${root_expression_body}.\
+.if (not is_stream)
+stream().\
+.end if
+findAny().orElse(${default_value})\

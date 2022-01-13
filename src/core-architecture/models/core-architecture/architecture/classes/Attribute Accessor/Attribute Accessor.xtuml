@@ -38,11 +38,9 @@ if (not is_getter)
     select any accessor related by ref->Attribute[R4506.''provides value for'']->AttributeAccessor[R4510]
       where (selected.accessor_type == AttributeAccessorType::SETTER);
     accessor_name = accessor.getName();
-    selector_name = "R" + STRING::itoa(i:ref.rel_num) + "_";
-    if ("" != ref.form_phrase)
-      selector_name = selector_name + T::sub(format:"_", s:ref.form_phrase) + "_";
-    end if;
-    selector_name = selector_name + ref.referring_attribute_class_name;
+    select any selector related by ref->Relationship[R4511]->Selector[R4512] where selected.class_name == self.class_name and selected.class_package == self.class_package;
+    selector_name = selector.name;
+    multiplicity_many = selector.multiplicity == Mult::MANY;
     T::include(file:"class/t.attributepropagation.java");
   end for;
 end if;
@@ -104,23 +102,6 @@ T::include(file:"class/t.attributeaccessor.empty.java");',
 	1,
 	'',
 	"449a4b86-8dbd-4df5-8f90-9bf0c1f1948d",
-	0,
-	0);
-INSERT INTO O_TFR
-	VALUES ("09470ee9-b806-45e6-a656-8c216c00c022",
-	"48d9220b-5ff3-4524-9a7f-0d0f765126b6",
-	'render_set',
-	'',
-	"ba5eda7a-def5-0000-0000-000000000000",
-	1,
-	'select one type_ref related by self->Attribute[R4510]->TypeReference[R424];
-type_name = type_ref.type_reference;
-name = self.getName();
-::resolveImportsForTypeReference(type_ref:type_ref);
-T::include(file:"class/t.attributeaccessor.set.java");',
-	1,
-	'',
-	"7f7b8953-64ee-4ec6-8adc-6d34ade06c71",
 	0,
 	0);
 INSERT INTO O_REF

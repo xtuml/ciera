@@ -25,9 +25,6 @@ public class ${self.name} extends Domain {
     // relates and unrelates
     ${relationship_modifiers}
 
-    // instance selections
-    ${instance_selectors}
-
     // port accessors
     ${port_accessors}
 

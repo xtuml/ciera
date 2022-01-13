@@ -4,12 +4,50 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
 
 import io.ciera.runtime.exceptions.DeserializationException;
 
 public class TestTypeSerialization {
+    
+    private static class MyString {
+        private final String str;
+        public MyString(String str) {
+            this.str = str;
+        }
+        @Override
+        public String toString() {
+            return "str: '" + str + "'";
+        }
+    }
+    
+    private static class MyInt {
+        private final int num;
+        public MyInt(int num) {
+            this.num = num;
+        }
+        public MyString toMyString() {
+            return new MyString(Integer.toString(num));
+        }
+        
+        public Stream<MyString> toMyString2() {
+            return Stream.generate(() -> new MyString("poop")).limit(num);
+        }
+    }
+    
+    @Test
+    public void testStreams() {
+        Stream<MyString> stream = Stream.of(new MyInt(1), new MyInt(2), new MyInt(3), new MyInt(4)).map(MyInt::toMyString);
+        stream.forEach(s -> {
+            System.out.println("LEVI " + s);
+        });
+        Stream<MyString> stream2 = Stream.of(new MyInt(1), new MyInt(2), new MyInt(3), new MyInt(4)).flatMap(MyInt::toMyString2);
+        stream2.forEach(s -> {
+            System.out.println("LEVI " + s);
+        });
+    }
 
     @Test
     public void testTimeStamp() {
