@@ -1,6 +1,3 @@
-.if (self.cast != "")
-((${self.cast})\
-.end if
 .if (self.invocation)
   .if (self.comparison_operator != "")
     .if (self.util)
@@ -17,7 +14,4 @@ ${left_operand_body}.${operator}(${right_operand_body})\
   .end if
 .else
 ${left_operand_body} ${operator} ${right_operand_body}\
-.end if
-.if (self.cast != "")
-)\
 .end if

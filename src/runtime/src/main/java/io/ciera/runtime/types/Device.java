@@ -6,7 +6,7 @@ import io.ciera.runtime.exceptions.DeserializationException;
  * A device represents a readable or read-writable object. Streams can be read
  * from devices or directed as output to devices.
  */
-public abstract class Device extends ModelType {
+public abstract class Device {
 
     private static Device console = null;
 

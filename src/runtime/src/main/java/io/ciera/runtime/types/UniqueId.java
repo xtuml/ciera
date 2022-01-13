@@ -8,7 +8,7 @@ import io.ciera.runtime.exceptions.DeserializationException;
  * The UniqueId class represents a universally unique identifier. It is
  * implemented internally by {@UUID}.
  */
-public class UniqueId extends ModelType implements Comparable<UniqueId> {
+public class UniqueId implements Comparable<UniqueId> {
 
     /**
      * Default value

@@ -2,9 +2,9 @@
 
 INSERT INTO O_OBJ
 	VALUES ("6aa34b8a-5c7f-441c-b95d-5061f977b97b",
-	'Promotion',
+	'Type Conversion',
 	512,
-	'Promotion',
+	'TypeConversion',
 	'',
 	"00000000-0000-0000-0000-000000000000");
 INSERT INTO O_TFR
@@ -14,23 +14,17 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'T::push_buffer();
-select one base_expression related by self->Expression[R3907];
+	'select one base_expression related by self->Expression[R3907];
+select one output_type_ref related by self->Expression[R776]->TypeReference[R795];
+select one input_type_ref related by self->Expression[R3907]->TypeReference[R795];
+
+// render the base expression
+T::push_buffer();
 base_expression.render();
-root_expression_body = T::body();
+base_expr = T::body();
 T::pop_buffer();
 
-select one output_type related by self->Expression[R776]->TypeReference[R795]->Type[R3800];
-select one output_type_builtin related by output_type->BuiltInType[R407];
-select one input_type_ref related by self->Expression[R3907]->TypeReference[R795];
-input_type_primitive = input_type_ref.primitive;
-
-output_type_name = output_type.name;
-if not_empty output_type_builtin and output_type_builtin.primitive
-  output_type_name = output_type_builtin.object_name;
-end if;
-
-T::include(file:"expression/t.promotion.java");',
+self.render_from_type(base_expr:base_expr, input_type_ref:input_type_ref);',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",
@@ -48,9 +42,125 @@ select one type_ref related by self->Expression[R776]->TypeReference[R795];
 return expr.is_constant() and type_ref.type_reference == "String" or type_ref.primitive;',
 	1,
 	'',
-	"03289e90-8cdb-4136-981d-5f141a61e179",
+	"62c25bea-39c4-4753-9cb0-b2b6e2476104",
 	0,
 	1);
+INSERT INTO O_TFR
+	VALUES ("62c25bea-39c4-4753-9cb0-b2b6e2476104",
+	"6aa34b8a-5c7f-441c-b95d-5061f977b97b",
+	'render_from_type',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'base_expr = param.base_expr;
+input_type_ref = param.input_type_ref;
+select one output_type_ref related by self->Expression[R776]->TypeReference[R795];
+
+// TODO this could be made recursive for complex conversions
+
+if input_type_ref.type_reference != output_type_ref.type_reference
+
+  // simple cast for numeic to numeric conversion
+  if input_type_ref.numeric and output_type_ref.numeric
+    // warn possible loss of precision
+    if input_type_ref.type_reference == "double" or output_type_ref.type_reference == "double"
+      select one expr related by self->Expression[R776];
+      ::semanticWarningInExpression(expr:expr, message:"Possible loss of precision converting between real and integer types");
+    elif (input_type_ref.type_reference == "long" and
+           (output_type_ref.type_reference == "int" or
+            output_type_ref.type_reference == "short" or
+            output_type_ref.type_reference == "byte")) or
+         (input_type_ref.type_reference == "int" and
+           (output_type_ref.type_reference == "short" or
+            output_type_ref.type_reference == "byte")) or
+         (input_type_ref.type_reference == "short" and
+            output_type_ref.type_reference == "byte")
+      select one expr related by self->Expression[R776];
+      ::semanticWarningInExpression(expr:expr, message:"Possible loss of precision converting between integer types");
+    end if;
+    T::include(file:"expression/t.simplecast.java");
+  end if;
+  
+  // named type conversions
+  select one output_basic_type_ref related by output_type_ref->BasicTypeReference[R3801];
+  select one input_basic_type_ref related by input_type_ref->BasicTypeReference[R3801];
+  if not_empty output_basic_type_ref and not_empty input_basic_type_ref
+    select one input_base_type related by input_type_ref->Type[R3800];
+    select one output_base_type related by output_type_ref->Type[R3800];
+    // supertype to subtpe conversion
+    if (::isSubtypeOf(type1:output_base_type, type2:input_base_type))
+      ::resolveImportsForTypeReference(type_ref:output_type_ref);
+      T::include(file:"expression/t.converttosubtype.java");
+    // subtype to supertpe conversion
+    elif (::isSubtypeOf(type1:input_base_type, type2:output_base_type) and output_type_ref.primitive)
+      T::include(file:"expression/t.converttosupertype.primitive.java");
+    elif (::isSubtypeOf(type1:input_base_type, type2:output_base_type))
+      // directly assignable
+      T::append(s:base_expr);
+    end if;
+  end if;
+  
+  // TODO conversions of element types in streams and collections
+  
+  // convert from a collection type to a stream of the same element type
+  select one output_stream_type related by output_type_ref->StreamTypeReference[R3801];
+  select one output_element_type related by output_stream_type->TypeReference[R3812];
+  select one input_collection_type related by input_type_ref->CollectionTypeReference[R3801];
+  select one input_element_type related by input_collection_type->TypeReference[R3805];
+  if not_empty output_stream_type and not_empty input_collection_type and output_element_type.type_reference == input_element_type.type_reference
+    T::include(file:"expression/t.collectiontostream.java");
+  end if;
+  
+  // convert from a stream type to a collection of the same element type
+  select one output_collection_type related by output_type_ref->CollectionTypeReference[R3801];
+  select one output_element_type related by output_collection_type->TypeReference[R3805];
+  select one input_stream_type related by input_type_ref->StreamTypeReference[R3801];
+  select one input_element_type related by input_stream_type->TypeReference[R3812];
+  if not_empty input_stream_type and not_empty output_collection_type and output_element_type.type_reference == input_element_type.type_reference
+    // TODO handle other collection types
+    select one output_set_type related by output_collection_type->SetTypeReference[R3806];
+    if not_empty output_set_type
+      ::addStringImport(package:"java.util.stream", class_name:"Collectors");
+      T::include(file:"expression/t.streamtoset.java");
+    end if;
+  end if;
+
+// simple pass through if the types are the same
+else
+
+  T::append(s:base_expr);
+
+end if;',
+	1,
+	'',
+	"03289e90-8cdb-4136-981d-5f141a61e179",
+	0,
+	2);
+INSERT INTO O_TPARM
+	VALUES ("21b4d652-6f48-4607-8708-0450cb60069c",
+	"62c25bea-39c4-4753-9cb0-b2b6e2476104",
+	'base_expr',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO O_TPARM
+	VALUES ("203f97ab-bacc-49a5-9fb2-1a651400549a",
+	"62c25bea-39c4-4753-9cb0-b2b6e2476104",
+	'input_type_ref',
+	"096d9dad-f227-4793-bb43-a1915881b825",
+	0,
+	'',
+	"21b4d652-6f48-4607-8708-0450cb60069c",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("096d9dad-f227-4793-bb43-a1915881b825",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Type Reference>',
+	'',
+	'',
+	'../../type/type.xtuml');
 INSERT INTO O_REF
 	VALUES ("6aa34b8a-5c7f-441c-b95d-5061f977b97b",
 	"18b2e941-9111-4db8-bc15-79e9be5abfd7",

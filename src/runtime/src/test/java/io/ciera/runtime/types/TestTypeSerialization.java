@@ -12,41 +12,39 @@ import io.ciera.runtime.exceptions.DeserializationException;
 
 public class TestTypeSerialization {
     
-    private static class MyString {
-        private final String str;
-        public MyString(String str) {
-            this.str = str;
-        }
-        @Override
-        public String toString() {
-            return "str: '" + str + "'";
-        }
-    }
-    
-    private static class MyInt {
-        private final int num;
-        public MyInt(int num) {
-            this.num = num;
-        }
-        public MyString toMyString() {
-            return new MyString(Integer.toString(num));
-        }
-        
-        public Stream<MyString> toMyString2() {
-            return Stream.generate(() -> new MyString("poop")).limit(num);
-        }
-    }
-    
     @Test
     public void testStreams() {
-        Stream<MyString> stream = Stream.of(new MyInt(1), new MyInt(2), new MyInt(3), new MyInt(4)).map(MyInt::toMyString);
-        stream.forEach(s -> {
-            System.out.println("LEVI " + s);
-        });
-        Stream<MyString> stream2 = Stream.of(new MyInt(1), new MyInt(2), new MyInt(3), new MyInt(4)).flatMap(MyInt::toMyString2);
-        stream2.forEach(s -> {
-            System.out.println("LEVI " + s);
-        });
+        byte b = 0;
+        short s = 0;
+        int i = 0;
+        long l = 0l;
+        double d = 0d;
+        
+        short s2 = (short) b;
+        int i2 = (int) b;
+        long l2 = (long) b;
+        double d2 = (double) b;
+
+        byte b3 = (byte) s;
+        int i3 = (int) s;
+        long l3 = (long) s;
+        double d3 = (double) s;
+
+        byte b4 = (byte) i;
+        short s4 = (short) i;
+        long l4 = (long) i;
+        double d4 = (double) i;
+
+        byte b5 = (byte) l;
+        short s5 = (short) l;
+        int i5 = (int) l;
+        double d5 = (double) l;
+
+        byte b6 = (byte) d;
+        short s6 = (short) d;
+        int i6 = (int) d;
+        long l6 = (long) d;
+
     }
 
     @Test

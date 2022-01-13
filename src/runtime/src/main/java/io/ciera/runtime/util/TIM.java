@@ -14,7 +14,6 @@ import io.ciera.runtime.application.Timer;
 import io.ciera.runtime.domain.Domain;
 import io.ciera.runtime.domain.Utility;
 import io.ciera.runtime.types.Date;
-import io.ciera.runtime.types.ModelType;
 import io.ciera.runtime.types.TimeStamp;
 
 public class TIM extends Utility {

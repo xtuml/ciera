@@ -1,7 +1,5 @@
 package io.ciera.runtime.types;
 
-import java.util.function.Function;
-
 import io.ciera.runtime.application.SystemClock;
 
 /**
@@ -11,7 +9,7 @@ import io.ciera.runtime.application.SystemClock;
  * from, but will be interpreted by the runtime based on the current settings of
  * the {@link SystemClock}.
  */
-public class TimeStamp extends ModelType {
+public class TimeStamp {
 
     /**
      * Default value
@@ -45,18 +43,6 @@ public class TimeStamp extends ModelType {
      */
     public static TimeStamp now(SystemClock clock) {
         return new TimeStamp(clock.getTime());
-    }
-
-    public static <T extends Object> Function<T, ModelType> getCastFunction(Class<T> sourceType) {
-        // Direct cast from a subclass
-        if (TimeStamp.class.isAssignableFrom(sourceType)) {
-            return o -> (TimeStamp) o;
-        }
-        
-        // TODO conversion from other numeric types
-
-        // Didn't find any applicable cast functions
-        return null;
     }
 
     public static TimeStamp fromString(String s) {

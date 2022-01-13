@@ -8,7 +8,6 @@ import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAccessor;
 import java.util.Calendar;
 import java.util.TimeZone;
-import java.util.function.Function;
 
 import io.ciera.runtime.application.SystemClock;
 import io.ciera.runtime.exceptions.DeserializationException;
@@ -111,27 +110,6 @@ public class Date extends TimeStamp {
      */
     public static Date now(SystemClock clock) {
         return new Date(clock.getTime(), clock.getEpoch());
-    }
-
-    public static <T extends Object> Function<T, ModelType> getCastFunction(Class<T> sourceType) {
-        // Direct cast from a subclass
-        if (Date.class.isAssignableFrom(sourceType)) {
-            return o -> (Date) o;
-        }
-
-        // Direct conversion from superclass
-        if (TimeStamp.class.equals(sourceType)) {
-            return o -> new Date((TimeStamp) o);
-        }
-
-        // Search in superclass for indirect conversion
-        Function<T, ModelType> f = TimeStamp.getCastFunction(sourceType);
-        if (f != null) {
-            return o -> getCastFunction(TimeStamp.class).apply((TimeStamp) f.apply(o));
-        }
-
-        // Didn't find any applicable cast functions
-        return null;
     }
 
     /**

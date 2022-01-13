@@ -114,7 +114,7 @@ public abstract class Domain implements ActionHome, InstancePopulation {
 
     @Override
     public <T extends ObjectInstance> Stream<T> getAllInstances(Class<T> object) {
-        return Optional.of(instancePopulation.get(object)).orElse(Set.of()).stream().map(object::cast);
+        return Optional.ofNullable(instancePopulation.get(object)).orElse(Set.of()).stream().map(object::cast);
     }
 
     @Override

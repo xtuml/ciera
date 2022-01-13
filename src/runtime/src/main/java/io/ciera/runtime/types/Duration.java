@@ -3,7 +3,6 @@ package io.ciera.runtime.types;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalUnit;
-import java.util.function.Function;
 
 import io.ciera.runtime.exceptions.DeserializationException;
 
@@ -11,7 +10,7 @@ import io.ciera.runtime.exceptions.DeserializationException;
  * The Duration class represents a period of time. It is represented as a
  * quantity of nanoseconds. Durations can be represented as ISO-8601 strings.
  */
-public class Duration extends ModelType {
+public class Duration {
 
     /**
      * Default value
@@ -42,18 +41,6 @@ public class Duration extends ModelType {
     
     public long getValue() {
         return value;
-    }
-
-    public static <T extends Object> Function<T, ModelType> getCastFunction(Class<T> sourceType) {
-        // Direct cast from a subclass
-        if (Duration.class.isAssignableFrom(sourceType)) {
-            return o -> (Duration) o;
-        }
-        
-        // TODO conversion from other numerics
-
-        // Didn't find any applicable cast functions
-        return null;
     }
 
     /**

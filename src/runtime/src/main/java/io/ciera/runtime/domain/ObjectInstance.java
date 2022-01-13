@@ -6,10 +6,9 @@ import io.ciera.runtime.application.EventTarget;
 import io.ciera.runtime.application.ExecutionContext;
 import io.ciera.runtime.exceptions.DeletedInstanceException;
 import io.ciera.runtime.exceptions.EventTargetException;
-import io.ciera.runtime.types.ModelType;
 import io.ciera.runtime.types.UniqueId;
 
-public abstract class ObjectInstance extends ModelType
+public abstract class ObjectInstance
         implements InstanceActionHome, EventTarget, Comparable<ObjectInstance> {
 
     private final UniqueId instanceId;
