@@ -1,1 +1,1 @@
-${base_expr}.collect(Collectors.toSet())\
+${base_expr}.collect(Collectors.toCollection(LinkedHashSet::new))\

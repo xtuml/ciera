@@ -1303,32 +1303,33 @@ if ( not_empty where_clause_lbo and ( "false" == T::sub( format:"l", s:where_cla
   select one select_type_def related by select_type->Type[R3800];
   named_expr.name = select_type_def.default_value;
 else
-  create object instance r_op of Expression;
-  relate r_op to smt across R775;
-  r_op.expression_number = "1.2";
-  relate select_type to r_op across R795;
-  relate r_op to binop across R778;
   select one obj related by act_fiw->O_OBJ[R676]->Class[R409];
   fiw_type = ::getObjectStreamReference(obj:obj);
   // if this is a select many, create a type conversion first
   if act_fiw.cardinality == "many"
+		create object instance r_op of Expression;
+		relate r_op to smt across R775;
+		r_op.expression_number = "1.2";
+		relate select_type to r_op across R795;
+		relate r_op to binop across R778;
     create object instance cast_expr of TypeConversion;
     relate cast_expr to r_op across R776;
-    // create new r_op
-    create object instance r_op of Expression;
-    relate r_op to smt across R775;
-    r_op.expression_number = "1.2.1";
-    relate fiw_type to r_op across R795;
-    relate r_op to cast_expr across R3907;
+    // create where clause
+    ::transformWhereClause(v_val:where_clause_val, smt:smt, expr_number:"1.2.1", where_type:fiw_type, multiplicity:act_fiw.cardinality);
+    select any where_expr related by smt->Expression[R775] where selected.expression_number == "1.2.1";
+    relate where_expr to cast_expr across R3907;
+  else
+    // create where clause
+    ::transformWhereClause(v_val:where_clause_val, smt:smt, expr_number:"1.2", where_type:select_type, multiplicity:act_fiw.cardinality);
+    select any where_expr related by smt->Expression[R775] where selected.expression_number == "1.2";
+    relate where_expr to binop across R778;
   end if;
-  create object instance where_expr of WhereExpr;
-  relate where_expr to r_op across R776;
-  where_expr.multiplicity = act_fiw.cardinality;
-  where_expr.sorted = SortType::NONE;
   // create selection expr
+  // this selection assumes only 1 where clause per statement which is always true in OAL
+  select any where_expr related by smt->Expression[R775]->WhereExpr[R776];
   create object instance sel_expr of Expression;
   relate sel_expr to smt across R775;
-  sel_expr.expression_number = r_op.expression_number + ".1";
+  sel_expr.expression_number = where_expr.expression_number + ".1";
   relate fiw_type to sel_expr across R795;
   relate sel_expr to where_expr across R790;
   create object instance sel of SelectExpr;
@@ -1336,11 +1337,6 @@ else
   create object instance sel_fi of SelectFromInstances;
   relate sel_fi to sel across R789;
   relate obj to sel_fi across R799;
-  // transform the where clause condition
-  ::transformExpression( v_val:where_clause_val, expr_number:r_op.expression_number + ".2", smt:smt );
-  select any where_clause_expr related by smt->Expression[R775] where ( selected.expression_number == r_op.expression_number + ".2" );
-  relate where_clause_expr to where_expr across R796;
-  ::resolveSortedSelection(where_expr:where_expr);
 end if;
 // link select type to the main expression
 relate select_type to expr across R795;',
@@ -1465,49 +1461,12 @@ else
     lnk = next_lnk;
     select one next_lnk related by lnk->ACT_LNK[R604.''precedes''];
   end while;
-  select one target_class related by lnk->O_OBJ[R678]->Class[R409];
-  sel_type = ::getObjectStreamReference(obj:target_class);
-  if ( not_empty where_clause_val or "any" == act_sel.cardinality )
-    create object instance r_op of Expression;
-    relate r_op to smt across R775;
-    r_op.expression_number = "1.2";
-    relate r_op to binop across R778;
-    relate select_type to r_op across R795;
-    // if the select is multiplicity many, use a type conversion
+
+  if not_empty where_clause_val
+    // create a type conversion for select many expression
     if act_sel.cardinality == "many"
-      create object instance cast_expr of TypeConversion;
-      relate cast_expr to r_op across R776;
-      create object instance r_op of Expression;
-      relate r_op to smt across R775;
-      r_op.expression_number = "1.2.1";
-      relate sel_type to r_op across R795;
-      relate r_op to cast_expr across R3907;
-    end if;
-    // create expression for last chain link
-    ::transformSelectionLink( act_lnk:lnk, expr_number:r_op.expression_number + ".1", smt:smt );
-    if ( not_empty where_clause_val )
-      create object instance where_expr of WhereExpr;
-      relate where_expr to r_op across R776;
-      where_expr.multiplicity = act_sel.cardinality;
-      where_expr.sorted = SortType::NONE;
-      // select the transformed link, relate it to the where clause
-      select any select_expr related by smt->Expression[R775] where ( selected.expression_number == r_op.expression_number + ".1" );
-      relate select_expr to where_expr across R790;
-      // transform the where clause condition
-      ::transformExpression( v_val:where_clause_val, expr_number:r_op.expression_number + ".2", smt:smt );
-      select any where_clause_expr related by smt->Expression[R775] where ( selected.expression_number == r_op.expression_number + ".2" );
-      relate where_clause_expr to where_expr across R796;
-      ::resolveSortedSelection(where_expr:where_expr);
-    else
-      create object instance any_expr of AnyExpr;
-      relate any_expr to r_op across R776;
-      // select the transformed link, relate it to the any expression
-      select any select_expr related by smt->Expression[R775] where ( selected.expression_number == r_op.expression_number + ".1" );
-      relate select_expr to any_expr across R783;
-    end if;
-  else
-    // if the select is multiplicity many, use a type conversion
-    if act_sel.cardinality == "many"
+      select one target_class related by lnk->O_OBJ[R678]->Class[R409];
+      sel_type = ::getObjectStreamReference(obj:target_class);
       create object instance r_op of Expression;
       relate r_op to smt across R775;
       r_op.expression_number = "1.2";
@@ -1515,14 +1474,55 @@ else
       relate select_type to r_op across R795;
       create object instance cast_expr of TypeConversion;
       relate cast_expr to r_op across R776;
-      ::transformSelectionLink( act_lnk:lnk, expr_number:"1.2.1", smt:smt );
-      select any select_expr related by smt->Expression[R775] where ( selected.expression_number == "1.2.1" );
-      relate select_expr to cast_expr across R3907;
+      // create where clause
+      ::transformWhereClause(v_val:where_clause_val, smt:smt, expr_number:"1.2.1", where_type:sel_type, multiplicity:act_sel.cardinality);
+      select any where_expr related by smt->Expression[R775] where selected.expression_number == "1.2.1";
+      relate where_expr to cast_expr across R3907;
     else
-      ::transformSelectionLink( act_lnk:lnk, expr_number:"1.2", smt:smt );
-      select any select_expr related by smt->Expression[R775] where ( selected.expression_number == "1.2" );
-      relate select_expr to binop across R778;
+      // create where clause
+      ::transformWhereClause(v_val:where_clause_val, smt:smt, expr_number:"1.2", where_type:select_type, multiplicity:act_sel.cardinality);
+      select any where_expr related by smt->Expression[R775] where selected.expression_number == "1.2";
+      relate where_expr to binop across R778;
     end if;
+    // create expression for last chain link
+    // this selection assumes only 1 where clause per statement which is always true in OAL
+    select any where_expr related by smt->Expression[R775]->WhereExpr[R776];
+    ::transformSelectionLink( act_lnk:lnk, expr_number:where_expr.expression_number + ".1", smt:smt );
+    select any sel_expr related by smt->Expression[R775] where selected.expression_number == where_expr.expression_number + ".1";
+    relate sel_expr to where_expr across R790;
+
+  elif act_sel.cardinality == "one"
+    // link the selection directly
+    ::transformSelectionLink( act_lnk:lnk, expr_number:"1.2", smt:smt );
+    select any select_expr related by smt->Expression[R775] where ( selected.expression_number == "1.2" );
+    relate select_expr to binop across R778;
+
+  elif act_sel.cardinality == "any"
+    // create an any expression
+    create object instance r_op of Expression;
+    relate r_op to smt across R775;
+    r_op.expression_number = "1.2";
+    relate r_op to binop across R778;
+    relate select_type to r_op across R795;
+    create object instance any_expr of AnyExpr;
+    relate any_expr to r_op across R776;
+    // create expression for last chain link
+    ::transformSelectionLink( act_lnk:lnk, expr_number:r_op.expression_number + ".1", smt:smt );
+    select any select_expr related by smt->Expression[R775] where ( selected.expression_number == r_op.expression_number + ".1" );
+    relate select_expr to any_expr across R783;
+
+  else
+    // create a type conversion for select many expression
+    create object instance r_op of Expression;
+    relate r_op to smt across R775;
+    r_op.expression_number = "1.2";
+    relate r_op to binop across R778;
+    relate select_type to r_op across R795;
+    create object instance cast_expr of TypeConversion;
+    relate cast_expr to r_op across R776;
+    ::transformSelectionLink( act_lnk:lnk, expr_number:"1.2.1", smt:smt );
+    select any select_expr related by smt->Expression[R775] where ( selected.expression_number == "1.2.1" );
+    relate select_expr to cast_expr across R3907;
   end if;
 end if;
 // link select type to the main expression
@@ -4184,72 +4184,6 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("56dd991f-2c16-4b8a-9f82-b3dd99c25611",
-	1,
-	"1aa08c2b-b96c-4c66-8c25-c079950eef10",
-	"00000000-0000-0000-0000-000000000000",
-	1);
-INSERT INTO S_SYNC
-	VALUES ("b224dbc7-8ee3-42cf-9aea-12a3211e411b",
-	"00000000-0000-0000-0000-000000000000",
-	'resolveSortedSelection',
-	'',
-	'where_expr = param.where_expr;
-
-// check if there is an invocation of a SORT bridge in the where expression
-select one where_clause_expr related by where_expr->Expression[R796];
-select any invoc related by where_clause_expr->Statement[R775]->Expression[R775]->Invocation[R776] where 
-  (selected.invoked_parent_name == "SORT" and STRING::indexof(haystack:selected.expression_number, needle:where_clause_expr.expression_number) == 0);
-if (not_empty invoc)
-  sort_type = SortType::NONE;
-  if (invoc.invoked_name == "ascending")
-    sort_type = SortType::ASCENDING;
-  elif (invoc.invoked_name == "descending")
-    sort_type = SortType::DESCENDING;
-  end if;
-  // select the sort attribute
-  select any attr_parm related by invoc->ActualParameter[R793] where (selected.param_name == "p_attr");
-  select one literal related by attr_parm->Expression[R794]->Literal[R776];
-  if (not_empty literal)
-    select one cls related by where_expr->Expression[R776]->TypeReference[R795]->InstanceTypeReference[R3801]->Class[R3808];
-    if (empty cls)
-      select one cls related by where_expr->Expression[R776]->TypeReference[R795]->CollectionTypeReference[R3801]
-        ->SetTypeReference[R3806]->CollectionTypeReference[R3806]->TypeReference[R3805]->InstanceTypeReference[R3801]->Class[R3808];
-    end if;
-    select any attr related by cls->Attribute[R410] where (selected.name == "m_" + literal.value or selected.name == "ref_" + literal.value);
-    if (not_empty attr)
-      // relate attribute to where expression
-      where_expr.sorted = sort_type;
-      relate attr to where_expr across R3906;
-    else
-      LOG::LogFailure(message:"Could not find attribute ''" + literal.value + "'' in class ''" + cls.name + "'' for sorting");
-    end if;
-  else
-    LOG::LogFailure(message:"SORT bridges require literal string parameters");
-  end if;
-end if;',
-	"ba5eda7a-def5-0000-0000-000000000000",
-	1,
-	'',
-	0,
-	0);
-INSERT INTO S_SPARM
-	VALUES ("040b9859-feb4-47d6-b987-e4df27fafd0d",
-	"b224dbc7-8ee3-42cf-9aea-12a3211e411b",
-	'where_expr',
-	"8a75e82a-db3d-4bdb-aba6-6de4e88a243e",
-	0,
-	'',
-	"00000000-0000-0000-0000-000000000000",
-	'');
-INSERT INTO S_DT_PROXY
-	VALUES ("8a75e82a-db3d-4bdb-aba6-6de4e88a243e",
-	"00000000-0000-0000-0000-000000000000",
-	'inst_ref<Where>',
-	'',
-	'',
-	'../../../../../core-architecture/models/core-architecture/architecture/expression/expression.xtuml');
-INSERT INTO PE_PE
-	VALUES ("b224dbc7-8ee3-42cf-9aea-12a3211e411b",
 	1,
 	"1aa08c2b-b96c-4c66-8c25-c079950eef10",
 	"00000000-0000-0000-0000-000000000000",

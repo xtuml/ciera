@@ -1196,13 +1196,13 @@ expr.expression_number = expr_number;
 // link type
 // this assumes that there is only one where clause per statement (which is currently
 // always the case in OAL)
-select any select_expr related by smt->Expression[R775]->WhereExpr[R776]->Expression[R790];
-select one sel_type related by select_expr->TypeReference[R795]->StreamTypeReference[R3801]->TypeReference[R3812]->InstanceTypeReference[R3801]->TypeReference[R3801];
-if empty sel_type
-  select one sel_type related by select_expr->TypeReference[R795]->InstanceTypeReference[R3801]->TypeReference[R3801];
+select any select_expr related by smt->Expression[R775]->WhereExpr[R776]->Expression[R776];
+select one where_type related by select_expr->TypeReference[R795]->StreamTypeReference[R3801]->TypeReference[R3812]->InstanceTypeReference[R3801]->TypeReference[R3801];
+if empty where_type
+  select one where_type related by select_expr->TypeReference[R795]->InstanceTypeReference[R3801]->TypeReference[R3801];
 end if;
-if not_empty sel_type
-  relate sel_type to expr across R795;
+if not_empty where_type
+  relate where_type to expr across R795;
 else
   // TODO bad
 end if;
@@ -1370,6 +1370,38 @@ INSERT INTO S_SYNC
 	'v_bin = param.v_bin;
 smt = param.smt;
 expr_number = param.expr_number;
+operator = T::sub(format:"l", s:v_bin.Operator);
+
+select one l_val related by v_bin->V_VAL[R802];
+select one r_val related by v_bin->V_VAL[R803];
+
+// simplify logical expressions containing literal booleans
+select one l_lbo related by l_val->V_LBO[R801];
+if not_empty l_lbo and (operator == "and" or operator == "or")
+  l_is_true = T::sub(format:"l", s:l_lbo.Value) == "true";
+  if (l_is_true and operator == "and") or
+     (not l_is_true and operator == "or")
+    // simplify to right hand side
+    ::transformExpression(v_val:r_val, expr_number:expr_number, smt:smt);
+  else
+    // simplify to left hand side
+    ::transformExpression(v_val:l_val, expr_number:expr_number, smt:smt);
+  end if;
+  return;  // early return
+end if;
+select one r_lbo related by r_val->V_LBO[R801];
+if not_empty r_lbo and (operator == "and" or operator == "or")
+  r_is_true = T::sub(format:"l", s:r_lbo.Value) == "true";
+  if (r_is_true and operator == "and") or
+     (not r_is_true and operator == "or")
+    // simplify to left hand side
+    ::transformExpression(v_val:l_val, expr_number:expr_number, smt:smt);
+  else
+    // simplify to right hand side
+    ::transformExpression(v_val:r_val, expr_number:expr_number, smt:smt);
+  end if;
+  return;  // early return
+end if;
 
 file = ::getFileForStatement(smt:smt);
 
@@ -1388,8 +1420,6 @@ select one array_type related by type->CollectionTypeReference[R3801]->ArrayType
 // create the binary expression
 create object instance binary of BinaryOperation;
 relate binary to expr across R776;
-select one l_val related by v_bin->V_VAL[R802];
-select one r_val related by v_bin->V_VAL[R803];
 select one l_s_dt related by l_val->S_DT[R820];
 l_type = ::getTypeReferenceForS_DT(s_dt:l_s_dt);
 select one l_set related by l_type->CollectionTypeReference[R3801]->SetTypeReference[R3806];
@@ -1397,21 +1427,21 @@ select one l_set related by l_type->CollectionTypeReference[R3801]->SetTypeRefer
 // translate the operator
 binary.invocation = false;
 binary.util = false;
-if ("and" == T::sub(format:"l", s:v_bin.Operator))
+if ("and" == operator)
   if (l_type.primitive)
     binary.operator = "&&";
   else
     binary.operator = "and";
     binary.invocation = true;
   end if;
-elif ("or" == T::sub(format:"l", s:v_bin.Operator))
+elif ("or" == operator)
   if (l_type.primitive)
     binary.operator = "||";
   else
     binary.operator = "or";
     binary.invocation = true;
   end if;
-elif ("==" == T::sub(format:"l", s:v_bin.Operator))
+elif ("==" == operator)
   if (l_type.primitive)
     binary.operator = "==";
   else
@@ -1424,7 +1454,7 @@ elif ("==" == T::sub(format:"l", s:v_bin.Operator))
       binary.invocation = true;
     end if;
   end if;
-elif ("!=" == T::sub(format:"l", s:v_bin.Operator))
+elif ("!=" == operator)
   if (l_type.primitive)
     binary.operator = "!=";
   else
@@ -1448,7 +1478,7 @@ elif ("!=" == T::sub(format:"l", s:v_bin.Operator))
       binary.invocation = true;
     end if;
   end if;
-elif ("<" == T::sub(format:"l", s:v_bin.Operator))
+elif ("<" == operator)
   binary.operator = "<";
   if (not l_type.primitive)
     if (not_empty array_type)
@@ -1460,7 +1490,7 @@ elif ("<" == T::sub(format:"l", s:v_bin.Operator))
       binary.invocation = true;
     end if;
   end if;
-elif ("<=" == T::sub(format:"l", s:v_bin.Operator))
+elif ("<=" == operator)
   binary.operator = "<=";
   if (not l_type.primitive)
     if (not_empty array_type)
@@ -1472,7 +1502,7 @@ elif ("<=" == T::sub(format:"l", s:v_bin.Operator))
       binary.invocation = true;
     end if;
   end if;
-elif (">" == T::sub(format:"l", s:v_bin.Operator))
+elif (">" == operator)
   binary.operator = ">";
   if (not l_type.primitive)
     if (not_empty array_type)
@@ -1484,7 +1514,7 @@ elif (">" == T::sub(format:"l", s:v_bin.Operator))
       binary.invocation = true;
     end if;
   end if;
-elif (">=" == T::sub(format:"l", s:v_bin.Operator))
+elif (">=" == operator)
   binary.operator = ">=";
   if (not l_type.primitive)
     if (not_empty array_type)
@@ -1496,7 +1526,7 @@ elif (">=" == T::sub(format:"l", s:v_bin.Operator))
       binary.invocation = true;
     end if;
   end if;
-elif ("+" == T::sub(format:"l", s:v_bin.Operator))
+elif ("+" == operator)
   if (l_type.primitive)
     binary.operator = "+";
   else
@@ -1510,7 +1540,7 @@ elif ("+" == T::sub(format:"l", s:v_bin.Operator))
       binary.invocation = true;
     end if;
   end if;
-elif ("-" == T::sub(format:"l", s:v_bin.Operator))
+elif ("-" == operator)
   if (l_type.primitive)
     binary.operator = "-";
   else
@@ -1521,34 +1551,34 @@ elif ("-" == T::sub(format:"l", s:v_bin.Operator))
     end if;
     binary.invocation = true;
   end if;
-elif ("*" == T::sub(format:"l", s:v_bin.Operator))
+elif ("*" == operator)
   if (l_type.primitive)
     binary.operator = "*";
   else
     binary.operator = "multiply";
     binary.invocation = true;
   end if;
-elif ("/" == T::sub(format:"l", s:v_bin.Operator))
+elif ("/" == operator)
   if (l_type.primitive)
     binary.operator = "/";
   else
     binary.operator = "divide";
     binary.invocation = true;
   end if;
-elif ("%" == T::sub(format:"l", s:v_bin.Operator))
+elif ("%" == operator)
   if (l_type.primitive)
     binary.operator = "%";
   else
     binary.operator = "remainder";
     binary.invocation = true;
   end if;
-elif ("|" == T::sub(format:"l", s:v_bin.Operator))
+elif ("|" == operator)
   binary.operator = "union";
   binary.invocation = true;
-elif ("&" == T::sub(format:"l", s:v_bin.Operator))
+elif ("&" == operator)
   binary.operator = "intersection";
   binary.invocation = true;
-elif ("^" == T::sub(format:"l", s:v_bin.Operator))
+elif ("^" == operator)
   binary.operator = "disunion";
   binary.invocation = true;
 end if;
@@ -2224,6 +2254,269 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("9fbfe5ed-97d5-4adc-81e6-284f908cddbd",
+	1,
+	"f9a85e65-cedd-4444-aef5-bae5288e31bc",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("0f97fd86-dec8-406f-a4fd-2149ad4da0f1",
+	"00000000-0000-0000-0000-000000000000",
+	'transformWhereClause',
+	'',
+	'v_val = param.v_val;
+smt = param.smt;
+expr_number = param.expr_number;
+where_type = param.where_type;
+multiplicity = param.multiplicity;
+
+// transform all sort keys before creating the where clause
+select any sort_expr from instances of SortExpr where false;
+select many sort_keys from instances of V_VAL where false;
+select many where_vals from instances of V_VAL where false;
+where_vals = where_vals + v_val;
+while not_empty where_vals
+  // search for invocations to the SORT bridge
+  select many v_brvs related by where_vals->V_BRV[R801];
+  for each v_brv in v_brvs
+    select one s_ee related by v_brv->S_BRG[R828]->S_EE[R19];
+    if s_ee.Key_Lett == "SORT"
+      select one sort_v_val related by v_brv->V_VAL[R801];
+      sort_keys = sort_keys + sort_v_val;
+    end if;
+  end for;
+  // traverse binary operations
+  select many lhss related by where_vals->V_BIN[R801]->V_VAL[R802];
+  select many rhss related by where_vals->V_BIN[R801]->V_VAL[R803];
+  where_vals = lhss + rhss;
+end while;
+if not_empty sort_keys
+  ::transformSort(v_vals:sort_keys, smt:smt, expr_number:expr_number, where_type:where_type);
+  select any sort_expr related by smt->Expression[R775]->SortExpr[R776] where selected.expression_number == expr_number;
+  expr_number = sort_expr.expression_number + ".1";
+end if;
+
+// create expression
+create object instance expr of Expression;
+relate expr to smt across R775;
+expr.expression_number = expr_number;
+relate where_type to expr across R795;
+
+// link to the sort expression if it exists
+if not_empty sort_expr
+  relate expr to sort_expr across R3917;
+end if;
+
+// create where clause
+create object instance where_expr of WhereExpr;
+relate where_expr to expr across R776;
+where_expr.multiplicity = multiplicity;
+
+// transform the where clause condition
+::transformExpression(v_val:v_val, expr_number:expr_number + ".2", smt:smt );
+select any where_clause_expr related by smt->Expression[R775] where ( selected.expression_number == expr_number + ".2" );
+relate where_clause_expr to where_expr across R796;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	3);
+INSERT INTO S_SPARM
+	VALUES ("a11feb6b-f1fc-4368-b44c-3ab4a00b2e97",
+	"0f97fd86-dec8-406f-a4fd-2149ad4da0f1",
+	'v_val',
+	"5400d269-ee31-4742-ac70-8532512a854c",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("a64c3cc6-10b0-4ff8-909e-f02a96acfe98",
+	"0f97fd86-dec8-406f-a4fd-2149ad4da0f1",
+	'expr_number',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"a38560bf-7f58-4670-81d0-f536db8e5174",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("a38560bf-7f58-4670-81d0-f536db8e5174",
+	"0f97fd86-dec8-406f-a4fd-2149ad4da0f1",
+	'smt',
+	"b586ec7e-41fe-4d50-9cf3-27b173e9848a",
+	0,
+	'',
+	"a11feb6b-f1fc-4368-b44c-3ab4a00b2e97",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("4723cdf6-bea7-4e43-b5cb-cea49fa85bfe",
+	"0f97fd86-dec8-406f-a4fd-2149ad4da0f1",
+	'where_type',
+	"096d9dad-f227-4793-bb43-a1915881b825",
+	0,
+	'',
+	"a64c3cc6-10b0-4ff8-909e-f02a96acfe98",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("096d9dad-f227-4793-bb43-a1915881b825",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Type Reference>',
+	'',
+	'',
+	'../../../../../core-architecture/models/core-architecture/architecture/type/type.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("71b9f80d-5b60-45e0-b818-3ae7f2afba01",
+	"0f97fd86-dec8-406f-a4fd-2149ad4da0f1",
+	'multiplicity',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"4723cdf6-bea7-4e43-b5cb-cea49fa85bfe",
+	'');
+INSERT INTO PE_PE
+	VALUES ("0f97fd86-dec8-406f-a4fd-2149ad4da0f1",
+	1,
+	"f9a85e65-cedd-4444-aef5-bae5288e31bc",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("c2673f57-b571-4a87-8364-64c2d19fb177",
+	"00000000-0000-0000-0000-000000000000",
+	'transformSort',
+	'',
+	'v_vals = param.v_vals;
+smt = param.smt;
+expr_number = param.expr_number;
+where_type = param.where_type;
+
+// create an expression
+create object instance expr of Expression;
+relate expr to smt across R775;
+expr.expression_number = expr_number;
+relate where_type to expr across R795;
+
+// create sort expression
+create object instance sort_expr of SortExpr;
+relate sort_expr to expr across R776;
+
+// get the target class
+select one cls related by where_type->InstanceTypeReference[R3801]->Class[R3808];
+if (empty cls)
+  select one cls related by where_type->StreamTypeReference[R3801]->TypeReference[R3812]->InstanceTypeReference[R3801]->Class[R3808];
+end if;
+
+// get the first sort key
+select any current_v_val from instances of V_VAL where false;
+for each v_val in v_vals
+  if empty current_v_val or v_val.LineNumber < current_v_val.LineNumber
+    or (v_val.LineNumber == current_v_val.LineNumber and
+        v_val.StartPosition < current_v_val.StartPosition)
+    current_v_val = v_val;
+  end if;
+end for;
+
+// iterate over the sort keys
+select any prev_sort_key from instances of SortKey where false;
+select any prev_v_val from instances of V_VAL where false;
+while not_empty current_v_val
+  select one s_brg related by current_v_val->V_BRV[R801]->S_BRG[R828];
+  // select the sort attribute
+  select any attr_parm related by current_v_val->V_BRV[R801]->V_PAR[R810] where selected.Name == "attr";
+  select one string_literal related by attr_parm->V_VAL[R800]->V_LST[R801];
+  if not_empty string_literal
+    select any attr related by cls->Attribute[R410] where (selected.name == "m_" + string_literal.Value or selected.name == "ref_" + string_literal.Value);
+    select any op related by cls->Operation[R416] where (not selected.is_class_based and selected.name == string_literal.Value);
+    if not_empty attr or not_empty op
+      // create the sort key
+      create object instance sort_key of SortKey;
+      sort_key.descending = s_brg.Name == "descending";
+      if not_empty attr
+        relate attr to sort_key across R3918;
+      else
+        relate op to sort_key across R3919;
+      end if;
+      relate sort_key to sort_expr across R3906;
+      if not_empty prev_sort_key
+        relate prev_sort_key to sort_key across R3920.''precedes'';
+      end if;
+      prev_sort_key = sort_key;
+      // replace the bridge value with a literal boolean
+      // this will be pruned away later
+      select one v_brv related by current_v_val->V_BRV[R801];
+      unrelate current_v_val from v_brv across R801;
+      create object instance v_lbo of V_LBO;
+      v_lbo.Value = "TRUE";
+      relate v_lbo to current_v_val across R801;
+    else
+      LOG::LogFailure(message:"Could not find attribute or operation ''" + string_literal.Value + "'' in class ''" + cls.name + "'' for sorting");
+    end if;
+  else
+    LOG::LogFailure(message:"SORT bridges require literal string parameters");
+  end if;
+
+  // get the next sort key
+  prev_v_val = current_v_val;
+  select any current_v_val from instances of V_VAL where false;
+  for each v_val in v_vals
+    if (v_val.LineNumber > prev_v_val.LineNumber
+        or (v_val.LineNumber == prev_v_val.LineNumber and
+            v_val.StartPosition > prev_v_val.StartPosition)) and 
+       (empty current_v_val or v_val.LineNumber < current_v_val.LineNumber
+        or (v_val.LineNumber == current_v_val.LineNumber and
+            v_val.StartPosition < current_v_val.StartPosition))
+      current_v_val = v_val;
+    end if;
+  end for;
+end while;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	4);
+INSERT INTO S_SPARM
+	VALUES ("a8b4dcf6-f6f7-4fe6-9a8d-a2ae07fc397c",
+	"c2673f57-b571-4a87-8364-64c2d19fb177",
+	'v_vals',
+	"17ebf7a4-a2b2-4503-a082-51fc273f01bb",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("17ebf7a4-a2b2-4503-a082-51fc273f01bb",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref_set<Value>',
+	'',
+	'',
+	'../../../../../mcooa/models/mcooa/ooaofooa/Value/Value.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("d644dde7-447f-49d4-b238-e63ea3167e12",
+	"c2673f57-b571-4a87-8364-64c2d19fb177",
+	'smt',
+	"b586ec7e-41fe-4d50-9cf3-27b173e9848a",
+	0,
+	'',
+	"a8b4dcf6-f6f7-4fe6-9a8d-a2ae07fc397c",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("b5a9a653-c0f4-4695-8eb7-bed9f15c3a35",
+	"c2673f57-b571-4a87-8364-64c2d19fb177",
+	'expr_number',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"d644dde7-447f-49d4-b238-e63ea3167e12",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("ca22c43f-ddbf-447d-878b-f618102aab16",
+	"c2673f57-b571-4a87-8364-64c2d19fb177",
+	'where_type',
+	"096d9dad-f227-4793-bb43-a1915881b825",
+	0,
+	'',
+	"b5a9a653-c0f4-4695-8eb7-bed9f15c3a35",
+	'');
+INSERT INTO PE_PE
+	VALUES ("c2673f57-b571-4a87-8364-64c2d19fb177",
 	1,
 	"f9a85e65-cedd-4444-aef5-bae5288e31bc",
 	"00000000-0000-0000-0000-000000000000",

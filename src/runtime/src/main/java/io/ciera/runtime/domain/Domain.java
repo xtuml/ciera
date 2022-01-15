@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.TreeSet;
+import java.util.LinkedHashSet;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -86,7 +86,7 @@ public abstract class Domain implements ActionHome, InstancePopulation {
         Class<?> object = instance.getClass();
         Set<ObjectInstance> objectPopulation = instancePopulation.get(object);
         if (objectPopulation == null) {
-            objectPopulation = new TreeSet<>();
+            objectPopulation = new LinkedHashSet<>();
             instancePopulation.put(object, objectPopulation);
         }
         boolean success = objectPopulation.add(instance);
