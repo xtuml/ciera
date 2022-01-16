@@ -2,6 +2,10 @@ package ${port.package};
 
 ${imports}
 
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.stereotype.Controller;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.json.JSONObject;
 
 @Controller
@@ -31,9 +35,6 @@ ${sendmethod}
 
     @Override
     public void deliver( IMessage message ) throws XtumlException {
-        default:
-            throw new BadArgumentException( "Message not implemented by this port." );
-        }
     }
 
     @Override

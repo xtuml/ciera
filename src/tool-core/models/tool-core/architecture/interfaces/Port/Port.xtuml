@@ -14,80 +14,8 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'select one containing_comp_def related by self->ComponentDefinition[R417];
-select any app related by containing_comp_def->Application[R426.''is instantiated by''];
-select one file related by self->File[R401];
-spring_controller = false;
-pkg = "";
-if ( self.marked_type == "SpringWebSocket" )
-  spring_controller = true;
-	select one iface related by self->Interface[R418.''implements''];
-	msgpkg = T::sub( format:"l", s:STRING::substr( s:iface.name, begin:1, end:-1 ));
-	pkg = iface.package + "." + msgpkg;
-end if;
-	
-
-// render inbound messages
-select many inbound_msgs related by self->Interface[R418]->Message[R419] where ( ( not selected.to_provider and not self.provider ) or
-                                                                                 ( selected.to_provider and self.provider ) );
-select many inbound_port_msgs related by inbound_msgs->PortMessage[R420] where ( selected.port_name == self.name );
-for each port_msg in inbound_port_msgs
-	if ( spring_controller )
-		::addStringToImports( file:file, s:pkg + "." + port_msg.msg_name + "Msg", type: ImportType::IMPL );
-    port_msg.render_msg_decode();
-	end if;
-  port_msg.render( containing_comp_def:containing_comp_def );
-end for;
-inbound_message_block = T::body();
-T::clear();
-
-// render outbound messages
-select many outbound_msgs related by self->Interface[R418]->Message[R419] where ( ( selected.to_provider and not self.provider ) or
-                                                                                  ( not selected.to_provider and self.provider ) );
-select many outbound_port_msgs related by outbound_msgs->PortMessage[R420] where ( selected.port_name == self.name );
-for each port_msg in outbound_port_msgs
-  port_msg.render( containing_comp_def:containing_comp_def );
-end for;
-outbound_message_block = T::body();
-T::clear();
-
-message_switch_block = "";
-sendmethod = "";
-topic = "HRuser";
-discriminant = "";
-if ( not spring_controller )
-	// render switch block
-	for each msg in inbound_port_msgs
-	  msg.render_deliver();
-	end for;
-	message_switch_block = T::body();
-else
-  T::include(file:"interface/t.port.send.java");
-  sendmethod = T::body();	
-end if;
-T::clear();
-
-// render extra parameters
-extra_parameters = "";
-if ( "HttpPort" == self.base_class )
-  select one c_po related by self->C_PO[R422];
-  select one c_c related by c_po->C_C[R4010];
-  select one pe related by c_c->PE_PE[R8001];
-  select any http_endpoint_mark from instances of Mark where ( selected.markable_name == "Port" and
-                                                               selected.path == ::containerMarkingPath( pe:pe ) + "::" + c_c.Name + "::" + c_po.Name and
-                                                               selected.feature_name == "HttpEndpoint" );
-  endpoint = http_endpoint_mark.value;
-  T::include(file:"interface/t.port.http.java");
-  extra_parameters = T::body();
-  T::clear();
-end if;
-
-select one file related by self->File[R401];
-imports = file.getFormattedImports( type:ImportType::IMPL );
-
-T::include(file:"interface/t.port.java");
-T::emit( file:file.path + "/" + self.name + file.extension );
-T::clear();',
+	'select one port_descr related by self->PortDescriptor[R4161.''is specialized by''];
+port_descr.render_port();',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",
