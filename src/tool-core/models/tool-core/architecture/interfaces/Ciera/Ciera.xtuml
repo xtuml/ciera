@@ -1,0 +1,146 @@
+-- BP 7.1.6 content: ModelClass syschar: 3 persistence-version: 7.1.6
+
+INSERT INTO O_OBJ
+	VALUES ("905e3a64-67e9-4c20-9aa8-93f5685c88eb",
+	'Ciera',
+	6,
+	'Ciera',
+	'',
+	"00000000-0000-0000-0000-000000000000");
+INSERT INTO O_TFR
+	VALUES ("cea93cc6-95ab-4669-b177-7bdf52f8cd8e",
+	"905e3a64-67e9-4c20-9aa8-93f5685c88eb",
+	'render_interface',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'select one port related by self->PortDescriptor[R4162]->Port[R4161.''specializes''];
+select one iface related by port->Interface[R418.''implements''];
+select one file related by iface->File[R401];
+
+select many to_provider_msgs related by iface->Message[R419.''defines communication through'']
+ where ( selected.to_provider );
+for each msg in to_provider_msgs
+  msg.render();
+end for;
+to_provider_message_block = T::body();
+T::clear();
+
+select many from_provider_msgs related by iface->Message[R419.''defines communication through'']
+ where ( not selected.to_provider );
+for each msg in from_provider_msgs
+  msg.render();
+end for;
+from_provider_message_block = T::body();
+T::clear();
+
+imports = file.getFormattedImports( type:ImportType::IMPL );
+T::include(file:"interface/t.interface.java");
+T::emit( file:file.path + "/" + iface.name + file.extension );
+T::clear();
+',
+	1,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	0,
+	1);
+INSERT INTO O_TFR
+	VALUES ("1600fa19-6b72-4499-9d8d-b18a92465f06",
+	"905e3a64-67e9-4c20-9aa8-93f5685c88eb",
+	'render_port',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'select one port related by self->PortDescriptor[R4162]->Port[R4161.''specializes''];
+select one containing_comp_def related by port->ComponentDefinition[R417];
+select one file related by port->File[R401];
+imports = file.getFormattedImports( type:ImportType::IMPL );
+
+// render inbound messages
+select many inbound_msgs related by port->Interface[R418]->Message[R419] where ( ( not selected.to_provider and not port.provider ) or
+                                                                                 ( selected.to_provider and port.provider ) );
+select many inbound_port_msgs related by inbound_msgs->PortMessage[R420] where ( selected.port_name == port.name );
+for each port_msg in inbound_port_msgs
+  port_msg.render( containing_comp_def:containing_comp_def );
+end for;
+inbound_message_block = T::body();
+T::clear();
+
+// render outbound messages
+select many outbound_msgs related by port->Interface[R418]->Message[R419] where ( ( selected.to_provider and not port.provider ) or
+                                                                                  ( not selected.to_provider and port.provider ) );
+select many outbound_port_msgs related by outbound_msgs->PortMessage[R420] where ( selected.port_name == port.name );
+for each port_msg in outbound_port_msgs
+  port_msg.render( containing_comp_def:containing_comp_def );
+end for;
+outbound_message_block = T::body();
+T::clear();
+
+// render switch block
+for each msg in inbound_port_msgs
+  msg.render_deliver();
+end for;
+message_switch_block = T::body();
+T::clear();
+
+// render extra parameters
+extra_parameters = "";
+if ( "HttpPort" == port.base_class )
+  select one c_po related by port->C_PO[R422];
+  select one c_c related by c_po->C_C[R4010];
+  select one pe related by c_c->PE_PE[R8001];
+  select any http_endpoint_mark from instances of Mark where ( selected.markable_name == "Port" and
+                                                               selected.path == ::containerMarkingPath( pe:pe ) + "::" + c_c.Name + "::" + c_po.Name and
+                                                               selected.feature_name == "HttpEndpoint" );
+  endpoint = http_endpoint_mark.value;
+  T::include(file:"interface/t.port.http.java");
+  extra_parameters = T::body();
+  T::clear();
+end if;
+
+T::include(file:"interface/t.port.java");
+T::emit( file:file.path + "/" + port.name + file.extension );
+T::clear();',
+	1,
+	'',
+	"cea93cc6-95ab-4669-b177-7bdf52f8cd8e",
+	0,
+	2);
+INSERT INTO O_ID
+	VALUES (0,
+	"905e3a64-67e9-4c20-9aa8-93f5685c88eb");
+INSERT INTO O_ID
+	VALUES (1,
+	"905e3a64-67e9-4c20-9aa8-93f5685c88eb");
+INSERT INTO O_ID
+	VALUES (2,
+	"905e3a64-67e9-4c20-9aa8-93f5685c88eb");
+INSERT INTO PE_PE
+	VALUES ("905e3a64-67e9-4c20-9aa8-93f5685c88eb",
+	1,
+	"034a6dc6-ed87-4d18-8620-a825db8eaa7b",
+	"00000000-0000-0000-0000-000000000000",
+	4);
+INSERT INTO EP_PKG_PROXY
+	VALUES ("034a6dc6-ed87-4d18-8620-a825db8eaa7b",
+	"00000000-0000-0000-0000-000000000000",
+	"9092a4a9-91f5-4e59-984b-3ca72917240d",
+	'interfaces',
+	'Interfaces support passing instances and sets of instances as parameters on Port Messages.
+Where commmunicating components are represented by xtUML models, this is only practical 
+because components share component independent definitions of classes - and, therefore, 
+sets of class instances - through the Package Reference mechanism.
+
+While shared attribute, association and state model definitions of such classes are immutable,
+within xtUML components, shared classes may participate in component-specific associations.
+
+Since each component-specific class interface includes methods for all associations -
+including component-specific ones - in which the class participates, each method representing 
+an inter-component message must use component-independent interfaces to declare inst_ref and 
+inst_ref_set parameters. Therefore, methods realizing port-message activities must also use 
+component-independent interfaces when declaring such parameters which are then down-cast to 
+the receiving-component-specific class or class set required by the body of the port-message 
+activity.
+',
+	0,
+	'../interfaces.xtuml');

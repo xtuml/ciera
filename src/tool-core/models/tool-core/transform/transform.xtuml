@@ -2531,6 +2531,9 @@ relate port to file across R401;
 relate port to c_po across R422;
 port.port_name = ::camelCaseName( name:c_po.Name, start_lower:false );
 
+create object instance portdescr of PortDescriptor;
+relate portdescr to port across R4161;
+
 path_for_mark = ::containerMarkingPath( pe:pe ) + "::" + c_c.Name + "::" + c_po.Name;
 
 // set base class
@@ -2550,7 +2553,14 @@ select any port_type_mark from instances of Mark where ( selected.markable_name 
                                                           selected.path == path_for_mark and
                                                           selected.feature_name == "PortType" );
 if ( not_empty port_type_mark )
-	port.marked_type = port_type_mark.value;
+	if (port_type_mark.value == "SpringWebSocket" )
+		create object instance springsocket of SpringWebSocket;
+		relate springsocket to portdescr across R4162;
+		port.marked_type = "SpringWebSocket";  // @TODO AM
+  end if;
+else
+	create object instance cport of Ciera;
+	relate cport to portdescr across R4162;
 end if;
 
 // set port as provider or requirer
@@ -2572,7 +2582,7 @@ if ( empty iface and not_empty c_i )
 end if;
 if ( not_empty iface )
   relate port to iface across R418;
-  if ( port.marked_type == "SpringWebSocket" )
+  if ( port.marked_type == "SpringWebSocket" ) // @TODO AM
   	iface.serialize_msgs = true;
   end if;
   select many msgs related by iface->Message[R419];

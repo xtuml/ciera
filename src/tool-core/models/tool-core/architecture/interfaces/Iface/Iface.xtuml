@@ -14,54 +14,11 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'// A port marked as supporting Spring websocket needs a different interface for incoming messagesa.
-// It also needs a generic message class for outgoing message ''sends''.
-spring_controller = false;
-select one file related by self->File[R401];
-select any port related by self->Port[R418.''is implemented by'']
- where ( selected.marked_type == "SpringWebSocket" );
-if ( not_empty port )
-	spring_controller = true;
-end if;
-
-select many to_provider_msgs related by self->Message[R419] where ( selected.to_provider );
-for each msg in to_provider_msgs
-	if ( spring_controller )
-		msg.render_def();
-	else
-    msg.render();
-  end if;
+	'// render interfaces which may be specialized by port type.
+select many ports related by self->Port[R418.''is implemented by''];
+for each port in ports;
+  port.render_interface();
 end for;
-to_provider_message_block = T::body();
-T::clear();
-
-select many from_provider_msgs related by self->Message[R419] where ( not selected.to_provider );
-for each msg in from_provider_msgs
-  msg.render();
-end for;
-from_provider_message_block = T::body();
-T::clear();
-
-imports = file.getFormattedImports( type:ImportType::IMPL );
-
-T::include(file:"interface/t.interface.java");
-T::emit( file:file.path + "/" + self.name + file.extension );
-T::clear();
-
-// If this interface is marked for message class generation, render the classes.
-select any msgclass_mark from instances of Mark where ( selected.markable_name == "Interface" )
-                                              and ( selected.feature_name == "GenerateMessageClasses" )
-											                        and ( selected.value == self.name );
-if ( not_empty msgclass_mark )
-	for each msg in to_provider_msgs
-	  msg.render_msgclass();
-	end for;
-	if ( not spring_controller )  // not a SpringWebSocket port; they use a generic message class
-		for each msg in from_provider_msgs
-		  msg.render_msgclass();
-		end for;
-	end if;
-end if;
 ',
 	1,
 	'',
@@ -195,57 +152,6 @@ INSERT INTO O_ATTR
 	"ba5eda7a-def5-0000-0000-000000000007",
 	'',
 	'');
-INSERT INTO O_REF
-	VALUES ("26b351ef-ca37-4740-aeff-9c9ed1460938",
-	"a9120b56-197a-48fd-9ca0-9774cba03f3f",
-	0,
-	"788ff3b6-201d-48ae-890e-edcadf0f6c0d",
-	"f035a9be-935d-468b-93f3-bf687b33eab3",
-	"4501821e-27e4-4df5-bb2e-7c5a062e0767",
-	"0d1fb455-63bd-4f58-9fb7-1e4f15a32284",
-	"cddba780-6389-495d-8f6e-b96557344b24",
-	"c03fe672-4fd5-4811-957b-82e834386afb",
-	"00000000-0000-0000-0000-000000000000",
-	0,
-	'',
-	'Interface',
-	'Id',
-	'R421.''is basis for''');
-INSERT INTO R_RGO_PROXY
-	VALUES ("26b351ef-ca37-4740-aeff-9c9ed1460938",
-	"f035a9be-935d-468b-93f3-bf687b33eab3",
-	"4501821e-27e4-4df5-bb2e-7c5a062e0767",
-	'../interfaces.xtuml');
-INSERT INTO O_RTIDA_PROXY
-	VALUES ("788ff3b6-201d-48ae-890e-edcadf0f6c0d",
-	"a9120b56-197a-48fd-9ca0-9774cba03f3f",
-	0,
-	"f035a9be-935d-468b-93f3-bf687b33eab3",
-	"0d1fb455-63bd-4f58-9fb7-1e4f15a32284",
-	'../interfaces.xtuml');
-INSERT INTO O_RATTR
-	VALUES ("cddba780-6389-495d-8f6e-b96557344b24",
-	"26b351ef-ca37-4740-aeff-9c9ed1460938",
-	"41dd50fe-c407-44c8-bb3d-913f6bb68dd0",
-	"e7378c46-7ebc-4b9f-a934-91d48b1a4774",
-	1,
-	'Element_ID');
-INSERT INTO O_BATTR_PROXY
-	VALUES ("41dd50fe-c407-44c8-bb3d-913f6bb68dd0",
-	"e7378c46-7ebc-4b9f-a934-91d48b1a4774",
-	'../../../../../../mcooa/models/mcooa/ooaofooa/Packageable Element/Packageable Element/Packageable Element.xtuml');
-INSERT INTO O_ATTR
-	VALUES ("cddba780-6389-495d-8f6e-b96557344b24",
-	"26b351ef-ca37-4740-aeff-9c9ed1460938",
-	"50f706c0-6825-42f0-9079-bd21efa2fda0",
-	'iface_Id',
-	'',
-	'iface_',
-	'Id',
-	1,
-	"ba5eda7a-def5-0000-0000-000000000007",
-	'',
-	'');
 INSERT INTO O_NBATTR
 	VALUES ("2a0b063c-e6c1-482a-80a7-f4dc4b62a67d",
 	"26b351ef-ca37-4740-aeff-9c9ed1460938");
@@ -255,7 +161,7 @@ INSERT INTO O_BATTR
 INSERT INTO O_ATTR
 	VALUES ("2a0b063c-e6c1-482a-80a7-f4dc4b62a67d",
 	"26b351ef-ca37-4740-aeff-9c9ed1460938",
-	"cddba780-6389-495d-8f6e-b96557344b24",
+	"50f706c0-6825-42f0-9079-bd21efa2fda0",
 	'serialize_msgs',
 	'If true, parameters of an associated Port Message will serialize as JSON strings.',
 	'',
@@ -280,6 +186,57 @@ INSERT INTO O_ATTR
 	'gen_msg_classes',
 	0,
 	"ba5eda7a-def5-0000-0000-000000000001",
+	'',
+	'');
+INSERT INTO O_REF
+	VALUES ("26b351ef-ca37-4740-aeff-9c9ed1460938",
+	"a9120b56-197a-48fd-9ca0-9774cba03f3f",
+	0,
+	"788ff3b6-201d-48ae-890e-edcadf0f6c0d",
+	"f035a9be-935d-468b-93f3-bf687b33eab3",
+	"4501821e-27e4-4df5-bb2e-7c5a062e0767",
+	"0d1fb455-63bd-4f58-9fb7-1e4f15a32284",
+	"8fbdc780-cf45-48a2-ad55-ed4867ca9747",
+	"d1a51c3e-ac62-409d-b86c-534ae96f38b9",
+	"00000000-0000-0000-0000-000000000000",
+	0,
+	'',
+	'Interface',
+	'Id',
+	'R421.''is transformed from''');
+INSERT INTO R_RGO_PROXY
+	VALUES ("26b351ef-ca37-4740-aeff-9c9ed1460938",
+	"f035a9be-935d-468b-93f3-bf687b33eab3",
+	"4501821e-27e4-4df5-bb2e-7c5a062e0767",
+	'../interfaces.xtuml');
+INSERT INTO O_RTIDA_PROXY
+	VALUES ("788ff3b6-201d-48ae-890e-edcadf0f6c0d",
+	"a9120b56-197a-48fd-9ca0-9774cba03f3f",
+	0,
+	"f035a9be-935d-468b-93f3-bf687b33eab3",
+	"0d1fb455-63bd-4f58-9fb7-1e4f15a32284",
+	'../interfaces.xtuml');
+INSERT INTO O_RATTR
+	VALUES ("8fbdc780-cf45-48a2-ad55-ed4867ca9747",
+	"26b351ef-ca37-4740-aeff-9c9ed1460938",
+	"41dd50fe-c407-44c8-bb3d-913f6bb68dd0",
+	"e7378c46-7ebc-4b9f-a934-91d48b1a4774",
+	1,
+	'Element_ID');
+INSERT INTO O_BATTR_PROXY
+	VALUES ("41dd50fe-c407-44c8-bb3d-913f6bb68dd0",
+	"e7378c46-7ebc-4b9f-a934-91d48b1a4774",
+	'../../../../../../mcooa/models/mcooa/ooaofooa/Packageable Element/Packageable Element/Packageable Element.xtuml');
+INSERT INTO O_ATTR
+	VALUES ("8fbdc780-cf45-48a2-ad55-ed4867ca9747",
+	"26b351ef-ca37-4740-aeff-9c9ed1460938",
+	"7d637673-9c70-4adc-af92-7ad34f1885bd",
+	'iface_Id',
+	'',
+	'iface_',
+	'Id',
+	1,
+	"ba5eda7a-def5-0000-0000-000000000007",
 	'',
 	'');
 INSERT INTO O_ID

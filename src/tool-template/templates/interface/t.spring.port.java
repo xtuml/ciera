@@ -2,11 +2,24 @@ package ${port.package};
 
 ${imports}
 
+import org.json.JSONObject;
+
+@Controller
 public class ${port.name} extends ${port.base_class}<${port.comp_name}> implements ${port.iface_name} {
 
-    public ${port.name}( ${port.comp_name} context, IPort<?> peer ) {
-        super( context, peer );
-    }
+	private SimpMessagingTemplate template;
+
+	private static ${port.name} singleton;
+	public static ${port.name} Singleton() {
+		return singleton;
+	}
+
+    @Autowired
+    public ${port.name}( SimpMessagingTemplate template ) {
+		super ( ${port.comp_name}.Singleton(), null );
+		singleton = this;
+        this.template = template;
+	}
 
     // inbound messages
 ${inbound_message_block}
@@ -14,17 +27,14 @@ ${inbound_message_block}
     // outbound messages
 ${outbound_message_block}
 
+${sendmethod}
+
     @Override
     public void deliver( IMessage message ) throws XtumlException {
-        if ( null == message ) throw new BadArgumentException( "Cannot deliver null message." );
-        switch ( message.getId() ) {
-${message_switch_block}\
         default:
             throw new BadArgumentException( "Message not implemented by this port." );
         }
     }
-
-${extra_parameters}
 
     @Override
     public String getName() {
