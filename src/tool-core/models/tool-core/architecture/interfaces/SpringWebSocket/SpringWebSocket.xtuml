@@ -42,7 +42,7 @@ T::clear();
 ',
 	1,
 	'',
-	"00000000-0000-0000-0000-000000000000",
+	"4bd420c6-057a-4a88-8456-5400d27fc2a0",
 	0,
 	1);
 INSERT INTO O_TFR
@@ -133,16 +133,12 @@ end for;
 outbound_message_block = T::body();
 T::clear();
 
-message_switch_block = "";
 sendmethod = "";
-topic = "HRuser";
-discriminant = "";
+topic = self.subscribe_topic;
+add_sub_topic = self.subtopic_parm;
 T::include(file:"interface/t.port.send.java");
 sendmethod = T::body();
 T::clear();
-
-// render extra parameters
-extra_parameters = "";
 
 imports = file.getFormattedImports( type:ImportType::IMPL );
 
@@ -154,6 +150,78 @@ T::clear();',
 	"c941aa65-0432-46d6-b689-12c8eaf187f4",
 	0,
 	3);
+INSERT INTO O_TFR
+	VALUES ("4bd420c6-057a-4a88-8456-5400d27fc2a0",
+	"b2989ac2-663c-402c-849f-59fe2b7ac4d9",
+	'create',
+	'',
+	"2608ff27-bd60-4d82-bb0f-9aa6a70dd62a",
+	0,
+	'create object instance sws of SpringWebSocket;
+port = param.port;
+create object instance descr of PortDescriptor;
+relate sws to descr across R4162;
+relate descr to port across R4161.''specializes'';
+sws.subscribe_topic = "/Client";
+sws.endpoint = "";
+sws.subtopic_parm = "";
+return sws;',
+	1,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	0,
+	4);
+INSERT INTO O_TPARM
+	VALUES ("a17b0f7a-2986-4fbb-8cf9-c62db5c0723f",
+	"4bd420c6-057a-4a88-8456-5400d27fc2a0",
+	'port',
+	"d29fe14e-2574-4613-ac57-716ebd8e905c",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("d29fe14e-2574-4613-ac57-716ebd8e905c",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Port>',
+	'',
+	'',
+	'../interfaces.xtuml');
+INSERT INTO S_DT_PROXY
+	VALUES ("2608ff27-bd60-4d82-bb0f-9aa6a70dd62a",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<SpringWebSocket>',
+	'',
+	'',
+	'../interfaces.xtuml');
+INSERT INTO O_TFR
+	VALUES ("094608ee-c234-4be4-b39c-76eaa7dd0b02",
+	"b2989ac2-663c-402c-849f-59fe2b7ac4d9",
+	'render_comp_port_accessor',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'select one port related by self->PortDescriptor[R4162]->Port[R4161.''specializes''];
+use_singleton = true;
+T::include(file:"interface/t.portaccessor.java");',
+	1,
+	'',
+	"140b1c54-1226-4f98-a703-1c38f5e335a2",
+	0,
+	5);
+INSERT INTO O_TFR
+	VALUES ("61e71294-d687-4a15-a2b9-2fac25180ee3",
+	"b2989ac2-663c-402c-849f-59fe2b7ac4d9",
+	'get_sendtest',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	1,
+	'return "true";',
+	1,
+	'',
+	"094608ee-c234-4be4-b39c-76eaa7dd0b02",
+	0,
+	6);
 INSERT INTO O_NBATTR
 	VALUES ("e38ce274-1d36-4d65-be04-ddd678b52c2a",
 	"b2989ac2-663c-402c-849f-59fe2b7ac4d9");
@@ -163,11 +231,11 @@ INSERT INTO O_BATTR
 INSERT INTO O_ATTR
 	VALUES ("e38ce274-1d36-4d65-be04-ddd678b52c2a",
 	"b2989ac2-663c-402c-849f-59fe2b7ac4d9",
-	"00000000-0000-0000-0000-000000000000",
-	'topic',
+	"520f6117-98ec-43e9-ae61-8ad8a00e67a2",
+	'subscribe_topic',
 	'',
 	'',
-	'topic',
+	'subscribe_topic',
 	0,
 	"ba5eda7a-def5-0000-0000-000000000004",
 	'',
@@ -182,10 +250,28 @@ INSERT INTO O_ATTR
 	VALUES ("c3530416-0b26-4326-ad28-4f3a4abb780c",
 	"b2989ac2-663c-402c-849f-59fe2b7ac4d9",
 	"e38ce274-1d36-4d65-be04-ddd678b52c2a",
-	'topic_discriminator',
+	'subtopic_parm',
 	'',
 	'',
-	'topic_discriminator',
+	'subtopic_parm',
+	0,
+	"ba5eda7a-def5-0000-0000-000000000004",
+	'',
+	'');
+INSERT INTO O_NBATTR
+	VALUES ("520f6117-98ec-43e9-ae61-8ad8a00e67a2",
+	"b2989ac2-663c-402c-849f-59fe2b7ac4d9");
+INSERT INTO O_BATTR
+	VALUES ("520f6117-98ec-43e9-ae61-8ad8a00e67a2",
+	"b2989ac2-663c-402c-849f-59fe2b7ac4d9");
+INSERT INTO O_ATTR
+	VALUES ("520f6117-98ec-43e9-ae61-8ad8a00e67a2",
+	"b2989ac2-663c-402c-849f-59fe2b7ac4d9",
+	"00000000-0000-0000-0000-000000000000",
+	'endpoint',
+	'',
+	'',
+	'endpoint',
 	0,
 	"ba5eda7a-def5-0000-0000-000000000004",
 	'',

@@ -18,12 +18,6 @@ INSERT INTO O_TFR
 	1,
 	'containing_comp_def = param.containing_comp_def;
 
-select one port related by self->Port[R420];
-spring_controller = false;
-if ( port.marked_type == "SpringWebSocket" )
-  spring_controller = true;
-end if;
-
 select one message related by self->Message[R420];
 parameter_list = "";
 select one invocable related by self->InvocableObject[R427];
@@ -69,7 +63,10 @@ end while;
 parmcasts = T::body();
 T::pop_buffer();
 
-inbound = ( port.provider and message.to_provider ) or ( not port.provider and not message.to_provider );
+select one port related by self->Port[R420.''is implemented within''];
+inbound = ( port.provider == message.to_provider );
+select one descriptor related by port->PortDescriptor[R4161.''is specialized by''];
+sendtest = descriptor.get_sendtest();
 T::include(file:"interface/t.portmessage.java");',
 	1,
 	'',

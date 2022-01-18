@@ -4,9 +4,9 @@
      	String payload = (String)message.getParms().toString();
     	SpringMsg springmsg = new SpringMsg ( msgname, payload );
         String topic = "/topic/${topic}/";
-.if (discriminant != "" )
+.if ( add_sub_topic != "" )
         JSONObject jobj = new JSONObject(payload);
-        String subtopic = jobj.getString("${discriminant}");
+        String subtopic = jobj.getString("${add_sub_topic}");
         topic = topic + subtopic;
 .end if 
     	this.template.convertAndSend( topic, springmsg );

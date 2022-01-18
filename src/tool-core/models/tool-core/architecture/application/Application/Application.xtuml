@@ -39,9 +39,8 @@ select many executors related by self->ApplicationExecutor[R4027];
 num_executors = cardinality executors;
 
 spring_controller = false;
-select any port from instances of Port
- where ( selected.marked_type == "SpringWebSocket" );
-if ( not_empty port )
+select any spring_port from instances of SpringWebSocket;
+if ( not_empty spring_port )
 	spring_controller = true;
   pkg = self.package;
   T::include(file:"interface/t.spring.msg.java");
@@ -58,7 +57,14 @@ else
 end if;
 
 T::emit( file:file.path + "/" + self.name + file.extension );
-T::clear();',
+T::clear();
+
+if ( not_empty spring_port )
+	endpoint = self.name;
+  T::include(file:"application/t.websocketconfig.java");
+  T::emit( file:file.path + "/WebSocketConfig.java" );
+  T::clear();
+end if;',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",

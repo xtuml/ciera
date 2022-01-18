@@ -1,10 +1,10 @@
-    private ${self.name} ${self.name};
-    public ${self.name} ${self.port_name}() {
-        if ( null == ${self.name} )
+    private ${port.name} ${port.name};
+    public ${port.name} ${port.port_name}() {
+        if ( null == ${port.name} )
 .if not use_singleton
-        	${self.name} = new ${self.name}( this, null );
+        	${port.name} = new ${port.name}( this, null );
 .else
-            ${self.name} = ${self.name}.Singleton();
+            ${port.name} = ${port.name}.Singleton();
 .end if
-        return ${self.name};
+        return ${port.name};
     }
