@@ -60,7 +60,15 @@ T::emit( file:file.path + "/" + self.name + file.extension );
 T::clear();
 
 if ( not_empty spring_port )
-	endpoint = self.name;
+	endpoints = "";
+	select many spring_ports from instances of SpringWebSocket
+	 where ( selected.endpoint != "" );
+	for each spring_port in spring_ports
+	  endpoint = spring_port.endpoint;
+    T::include(file:"application/t.ws.endpoint.java");
+	end for;
+	endpoints = T::body();
+	T::clear();
   T::include(file:"application/t.websocketconfig.java");
   T::emit( file:file.path + "/WebSocketConfig.java" );
   T::clear();

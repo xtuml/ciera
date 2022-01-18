@@ -1,7 +1,6 @@
 package ${port.package};
 
 ${imports}
-
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.stereotype.Controller;
@@ -27,6 +26,8 @@ public class ${port.name} extends ${port.base_class}<${port.comp_name}> implemen
 
     // inbound messages
 ${inbound_message_block}
+    // unpack parameters from message instance
+${unpack_message_block}
 
     // outbound messages
 ${outbound_message_block}

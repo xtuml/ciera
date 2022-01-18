@@ -2,16 +2,16 @@
 
 INSERT INTO O_OBJ
 	VALUES ("905e3a64-67e9-4c20-9aa8-93f5685c88eb",
-	'Ciera',
+	'xtUML',
 	6,
-	'Ciera',
+	'xtUML',
 	'',
 	"00000000-0000-0000-0000-000000000000");
 INSERT INTO O_TFR
 	VALUES ("cea93cc6-95ab-4669-b177-7bdf52f8cd8e",
 	"905e3a64-67e9-4c20-9aa8-93f5685c88eb",
 	'render_interface',
-	'',
+	'Render a standard Ciera interface file.',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'select one port related by self->PortDescriptor[R4162]->Port[R4161.''specializes''];
@@ -52,33 +52,22 @@ INSERT INTO O_TFR
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'select one port related by self->PortDescriptor[R4162]->Port[R4161.''specializes''];
-select one containing_comp_def related by port->ComponentDefinition[R417];
 select one file related by port->File[R401];
 imports = file.getFormattedImports( type:ImportType::IMPL );
 
 // render inbound messages
-select many inbound_msgs related by port->Interface[R418]->Message[R419] where ( ( not selected.to_provider and not port.provider ) or
-                                                                                 ( selected.to_provider and port.provider ) );
-select many inbound_port_msgs related by inbound_msgs->PortMessage[R420] where ( selected.port_name == port.name );
-for each port_msg in inbound_port_msgs
-  port_msg.render( containing_comp_def:containing_comp_def );
-end for;
+inmsgs = port.render_incoming_msgs();
 inbound_message_block = T::body();
 T::clear();
 
 // render outbound messages
-select many outbound_msgs related by port->Interface[R418]->Message[R419] where ( ( selected.to_provider and not port.provider ) or
-                                                                                  ( not selected.to_provider and port.provider ) );
-select many outbound_port_msgs related by outbound_msgs->PortMessage[R420] where ( selected.port_name == port.name );
-for each port_msg in outbound_port_msgs
-  port_msg.render( containing_comp_def:containing_comp_def );
-end for;
+outmsgs = port.render_outgoing_msgs();
 outbound_message_block = T::body();
 T::clear();
 
-// render switch block
-for each msg in inbound_port_msgs
-  msg.render_deliver();
+// render incoming message switch block
+for each portmsg in inmsgs
+	portmsg.render_deliver();
 end for;
 message_switch_block = T::body();
 T::clear();
@@ -113,13 +102,12 @@ INSERT INTO O_TFR
 	'',
 	"82eeec2d-dd16-45fb-8e06-2553ed4ff6c5",
 	0,
-	'create object instance c of Ciera;
+	'create object instance std of xtUML;
 port = param.port;
 create object instance descr of PortDescriptor;
-relate c to descr across R4162;
+relate std to descr across R4162;
 relate descr to port across R4161.''specializes'';
-select any app related by port->ComponentDefinition[R417.''passes messages for'']->Application[R426.''is instantiated by''];
-return c;',
+return std;',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",
@@ -144,7 +132,7 @@ INSERT INTO S_DT_PROXY
 INSERT INTO S_DT_PROXY
 	VALUES ("82eeec2d-dd16-45fb-8e06-2553ed4ff6c5",
 	"00000000-0000-0000-0000-000000000000",
-	'inst_ref<Ciera>',
+	'inst_ref<xtUML>',
 	'',
 	'',
 	'../interfaces.xtuml');
@@ -170,7 +158,9 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000004",
 	1,
-	'return "satisfied()";',
+	'// This test is used to determine whether a message should be presented to a Ciera port for transmission.
+// If the port is not ''satisfied'' - connected to a peer Ciera port - the port activity OAL is rendered.
+return "satisfied()";',
 	1,
 	'',
 	"cf3f4e12-3eb4-4b99-895d-cedabd70e8a8",

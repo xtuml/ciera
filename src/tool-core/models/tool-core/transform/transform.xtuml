@@ -2551,31 +2551,36 @@ select any endpoint_mark from instances of Mark where ( selected.markable_name =
 
 // look for any special-casing of this port
 select any sws from instances of SpringWebSocket where ( false ); // decl
-select any c from instances of Ciera where ( false );
+select any std from instances of xtUML where ( false );
+
 select any port_type_mark from instances of Mark where ( selected.markable_name == "Port" and
                                                           selected.path == path_for_mark and
                                                           selected.feature_name == "PortType" );
 if ( not_empty port_type_mark )
 	if (port_type_mark.value == "SpringWebSocket" )
 	  sws = SpringWebSocket::create( port:port );
+
     if ( not_empty endpoint_mark )
     	sws.endpoint = endpoint_mark.value;
     end if;
+
 	  select any topic_mark from instances of Mark where ( selected.markable_name == "Port" and
                                                           selected.path == path_for_mark and
                                                           selected.feature_name == "SubscribeTopic" );
     if ( not_empty topic_mark )
     	sws.subscribe_topic = topic_mark.value;
     end if;
+
 	  select any subtopic_mark from instances of Mark where ( selected.markable_name == "Port" and
                                                           selected.path == path_for_mark and
                                                           selected.feature_name == "SubTopicParameter" );
     if ( not_empty subtopic_mark )
     	sws.subtopic_parm = subtopic_mark.value;
     end if;
+
 	end if;
 else
-	c = Ciera::create( port:port );
+	std = xtUML::create( port:port );
 end if;
 
 

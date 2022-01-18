@@ -14,8 +14,8 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'select one port_descr related by self->PortDescriptor[R4161.''is specialized by''];
-port_descr.render_port();',
+	'select one specializer related by self->PortDescriptor[R4161.''is specialized by''];
+specializer.render_port();',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",
@@ -28,8 +28,8 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'select one descriptor related by self->PortDescriptor[R4161.''is specialized by''];
-descriptor.render_comp_port_accessor();',
+	'select one specializer related by self->PortDescriptor[R4161.''is specialized by''];
+specializer.render_comp_port_accessor();',
 	1,
 	'',
 	"a8cd2a5e-e4c5-4db2-b940-626a586c3f07",
@@ -49,7 +49,7 @@ end if;
 return false;',
 	1,
 	'',
-	"b3ae0206-f62d-4083-8868-8610c039150f",
+	"3ca45dc5-6846-4217-8822-04c510e275f4",
 	0,
 	1);
 INSERT INTO O_TPARM
@@ -96,6 +96,54 @@ specializer.render_interface();',
 	"7776c784-fbf8-4369-9cd5-84c095894790",
 	0,
 	3);
+INSERT INTO O_TFR
+	VALUES ("8865ee9c-2ecc-4f3e-ba0a-760e13647a05",
+	"28dc1d65-54a1-4be8-98f3-a6f65c69cdff",
+	'render_incoming_msgs',
+	'',
+	"b2d5f20a-29c0-4893-a7bb-74edc1b9c450",
+	1,
+	'// render inbound messages
+select one containing_comp_def related by self->ComponentDefinition[R417];
+select many inbound_msgs related by self->Interface[R418]->Message[R419] where ( selected.to_provider == self.provider );
+select many inbound_port_msgs related by inbound_msgs->PortMessage[R420] where ( selected.port_name == self.name );
+for each port_msg in inbound_port_msgs
+  port_msg.render( containing_comp_def:containing_comp_def );
+end for;
+return inbound_port_msgs;
+',
+	1,
+	'',
+	"b3ae0206-f62d-4083-8868-8610c039150f",
+	0,
+	4);
+INSERT INTO S_DT_PROXY
+	VALUES ("b2d5f20a-29c0-4893-a7bb-74edc1b9c450",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref_set<Port Message>',
+	'',
+	'',
+	'../interfaces.xtuml');
+INSERT INTO O_TFR
+	VALUES ("3ca45dc5-6846-4217-8822-04c510e275f4",
+	"28dc1d65-54a1-4be8-98f3-a6f65c69cdff",
+	'render_outgoing_msgs',
+	'',
+	"b2d5f20a-29c0-4893-a7bb-74edc1b9c450",
+	1,
+	'// render outgoing messages
+select one containing_comp_def related by self->ComponentDefinition[R417];
+select many outbound_msgs related by self->Interface[R418]->Message[R419] where ( selected.to_provider != self.provider );
+select many outbound_port_msgs related by outbound_msgs->PortMessage[R420] where ( selected.port_name == self.name );
+for each port_msg in outbound_port_msgs
+  port_msg.render( containing_comp_def:containing_comp_def );
+end for;
+return outbound_port_msgs;',
+	1,
+	'',
+	"8865ee9c-2ecc-4f3e-ba0a-760e13647a05",
+	0,
+	5);
 INSERT INTO O_NBATTR
 	VALUES ("0b8a6150-198d-4c91-af5c-396d50582215",
 	"28dc1d65-54a1-4be8-98f3-a6f65c69cdff");

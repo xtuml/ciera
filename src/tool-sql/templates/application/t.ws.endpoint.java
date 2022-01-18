@@ -1,0 +1,1 @@
+    registry.addEndpoint("/${endpoint}-websocket").withSockJS();
