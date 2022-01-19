@@ -34,132 +34,6 @@ INSERT INTO DIM_DIA
 	0.000000,
 	"00000000-0000-0000-0000-000000000000");
 INSERT INTO S_SYNC
-	VALUES ("1012b4c1-1c02-4d43-88a4-2e304c7918cb",
-	"00000000-0000-0000-0000-000000000000",
-	'transformBuiltinMaslTypes',
-	'',
-	'select many masltypes from instances of BuiltinType;
-for each masltype in masltypes
-  masltype_name = "" + masltype.name;  // coerce string
-  LOG::LogInfo(message:"Creating builtin type " + masltype_name);
-	type_name = "";
-	type_package = "";
-	type_primitive = false;
-	type_unique = false;
-	type_inst = false;
-	type_instset = false;
-	type_default_value = "";
-	type_object = "";
-  if (masltype_name == "boolean")
-		type_name = "boolean";
-		type_primitive = true;
-		type_default_value = "false";
-		type_object = "Boolean";
-  elif (masltype_name == "event")
-		type_name = "Event";
-		type_package = "io.ciera.runtime.application";
-		type_default_value = "null";
-  elif (masltype_name == "timer")
-		type_name = "Timer";
-		type_package = "io.ciera.runtime.application";
-		type_default_value = "null";
-  elif (masltype_name == "integer")
-		type_name = "int";
-		type_primitive = true;
-		type_default_value = "0";
-		type_object = "Integer";
-  elif (masltype_name == "real")
-		type_name = "double";
-		type_primitive = true;
-		type_default_value = "0d";
-		type_object = "Double";
-  elif (masltype_name == "string")
-		type_name = "String";
-		type_package = "";
-		type_default_value = STRING::quote() + STRING::quote();
-  elif (masltype_name == "timestamp")
-		type_name = "TimeStamp";
-		type_package = "io.ciera.runtime.types";
-		type_default_value = "TimeStamp.ZERO";
-  elif (masltype_name == "duration")
-		type_name = "Duration";
-		type_package = "io.ciera.runtime.types";
-		type_default_value = "Duration.ZERO";
-  elif (masltype_name == "instance")
-		type_name = "ObjectInstance";
-		type_package = "io.ciera.runtime.domain";
-		type_inst = true;
-		type_default_value = "null";
-  elif (masltype_name == "device")
-		type_name = "Device";
-		type_package = "io.ciera.runtime.types";
-		type_default_value = "null";
-/* TODO other masl types
-  elif (masltype_name == "byte")
-  elif (masltype_name == "character")
-  elif (masltype_name == "wcharacter")
-  elif (masltype_name == "wstring")
-  elif (masltype_name == "long_integer")
-*/
-	end if;
-
-	if ( "" != type_name )
-		create object instance type of Type;
-		type.name = type_name;
-		type.package = type_package;
-		type.default_value = type_default_value;
-		create object instance builtin of BuiltInType;
-		relate builtin to type across R407;
-		builtin.primitive = type_primitive;
-		builtin.object_name = type_object;
-		builtin.unique = type_unique;
-		builtin.inst = type_inst;
-		builtin.instset = type_instset;
-		relate masltype to builtin across R8305;
-	end if;
-
-end for;
-
-// create void type
-create object instance type1 of Type;
-type1.name = "void";
-type1.package = "";
-type1.default_value = "";
-create object instance builtin1 of BuiltInType;
-relate builtin1 to type1 across R407;
-builtin1.primitive = true;
-builtin1.object_name = "Void";
-
-// create unique id type
-create object instance type2 of Type;
-type2.name = "UniqueId";
-type2.package = "io.ciera.runtime.types";
-type2.default_value = "UniqueId.ZERO";
-create object instance builtin2 of BuiltInType;
-relate builtin2 to type2 across R407;
-builtin2.unique = true;
-
-// create runtime exception
-create object instance type3 of Type;
-type3.name = "RuntimeException";
-type3.package = "";
-type3.default_value = "null";
-create object instance exp3 of ExceptionType;
-relate exp3 to type3 across R407;
-create object instance builtin_exp3 of BuiltInException;
-relate builtin_exp3 to exp3 across R3805;',
-	"ba5eda7a-def5-0000-0000-000000000000",
-	1,
-	'',
-	0,
-	0);
-INSERT INTO PE_PE
-	VALUES ("1012b4c1-1c02-4d43-88a4-2e304c7918cb",
-	1,
-	"3e3aaf4c-aba5-451d-b263-e8fc1b717bce",
-	"00000000-0000-0000-0000-000000000000",
-	1);
-INSERT INTO S_SYNC
 	VALUES ("34ba9655-261b-4ebc-add4-58be8d199d22",
 	"00000000-0000-0000-0000-000000000000",
 	'createMaslStateMachine',
@@ -177,16 +51,7 @@ file.exclude = false;
 // create the object
 create object instance sm of StateMachine;
 relate sm to file across R401;
-relate sm to obj across R4750;
-
-// add imports
-::addStringToImports(file:file, s:"io.ciera.runtime.domain.InstanceStateMachine", type:ImportType::IMPL);
-::addStringToImports(file:file, s:"io.ciera.runtime.domain.TransitionRule", type:ImportType::IMPL);
-
-select one class_file related by obj->File[R401];
-select one comp_file related by obj->ComponentDefinition[R408]->File[R401];
-::addFileToImports(file:file, file_to_import:class_file, type:ImportType::IMPL);
-::addFileToImports(file:file, file_to_import:comp_file, type:ImportType::IMPL);',
+relate sm to obj across R4750;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -288,7 +153,7 @@ INSERT INTO S_SYNC
 	'createCharacteristic',
 	'',
 	'select any type from instances of Type where selected.name == param.type;
-return_type = ::TypeReference_getBuiltinTypeReference(name:param.return_type);
+return_type = ::getBasicTypeReferenceByName(name:param.return_type);
 create object instance invocable of InvocableObject;
 invocable.parent_name = type.name;
 invocable.parent_package = type.package;
@@ -296,7 +161,7 @@ invocable.name = param.name;
 relate return_type to invocable across R428;
 create object instance characteristic of Characteristic;
 relate characteristic to invocable across R427;
-relate characteristic to type across R3804;',
+relate characteristic to type across R3820;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -335,6 +200,110 @@ INSERT INTO PE_PE
 	"3e3aaf4c-aba5-451d-b263-e8fc1b717bce",
 	"00000000-0000-0000-0000-000000000000",
 	1);
+INSERT INTO S_SYNC
+	VALUES ("0cd552df-9657-4c1d-b29f-a782f6733a65",
+	"00000000-0000-0000-0000-000000000000",
+	'getTypeReferenceForMASLType',
+	'',
+	'basic_type = param.basic_type;
+
+select any empty_type_ref from instances of TypeReference where false;
+
+// TODO currently just support builtin types, instance types, and sets
+
+if empty basic_type
+  return ::getBasicTypeReferenceByName(name:"void");
+end if;
+
+select one builtin related by basic_type->BuiltinType[R6205];
+if not_empty builtin
+  // map from MASL builtins to Ciera builtins
+  if ("" + builtin.name == "boolean")
+    return ::getBasicTypeReferenceByName(name:"boolean");
+  elif ("" + builtin.name == "event")
+    // return ''Object'' for deprecated inst<Event> type
+    return ::getBasicTypeReferenceByName(name:"Object");
+  elif ("" + builtin.name == "timer")
+    return ::getBasicTypeReferenceByName(name:"Timer");
+  elif ("" + builtin.name == "integer")
+    return ::getBasicTypeReferenceByName(name:"int");
+  elif ("" + builtin.name == "real")
+    return ::getBasicTypeReferenceByName(name:"double");
+  elif ("" + builtin.name == "string")
+    return ::getBasicTypeReferenceByName(name:"String");
+  elif ("" + builtin.name == "timestamp")
+    return ::getBasicTypeReferenceByName(name:"TimeStamp");
+  elif ("" + builtin.name == "duration")
+    return ::getBasicTypeReferenceByName(name:"Duration");
+  elif ("" + builtin.name == "instance")
+    return ::getBasicTypeReferenceByName(name:"ObjectInstance");
+  elif ("" + builtin.name == "device")
+    return ::getBasicTypeReferenceByName(name:"Device");
+  elif ("" + builtin.name == "byte")
+    return ::getBasicTypeReferenceByName(name:"byte");
+  elif ("" + builtin.name == "character")
+    return ::getBasicTypeReferenceByName(name:"char");
+  elif ("" + builtin.name == "wcharacter")
+    return ::getBasicTypeReferenceByName(name:"char");
+  elif ("" + builtin.name == "wstring")
+    return ::getBasicTypeReferenceByName(name:"String");
+  elif ("" + builtin.name == "long_integer")
+    return ::getBasicTypeReferenceByName(name:"long");
+  end if;
+end if;
+
+select one instance_type related by basic_type->InstanceType[R6205];
+if not_empty instance_type
+  select one obj related by instance_type->ObjectDeclaration[R6220]->Class[R8300];
+  return ::getObjectReference(obj:obj);
+end if;
+
+select one collection_type related by basic_type->CollectionType[R6205];
+if not_empty collection_type
+  select one element_type related by collection_type->BasicType[R6208];
+  select one set_type related by collection_type->SetType[R6207];
+  if not_empty set_type
+    element_type_ref = ::getTypeReferenceForMASLType(basic_type:element_type);
+    return ::getSetReference(element_type:element_type_ref);
+  end if;
+  // TODO handle other collections
+end if;
+
+return empty_type_ref;',
+	"096d9dad-f227-4793-bb43-a1915881b825",
+	1,
+	'',
+	0,
+	13);
+INSERT INTO S_SPARM
+	VALUES ("368d8d1c-2a20-4aa7-b34c-6947a593cc85",
+	"0cd552df-9657-4c1d-b29f-a782f6733a65",
+	'basic_type',
+	"f2470f88-fc4a-406d-ba1c-54179e448ed4",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("f2470f88-fc4a-406d-ba1c-54179e448ed4",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<BasicType>',
+	'',
+	'',
+	'../../../../ooamasl/models/ooamasl/ooamasl/type/type.xtuml');
+INSERT INTO PE_PE
+	VALUES ("0cd552df-9657-4c1d-b29f-a782f6733a65",
+	1,
+	"3e3aaf4c-aba5-451d-b263-e8fc1b717bce",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_DT_PROXY
+	VALUES ("096d9dad-f227-4793-bb43-a1915881b825",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Type Reference>',
+	'',
+	'',
+	'../../../../core-architecture/models/core-architecture/architecture/type/type.xtuml');
 INSERT INTO PE_PE
 	VALUES ("3e3aaf4c-aba5-451d-b263-e8fc1b717bce",
 	1,

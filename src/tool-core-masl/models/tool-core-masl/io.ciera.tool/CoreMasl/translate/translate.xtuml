@@ -114,7 +114,7 @@ LOG::LogTime( message:"Elapsed time:", t:elapsed_time );
 
 // translate builtin types
 LOG::LogInfo( message:"  Translating buitlin types..." );
-::transformBuiltinMaslTypes();
+::populateBuiltInTypes();
 ::transformBuiltinMaslTypeCharacteristics();
 LOG::LogInfo( message:"  done." );
 LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
@@ -140,18 +140,15 @@ LOG::LogInfo( message:"  Resolving user defined types..." );
 LOG::LogInfo( message:"  done." );
 LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
 
-// resolve types
-LOG::LogInfo( message:"  Resolving type references..." );
-::resolveTypeImports();
-LOG::LogInfo( message:"  done." );
-LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
-
 // render all files
 LOG::LogInfo( message:"  Rendering application..." );
 select many files from instances of File;
 for each file in files
   if ( not file.exclude )
+    LOG::LogInfo(message:"LEVI rendering: " + file.name);
+    file.rendering = true;
     file.render();
+    file.rendering = false;
   end if;
 end for;
 LOG::LogInfo( message:"  done." );

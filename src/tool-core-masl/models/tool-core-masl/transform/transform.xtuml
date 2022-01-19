@@ -88,6 +88,10 @@ INSERT INTO S_SYNC
 	'',
 	'domain = param.domain;
 
+select any file from instances of File where (selected.name == ::camelCaseName(name:domain.name, start_lower:false) and selected.package == ::pathToPackage(path:param.path));
+select one comp_def related by file->ComponentDefinition[R401];
+
+
 if (param.pass == 1)
 
   // create the file
@@ -107,10 +111,34 @@ if (param.pass == 1)
   // set version information TODO
   component_version = "";
   
+  // transform exceptions
+  select many exception_declarations related by domain->ExceptionDeclaration[R5400];
+  for each exception_declaration in exception_declarations
+    ::transformMaslException(exception_declaration: exception_declaration, comp_def:comp_def);
+  end for;
+
+  // TODO data types
+
+elif (param.pass == 2)
+  
   // transform services
   select many domain_services related by domain->DomainService[R5303];
   for each domain_service in domain_services
     ::transformDomainService(domain_service:domain_service, comp_def:comp_def);
+  end for;
+
+  // transform objects
+  select many object_declarations related by domain->ObjectDeclaration[R5805];
+  for each object_declaration in object_declarations
+    ::transformObject(object_declaration:object_declaration, comp_def:comp_def);
+  end for;
+
+elif (param.pass == 3)
+
+  // transform relationships
+  select many rels related by domain->RelationshipDeclaration[R6003];
+  for each rel in rels
+    ::transformRelationship(rel:rel, comp_def:comp_def);
   end for;
 
   // transform terminators
@@ -118,46 +146,8 @@ if (param.pass == 1)
   for each term in terms
     ::transformDomainTerminator(domain_terminator:term, comp_def:comp_def, path:file.path + "/" + T::sub(format:"l", s:term.name));
   end for;
-  
-  // transform objects
-  select many object_declarations related by domain->ObjectDeclaration[R5805];
-  for each object_declaration in object_declarations
-    ::transformObject(object_declaration:object_declaration, comp_def:comp_def);
-  end for;
-  
-  // transform exceptions
-  select many exception_declarations related by domain->ExceptionDeclaration[R5400];
-  for each exception_declaration in exception_declarations
-    ::transformMaslException(exception_declaration: exception_declaration, comp_def:comp_def);
-  end for;
-
-  // transform instance population selectors
-  select many objs related by comp_def->Class[R408];
-  for each obj in objs
-    create object instance inst_pop_selector of InstancePopulationSelector;
-    inst_pop_selector.name = obj.name + "_instances";
-    relate inst_pop_selector to comp_def across R447;
-    relate inst_pop_selector to obj across R449;
-  end for;
  
-  // create import block
-  ::addStringToImports(file:file, s:"io.ciera.runtime.application.Application", type:ImportType::IMPL);
-  ::addStringToImports(file:file, s:"io.ciera.runtime.domain.Domain", type:ImportType::IMPL);
-
-elif (param.pass == 2)
-
-  select any file from instances of File where (selected.name == ::camelCaseName(name:domain.name, start_lower:false) and selected.package == ::pathToPackage(path:param.path));
-  select one comp_def related by file->ComponentDefinition[R401];
-  
-  select many rels related by domain->RelationshipDeclaration[R6003];
-  for each rel in rels
-    ::transformRelationship(rel:rel, comp_def:comp_def);
-  end for;
-
 else
-
-  select any file from instances of File where (selected.name == ::camelCaseName(name:domain.name, start_lower:false) and selected.package == ::pathToPackage(path:param.path));
-  select one comp_def related by file->ComponentDefinition[R401];
 
   // transform selectors
   select many objs related by comp_def->Class[R408];
@@ -283,11 +273,10 @@ for each domain in domains
   ::transformDomain(domain:domain, path:file.path, pass:1);
   ::transformDomain(domain:domain, path:file.path, pass:2);
   ::transformDomain(domain:domain, path:file.path, pass:3);
+  ::transformDomain(domain:domain, path:file.path, pass:4);
   select any comp_def from instances of ComponentDefinition where ( selected.name == ::camelCaseName( name:domain.name, start_lower:false ) );
   create object instance comp_inst of ComponentInstantiation;
   relate  comp_def to app across R426 using comp_inst;
-  select one comp_def_file related by comp_def->File[R401];
-  ::addFileToImports( file:file, file_to_import:comp_def_file, type:ImportType::IMPL );
   select any executor related by app->ApplicationExecutor[R4027]; // single executor for now
   relate executor to comp_inst across R4028;
   if ( not_empty current_comp_inst )
@@ -297,13 +286,7 @@ for each domain in domains
     comp_inst.index = 0;
   end if;
   current_comp_inst = comp_inst;
-end for;
-
-// create the import block
-::addStringToImports(file:file, s:"io.ciera.runtime.application.Application", type:ImportType::IMPL);
-if (app.simulated_time)
-  ::addStringToImports(file:file, s:"io.ciera.runtime.application.SimulatedClock", type:ImportType::IMPL);
-end if;',
+end for;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -347,13 +330,8 @@ if not_empty code_block
 end if;
 
 // link type
-select any type from instances of TypeReference;
-select one builtin related by service->BasicType[R5205]->BuiltinType[R6205]->BuiltInType[R8305];
-if not_empty builtin
-  type = ::TypeReference_getBuiltinTypeReference(name:builtin.name);
-else
-  type = ::TypeReference_getBuiltinTypeReference(name:"void");
-end if;
+select one basic_type related by service->BasicType[R5205];
+type = ::getTypeReferenceForMASLType(basic_type:basic_type);
 relate type to invocable across R428;
 
 // create parameters
@@ -439,13 +417,6 @@ relate obj to comp_def across R408;
 // connect to the arch model
 relate obj to object_declaration across R8300;
 
-// create the instance type
-create object instance type of Type;
-type.name = obj.name;
-type.package = obj.package;
-type.default_value = obj.name + ".EMPTY";
-relate type to obj across R407;
-
 // transform attributes
 select any maslattr related by object_declaration->AttributeDeclaration[R5802];
 select one prev_attr related by maslattr->AttributeDeclaration[R5809.''succeeds''];
@@ -456,14 +427,14 @@ end while;
 index = 0;
 while (not_empty maslattr)
   ::transformAttributeDeclaration(attr:maslattr, obj:obj, index:index);
-	index = index + 1;
-	select one maslattr related by maslattr->AttributeDeclaration[R5809.''precedes''];
+  index = index + 1;
+  select one maslattr related by maslattr->AttributeDeclaration[R5809.''precedes''];
 end while;
 
 // transform operations
 select many object_services related by object_declaration->ObjectService[R5808];
 for each object_service in object_services
-	::transformObjectService(object_service:object_service, obj:obj);
+  ::transformObjectService(object_service:object_service, obj:obj);
 end for;
 
 // transform states
@@ -488,26 +459,9 @@ end for;
 
 // transform transition table
 select any transition_table related by object_declaration->TransitionTable[R6113];
-if empty transition_table
-  ::addStringToImports(file:file, s:"io.ciera.runtime.domain.ObjectInstance", type:ImportType::IMPL);
-else
+if not_empty transition_table
   ::transformTransitionTable(transition_table:transition_table, obj:obj);
-  ::addStringToImports(file:file, s:"io.ciera.runtime.domain.DynamicObjectInstance", type:ImportType::IMPL);
-end if;
-
-// transform the set object
-::transformObjectSet(obj:obj, path:path);
-
-// add to the containing component imports
-select one component_file related by comp_def->File[R401];
-::addFileToImports(file:component_file, file_to_import:file, type:ImportType::IMPL);
-
-// create the import block
-::addFileToImports(file:file, file_to_import:component_file, type:ImportType::BOTH);
-::addStringToImports(file:file, s:"io.ciera.runtime.application.ExecutionContext", type:ImportType::IMPL);
-::addStringToImports(file:file, s:"io.ciera.runtime.exceptions.EmptyInstanceException", type:ImportType::IMPL);
-::addStringToImports(file:file, s:"io.ciera.runtime.types.UniqueId", type:ImportType::IMPL);
- ',
+end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -540,68 +494,6 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("a167f7d5-3c79-4ff5-8b40-a091b9b1a31e",
-	1,
-	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
-	"00000000-0000-0000-0000-000000000000",
-	1);
-INSERT INTO S_SYNC
-	VALUES ("c532c34c-bb46-42d3-8f7e-6798cb8d1e58",
-	"00000000-0000-0000-0000-000000000000",
-	'transformObjectSet',
-	'',
-	'obj = param.obj;
-
-// create the instance type
-create object instance type of Type;
-type.name = obj.name + ".Set";
-type.package = obj.package;
-type.default_value = "new " + type.name + "()";
-
-// create the class set object
-create object instance objset of ClassSet;
-relate objset to obj across R406;
-relate objset to type across R407;
-
-// add to imports
-select one file related by obj->File[R401];
-::addStringToImports(file:file, s:"java.util.Collection", type:ImportType::IMPL);
-::addStringToImports(file:file, s:"java.util.Comparator", type:ImportType::IMPL);
-::addStringToImports(file:file, s:"java.util.SortedSet", type:ImportType::IMPL);
-::addStringToImports(file:file, s:"java.util.TreeSet", type:ImportType::IMPL);
-::addStringToImports(file:file, s:"java.util.function.Predicate", type:ImportType::IMPL);
-::addStringToImports(file:file, s:"java.util.stream.Collectors", type:ImportType::IMPL);',
-	"ba5eda7a-def5-0000-0000-000000000000",
-	1,
-	'',
-	0,
-	0);
-INSERT INTO S_SPARM
-	VALUES ("7bb7660f-dc28-4ddd-a4e0-1789f3e863cd",
-	"c532c34c-bb46-42d3-8f7e-6798cb8d1e58",
-	'obj',
-	"a519e323-b117-4a03-9435-b88e56c2443d",
-	0,
-	'',
-	"00000000-0000-0000-0000-000000000000",
-	'');
-INSERT INTO S_DT_PROXY
-	VALUES ("a519e323-b117-4a03-9435-b88e56c2443d",
-	"00000000-0000-0000-0000-000000000000",
-	'inst_ref<Model Inst>',
-	'',
-	'',
-	'../../../../core-architecture/models/core-architecture/architecture/classes/classes.xtuml');
-INSERT INTO S_SPARM
-	VALUES ("a6420656-4132-4d4a-9adb-cd2e9f55405b",
-	"c532c34c-bb46-42d3-8f7e-6798cb8d1e58",
-	'path',
-	"ba5eda7a-def5-0000-0000-000000000004",
-	0,
-	'',
-	"7bb7660f-dc28-4ddd-a4e0-1789f3e863cd",
-	'');
-INSERT INTO PE_PE
-	VALUES ("c532c34c-bb46-42d3-8f7e-6798cb8d1e58",
 	1,
 	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
 	"00000000-0000-0000-0000-000000000000",
@@ -650,22 +542,9 @@ relate port to iface across R418;
 select many terminator_services related by domain_terminator->DomainTerminatorService[R5306];
 index = 1;
 for each terminator_service in terminator_services
-	::transformDomainTerminatorService(terminator_service:terminator_service, iface:iface, port:port, index:index);
-	index = index + 1;
-end for;
-
-// add to component file
-select one component_file related by comp_def->File[R401];
-::addFileToImports(file:component_file, file_to_import:iface_file, type:ImportType::IMPL);
-::addFileToImports(file:component_file, file_to_import:port_file, type:ImportType::IMPL);
-
-// add imports to iface file
-::addStringToImports(file:iface_file, s:"io.ciera.runtime.domain.Port", type:ImportType::IMPL);
-
-// add imports to port file
-::addStringToImports(file:port_file, s:"io.ciera.runtime.domain.AbstractPort", type:ImportType::IMPL);
-::addFileToImports(file:port_file, file_to_import:component_file, type:ImportType::IMPL);
-::addFileToImports(file:port_file, file_to_import:iface_file, type:ImportType::IMPL);',
+  ::transformDomainTerminatorService(terminator_service:terminator_service, iface:iface, port:port, index:index);
+  index = index + 1;
+end for;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -753,23 +632,13 @@ if not_empty code_block
 end if;
 
 // link type
-select any type from instances of TypeReference;
-select one builtin related by service->BasicType[R5205]->BuiltinType[R6205]->BuiltInType[R8305];
-if not_empty builtin
-  type = ::TypeReference_getBuiltinTypeReference(name:builtin.name);
-else
-  type = ::TypeReference_getBuiltinTypeReference(name:"void");
-end if;
+select one basic_type related by service->BasicType[R5205];
+type = ::getTypeReferenceForMASLType(basic_type:basic_type);
 relate type to invocable across R428;
 
 // create parameters
 select one first_parameter related by service->ParameterDefinition[R5204];
-::transformParameterList(first_parameter:first_parameter, invocable:invocable);
-
-// add imports to iface file
-select one iface_file related by iface->File[R401];
-::addStringToImports(file:iface_file, s:"io.ciera.runtime.domain.Message", type:ImportType::IMPL);
-::addStringToImports(file:iface_file, s:"java.util.Map", type:ImportType::IMPL);',
+::transformParameterList(first_parameter:first_parameter, invocable:invocable);',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -860,235 +729,229 @@ part_cond = Cond::UNCONDITIONAL;
 select one normal related by maslrel->NormalRelationshipDeclaration[R6010];
 if (not_empty normal)
 
-	// get the formalizer and participant information
-	select one half_rel_1 related by normal->HalfRelationship[R6007];
-	select one half_rel_2 related by normal->HalfRelationship[R6008];
-	select many rel_specs related by half_rel_1->ObjectDeclaration[R6004]->AttributeDeclaration[R5802]
-		->ReferentialAttributeDefinition[R5800.''is_referenced_by'']->RelationshipSpecification[R5811] where (
-		selected.role == half_rel_1.role or selected.role == "");
-	select any ref_rel related by rel_specs->RelationshipDeclaration[R6015] where (selected.name == maslrel.name);
-	if (not_empty ref_rel)  // the first half "to" class is the participant
-		select one form_class related by half_rel_2->ObjectDeclaration[R6004]->Class[R8300];
-		form_phrase = half_rel_2.role;
-		if (half_rel_2.multiplicity == MaslMultiplicity::many)
-			form_mult = Mult::MANY;
-		end if;
-		if (half_rel_2.isconditional)
-			form_cond = Cond::CONDITIONAL;
-		end if;
-		select one part_class related by half_rel_1->ObjectDeclaration[R6004]->Class[R8300];
-		part_phrase = half_rel_1.role;
-		if (half_rel_1.multiplicity == MaslMultiplicity::many)
-			part_mult = Mult::MANY;
-		end if;
-		if (half_rel_1.isconditional)
-			part_cond = Cond::CONDITIONAL;
-		end if;
-	else
-		select one form_class related by half_rel_1->ObjectDeclaration[R6004]->Class[R8300];
-		form_phrase = half_rel_1.role;
-		if (half_rel_1.multiplicity == MaslMultiplicity::many)
-			form_mult = Mult::MANY;
-		end if;
-		if (half_rel_1.isconditional)
-			form_cond = Cond::CONDITIONAL;
-		end if;
-		select one part_class related by half_rel_2->ObjectDeclaration[R6004]->Class[R8300];
-		part_phrase = half_rel_2.role;
-		if (half_rel_2.multiplicity == MaslMultiplicity::many)
-			part_mult = Mult::MANY;
-		end if;
-		if (half_rel_2.isconditional)
-			part_cond = Cond::CONDITIONAL;
-		end if;
-	end if;
+  // get the formalizer and participant information
+  select one half_rel_1 related by normal->HalfRelationship[R6007];
+  select one half_rel_2 related by normal->HalfRelationship[R6008];
+  select many rel_specs related by half_rel_1->ObjectDeclaration[R6004]->AttributeDeclaration[R5802]
+    ->ReferentialAttributeDefinition[R5800.''is_referenced_by'']->RelationshipSpecification[R5811] where (
+    selected.role == half_rel_1.role or selected.role == "");
+  select any ref_rel related by rel_specs->RelationshipDeclaration[R6015] where (selected.name == maslrel.name);
+  if (not_empty ref_rel)  // the first half "to" class is the participant
+    select one form_class related by half_rel_2->ObjectDeclaration[R6004]->Class[R8300];
+    form_phrase = half_rel_2.role;
+    if (half_rel_2.multiplicity == MaslMultiplicity::many)
+      form_mult = Mult::MANY;
+    end if;
+    if (half_rel_2.isconditional)
+      form_cond = Cond::CONDITIONAL;
+    end if;
+    select one part_class related by half_rel_1->ObjectDeclaration[R6004]->Class[R8300];
+    part_phrase = half_rel_1.role;
+    if (half_rel_1.multiplicity == MaslMultiplicity::many)
+      part_mult = Mult::MANY;
+    end if;
+    if (half_rel_1.isconditional)
+      part_cond = Cond::CONDITIONAL;
+    end if;
+  else
+    select one form_class related by half_rel_1->ObjectDeclaration[R6004]->Class[R8300];
+    form_phrase = half_rel_1.role;
+    if (half_rel_1.multiplicity == MaslMultiplicity::many)
+      form_mult = Mult::MANY;
+    end if;
+    if (half_rel_1.isconditional)
+      form_cond = Cond::CONDITIONAL;
+    end if;
+    select one part_class related by half_rel_2->ObjectDeclaration[R6004]->Class[R8300];
+    part_phrase = half_rel_2.role;
+    if (half_rel_2.multiplicity == MaslMultiplicity::many)
+      part_mult = Mult::MANY;
+    end if;
+    if (half_rel_2.isconditional)
+      part_cond = Cond::CONDITIONAL;
+    end if;
+  end if;
 
-	// create the relationship
-	create object instance rel of Relationship;
-	name = maslrel.name + "_" + form_class.name + "_";
-	if (part_phrase != "")
-		name = name + T::sub(format:"_", s:part_phrase) + "_";
-	end if;
-	name = name + part_class.name;
-	rel.name = name;
-	rel.num = STRING::atoi(s:STRING::substr(s:maslrel.name, begin:1, end:-1));
-	rel.form_phrase = form_phrase;
-	rel.part_phrase = part_phrase;
-	rel.form_mult = form_mult;
-	rel.part_mult = part_mult;
-	rel.form_cond = form_cond;
-	rel.part_cond = part_cond;
-	rel.rel_type = RelationshipType::Binary;
-	relate rel to comp_def across R448;
-	relate rel to form_class across R435;
-	relate rel to part_class across R434;
-	relate rel to maslrel across R8304;
+  // create the relationship
+  create object instance rel of Relationship;
+  name = maslrel.name + "_" + form_class.name + "_";
+  if (part_phrase != "")
+    name = name + T::sub(format:"_", s:part_phrase) + "_";
+  end if;
+  name = name + part_class.name;
+  rel.name = name;
+  rel.num = STRING::atoi(s:STRING::substr(s:maslrel.name, begin:1, end:-1));
+  rel.form_phrase = form_phrase;
+  rel.part_phrase = part_phrase;
+  rel.form_mult = form_mult;
+  rel.part_mult = part_mult;
+  rel.form_cond = form_cond;
+  rel.part_cond = part_cond;
+  rel.rel_type = RelationshipType::Binary;
+  relate rel to comp_def across R448;
+  relate rel to form_class across R435;
+  relate rel to part_class across R434;
+  relate rel to maslrel across R8304;
 
-	/* TODO get the ID number
-	select any o_id related by r_simp->R_PART[R207]->R_RTO[R204]->O_ID[R109];
-	if ( not_empty o_id )
-		rel.id_num = o_id.Oid_ID + 1;
-	else
-		rel.id_num = 0;
-	end if;
-	*/
+  /* TODO get the ID number
+  select any o_id related by r_simp->R_PART[R207]->R_RTO[R204]->O_ID[R109];
+  if ( not_empty o_id )
+    rel.id_num = o_id.Oid_ID + 1;
+  else
+    rel.id_num = 0;
+  end if;
+  */
 
 else
 select one subsup related by maslrel->SubtypeRelationshipDeclaration[R6010];
 if ( not_empty subsup )
 
-	select one part_class related by subsup->ObjectDeclaration[R6017]->Class[R8300];
-	select many sub_classes related by subsup->ObjectDeclaration[R6016]->Class[R8300];
-	part_phrase = "is_a";
-	for each form_class in sub_classes
+  select one part_class related by subsup->ObjectDeclaration[R6017]->Class[R8300];
+  select many sub_classes related by subsup->ObjectDeclaration[R6016]->Class[R8300];
+  part_phrase = "is_a";
+  for each form_class in sub_classes
 
-		form_phrase = "is_a";
-		form_cond = Cond::CONDITIONAL;
+    form_phrase = "is_a";
+    form_cond = Cond::CONDITIONAL;
 
-		// create the relationship
-		create object instance rel of Relationship;
-		name = maslrel.name + "_" + form_class.name + "_is_a_" + part_class.name;
-		rel.name = name;
-		rel.num = STRING::atoi(s:STRING::substr(s:maslrel.name, begin:1, end:-1));
-		rel.form_phrase = form_phrase;
-		rel.part_phrase = part_phrase;
-		rel.form_mult = form_mult;
-		rel.part_mult = part_mult;
-		rel.form_cond = form_cond;
-		rel.part_cond = part_cond;
-		rel.rel_type = RelationshipType::SuperSubtype;
-		relate rel to comp_def across R448;
-		relate rel to form_class across R435;
-		relate rel to part_class across R434;
-	  relate rel to maslrel across R8304;
-		
-		/* TODO get the ID number
-		select one o_id related by r_subsup->R_SUPER[R212]->R_RTO[R204]->O_ID[R109];
-		if ( not_empty o_id )
-			rel.id_num = o_id.Oid_ID + 1;
-		else
-			rel.id_num = 0;
-		end if;
-		*/
-	end for;
+    // create the relationship
+    create object instance rel of Relationship;
+    name = maslrel.name + "_" + form_class.name + "_is_a_" + part_class.name;
+    rel.name = name;
+    rel.num = STRING::atoi(s:STRING::substr(s:maslrel.name, begin:1, end:-1));
+    rel.form_phrase = form_phrase;
+    rel.part_phrase = part_phrase;
+    rel.form_mult = form_mult;
+    rel.part_mult = part_mult;
+    rel.form_cond = form_cond;
+    rel.part_cond = part_cond;
+    rel.rel_type = RelationshipType::SuperSubtype;
+    relate rel to comp_def across R448;
+    relate rel to form_class across R435;
+    relate rel to part_class across R434;
+    relate rel to maslrel across R8304;
+    
+    /* TODO get the ID number
+    select one o_id related by r_subsup->R_SUPER[R212]->R_RTO[R204]->O_ID[R109];
+    if ( not_empty o_id )
+      rel.id_num = o_id.Oid_ID + 1;
+    else
+      rel.id_num = 0;
+    end if;
+    */
+  end for;
 
 else
 select one assoc related by maslrel->AssociativeRelationshipDeclaration[R6010];
 if (not_empty assoc)
   
-	select one half_rel_1 related by assoc->HalfRelationship[R6000];
-	select one half_rel_2 related by assoc->HalfRelationship[R6002];
-	
-	// get the formalizer and participant information for the first relationship
-	select one form_class related by assoc->ObjectDeclaration[R6001]->Class[R8300];
-	form_phrase = half_rel_2.role;
-	if (half_rel_2.multiplicity == MaslMultiplicity::many)
-		form_mult = Mult::MANY;
-	end if;
-	if (half_rel_2.isconditional)
-		form_cond = Cond::CONDITIONAL;
-	end if;
-	select one part_class related by half_rel_1->ObjectDeclaration[R6004]->Class[R8300];
-	part_phrase = half_rel_1.role;
-	if (half_rel_1.multiplicity == MaslMultiplicity::many)
-		part_mult = Mult::MANY;
-	end if;
-	if (half_rel_1.isconditional)
-		part_cond = Cond::CONDITIONAL;
-	end if;
+  select one half_rel_1 related by assoc->HalfRelationship[R6000];
+  select one half_rel_2 related by assoc->HalfRelationship[R6002];
+  
+  // get the formalizer and participant information for the first relationship
+  select one form_class related by assoc->ObjectDeclaration[R6001]->Class[R8300];
+  form_phrase = half_rel_2.role;
+  if (half_rel_2.multiplicity == MaslMultiplicity::many)
+    form_mult = Mult::MANY;
+  end if;
+  if (half_rel_2.isconditional)
+    form_cond = Cond::CONDITIONAL;
+  end if;
+  select one part_class related by half_rel_1->ObjectDeclaration[R6004]->Class[R8300];
+  part_phrase = half_rel_1.role;
+  if (half_rel_1.multiplicity == MaslMultiplicity::many)
+    part_mult = Mult::MANY;
+  end if;
+  if (half_rel_1.isconditional)
+    part_cond = Cond::CONDITIONAL;
+  end if;
 
-	// create the first relationship
-	create object instance rel1 of Relationship;
-	name1 = maslrel.name + "_" + form_class.name + "_";
-	if (part_phrase != "")
-		name1 = name1 + T::sub(format:"_", s:part_phrase) + "_";
-	end if;
-	name1 = name1 + part_class.name;
-	rel1.name = name1;
-	rel1.num = STRING::atoi(s:STRING::substr(s:maslrel.name, begin:1, end:-1));
-	rel1.form_phrase = form_phrase;
-	rel1.part_phrase = part_phrase;
-	rel1.form_mult = form_mult;
-	rel1.part_mult = part_mult;
-	rel1.form_cond = form_cond;
-	rel1.part_cond = part_cond;
-	rel1.rel_type = RelationshipType::Associative;
-	relate rel1 to comp_def across R448;
-	relate rel1 to form_class across R435;
-	relate rel1 to part_class across R434;
-	relate rel1 to maslrel across R8304;
+  // create the first relationship
+  create object instance rel1 of Relationship;
+  name1 = maslrel.name + "_" + form_class.name + "_";
+  if (part_phrase != "")
+    name1 = name1 + T::sub(format:"_", s:part_phrase) + "_";
+  end if;
+  name1 = name1 + part_class.name;
+  rel1.name = name1;
+  rel1.num = STRING::atoi(s:STRING::substr(s:maslrel.name, begin:1, end:-1));
+  rel1.form_phrase = form_phrase;
+  rel1.part_phrase = part_phrase;
+  rel1.form_mult = form_mult;
+  rel1.part_mult = part_mult;
+  rel1.form_cond = form_cond;
+  rel1.part_cond = part_cond;
+  rel1.rel_type = RelationshipType::Associative;
+  relate rel1 to comp_def across R448;
+  relate rel1 to form_class across R435;
+  relate rel1 to part_class across R434;
+  relate rel1 to maslrel across R8304;
 
-	/* TODO get the ID number
-	select one o_id1 related by r_assoc->R_AONE[R209]->R_RTO[R204]->O_ID[R109];
-	if ( not_empty o_id1 )
-		rel1.id_num = o_id1.Oid_ID + 1;
-	else
-		rel1.id_num = 0;
-	end if;
-	*/
+  /* TODO get the ID number
+  select one o_id1 related by r_assoc->R_AONE[R209]->R_RTO[R204]->O_ID[R109];
+  if ( not_empty o_id1 )
+    rel1.id_num = o_id1.Oid_ID + 1;
+  else
+    rel1.id_num = 0;
+  end if;
+  */
 
-	// get the formalizer and participant information for the second relationship
-	form_phrase = "";
-	form_mult = Mult::ONE;
-	form_cond = Cond::UNCONDITIONAL;
-	part_phrase = "";
-	part_cond = Cond::UNCONDITIONAL;
+  // get the formalizer and participant information for the second relationship
+  form_phrase = "";
+  form_mult = Mult::ONE;
+  form_cond = Cond::UNCONDITIONAL;
+  part_phrase = "";
+  part_cond = Cond::UNCONDITIONAL;
 
-	select one form_class related by assoc->ObjectDeclaration[R6001]->Class[R8300];
-	form_phrase = half_rel_1.role;
-	if (half_rel_1.multiplicity == MaslMultiplicity::many)
-		form_mult = Mult::MANY;
-	end if;
-	if (half_rel_1.isconditional)
-		form_cond = Cond::CONDITIONAL;
-	end if;
-	select one part_class related by half_rel_2->ObjectDeclaration[R6004]->Class[R8300];
-	part_phrase = half_rel_2.role;
-	if (half_rel_2.multiplicity == MaslMultiplicity::many)
-		part_mult = Mult::MANY;
-	end if;
-	if (half_rel_2.isconditional)
-		part_cond = Cond::CONDITIONAL;
-	end if;
+  select one form_class related by assoc->ObjectDeclaration[R6001]->Class[R8300];
+  form_phrase = half_rel_1.role;
+  if (half_rel_1.multiplicity == MaslMultiplicity::many)
+    form_mult = Mult::MANY;
+  end if;
+  if (half_rel_1.isconditional)
+    form_cond = Cond::CONDITIONAL;
+  end if;
+  select one part_class related by half_rel_2->ObjectDeclaration[R6004]->Class[R8300];
+  part_phrase = half_rel_2.role;
+  if (half_rel_2.multiplicity == MaslMultiplicity::many)
+    part_mult = Mult::MANY;
+  end if;
+  if (half_rel_2.isconditional)
+    part_cond = Cond::CONDITIONAL;
+  end if;
 
-	// create the second relationship
-	create object instance rel2 of Relationship;
-	name2 = maslrel.name + "_" + form_class.name + "_";
-	if (part_phrase != "")
-		name2 = name2 + T::sub(format:"_", s:part_phrase) + "_";
-	end if;
-	name2 = name2 + part_class.name;
-	rel2.name = name2;
-	rel2.num = STRING::atoi(s:STRING::substr(s:maslrel.name, begin:1, end:-1));
-	rel2.form_phrase = form_phrase;
-	rel2.part_phrase = part_phrase;
-	rel2.form_mult = form_mult;
-	rel2.part_mult = part_mult;
-	rel2.form_cond = form_cond;
-	rel2.part_cond = part_cond;
-	rel2.rel_type = RelationshipType::Associative;
-	relate rel2 to comp_def across R448;
-	relate rel2 to form_class across R435;
-	relate rel2 to part_class across R434;
-	relate rel2 to maslrel across R8304;
+  // create the second relationship
+  create object instance rel2 of Relationship;
+  name2 = maslrel.name + "_" + form_class.name + "_";
+  if (part_phrase != "")
+    name2 = name2 + T::sub(format:"_", s:part_phrase) + "_";
+  end if;
+  name2 = name2 + part_class.name;
+  rel2.name = name2;
+  rel2.num = STRING::atoi(s:STRING::substr(s:maslrel.name, begin:1, end:-1));
+  rel2.form_phrase = form_phrase;
+  rel2.part_phrase = part_phrase;
+  rel2.form_mult = form_mult;
+  rel2.part_mult = part_mult;
+  rel2.form_cond = form_cond;
+  rel2.part_cond = part_cond;
+  rel2.rel_type = RelationshipType::Associative;
+  relate rel2 to comp_def across R448;
+  relate rel2 to form_class across R435;
+  relate rel2 to part_class across R434;
+  relate rel2 to maslrel across R8304;
 
-	/* TODO get the ID number
-	select one o_id2 related by r_assoc->R_AOTH[R210]->R_RTO[R204]->O_ID[R109];
-	if ( not_empty o_id2 )
-		rel2.id_num = o_id2.Oid_ID + 1;
-	else
-		rel2.id_num = 0;
-	end if;
-	*/
-	
-	relate rel1 to rel2 across R436.''is one half of associative'';  // note these are a symmetric pair.
-end if; end if; end if;
-
-// add necessary imports
-::addStringToImports( file:file, s:"io.ciera.runtime.domain.ObjectInstance", type:ImportType::IMPL );
-::addStringToImports( file:file, s:"io.ciera.runtime.exceptions.DeletedInstanceException", type:ImportType::IMPL );
-::addStringToImports( file:file, s:"io.ciera.runtime.exceptions.EmptyInstanceException", type:ImportType::IMPL );
-::addStringToImports( file:file, s:"java.util.stream.Stream", type:ImportType::IMPL );',
+  /* TODO get the ID number
+  select one o_id2 related by r_assoc->R_AOTH[R210]->R_RTO[R204]->O_ID[R109];
+  if ( not_empty o_id2 )
+    rel2.id_num = o_id2.Oid_ID + 1;
+  else
+    rel2.id_num = 0;
+  end if;
+  */
+  
+  relate rel1 to rel2 across R436.''is one half of associative'';  // note these are a symmetric pair.
+end if; end if; end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -1156,15 +1019,8 @@ end if;
 relate attr to maslattr across R8301;
 
 // set the type
-select one maslbuiltin related by maslattr->BasicType[R5803]->BuiltinType[R6205];
-select any type from instances of TypeReference;
-if (::attrIsUnique(attr:maslattr) and ("" + maslbuiltin.name) == "integer")
-	type = ::TypeReference_getBuiltinTypeReference(name:"UniqueId");
-  attr.default_value = "UniqueId.random()";
-else
-	select one builtin related by maslbuiltin->BuiltInType[R8305];
-	type = ::TypeReference_getBuiltinTypeReference(name:builtin.name);
-end if;
+select one basic_type related by maslattr->BasicType[R5803];
+type = ::getTypeReferenceForMASLType( basic_type:basic_type);
 relate type to attr across R424;
 
 // create accessors
@@ -1173,14 +1029,7 @@ getter.accessor_type = AttributeAccessorType::GETTER;
 relate getter to attr across R4510;
 create object instance setter of AttributeAccessor;
 setter.accessor_type = AttributeAccessorType::SETTER;
-relate setter to attr across R4510;
-
-// add import to object file
-select one file related by obj->File[R401];
-::addStringToImports(file:file, s:"io.ciera.runtime.exceptions.EmptyInstanceException", type:ImportType::IMPL);
-::addStringToImports(file:file, s:"io.ciera.runtime.exceptions.DeletedInstanceException", type:ImportType::IMPL);
-select one type_def related by type->Type[R3800];
-::addTypeToImports(file:file, type_to_import:type_def, type:ImportType::IMPL);',
+relate setter to attr across R4510;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -1211,6 +1060,13 @@ INSERT INTO S_SPARM
 	'',
 	"0634ff00-eab7-45e6-b893-1874b2a5c7e8",
 	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("a519e323-b117-4a03-9435-b88e56c2443d",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Model Inst>',
+	'',
+	'',
+	'../../../../core-architecture/models/core-architecture/architecture/classes/classes.xtuml');
 INSERT INTO S_SPARM
 	VALUES ("fc943558-6916-44c3-8857-8d46e5beb953",
 	"d13703e8-082b-41d8-9e21-0e3d97d6da31",
@@ -1262,29 +1118,13 @@ if not_empty code_block
 end if;
 
 // link type
-select any type from instances of TypeReference;
-select one builtin related by service->BasicType[R5205]->BuiltinType[R6205]->BuiltInType[R8305];
-if not_empty builtin
-  type = ::TypeReference_getBuiltinTypeReference(name:builtin.name);
-else
-  type = ::TypeReference_getBuiltinTypeReference(name:"void");
-end if;
+select one basic_type related by service->BasicType[R5205];
+type = ::getTypeReferenceForMASLType(basic_type:basic_type);
 relate type to invocable across R428;
 
 // create parameters
 select one first_parameter related by service->ParameterDefinition[R5204];
 ::transformParameterList(first_parameter:first_parameter, invocable:invocable);
-
-// add imports
-select one type_def related by type->Type[R3800];
-if op.is_class_based
-  select one comp_file related by obj->ComponentDefinition[R408]->File[R401];
-  ::addTypeToImports(file:comp_file, type_to_import:type_def, type:ImportType::IMPL);
-else
-  select one class_file related by obj->File[R401];
-  ::addStringToImports(file:class_file, s:"io.ciera.runtime.exceptions.EmptyInstanceException", type:ImportType::IMPL);
-  ::addTypeToImports(file:class_file, type_to_import:type_def, type:ImportType::IMPL);
-end if;
 
 // if this is an optional deferred operation, create a second operation for the supertype implementation
 // TODO',
@@ -1372,7 +1212,7 @@ if not_empty code_block
 end if;
 
 // link type
-type = ::TypeReference_getBuiltinTypeReference(name:"void");
+type = ::getBasicTypeReferenceByName(name:"void");
 relate type to invocable across R428;
 
 // create parameters
@@ -1454,7 +1294,7 @@ invocable.parent_package = sm.package;
 relate evt to invocable across R427;
 
 // link type
-type = ::TypeReference_getBuiltinTypeReference(name:"void");
+type = ::getBasicTypeReferenceByName(name:"void");
 relate type to invocable across R428;
 
 // create parameters
@@ -1462,11 +1302,7 @@ select one first_parameter related by maslevt->ParameterDefinition[R6100];
 ::transformParameterList(first_parameter:first_parameter, invocable:invocable);
 
 // link to masl event
-relate evt to maslevt across R8303;
-
-// add imports
-select one file related by sm->File[R401];
-::addStringToImports(file:file, s:"io.ciera.runtime.application.Event", type:ImportType::IMPL);',
+relate evt to maslevt across R8303;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -1533,49 +1369,49 @@ for each transition_row in transition_rows
   select one start_state related by transition_row->MaslState[R6111]->State[R8302];
   if (not_empty start_state)  // ignore Non_Existent state for now TODO
 
-		// create a row for this start state
-		create object instance row of TransitionTableRow;
-		relate row to sm across R4753;
-		relate row to start_state across R4754;
-		row.index = start_state.number;
-		
-		select many transition_options related by transition_row->TransitionOption[R6112];
-		for each transition_option in transition_options
-			
-			select one evt related by transition_option->EventDeclaration[R6108]->Event[R8303];
-			
-			// create a cell for this option
-			create object instance cell of TransitionTableCell;
-			relate cell to row across R4755;
-			relate cell to evt across R4756;
-			cell.index = evt.id;
-			
-			if (transition_option.flavor == MaslTransitionType::ignore)
-				cell.transition_type = TransitionType::IGNORE;
-			elif (transition_option.flavor == MaslTransitionType::cannot_happen)
-				cell.transition_type = TransitionType::CANT_HAPPEN;
-			else
-				select one dest_state related by transition_option->MaslState[R6109]->State[R8302];
-				
-				// create transition
-				create object instance txn of Transition;
-				relate dest_state to cell across R4757 using txn;
-				cell.transition_type = TransitionType::TRANSITION;
+    // create a row for this start state
+    create object instance row of TransitionTableRow;
+    relate row to sm across R4753;
+    relate row to start_state across R4754;
+    row.index = start_state.number;
+    
+    select many transition_options related by transition_row->TransitionOption[R6112];
+    for each transition_option in transition_options
+      
+      select one evt related by transition_option->EventDeclaration[R6108]->Event[R8303];
+      
+      // create a cell for this option
+      create object instance cell of TransitionTableCell;
+      relate cell to row across R4755;
+      relate cell to evt across R4756;
+      cell.index = evt.id;
+      
+      if (transition_option.flavor == MaslTransitionType::ignore)
+        cell.transition_type = TransitionType::IGNORE;
+      elif (transition_option.flavor == MaslTransitionType::cannot_happen)
+        cell.transition_type = TransitionType::CANT_HAPPEN;
+      else
+        select one dest_state related by transition_option->MaslState[R6109]->State[R8302];
+        
+        // create transition
+        create object instance txn of Transition;
+        relate dest_state to cell across R4757 using txn;
+        cell.transition_type = TransitionType::TRANSITION;
 
-				// create invocable
-				create object instance invocable of InvocableObject;
-				invocable.name = start_state.name + "_txn_" + dest_state.name;
-				invocable.parent_name = sm.name;
-				invocable.parent_package = sm.package;
-				relate txn to invocable across R427;
-				
-				// link type
-				type = ::TypeReference_getBuiltinTypeReference( name:"void" );
-				relate type to invocable across R428;
+        // create invocable
+        create object instance invocable of InvocableObject;
+        invocable.name = start_state.name + "_txn_" + dest_state.name;
+        invocable.parent_name = sm.name;
+        invocable.parent_package = sm.package;
+        relate txn to invocable across R427;
+        
+        // link type
+        type = ::getBasicTypeReferenceByName(name:"void");
+        relate type to invocable across R428;
 
-			end if;
-		end for;
-	end if;
+      end if;
+    end for;
+  end if;
 end for;
  ',
 	"ba5eda7a-def5-0000-0000-000000000000",
@@ -1627,9 +1463,9 @@ while (not_empty parameter)
   parm.name = "p_" + parameter.name;
   parm.by_ref = parameter.mode == ParameterMode::out;
   // data type
-	select one builtin related by parameter->BasicType[R5200]->BuiltinType[R6205]->BuiltInType[R8305];
-	type = ::TypeReference_getBuiltinTypeReference(name:builtin.name);
-	relate type to parm across R431;
+  select one basic_type related by parameter->BasicType[R5200];
+  type = ::getTypeReferenceForMASLType(basic_type:basic_type);
+  relate type to parm across R431;
   ::linkParameter(invocable:invocable, parameter:parm);
   select one parameter related by parameter->ParameterDefinition[R5208.''precedes''];
 end while;',
@@ -1741,11 +1577,6 @@ if (not_empty first_statement)
   // finalize variables referenced from within a where clause
   ::resloveVariableFinalizations( invocable:invocable );
   
-  // add imports
-  if (not PROP::getFlag(key:"io.ciera.DisableCodeTracing"))
-    ::addStringToImports(file: ::getFileForInvocable(invocable:invocable), s:"io.ciera.runtime.exceptions.ActionException", type:ImportType::IMPL);
-  end if;
-
 else
   // TODO bad
 end if;',
@@ -1793,19 +1624,18 @@ file.exclude = false;
 create object instance type of Type;
 type.name = file.name;
 type.package = file.package;
-
-// create the exception
-create object instance exp of ExceptionType;
+create object instance exp of NamedTypeReference;
 relate exp to type across R407;
-create object instance ude of UserDefinedException;
-relate ude to exp across R3805;
-relate ude to file across R401;
+exp_type = ::getBasicTypeReferenceByName(name:"ActionException");
+relate exp_type to exp across R3804;
 
-// connect to the arch model
-relate exception_declaration to ude across R8307;
+// create the user defined type
+create object instance udt of UserDefinedType;
+relate udt to exp across R3803;
+relate udt to file across R401;
 
-// create the import block
-::addStringToImports(file:file, s:"io.ciera.runtime.exceptions.ActionException", type:ImportType::IMPL);',
+// link to arch model
+relate exception_declaration to udt across R8307;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
