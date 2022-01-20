@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.UUID;
-import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
 
@@ -12,41 +11,6 @@ import io.ciera.runtime.exceptions.DeserializationException;
 
 public class TestTypeSerialization {
     
-    @Test
-    public void testStreams() {
-        byte b = 0;
-        short s = 0;
-        int i = 0;
-        long l = 0l;
-        double d = 0d;
-        
-        short s2 = (short) b;
-        int i2 = (int) b;
-        long l2 = (long) b;
-        double d2 = (double) b;
-
-        byte b3 = (byte) s;
-        int i3 = (int) s;
-        long l3 = (long) s;
-        double d3 = (double) s;
-
-        byte b4 = (byte) i;
-        short s4 = (short) i;
-        long l4 = (long) i;
-        double d4 = (double) i;
-
-        byte b5 = (byte) l;
-        short s5 = (short) l;
-        int i5 = (int) l;
-        double d5 = (double) l;
-
-        byte b6 = (byte) d;
-        short s6 = (short) d;
-        int i6 = (int) d;
-        long l6 = (long) d;
-
-    }
-
     @Test
     public void testTimeStamp() {
         TimeStamp t1 = new TimeStamp(1234l);
