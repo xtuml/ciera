@@ -2,7 +2,7 @@ package ${self.package};
 
 ${imports}
 
-public class ${self.name} extends Application {
+public class ${self.name} extends AbstractApplication implements Application {
 
     public ${self.name}() {
         this("${self.name}", new String[0]);
@@ -34,7 +34,7 @@ public class ${self.name} extends Application {
     }
 
     public static void main(String[] args) {
-        Application app = new ${self.name}();
+        Application app = new ${self.name}(args);
         app.setup();
         app.initialize();
         app.start();

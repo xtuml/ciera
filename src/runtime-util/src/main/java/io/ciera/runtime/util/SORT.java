@@ -1,20 +1,18 @@
 package io.ciera.runtime.util;
 
-import io.ciera.runtime.domain.Domain;
-import io.ciera.runtime.domain.Utility;
+import io.ciera.runtime.api.domain.Domain;
 
-public class SORT extends Utility {
+public class SORT {
 
     public SORT(Domain domain) {
-        super(domain);
     }
 
     public boolean ascending(final String attr) {
-        return true;
+        throw new UnsupportedOperationException();
     }
 
     public boolean descending(final String attr) {
-        return true;
+        throw new UnsupportedOperationException();
     }
 
 }

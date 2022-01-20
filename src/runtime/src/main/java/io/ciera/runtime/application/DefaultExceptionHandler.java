@@ -1,5 +1,7 @@
 package io.ciera.runtime.application;
 
+import io.ciera.runtime.api.application.ExceptionHandler;
+
 public class DefaultExceptionHandler implements ExceptionHandler {
 
     @Override

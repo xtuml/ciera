@@ -1,18 +1,15 @@
 package io.ciera.runtime.application.task;
 
-import io.ciera.runtime.application.Event;
-import io.ciera.runtime.application.EventTarget;
-import io.ciera.runtime.application.ExecutionContext;
-import io.ciera.runtime.application.ExecutionMode;
-import io.ciera.runtime.application.Task;
+import io.ciera.runtime.api.application.Event;
+import io.ciera.runtime.api.application.EventTarget;
+import io.ciera.runtime.api.application.ExecutionContext.ExecutionMode;
 
 public class GeneratedEvent extends Task {
 
     private Event event;
     private EventTarget target;
 
-    public GeneratedEvent(ExecutionContext context, Event event, EventTarget target) {
-        super(context);
+    public GeneratedEvent(Event event, EventTarget target) {
         this.event = event;
         this.target = target;
     }

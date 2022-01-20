@@ -1,17 +1,14 @@
 package io.ciera.runtime.application.task;
 
-import io.ciera.runtime.application.Event;
-import io.ciera.runtime.application.EventTarget;
-import io.ciera.runtime.application.ExecutionContext;
-import io.ciera.runtime.application.Task;
+import io.ciera.runtime.api.application.Event;
+import io.ciera.runtime.api.application.EventTarget;
 
 public class TimerExpiration extends Task {
 
     private Event event;
     private EventTarget target;
 
-    public TimerExpiration(ExecutionContext context, Event event, EventTarget target) {
-        super(context);
+    public TimerExpiration(Event event, EventTarget target) {
         this.event = event;
         this.target = target;
     }

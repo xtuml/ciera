@@ -7,6 +7,8 @@ import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.SimpleFormatter;
 
+import io.ciera.runtime.api.application.Logger;
+
 /**
  * This default logger implements the generic interface and is based internally
  * on the JUL logging system. It's default log level is INFO so debug and trace
@@ -24,11 +26,11 @@ public class DefaultLogger implements Logger {
         this(name, null, Level.INFO, System.out);
     }
 
-    public DefaultLogger(String name, Application application) {
+    public DefaultLogger(String name, AbstractApplication application) {
         this(name, application, Level.INFO, System.out);
     }
 
-    public DefaultLogger(String name, Application application, Level level, OutputStream out) {
+    public DefaultLogger(String name, AbstractApplication application, Level level, OutputStream out) {
         // attempt to get the log level from a system property
         String systemLogLevel = System.getProperty(LOG_LEVEL_PROP);
         if (systemLogLevel != null) {

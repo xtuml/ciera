@@ -17,11 +17,13 @@ INSERT INTO O_TFR
 	'// get the state machine if it exists
 select one sm related by self->StateMachine[R4750];
 if empty sm
-  ::addStringImport(package:"io.ciera.runtime.domain", class_name:"ObjectInstance");
+  ::addStringImport(package:"io.ciera.runtime.api.domain", class_name:"ObjectInstance");
+  ::addStringImport(package:"io.ciera.runtime.domain", class_name:"AbstractObjectInstance");
   select one sm_file related by sm->File[R401];
   ::addFileImport(file:sm_file);
 else
-  ::addStringImport(package:"io.ciera.runtime.domain", class_name:"DynamicObjectInstance");
+  ::addStringImport(package:"io.ciera.runtime.api.domain", class_name:"DynamicObjectInstance");
+  ::addStringImport(package:"io.ciera.runtime.domain", class_name:"AbstractDynamicObjectInstance");
 end if;
 
 // get any subtype interfaces this class implements
@@ -114,10 +116,9 @@ for each selector in selects
 end for;
 empty_selectors = T::body();
 
-::addStringImport(package:"io.ciera.runtime.application", class_name:"ExecutionContext");
-::addStringImport(package:"io.ciera.runtime.exceptions", class_name:"EmptyInstanceException");
-::addStringImport(package:"io.ciera.runtime.types", class_name:"AbstractStream");
-::addStringImport(package:"io.ciera.runtime.types", class_name:"UniqueId");
+::addStringImport(package:"io.ciera.runtime.api.application", class_name:"ExecutionContext");
+::addStringImport(package:"io.ciera.runtime.api.exceptions", class_name:"EmptyInstanceException");
+::addStringImport(package:"io.ciera.runtime.api.types", class_name:"UniqueId");
 ::addStringImport(package:"java.util.stream", class_name:"Stream");
 select one comp_file related by self->ComponentDefinition[R408]->File[R401];
 ::addFileImport(file:comp_file);

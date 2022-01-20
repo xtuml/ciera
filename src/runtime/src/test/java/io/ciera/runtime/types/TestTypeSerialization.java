@@ -7,10 +7,15 @@ import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 
-import io.ciera.runtime.exceptions.DeserializationException;
+import io.ciera.runtime.api.exceptions.DeserializationException;
+import io.ciera.runtime.api.types.Date;
+import io.ciera.runtime.api.types.Device;
+import io.ciera.runtime.api.types.Duration;
+import io.ciera.runtime.api.types.TimeStamp;
+import io.ciera.runtime.api.types.UniqueId;
 
 public class TestTypeSerialization {
-    
+
     @Test
     public void testTimeStamp() {
         TimeStamp t1 = new TimeStamp(1234l);

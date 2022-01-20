@@ -5,13 +5,16 @@ import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
+import io.ciera.runtime.api.application.Event;
+import io.ciera.runtime.api.application.EventTarget;
+import io.ciera.runtime.api.application.ExecutionContext;
+import io.ciera.runtime.api.types.Duration;
 import io.ciera.runtime.application.task.Halt;
-import io.ciera.runtime.types.Duration;
 
 @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
 public class TestNotify {
 
-    private static final class TestEvent extends Event {
+    private static final class TestEvent extends AbstractEvent {
         public TestEvent(Object... data) {
             super(null);
         }
@@ -22,7 +25,7 @@ public class TestNotify {
         try {
 
             // create a test app
-            final Application app = new Application("TestNotify", new String[0]) {
+            final AbstractApplication app = new AbstractApplication("TestNotify", new String[0]) {
             };
             app.setup();
 
@@ -34,7 +37,7 @@ public class TestNotify {
             Thread.sleep(100);
 
             // add a task after it's started and it should wake up and run it
-            app.defaultContext().addTask(new Halt(app.defaultContext()));
+            app.defaultContext().execute(new Halt());
 
             t.join();
         } catch (InterruptedException e) {
@@ -46,7 +49,7 @@ public class TestNotify {
         try {
 
             // create a test app
-            final Application app = new Application("TestNotify", new String[0]) {
+            final AbstractApplication app = new AbstractApplication("TestNotify", new String[0]) {
             };
             app.setup();
 
@@ -66,7 +69,7 @@ public class TestNotify {
 
                 @Override
                 public void consumeEvent(Event event) {
-                    app.defaultContext().addTask(new Halt(app.defaultContext()));
+                    app.defaultContext().execute(new Halt());
                 }
 
                 @Override

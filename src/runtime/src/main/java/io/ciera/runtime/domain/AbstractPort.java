@@ -1,10 +1,13 @@
 package io.ciera.runtime.domain;
 
-import io.ciera.runtime.action.ActionHome;
-import io.ciera.runtime.application.ExecutionContext;
-import io.ciera.runtime.application.MessageTarget;
+import io.ciera.runtime.api.action.ActionHome;
+import io.ciera.runtime.api.application.ExecutionContext;
+import io.ciera.runtime.api.application.MessageTarget;
+import io.ciera.runtime.api.domain.Domain;
+import io.ciera.runtime.api.domain.Message;
+import io.ciera.runtime.api.domain.Port;
+import io.ciera.runtime.api.exceptions.PortMessageException;
 import io.ciera.runtime.application.task.ReceivedMessage;
-import io.ciera.runtime.exceptions.PortMessageException;
 
 public abstract class AbstractPort implements Port, ActionHome {
 
@@ -23,7 +26,7 @@ public abstract class AbstractPort implements Port, ActionHome {
     @Override
     public void send(Message message) {
         if (peer != null) {
-            peer.getContext().addTask(new ReceivedMessage(peer.getContext(), message, peer));
+            peer.getContext().execute(new ReceivedMessage(message, peer));
         }
     }
 

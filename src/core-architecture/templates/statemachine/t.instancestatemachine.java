@@ -2,7 +2,7 @@ package ${self.package};
 
 ${imports}
 
-public class ${self.name} extends InstanceStateMachine {
+public class ${self.name} extends InstanceStateMachine implements StateMachine, InstanceActionHome {
 
     public static enum States {
         ${state_declarations}\

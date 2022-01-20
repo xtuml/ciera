@@ -4,9 +4,14 @@ ${imports}
 
 public class ${self.name} extends \
 .if (empty sm)
-ObjectInstance\
+AbstractObjectInstance\
 .else
-DynamicObjectInstance\
+AbstractDynamicObjectInstance\
+.end if
+.if (empty sm)
+ implements ObjectInstance\
+.else
+ implements DynamicObjectInstance\
 .end if
 .if (supertypes != "")
  implements ${supertypes}\

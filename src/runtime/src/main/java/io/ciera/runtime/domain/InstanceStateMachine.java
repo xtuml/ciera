@@ -1,10 +1,12 @@
 package io.ciera.runtime.domain;
 
-import io.ciera.runtime.action.InstanceActionHome;
-import io.ciera.runtime.application.Event;
-import io.ciera.runtime.exceptions.InstanceStateMachineActionException;
+import io.ciera.runtime.api.action.InstanceActionHome;
+import io.ciera.runtime.api.application.Event;
+import io.ciera.runtime.api.domain.Domain;
+import io.ciera.runtime.api.domain.DynamicObjectInstance;
+import io.ciera.runtime.api.exceptions.InstanceStateMachineActionException;
 
-public abstract class InstanceStateMachine extends StateMachine implements InstanceActionHome {
+public abstract class InstanceStateMachine extends AbstractStateMachine implements InstanceActionHome {
 
     private final DynamicObjectInstance self;
 

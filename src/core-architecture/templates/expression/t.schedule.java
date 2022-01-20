@@ -1,4 +1,4 @@
-_schedule\
+schedule\
 .if (self.is_recurring)
 Recurring\
 .end if

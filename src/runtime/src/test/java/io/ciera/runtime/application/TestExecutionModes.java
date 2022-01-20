@@ -8,12 +8,17 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+import io.ciera.runtime.api.application.Event;
+import io.ciera.runtime.api.application.EventTarget;
+import io.ciera.runtime.api.application.ExecutionContext;
+import io.ciera.runtime.api.application.ExecutionContext.ExecutionMode;
+import io.ciera.runtime.api.application.ExecutionContext.ModelIntegrityMode;
 import io.ciera.runtime.application.task.GeneratedEvent;
 import io.ciera.runtime.application.task.IdleHalt;
 
 public class TestExecutionModes {
 
-    private static class TestEvent extends Event {
+    private static class TestEvent extends AbstractEvent {
         public TestEvent(Object... data) {
             super(null, data);
         }
@@ -24,10 +29,10 @@ public class TestExecutionModes {
     @Test
     public void testInterleavedMode() {
         // create fake application
-        Application app = new Application("testInterleavedMode", new String[0]) {
+        AbstractApplication app = new AbstractApplication("testInterleavedMode", new String[0]) {
             @Override
             public void setup() {
-                addContext(new ExecutionContext("SequentialContext", this, ExecutionMode.INTERLEAVED,
+                addContext(new ThreadExecutionContext("SequentialContext", this, ExecutionMode.INTERLEAVED,
                         ModelIntegrityMode.STRICT));
             }
         };
@@ -45,10 +50,10 @@ public class TestExecutionModes {
     @Test
     public void testSequentialMode() {
         // create fake application
-        Application app = new Application("testSequentialMode", new String[0]) {
+        AbstractApplication app = new AbstractApplication("testSequentialMode", new String[0]) {
             @Override
             public void setup() {
-                addContext(new ExecutionContext("SequentialContext", this, ExecutionMode.SEQUENTIAL,
+                addContext(new ThreadExecutionContext("SequentialContext", this, ExecutionMode.SEQUENTIAL,
                         ModelIntegrityMode.STRICT));
             }
         };
@@ -66,7 +71,7 @@ public class TestExecutionModes {
     @Test
     public void testDefaultMode() {
         // create fake application
-        Application app = new Application("testInterleavedMode", new String[0]) {
+        AbstractApplication app = new AbstractApplication("testInterleavedMode", new String[0]) {
         };
         app.setup();
 
@@ -79,7 +84,7 @@ public class TestExecutionModes {
         assertArrayEquals(new String[] { "A1", "B1", "A2", "B2", "A3", "B3" }, output);
     }
 
-    private String[] runEventSequence(Application app) {
+    private String[] runEventSequence(AbstractApplication app) {
         List<String> output = new ArrayList<>();
 
         // create fake events
@@ -110,10 +115,10 @@ public class TestExecutionModes {
                 output.add(key);
                 if (key.startsWith("A") && Aiter.hasNext()) {
                     // generate the next event
-                    app.defaultContext().addTask(new GeneratedEvent(app.defaultContext(), Aiter.next(), target));
+                    app.defaultContext().execute(new GeneratedEvent(Aiter.next(), target));
                 } else if (key.startsWith("B") && Biter.hasNext()) {
                     // generate the next event
-                    app.defaultContext().addTask(new GeneratedEvent(app.defaultContext(), Biter.next(), target));
+                    app.defaultContext().execute(new GeneratedEvent(Biter.next(), target));
                 }
             }
 
@@ -130,17 +135,17 @@ public class TestExecutionModes {
         // queue primary task for A
         app.defaultContext().execute(() -> {
             app.getLogger().trace("Executing primary task A");
-            app.defaultContext().addTask(new GeneratedEvent(app.defaultContext(), Aiter.next(), target));
+            app.defaultContext().execute(new GeneratedEvent(Aiter.next(), target));
         });
 
         // queue primary task for B
         app.defaultContext().execute(() -> {
             app.getLogger().trace("Executing primary task B");
-            app.defaultContext().addTask(new GeneratedEvent(app.defaultContext(), Biter.next(), target));
+            app.defaultContext().execute(new GeneratedEvent(Biter.next(), target));
         });
 
         // add halt task
-        app.defaultContext().addTask(new IdleHalt(app.defaultContext()));
+        app.defaultContext().execute(new IdleHalt());
 
         // run the context
         app.start();

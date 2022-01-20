@@ -1,15 +1,13 @@
 package io.ciera.runtime.util;
 
-import io.ciera.runtime.domain.Domain;
-import io.ciera.runtime.domain.Utility;
+import io.ciera.runtime.api.domain.Domain;
 
-public class CMD extends Utility {
+public class CMD {
 
     private final CommandLine cmd;
 
     public CMD(Domain domain) {
-        super(domain);
-        cmd = new CommandLine(getContext().getApplication().getArgs(), System.err);
+        cmd = new CommandLine(domain.getContext().getApplication().getArgs(), System.err);
     }
 
     public boolean get_flag(final String name) {

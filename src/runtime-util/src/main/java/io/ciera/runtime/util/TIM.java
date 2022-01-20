@@ -8,46 +8,43 @@ import java.time.temporal.ChronoUnit;
 import java.util.Calendar;
 import java.util.TimeZone;
 
-import io.ciera.runtime.application.Event;
-import io.ciera.runtime.application.SystemClock;
-import io.ciera.runtime.application.Timer;
-import io.ciera.runtime.domain.Domain;
-import io.ciera.runtime.domain.Utility;
-import io.ciera.runtime.types.Date;
-import io.ciera.runtime.types.TimeStamp;
+import io.ciera.runtime.api.application.Application;
+import io.ciera.runtime.api.application.Event;
+import io.ciera.runtime.api.time.Timer;
+import io.ciera.runtime.api.types.Date;
+import io.ciera.runtime.api.types.TimeStamp;
 
-public class TIM extends Utility {
+public class TIM {
 
-    private SystemClock clock;
+    private final Application app;
 
-    public TIM(Domain domain) {
-        super(domain);
-        this.clock = getContext().getClock();
+    public TIM(io.ciera.runtime.api.domain.Domain domain) {
+        app = domain.getApplication();
     }
 
     public TimeStamp advance_time(final long microseconds) {
-        clock.setTime(clock.getTime() + microseconds);
-        return new TimeStamp(clock.getTime());
+        app.getClock().setTime(app.getClock().getTime() + microseconds);
+        return new TimeStamp(app.getClock().getTime());
     }
 
     public Date create_date(final int day, final int hour, final int minute, final int month, final int second,
             final int year) {
         Calendar cal = Calendar.getInstance();
         cal.set(year, month - 1, day, hour, minute, second);
-        return null;  // TODO
+        return null; // TODO
     }
 
     public TimeStamp current_clock() {
-        return new TimeStamp(clock.getTime());
+        return new TimeStamp(app.getClock().getTime());
     }
 
     public Date current_date() {
-        return Date.now(clock);
+        return Date.now(app.getClock());
     }
 
     public int current_seconds() {
-        //return ModelType.castTo(Integer.class, current_clock().divide(1000000000l));
-        return 0;  // TODO
+        // return ModelType.castTo(Integer.class, current_clock().divide(1000000000l));
+        return 0; // TODO
     }
 
     public int get_day(final Date date) {
@@ -79,7 +76,7 @@ public class TIM extends Utility {
         cal.setTimeZone(TimeZone.getTimeZone("UTC"));
         cal.set(year, month - 1, day, 0, 0, 0);
         cal.set(Calendar.MILLISECOND, 0);
-        clock.setEpoch(Instant.ofEpochMilli(cal.getTimeInMillis()));
+        app.getClock().setEpoch(Instant.ofEpochMilli(cal.getTimeInMillis()));
     }
 
     public TimeStamp set_time(final int year, final int month, final int day, final int hour, final int minute,
@@ -89,13 +86,13 @@ public class TIM extends Utility {
         cal.set(year, month - 1, day, hour, minute, second);
         cal.set(Calendar.MILLISECOND, 0);
         long unixMicros = (cal.getTimeInMillis() * 1000L) + microsecond;
-        long systemMicros = unixMicros - Instant.EPOCH.until(clock.getEpoch(), ChronoUnit.MICROS);
-        clock.setTime(systemMicros * 1000l);
-        return new TimeStamp(clock.getTime());
+        long systemMicros = unixMicros - Instant.EPOCH.until(app.getClock().getEpoch(), ChronoUnit.MICROS);
+        app.getClock().setTime(systemMicros * 1000l);
+        return new TimeStamp(app.getClock().getTime());
     }
 
     public TimeStamp time_of_day(final long timeval) {
-        long unixNanos = clock.getTime() - clock.getEpoch().until(Instant.EPOCH, ChronoUnit.NANOS);
+        long unixNanos = app.getClock().getTime() - app.getClock().getEpoch().until(Instant.EPOCH, ChronoUnit.NANOS);
         Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
         cal.set(Calendar.HOUR_OF_DAY, 0);
         cal.set(Calendar.MINUTE, 0);
@@ -136,7 +133,7 @@ public class TIM extends Utility {
     }
 
     public String timestamp_format(final TimeStamp timestamp, final String format) {
-        long unixNanos = timestamp.getValue() - clock.getEpoch().until(Instant.EPOCH, ChronoUnit.NANOS);
+        long unixNanos = timestamp.getValue() - app.getClock().getEpoch().until(Instant.EPOCH, ChronoUnit.NANOS);
         return LocalDateTime.ofEpochSecond(unixNanos / 1000000000L, (int) (unixNanos % 1000000000L), ZoneOffset.UTC)
                 .format(DateTimeFormatter.ofPattern(format));
     }

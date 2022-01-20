@@ -1,17 +1,18 @@
 package io.ciera.runtime.util;
 
+import io.ciera.runtime.api.domain.Domain;
 import io.ciera.runtime.application.task.Halt;
-import io.ciera.runtime.domain.Domain;
-import io.ciera.runtime.domain.Utility;
 
-public class ARCH extends Utility {
+public class ARCH {
+
+    private final Domain domain;
 
     public ARCH(Domain domain) {
-        super(domain);
+        this.domain = domain;
     }
 
     public void shutdown() {
-        getContext().addTask(new Halt(getContext()));
+        domain.getContext().execute(new Halt());
     }
 
 }

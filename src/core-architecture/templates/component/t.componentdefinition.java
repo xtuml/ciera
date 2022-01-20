@@ -2,7 +2,7 @@ package ${self.package};
 
 ${imports}
 
-public class ${self.name} extends Domain {
+public class ${self.name} extends AbstractDomain implements Domain {
 
     // utilities
     ${utilities}

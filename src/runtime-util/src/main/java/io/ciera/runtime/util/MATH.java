@@ -1,12 +1,10 @@
 package io.ciera.runtime.util;
 
-import io.ciera.runtime.domain.Domain;
-import io.ciera.runtime.domain.Utility;
+import io.ciera.runtime.api.domain.Domain;
 
-public class MATH extends Utility {
+public class MATH {
 
     public MATH(Domain domain) {
-        super(domain);
     }
 
     public double sqrt(final double x) {

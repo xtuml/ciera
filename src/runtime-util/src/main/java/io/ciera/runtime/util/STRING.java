@@ -1,12 +1,10 @@
 package io.ciera.runtime.util;
 
-import io.ciera.runtime.domain.Domain;
-import io.ciera.runtime.domain.Utility;
+import io.ciera.runtime.api.domain.Domain;
 
-public class STRING extends Utility {
+public class STRING {
 
     public STRING(Domain domain) {
-        super(domain);
     }
 
     public String itoa(final int i) {
