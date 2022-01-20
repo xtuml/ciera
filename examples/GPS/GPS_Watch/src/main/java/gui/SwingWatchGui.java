@@ -13,7 +13,7 @@ import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
 
 import io.ciera.runtime.application.DefaultLogger;
-import io.ciera.runtime.domain.SerializableMessage;
+import io.ciera.runtime.domain.JSONMessage;
 import tracking.shared.Indicator;
 import tracking.shared.Unit;
 import ui.shared.IUI;
@@ -123,7 +123,7 @@ public class SwingWatchGui extends JFrame implements WatchGui {
 		lightLabel.addMouseListener(new ButtonListener(lightHover, powerPressed) {
 			@Override
 			public void buttonPressed() {
-				SwingWatchGui.this.sendSignal(new SerializableMessage(new IUI.SetTargetPressed()));
+				SwingWatchGui.this.sendSignal(new JSONMessage(new IUI.SetTargetPressed()));
 			}
 		});
 
@@ -131,7 +131,7 @@ public class SwingWatchGui extends JFrame implements WatchGui {
 		startStopLabel.addMouseListener(new ButtonListener(startStopHover, startStopPressed) {
 			@Override
 			public void buttonPressed() {
-				SwingWatchGui.this.sendSignal(new SerializableMessage(new IUI.StartStopPressed()));
+				SwingWatchGui.this.sendSignal(new JSONMessage(new IUI.StartStopPressed()));
 			}
 		});
 
@@ -139,7 +139,7 @@ public class SwingWatchGui extends JFrame implements WatchGui {
 		lapResetLabel.addMouseListener(new ButtonListener(lapResetHover, lapResetPressed) {
 			@Override
 			public void buttonPressed() {
-				SwingWatchGui.this.sendSignal(new SerializableMessage(new IUI.LapResetPressed()));
+				SwingWatchGui.this.sendSignal(new JSONMessage(new IUI.LapResetPressed()));
 			}
 		});
 
@@ -147,7 +147,7 @@ public class SwingWatchGui extends JFrame implements WatchGui {
 		displayLabel.addMouseListener(new ButtonListener(displayHover, displayPressed) {
 			@Override
 			public void buttonPressed() {
-				SwingWatchGui.this.sendSignal(new SerializableMessage(new IUI.LightPressed()));
+				SwingWatchGui.this.sendSignal(new JSONMessage(new IUI.LightPressed()));
 			}
 		});
 
@@ -155,7 +155,7 @@ public class SwingWatchGui extends JFrame implements WatchGui {
 		modeLabel.addMouseListener(new ButtonListener(modeHover, modePressed) {
 			@Override
 			public void buttonPressed() {
-				SwingWatchGui.this.sendSignal(new SerializableMessage(new IUI.ModePressed()));
+				SwingWatchGui.this.sendSignal(new JSONMessage(new IUI.ModePressed()));
 			}
 		});
 
@@ -366,7 +366,7 @@ public class SwingWatchGui extends JFrame implements WatchGui {
 		public abstract void buttonPressed();
 	}
 
-	private void sendSignal(SerializableMessage message) {
+	private void sendSignal(JSONMessage message) {
 		app.sendSignal(message);
 	}
 

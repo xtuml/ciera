@@ -1,7 +1,7 @@
 package gui;
 
-import io.ciera.runtime.application.Logger;
-import io.ciera.runtime.domain.SerializableMessage;
+import io.ciera.runtime.api.application.Logger;
+import io.ciera.runtime.domain.JSONMessage;
 
 public class Gui {
 
@@ -33,7 +33,7 @@ public class Gui {
 		this.server = server;
 	}
 
-	public void sendSignal(SerializableMessage message) {
+	public void sendSignal(JSONMessage message) {
 		if (server != null) {
 			server.sendSignal(message);
 		} else {

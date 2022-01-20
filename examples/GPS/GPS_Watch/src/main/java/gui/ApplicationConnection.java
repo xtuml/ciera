@@ -5,7 +5,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
-import io.ciera.runtime.domain.SerializableMessage;
+import io.ciera.runtime.domain.JSONMessage;
 import tracking.shared.Indicator;
 import tracking.shared.Unit;
 import ui.shared.IUI;
@@ -30,7 +30,7 @@ public class ApplicationConnection extends Thread {
 		this.connection = connection;
 	}
 
-	public void sendSignal(SerializableMessage data) {
+	public void sendSignal(JSONMessage data) {
 		try {
 			out.write(data.toString().getBytes());
 			out.write('\n');
@@ -57,7 +57,7 @@ public class ApplicationConnection extends Thread {
 
 					// data arrives as a JSON message
 					// app.getLogger().trace(msg);
-					SerializableMessage data = SerializableMessage.fromString(msg, IUI.class);
+					JSONMessage data = JSONMessage.fromString(msg, IUI.class);
 
 					// work out the data type of the incoming message
 					// and set the action (run()) to be carried out

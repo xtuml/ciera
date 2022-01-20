@@ -10,16 +10,16 @@ import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 
 import gps_watch.ui.UIUI;
-import io.ciera.runtime.application.Application;
-import io.ciera.runtime.application.task.Halt;
-import io.ciera.runtime.domain.Domain;
-import io.ciera.runtime.domain.Message;
-import io.ciera.runtime.domain.SerializableMessage;
+import io.ciera.runtime.api.application.Application;
+import io.ciera.runtime.api.domain.Message;
+import io.ciera.runtime.domain.AbstractDomain;
+import io.ciera.runtime.domain.JSONMessage;
+import io.ciera.runtime.domain.PortMessage;
 import tracking.shared.Indicator;
 import tracking.shared.Unit;
 import ui.shared.IUI;
 
-public class UI extends Domain {
+public class UI extends AbstractDomain {
 
 	private static GuiConnection requester = null;
 	private static final int SOCKET_ERROR = -1;
@@ -38,7 +38,7 @@ public class UI extends Domain {
 	public void setIndicator(final Indicator p_indicator) {
 		if (requester != null) {
 			try {
-				requester.sendMessage(new SerializableMessage(new IUI.SetIndicator(p_indicator)));
+				requester.sendMessage(new JSONMessage(new IUI.SetIndicator(p_indicator)));
 			} catch (IOException e) {
 				getApplication().getLogger().warn("Connection lost.");
 				requester.tearDown();
@@ -50,7 +50,7 @@ public class UI extends Domain {
 	public void setTime(final int p_time) {
 		if (requester != null) {
 			try {
-				requester.sendMessage(new SerializableMessage(new IUI.SetTime(p_time)));
+				requester.sendMessage(new JSONMessage(new IUI.SetTime(p_time)));
 			} catch (IOException e) {
 				getApplication().getLogger().warn("Connection lost.");
 				requester.tearDown();
@@ -63,7 +63,7 @@ public class UI extends Domain {
 		getApplication().getLogger().trace("value: %.2f, unit: %s", p_value, p_unit.name());
 		if (requester != null) {
 			try {
-				requester.sendMessage(new SerializableMessage(new IUI.SetData(p_value, p_unit)));
+				requester.sendMessage(new JSONMessage(new IUI.SetData(p_value, p_unit)));
 			} catch (IOException e) {
 				getApplication().getLogger().warn("Connection lost.");
 				requester.tearDown();
@@ -82,7 +82,7 @@ public class UI extends Domain {
 		if (connect() != SOCKET_ERROR) {
 			getContext().execute(() -> listen());
 		} else {
-			getContext().addTask(new Halt(getContext()));
+			getContext().halt();
 		}
 	}
 
@@ -102,7 +102,7 @@ public class UI extends Domain {
 				}
 			} else {
 				getApplication().getLogger().info("Socket listener shuting down.");
-				getContext().addTask(new Halt(getContext()));
+				getContext().halt();
 				return;
 			}
 		}
@@ -138,10 +138,10 @@ public class UI extends Domain {
 				getApplication().getLogger().warn("Connection lost.");
 				requester.tearDown();
 				requester = null;
-				return new Message(SOCKET_ERROR);
+				return new PortMessage(SOCKET_ERROR);
 			}
 		} else {
-			return new Message(SOCKET_ERROR);
+			return new PortMessage(SOCKET_ERROR);
 		}
 	}
 
@@ -165,10 +165,10 @@ public class UI extends Domain {
 				String data = in.readLine();
 				if (data == null) {
 					getApplication().getLogger().warn("Connection closed by server");
-					return new Message(SOCKET_ERROR);
+					return new PortMessage(SOCKET_ERROR);
 				}
 				getApplication().getLogger().trace(data);
-				return SerializableMessage.fromString(data);
+				return JSONMessage.fromString(data);
 			} catch (IOException e) {
 				if (e instanceof SocketTimeoutException) {
 					// do nothing
@@ -179,7 +179,7 @@ public class UI extends Domain {
 			return null;
 		}
 
-		private void sendMessage(SerializableMessage msg) throws IOException {
+		private void sendMessage(JSONMessage msg) throws IOException {
 			out.write(msg.toString().getBytes());
 			out.write('\n');
 			out.flush();

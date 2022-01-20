@@ -9,7 +9,7 @@ import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
 import com.googlecode.lanterna.terminal.Terminal;
 
 import io.ciera.runtime.application.DefaultLogger;
-import io.ciera.runtime.domain.SerializableMessage;
+import io.ciera.runtime.domain.JSONMessage;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -84,15 +84,15 @@ public class AsciiWatchGui implements WatchGui {
 				command = terminal.readInput().getCharacter();
 				switch (command) {
 				case 's':
-					app.sendSignal(new SerializableMessage(new IUI.StartStopPressed()));
+					app.sendSignal(new JSONMessage(new IUI.StartStopPressed()));
 					app.getLogger().trace("Sending start/stop");
 					break;
 				case 'r':
-					app.sendSignal(new SerializableMessage(new IUI.LapResetPressed()));
+					app.sendSignal(new JSONMessage(new IUI.LapResetPressed()));
 					app.getLogger().trace("Sending reset/lap");
 					break;
 				case 'm':
-					app.sendSignal(new SerializableMessage(new IUI.ModePressed()));
+					app.sendSignal(new JSONMessage(new IUI.ModePressed()));
 					app.getLogger().trace("Sending mode");
 					break;
 				}
