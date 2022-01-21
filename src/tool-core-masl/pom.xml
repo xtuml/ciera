@@ -9,9 +9,6 @@
   <packaging>jar</packaging>
   <version>3.0.0-SNAPSHOT</version>
   <name>Ciera Core Code Generator (MASL)</name>
-  <properties>
-    <maven.test.skip>true</maven.test.skip>
-  </properties>
   <dependencies>
     <dependency>
       <groupId>io.ciera</groupId>
@@ -69,7 +66,6 @@
   </dependencies>
   <profiles>
     <profile>
-      <id>ciera-gen</id>
       <activation>
         <property>
           <name>!skipCodeGen</name>
@@ -111,32 +107,6 @@
         </plugins>
       </build>
     </profile>
-    <profile>
-      <id>testing</id>
-      <activation>
-        <property>
-          <name>runTests</name>
-        </property>
-      </activation>
-      <properties>
-        <maven.test.skip>false</maven.test.skip>
-      </properties>
-      <build>
-        <plugins>
-          <plugin>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <version>2.22.2</version>
-              <configuration>
-                <systemPropertyVariables>
-                  <baseDirectory>${project.basedir}</baseDirectory>
-                  <testDirectory>${project.build.directory}/test-workspace</testDirectory>
-                  <projectVersion>${project.version}</projectVersion>
-                </systemPropertyVariables>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
   </profiles>
   <build>
     <plugins>
@@ -158,6 +128,17 @@
             </configuration>
           </execution>
         </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.22.2</version>
+          <configuration>
+            <redirectTestOutputToFile>true</redirectTestOutputToFile>
+            <systemPropertyVariables>
+              <testDirectory>${project.build.directory}/test-workspace</testDirectory>
+              <projectVersion>${project.version}</projectVersion>
+            </systemPropertyVariables>
+        </configuration>
       </plugin>
     </plugins>
     <resources>

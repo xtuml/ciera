@@ -1,12 +1,16 @@
 package io.ciera.tool.coremasl.test;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.lang.ProcessBuilder.Redirect;
+import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
 
@@ -22,22 +26,19 @@ public class ExecutionBehaviorTest {
             + CIERA_VERSION + ".jar:" + MVN_REPO + "/io/ciera/runtime/" + CIERA_VERSION + "/runtime-" + CIERA_VERSION
             + ".jar";
 
-    private IGenericLoader loader;
     private Path srcDir;
     private Path binDir;
 
-    private void createDirectories() throws IOException {
-        srcDir = Files.createDirectories(Path.of(System.getProperty("baseDirectory"))
-                .relativize(Path.of(System.getProperty("testDirectory"), "src")));
-        binDir = Files.createDirectories(Path.of(System.getProperty("baseDirectory"))
-                .relativize(Path.of(System.getProperty("testDirectory"), "bin")));
-    }
-
-    private void setupLoader() {
-        loader = new TestImportParser(RESOURCE_PREFIX + "/model/HelloWorld.mod", RESOURCE_PREFIX + "/model/hello.svc");
+    private void initDirectories() throws IOException {
+        final Path baseDir = Path.of(System.getProperty("user.dir"));
+        srcDir = baseDir.relativize(Path.of(System.getProperty("testDirectory"), "src"));
+        binDir = baseDir.relativize(Path.of(System.getProperty("testDirectory"), "bin"));
     }
 
     private void generateCode() {
+        System.out.println("Generating code...");
+        IGenericLoader loader = new TestImportParser(RESOURCE_PREFIX + "/model/HelloWorld.mod",
+                RESOURCE_PREFIX + "/model/hello.svc");
         CoreMaslTool compiler = new CoreMaslTool();
         compiler.setup(new String[] { "--gendir", srcDir.toString() });
         compiler.initialize();
@@ -46,30 +47,41 @@ public class ExecutionBehaviorTest {
     }
 
     private void compileJava() throws IOException, InterruptedException {
-        System.out.println("compiling...");
-        new ProcessBuilder(
-                List.of("javac", "-cp", CLASSPATH, "-d", binDir.toString(), srcDir.toString() + "/**/*.java")).start()
-                        .waitFor();
+        System.out.println("Compiling...");
+        Stream<String> srcFileList = Files.walk(srcDir).map(Path::toString).filter(f -> f.endsWith(".java"));
+        List<String> cmd = Stream.concat(Stream.of("javac", "-cp", CLASSPATH, "-d", binDir.toString()), srcFileList)
+                .collect(Collectors.toList());
+        System.out.println(String.join(" ", cmd));
+        Process proc = new ProcessBuilder(cmd).start();
+        String errOutput = new BufferedReader(new InputStreamReader(proc.getErrorStream())).lines()
+                .collect(Collectors.joining("\n"));
+        int code = proc.waitFor();
+        assertEquals(0, code, "Failed to compile generated Java:\n\n" + errOutput);
     }
 
     private void runJava() throws InterruptedException, IOException {
-        System.out.println("running...");
-        ProcessBuilder pb = new ProcessBuilder(List.of("java", "-cp", CLASSPATH + ":" + binDir.toString(),
-                "helloworldapplication.HelloWorldApplication")).redirectError(Redirect.PIPE)
-                        .redirectOutput(Redirect.PIPE);
-        Process proc = pb.start();
-        Scanner sc = new Scanner(proc.getInputStream());
-        while (sc.hasNextLine()) {
-            System.out.println("OUTPUT: " + sc.nextLine());
+        System.out.println("Running...");
+        List<String> cmd = List.of("java", "-cp", String.join(":", CLASSPATH, binDir.toString()),
+                "helloworldapplication.HelloWorldApplication");
+        System.out.println(String.join(" ", cmd));
+        Process proc = new ProcessBuilder(cmd).start();
+        new Thread(() -> new BufferedReader(new InputStreamReader(proc.getInputStream())).lines()
+                .forEach(System.out::println)).start();
+        final StringBuilder errOutput = new StringBuilder();
+        new Thread(() -> new BufferedReader(new InputStreamReader(proc.getErrorStream())).lines()
+                .forEach(l -> errOutput.append(l).append("\n"))).start();
+        if (!proc.waitFor(1, TimeUnit.SECONDS)) {
+            System.out.println("Killing process...");
+            proc.destroy();
+        } else {
+            int code = proc.exitValue();
+            assertEquals(0, code, "Test case execution resulted in errors:\n\n" + errOutput);
         }
-        sc.close();
-        proc.waitFor(1, TimeUnit.SECONDS);
     }
 
     @Test
     public void test() throws IOException, InterruptedException {
-        createDirectories();
-        setupLoader();
+        initDirectories();
         generateCode();
         compileJava();
         runJava();
