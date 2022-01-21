@@ -223,11 +223,18 @@ create object instance file of File;
 if ( not_empty app_name_mark )
   file.name = app_name_mark.value;
 else
+  select any real_domain from instances of Domain where false;
   select many domains from instances of Domain;
-  num_domains = cardinality domains;
+  num_domains = 0;
+  for each domain in domains
+    select any util_domain_mark from instances of Mark where selected.markable_name == "Domain" and selected.feature_name == "utility" and selected.path == "" + domain.name;
+    if empty util_domain_mark
+      real_domain = domain;
+      num_domains = num_domains + 1;
+    end if;
+  end for;
   if num_domains == 1
-    select any domain from instances of Domain;
-    file.name = domain.name + "Application";
+    file.name = real_domain.name + "Application";
   else
     file.name = "UnnamedApplication";
   end if;
@@ -270,22 +277,33 @@ end while;
 select many domains from instances of Domain;
 select any current_comp_inst from instances of ComponentInstantiation where false;
 for each domain in domains
-  ::transformDomain(domain:domain, path:file.path, pass:1);
-  ::transformDomain(domain:domain, path:file.path, pass:2);
-  ::transformDomain(domain:domain, path:file.path, pass:3);
-  ::transformDomain(domain:domain, path:file.path, pass:4);
-  select any comp_def from instances of ComponentDefinition where ( selected.name == ::camelCaseName( name:domain.name, start_lower:false ) );
-  create object instance comp_inst of ComponentInstantiation;
-  relate  comp_def to app across R426 using comp_inst;
-  select any executor related by app->ApplicationExecutor[R4027]; // single executor for now
-  relate executor to comp_inst across R4028;
-  if ( not_empty current_comp_inst )
-    relate comp_inst to current_comp_inst across R4029.''follows'';
-    comp_inst.index = current_comp_inst.index + 1;
-  else
-    comp_inst.index = 0;
+  select any util_domain_mark from instances of Mark where selected.markable_name == "Domain" and selected.feature_name == "utility" and selected.path == "" + domain.name;
+  if empty util_domain_mark
+    ::transformDomain(domain:domain, path:file.path, pass:1);
+    ::transformDomain(domain:domain, path:file.path, pass:2);
+    ::transformDomain(domain:domain, path:file.path, pass:3);
+    ::transformDomain(domain:domain, path:file.path, pass:4);
+    select any comp_def from instances of ComponentDefinition where ( selected.name == ::camelCaseName( name:domain.name, start_lower:false ) );
+    create object instance comp_inst of ComponentInstantiation;
+    relate  comp_def to app across R426 using comp_inst;
+    select any executor related by app->ApplicationExecutor[R4027]; // single executor for now
+    relate executor to comp_inst across R4028;
+    if ( not_empty current_comp_inst )
+      relate comp_inst to current_comp_inst across R4029.''follows'';
+      comp_inst.index = current_comp_inst.index + 1;
+    else
+      comp_inst.index = 0;
+    end if;
+    current_comp_inst = comp_inst;
   end if;
-  current_comp_inst = comp_inst;
+end for;
+
+// transform utility domains
+for each domain in domains
+  select any util_domain_mark from instances of Mark where selected.markable_name == "Domain" and selected.feature_name == "utility" and selected.path == "" + domain.name;
+  if not_empty util_domain_mark
+    ::transformUtilityDomain(domain:domain, path:file.path, util_package:util_domain_mark.value);
+  end if;
 end for;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -1668,6 +1686,148 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("547b37dd-8782-43e5-b030-2fd67a8ffb26",
+	1,
+	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("9cf82c18-8e40-4dd1-9bf5-23aa838eb6a7",
+	"00000000-0000-0000-0000-000000000000",
+	'transformUtilityDomain',
+	'',
+	'domain = param.domain;
+
+// create the file
+create object instance file of File;
+file.name = domain.name;
+if param.util_package == ""
+  file.path = param.path;
+  file.package = ::pathToPackage(path:file.path);
+  file.extension = ".java";
+  file.exclude = false;
+else
+  file.path = "";
+  file.package = param.util_package;
+  file.extension = ".java";
+  file.exclude = true;
+end if;
+
+// create the utility object
+create object instance utility of Utility;
+relate utility to file across R401;
+
+// relate the containing component
+select many comp_defs from instances of ComponentDefinition;
+for each comp_def in comp_defs
+  create object instance util_ref of UtilityInComponent;
+  relate utility to comp_def across R4558 using util_ref;
+end for;
+
+// transform each utility function
+select many domain_services related by domain->DomainService[R5303];
+for each domain_service in domain_services
+  ::transformUtilityDomainService(domain_service:domain_service, utility:utility);
+end for;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	1);
+INSERT INTO S_SPARM
+	VALUES ("f6d0ad1c-dc42-4625-8257-2ffae5547c83",
+	"9cf82c18-8e40-4dd1-9bf5-23aa838eb6a7",
+	'domain',
+	"d467079c-c61e-4b05-8498-3fe2f24782a6",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("786f37a9-6a20-4b89-84cc-24ae21dd0c70",
+	"9cf82c18-8e40-4dd1-9bf5-23aa838eb6a7",
+	'path',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"f6d0ad1c-dc42-4625-8257-2ffae5547c83",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("6c9dda9d-c9bd-48e5-99d7-35f6df6cc5be",
+	"9cf82c18-8e40-4dd1-9bf5-23aa838eb6a7",
+	'util_package',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"786f37a9-6a20-4b89-84cc-24ae21dd0c70",
+	'');
+INSERT INTO PE_PE
+	VALUES ("9cf82c18-8e40-4dd1-9bf5-23aa838eb6a7",
+	1,
+	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("31e06f99-9ec8-4e40-9113-fefbca8c0552",
+	"00000000-0000-0000-0000-000000000000",
+	'transformUtilityDomainService',
+	'',
+	'domain_service = param.domain_service;
+select one domain related by domain_service->Domain[R5303];
+utility = param.utility;
+
+select one service related by domain_service->Service[R5203];
+
+// create utility function object
+create object instance util_func of UtilityFunction;
+relate util_func to utility across R4559;
+
+// create invocable
+create object instance invocable of InvocableObject;
+invocable.name = service.name;
+invocable.parent_name = utility.name;
+invocable.parent_package = utility.package;
+relate util_func to invocable across R427;
+
+// link type
+select one basic_type related by service->BasicType[R5205];
+type = ::getTypeReferenceForMASLType(basic_type:basic_type);
+relate type to invocable across R428;
+
+// create parameters
+select one first_parameter related by service->ParameterDefinition[R5204];
+::transformParameterList(first_parameter:first_parameter, invocable:invocable);',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	3);
+INSERT INTO S_SPARM
+	VALUES ("30749198-b48c-4bff-a9d5-ab6e68173872",
+	"31e06f99-9ec8-4e40-9113-fefbca8c0552",
+	'domain_service',
+	"ffebe79c-5289-41c4-9a6c-4c6b8346d989",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("d85f65dd-d6be-4c10-a08a-60cce177204b",
+	"31e06f99-9ec8-4e40-9113-fefbca8c0552",
+	'utility',
+	"05845c9d-7216-4905-8b60-6bf9f95f42e7",
+	0,
+	'',
+	"30749198-b48c-4bff-a9d5-ab6e68173872",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("05845c9d-7216-4905-8b60-6bf9f95f42e7",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Utility>',
+	'',
+	'',
+	'../../../../core-architecture/models/core-architecture/architecture/component/component.xtuml');
+INSERT INTO PE_PE
+	VALUES ("31e06f99-9ec8-4e40-9113-fefbca8c0552",
 	1,
 	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
 	"00000000-0000-0000-0000-000000000000",

@@ -820,7 +820,13 @@ select one domain_service_invocation related by call_expression->ServiceInvocati
 if (not_empty domain_service_invocation)
   select one service related by domain_service_invocation->DomainService[R5611]->Service[R5203];
   containing_comp_def = ::getCompDefForStatement(smt:smt);
+  select any utility from instances of Utility where false;
   select any invocable related by containing_comp_def->Function[R405]->InvocableObject[R427] where (selected.name == "" + service.name);
+  if empty invocable
+    select one domain related by domain_service_invocation->DomainService[R5611]->Domain[R5303];
+    select any utility related by containing_comp_def->Utility[R4558] where selected.name == "" + domain.name;
+    select any invocable related by utility->UtilityFunction[R4559]->InvocableObject[R427] where selected.name == "" + service.name;
+  end if;
   if (not_empty invocable)
     // create invocation
     create object instance invoc of Invocation;
@@ -832,10 +838,18 @@ if (not_empty domain_service_invocation)
     expr2.expression_number = expr.expression_number + ".1";
     void_type = ::getBasicTypeReferenceByName(name:"void");
     relate void_type to expr2 across R795;
-    // create named reference
-    create object instance domain_ref of DomainReference;
-    relate domain_ref to expr2 across R776;
-    relate expr2 to invoc across R798;
+    if not_empty utility
+      // create utility reference
+      create object instance utility_ref of UtilityReference;
+      relate utility_ref to utility across R3914;
+      relate utility_ref to expr2 across R776;
+      relate expr2 to invoc across R798;
+    else
+      // create domain reference
+      create object instance domain_ref of DomainReference;
+      relate domain_ref to expr2 across R776;
+      relate expr2 to invoc across R798;
+    end if;
     // transform actual parameters
     select one first_argument related by call_expression->Argument[R5575];
     if (not_empty first_argument)
