@@ -213,15 +213,13 @@ INSERT INTO S_SYNC
 	'transformMaslApplication',
 	'',
 	'// get application marks
-select any app_name_mark from instances of Mark
-  where selected.markable_name == "*" and selected.path == "*" and selected.feature_name == "ApplicationName";
-select any app_pkg_mark from instances of Mark where
-  selected.markable_name == "*" and selected.path == "*" and selected.feature_name == "ApplicationPackage";
+app_name = PROP::getProperty(key:"io.ciera.ApplicationName");
+app_pkg = PROP::getProperty(key:"io.ciera.ApplicationPackage");
 
 // create the file
 create object instance file of File;
-if ( not_empty app_name_mark )
-  file.name = app_name_mark.value;
+if app_name != ""
+  file.name = app_name;
 else
   select any real_domain from instances of Domain where false;
   select many domains from instances of Domain;
@@ -239,8 +237,8 @@ else
     file.name = "UnnamedApplication";
   end if;
 end if;
-if ( not_empty app_pkg_mark )
-  file.package = app_pkg_mark.value;
+if app_pkg != ""
+  file.package = app_pkg;
   file.path = ::formatPath( path:file.package );
 else
   file.path = T::sub(format:"l", s:file.name);
@@ -1706,8 +1704,8 @@ if param.util_package == ""
   file.extension = ".java";
   file.exclude = false;
 else
-  file.path = "";
   file.package = param.util_package;
+  file.path = ::formatPath( path:file.package );
   file.extension = ".java";
   file.exclude = true;
 end if;
