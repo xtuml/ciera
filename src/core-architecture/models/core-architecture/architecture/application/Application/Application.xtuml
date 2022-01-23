@@ -29,9 +29,15 @@ for each comp in comps
 end for;
 component_satisfactions = T::body();
 
+// halt after the system goes idle
+idle_halt = PROP::getFlag(key:"io.ciera.IdleHalt");
+
 // resolve imports
 if self.simulated_time
   ::addStringImport(package:"io.ciera.runtime.time", class_name:"SimulatedClock");
+end if;
+if (idle_halt)
+  ::addStringImport(package:"io.ciera.runtime.application.task", class_name:"IdleHalt");
 end if;
 ::addStringImport(package:"io.ciera.runtime.api.application", class_name:"Application");
 ::addStringImport(package:"io.ciera.runtime.application", class_name:"AbstractApplication");
