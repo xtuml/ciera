@@ -59,7 +59,7 @@ public class ExecutionBehaviorTest {
 		// set up system marks
 		System.setProperty("io.ciera.ApplicationName", APP_NAME);
 		System.setProperty("io.ciera.ApplicationPackage", APP_PACKAGE);
-		System.setProperty("io.ciera.IdleHalt", "true");
+		System.setProperty("io.ciera.EnableSimulatedTime", "false");
 
 		// pass resources to MASL loader
 		IGenericLoader loader = new TestImportParser(getModelResources(testCase));
@@ -74,7 +74,7 @@ public class ExecutionBehaviorTest {
 		// reset system marks
 		System.clearProperty("io.ciera.ApplicationName");
 		System.clearProperty("io.ciera.ApplicationPackage");
-		System.clearProperty("io.ciera.IdleHalt");
+		System.clearProperty("io.ciera.EnableSimulatedTime");
 	}
 
 	private void compileJava() throws IOException, InterruptedException {
@@ -92,14 +92,18 @@ public class ExecutionBehaviorTest {
 
 	private void runJava() throws InterruptedException, IOException {
 		System.out.println("Running...");
-		List<String> cmd = List.of("java", "-cp", String.join(":", CLASSPATH, binDir.toString()),
+		List<String> cmd = List.of("java", "-Dio.ciera.runtime.useDeterministicIDs", "-Dio.ciera.runtime.haltWhenIdle",
+				"-Dio.ciera.runtime.logLevel=FINEST", "-cp", String.join(":", CLASSPATH, binDir.toString()),
 				APP_PACKAGE + "." + APP_NAME);
 		System.out.println(String.join(" ", cmd));
 		Process proc = new ProcessBuilder(cmd).start();
-		new BufferedReader(new InputStreamReader(proc.getInputStream())).lines().forEach(System.out::println);
-		String errOutput = new BufferedReader(new InputStreamReader(proc.getErrorStream())).lines()
-				.collect(Collectors.joining("\n"));
-		int code = proc.exitValue();
+		new Thread(() -> new BufferedReader(new InputStreamReader(proc.getInputStream())).lines().forEach(System.out::println)).start();
+		StringBuilder errOutput = new StringBuilder();
+		new Thread(() -> new BufferedReader(new InputStreamReader(proc.getErrorStream())).lines().forEach(l -> {
+			errOutput.append(l).append('\n');
+			System.out.println(l);
+		})).start();
+		int code = proc.waitFor();
 		assertEquals(0, code, "Test case execution resulted in errors:\n\n" + errOutput);
 	}
 
@@ -128,7 +132,7 @@ public class ExecutionBehaviorTest {
 	@TestFactory
 	public Stream<DynamicTest> runAllTests() throws IOException {
 		return getJarResources(RESOURCE_PREFIX).sorted().map(testCase -> DynamicTest.dynamicTest(testCase, () -> {
-			System.out.println("Runnint test: " + testCase);
+			System.out.println("Running test: " + testCase);
 			initDirectories(testCase);
 			generateCode(testCase);
 			compileJava();
