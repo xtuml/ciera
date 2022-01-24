@@ -5,9 +5,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.JarURLConnection;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -22,15 +26,13 @@ public class ExecutionBehaviorTest {
 	private static final String APP_NAME = "CoreMaslTest";
 	private static final String APP_PACKAGE = ExecutionBehaviorTest.class.getPackageName();
 
-	private static final String RESOURCE_PREFIX = "/masl/tests";
+	private static final String RESOURCE_PREFIX = "masl/tests/";
+
 	private static final String CIERA_VERSION = System.getProperty("projectVersion");
 	private static final String MVN_REPO = System.getProperty("localRepository");
-	private static final String RUNTIME_API_PATH = MVN_REPO + "/io/ciera/runtime-api/" + CIERA_VERSION + "/runtime-api-"
-			+ CIERA_VERSION + ".jar";
-	private static final String RUNTIME_PATH = MVN_REPO + "/io/ciera/runtime/" + CIERA_VERSION + "/runtime-"
-			+ CIERA_VERSION + ".jar";
-	private static final String RUNTIME_UTIL_PATH = MVN_REPO + "/io/ciera/runtime-util/" + CIERA_VERSION
-			+ "/runtime-util-" + CIERA_VERSION + ".jar";
+	private static final String RUNTIME_API_PATH = String.format("%s/io/ciera/runtime-api/%s/runtime-api-%s.jar", MVN_REPO, CIERA_VERSION, CIERA_VERSION);
+	private static final String RUNTIME_PATH = String.format("%s/io/ciera/runtime/%s/runtime-%s.jar", MVN_REPO, CIERA_VERSION, CIERA_VERSION);
+	private static final String RUNTIME_UTIL_PATH = String.format("%s/io/ciera/runtime-util/%s/runtime-util-%s.jar", MVN_REPO, CIERA_VERSION, CIERA_VERSION);
 	private static final String CLASSPATH = String.join(":", RUNTIME_API_PATH, RUNTIME_PATH, RUNTIME_UTIL_PATH);
 
 	private Path srcDir;
@@ -42,7 +44,16 @@ public class ExecutionBehaviorTest {
 		binDir = baseDir.relativize(Path.of(System.getProperty("testDirectory"), testCase, "bin"));
 	}
 
-	private void generateCode(String testCase) {
+	private Stream<String> getModelResources(String testCase) throws IOException {
+		Stream<String> intFiles = getJarResources(RESOURCE_PREFIX + testCase).filter(s -> s.endsWith(".int"));
+		Stream<String> modFiles = getJarResources(RESOURCE_PREFIX + testCase).filter(s -> s.endsWith(".mod"));
+		Stream<String> activityFiles = getJarResources(RESOURCE_PREFIX + testCase)
+				.filter(s -> !s.endsWith(".int") && !s.endsWith(".mod"));
+		return Stream.concat(Stream.concat(intFiles, modFiles), activityFiles)
+				.map(r -> "/" + RESOURCE_PREFIX + testCase + "/" + r);
+	}
+
+	private void generateCode(String testCase) throws IOException {
 		System.out.println("Generating code...");
 
 		// set up system marks
@@ -51,8 +62,7 @@ public class ExecutionBehaviorTest {
 		System.setProperty("io.ciera.IdleHalt", "true");
 
 		// pass resources to MASL loader
-		IGenericLoader loader = new TestImportParser(RESOURCE_PREFIX + "/" + testCase + "/A.int",
-				RESOURCE_PREFIX + "/" + testCase + "/Model1.mod", RESOURCE_PREFIX + "/" + testCase + "/init.svc");
+		IGenericLoader loader = new TestImportParser(getModelResources(testCase));
 
 		// create compiler and run generation
 		CoreMaslTool compiler = new CoreMaslTool();
@@ -93,13 +103,37 @@ public class ExecutionBehaviorTest {
 		assertEquals(0, code, "Test case execution resulted in errors:\n\n" + errOutput);
 	}
 
+	private Stream<String> getJarResources(String rootPath, boolean recursive, JarFile jarFile) {
+		return jarFile.stream().map(JarEntry::getName).filter(s -> !s.equals(rootPath) && s.startsWith(rootPath))
+				.filter(s -> recursive || rootPath.split("/").length == s.split("/").length - 1)
+				.map(s -> s.substring(rootPath.length()).replaceAll("/", ""));
+	}
+
+	private Stream<String> getJarResources(String rootPath, boolean recursive) throws IOException {
+		URL url = getClass().getResource("/" + rootPath);
+		if (url == null)
+			throw new IllegalArgumentException("Could not find resource: /" + rootPath);
+		String scheme = url.getProtocol();
+		if (!"jar".equals(scheme))
+			throw new IllegalArgumentException("Unsupported scheme: " + scheme);
+		JarURLConnection con = (JarURLConnection) url.openConnection();
+		JarFile jarFile = con.getJarFile();
+		return getJarResources(rootPath, recursive, jarFile);
+	}
+
+	private Stream<String> getJarResources(String rootPath) throws IOException {
+		return getJarResources(rootPath, false);
+	}
+
 	@TestFactory
-	public Stream<DynamicTest> runAllTests() {
-		return Stream.of("test1", "test2").map(testCase -> DynamicTest.dynamicTest(testCase, () -> {
+	public Stream<DynamicTest> runAllTests() throws IOException {
+		return getJarResources(RESOURCE_PREFIX).sorted().map(testCase -> DynamicTest.dynamicTest(testCase, () -> {
+			System.out.println("Runnint test: " + testCase);
 			initDirectories(testCase);
 			generateCode(testCase);
 			compileJava();
 			runJava();
+			System.out.println("Done.\n");
 		}));
 	}
 

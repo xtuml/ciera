@@ -1,6 +1,7 @@
 package io.ciera.tool.coremasl.test;
 
 import java.io.IOException;
+import java.util.stream.Stream;
 
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
@@ -17,9 +18,9 @@ public class TestImportParser implements IGenericLoader {
 
     // private fields
     private LOAD loader; // OOA API
-    private String[] resources;
+    private Stream<String> resources;
     
-    public TestImportParser(String... resources) {
+    public TestImportParser(Stream<String> resources) {
         this.resources = resources;
     }
     
@@ -51,9 +52,7 @@ public class TestImportParser implements IGenericLoader {
         this.loader = loader;
         
         // parse each resource
-        for (String resource : resources) {
-            parse(resource);
-        }
+        resources.forEach(this::parse);
     }
 
 }
