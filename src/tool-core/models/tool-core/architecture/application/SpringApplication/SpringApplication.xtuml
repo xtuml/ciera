@@ -1,0 +1,102 @@
+-- BP 7.1.6 content: ModelClass syschar: 3 persistence-version: 7.1.6
+
+INSERT INTO O_OBJ
+	VALUES ("b19aa61d-43b7-4aa6-b126-473eb04c115e",
+	'SpringApplication',
+	4,
+	'SpringApplication',
+	'',
+	"00000000-0000-0000-0000-000000000000");
+INSERT INTO O_TFR
+	VALUES ("7b23d397-1595-4bae-881a-4d4ea544e86d",
+	"b19aa61d-43b7-4aa6-b126-473eb04c115e",
+	'render_app_nature',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'select one app related by self->Application[R4030];
+select one file related by app->File[R401];
+
+::addStringToImports( file:file, s:"org.springframework.boot.SpringApplication", type: ImportType::IMPL );
+::addStringToImports( file:file, s:"org.springframework.boot.autoconfigure.SpringBootApplication", type: ImportType::IMPL );
+
+// provide generic message for outgoing communication
+pkg = app.package;
+T::include(file:"interface/t.spring.msg.java");
+T::emit( file:file.path + "/SpringMsg" + file.extension );
+T::clear();
+
+// provide web socket configuration 
+endpoints = "";
+select many spring_ports from instances of SpringWebSocket
+ where ( selected.endpoint != "" );
+for each spring_port in spring_ports
+  endpoint = spring_port.endpoint;
+  T::include(file:"application/t.ws.endpoint.java");
+end for;
+endpoints = T::body();
+T::clear();
+T::include(file:"application/t.websocketconfig.java");
+T::emit( file:file.path + "/WebSocketConfig.java" );
+T::clear();
+
+// make this a SpringBoot app - result in T::body()
+T::include(file:"application/t.spring.app.java");
+',
+	1,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	0,
+	1);
+INSERT INTO O_TFR
+	VALUES ("e1a58d44-eda0-4ff0-9672-6354c02caa6b",
+	"b19aa61d-43b7-4aa6-b126-473eb04c115e",
+	'render_app_main',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'select one app related by self->Application[R4030];
+app_name = app.name;
+T::include(file:"application/t.app.spring.main.java");
+',
+	1,
+	'',
+	"7b23d397-1595-4bae-881a-4d4ea544e86d",
+	0,
+	2);
+INSERT INTO O_TFR
+	VALUES ("5f748b72-463a-4f20-bb74-ecbcb8f91b7e",
+	"b19aa61d-43b7-4aa6-b126-473eb04c115e",
+	'render_setup',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'T::include(file:"application/t.spring.setup.java");',
+	1,
+	'',
+	"e1a58d44-eda0-4ff0-9672-6354c02caa6b",
+	0,
+	3);
+INSERT INTO O_ID
+	VALUES (0,
+	"b19aa61d-43b7-4aa6-b126-473eb04c115e");
+INSERT INTO O_ID
+	VALUES (1,
+	"b19aa61d-43b7-4aa6-b126-473eb04c115e");
+INSERT INTO O_ID
+	VALUES (2,
+	"b19aa61d-43b7-4aa6-b126-473eb04c115e");
+INSERT INTO PE_PE
+	VALUES ("b19aa61d-43b7-4aa6-b126-473eb04c115e",
+	1,
+	"d9a3a6c4-6688-43fb-af3b-9d64ac25046c",
+	"00000000-0000-0000-0000-000000000000",
+	4);
+INSERT INTO EP_PKG_PROXY
+	VALUES ("d9a3a6c4-6688-43fb-af3b-9d64ac25046c",
+	"00000000-0000-0000-0000-000000000000",
+	"9092a4a9-91f5-4e59-984b-3ca72917240d",
+	'application',
+	'',
+	0,
+	'../application.xtuml');

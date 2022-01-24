@@ -377,6 +377,7 @@ select one s_sys related by root_package->S_SYS[R1405];
 // get application marks
 select any app_name_mark from instances of Mark where ( selected.markable_name == "*" and selected.path == "*" and selected.feature_name == "ApplicationName" );
 select any app_pkg_mark from instances of Mark where ( selected.markable_name == "*" and selected.path == "*" and selected.feature_name == "ApplicationPackage" );
+select any app_natr_mark from instances of Mark where ( selected.markable_name == "*" and selected.path == "*" and selected.feature_name == "ApplicationNature" );
 
 // create the file
 create object instance file of File;
@@ -398,6 +399,19 @@ file.exclude = false;
 // create the application object
 create object instance app of Application;
 relate app to file across R401;
+if ( not_empty app_natr_mark )
+	if ( app_natr_mark.value == "SpringApplication" )
+		create object instance spring_app of SpringApplication;
+		relate spring_app to app across R4030;
+	else
+		LOG::LogInfo( message:"No application nature matches mark value: " + app_natr_mark.value );
+		create object instance std_app of StandardApplication;
+		relate std_app to app across R4030;
+	end if;
+else
+	create object instance std_app of StandardApplication;
+  relate std_app to app across R4030;
+end if;
 
 // see if this needs to be generated as an asynchronous application
 select any async_app_mark from instances of Mark where ( selected.markable_name == "*" and selected.path == "*" and selected.feature_name == "AsyncApplication" );

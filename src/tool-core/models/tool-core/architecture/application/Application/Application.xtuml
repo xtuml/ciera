@@ -38,16 +38,17 @@ num_component_instances = cardinality comps;
 select many executors related by self->ApplicationExecutor[R4027];
 num_executors = cardinality executors;
 
-spring_controller = false;
-select any spring_port from instances of SpringWebSocket;
-if ( not_empty spring_port )
-	spring_controller = true;
-  pkg = self.package;
-  T::include(file:"interface/t.spring.msg.java");
-  T::emit( file:file.path + "/SpringMsg" + file.extension );
-  ::addStringToImports( file:file, s:"org.springframework.boot.SpringApplication", type: ImportType::IMPL );
-  ::addStringToImports( file:file, s:"org.springframework.boot.autoconfigure.SpringBootApplication", type: ImportType::IMPL );
-end if;
+self.render_app_nature();
+app_nature = T::body();
+T::clear();
+
+self.render_setup();
+constructor_extra = T::body();
+T::clear();
+
+self.render_app_main();
+app_main = T::body();
+T::clear();
 
 imports = file.getFormattedImports( type:ImportType::IMPL );
 if ( self.async )
@@ -58,25 +59,68 @@ end if;
 
 T::emit( file:file.path + "/" + self.name + file.extension );
 T::clear();
-
-if ( not_empty spring_port )
-	endpoints = "";
-	select many spring_ports from instances of SpringWebSocket
-	 where ( selected.endpoint != "" );
-	for each spring_port in spring_ports
-	  endpoint = spring_port.endpoint;
-    T::include(file:"application/t.ws.endpoint.java");
-	end for;
-	endpoints = T::body();
-	T::clear();
-  T::include(file:"application/t.websocketconfig.java");
-  T::emit( file:file.path + "/WebSocketConfig.java" );
-  T::clear();
-end if;',
+',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",
 	0,
+	0);
+INSERT INTO O_TFR
+	VALUES ("d94976b1-de44-4df1-a349-248d91e01c88",
+	"d2a3c815-1c2f-49ea-82f1-129383fd0090",
+	'render_app_nature',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	3,
+	'',
+	"070c8a0d-80c6-4ad9-bcac-6dd0de3b1e5f",
+	0,
+	1);
+INSERT INTO O_DEF
+	VALUES ("d94976b1-de44-4df1-a349-248d91e01c88",
+	"109e9299-ac39-4212-b6c9-00c190b96fd7",
+	0);
+INSERT INTO R_REL_PROXY
+	VALUES ("109e9299-ac39-4212-b6c9-00c190b96fd7",
+	4030,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'../application.xtuml');
+INSERT INTO O_TFR
+	VALUES ("59a4c7c1-0800-426f-a61f-f239e7daa12d",
+	"d2a3c815-1c2f-49ea-82f1-129383fd0090",
+	'render_app_main',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	3,
+	'',
+	"d94976b1-de44-4df1-a349-248d91e01c88",
+	0,
+	2);
+INSERT INTO O_DEF
+	VALUES ("59a4c7c1-0800-426f-a61f-f239e7daa12d",
+	"109e9299-ac39-4212-b6c9-00c190b96fd7",
+	0);
+INSERT INTO O_TFR
+	VALUES ("b680d6bb-eedf-4c20-abd8-f31479e8c88b",
+	"d2a3c815-1c2f-49ea-82f1-129383fd0090",
+	'render_setup',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	3,
+	'',
+	"59a4c7c1-0800-426f-a61f-f239e7daa12d",
+	0,
+	3);
+INSERT INTO O_DEF
+	VALUES ("b680d6bb-eedf-4c20-abd8-f31479e8c88b",
+	"109e9299-ac39-4212-b6c9-00c190b96fd7",
 	0);
 INSERT INTO O_REF
 	VALUES ("d2a3c815-1c2f-49ea-82f1-129383fd0090",
