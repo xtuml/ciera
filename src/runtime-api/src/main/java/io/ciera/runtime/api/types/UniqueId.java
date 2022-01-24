@@ -14,6 +14,8 @@ public class UniqueId implements Comparable<UniqueId> {
      * Default value
      */
     public static final UniqueId ZERO = new UniqueId();
+    
+    private static long lastId = 0l;
 
     private UUID id;
 
@@ -25,12 +27,20 @@ public class UniqueId implements Comparable<UniqueId> {
         this.id = id;
     }
 
+    public UniqueId(long id) {
+        this.id = new UUID(0, id);
+    }
+
     public UniqueId(UniqueId id) {
         this.id = id.id;
     }
 
     public static UniqueId random() {
-        return new UniqueId(UUID.randomUUID());
+    	if (System.getProperty("io.ciera.runtime.useDeterministicIDs") != null) {
+    		return new UniqueId(++lastId);
+    	} else {
+    		return new UniqueId(UUID.randomUUID());
+    	}
     }
 
     @Override
@@ -50,7 +60,11 @@ public class UniqueId implements Comparable<UniqueId> {
 
     @Override
     public String toString() {
-        return id.toString();
+    	if (System.getProperty("io.ciera.runtime.useDeterministicIDs") != null) {
+    		return Long.toString(id.getLeastSignificantBits());
+    	} else {
+    		return id.toString();
+    	}
     }
 
     public static UniqueId fromString(String s) {

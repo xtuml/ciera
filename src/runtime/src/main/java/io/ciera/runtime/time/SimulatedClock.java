@@ -12,7 +12,14 @@ public class SimulatedClock extends AbstractClock {
     private long systemTime;
 
     public SimulatedClock() {
-        systemTime = getEpoch().until(Instant.now(), ChronoUnit.NANOS);
+    	this(true);
+    }
+
+    public SimulatedClock(boolean setTime) {
+    	systemTime = 0;
+    	if (setTime) {
+    		systemTime = getEpoch().until(Instant.now(), ChronoUnit.NANOS);
+    	}
     }
 
     @Override

@@ -26,9 +26,9 @@ public class ${self.name} extends AbstractApplication implements Application {
         // link ports
         ${component_satisfactions}
 
-.if (self.simulated_time)
+.if (self.simulated_time != "")
         // create simulated clock
-        setClock(new SimulatedClock());
+        setClock(new SimulatedClock(${self.simulated_time}));
 
 .end if
 .if (idle_halt)
