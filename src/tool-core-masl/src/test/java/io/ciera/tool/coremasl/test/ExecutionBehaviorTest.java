@@ -33,7 +33,7 @@ public class ExecutionBehaviorTest {
 	private static final String RUNTIME_API_PATH = String.format("%s/io/ciera/runtime-api/%s/runtime-api-%s.jar", MVN_REPO, CIERA_VERSION, CIERA_VERSION);
 	private static final String RUNTIME_PATH = String.format("%s/io/ciera/runtime/%s/runtime-%s.jar", MVN_REPO, CIERA_VERSION, CIERA_VERSION);
 	private static final String RUNTIME_UTIL_PATH = String.format("%s/io/ciera/runtime-util/%s/runtime-util-%s.jar", MVN_REPO, CIERA_VERSION, CIERA_VERSION);
-	private static final String CLASSPATH = String.join(":", RUNTIME_API_PATH, RUNTIME_PATH, RUNTIME_UTIL_PATH);
+	private static final String CLASSPATH = String.join(":", "target/test-classes", RUNTIME_API_PATH, RUNTIME_PATH, RUNTIME_UTIL_PATH);
 
 	private Path srcDir;
 	private Path binDir;
