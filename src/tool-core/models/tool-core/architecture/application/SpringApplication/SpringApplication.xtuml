@@ -20,25 +20,28 @@ select one file related by app->File[R401];
 ::addStringToImports( file:file, s:"org.springframework.boot.SpringApplication", type: ImportType::IMPL );
 ::addStringToImports( file:file, s:"org.springframework.boot.autoconfigure.SpringBootApplication", type: ImportType::IMPL );
 
-// provide generic message for outgoing communication
-pkg = app.package;
-T::include(file:"interface/t.spring.msg.java");
-T::emit( file:file.path + "/SpringMsg" + file.extension );
-T::clear();
-
-// provide web socket configuration 
-endpoints = "";
-select many spring_ports from instances of SpringWebSocket
- where ( selected.endpoint != "" );
-for each spring_port in spring_ports
-  endpoint = spring_port.endpoint;
-  T::include(file:"application/t.ws.endpoint.java");
-end for;
-endpoints = T::body();
-T::clear();
-T::include(file:"application/t.websocketconfig.java");
-T::emit( file:file.path + "/WebSocketConfig.java" );
-T::clear();
+// if any ports are marked as Spring web sockets, provide a generic message for outgoing communication
+// and render web socket configuration 
+select any spring_port from instances of SpringWebSocket;
+if ( not_empty spring_port )
+	pkg = app.package;
+	T::include(file:"interface/t.spring.msg.java");
+	T::emit( file:file.path + "/SpringMsg" + file.extension );
+	T::clear();
+	
+	endpoints = "";
+	select many spring_ports from instances of SpringWebSocket
+	 where ( selected.endpoint != "" );
+	for each spring_port in spring_ports
+	  endpoint = spring_port.endpoint;
+	  T::include(file:"application/t.ws.endpoint.java");
+	end for;
+	endpoints = T::body();
+	T::clear();
+	T::include(file:"application/t.websocketconfig.java");
+	T::emit( file:file.path + "/WebSocketConfig.java" );
+	T::clear();
+end if;
 
 // make this a SpringBoot app - result in T::body()
 T::include(file:"application/t.spring.app.java");
