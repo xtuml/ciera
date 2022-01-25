@@ -1,1 +1,1 @@
-public void ${self.name}(${parameter_list});
+public ${type_name} ${self.name}(${parameter_list});

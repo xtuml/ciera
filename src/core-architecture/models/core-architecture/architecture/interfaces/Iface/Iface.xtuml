@@ -14,41 +14,47 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'// render message IDs
-select many messages related by self->Message[R419] where SORT::ascending(attr:"id");
-for each msg in messages
-  msg.render_id();
-end for;
-message_id_declarations = T::body();
+	'// only render the interface if at least one port implements it
+select any port related by self->Port[R418];
+if not_empty port
 
-// render message classes
-for each msg in messages
-  msg.render_decl();
-end for;
-message_declarations = T::body();
+  // render message IDs
+  select many messages related by self->Message[R419] where selected.async and SORT::ascending(attr:"id");
+  for each msg in messages
+    msg.render_id();
+  end for;
+  message_id_declarations = T::body();
+  
+  // render message classes
+  for each msg in messages
+    msg.render_decl();
+  end for;
+  message_declarations = T::body();
+  
+  // render to provider message methods
+  select many to_provider_msgs related by self->Message[R419] where SORT::ascending(attr:"id") and selected.to_provider;
+  for each msg in to_provider_msgs
+    msg.render();
+  end for;
+  to_provider_message_block = T::body();
+  
+  // render from provider message methods
+  select many from_provider_msgs related by self->Message[R419] where SORT::ascending(attr:"id") and not selected.to_provider;
+  for each msg in from_provider_msgs
+    msg.render();
+  end for;
+  from_provider_message_block = T::body();
+  
+  ::addStringImport(package:"io.ciera.runtime.api.domain", class_name:"Port");
+  
+  select one file related by self->File[R401];
+  imports = file.get_imports();
+  
+  T::include(file:"interface/t.interface.java");
+  T::emit( file:file.path + "/" + self.name + file.extension );
+  T::clear();
 
-// render to provider message calls
-select many to_provider_msgs related by self->Message[R419] where SORT::ascending(attr:"id") and selected.to_provider;
-for each msg in to_provider_msgs
-  msg.render();
-end for;
-to_provider_message_block = T::body();
-
-// render from provider message calls
-select many from_provider_msgs related by self->Message[R419] where SORT::ascending(attr:"id") and not selected.to_provider;
-for each msg in from_provider_msgs
-  msg.render();
-end for;
-from_provider_message_block = T::body();
-
-::addStringImport(package:"io.ciera.runtime.api.domain", class_name:"Port");
-
-select one file related by self->File[R401];
-imports = file.get_imports();
-
-T::include(file:"interface/t.interface.java");
-T::emit( file:file.path + "/" + self.name + file.extension );
-T::clear();',
+end if;',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",

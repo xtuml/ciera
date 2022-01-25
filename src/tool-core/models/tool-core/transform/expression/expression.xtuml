@@ -1850,8 +1850,13 @@ if ( not_empty v_scv )
   ::transformConstantReference( v_scv:v_scv, smt:smt, expr_number:expr_number );
 
 else
+select one v_msv related by v_val->V_MSV[R801];
+if ( not_empty v_msv )
+  ::transformMessageValue( v_msv:v_msv, smt:smt, expr_number:expr_number );
+
+else
   LOG::LogInfo( message:"expression type not yet supported" );
-end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if;',
+end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -2517,6 +2522,102 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("c2673f57-b571-4a87-8364-64c2d19fb177",
+	1,
+	"f9a85e65-cedd-4444-aef5-bae5288e31bc",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("399f98b7-58bd-41a5-83bc-a5b0ee2ca966",
+	"00000000-0000-0000-0000-000000000000",
+	'transformMessageValue',
+	'',
+	'v_msv = param.v_msv;
+smt = param.smt;
+expr_number = param.expr_number;
+
+// create expression
+create object instance expr of Expression;
+relate expr to smt across R775;
+expr.expression_number = expr_number;
+
+// link type
+select one s_dt related by v_msv->V_VAL[R801]->S_DT[R820];
+type = ::getTypeReferenceForS_DT(s_dt:s_dt);
+relate type to expr across R795;
+
+// get target port and invocable
+select one spr_rep related by v_msv->SPR_REP[R845];
+select one spr_pep related by v_msv->SPR_PEP[R841];
+select one c_ep related by spr_rep->C_EP[R4500];
+if ( empty c_ep )
+  select one c_ep related by spr_pep->C_EP[R4501];
+end if;
+select one c_po related by spr_rep->C_R[R4500]->C_IR[R4009]->C_PO[R4016];
+if ( empty c_po )
+  select one c_po related by spr_pep->C_P[R4501]->C_IR[R4009]->C_PO[R4016];
+end if;
+select one target_port related by c_po->Port[R422];
+select any invocable related by target_port->PortMessage[R420]->InvocableObject[R427] where ( selected.name == c_ep.Name );
+
+// create invocation
+create object instance invoc of Invocation;
+relate invoc to expr across R776;
+relate invoc to invocable across R792;
+// create named reference expression
+create object instance expr2 of Expression;
+relate expr2 to smt across R775;
+expr2.expression_number = expr.expression_number + ".1";
+void_type = ::getBasicTypeReferenceByName( name:"void" );
+relate void_type to expr2 across R795;
+// create utility reference
+create object instance port_ref of PortReference;
+relate port_ref to target_port across R3915;
+relate port_ref to expr2 across R776;
+relate expr2 to invoc across R798;
+// transform actual parameters
+select many v_pars related by v_msv->V_PAR[R842];
+::transformActualParameters( invocation:invoc, v_pars:v_pars, expr_number:expr.expression_number, base_num:2 );',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	0);
+INSERT INTO S_SPARM
+	VALUES ("f0158f91-9b7d-48fa-b93f-1101fd25c8be",
+	"399f98b7-58bd-41a5-83bc-a5b0ee2ca966",
+	'smt',
+	"b586ec7e-41fe-4d50-9cf3-27b173e9848a",
+	0,
+	'',
+	"4cbbee37-a7de-49ae-af2e-e73323ec9fe9",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("896ebfef-1691-4cce-ac08-f4d39cf05e9f",
+	"399f98b7-58bd-41a5-83bc-a5b0ee2ca966",
+	'expr_number',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"f0158f91-9b7d-48fa-b93f-1101fd25c8be",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("4cbbee37-a7de-49ae-af2e-e73323ec9fe9",
+	"399f98b7-58bd-41a5-83bc-a5b0ee2ca966",
+	'v_msv',
+	"5d3edb98-7267-4f8f-8a43-a03062f612ef",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("5d3edb98-7267-4f8f-8a43-a03062f612ef",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Message Value>',
+	'',
+	'',
+	'../../../../../mcooa/models/mcooa/ooaofooa/Value/Value.xtuml');
+INSERT INTO PE_PE
+	VALUES ("399f98b7-58bd-41a5-83bc-a5b0ee2ca966",
 	1,
 	"f9a85e65-cedd-4444-aef5-bae5288e31bc",
 	"00000000-0000-0000-0000-000000000000",
