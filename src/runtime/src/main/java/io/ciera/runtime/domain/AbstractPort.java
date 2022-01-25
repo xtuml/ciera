@@ -44,8 +44,13 @@ public abstract class AbstractPort implements Port, ActionHome {
     }
 
     @Override
-    public void setPeer(Port peer) {
+    public void setPeer(MessageTarget peer) {
         this.peer = peer;
+    }
+    
+    @Override
+    public MessageTarget getPeer() {
+    	return peer;
     }
 
     @Override
