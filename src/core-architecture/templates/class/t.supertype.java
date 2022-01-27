@@ -1,1 +1,1 @@
-${self.part_name}.R${self.num}Subtype\
+, ${self.part_name}.R${self.num}Subtype\

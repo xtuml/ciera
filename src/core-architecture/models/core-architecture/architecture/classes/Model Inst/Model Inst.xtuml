@@ -27,12 +27,9 @@ else
 end if;
 
 // get any subtype interfaces this class implements
-sep = "";
 select many subsuper_rels related by self->Relationship[R435] where selected.rel_type == RelationshipType::SuperSubtype;
 for each rel in subsuper_rels
-  T::append(s:sep);
   rel.render_supertype_implementation();
-  sep = ", ";
 end for;
 supertypes = T::body();
 
@@ -78,7 +75,14 @@ end for;
 operations = T::body();
 
 // selectors
+last_rel_num = 0;
 for each selector in selects
+  // only render one set of modifiers for sub/super relationships
+  select one rel related by selector->Relationship[R4512];
+  if rel.rel_type != RelationshipType::SuperSubtype or last_rel_num != rel.num
+    selector.render_modifiers();
+  end if;
+  last_rel_num = rel.num;
   selector.render();
 end for;
 selectors = T::body();

@@ -14,7 +14,7 @@ AbstractDynamicObjectInstance\
  implements DynamicObjectInstance\
 .end if
 .if (supertypes != "")
- implements ${supertypes}\
+${supertypes}\
 .end if
  {
 

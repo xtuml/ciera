@@ -14,15 +14,18 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'select one selector_type related by self->TypeReference[R446];
+	'// if this is the first selector for a subtype, render the generic subtype selector
+select one rel related by self->Relationship[R4512];
+select many sibling_rels related by self->Class[R442]->Relationship[R434] where selected.num == rel.num and selected.rel_type == RelationshipType::SuperSubtype;
+select any first_selector related by sibling_rels->Selector[R4512] where SORT::ascending(attr:"name");
+if not_empty first_selector and first_selector.name == self.name
+  rel_num = rel.num;
+  T::include(file:"class/t.selector.sub.java");
+end if;
+
+select one selector_type related by self->TypeReference[R446];
 ::resolveImportsForTypeReference(type_ref:selector_type);
 type_name = selector_type.type_reference;
-inst_type_name = type_name;
-select one inst_type related by self->TypeReference[R446]->StreamTypeReference[R3801]->TypeReference[R3812]->InstanceTypeReference[R3801]->TypeReference[R3801];
-if not_empty inst_type
-  inst_type_name = inst_type.type_reference;
-  ::resolveImportsForTypeReference(type_ref:inst_type);
-end if;
 multiplicity_many = self.multiplicity == Mult::MANY;
 select one rel related by self->Relationship[R4512];
 is_super = rel.rel_type == RelationshipType::SuperSubtype and self.class_name == rel.part_name;
@@ -39,11 +42,25 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'select one type_ref related by self->TypeReference[R446];
+	'// if this is the first selector for a subtype, render the generic subtype selector
+select one rel related by self->Relationship[R4512];
+select many sibling_rels related by self->Class[R442]->Relationship[R434] where selected.num == rel.num and selected.rel_type == RelationshipType::SuperSubtype;
+select any first_selector related by sibling_rels->Selector[R4512] where SORT::ascending(attr:"name");
+if not_empty first_selector and first_selector.name == self.name
+  ::addStringImport(package:"io.ciera.runtime.api.exceptions", class_name:"EmptyInstanceException");
+  rel_num = rel.num;
+  T::include(file:"class/t.selector.empty.sub.java");
+end if;
+
+select one type_ref related by self->TypeReference[R446];
 type_name = type_ref.type_reference;
 ::resolveImportsForTypeReference(type_ref:type_ref);
 multiplicity_many = self.multiplicity == Mult::MANY;
-T::include(file:"class/t.selector.empty.java");',
+T::include(file:"class/t.selector.empty.java");
+
+if (multiplicity_many)
+  ::addStringImport(package:"java.util.stream", class_name:"Stream");
+end if;',
 	1,
 	'',
 	"163d2074-6204-4c8a-81c2-d9a61188dcd5",
@@ -86,6 +103,29 @@ end if;',
 	"def4e24d-d1be-4bcc-8c17-62a1fde7e4fd",
 	0,
 	3);
+INSERT INTO O_TFR
+	VALUES ("f468cd28-1646-4377-a7c8-4f73bef01097",
+	"49f03569-1ab3-4237-af87-899e99ffc284",
+	'render_modifiers',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'select one inst_type related by self->TypeReference[R446]->StreamTypeReference[R3801]->TypeReference[R3812]->InstanceTypeReference[R3801]->TypeReference[R3801];
+if empty inst_type
+  select one inst_type related by self->TypeReference[R446];
+end if;
+inst_type_name = inst_type.type_reference;
+::resolveImportsForTypeReference(type_ref:inst_type);
+multiplicity_many = self.multiplicity == Mult::MANY;
+select one rel related by self->Relationship[R4512];
+is_super = rel.rel_type == RelationshipType::SuperSubtype and self.class_name == rel.part_name;
+rel_num = rel.num;
+T::include(file:"class/t.selector.modifiers.java");',
+	1,
+	'',
+	"2c717bcb-79fc-4d8a-822e-436b4ab018e5",
+	0,
+	4);
 INSERT INTO O_NBATTR
 	VALUES ("9f7cf2bd-bd88-4367-a2fb-c7019e803b54",
 	"49f03569-1ab3-4237-af87-899e99ffc284");
