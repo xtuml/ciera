@@ -4,28 +4,27 @@ import io.ciera.runtime.api.domain.Domain;
 
 public class A {
 
-	public A(Domain domain) {
-	}
+    public A(Domain domain) {
+    }
 
-	public void assertTrue(final boolean truth) {
-		if (truth != true) {
-			throw new AssertionException("Assertion check failed");
-		}
-	}
+    public void assertTrue(final boolean truth) {
+        assertTrueWithMessage(truth, "Assertion check failed");
+    }
 
-	private static final class AssertionException extends RuntimeException implements Runnable {
+    public void assertTrueWithMessage(final boolean truth, final String message) {
+        if (truth != true) {
+            throw new AssertionException(message);
+        }
+    }
 
-		private static final long serialVersionUID = 1l;
+    private static final class AssertionException extends RuntimeException {
+
+        private static final long serialVersionUID = 1l;
 
         public AssertionException(String message) {
             super(message);
         }
 
-		@Override
-		public void run() {
-			System.exit(2);
-		}
-
-	}
+    }
 
 }
