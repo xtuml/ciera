@@ -17,7 +17,6 @@ import io.ciera.runtime.api.types.TimeStamp;
 import io.ciera.runtime.application.task.GeneratedEvent;
 import io.ciera.runtime.application.task.GeneratedEventToSelf;
 import io.ciera.runtime.application.task.Halt;
-import io.ciera.runtime.application.task.IdleHalt;
 import io.ciera.runtime.application.task.Task;
 import io.ciera.runtime.time.EventTimer;
 
@@ -182,7 +181,7 @@ public class ThreadExecutionContext implements ExecutionContext, Runnable {
                         getClock().waitForNextTimer(this);
                     } else {
                     	if (System.getProperty("io.ciera.runtime.haltWhenIdle") != null) {
-                    		execute(new IdleHalt());
+                    		application.stop();
                     	} else {
 							// wait indefinitely for an external signal or for a
 							// timer to be scheduled in this context by another thread

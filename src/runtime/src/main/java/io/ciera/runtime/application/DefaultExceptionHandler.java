@@ -1,8 +1,5 @@
 package io.ciera.runtime.application;
 
-import java.util.Optional;
-import java.util.stream.Stream;
-
 import io.ciera.runtime.api.application.ExceptionHandler;
 
 public class DefaultExceptionHandler implements ExceptionHandler {

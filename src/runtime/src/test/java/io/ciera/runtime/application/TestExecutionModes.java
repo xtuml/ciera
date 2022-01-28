@@ -14,7 +14,6 @@ import io.ciera.runtime.api.application.ExecutionContext;
 import io.ciera.runtime.api.application.ExecutionContext.ExecutionMode;
 import io.ciera.runtime.api.application.ExecutionContext.ModelIntegrityMode;
 import io.ciera.runtime.application.task.GeneratedEvent;
-import io.ciera.runtime.application.task.IdleHalt;
 
 public class TestExecutionModes {
 
@@ -144,8 +143,8 @@ public class TestExecutionModes {
             app.defaultContext().execute(new GeneratedEvent(Biter.next(), target));
         });
 
-        // add halt task
-        app.defaultContext().execute(new IdleHalt());
+        // set up idle halt
+        System.setProperty("io.ciera.runtime.haltWhenIdle", "true");
 
         // run the context
         app.start();
