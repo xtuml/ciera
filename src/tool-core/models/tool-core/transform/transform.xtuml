@@ -2017,9 +2017,13 @@ INSERT INTO S_SYNC
 	'port = param.port;
 c_i = param.c_i;
 
+// a non-standard Port may require an interface file to be suffixed for differentiation.
+select one specializer related by port->PortDescriptor[R4161];
+suffix = specializer.get_interface_file_suffix();
+
 // create the file
 create object instance file of File;
-file.name = "I" + ::camelCaseName( name:c_i.Name, start_lower:false ) + param.name_suffix;
+file.name = "I" + ::camelCaseName( name:c_i.Name, start_lower:false ) + suffix;
 file.path = param.path;
 file.package = ::pathToPackage( path:file.path );
 file.extension = ".java";
@@ -2028,6 +2032,7 @@ file.exclude = false;
 // create the interface package object
 create object instance iface of Interface;
 relate iface to file across R401;
+iface.serialize_msgs = param.serialize;
 
 // relate to the c_i
 relate iface to c_i across R421;
@@ -2102,10 +2107,10 @@ INSERT INTO S_DT_PROXY
 	'',
 	'../architecture/interfaces/interfaces.xtuml');
 INSERT INTO S_SPARM
-	VALUES ("5a18492e-46fe-42a0-9a71-4ca6acecc409",
+	VALUES ("ba6a8df8-d523-4612-9280-0a467cd6a83d",
 	"f8603c94-90cc-4b20-9c6e-f665ce733d20",
-	'name_suffix',
-	"ba5eda7a-def5-0000-0000-000000000004",
+	'serialize',
+	"ba5eda7a-def5-0000-0000-000000000001",
 	0,
 	'',
 	"b239a0ef-0346-49c6-b10e-dc828b5c8ea9",
@@ -3859,7 +3864,7 @@ if ( not empty xtuml_port )
 else
 	select one ep_pkg related by c_i->PE_PE[R8001]->EP_PKG[R8000];
   if ( not_empty ep_pkg )
-    ::transformInterface( c_i:c_i, path: ::ep_pkgToPath( ep_pkg:ep_pkg ), port:port, name_suffix:"" );
+    ::transformInterface( c_i:c_i, path: ::ep_pkgToPath( ep_pkg:ep_pkg ), port:port, serialize:false );
   end if;
 end if;
 ',
@@ -3931,7 +3936,7 @@ if ( not empty spring_port )
 else
 	select one ep_pkg related by c_i->PE_PE[R8001]->EP_PKG[R8000];
   if ( not_empty ep_pkg )
-    ::transformInterface( c_i:c_i, path: ::ep_pkgToPath( ep_pkg:ep_pkg ), port:port, name_suffix:"_sws" );
+    ::transformInterface( c_i:c_i, path: ::ep_pkgToPath( ep_pkg:ep_pkg ), port:port, serialize:true );
   end if;
 end if;
 ',

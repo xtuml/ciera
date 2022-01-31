@@ -5,7 +5,7 @@ INSERT INTO O_OBJ
 	'SpringApplication',
 	4,
 	'SpringApplication',
-	'',
+	'A class hosting the deferred operations which render a Spring application specializations.',
 	"00000000-0000-0000-0000-000000000000");
 INSERT INTO O_TFR
 	VALUES ("7b23d397-1595-4bae-881a-4d4ea544e86d",
@@ -30,10 +30,13 @@ if ( not_empty spring_port )
 	T::clear();
 	
 	endpoints = "";
-	select many spring_ports from instances of SpringWebSocket
-	 where ( selected.endpoint != "" );
+	select many spring_ports from instances of SpringWebSocket;
 	for each spring_port in spring_ports
 	  endpoint = spring_port.endpoint;
+	  if ( endpoint == "" )
+	  	select one port related by spring_port->PortDescriptor[R4162]->Port[R4161.''specializes''];
+	  	endpoint = app.name + "_" + port.name;
+	  end if;
 	  T::include(file:"application/t.ws.endpoint.java");
 	end for;
 	endpoints = T::body();
@@ -71,7 +74,7 @@ INSERT INTO O_TFR
 	VALUES ("5f748b72-463a-4f20-bb74-ecbcb8f91b7e",
 	"b19aa61d-43b7-4aa6-b126-473eb04c115e",
 	'render_setup',
-	'',
+	'Render initialization invocations added to a Spring application constructor.',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'T::include(file:"application/t.spring.setup.java");',
