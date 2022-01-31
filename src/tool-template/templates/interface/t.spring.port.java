@@ -10,19 +10,19 @@ import org.json.JSONObject;
 @Controller
 public class ${port.name} extends ${port.base_class}<${port.comp_name}> implements ${port.iface_name} {
 
-	private SimpMessagingTemplate template;
+    private SimpMessagingTemplate template;
 
-	private static ${port.name} singleton;
-	public static ${port.name} Singleton() {
-		return singleton;
-	}
+    private static ${port.name} singleton;
+    public static ${port.name} Singleton() {
+        return singleton;
+    }
 
     @Autowired
     public ${port.name}( SimpMessagingTemplate template ) {
-		super ( ${port.comp_name}.Singleton(), null );
-		singleton = this;
+        super ( ${port.comp_name}.Singleton(), null );
+        singleton = this;
         this.template = template;
-	}
+    }
 
     // inbound messages
 ${inbound_message_block}

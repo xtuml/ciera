@@ -4,12 +4,12 @@
         getRunContext().execute(new ReceivedMessageTask() {
             @Override
             public void run() throws XtumlException {
-		        try {
-		            ${mname}( ${parmlist} );
-		        }
-		        catch ( Exception e ) {
-		            System.out.printf( "Exception, %s, in ${mname}()\n", e );
-		        }
+                try {
+                    ${mname}( ${parmlist} );
+                }
+                catch ( Exception e ) {
+                    System.out.printf( "Exception, %s, in ${mname}()\n", e );
+                }
             }
         });
     }

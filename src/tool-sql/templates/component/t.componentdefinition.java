@@ -6,10 +6,11 @@ public class ${self.name} extends ${self.extends} {
 
     private Map<String, Class<?>> classDirectory;
 
-	private static ${self.name} singleton;
-	public static ${self.name} Singleton() {
-		return singleton;
-	}
+    private static ${self.name} singleton;
+    public static ${self.name} Singleton() {
+        return singleton;
+    }
+    
 public ${self.name}(IApplication app, IRunContext runContext, int populationId) {
         super(app, runContext, populationId);
         singleton = this;

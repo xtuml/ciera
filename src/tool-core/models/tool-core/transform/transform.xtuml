@@ -400,16 +400,16 @@ file.exclude = false;
 create object instance app of Application;
 relate app to file across R401;
 if ( not_empty app_natr_mark )
-	if ( app_natr_mark.value == "SpringApplication" )
-		create object instance spring_app of SpringApplication;
-		relate spring_app to app across R4030;
-	else
-		LOG::LogInfo( message:"No application nature matches mark value: " + app_natr_mark.value );
-		create object instance std_app of StandardApplication;
-		relate std_app to app across R4030;
-	end if;
+  if ( app_natr_mark.value == "SpringApplication" )
+    create object instance spring_app of SpringApplication;
+    relate spring_app to app across R4030;
+  else
+    LOG::LogInfo( message:"No application nature matches mark value: " + app_natr_mark.value );
+    create object instance std_app of StandardApplication;
+    relate std_app to app across R4030;
+  end if;
 else
-	create object instance std_app of StandardApplication;
+  create object instance std_app of StandardApplication;
   relate std_app to app across R4030;
 end if;
 
@@ -2602,14 +2602,14 @@ select any port_type_mark from instances of Mark where ( selected.markable_name 
                                                           selected.path == path_for_mark and
                                                           selected.feature_name == "PortType" );
 if ( not_empty port_type_mark )
-	if (port_type_mark.value == "SpringWebSocket" )
-		::transformSpringPort( port:port, mark_path: path_for_mark );
-	else
-		LOG::LogInfo( message:"No port type matches mark value: " + port_type_mark.value + " - using default" );
+  if (port_type_mark.value == "SpringWebSocket" )
+    ::transformSpringPort( port:port, mark_path: path_for_mark );
+  else
+    LOG::LogInfo( message:"No port type matches mark value: " + port_type_mark.value + " - using default" );
     ::transformXtumlPort( port:port, mark_path: path_for_mark );
-	end if;
+  end if;
 else
-	::transformXtumlPort( port:port, mark_path: path_for_mark );
+  ::transformXtumlPort( port:port, mark_path: path_for_mark );
 end if;
 
 select one iface related by port->Interface[R418];
@@ -3859,10 +3859,10 @@ xtuml = xtUML::create( port:port );
 select any c_i related by port->C_PO[R422]->C_IR[R4016]->C_I[R4012];
 select any xtuml_port related by c_i->Interface[R421]->Port[R418]->PortDescriptor[R4161]->xtUML[R4162];
 if ( not empty xtuml_port )
-	select one iface related by xtuml_port->PortDescriptor[R4162]->Port[R4161]->Interface[R418];
-	relate iface to port across R418;
+  select one iface related by xtuml_port->PortDescriptor[R4162]->Port[R4161]->Interface[R418];
+  relate iface to port across R418;
 else
-	select one ep_pkg related by c_i->PE_PE[R8001]->EP_PKG[R8000];
+  select one ep_pkg related by c_i->PE_PE[R8001]->EP_PKG[R8000];
   if ( not_empty ep_pkg )
     ::transformInterface( c_i:c_i, path: ::ep_pkgToPath( ep_pkg:ep_pkg ), port:port, serialize:false );
   end if;
@@ -3910,38 +3910,38 @@ select any endpoint_mark from instances of Mark where ( selected.markable_name =
                                                       selected.path == path_for_mark and
                                                       selected.feature_name == "EndPoint" );
 if ( not_empty endpoint_mark )
-	socketname = endpoint_mark.value;
-	select any endpoint from instances of StompEndPoint
-	 where ( selected.endpoint == socketname );
-	if ( empty endpoint )
-		create object instance endpoint of StompEndPoint;
-		endpoint.endpoint = socketname;
-	end if;
-	relate sws to endpoint across R4163;
+  socketname = endpoint_mark.value;
+  select any endpoint from instances of StompEndPoint
+   where ( selected.endpoint == socketname );
+  if ( empty endpoint )
+    create object instance endpoint of StompEndPoint;
+    endpoint.endpoint = socketname;
+  end if;
+  relate sws to endpoint across R4163;
 end if;
 
 select any topic_mark from instances of Mark where ( selected.markable_name == "Port" and
                                                       selected.path == path_for_mark and
                                                       selected.feature_name == "SubscribeTopic" );
 if ( not_empty topic_mark )
-	sws.subscribe_topic = topic_mark.value;
+  sws.subscribe_topic = topic_mark.value;
 end if;
 
 select any subtopic_mark from instances of Mark where ( selected.markable_name == "Port" and
                                                       selected.path == path_for_mark and
                                                       selected.feature_name == "SubTopicParameter" );
 if ( not_empty subtopic_mark )
-	sws.subtopic_parm = subtopic_mark.value;
+  sws.subtopic_parm = subtopic_mark.value;
 end if;
 
 
 select any c_i related by port->C_PO[R422]->C_IR[R4016]->C_I[R4012];
 select any spring_port related by c_i->Interface[R421]->Port[R418]->PortDescriptor[R4161]->SpringWebSocket[R4162];
 if ( not empty spring_port )
-	select one iface related by spring_port->PortDescriptor[R4162]->Port[R4161]->Interface[R418];
-	relate iface to port across R418;
+  select one iface related by spring_port->PortDescriptor[R4162]->Port[R4161]->Interface[R418];
+  relate iface to port across R418;
 else
-	select one ep_pkg related by c_i->PE_PE[R8001]->EP_PKG[R8000];
+  select one ep_pkg related by c_i->PE_PE[R8001]->EP_PKG[R8000];
   if ( not_empty ep_pkg )
     ::transformInterface( c_i:c_i, path: ::ep_pkgToPath( ep_pkg:ep_pkg ), port:port, serialize:true );
   end if;
