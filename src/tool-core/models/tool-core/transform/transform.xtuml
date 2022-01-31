@@ -3910,7 +3910,14 @@ select any endpoint_mark from instances of Mark where ( selected.markable_name =
                                                       selected.path == path_for_mark and
                                                       selected.feature_name == "EndPoint" );
 if ( not_empty endpoint_mark )
-	sws.endpoint = endpoint_mark.value;
+	socketname = endpoint_mark.value;
+	select any endpoint from instances of StompEndPoint
+	 where ( selected.endpoint == socketname );
+	if ( empty endpoint )
+		create object instance endpoint of StompEndPoint;
+		endpoint.endpoint = socketname;
+	end if;
+	relate sws to endpoint across R4163;
 end if;
 
 select any topic_mark from instances of Mark where ( selected.markable_name == "Port" and

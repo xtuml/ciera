@@ -132,6 +132,10 @@ end if;
 
 sendmethod = "";
 topic = self.subscribe_topic;
+if ( topic == "" )  // default topic to endpoint value string
+	select one endpoint related by self->StompEndPoint[R4163.''specifies''];
+	topic = endpoint.endpoint;
+end if;
 add_sub_topic = self.subtopic_parm;
 T::include(file:"interface/t.port.send.java");
 sendmethod = T::body();
@@ -159,8 +163,7 @@ port = param.port;
 create object instance descr of PortDescriptor;
 relate sws to descr across R4162;
 relate descr to port across R4161.''specializes'';
-sws.subscribe_topic = port.name;
-sws.endpoint = "";
+sws.subscribe_topic = "";
 sws.subtopic_parm = "";
 return sws;',
 	1,
@@ -245,7 +248,7 @@ INSERT INTO O_BATTR
 INSERT INTO O_ATTR
 	VALUES ("e38ce274-1d36-4d65-be04-ddd678b52c2a",
 	"b2989ac2-663c-402c-849f-59fe2b7ac4d9",
-	"520f6117-98ec-43e9-ae61-8ad8a00e67a2",
+	"00000000-0000-0000-0000-000000000000",
 	'subscribe_topic',
 	'A mark-supplied string by which message recipients specify interest in messages from a specialized port.',
 	'',
@@ -268,24 +271,6 @@ INSERT INTO O_ATTR
 	'The name of a message parameter which, if present, is used to refine the subscription topic.',
 	'',
 	'subtopic_parm',
-	0,
-	"ba5eda7a-def5-0000-0000-000000000004",
-	'',
-	'');
-INSERT INTO O_NBATTR
-	VALUES ("520f6117-98ec-43e9-ae61-8ad8a00e67a2",
-	"b2989ac2-663c-402c-849f-59fe2b7ac4d9");
-INSERT INTO O_BATTR
-	VALUES ("520f6117-98ec-43e9-ae61-8ad8a00e67a2",
-	"b2989ac2-663c-402c-849f-59fe2b7ac4d9");
-INSERT INTO O_ATTR
-	VALUES ("520f6117-98ec-43e9-ae61-8ad8a00e67a2",
-	"b2989ac2-663c-402c-849f-59fe2b7ac4d9",
-	"00000000-0000-0000-0000-000000000000",
-	'endpoint',
-	'The mark-supplied value which is the basis for the socket identifier string.',
-	'',
-	'endpoint',
 	0,
 	"ba5eda7a-def5-0000-0000-000000000004",
 	'',

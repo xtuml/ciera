@@ -30,13 +30,9 @@ if ( not_empty spring_port )
 	T::clear();
 	
 	endpoints = "";
-	select many spring_ports from instances of SpringWebSocket;
-	for each spring_port in spring_ports
-	  endpoint = spring_port.endpoint;
-	  if ( endpoint == "" )
-	  	select one port related by spring_port->PortDescriptor[R4162]->Port[R4161.''specializes''];
-	  	endpoint = app.name + "_" + port.name;
-	  end if;
+	select many ends from instances of StompEndPoint;
+	for each end in ends
+	  endpoint = end.endpoint;
 	  T::include(file:"application/t.ws.endpoint.java");
 	end for;
 	endpoints = T::body();
