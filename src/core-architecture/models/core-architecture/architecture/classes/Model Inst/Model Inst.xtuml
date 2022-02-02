@@ -106,29 +106,27 @@ selectors = T::body();
 
 // all subtype selector
 last_rel_num = 0;
-select many subtype_rels related by self->Relationship[R434] where selected.rel_type == RelationshipType::SuperSubtype;
-if not_empty subtype_rels
+select many subsuper_rels related by self->Relationship[R434] where SORT::ascending(attr:"num") and selected.rel_type == RelationshipType::SuperSubtype;
+if not_empty subsuper_rels
   ::addStringImport(package:"io.ciera.runtime.api.domain", class_name:"ObjectInstance");
   ::addStringImport(package:"java.util", class_name:"Set");
-  for each subtype_rel in subtype_rels
-    if subtype_rel.num != last_rel_num
-      rel_num = subtype_rel.num;
+  for each rel in subsuper_rels
+    if rel.num != last_rel_num
+      rel_num = rel.num;
       T::include(file:"class/t.subtypeselection.java");
     end if;
-    last_rel_num = subtype_rel.num;
+    last_rel_num = rel.num;
   end for;
 end if;
 subtype_selections = T::body();
 
 // subtype interfaces
-select many subsuper_rels related by self->Relationship[R434] where SORT::ascending(attr:"num") and selected.rel_type == RelationshipType::SuperSubtype;
+last_rel_num = 0;
 for each rel in subsuper_rels
-  // only want to render one interface for each unique rel num
-  select any first_rel related by self->Relationship[R434] where SORT::ascending(attr:"num") and
-    selected.rel_type == RelationshipType::SuperSubtype and selected.num == rel.num;
-  if first_rel.name != rel.name
+  if rel.num != last_rel_num
     rel.render_subtype_interface();
   end if;
+  last_rel_num = rel.num;
 end for;
 subtype_interfaces = T::body();
 

@@ -141,6 +141,15 @@ elif (param.pass == 3)
     ::transformRelationship(rel:rel, comp_def:comp_def);
   end for;
 
+  // transform transition tables
+  select many transition_tables related by domain->ObjectDeclaration[R5805]->TransitionTable[R6113];
+  for each transition_table in transition_tables
+    select one obj related by transition_table->ObjectDeclaration[R6113]->Class[R8300];
+    if not_empty transition_table
+      ::transformTransitionTable(transition_table:transition_table, obj:obj);
+    end if;
+  end for;
+
   // transform terminators
   select many terms related by domain->DomainTerminator[R5304];
   for each term in terms
@@ -467,17 +476,9 @@ end for;
 
 // transform events
 select many evts related by object_declaration->EventDeclaration[R6101];
-evt_number = 0;
 for each evt in evts
-  ::transformMaslEvent(evt:evt, obj:obj, number:evt_number);
-  evt_number = evt_number + 1;
-end for;
-
-// transform transition table
-select any transition_table related by object_declaration->TransitionTable[R6113];
-if not_empty transition_table
-  ::transformTransitionTable(transition_table:transition_table, obj:obj);
-end if;',
+  ::transformMaslEvent(evt:evt, obj:obj);
+end for;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -1197,6 +1198,7 @@ if (maslstate.flavor == StateType::assigner or
   return;
 end if;
 
+// create state machine if necessary
 select one sm related by obj->StateMachine[R4750];
 if (empty sm)
   ::createMaslStateMachine(obj:obj);
@@ -1290,23 +1292,22 @@ INSERT INTO S_SYNC
 	'maslevt = param.evt;
 obj = param.obj;
 
-// create state machine if necessary
-select one sm related by obj->StateMachine[R4750];
-if (empty sm)
-  ::createMaslStateMachine(obj:obj);
-  select one sm related by obj->StateMachine[R4750];
+if maslevt.flavor == EventType::creation
+  LOG::LogFailure(message:"Creation events are not supported");
+  return;
 end if;
 
 // create event
 create object instance evt of Event;
-relate evt to sm across R4752;
-evt.id = param.number;
+relate evt to obj across R4752;
+select many existing_evts from instances of Event;
+evt.id = cardinality existing_evts;
 
 // create invocable
 create object instance invocable of InvocableObject;
-invocable.name = T::sub(format:"_", s:maslevt.name);
-invocable.parent_name = sm.name;
-invocable.parent_package = sm.package;
+invocable.name = T::sub(format:"c_", s:maslevt.name);
+invocable.parent_name = obj.name;
+invocable.parent_package = obj.package;
 relate evt to invocable across R427;
 
 // link type
@@ -1349,15 +1350,6 @@ INSERT INTO S_SPARM
 	'',
 	"1e58e713-463c-42b9-ab0c-45d4045f7889",
 	'');
-INSERT INTO S_SPARM
-	VALUES ("cae89845-6b86-4f4c-8bcf-e3529a9f9ea8",
-	"48de3bbe-9980-41be-8853-893f124f6be8",
-	'number',
-	"ba5eda7a-def5-0000-0000-000000000002",
-	0,
-	'',
-	"7ea28e80-e4ec-45f1-b97f-5571da228235",
-	'');
 INSERT INTO PE_PE
 	VALUES ("48de3bbe-9980-41be-8853-893f124f6be8",
 	1,
@@ -1383,7 +1375,7 @@ select many transition_rows related by transition_table->TransitionRow[R6114];
 for each transition_row in transition_rows
   
   select one start_state related by transition_row->MaslState[R6111]->State[R8302];
-  if (not_empty start_state)  // ignore Non_Existent state for now TODO
+  if (not_empty start_state)  // ignore Non_Existent state (creation events not supported)
 
     // create a row for this start state
     create object instance row of TransitionTableRow;
