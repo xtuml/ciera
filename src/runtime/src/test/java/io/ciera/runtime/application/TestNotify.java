@@ -16,7 +16,7 @@ public class TestNotify {
 
     private static final class TestEvent extends AbstractEvent {
         public TestEvent(Object... data) {
-            super(null);
+            super(0);
         }
     }
 

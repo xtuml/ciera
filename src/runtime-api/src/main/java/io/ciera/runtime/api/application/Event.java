@@ -4,10 +4,12 @@ import io.ciera.runtime.api.types.UniqueId;
 
 public interface Event {
 
-    public Enum<?> getEventId();
+    public int getEventId();
+
+    public String getName();
 
     public UniqueId getEventHandle();
 
-    public Object get(int index);
+    public Object getData(int index);
 
 }

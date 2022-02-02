@@ -8,12 +8,8 @@ public class ${self.name} extends InstanceStateMachine implements StateMachine, 
         ${state_declarations}\
     }
 
-    private static enum Events {
-        ${event_declarations}\
-    }
-
-    public ${self.name}(${self.comp_name} domain, Enum<?> initialState, ${self.class_name} self) {
-        super(domain, initialState, self);
+    public ${self.name}(${self.comp_name} domain, ${self.class_name} self) {
+        super(domain, self);
     }
 
     // state entry actions
@@ -24,17 +20,12 @@ public class ${self.name} extends InstanceStateMachine implements StateMachine, 
 
     @Override
     public TransitionRule getTransition(Enum<?> currentState, Event event) {
-        States state = (States) currentState;
-        Events eventId = (Events) event.getEventId();
-        switch (state) {
+        switch ((States) currentState) {
         ${transition_table_rows}\
         default:
             throw new IllegalStateException("Unknown state");
         }
     }
-
-    // events
-    ${event_definitions}
 
     @Override
     public ${self.comp_name} getDomain() {

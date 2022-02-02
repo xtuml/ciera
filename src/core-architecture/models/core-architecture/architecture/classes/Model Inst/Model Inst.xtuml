@@ -33,6 +33,13 @@ for each rel in subsuper_rels
 end for;
 supertypes = T::body();
 
+// event declarations
+select many events related by self->Event[R4752] where SORT::ascending(attr:"id");
+for each evt in events
+  evt.render_decl();
+end for;
+event_declarations = T::body();
+
 // attribute declarations
 select many attributes related by self->Attribute[R410] where SORT::ascending(attr:"order");
 for each attribute in attributes
@@ -48,7 +55,11 @@ end for;
 relationship_decls = T::body();
 
 // initial state
+// TODO change this when initial state is fixed
 select any init_state related by self->StateMachine[R4750]->State[R4751] where SORT::ascending(attr:"number") and selected.number > 0;
+if empty init_state
+  select any init_state related by self->StateMachine[R4750]->State[R4751] where SORT::ascending(attr:"number");
+end if;
 
 // constructors
 attribute_initializer_params = "";
@@ -74,6 +85,12 @@ for each operation in inst_ops
 end for;
 operations = T::body();
 
+// event definitions
+for each evt in events
+  evt.render();
+end for;
+event_definitions = T::body();
+
 // selectors
 last_rel_num = 0;
 for each selector in selects
@@ -86,6 +103,22 @@ for each selector in selects
   selector.render();
 end for;
 selectors = T::body();
+
+// all subtype selector
+last_rel_num = 0;
+select many subtype_rels related by self->Relationship[R434] where selected.rel_type == RelationshipType::SuperSubtype;
+if not_empty subtype_rels
+  ::addStringImport(package:"io.ciera.runtime.api.domain", class_name:"ObjectInstance");
+  ::addStringImport(package:"java.util", class_name:"Set");
+  for each subtype_rel in subtype_rels
+    if subtype_rel.num != last_rel_num
+      rel_num = subtype_rel.num;
+      T::include(file:"class/t.subtypeselection.java");
+    end if;
+    last_rel_num = subtype_rel.num;
+  end for;
+end if;
+subtype_selections = T::body();
 
 // subtype interfaces
 select many subsuper_rels related by self->Relationship[R434] where SORT::ascending(attr:"num") and selected.rel_type == RelationshipType::SuperSubtype;
@@ -123,7 +156,6 @@ empty_selectors = T::body();
 ::addStringImport(package:"io.ciera.runtime.api.application", class_name:"ExecutionContext");
 ::addStringImport(package:"io.ciera.runtime.api.exceptions", class_name:"EmptyInstanceException");
 ::addStringImport(package:"io.ciera.runtime.api.types", class_name:"UniqueId");
-::addStringImport(package:"java.util.stream", class_name:"Stream");
 select one comp_file related by self->ComponentDefinition[R408]->File[R401];
 ::addFileImport(file:comp_file);
 

@@ -19,7 +19,7 @@ public class TestExecutionModes {
 
     private static class TestEvent extends AbstractEvent {
         public TestEvent(Object... data) {
-            super(null, data);
+            super(0, data);
         }
     }
 
@@ -109,7 +109,7 @@ public class TestExecutionModes {
 
             @Override
             public void consumeEvent(Event event) {
-                String key = (String) event.get(0);
+                String key = (String) event.getData(0);
                 app.getLogger().trace("Handling event: %s", key);
                 output.add(key);
                 if (key.startsWith("A") && Aiter.hasNext()) {

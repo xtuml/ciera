@@ -15,11 +15,12 @@ INSERT INTO O_TFR
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'// if this is the first selector for a subtype, render the generic subtype selector
-select one rel related by self->Relationship[R4512];
-select many sibling_rels related by self->Class[R442]->Relationship[R434] where selected.num == rel.num and selected.rel_type == RelationshipType::SuperSubtype;
-select any first_selector related by sibling_rels->Selector[R4512] where SORT::ascending(attr:"name");
+select one subsuper_rel related by self->Relationship[R4512] where selected.rel_type == RelationshipType::SuperSubtype and selected.part_name == self.class_name;
+select many sibling_rels related by subsuper_rel->Class[R434]->Relationship[R434];
+select any first_selector related by sibling_rels->Selector[R4512] where SORT::ascending(attr:"name") and selected.class_name == self.class_name;
 if not_empty first_selector and first_selector.name == self.name
-  rel_num = rel.num;
+  rel_num = subsuper_rel.num;
+  ::addStringImport(package:"io.ciera.runtime.api.exceptions", class_name:"InstancePopulationException");
   T::include(file:"class/t.selector.sub.java");
 end if;
 

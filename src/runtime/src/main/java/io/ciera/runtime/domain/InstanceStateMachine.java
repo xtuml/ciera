@@ -10,19 +10,24 @@ public abstract class InstanceStateMachine extends AbstractStateMachine implemen
 
     private final DynamicObjectInstance self;
 
-    public InstanceStateMachine(Domain domain, Enum<?> initialState, DynamicObjectInstance self) {
-        super(String.format("%s [ISM]", self), domain, initialState);
+    public InstanceStateMachine(Domain domain, DynamicObjectInstance self) {
+        super(String.format("%s [ISM]", self), domain);
         this.self = self;
     }
 
     @Override
     public void consumeEvent(Event event) {
         try {
-            executeTransition(event);
+            executeTransition(event, self()::setCurrentState);
         } catch (RuntimeException e) {
-            throw new InstanceStateMachineActionException("Exception in state machine action", e, this, currentState,
+            throw new InstanceStateMachineActionException("Exception in state machine action", e, this, getCurrentState(),
                     self(), event);
         }
+    }
+    
+    @Override
+    public Enum<?> getCurrentState() {
+    	return self().getCurrentState();
     }
 
     @Override

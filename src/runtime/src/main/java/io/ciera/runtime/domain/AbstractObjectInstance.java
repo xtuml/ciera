@@ -1,5 +1,7 @@
 package io.ciera.runtime.domain;
 
+import java.util.Set;
+
 import io.ciera.runtime.api.application.Event;
 import io.ciera.runtime.api.application.ExecutionContext;
 import io.ciera.runtime.api.domain.Domain;
@@ -31,6 +33,10 @@ public abstract class AbstractObjectInstance implements ObjectInstance {
         this.domain = domain;
         this.context = null;
         this.alive = true;
+    }
+    
+    public Set<ObjectInstance> getSubtypeInstances() {
+    	return Set.of();
     }
 
     @Override
@@ -86,7 +92,12 @@ public abstract class AbstractObjectInstance implements ObjectInstance {
 
     @Override
     public void consumeEvent(Event event) {
-        throw new EventTargetException("Cannot generate event to non-dynamic instance", this, event);
+    	if (getSubtypeInstances().isEmpty()) {
+          throw new EventTargetException("Cannot generate event to non-dynamic instance", this, event);
+    	} else {
+    		getApplication().getLogger().trace("Passing event through non-dynamic supertype: " + this);
+			getSubtypeInstances().stream().forEach(o -> o.consumeEvent(event));
+    	}
     }
 
 }

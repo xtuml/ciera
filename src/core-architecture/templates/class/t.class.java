@@ -20,6 +20,9 @@ ${supertypes}\
 
     public static final ${self.name} EMPTY = new Empty${self.name}();
 
+    // event ID declarations
+    ${event_declarations}\
+
     // attributes
     ${attribute_decls}
 
@@ -32,7 +35,8 @@ ${supertypes}\
     public ${self.name}(${self.comp_name} domain) {
         super(UniqueId.random(), domain);
 .if (not_empty sm)
-        setStateMachine(new ${self.name}StateMachine(domain, ${self.name}StateMachine.States.${init_state.name}, this));
+        setCurrentState(${self.name}StateMachine.States.${init_state.name});
+        setStateMachine(new ${self.name}StateMachine(domain, this));
 .end if
     }
 
@@ -44,7 +48,8 @@ ${attribute_initializer_params}) {
         super(instanceId, domain);
         ${attribute_initializers}\
 .if (not_empty sm)
-        setStateMachine(new ${self.name}StateMachine(domain, initialState, this));
+        setCurrentState(initialState);
+        setStateMachine(new ${self.name}StateMachine(domain, this));
 .end if
     }
 
@@ -54,9 +59,19 @@ ${attribute_initializer_params}) {
     // operations
     ${operations}
 
+    // events
+    ${event_definitions}
+
     // selections
     ${selectors}
 
+.if (subtype_selections != "")
+    @Override
+    public Set<ObjectInstance> getSubtypeInstances() {
+        return Set.of(${subtype_selections});
+    }
+
+.end if
     @Override
     public ${self.comp_name} getDomain() {
         return (${self.comp_name}) super.getDomain();

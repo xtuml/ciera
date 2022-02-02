@@ -6,22 +6,27 @@ import io.ciera.runtime.api.types.UniqueId;
 public abstract class AbstractEvent implements Event {
 
     private final UniqueId eventHandle;
-    private final Enum<?> eventId;
+    private final int eventId;
     private final Object[] parameterData;
 
-    public AbstractEvent(Enum<?> eventId, Object... data) {
+    public AbstractEvent(int eventId, Object... data) {
         this(UniqueId.random(), eventId, data);
     }
 
-    public AbstractEvent(UniqueId eventHandle, Enum<?> eventId, Object... data) {
+    public AbstractEvent(UniqueId eventHandle, int eventId, Object... data) {
         this.eventHandle = eventHandle;
         this.eventId = eventId;
         this.parameterData = data;
     }
 
     @Override
-    public Enum<?> getEventId() {
+    public int getEventId() {
         return eventId;
+    }
+    
+    @Override
+    public String getName() {
+    	return getClass().getSimpleName();
     }
 
     @Override
@@ -30,7 +35,7 @@ public abstract class AbstractEvent implements Event {
     }
 
     @Override
-    public Object get(int index) {
+    public Object getData(int index) {
         if (index >= 0 && index < parameterData.length) {
             return parameterData[index];
         } else {

@@ -1,1 +1,1 @@
-public static interface R${self.num}Subtype {}
+public static interface R${self.num}Subtype extends ObjectInstance {}

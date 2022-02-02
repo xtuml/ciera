@@ -902,12 +902,6 @@ if (empty class_exclude_mark)
   for each o_tfr in o_tfrs
     ::transformOperation(o_tfr:o_tfr, obj:obj);
   end for;
-  
-  // transform the state machine
-  select one sm related by o_obj->SM_ISM[R518]->SM_SM[R517];
-  if (not_empty sm)
-    ::transformStateMachine(sm_sm:sm, obj:obj);
-  end if;
 
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
@@ -1185,19 +1179,19 @@ INSERT INTO S_SYNC
 	'transformEvent',
 	'',
 	'sm_evt = param.sm_evt;
-sm = param.sm;
-id = param.id;
+obj = param.obj;
 
 // create event
 create object instance evt of Event;
-relate evt to sm across R4752;
-evt.id = id;
+relate evt to obj across R4752;
+select many existing_evts from instances of Event;
+evt.id = cardinality existing_evts;
 
 // create invocable
 create object instance invocable of InvocableObject;
-invocable.name = T::sub( format:"cr", s:sm_evt.Mning );
-invocable.parent_name = sm.name;
-invocable.parent_package = sm.package;
+invocable.name = T::sub( format:"c_", s:sm_evt.Mning );
+invocable.parent_name = obj.name;
+invocable.parent_package = obj.package;
 relate evt to invocable across R427;
 
 // link type
@@ -1251,27 +1245,11 @@ INSERT INTO S_DT_PROXY
 INSERT INTO S_SPARM
 	VALUES ("16f2d993-8ce0-4bcc-8a98-d09fbf34d15e",
 	"343165b5-e8e6-4162-90f5-1e68da66120f",
-	'sm',
-	"e26cd508-1f72-4f47-bc3a-f80c2afd819a",
+	'obj',
+	"a519e323-b117-4a03-9435-b88e56c2443d",
 	0,
 	'',
 	"493c7cbb-1d0d-4b72-bd54-0fbecbccce06",
-	'');
-INSERT INTO S_DT_PROXY
-	VALUES ("e26cd508-1f72-4f47-bc3a-f80c2afd819a",
-	"00000000-0000-0000-0000-000000000000",
-	'inst_ref<State Machine>',
-	'',
-	'',
-	'../../../../core-architecture/models/core-architecture/architecture/statemachine/statemachine.xtuml');
-INSERT INTO S_SPARM
-	VALUES ("f8130cfc-0034-4512-b4d2-5c8c6d629280",
-	"343165b5-e8e6-4162-90f5-1e68da66120f",
-	'id',
-	"ba5eda7a-def5-0000-0000-000000000002",
-	0,
-	'',
-	"16f2d993-8ce0-4bcc-8a98-d09fbf34d15e",
 	'');
 INSERT INTO PE_PE
 	VALUES ("343165b5-e8e6-4162-90f5-1e68da66120f",
@@ -1741,6 +1719,15 @@ elif ( 3 == param.pass )
   for each r_rel in r_rels
     ::transformAssociation( r_rel:r_rel, containing_comp_def:containing_comp_def );
   end for;
+  
+  // transform instance state machines
+  select many objs related by containing_comp_def->Class[R408];
+  for each obj in objs
+    select one sm_sm related by obj->O_OBJ[R409]->SM_ISM[R518]->SM_SM[R517];
+    if not_empty sm_sm
+      ::transformStateMachine(sm_sm:sm_sm, obj:obj);
+    end if;
+  end for;
 
 else
 
@@ -2146,6 +2133,13 @@ INSERT INTO S_SPARM
 	'',
 	"e075ca53-4cf3-4ba1-92c2-60e8754317fd",
 	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("e26cd508-1f72-4f47-bc3a-f80c2afd819a",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<State Machine>',
+	'',
+	'',
+	'../../../../core-architecture/models/core-architecture/architecture/statemachine/statemachine.xtuml');
 INSERT INTO S_SPARM
 	VALUES ("813c23ee-1eaa-4107-9c9a-18a32ad8ed0d",
 	"c04fde8e-f58c-4d2b-87a7-8393b796f271",
@@ -2169,7 +2163,21 @@ INSERT INTO S_SYNC
 	'sm_sm = param.sm_sm;
 obj = param.obj;
 
-// TODO support polymorphic events
+// return early if the state machine has already been translated
+select one sm related by obj->StateMachine[R4750];
+if not_empty sm
+  return;
+end if;
+
+// assure than any supertype state machines are translated first
+select many supertype_rels related by sm->Class[R4750]->Relationship[R435] where selected.rel_type == RelationshipType::SuperSubtype;
+select many supertype_objs related by supertype_rels->Class[R434];
+for each supertype_obj in supertype_objs
+  select one supertype_sm_sm related by supertype_obj->O_OBJ[R409]->SM_ISM[R518]->SM_SM[R517];
+  if not_empty supertype_sm_sm
+    ::transformStateMachine(sm_sm:supertype_sm_sm, obj:supertype_obj);
+  end if;
+end for;
 
 // create the state machine file
 create object instance file of File;
@@ -2185,17 +2193,17 @@ relate sm to file across R401;
 relate sm to obj across R4750;
 
 // create the non-existent state
-create object instance non_existent of State;
-relate non_existent to sm across R4751;
-non_existent.final = false;
-non_existent.number = 0;
+create object instance uninitialized of State;
+relate uninitialized to sm across R4751;
+uninitialized.final = false;
+uninitialized.number = 0;
 
 // create invocable for non-existent state
 create object instance invocable of InvocableObject;
-invocable.name = T::sub(format:"_u", s:"Non_Existent");
+invocable.name = T::sub(format:"_u", s:"Uninitialized");
 invocable.parent_name = sm.name;
 invocable.parent_package = sm.package;
-relate non_existent to invocable across R427;
+relate uninitialized to invocable across R427;
 
 // link type
 type = ::getBasicTypeReferenceByName(name:"void");
@@ -2210,11 +2218,11 @@ for each sm_state in sm_states
 end for;
 
 // transform events
-id = 0;
-select many sm_evts related by sm_sm->SM_EVT[R502]->SM_SEVT[R525]->SM_LEVT[R526]->SM_SEVT[R526]->SM_EVT[R525];
+select many sm_levts related by sm_sm->SM_EVT[R502]->SM_SEVT[R525]->SM_LEVT[R526]->SM_SEVT[R526]->SM_EVT[R525];
+select many sm_pevts related by sm_sm->SM_EVT[R502]->SM_PEVT[R525]->SM_EVT[R525];
+sm_evts = sm_levts + sm_pevts;
 for each sm_evt in sm_evts
-  ::transformEvent(sm_evt:sm_evt, sm:sm, id:id);
-  id = id + 1;
+  ::transformEvent(sm_evt:sm_evt, obj:obj);
 end for;
 
 // transform transition table
@@ -2227,111 +2235,24 @@ for each state in states
   relate row to state across R4754;
   row.index = state.number;
   
-  select many evts related by sm->Event[R4752];
+  // transform local events
+  select many evts related by obj->Event[R4752];
   for each evt in evts
-    
-    // create a cell for this event
-    create object instance cell of TransitionTableCell;
-    relate cell to row across R4755;
-    relate cell to evt across R4756;
-    cell.index = evt.id;
-    
-    
-    select one sm_state related by state->SM_STATE[R4758];
-    select one sm_evt related by evt->SM_EVT[R4759];
-    
-    // handle non-existent start state
-    if (state.number == 0)
-
-      select one sm_crtxn related by sm_evt->SM_SEVT[R525]->SM_LEVT[R526]->SM_CRTXN[R509];
-      if (not_empty sm_crtxn)
-
-        // create transition
-        create object instance txn of Transition;
-        select one sm_txn related by sm_crtxn->SM_TXN[R507];
-        select one dest_sm_state related by sm_txn->SM_STATE[R506];
-        select one dest_state related by dest_sm_state->State[R4758];
-        relate dest_state to cell across R4757 using txn;
-        cell.transition_type = TransitionType::TRANSITION;
-
-        // create invocable
-        create object instance invocable of InvocableObject;
-        invocable.name = state.name + "TxnTo" + dest_state.name;
-        invocable.parent_name = sm.name;
-        invocable.parent_package = sm.package;
-        relate txn to invocable across R427;
-        select one sm_act related by sm_txn->SM_TAH[R530]->SM_AH[R513]->SM_ACT[R514];
-        
-        // relate the body
-        select one act_act related by sm_act->ACT_TAB[R688]->ACT_ACT[R698];
-        if (not_empty act_act)
-          relate act_act to invocable across R432;
-          ::setOriginalNames(invocable:invocable, label:act_act.Label);
-        end if;
-        
-        // link type
-        type = ::getBasicTypeReferenceByName(name:"void");
-        relate type to invocable across R428;
-
-      else
-        // default for creation events is always "cannot happen"
-        cell.transition_type = TransitionType::CANT_HAPPEN;
-      end if;
-
-    else
-
-      select any sm_seme related by sm_evt->SM_SEVT[R525]->SM_SEME[R503] where (selected.SMstt_ID == sm_state.SMstt_ID);
-      if (not_empty sm_seme)
-
-        // handle cannot happen
-        select one cant_happen related by sm_seme->SM_CH[R504];
-        if (not_empty cant_happen)
-          cell.transition_type = TransitionType::CANT_HAPPEN;
-        else
-
-          // handle event ignored
-          select one event_ignored related by sm_seme->SM_EIGN[R504];
-          if (not_empty event_ignored)
-            cell.transition_type = TransitionType::IGNORE;
-          
-          // handle new state transition
-          else
-
-            // create transition
-            create object instance txn of Transition;
-            select one sm_txn related by sm_seme->SM_NSTXN[R504]->SM_TXN[R507];
-            select one dest_sm_state related by sm_txn->SM_STATE[R506];
-            select one dest_state related by dest_sm_state->State[R4758];
-            relate dest_state to cell across R4757 using txn;
-            cell.transition_type = TransitionType::TRANSITION;
-
-            // create invocable
-            create object instance invocable of InvocableObject;
-            invocable.name = state.name + "TxnTo" + dest_state.name;
-            invocable.parent_name = sm.name;
-            invocable.parent_package = sm.package;
-            relate txn to invocable across R427;
-            select one sm_act related by sm_txn->SM_TAH[R530]->SM_AH[R513]->SM_ACT[R514];
-            
-            // relate the body
-            select one act_act related by sm_act->ACT_TAB[R688]->ACT_ACT[R698];
-            if (not_empty act_act)
-              relate act_act to invocable across R432;
-              ::setOriginalNames(invocable:invocable, label:act_act.Label);
-            end if;
-            
-            // link type
-            type = ::getBasicTypeReferenceByName(name:"void");
-            relate type to invocable across R428;
-
-          end if;
-        end if;
-      else
-        // TODO bad
-      end if;
-
-    end if;
-      
+    ::transformStateEventMatrixEntry(row:row, evt:evt);
+  end for;
+  
+  // transform polymorphic events
+  select many poly_evts from instances of Event where false;
+  select many supertype_rels related by sm->Class[R4750]->Relationship[R435] where selected.rel_type == RelationshipType::SuperSubtype;
+  select many supertype_objs related by supertype_rels->Class[R434];
+  while not_empty supertype_objs
+    select many evts related by supertype_objs->Event[R4752]->SM_EVT[R4759]->SM_PEVT[R525]->SM_EVT[R525]->Event[R4759];
+    poly_evts = poly_evts + evts;
+    select many supertype_rels related by supertype_objs->Relationship[R435] where selected.rel_type == RelationshipType::SuperSubtype;
+    select many supertype_objs related by supertype_rels->Class[R434];
+  end while;
+  for each evt in poly_evts
+    ::transformStateEventMatrixEntry(row:row, evt:evt);
   end for;
   
 end for;',
@@ -2600,6 +2521,181 @@ INSERT INTO S_DT_PROXY
 	'../../../../mcooa/models/mcooa/ooaofooa/Domain/Domain.xtuml');
 INSERT INTO PE_PE
 	VALUES ("7987d2a8-0081-4942-a0f1-09509ae9f755",
+	1,
+	"302d02ea-52a7-489d-a14b-18b29f3c8d86",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("59873bd4-3180-4bda-a03f-0df9c6b6b4e8",
+	"00000000-0000-0000-0000-000000000000",
+	'transformStateEventMatrixEntry',
+	'',
+	'row = param.row;
+evt = param.evt;
+
+select one sm_evt related by evt->SM_EVT[R4759];
+select one state related by row->State[R4754];
+select one sm_state related by state->SM_STATE[R4758];
+select one sm related by state->StateMachine[R4751];
+
+// create a cell for this event
+create object instance cell of TransitionTableCell;
+relate cell to row across R4755;
+relate cell to evt across R4756;
+select many existing_cells related by row->TransitionTableCell[R4755];
+cell.index = cardinality existing_cells;
+
+// handle non-existent start state
+if (state.number == 0)
+
+  select one sm_crtxn related by sm_evt->SM_SEVT[R525]->SM_LEVT[R526]->SM_CRTXN[R509];
+  if (not_empty sm_crtxn)
+
+    // create transition
+    create object instance txn of Transition;
+    select one sm_txn related by sm_crtxn->SM_TXN[R507];
+    select one dest_sm_state related by sm_txn->SM_STATE[R506];
+    select one dest_state related by dest_sm_state->State[R4758];
+    relate dest_state to cell across R4757 using txn;
+    cell.transition_type = TransitionType::TRANSITION;
+
+    // create invocable
+    create object instance invocable of InvocableObject;
+    invocable.name = state.name + "TxnTo" + dest_state.name;
+    invocable.parent_name = sm.name;
+    invocable.parent_package = sm.package;
+    relate txn to invocable across R427;
+    select one sm_act related by sm_txn->SM_TAH[R530]->SM_AH[R513]->SM_ACT[R514];
+    
+    // relate the body
+    select one act_act related by sm_act->ACT_TAB[R688]->ACT_ACT[R698];
+    if (not_empty act_act)
+      relate act_act to invocable across R432;
+      ::setOriginalNames(invocable:invocable, label:act_act.Label);
+    end if;
+    
+    // link type
+    type = ::getBasicTypeReferenceByName(name:"void");
+    relate type to invocable across R428;
+
+  else
+    
+    // default to ignore for polymorphic events that are passed down to subtype state machines
+    select one sm_pevt related by sm_evt->SM_PEVT[R525];
+    if not_empty sm_pevt
+      cell.transition_type = TransitionType::IGNORE;
+    
+    // default to cannot happen for any other event
+    else
+      cell.transition_type = TransitionType::CANT_HAPPEN;
+
+    end if;
+
+  end if;
+
+else
+
+  select any sm_seme related by sm_evt->SM_SEVT[R525]->SM_SEME[R503] where (selected.SMstt_ID == sm_state.SMstt_ID);
+  if empty sm_seme
+    select any sm_nlevt related by sm_evt->SM_PEVT[R525]->SM_NLEVT[R527] where selected.SM_ID == sm_state.SM_ID;
+    select any sm_seme related by sm_nlevt->SM_SEVT[R526]->SM_SEME[R503] where (selected.SMstt_ID == sm_state.SMstt_ID);
+  end if;
+  if (not_empty sm_seme)
+
+    // handle cannot happen
+    select one cant_happen related by sm_seme->SM_CH[R504];
+    if (not_empty cant_happen)
+      cell.transition_type = TransitionType::CANT_HAPPEN;
+    else
+
+      // handle event ignored
+      select one event_ignored related by sm_seme->SM_EIGN[R504];
+      if (not_empty event_ignored)
+        cell.transition_type = TransitionType::IGNORE;
+      
+      // handle new state transition
+      else
+
+        // create transition
+        create object instance txn of Transition;
+        select one sm_txn related by sm_seme->SM_NSTXN[R504]->SM_TXN[R507];
+        select one dest_sm_state related by sm_txn->SM_STATE[R506];
+        select one dest_state related by dest_sm_state->State[R4758];
+        relate dest_state to cell across R4757 using txn;
+        cell.transition_type = TransitionType::TRANSITION;
+
+        // create invocable
+        create object instance invocable of InvocableObject;
+        invocable.name = state.name + "TxnTo" + dest_state.name;
+        invocable.parent_name = sm.name;
+        invocable.parent_package = sm.package;
+        relate txn to invocable across R427;
+        select one sm_act related by sm_txn->SM_TAH[R530]->SM_AH[R513]->SM_ACT[R514];
+        
+        // relate the body
+        select one act_act related by sm_act->ACT_TAB[R688]->ACT_ACT[R698];
+        if (not_empty act_act)
+          relate act_act to invocable across R432;
+          ::setOriginalNames(invocable:invocable, label:act_act.Label);
+        end if;
+        
+        // link type
+        type = ::getBasicTypeReferenceByName(name:"void");
+        relate type to invocable across R428;
+
+      end if;
+    end if;
+  else
+    // default to ignore for polymorphic events that are passed down to subtype state machines
+    select one sm_pevt related by sm_evt->SM_PEVT[R525];
+    if not_empty sm_pevt
+      cell.transition_type = TransitionType::IGNORE;
+    
+    else
+      // TODO bad
+    end if;
+  end if;
+
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	3);
+INSERT INTO S_SPARM
+	VALUES ("eb5b6eef-cb8d-4fcd-b63f-9267f2af8c08",
+	"59873bd4-3180-4bda-a03f-0df9c6b6b4e8",
+	'evt',
+	"6f9d5490-60e9-489c-a2c7-507dc913da72",
+	0,
+	'',
+	"a329a57a-5f94-4d8a-a6b3-87a05cd9464a",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("6f9d5490-60e9-489c-a2c7-507dc913da72",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Event>',
+	'',
+	'',
+	'../../../../core-architecture/models/core-architecture/architecture/statemachine/statemachine.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("a329a57a-5f94-4d8a-a6b3-87a05cd9464a",
+	"59873bd4-3180-4bda-a03f-0df9c6b6b4e8",
+	'row',
+	"582e47a7-1515-43bf-9880-d436a4d880de",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("582e47a7-1515-43bf-9880-d436a4d880de",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Transition Table Row>',
+	'',
+	'',
+	'../../../../core-architecture/models/core-architecture/architecture/statemachine/statemachine.xtuml');
+INSERT INTO PE_PE
+	VALUES ("59873bd4-3180-4bda-a03f-0df9c6b6b4e8",
 	1,
 	"302d02ea-52a7-489d-a14b-18b29f3c8d86",
 	"00000000-0000-0000-0000-000000000000",

@@ -1,4 +1,4 @@
-case $u_{self.event_name}:
+case ${self.event_class_name}.$u_{self.event_name}:
 .if (cant_happen)
     return cannotHappen(currentState, event);
 .elif (event_ignored)
