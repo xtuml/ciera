@@ -1526,7 +1526,7 @@ smt.actions = masl_statement.actions;
 smt.line_number = masl_statement.line_number;
 
 select one evt related by generate_statement->EventDeclaration[R5112]->Event[R8303];
-select one target related by generate_statement->MaslExpression[R5113]; // TODO if empty, assigner or creation
+select one target related by generate_statement->MaslExpression[R5113];
 
 // create generate statement
 create object instance gen_smt of Generate;
@@ -1545,11 +1545,26 @@ relate evt to evt_ref across R3916;
 relate evt_expr to gen_smt across R486;
 
 // translate the target expression
-::transformMaslExpression(masl_expression:target, expr_number:"2", smt:smt);
-select any target_expr related by smt->Expression[R775] where (selected.expression_number == "2");
-relate target_expr to gen_smt across R487;
-select one this_lit related by target->LiteralExpression[R5517]->ThisLiteral[R5700];
-gen_smt.to_self = not_empty this_lit;
+if not_empty target
+  ::transformMaslExpression(masl_expression:target, expr_number:"2", smt:smt);
+  select any target_expr related by smt->Expression[R775] where (selected.expression_number == "2");
+  relate target_expr to gen_smt across R487;
+  select one this_lit related by target->LiteralExpression[R5517]->ThisLiteral[R5700];
+  gen_smt.to_self = not_empty this_lit;
+else
+  // create reference to assigner state machine
+  create object instance target_expr of Expression;
+  relate target_expr to smt across R775;
+  target_expr.expression_number = "2";
+  relate target_expr to gen_smt across R487;
+  void_type = ::getBasicTypeReferenceByName(name:"void");
+  relate void_type to target_expr across R795;
+  // create class state machine reference
+  create object instance state_machine_ref of ClassStateMachineReference;
+  relate state_machine_ref to target_expr across R776;
+  select one sm related by evt->Class[R4752]->StateMachine[R4750];
+  relate sm to state_machine_ref across R3922;
+end if;
 
 // transform actual parameters
 select one first_argument related by generate_statement->Argument[R5114];
@@ -1792,10 +1807,25 @@ relate evt to evt_ref across R3916;
 relate evt_expr to schedule across R3908;
 
 // translate the target expression
-select one target related by generate_statement->MaslExpression[R5113]; // TODO if empty, assigner or creation
-::transformMaslExpression(masl_expression:target, expr_number:sched_expr.expression_number + ".2", smt:smt);
-select any target_expr related by smt->Expression[R775] where (selected.expression_number == sched_expr.expression_number + ".2");
-relate target_expr to schedule across R3909;
+select one target related by generate_statement->MaslExpression[R5113];
+if not_empty target
+  ::transformMaslExpression(masl_expression:target, expr_number:sched_expr.expression_number + ".2", smt:smt);
+  select any target_expr related by smt->Expression[R775] where (selected.expression_number == sched_expr.expression_number + ".2");
+  relate target_expr to schedule across R3909;
+else
+  // create reference to assigner state machine
+  create object instance target_expr of Expression;
+  relate target_expr to smt across R775;
+  target_expr.expression_number = "2";
+  relate target_expr to schedule across R3909;
+  void_type = ::getBasicTypeReferenceByName(name:"void");
+  relate void_type to target_expr across R795;
+  // create class state machine reference
+  create object instance state_machine_ref of ClassStateMachineReference;
+  relate state_machine_ref to target_expr across R776;
+  select one sm related by evt->Class[R4752]->StateMachine[R4750];
+  relate sm to state_machine_ref across R3922;
+end if;
 
 // translate the time expression
 select one time_val related by schedule_statement->MaslExpression[R5130];

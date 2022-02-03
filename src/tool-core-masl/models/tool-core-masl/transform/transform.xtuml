@@ -144,9 +144,15 @@ elif (param.pass == 3)
   // transform transition tables
   select many transition_tables related by domain->ObjectDeclaration[R5805]->TransitionTable[R6113];
   for each transition_table in transition_tables
-    select one obj related by transition_table->ObjectDeclaration[R6113]->Class[R8300];
-    if not_empty transition_table
-      ::transformTransitionTable(transition_table:transition_table, obj:obj);
+    // check to assure there are not 2 transition tables
+    select many transition_tables related by transition_table->ObjectDeclaration[R6113]->TransitionTable[R6113];
+    if cardinality transition_tables == 1
+      select one obj related by transition_table->ObjectDeclaration[R6113]->Class[R8300];
+      if not_empty transition_table
+        ::transformTransitionTable(transition_table:transition_table, obj:obj);
+      end if;
+    else
+      LOG::LogFailure(message:"Objects can have at most one transition table");
     end if;
   end for;
 
@@ -461,6 +467,13 @@ select many object_services related by object_declaration->ObjectService[R5808];
 for each object_service in object_services
   ::transformObjectService(object_service:object_service, obj:obj);
 end for;
+
+// check to assure there are not 2 transition tables
+select many transition_tables related by object_declaration->TransitionTable[R6113];
+if cardinality transition_tables > 1
+  LOG::LogFailure(message:"Objects can have at most one transition table");
+  return;
+end if;
 
 // transform states
 select any ne_state related by object_declaration->MaslState[R6105] where ("" + selected.name == "Non_Existent");
@@ -1193,9 +1206,7 @@ select one masl_object related by maslstate->ObjectDeclaration[R6105];
 select one domain related by masl_object->Domain[R5805];
 obj = param.obj;
 
-if (maslstate.flavor == StateType::assigner or 
-  maslstate.flavor == StateType::assigner_start or
-  maslstate.flavor == StateType::creation)
+if (maslstate.flavor == StateType::creation)
   LOG::LogFailure(message:"State type not supported for state: " + obj.name + "." + maslstate.name);
   return;
 end if;
@@ -1203,8 +1214,18 @@ end if;
 // create state machine if necessary
 select one sm related by obj->StateMachine[R4750];
 if (empty sm)
-  ::createMaslStateMachine(obj:obj);
-  select one sm related by obj->StateMachine[R4750];
+  // create the state machine file
+  create object instance file of File;
+  file.name = obj.name + "StateMachine";
+  file.path = ::formatPath(path:obj.package);
+  file.package = obj.package;
+  file.extension = ".java";
+  file.exclude = false;
+  // create the state machine
+  create object instance sm of StateMachine;
+  relate sm to file across R401;
+  relate sm to obj across R4750;
+  sm.instance = not (maslstate.flavor == StateType::assigner or maslstate.flavor == StateType::assigner_start);
 end if;
 
 // create state
@@ -1212,8 +1233,10 @@ create object instance state of State;
 relate state to sm across R4751;
 state.final = maslstate.flavor == StateType::terminal;
 state.number = param.number;
+state.initial = maslstate.flavor == StateType::assigner_start;
 
-// TODO check terminal state behavior
+// TODO temporarily set an initial state for non-assigner SMs
+state.initial = state.initial or (maslstate.flavor != StateType::assigner_start and maslstate.flavor != StateType::assigner_start and state.number == 1);
 
 // create invocable
 create object instance invocable of InvocableObject;
@@ -1365,11 +1388,6 @@ INSERT INTO S_SYNC
 	'',
 	'transition_table = param.transition_table;
 obj = param.obj;
-
-if (transition_table.isassigner)
-  LOG::LogFailure(message:"Assigner state machine not supported for: " + obj.name);
-  return;
-end if;
 
 select one sm related by obj->StateMachine[R4750];
 
