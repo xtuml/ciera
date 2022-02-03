@@ -16,14 +16,16 @@ INSERT INTO O_TFR
 	1,
 	'// get the state machine if it exists
 select one sm related by self->StateMachine[R4750];
-if empty sm
+has_ism = not_empty sm and sm.instance;
+has_csm = not_empty sm and not sm.instance;
+if (has_ism)
+  ::addStringImport(package:"io.ciera.runtime.api.domain", class_name:"DynamicObjectInstance");
+  ::addStringImport(package:"io.ciera.runtime.domain", class_name:"AbstractDynamicObjectInstance");
+else
   ::addStringImport(package:"io.ciera.runtime.api.domain", class_name:"ObjectInstance");
   ::addStringImport(package:"io.ciera.runtime.domain", class_name:"AbstractObjectInstance");
   select one sm_file related by sm->File[R401];
   ::addFileImport(file:sm_file);
-else
-  ::addStringImport(package:"io.ciera.runtime.api.domain", class_name:"DynamicObjectInstance");
-  ::addStringImport(package:"io.ciera.runtime.domain", class_name:"AbstractDynamicObjectInstance");
 end if;
 
 // get any subtype interfaces this class implements
@@ -56,7 +58,7 @@ relationship_decls = T::body();
 
 // initial state
 // TODO change this when initial state is fixed
-select any init_state related by self->StateMachine[R4750]->State[R4751] where SORT::ascending(attr:"number") and selected.number > 0;
+select any init_state related by self->StateMachine[R4750]->State[R4751] where selected.initial;
 if empty init_state
   select any init_state related by self->StateMachine[R4750]->State[R4751] where SORT::ascending(attr:"number");
 end if;

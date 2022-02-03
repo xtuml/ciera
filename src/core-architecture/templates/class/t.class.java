@@ -3,12 +3,12 @@ package ${self.package};
 ${imports}
 
 public class ${self.name} extends \
-.if (empty sm)
+.if (not has_ism)
 AbstractObjectInstance\
 .else
 AbstractDynamicObjectInstance\
 .end if
-.if (empty sm)
+.if (not has_ism)
  implements ObjectInstance\
 .else
  implements DynamicObjectInstance\
@@ -19,6 +19,10 @@ ${supertypes}\
  {
 
     public static final ${self.name} EMPTY = new Empty${self.name}();
+.if (has_csm)
+
+    public static Enum<?> currentState = ${self.name}StateMachine.States.${init_state.name};
+.end if
 
     // event ID declarations
     ${event_declarations}\
@@ -34,20 +38,22 @@ ${supertypes}\
 
     public ${self.name}(${self.comp_name} domain) {
         super(UniqueId.random(), domain);
-.if (not_empty sm)
+.if (has_ism)
         setCurrentState(${self.name}StateMachine.States.${init_state.name});
         setStateMachine(new ${self.name}StateMachine(domain, this));
 .end if
     }
 
     public ${self.name}(UniqueId instanceId, ${self.comp_name} domain\
-.if (not_empty sm)
+.if (has_ism)
 , Enum<?> initialState\
 .end if
 ${attribute_initializer_params}) {
         super(instanceId, domain);
+.if (attribute_initializers != "")
         ${attribute_initializers}\
-.if (not_empty sm)
+.end if
+.if (has_ism)
         setCurrentState(initialState);
         setStateMachine(new ${self.name}StateMachine(domain, this));
 .end if

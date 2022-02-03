@@ -3780,10 +3780,6 @@ if (not_empty e_ges)
   // transform generate statements
   select one evt related by e_ges->E_GSME[R703]->SM_EVT[R707]->Event[R4759];
   select one target_v_var related by e_ges->E_GSME[R703]->E_GEN[R705]->V_VAR[R712];
-  if (empty target_v_var)
-    // TODO bad
-    LOG::LogFailure(message:"Generation to class and generation to creator not supported.");
-  end if;
   
   // create generate statement
   create object instance gen_smt of Generate;
@@ -3805,24 +3801,33 @@ if (not_empty e_ges)
   create object instance target_expr of Expression;
   relate target_expr to smt across R775;
   target_expr.expression_number = "2";
-  select one target_obj related by target_v_var->V_INT[R814]->O_OBJ[R818]->Class[R409];
-  target_type = ::getObjectReference(obj:target_obj);
-  relate target_type to target_expr across R795;
   relate target_expr to gen_smt across R487;
-  target_var = ::getVariableInScope(smt:smt, name:target_v_var.Name);
-  if (not_empty target_var) // cannot declare two variables of the same name in the same scope
-    create object instance var_ref of VariableReference;
-    relate target_var to var_ref across R782;
-    relate var_ref to target_expr across R776;
-  elif (target_v_var.Name == "self")
-    // create named reference
-    create object instance self_ref of NamedReference;
-    relate self_ref to target_expr across R776;
-    self_ref.name = "self()";
-    gen_smt.to_self = true;
+  if (not_empty target_v_var)
+    select one target_obj related by target_v_var->V_INT[R814]->O_OBJ[R818]->Class[R409];
+    target_type = ::getObjectReference(obj:target_obj);
+    relate target_type to target_expr across R795;
+    target_var = ::getVariableInScope(smt:smt, name:target_v_var.Name);
+    if (not_empty target_var)
+      create object instance var_ref of VariableReference;
+      relate target_var to var_ref across R782;
+      relate var_ref to target_expr across R776;
+    elif (target_v_var.Name == "self")
+      // create named reference
+      create object instance self_ref of NamedReference;
+      relate self_ref to target_expr across R776;
+      self_ref.name = "self()";
+      gen_smt.to_self = true;
+    else
+      // TODO bad
+    end if;
   else
-    // TODO bad
-    LOG::LogFailure(message:"unsupported generate statement");
+    void_type = ::getBasicTypeReferenceByName(name:"void");
+    relate void_type to target_expr across R795;
+    // create class state machine reference
+    create object instance state_machine_ref of ClassStateMachineReference;
+    relate state_machine_ref to target_expr across R776;
+    select one sm related by evt->Class[R4752]->StateMachine[R4750];
+    relate sm to state_machine_ref across R3922;
   end if;
 
   // transform event parameters

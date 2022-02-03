@@ -1723,9 +1723,14 @@ elif ( 3 == param.pass )
   // transform instance state machines
   select many objs related by containing_comp_def->Class[R408];
   for each obj in objs
-    select one sm_sm related by obj->O_OBJ[R409]->SM_ISM[R518]->SM_SM[R517];
-    if not_empty sm_sm
-      ::transformStateMachine(sm_sm:sm_sm, obj:obj);
+    select one ism related by obj->O_OBJ[R409]->SM_ISM[R518]->SM_SM[R517];
+    if not_empty ism
+      ::transformStateMachine(sm_sm:ism, obj:obj, instance:true);
+    else
+      select one asm related by obj->O_OBJ[R409]->SM_ASM[R519]->SM_SM[R517];
+      if not_empty asm
+        ::transformStateMachine(sm_sm:asm, obj:obj, instance:false);
+      end if;
     end if;
   end for;
 
@@ -2081,6 +2086,7 @@ create object instance state of State;
 relate state to sm across R4751;
 state.final = sm_state.Final == 1;
 state.number = number;
+state.initial = number == 1;
 
 // create invocable
 create object instance invocable of InvocableObject;
@@ -2175,7 +2181,7 @@ select many supertype_objs related by supertype_rels->Class[R434];
 for each supertype_obj in supertype_objs
   select one supertype_sm_sm related by supertype_obj->O_OBJ[R409]->SM_ISM[R518]->SM_SM[R517];
   if not_empty supertype_sm_sm
-    ::transformStateMachine(sm_sm:supertype_sm_sm, obj:supertype_obj);
+    ::transformStateMachine(sm_sm:supertype_sm_sm, obj:supertype_obj, instance:true);
   end if;
 end for;
 
@@ -2191,23 +2197,26 @@ file.exclude = false;
 create object instance sm of StateMachine;
 relate sm to file across R401;
 relate sm to obj across R4750;
+sm.instance = param.instance;
 
-// create the non-existent state
-create object instance uninitialized of State;
-relate uninitialized to sm across R4751;
-uninitialized.final = false;
-uninitialized.number = 0;
-
-// create invocable for non-existent state
-create object instance invocable of InvocableObject;
-invocable.name = T::sub(format:"_u", s:"Uninitialized");
-invocable.parent_name = sm.name;
-invocable.parent_package = sm.package;
-relate uninitialized to invocable across R427;
-
-// link type
-type = ::getBasicTypeReferenceByName(name:"void");
-relate type to invocable across R428;
+if (sm.instance)
+  // create the non-existent state
+  create object instance uninitialized of State;
+  relate uninitialized to sm across R4751;
+  uninitialized.final = false;
+  uninitialized.number = 0;
+  
+  // create invocable for non-existent state
+  create object instance invocable of InvocableObject;
+  invocable.name = T::sub(format:"_u", s:"Uninitialized");
+  invocable.parent_name = sm.name;
+  invocable.parent_package = sm.package;
+  relate uninitialized to invocable across R427;
+  
+  // link type
+  type = ::getBasicTypeReferenceByName(name:"void");
+  relate type to invocable across R428;
+end if;
 
 // transform the other states
 select many sm_states related by sm_sm->SM_STATE[R501] where SORT::ascending(attr:"Numb");
@@ -2285,6 +2294,15 @@ INSERT INTO S_SPARM
 	0,
 	'',
 	"52462f5f-c541-4d6a-884e-fcfacb4de247",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("cccbaa19-5470-4691-8f15-61a4263572b6",
+	"cb20fa01-e4b7-4d9c-a8aa-ff49e5763228",
+	'instance',
+	"ba5eda7a-def5-0000-0000-000000000001",
+	0,
+	'',
+	"5f45583f-5aa4-4ba1-a0db-bef2a7a9a239",
 	'');
 INSERT INTO PE_PE
 	VALUES ("cb20fa01-e4b7-4d9c-a8aa-ff49e5763228",

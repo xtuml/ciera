@@ -2116,27 +2116,36 @@ else
     relate evt_expr to schedule across R3908;
 
     // create the target expression
-    select one target_v_var related by e_ces->E_CSME[R702]->E_CEI[R704]->V_VAR[R711];
     create object instance target_expr of Expression;
     relate target_expr to smt across R775;
     target_expr.expression_number = expr.expression_number + ".2";
-    select one target_obj related by target_v_var->V_INT[R814]->O_OBJ[R818]->Class[R409];
-    target_type = ::getObjectReference(obj:target_obj);
-    relate target_type to target_expr across R795;
     relate target_expr to schedule across R3909;
-    target_var = ::getVariableInScope(smt:smt, name:target_v_var.Name);
-    if (not_empty target_var) // cannot declare two variables of the same name in the same scope
-      create object instance var_ref of VariableReference;
-      relate target_var to var_ref across R782;
-      relate var_ref to target_expr across R776;
-		elif (target_v_var.Name == "self")
-			// create named reference
-			create object instance self_ref of NamedReference;
-			relate self_ref to target_expr across R776;
-			self_ref.name = "self()";
+    select one target_v_var related by e_ces->E_CSME[R702]->E_CEI[R704]->V_VAR[R711];
+    if (not_empty target_v_var)
+      select one target_obj related by target_v_var->V_INT[R814]->O_OBJ[R818]->Class[R409];
+      target_type = ::getObjectReference(obj:target_obj);
+      relate target_type to target_expr across R795;
+      target_var = ::getVariableInScope(smt:smt, name:target_v_var.Name);
+      if (not_empty target_var) // cannot declare two variables of the same name in the same scope
+        create object instance var_ref of VariableReference;
+        relate target_var to var_ref across R782;
+        relate var_ref to target_expr across R776;
+		  elif (target_v_var.Name == "self")
+		  	// create named reference
+		  	create object instance self_ref of NamedReference;
+		  	relate self_ref to target_expr across R776;
+		  	self_ref.name = "self()";
+      else
+        // TODO bad
+      end if;
     else
-      // TODO bad
-      LOG::LogFailure(message:"unsupported schdeule statement");
+      void_type = ::getBasicTypeReferenceByName(name:"void");
+      relate void_type to target_expr across R795;
+      // create class state machine reference
+      create object instance state_machine_ref of ClassStateMachineReference;
+      relate state_machine_ref to target_expr across R776;
+      select one sm related by evt->Class[R4752]->StateMachine[R4750];
+      relate sm to state_machine_ref across R3922;
     end if;
     
     // create the delay expression
