@@ -1725,11 +1725,11 @@ elif ( 3 == param.pass )
   for each obj in objs
     select one ism related by obj->O_OBJ[R409]->SM_ISM[R518]->SM_SM[R517];
     if not_empty ism
-      ::transformStateMachine(sm_sm:ism, obj:obj, instance:true);
+      ::transformStateMachine(sm_sm:ism, obj:obj, is_instance:true);
     else
       select one asm related by obj->O_OBJ[R409]->SM_ASM[R519]->SM_SM[R517];
       if not_empty asm
-        ::transformStateMachine(sm_sm:asm, obj:obj, instance:false);
+        ::transformStateMachine(sm_sm:asm, obj:obj, is_instance:false);
       end if;
     end if;
   end for;
@@ -2079,14 +2079,13 @@ INSERT INTO S_SYNC
 	'',
 	'sm_state = param.sm_state;
 sm = param.sm;
-number = param.number;
 
 // create state
 create object instance state of State;
 relate state to sm across R4751;
 state.final = sm_state.Final == 1;
-state.number = number;
-state.initial = number == 1;
+select many existing_states related by sm->State[R4751];
+state.number = cardinality existing_states;
 
 // create invocable
 create object instance invocable of InvocableObject;
@@ -2146,15 +2145,6 @@ INSERT INTO S_DT_PROXY
 	'',
 	'',
 	'../../../../core-architecture/models/core-architecture/architecture/statemachine/statemachine.xtuml');
-INSERT INTO S_SPARM
-	VALUES ("813c23ee-1eaa-4107-9c9a-18a32ad8ed0d",
-	"c04fde8e-f58c-4d2b-87a7-8393b796f271",
-	'number',
-	"ba5eda7a-def5-0000-0000-000000000002",
-	0,
-	'',
-	"efcf7b2b-956d-4ff6-86b6-769109cbcdbf",
-	'');
 INSERT INTO PE_PE
 	VALUES ("c04fde8e-f58c-4d2b-87a7-8393b796f271",
 	1,
@@ -2181,7 +2171,7 @@ select many supertype_objs related by supertype_rels->Class[R434];
 for each supertype_obj in supertype_objs
   select one supertype_sm_sm related by supertype_obj->O_OBJ[R409]->SM_ISM[R518]->SM_SM[R517];
   if not_empty supertype_sm_sm
-    ::transformStateMachine(sm_sm:supertype_sm_sm, obj:supertype_obj, instance:true);
+    ::transformStateMachine(sm_sm:supertype_sm_sm, obj:supertype_obj, is_instance:true);
   end if;
 end for;
 
@@ -2197,9 +2187,9 @@ file.exclude = false;
 create object instance sm of StateMachine;
 relate sm to file across R401;
 relate sm to obj across R4750;
-sm.instance = param.instance;
+sm.is_instance = param.is_instance;
 
-if (sm.instance)
+if (sm.is_instance)
   // create the non-existent state
   create object instance uninitialized of State;
   relate uninitialized to sm across R4751;
@@ -2208,7 +2198,7 @@ if (sm.instance)
   
   // create invocable for non-existent state
   create object instance invocable of InvocableObject;
-  invocable.name = T::sub(format:"_u", s:"Uninitialized");
+  invocable.name = "UNINITIALIZED";
   invocable.parent_name = sm.name;
   invocable.parent_package = sm.package;
   relate uninitialized to invocable across R427;
@@ -2218,13 +2208,30 @@ if (sm.instance)
   relate type to invocable across R428;
 end if;
 
-// transform the other states
+// transform states
 select many sm_states related by sm_sm->SM_STATE[R501] where SORT::ascending(attr:"Numb");
-number = 1;
 for each sm_state in sm_states
-  ::transformState(sm_state:sm_state, sm:sm, number:number);
-  number = number + 1;
+  ::transformState(sm_state:sm_state, sm:sm);
 end for;
+
+if (sm.is_instance)
+  // create the default initial state
+  create object instance uninitialized of State;
+  relate uninitialized to sm across R4751;
+  uninitialized.final = false;
+  uninitialized.number = 0;
+  
+  // create invocable for non-existent state
+  create object instance invocable of InvocableObject;
+  invocable.name = "UNINITIALIZED";
+  invocable.parent_name = sm.name;
+  invocable.parent_package = sm.package;
+  relate uninitialized to invocable across R427;
+  
+  // link type
+  type = ::getBasicTypeReferenceByName(name:"void");
+  relate type to invocable across R428;
+end if;
 
 // transform events
 select many sm_levts related by sm_sm->SM_EVT[R502]->SM_SEVT[R525]->SM_LEVT[R526]->SM_SEVT[R526]->SM_EVT[R525];
@@ -2298,7 +2305,7 @@ INSERT INTO S_SPARM
 INSERT INTO S_SPARM
 	VALUES ("cccbaa19-5470-4691-8f15-61a4263572b6",
 	"cb20fa01-e4b7-4d9c-a8aa-ff49e5763228",
-	'instance',
+	'is_instance',
 	"ba5eda7a-def5-0000-0000-000000000001",
 	0,
 	'',

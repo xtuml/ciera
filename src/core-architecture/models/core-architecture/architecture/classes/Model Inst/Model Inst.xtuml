@@ -16,8 +16,9 @@ INSERT INTO O_TFR
 	1,
 	'// get the state machine if it exists
 select one sm related by self->StateMachine[R4750];
-has_ism = not_empty sm and sm.instance;
-has_csm = not_empty sm and not sm.instance;
+has_ism = not_empty sm and sm.is_instance;
+has_csm = not_empty sm and not sm.is_instance;
+init_state_name = "";
 if (has_ism)
   ::addStringImport(package:"io.ciera.runtime.api.domain", class_name:"DynamicObjectInstance");
   ::addStringImport(package:"io.ciera.runtime.domain", class_name:"AbstractDynamicObjectInstance");
@@ -26,6 +27,10 @@ else
   ::addStringImport(package:"io.ciera.runtime.domain", class_name:"AbstractObjectInstance");
   select one sm_file related by sm->File[R401];
   ::addFileImport(file:sm_file);
+end if;
+if (has_csm)
+  select any init_state related by self->StateMachine[R4750]->State[R4751] where selected.initial;
+  init_state_name = init_state.name;
 end if;
 
 // get any subtype interfaces this class implements
@@ -56,7 +61,7 @@ for each selector in selects
 end for;
 relationship_decls = T::body();
 
-// initial state
+// initial state for class state machines
 // TODO change this when initial state is fixed
 select any init_state related by self->StateMachine[R4750]->State[R4751] where selected.initial;
 if empty init_state

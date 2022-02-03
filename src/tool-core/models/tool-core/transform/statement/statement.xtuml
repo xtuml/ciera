@@ -1632,7 +1632,13 @@ select one obj related by act_cr->O_OBJ[R671]->Class[R409];
 relate cr to obj across R780;
 relate r_op to binop across R778;
 // link create type to the main expression
-relate cr_type to expr across R795;',
+relate cr_type to expr across R795;
+// link the initial state (lowest numbered state)
+select one ism related by obj->StateMachine[R4750] where selected.is_instance;
+select any init_state related by ism->State[R4751] where SORT::ascending(attr:"number") and selected.number > 0;
+if not_empty init_state
+  relate init_state to cr across R3923;
+end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -1718,7 +1724,13 @@ create object instance cr of Creation;
 relate cr to expr across R776;
 select one obj related by act_cnv->O_OBJ[R672]->Class[R409];
 relate cr to obj across R780;
-select one class_file related by obj->File[R401];',
+select one class_file related by obj->File[R401];
+// link the initial state (lowest numbered state)
+select one ism related by obj->StateMachine[R4750] where selected.is_instance;
+select any init_state related by ism->State[R4751] where SORT::ascending(attr:"number") and selected.number > 0;
+if not_empty init_state
+  relate init_state to cr across R3923;
+end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',

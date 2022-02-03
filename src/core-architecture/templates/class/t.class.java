@@ -21,7 +21,7 @@ ${supertypes}\
     public static final ${self.name} EMPTY = new Empty${self.name}();
 .if (has_csm)
 
-    public static Enum<?> currentState = ${self.name}StateMachine.States.${init_state.name};
+    public static Enum<?> currentState = ${self.name}StateMachine.States.${init_state_name};
 .end if
 
     // event ID declarations
@@ -39,7 +39,7 @@ ${supertypes}\
     public ${self.name}(${self.comp_name} domain) {
         super(UniqueId.random(), domain);
 .if (has_ism)
-        setCurrentState(${self.name}StateMachine.States.${init_state.name});
+        setCurrentState(${self.name}StateMachine.States.UNINITIALIZED);
         setStateMachine(new ${self.name}StateMachine(domain, this));
 .end if
     }

@@ -7,6 +7,7 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -65,9 +66,17 @@ public abstract class AbstractDomain implements Domain {
 
     @Override
     public <T extends ObjectInstance> T createInstance(Class<T> type) {
+    	return createInstance(type, null);
+    }
+
+    @Override
+    public <T extends ObjectInstance> T createInstance(Class<T> type, Consumer<T> instanceInitializer) {
         try {
             Constructor<T> constructor = type.getConstructor(getClass());
             T instance = constructor.newInstance(this);
+            if (instanceInitializer != null) {
+            	instanceInitializer.accept(instance);
+            }
             addInstance(instance);
             return instance;
         } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException
