@@ -15,11 +15,6 @@ INSERT INTO O_TFR
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'select one type_reference related by self->TypeReference[R424];
-initializer = self.default_value;
-if (initializer == "")
-  select one type related by type_reference->Type[R3800];
-  initializer = type.default_value;
-end if;
 ::resolveImportsForTypeReference(type_ref:type_reference);
 T::include(file:"class/t.attribute.java");',
 	1,
@@ -27,6 +22,40 @@ T::include(file:"class/t.attribute.java");',
 	"00000000-0000-0000-0000-000000000000",
 	0,
 	0);
+INSERT INTO O_TFR
+	VALUES ("153ccb24-7ec5-4e99-9674-d66b346e69ca",
+	"4104c6e9-9797-48fb-bc1e-db640682f1ca",
+	'render_initializer',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'init_value = self.default_value;
+if self.is_unique and self.type_reference == "UniqueId"
+  init_value = "UniqueId.random()";
+  select one type_reference related by self->TypeReference[R424];
+  ::resolveImportsForTypeReference(type_ref:type_reference);
+elif self.is_unique and self.type_reference == "int"
+  T::push_buffer();
+  T::include(file:"expression/t.domainreference.java");
+  domain_reference = T::body();
+  select any getter related by self->AttributeAccessor[R4510] where selected.accessor_type == AttributeAccessorType::GETTER;
+  accessor_name = getter.getName();
+  T::include(file:"class/t.uniqueintegerinitializer.java");
+  init_value = T::body();
+  T::pop_buffer();
+elif (init_value == "")
+  select one type_reference related by self->TypeReference[R424];
+  select one type related by type_reference->Type[R3800];
+  init_value = type.default_value;
+  ::resolveImportsForTypeReference(type_ref:type_reference);
+end if;
+attribute_name = self.name;
+T::include(file:"class/t.attributeinitializer.java");',
+	1,
+	'',
+	"bf808c70-bf50-4713-846e-5b1b0dca6af9",
+	0,
+	1);
 INSERT INTO O_REF
 	VALUES ("4104c6e9-9797-48fb-bc1e-db640682f1ca",
 	"82cf3088-71ed-48c3-850e-afe53bfc0fe5",
@@ -355,6 +384,24 @@ INSERT INTO O_ATTR
 	'default_value',
 	0,
 	"ba5eda7a-def5-0000-0000-000000000004",
+	'',
+	'');
+INSERT INTO O_NBATTR
+	VALUES ("dd0fcd3d-fedd-490d-85d4-a4ba924f642f",
+	"4104c6e9-9797-48fb-bc1e-db640682f1ca");
+INSERT INTO O_BATTR
+	VALUES ("dd0fcd3d-fedd-490d-85d4-a4ba924f642f",
+	"4104c6e9-9797-48fb-bc1e-db640682f1ca");
+INSERT INTO O_ATTR
+	VALUES ("dd0fcd3d-fedd-490d-85d4-a4ba924f642f",
+	"4104c6e9-9797-48fb-bc1e-db640682f1ca",
+	"134b187b-6d87-4c6d-b371-1d3f9c39adb0",
+	'is_unique',
+	'',
+	'',
+	'is_unique',
+	0,
+	"ba5eda7a-def5-0000-0000-000000000001",
 	'',
 	'');
 INSERT INTO O_ID

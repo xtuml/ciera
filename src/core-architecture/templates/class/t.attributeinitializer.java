@@ -1,1 +1,1 @@
-this.${attribute.name} = ${attribute.name};
+this.${attribute_name} = ${init_value};

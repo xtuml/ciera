@@ -38,6 +38,9 @@ ${supertypes}\
 
     public ${self.name}(${self.comp_name} domain) {
         super(UniqueId.random(), domain);
+.if (attribute_initializers1 != "")
+        ${attribute_initializers1}\
+.end if
 .if (has_ism)
         setCurrentState(${self.name}StateMachine.States.UNINITIALIZED);
         setStateMachine(new ${self.name}StateMachine(domain, this));
@@ -50,8 +53,8 @@ ${supertypes}\
 .end if
 ${attribute_initializer_params}) {
         super(instanceId, domain);
-.if (attribute_initializers != "")
-        ${attribute_initializers}\
+.if (attribute_initializers2 != "")
+        ${attribute_initializers2}\
 .end if
 .if (has_ism)
         setCurrentState(initialState);

@@ -1,1 +1,1 @@
-private ${self.type_reference} ${self.name} = ${initializer};
+private ${self.type_reference} ${self.name};

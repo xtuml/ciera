@@ -61,20 +61,20 @@ for each selector in selects
 end for;
 relationship_decls = T::body();
 
-// initial state for class state machines
-// TODO change this when initial state is fixed
-select any init_state related by self->StateMachine[R4750]->State[R4751] where selected.initial;
-if empty init_state
-  select any init_state related by self->StateMachine[R4750]->State[R4751] where SORT::ascending(attr:"number");
-end if;
-
 // constructors
+for each attribute in attributes
+  attribute.render_initializer();
+end for;
+attribute_initializers1 = T::body();
+
 attribute_initializer_params = "";
 for each attribute in attributes
   attribute_initializer_params = attribute_initializer_params + ", " + attribute.type_reference + " " + attribute.name;
+  init_value = attribute.name;
+  attribute_name = attribute.name;
   T::include(file:"class/t.attributeinitializer.java");
 end for;
-attribute_initializers = T::body();
+attribute_initializers2 = T::body();
 
 // empty attribute accessros
 for each attribute in attributes
