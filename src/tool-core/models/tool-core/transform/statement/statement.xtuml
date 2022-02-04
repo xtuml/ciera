@@ -4366,6 +4366,19 @@ for each v_var in v_vars
     smt.statement_number = "1";
   end if;
 
+  // create new variable
+  create object instance new_var of Variable;
+  relate new_var to smt across R457;
+  new_var.name = v_var.Name;
+  var_type = ::getTypeReferenceForV_VAR(v_var:v_var);
+  relate var_type to new_var across R461;
+  
+  // link in scope
+  select one scope related by smt->CodeBlock[R450];
+  relate new_var to scope across R496;
+  create object instance var_in_scope of VariableInScope;
+  relate new_var to scope across R458 using var_in_scope;
+
   // create expression as statement
   create object instance eas of ExpressionAsStatement;
   relate eas to smt across R451;
@@ -4374,59 +4387,14 @@ for each v_var in v_vars
   create object instance expr of Expression;
   relate expr to smt across R775;
   expr.expression_number = "1";
+  relate var_type to expr across R795;
   relate expr to eas across R476;
 
-  // create binary operation and assignment expression
-  create object instance binop of BinaryOperation;
-  relate binop to expr across R776;
-  binop.operator = "=";
-  binop.invocation = false;
-
-  // create new variable
-  create object instance new_var of Variable;
-  relate new_var to smt across R457;
-  new_var.name = v_var.Name;
-  
-  // link in scope
-  select one scope related by smt->CodeBlock[R450];
-  relate new_var to scope across R496;
-  create object instance var_in_scope of VariableInScope;
-  relate new_var to scope across R458 using var_in_scope;
-  
-  // link data type
-  var_type = ::getTypeReferenceForV_VAR(v_var:v_var);
-  relate var_type to new_var across R461;
-
-  // create variable reference for left operand
-  create object instance l_op of Expression;
-  relate l_op to smt across R775;
-  l_op.expression_number = "1.1";
-  relate l_op to binop across R779;
-
-  // link type
-  relate var_type to l_op across R795;
-
-// create variable reference
+  // create variable reference
   create object instance var_ref of VariableReference;
   relate new_var to var_ref across R782;
-  relate var_ref to l_op across R776;
+  relate var_ref to expr across R776;
   var_ref.declaration = true;
-
-  // create right operand
-	create object instance r_op of Expression;
-	relate r_op to smt across R775;
-	r_op.expression_number = "1.2";
-	// link type
-	relate var_type to r_op across R795;
-	// create a named expression
-	create object instance named_expr of NamedReference;
-	select one var_root_type related by var_type->Type[R3800];
-	named_expr.name = var_root_type.default_value;
-	relate named_expr to r_op across R776;
-  relate r_op to binop across R778;
-
-  // link l_op type to the main expression
-  relate var_type to expr across R795;
 
 end for;',
 	"ba5eda7a-def5-0000-0000-000000000000",
