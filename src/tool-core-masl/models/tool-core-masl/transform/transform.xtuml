@@ -1069,6 +1069,15 @@ select one basic_type related by maslattr->BasicType[R5803];
 type = ::getTypeReferenceForMASLType( basic_type:basic_type);
 relate type to attr across R424;
 
+// set unique
+if maslattr.isUnique
+  if type.type_reference == "int"
+    attr.is_unique = true;
+  else
+    LOG::LogFailure(message:"Invalid unique attribute type: " + type.type_reference);
+  end if;
+end if;
+
 // create accessors
 create object instance getter of AttributeAccessor;
 getter.accessor_type = AttributeAccessorType::GETTER;
