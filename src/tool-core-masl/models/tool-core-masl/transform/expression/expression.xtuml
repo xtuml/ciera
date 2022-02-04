@@ -362,7 +362,29 @@ relate cr_type to expr across R795;
 create object instance cr of Creation;
 relate cr to expr across R776;
 relate cr to obj across R780;
-select one class_file related by obj->File[R401];',
+select one class_file related by obj->File[R401];
+
+// link initial state if applicable
+select any init_state related by create_expression->AttributeInitialization[R5566]->MaslState[R5567]->State[R8302];
+if not_empty init_state
+  relate init_state to cr across R3923;
+end if;
+
+// transform attribute initializers
+select many attr_initizations related by create_expression->AttributeInitialization[R5566];
+for each attr_initialization in attr_initizations
+  select one init_masl_expr related by attr_initialization->MaslExpression[R5568];
+  select one attr related by attr_initialization->AttributeDeclaration[R5565]->Attribute[R8301];
+  if not_empty attr and not_empty init_masl_expr
+    create object instance attr_init of InstanceIdentifierAttributeInitialization;
+    relate attr_init to cr across R3925;
+    select many existing_inits related by cr->InstanceIdentifierAttributeInitialization[R3925];
+    init_expr_number = expr.expression_number + "." + STRING::itoa(i:cardinality existing_inits);
+    ::transformMaslExpression(masl_expression:init_masl_expr, expr_number:init_expr_number, smt:smt);
+    select any init_expr related by smt->Expression[R775] where selected.expression_number == init_expr_number;
+    relate attr to init_expr across R3924 using attr_init;
+  end if;
+end for;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',

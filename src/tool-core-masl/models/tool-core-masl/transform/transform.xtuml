@@ -476,16 +476,30 @@ if cardinality transition_tables > 1
 end if;
 
 // transform states
-select any ne_state related by object_declaration->MaslState[R6105] where ("" + selected.name == "Non_Existent");
-if not_empty ne_state
-  ::transformMaslState(state:ne_state, obj:obj, number:0);
-end if;
 select many states related by object_declaration->MaslState[R6105] where ("" + selected.name != "Non_Existent");
-state_number = 1;
 for each state in states
-  ::transformMaslState(state:state, obj:obj, number:state_number);
-  state_number = state_number + 1;
+  ::transformMaslState(state:state, obj:obj);
 end for;
+
+select one sm related by obj->StateMachine[R4750];
+if (not_empty sm and sm.is_instance)
+  // create the default initial state
+  create object instance uninitialized of State;
+  relate uninitialized to sm across R4751;
+  uninitialized.final = false;
+  uninitialized.number = 0;
+  
+  // create invocable for non-existent state
+  create object instance invocable of InvocableObject;
+  invocable.name = "UNINITIALIZED";
+  invocable.parent_name = sm.name;
+  invocable.parent_package = sm.package;
+  relate uninitialized to invocable across R427;
+  
+  // link type
+  type = ::getBasicTypeReferenceByName(name:"void");
+  relate type to invocable across R428;
+end if;
 
 // transform events
 select many evts related by object_declaration->EventDeclaration[R6101];
@@ -1225,18 +1239,16 @@ if (empty sm)
   create object instance sm of StateMachine;
   relate sm to file across R401;
   relate sm to obj across R4750;
-  sm.instance = not (maslstate.flavor == StateType::assigner or maslstate.flavor == StateType::assigner_start);
+  sm.is_instance = not (maslstate.flavor == StateType::assigner or maslstate.flavor == StateType::assigner_start);
 end if;
 
 // create state
 create object instance state of State;
 relate state to sm across R4751;
 state.final = maslstate.flavor == StateType::terminal;
-state.number = param.number;
+select many existing_states related by sm->State[R4751];
+state.number = cardinality existing_states;
 state.initial = maslstate.flavor == StateType::assigner_start;
-
-// TODO temporarily set an initial state for non-assigner SMs
-state.initial = state.initial or (maslstate.flavor != StateType::assigner_start and maslstate.flavor != StateType::assigner_start and state.number == 1);
 
 // create invocable
 create object instance invocable of InvocableObject;
@@ -1293,15 +1305,6 @@ INSERT INTO S_SPARM
 	0,
 	'',
 	"fbf7ba79-96fc-4e02-bd44-2c6030200492",
-	'');
-INSERT INTO S_SPARM
-	VALUES ("b0da04dd-869a-48d6-8b5b-c627978d4ce1",
-	"438be88e-6ba7-41ed-bf4c-7361ded3bbed",
-	'number',
-	"ba5eda7a-def5-0000-0000-000000000002",
-	0,
-	'',
-	"c2fcb60e-fa83-428e-bd18-4ab828c25aa1",
 	'');
 INSERT INTO PE_PE
 	VALUES ("438be88e-6ba7-41ed-bf4c-7361ded3bbed",
