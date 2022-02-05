@@ -14,7 +14,15 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'T::push_buffer();
+	'// only render modifiers for the first relationship if this is subsuper
+if self.rel_type == RelationshipType::SuperSubtype
+  select any first_rel related by self->Class[R434]->Relationship[R434] where SORT::ascending(attr:"form_name") and selected.num == self.num;
+  if self.form_name != first_rel.form_name
+    return;
+  end if;
+end if;
+
+T::push_buffer();
 select many refs related by self->Class[R434]->Attribute[R410]->AttributeReference[R4506.''provides value for'']
   where (selected.rel_num == self.num and selected.form_phrase == self.form_phrase and selected.form_name == self.form_name and
           selected.part_phrase == self.part_phrase and selected.part_name == self.part_name);
@@ -66,6 +74,19 @@ else
 end if;
 T::pop_buffer();
 
+part_selector_name = "";
+part_uncond_one = self.part_cond == Cond::UNCONDITIONAL and self.part_mult == Mult::ONE and self.part_name != self.form_name;
+if part_uncond_one
+  select any selector related by self->Selector[R4512] where selected.class_name == self.form_name;
+  part_selector_name = selector.name;
+end if;
+form_selector_name = "";
+form_uncond_one = (self.form_cond == Cond::UNCONDITIONAL and self.form_mult == Mult::ONE and self.part_name != self.form_name) or self.rel_type == RelationshipType::SuperSubtype;
+if form_uncond_one
+  select any selector related by self->Selector[R4512] where selected.class_name == self.part_name;
+  form_selector_name = selector.name;
+end if;
+
 // resolve imports
 ::addStringImport(package:"io.ciera.runtime.api.domain", class_name:"ObjectInstance");
 ::addStringImport(package:"io.ciera.runtime.api.exceptions", class_name:"DeletedInstanceException");
@@ -75,6 +96,9 @@ select one part_class_file related by self->Class[R434]->File[R401];
 ::addFileImport(file:part_class_file);
 select one form_class_file related by self->Class[R435]->File[R401];
 ::addFileImport(file:form_class_file);
+
+rel_name = self.getGenName();
+is_subsuper = self.rel_type == RelationshipType::SuperSubtype;
 
 T::include(file:"relationship/t.relationshipmodifiers.java");',
 	1,
@@ -89,7 +113,25 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'::addStringImport(package:"io.ciera.runtime.api.domain", class_name:"ObjectInstance");
+	'// render abtract referential attibute setters
+T::push_buffer();
+select many refs related by self->Class[R434]->Attribute[R410]->AttributeReference[R4506.''provides value for'']
+  where (selected.rel_num == self.num and selected.form_phrase == self.form_phrase and selected.form_name == self.form_name and
+          selected.part_phrase == self.part_phrase and selected.part_name == self.part_name);
+for each ref in refs
+  select any form_accessor related by ref->Attribute[R4506.''provides value for'']->AttributeAccessor[R4510]
+    where (selected.accessor_type == AttributeAccessorType::SETTER);
+  form_accessor.render_decl();
+end for;
+ref_attr_setters = T::body();
+T::pop_buffer();
+
+// get the supertype selector
+select any supertype_sel related by self->Selector[R4512] where selected.class_name == self.form_name;
+supertype_selector = supertype_sel.name;
+
+::addStringImport(package:"io.ciera.runtime.api.domain", class_name:"ObjectInstance");
+
 T::include(file:"class/t.subtype.java");',
 	1,
 	'',
@@ -111,6 +153,23 @@ T::include(file:"class/t.supertype.java");',
 	"aa2127d2-d3b3-44b4-b79e-25ed2ad71d2e",
 	0,
 	1);
+INSERT INTO O_TFR
+	VALUES ("bb006015-6afb-4899-807f-4b96e4222b21",
+	"8663f390-6444-48d2-b4a3-0fadf952f68c",
+	'getGenName',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	1,
+	'if self.rel_type == RelationshipType::SuperSubtype;
+  return "R" + STRING::itoa(i:self.num) + "_subtype_is_a_" + self.part_name;
+else
+  return self.name;
+end if;',
+	1,
+	'',
+	"5845dc48-6a54-4f3d-bd2d-7214cadcab1d",
+	0,
+	2);
 INSERT INTO O_NBATTR
 	VALUES ("39500dcb-206f-4677-836d-af75e3d4225f",
 	"8663f390-6444-48d2-b4a3-0fadf952f68c");
