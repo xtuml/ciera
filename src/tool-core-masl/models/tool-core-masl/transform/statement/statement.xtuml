@@ -1358,17 +1358,23 @@ smt.line_number = masl_statement.line_number;
 // gather info
 select one rel_spec related by link_unlink_statement->RelationshipSpecification[R5120];
 select one rel_decl related by rel_spec->RelationshipDeclaration[R6015];
+select one lhs_class related by rel_spec->ObjectDeclaration[R6014]->Class[R8300];
+select one rhs_class related by rel_spec->ObjectDeclaration[R6011]->Class[R8300];
 select one lhs related by link_unlink_statement->MaslExpression[R5122];
-select one lhs_class related by lhs->BasicType[R5570]->InstanceType[R6205]->ObjectDeclaration[R6220]->Class[R8300];
 select one rhs related by link_unlink_statement->MaslExpression[R5119];
-if (empty rhs)
-  // TODO implicity create a selection across the association to get the right
-  // hand side before unlinking. note: this only works with unconditional 1
-  // associations
-end if;
-select one rhs_class related by rhs->BasicType[R5570]->InstanceType[R6205]->ObjectDeclaration[R6220]->Class[R8300];
 select one uses related by link_unlink_statement->MaslExpression[R5121];
 select one uses_class related by uses->BasicType[R5570]->InstanceType[R6205]->ObjectDeclaration[R6220]->Class[R8300];
+if (empty rhs)
+  // Right hand expression is allowed to be left out for unlink statements if
+  // the relationship is subtype/supertype or simple binary and is unconditional
+  // one. Reflexive associations are not allowed
+  if (link_unlink_statement.isLink or not_empty uses or rel_spec.conditional or rel_spec.multiplicity != MaslMultiplicity::one or lhs_class.name == rhs_class.name)
+    select one invocable related by smt->CodeBlock[R450]->InvocableObject[R4000];
+    ::semanticError(invocable:invocable, line_number:smt.line_number, message:"Invalid implicit unlink statement");
+    ARCH::exit(code:1);
+  end if;
+  select one rhs_class related by rel_spec->ObjectDeclaration[R6011]->Class[R8300];
+end if;
 containing_comp_def = ::getCompDefForStatement(smt:smt);
 
 // find the relationship and transform the sub exppressions
@@ -1393,11 +1399,15 @@ else
   if (empty rhs_ref)
     ::transformMaslExpression(masl_expression:lhs, expr_number:"1", smt:smt);
     select any form_expr related by smt->Expression[R775] where (selected.expression_number == "1");
-    ::transformMaslExpression(masl_expression:rhs, expr_number:"2", smt:smt);
-    select any part_expr related by smt->Expression[R775] where (selected.expression_number == "2");
+    if (not_empty rhs)
+      ::transformMaslExpression(masl_expression:rhs, expr_number:"2", smt:smt);
+      select any part_expr related by smt->Expression[R775] where (selected.expression_number == "2");
+    end if;
   else
-    ::transformMaslExpression(masl_expression:rhs, expr_number:"1", smt:smt);
-    select any form_expr related by smt->Expression[R775] where (selected.expression_number == "1");
+    if (not_empty rhs)
+      ::transformMaslExpression(masl_expression:rhs, expr_number:"1", smt:smt);
+      select any form_expr related by smt->Expression[R775] where (selected.expression_number == "1");
+    end if;
     ::transformMaslExpression(masl_expression:lhs, expr_number:"2", smt:smt);
     select any part_expr related by smt->Expression[R775] where (selected.expression_number == "2");
   end if;
@@ -1414,8 +1424,12 @@ else
   create object instance unrelsmt of UnrelateSmt;
   relate unrelsmt to smt across R451;
   relate rel to unrelsmt across R484;
-  relate form_expr to unrelsmt across R483;
-  relate part_expr to unrelsmt across R482;
+  if (not_empty form_expr)
+    relate form_expr to unrelsmt across R483;
+  end if;
+  if (not_empty part_expr)
+    relate part_expr to unrelsmt across R482;
+  end if;
 end if;
   
 // if this is an associative relationship, create the second statement
@@ -1433,7 +1447,7 @@ if (not_empty uses)
   // link/unlink rhs
   select any rel related by rel_spec->RelationshipDeclaration[R6015]->Relationship[R8304]
     where (selected.form_name == uses_class.name and selected.part_name == rhs_class.name);
-  ::transformMaslExpression(masl_expression:uses, expr_number:"1", smt:smt);  // TODO translating the uses expression twice can cause side effects
+  ::transformMaslExpression(masl_expression:uses, expr_number:"1", smt:smt);
   select any form_expr related by smt->Expression[R775] where (selected.expression_number == "1");
   ::transformMaslExpression(masl_expression:rhs, expr_number:"2", smt:smt);
   select any part_expr related by smt->Expression[R775] where (selected.expression_number == "2");
