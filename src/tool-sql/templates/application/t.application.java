@@ -7,7 +7,7 @@ public class ${self.name} implements IApplication {
 
     private IComponent<?>[] components;
     private ApplicationExecutor[] executors;
-    private static ${self.name} singleton;
+    private static ${self.name} singleton; // valid only if a deployment contains a single application.
 
     public ${self.name}() {
         components = new IComponent<?>[$t{num_component_instances}];
