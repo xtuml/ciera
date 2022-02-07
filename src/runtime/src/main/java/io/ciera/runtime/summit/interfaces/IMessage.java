@@ -2,6 +2,7 @@ package io.ciera.runtime.summit.interfaces;
 
 import io.ciera.runtime.summit.exceptions.XtumlException;
 import io.ciera.runtime.summit.types.UniqueId;
+import org.json.JSONObject;
 
 public interface IMessage {
 
@@ -18,4 +19,6 @@ public interface IMessage {
     public void addParm(String key, Object value) throws XtumlException;
 
     public Object getParm(String key);
+    
+    public JSONObject getParms();
 }

@@ -1,1 +1,1 @@
-            super.addParm("${pname}", ${pname});
+            super.addParm("${key}", ${pname});

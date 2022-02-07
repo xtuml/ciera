@@ -1,0 +1,315 @@
+-- BP 7.1.6 content: ModelClass syschar: 3 persistence-version: 7.1.6
+
+INSERT INTO O_OBJ
+	VALUES ("b2989ac2-663c-402c-849f-59fe2b7ac4d9",
+	'SpringWebSocket',
+	7,
+	'SpringWebSocket',
+	'An extension class which specializes a port to support Spring WebSocket communication.',
+	"00000000-0000-0000-0000-000000000000");
+INSERT INTO O_TFR
+	VALUES ("72dfcf15-84d1-477f-9e32-2d55230ee7fb",
+	"b2989ac2-663c-402c-849f-59fe2b7ac4d9",
+	'render_interface',
+	'Render an interface file appropriate to the Spring messaging protocol.',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'select one port related by self->PortDescriptor[R4162]->Port[R4161.''specializes''];
+select one iface related by port->Interface[R418.''implements''];
+select one file related by iface->File[R401];
+
+select many in_msgs related by iface->Message[R419.''defines communication through'']
+ where ( selected.to_provider == port.provider );
+select many out_msgs related by iface->Message[R419.''defines communication through'']
+ where ( selected.to_provider != port.provider );
+
+in_message_block = "";
+out_message_block = "";
+
+self.render_inbound_msgs_iface( msgs:in_msgs );
+in_message_block = T::body();
+T::clear();
+
+for each msg in out_msgs
+  msg.render();
+end for;
+out_message_block = T::body();
+
+imports = file.getFormattedImports( type:ImportType::IMPL );
+T::include(file:"interface/t.springws.iface.java");
+T::emit( file:file.path + "/" + iface.name + file.extension );
+T::clear();
+',
+	1,
+	'',
+	"4bd420c6-057a-4a88-8456-5400d27fc2a0",
+	0,
+	1);
+INSERT INTO O_TFR
+	VALUES ("c941aa65-0432-46d6-b689-12c8eaf187f4",
+	"b2989ac2-663c-402c-849f-59fe2b7ac4d9",
+	'render_inbound_msgs_iface',
+	'Spring WebSocket ports require a different interface for inbound messages, carring a message-specific class instance.',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'// for each inbound message render a definition that receives a single message class parameter.
+// add each message class to the imports for the interface being rendered.
+select one port related by self->PortDescriptor[R4162]->Port[R4161.''specializes''];
+select one iface related by port->Interface[R418.''implements''];
+select one file related by iface->File[R401];
+msgpkg = T::sub( format:"l", s:STRING::substr( s:iface.name, begin:1, end:-1 ));
+pkg = iface.package + "." + msgpkg;
+
+msgs = param.msgs;
+for each msg in msgs
+	::addStringToImports( file:file, s:pkg + "." + msg.name + "Msg", type: ImportType::IMPL );
+	T::include(file:"interface/t.springmsg.def.java");	
+end for;   ',
+	1,
+	'',
+	"72dfcf15-84d1-477f-9e32-2d55230ee7fb",
+	0,
+	2);
+INSERT INTO O_TPARM
+	VALUES ("7d597e5d-d9ad-449e-84d0-ed97f2078304",
+	"c941aa65-0432-46d6-b689-12c8eaf187f4",
+	'msgs',
+	"22c2b7b2-b4eb-410e-ba26-53683605f2be",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("22c2b7b2-b4eb-410e-ba26-53683605f2be",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref_set<Message>',
+	'',
+	'',
+	'../interfaces.xtuml');
+INSERT INTO O_TFR
+	VALUES ("140b1c54-1226-4f98-a703-1c38f5e335a2",
+	"b2989ac2-663c-402c-849f-59fe2b7ac4d9",
+	'render_port',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'select one port related by self->PortDescriptor[R4162]->Port[R4161.''specializes''];
+select one containing_comp_def related by port->ComponentDefinition[R417];
+select one file related by port->File[R401];
+select any app related by containing_comp_def->Application[R426.''is instantiated by''];
+::addStringToImports( file:file, s:app.package + ".SpringMsg", type: ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.runtime.summit.application.IRunContext", type: ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.runtime.summit.application.tasks.ReceivedMessageTask", type: ImportType::IMPL );
+
+// render inbound messages
+inmsgs = port.render_incoming_msgs();
+inbound_message_block = T::body();
+T::clear();
+
+// render outbound messages
+outmsgs = port.render_outgoing_msgs();
+outbound_message_block = T::body();
+T::clear();
+
+pkg = "";
+unpack_message_block = "";
+if ( not_empty inmsgs )
+  select one iface related by port->Interface[R418.''implements''];
+	msgpkg = T::sub( format:"l", s:STRING::substr( s:iface.name, begin:1, end:-1 ));
+	pkg = iface.package + "." + msgpkg;
+	for each port_msg in inmsgs
+    ::addStringToImports( file:file, s:pkg + "." + port_msg.msg_name + "Msg", type: ImportType::IMPL );
+    port_msg.render_msg_decode();
+	end for;
+  unpack_message_block = T::body();
+  T::clear();
+
+	for each port_msg in inmsgs
+	  select one msg related by port_msg->Message[R420.''provides implementation for''];
+	  msg.render_msgclass();
+	end for;
+end if;
+
+sendmethod = "";
+topic = self.subscribe_topic;
+if ( topic == "" )  // default topic to endpoint value string
+	select one endpoint related by self->StompEndPoint[R4163.''specifies''];
+	topic = endpoint.endpoint;
+end if;
+add_sub_topic = self.subtopic_parm;
+T::include(file:"interface/t.port.send.java");
+sendmethod = T::body();
+T::clear();
+
+imports = file.getFormattedImports( type:ImportType::IMPL );
+
+T::include(file:"interface/t.spring.port.java");
+T::emit( file:file.path + "/" + port.name + file.extension );
+T::clear();',
+	1,
+	'',
+	"c941aa65-0432-46d6-b689-12c8eaf187f4",
+	0,
+	3);
+INSERT INTO O_TFR
+	VALUES ("4bd420c6-057a-4a88-8456-5400d27fc2a0",
+	"b2989ac2-663c-402c-849f-59fe2b7ac4d9",
+	'create',
+	'',
+	"2608ff27-bd60-4d82-bb0f-9aa6a70dd62a",
+	0,
+	'create object instance sws of SpringWebSocket;
+port = param.port;
+create object instance descr of PortDescriptor;
+relate sws to descr across R4162;
+relate descr to port across R4161.''specializes'';
+sws.subscribe_topic = "";
+sws.subtopic_parm = "";
+return sws;',
+	1,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	0,
+	4);
+INSERT INTO O_TPARM
+	VALUES ("a17b0f7a-2986-4fbb-8cf9-c62db5c0723f",
+	"4bd420c6-057a-4a88-8456-5400d27fc2a0",
+	'port',
+	"d29fe14e-2574-4613-ac57-716ebd8e905c",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("d29fe14e-2574-4613-ac57-716ebd8e905c",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Port>',
+	'',
+	'',
+	'../interfaces.xtuml');
+INSERT INTO S_DT_PROXY
+	VALUES ("2608ff27-bd60-4d82-bb0f-9aa6a70dd62a",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<SpringWebSocket>',
+	'',
+	'',
+	'../interfaces.xtuml');
+INSERT INTO O_TFR
+	VALUES ("094608ee-c234-4be4-b39c-76eaa7dd0b02",
+	"b2989ac2-663c-402c-849f-59fe2b7ac4d9",
+	'render_comp_port_accessor',
+	'Renders a method by which a component can retrieve a handle to its port.
+It may serve to instantiate the port, depending on initialization circumstances.',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'// a WebSocket port is created as part of SZpring initialization.
+// the accessor method returns the value of ''singleton'' saved by the port constructor.
+select one port related by self->PortDescriptor[R4162]->Port[R4161.''specializes''];
+use_singleton = true;
+T::include(file:"interface/t.portaccessor.java");',
+	1,
+	'',
+	"140b1c54-1226-4f98-a703-1c38f5e335a2",
+	0,
+	5);
+INSERT INTO O_TFR
+	VALUES ("61e71294-d687-4a15-a2b9-2fac25180ee3",
+	"b2989ac2-663c-402c-849f-59fe2b7ac4d9",
+	'get_sendtest',
+	'returns a string for template substitution as a test for forwarding a message to port ''send'' method.',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	1,
+	'// Always transmit an outgoing message on a Websocket port.
+return "true";',
+	1,
+	'',
+	"d505204d-abbf-4c3c-a7be-cae21ea92f64",
+	0,
+	6);
+INSERT INTO O_TFR
+	VALUES ("d505204d-abbf-4c3c-a7be-cae21ea92f64",
+	"b2989ac2-663c-402c-849f-59fe2b7ac4d9",
+	'get_interface_file_suffix',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	1,
+	'return "_sws";',
+	1,
+	'',
+	"094608ee-c234-4be4-b39c-76eaa7dd0b02",
+	0,
+	7);
+INSERT INTO O_NBATTR
+	VALUES ("e38ce274-1d36-4d65-be04-ddd678b52c2a",
+	"b2989ac2-663c-402c-849f-59fe2b7ac4d9");
+INSERT INTO O_BATTR
+	VALUES ("e38ce274-1d36-4d65-be04-ddd678b52c2a",
+	"b2989ac2-663c-402c-849f-59fe2b7ac4d9");
+INSERT INTO O_ATTR
+	VALUES ("e38ce274-1d36-4d65-be04-ddd678b52c2a",
+	"b2989ac2-663c-402c-849f-59fe2b7ac4d9",
+	"00000000-0000-0000-0000-000000000000",
+	'subscribe_topic',
+	'A mark-supplied string by which message recipients specify interest in messages from a specialized port.',
+	'',
+	'subscribe_topic',
+	0,
+	"ba5eda7a-def5-0000-0000-000000000004",
+	'',
+	'');
+INSERT INTO O_NBATTR
+	VALUES ("c3530416-0b26-4326-ad28-4f3a4abb780c",
+	"b2989ac2-663c-402c-849f-59fe2b7ac4d9");
+INSERT INTO O_BATTR
+	VALUES ("c3530416-0b26-4326-ad28-4f3a4abb780c",
+	"b2989ac2-663c-402c-849f-59fe2b7ac4d9");
+INSERT INTO O_ATTR
+	VALUES ("c3530416-0b26-4326-ad28-4f3a4abb780c",
+	"b2989ac2-663c-402c-849f-59fe2b7ac4d9",
+	"e38ce274-1d36-4d65-be04-ddd678b52c2a",
+	'subtopic_parm',
+	'The name of a message parameter which, if present, is used to refine the subscription topic.',
+	'',
+	'subtopic_parm',
+	0,
+	"ba5eda7a-def5-0000-0000-000000000004",
+	'',
+	'');
+INSERT INTO O_ID
+	VALUES (0,
+	"b2989ac2-663c-402c-849f-59fe2b7ac4d9");
+INSERT INTO O_ID
+	VALUES (1,
+	"b2989ac2-663c-402c-849f-59fe2b7ac4d9");
+INSERT INTO O_ID
+	VALUES (2,
+	"b2989ac2-663c-402c-849f-59fe2b7ac4d9");
+INSERT INTO PE_PE
+	VALUES ("b2989ac2-663c-402c-849f-59fe2b7ac4d9",
+	1,
+	"034a6dc6-ed87-4d18-8620-a825db8eaa7b",
+	"00000000-0000-0000-0000-000000000000",
+	4);
+INSERT INTO EP_PKG_PROXY
+	VALUES ("034a6dc6-ed87-4d18-8620-a825db8eaa7b",
+	"00000000-0000-0000-0000-000000000000",
+	"9092a4a9-91f5-4e59-984b-3ca72917240d",
+	'interfaces',
+	'Interfaces support passing instances and sets of instances as parameters on Port Messages.
+Where commmunicating components are represented by xtUML models, this is only practical 
+because components share component independent definitions of classes - and, therefore, 
+sets of class instances - through the Package Reference mechanism.
+
+While shared attribute, association and state model definitions of such classes are immutable,
+within xtUML components, shared classes may participate in component-specific associations.
+
+Since each component-specific class interface includes methods for all associations -
+including component-specific ones - in which the class participates, each method representing 
+an inter-component message must use component-independent interfaces to declare inst_ref and 
+inst_ref_set parameters. Therefore, methods realizing port-message activities must also use 
+component-independent interfaces when declaring such parameters which are then down-cast to 
+the receiving-component-specific class or class set required by the body of the port-message 
+activity.
+',
+	0,
+	'../interfaces.xtuml');

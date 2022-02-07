@@ -1,10 +1,10 @@
-package ${self.package};
+package ${port.package};
 
 ${imports}
 
-public class ${self.name} extends ${self.base_class}<${self.comp_name}> implements ${self.iface_name} {
+public class ${port.name} extends ${port.base_class}<${port.comp_name}> implements ${port.iface_name} {
 
-    public ${self.name}( ${self.comp_name} context, IPort<?> peer ) {
+    public ${port.name}( ${port.comp_name} context, IPort<?> peer ) {
         super( context, peer );
     }
 
@@ -28,7 +28,7 @@ ${extra_parameters}
 
     @Override
     public String getName() {
-        return "${self.port_name}";
+        return "${port.port_name}";
     }
 
 }

@@ -18,7 +18,6 @@ INSERT INTO O_TFR
 	1,
 	'containing_comp_def = param.containing_comp_def;
 
-select one port related by self->Port[R420];
 select one message related by self->Message[R420];
 parameter_list = "";
 select one invocable related by self->InvocableObject[R427];
@@ -64,7 +63,10 @@ end while;
 parmcasts = T::body();
 T::pop_buffer();
 
-inbound = ( port.provider and message.to_provider ) or ( not port.provider and not message.to_provider );
+select one port related by self->Port[R420.''is implemented within''];
+inbound = ( port.provider == message.to_provider );
+select one descriptor related by port->PortDescriptor[R4161.''is specialized by''];
+sendtest = descriptor.get_sendtest();
 T::include(file:"interface/t.portmessage.java");',
 	1,
 	'',
@@ -91,7 +93,7 @@ INSERT INTO O_TFR
 	VALUES ("0b094dc4-af53-4c8f-8ee7-2d014dfe2d49",
 	"f324607b-67c6-4abd-90c0-9dfb3d9e8e63",
 	'render_deliver',
-	'',
+	'Render the switch block which routes incoming messages to port activities.',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'// Generate the receiver of a Port Messsage which will be invoked in context from a peer Port ''send''.
@@ -149,6 +151,7 @@ while ( not_empty msg_parm )
     end if;
     message_parameter_list = message_parameter_list + sep + parm_dt.type_reference_name + ".deserialize(" + accessor + ")";
   end if;
+  key = STRING::substr( s:pname, begin:2, end:-1 );
   T::include( file:"interface/t.deserialize.parm.java" );
   sep = ", ";
   i = i + 1;
@@ -168,6 +171,54 @@ T::include(file:"interface/t.message.deliver.java");',
 	"ebb83977-1afb-439f-99ff-6fcf7a82d93c",
 	0,
 	0);
+INSERT INTO O_TFR
+	VALUES ("6f088eda-6930-4ff8-abec-c8c19bbd4e6e",
+	"f324607b-67c6-4abd-90c0-9dfb3d9e8e63",
+	'render_msg_decode',
+	'Render the code to unpack port activity parameters from the members of an ''incoming'' message class.',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'// render a method to unpack port activity parameter values from a supplied message class instance.
+select any parm related by self->InvocableObject[R427]->FormalParameter[R429.''declares signature with''];
+select one prev_parm related by parm->FormalParameter[R404.''follows''];
+while ( not_empty prev_parm )
+  parm = prev_parm;
+  select one prev_parm related by parm->FormalParameter[R404.''follows''];
+end while;
+sep = "";
+parmlist = "";
+while ( not_empty parm )
+  select one dtyp related by parm->TypeReference[R431.''is typed by''];
+  conversion = "";
+  closeParen = "";
+  tname = dtyp.type_name;
+  if ( "String" != tname )
+    closeParen = " )";
+    if ( "boolean" == tname )
+      conversion = "Boolean.parseBoolean( ";
+    elif ( "int" == tname )
+      conversion = "Integer.parseInt( ";
+    elif ( "double" == tname )
+      conversion ="Double.parseDouble( ";
+    end if;
+  end if;
+  // parameter names are prefixed to avoid clashing with Java keywords; remove this in constructing accessor name.
+  pname = STRING::substr( s:parm.name, begin:2, end:-1 );
+  firstchar = STRING::substr( s:pname, begin:0, end:1 );
+  fname = T::sub( format:"c", s:firstchar ) + STRING::substr( s:pname, begin:1, end:-1 );
+  getm = conversion + "message.get" + fname + "()" + closeParen;
+  parmlist = parmlist + sep + getm;
+  sep = ", ";
+  select one parm related by parm->FormalParameter[R404.''precedes''];
+end while;
+mname = self.msg_name;
+
+T::include(file:"interface/t.message.decode.java");',
+	1,
+	'',
+	"0b094dc4-af53-4c8f-8ee7-2d014dfe2d49",
+	0,
+	3);
 INSERT INTO O_REF
 	VALUES ("f324607b-67c6-4abd-90c0-9dfb3d9e8e63",
 	"28dc1d65-54a1-4be8-98f3-a6f65c69cdff",

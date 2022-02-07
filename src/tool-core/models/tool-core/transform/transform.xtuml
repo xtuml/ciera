@@ -377,6 +377,7 @@ select one s_sys related by root_package->S_SYS[R1405];
 // get application marks
 select any app_name_mark from instances of Mark where ( selected.markable_name == "*" and selected.path == "*" and selected.feature_name == "ApplicationName" );
 select any app_pkg_mark from instances of Mark where ( selected.markable_name == "*" and selected.path == "*" and selected.feature_name == "ApplicationPackage" );
+select any app_natr_mark from instances of Mark where ( selected.markable_name == "*" and selected.path == "*" and selected.feature_name == "ApplicationNature" );
 
 // create the file
 create object instance file of File;
@@ -398,6 +399,19 @@ file.exclude = false;
 // create the application object
 create object instance app of Application;
 relate app to file across R401;
+if ( not_empty app_natr_mark )
+  if ( app_natr_mark.value == "SpringApplication" )
+    create object instance spring_app of SpringApplication;
+    relate spring_app to app across R4030;
+  else
+    LOG::LogInfo( message:"No application nature matches mark value: " + app_natr_mark.value );
+    create object instance std_app of StandardApplication;
+    relate std_app to app across R4030;
+  end if;
+else
+  create object instance std_app of StandardApplication;
+  relate std_app to app across R4030;
+end if;
 
 // see if this needs to be generated as an asynchronous application
 select any async_app_mark from instances of Mark where ( selected.markable_name == "*" and selected.path == "*" and selected.feature_name == "AsyncApplication" );
@@ -2000,45 +2014,52 @@ INSERT INTO S_SYNC
 	"00000000-0000-0000-0000-000000000000",
 	'transformInterface',
 	'',
-	'c_i = param.c_i;
-select one iface related by c_i->Interface[R421];
-if ( empty iface )
+	'port = param.port;
+c_i = param.c_i;
 
-  // create the file
-  create object instance file of File;
-  file.name = "I" + ::camelCaseName( name:c_i.Name, start_lower:false );
-  file.path = param.path;
-  file.package = ::pathToPackage( path:file.path );
-  file.extension = ".java";
-  file.exclude = false;
+// a non-standard Port may require an interface file to be suffixed for differentiation.
+select one specializer related by port->PortDescriptor[R4161];
+suffix = specializer.get_interface_file_suffix();
 
-  // create the interface package object
-  create object instance iface of Interface;
-  relate iface to file across R401;
+// create the file
+create object instance file of File;
+file.name = "I" + ::camelCaseName( name:c_i.Name, start_lower:false ) + suffix;
+file.path = param.path;
+file.package = ::pathToPackage( path:file.path );
+file.extension = ".java";
+file.exclude = false;
 
-  // relate to the c_i
-  relate iface to c_i across R421;
+// create the interface package object
+create object instance iface of Interface;
+relate iface to file across R401;
+iface.serialize_msgs = param.serialize;
 
-  // is this Interface marked for message parameter serialization?
-	select one pe related by c_i->PE_PE[R8001];
-	select any serialize_mark from instances of Mark 
-	 where ( selected.markable_name == "Interface" and
-	         selected.path == ::containerMarkingPath( pe:pe ) + "::" + c_i.Name and
-	         selected.feature_name == "Serialize" );
-	if ( not_empty serialize_mark )
-		iface.serialize_msgs = true;
-	end if;                                                          
+// relate to the c_i
+relate iface to c_i across R421;
+relate iface to port across R418;
 
-  // transform messages
-  // sort by name to assure consistent translation
-  select many c_eps related by c_i->C_EP[R4003];
-  index = 1;
-  for each c_ep in c_eps
-    ::transformMessage( c_ep:c_ep, iface:iface, index:index );
-    index = index + 1;
-  end for;
+// is this Interface marked for message parameter serialization?
+select one pe related by c_i->PE_PE[R8001];
+select any serialize_mark from instances of Mark 
+ where ( selected.markable_name == "Interface" and
+         selected.path == ::containerMarkingPath( pe:pe ) + "::" + c_i.Name and
+         selected.feature_name == "Serialize" );
+if ( not_empty serialize_mark )
+	iface.serialize_msgs = true;
+end if;                                                          
 
-end if;',
+// transform messages
+// sort by name to assure consistent translation
+select many c_eps related by c_i->C_EP[R4003];
+index = 1;
+for each c_ep in c_eps
+  ::transformMessage( c_ep:c_ep, iface:iface, index:index );
+  index = index + 1;
+end for;
+
+::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL );
+::addStringToImports( file:file, s:"io.ciera.runtime.summit.interfaces.Message", type:ImportType::IMPL );
+',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -2068,6 +2089,31 @@ INSERT INTO S_SPARM
 	0,
 	'',
 	"9fda5ab1-f5ea-49cf-a065-4acac8ccbb18",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("b239a0ef-0346-49c6-b10e-dc828b5c8ea9",
+	"f8603c94-90cc-4b20-9c6e-f665ce733d20",
+	'port',
+	"d29fe14e-2574-4613-ac57-716ebd8e905c",
+	0,
+	'',
+	"3d1e527a-9091-4e1b-a000-daf06870359d",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("d29fe14e-2574-4613-ac57-716ebd8e905c",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Port>',
+	'',
+	'',
+	'../architecture/interfaces/interfaces.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("ba6a8df8-d523-4612-9280-0a467cd6a83d",
+	"f8603c94-90cc-4b20-9c6e-f665ce733d20",
+	'serialize',
+	"ba5eda7a-def5-0000-0000-000000000001",
+	0,
+	'',
+	"b239a0ef-0346-49c6-b10e-dc828b5c8ea9",
 	'');
 INSERT INTO PE_PE
 	VALUES ("f8603c94-90cc-4b20-9c6e-f665ce733d20",
@@ -2100,11 +2146,7 @@ elif ( not_empty c_io )
 end if;
 relate msg to iface across R419;
 
-end if;
-
-select one file related by iface->File[R401];
-::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL );
-::addStringToImports( file:file, s:"io.ciera.runtime.summit.interfaces.Message", type:ImportType::IMPL );',
+end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -2531,10 +2573,22 @@ relate port to file across R401;
 relate port to c_po across R422;
 port.port_name = ::camelCaseName( name:c_po.Name, start_lower:false );
 
-// set base class
+// set port as provider or requirer
+select any c_p related by c_po->C_IR[R4016]->C_P[R4009];
+port.provider = not_empty c_p;
+
+// relate to component
+relate port to comp_def across R417;
+// add to component file
+select one component_file related by comp_def->File[R401];
+::addFileToImports( file:component_file, file_to_import:file, type:ImportType::IMPL );
+
+path_for_mark = ::containerMarkingPath( pe:pe ) + "::" + c_c.Name + "::" + c_po.Name;
+
 select any base_class_mark from instances of Mark where ( selected.markable_name == "Port" and
-                                                          selected.path == ::containerMarkingPath( pe:pe ) + "::" + c_c.Name + "::" + c_po.Name and
+                                                          selected.path == path_for_mark and
                                                           selected.feature_name == "BaseClass" );
+// set base class
 if ( not_empty base_class_mark )
   port.base_class = base_class_mark.value;
   ::addStringToImports( file:file, s:"io.ciera.runtime.summit.interfaces." + base_class_mark.value, type:ImportType::IMPL );
@@ -2543,38 +2597,32 @@ else
   ::addStringToImports( file:file, s:"io.ciera.runtime.summit.interfaces.Port", type:ImportType::IMPL );
 end if;
 
-// set port as provider or requirer
-select any c_p related by c_po->C_IR[R4016]->C_P[R4009];
-port.provider = not_empty c_p;
-
-// relate to other component
-relate port to comp_def across R417;
-
-// relate to iface if the iface is there
-select any c_i related by c_po->C_IR[R4016]->C_I[R4012];
-select one iface related by c_i->Interface[R421];
-if ( empty iface and not_empty c_i )
-  select one ep_pkg related by c_i->PE_PE[R8001]->EP_PKG[R8000];
-  if ( not_empty ep_pkg )
-    ::transformInterface( c_i:c_i, path: ::ep_pkgToPath( ep_pkg:ep_pkg ) );
+// determine port specialization
+select any port_type_mark from instances of Mark where ( selected.markable_name == "Port" and
+                                                          selected.path == path_for_mark and
+                                                          selected.feature_name == "PortType" );
+if ( not_empty port_type_mark )
+  if (port_type_mark.value == "SpringWebSocket" )
+    ::transformSpringPort( port:port, mark_path: path_for_mark );
+  else
+    LOG::LogInfo( message:"No port type matches mark value: " + port_type_mark.value + " - using default" );
+    ::transformXtumlPort( port:port, mark_path: path_for_mark );
   end if;
-  select one iface related by c_i->Interface[R421];
+else
+  ::transformXtumlPort( port:port, mark_path: path_for_mark );
 end if;
+
+select one iface related by port->Interface[R418];
 if ( not_empty iface )
-  relate port to iface across R418;
   select many msgs related by iface->Message[R419];
   for each msg in msgs
     ::transformPortMessage( port:port, msg:msg );
   end for;
-  select one iface_file related by iface->File[R401];
-  ::addFileToImports( file:file, file_to_import:iface_file, type:ImportType::IMPL );
 else
-  // TODO bad
+  LOG::LogInfo( message:"No interface associated with port: " + port.port_name );
+  return;  // no iface->File...
 end if;
 
-// add to component file
-select one component_file related by comp_def->File[R401];
-::addFileToImports( file:component_file, file_to_import:file, type:ImportType::IMPL );
 
 // add imports
 ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.BadArgumentException", type:ImportType::IMPL );
@@ -2584,7 +2632,8 @@ select one component_file related by comp_def->File[R401];
 ::addStringToImports( file:file, s:"java.util.Iterator", type:ImportType::IMPL );
 ::addFileToImports( file:file, file_to_import:component_file, type:ImportType::IMPL );
 select one iface_file related by iface->File[R401];
-::addFileToImports( file:file, file_to_import:iface_file, type:ImportType::IMPL );',
+::addFileToImports( file:file, file_to_import:iface_file, type:ImportType::IMPL );
+',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -2743,13 +2792,6 @@ INSERT INTO S_SPARM
 	'',
 	"00000000-0000-0000-0000-000000000000",
 	'');
-INSERT INTO S_DT_PROXY
-	VALUES ("d29fe14e-2574-4613-ac57-716ebd8e905c",
-	"00000000-0000-0000-0000-000000000000",
-	'inst_ref<Port>',
-	'',
-	'',
-	'../architecture/interfaces/interfaces.xtuml');
 INSERT INTO S_SPARM
 	VALUES ("eeeff60a-c20e-402e-9400-be4d292ac084",
 	"41a2caee-c0d7-4723-8aaf-5b7aec8462ab",
@@ -3801,6 +3843,135 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("70b77a96-efe5-4504-a7c8-6e3b43562e61",
+	1,
+	"302d02ea-52a7-489d-a14b-18b29f3c8d86",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("b851a9e2-6c8a-48e8-abfc-8ee8db9344cc",
+	"00000000-0000-0000-0000-000000000000",
+	'transformXtumlPort',
+	'',
+	'port = param.port;
+path_for_mark = param.mark_path;
+xtuml = xtUML::create( port:port );
+
+select any c_i related by port->C_PO[R422]->C_IR[R4016]->C_I[R4012];
+select any xtuml_port related by c_i->Interface[R421]->Port[R418]->PortDescriptor[R4161]->xtUML[R4162];
+if ( not empty xtuml_port )
+  select one iface related by xtuml_port->PortDescriptor[R4162]->Port[R4161]->Interface[R418];
+  relate iface to port across R418;
+else
+  select one ep_pkg related by c_i->PE_PE[R8001]->EP_PKG[R8000];
+  if ( not_empty ep_pkg )
+    ::transformInterface( c_i:c_i, path: ::ep_pkgToPath( ep_pkg:ep_pkg ), port:port, serialize:false );
+  end if;
+end if;
+',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	2);
+INSERT INTO S_SPARM
+	VALUES ("a1923d34-3cef-4e4e-b8dc-36872dd2d95f",
+	"b851a9e2-6c8a-48e8-abfc-8ee8db9344cc",
+	'mark_path',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"1103c038-4d86-4d4b-9599-f59a87fbfd57",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("1103c038-4d86-4d4b-9599-f59a87fbfd57",
+	"b851a9e2-6c8a-48e8-abfc-8ee8db9344cc",
+	'port',
+	"d29fe14e-2574-4613-ac57-716ebd8e905c",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'The ''parent'' port which is specialized.');
+INSERT INTO PE_PE
+	VALUES ("b851a9e2-6c8a-48e8-abfc-8ee8db9344cc",
+	1,
+	"302d02ea-52a7-489d-a14b-18b29f3c8d86",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("253635c3-a285-4e98-b3f9-f2db6dc6ccd6",
+	"00000000-0000-0000-0000-000000000000",
+	'transformSpringPort',
+	'',
+	'port = param.port;
+path_for_mark = param.mark_path;
+sws = SpringWebSocket::create( port:port );
+
+select any endpoint_mark from instances of Mark where ( selected.markable_name == "Port" and
+                                                      selected.path == path_for_mark and
+                                                      selected.feature_name == "EndPoint" );
+if ( not_empty endpoint_mark )
+  socketname = endpoint_mark.value;
+  select any endpoint from instances of StompEndPoint
+   where ( selected.endpoint == socketname );
+  if ( empty endpoint )
+    create object instance endpoint of StompEndPoint;
+    endpoint.endpoint = socketname;
+  end if;
+  relate sws to endpoint across R4163;
+end if;
+
+select any topic_mark from instances of Mark where ( selected.markable_name == "Port" and
+                                                      selected.path == path_for_mark and
+                                                      selected.feature_name == "SubscribeTopic" );
+if ( not_empty topic_mark )
+  sws.subscribe_topic = topic_mark.value;
+end if;
+
+select any subtopic_mark from instances of Mark where ( selected.markable_name == "Port" and
+                                                      selected.path == path_for_mark and
+                                                      selected.feature_name == "SubTopicParameter" );
+if ( not_empty subtopic_mark )
+  sws.subtopic_parm = subtopic_mark.value;
+end if;
+
+
+select any c_i related by port->C_PO[R422]->C_IR[R4016]->C_I[R4012];
+select any spring_port related by c_i->Interface[R421]->Port[R418]->PortDescriptor[R4161]->SpringWebSocket[R4162];
+if ( not empty spring_port )
+  select one iface related by spring_port->PortDescriptor[R4162]->Port[R4161]->Interface[R418];
+  relate iface to port across R418;
+else
+  select one ep_pkg related by c_i->PE_PE[R8001]->EP_PKG[R8000];
+  if ( not_empty ep_pkg )
+    ::transformInterface( c_i:c_i, path: ::ep_pkgToPath( ep_pkg:ep_pkg ), port:port, serialize:true );
+  end if;
+end if;
+',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	3);
+INSERT INTO S_SPARM
+	VALUES ("c77bd7be-144e-46d6-ba6a-5b868d261e47",
+	"253635c3-a285-4e98-b3f9-f2db6dc6ccd6",
+	'mark_path',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"adb50d72-a681-4bff-897e-37a5424a772b",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("adb50d72-a681-4bff-897e-37a5424a772b",
+	"253635c3-a285-4e98-b3f9-f2db6dc6ccd6",
+	'port',
+	"d29fe14e-2574-4613-ac57-716ebd8e905c",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'The ''parent'' port which is specialized.');
+INSERT INTO PE_PE
+	VALUES ("253635c3-a285-4e98-b3f9-f2db6dc6ccd6",
 	1,
 	"302d02ea-52a7-489d-a14b-18b29f3c8d86",
 	"00000000-0000-0000-0000-000000000000",

@@ -1,15 +1,19 @@
 package ${self.package};
 
-${imports}
+${imports}\
 
+${app_nature}\
 public class ${self.name} implements IApplication {
 
     private IComponent<?>[] components;
     private ApplicationExecutor[] executors;
+    private static ${self.name} singleton; // valid only if a deployment contains a single application.
 
     public ${self.name}() {
         components = new IComponent<?>[$t{num_component_instances}];
         executors = new ApplicationExecutor[$t{num_executors}];
+        singleton = this;
+${constructor_extra}
     }
 
     @Override
@@ -72,16 +76,5 @@ ${component_getters}
         }
     }
 
-    public static void main( String[] args ) {
-        IApplication app = new ${self.name}();
-        app.setup( args, null );
-        if ( Arrays.asList(args).contains("-v") || Arrays.asList(args).contains("--version") ) {
-            app.printVersions();
-        }
-        else {
-            app.initialize();
-            app.start();
-        }
-    }
-
+${app_main}
 }

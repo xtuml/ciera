@@ -1,1 +1,1 @@
-${sep}${deserializer}.deserialize(message.getParm("${pname}")${context})\
+${sep}${deserializer}.deserialize(message.getParm("${key}")${context})\

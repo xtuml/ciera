@@ -1,0 +1,220 @@
+-- BP 7.1.6 content: ModelClass syschar: 3 persistence-version: 7.1.6
+
+INSERT INTO O_OBJ
+	VALUES ("905e3a64-67e9-4c20-9aa8-93f5685c88eb",
+	'xtUML',
+	6,
+	'xtUML',
+	'An extension class which specializes a port to support xtUML-to-xtUML messaging.',
+	"00000000-0000-0000-0000-000000000000");
+INSERT INTO O_TFR
+	VALUES ("cea93cc6-95ab-4669-b177-7bdf52f8cd8e",
+	"905e3a64-67e9-4c20-9aa8-93f5685c88eb",
+	'render_interface',
+	'Render a standard Ciera interface file.',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'select one port related by self->PortDescriptor[R4162]->Port[R4161.''specializes''];
+select one iface related by port->Interface[R418.''implements''];
+select one file related by iface->File[R401];
+
+select many to_provider_msgs related by iface->Message[R419.''defines communication through'']
+ where ( selected.to_provider );
+for each msg in to_provider_msgs
+  msg.render();
+end for;
+to_provider_message_block = T::body();
+T::clear();
+
+select many from_provider_msgs related by iface->Message[R419.''defines communication through'']
+ where ( not selected.to_provider );
+for each msg in from_provider_msgs
+  msg.render();
+end for;
+from_provider_message_block = T::body();
+T::clear();
+
+imports = file.getFormattedImports( type:ImportType::IMPL );
+T::include(file:"interface/t.interface.java");
+T::emit( file:file.path + "/" + iface.name + file.extension );
+T::clear();
+',
+	1,
+	'',
+	"4ec91a58-19ba-46f5-b6b6-c9f794541be7",
+	0,
+	1);
+INSERT INTO O_TFR
+	VALUES ("1600fa19-6b72-4499-9d8d-b18a92465f06",
+	"905e3a64-67e9-4c20-9aa8-93f5685c88eb",
+	'render_port',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'select one port related by self->PortDescriptor[R4162]->Port[R4161.''specializes''];
+select one file related by port->File[R401];
+imports = file.getFormattedImports( type:ImportType::IMPL );
+
+// render inbound messages
+inmsgs = port.render_incoming_msgs();
+inbound_message_block = T::body();
+T::clear();
+
+// render outbound messages
+outmsgs = port.render_outgoing_msgs();
+outbound_message_block = T::body();
+T::clear();
+
+// render incoming message switch block
+for each portmsg in inmsgs
+	portmsg.render_deliver();
+end for;
+message_switch_block = T::body();
+T::clear();
+
+// render extra parameters
+extra_parameters = "";
+if ( "HttpPort" == port.base_class )
+  select one c_po related by port->C_PO[R422];
+  select one c_c related by c_po->C_C[R4010];
+  select one pe related by c_c->PE_PE[R8001];
+  select any http_endpoint_mark from instances of Mark where ( selected.markable_name == "Port" and
+                                                               selected.path == ::containerMarkingPath( pe:pe ) + "::" + c_c.Name + "::" + c_po.Name and
+                                                               selected.feature_name == "HttpEndpoint" );
+  endpoint = http_endpoint_mark.value;
+  T::include(file:"interface/t.port.http.java");
+  extra_parameters = T::body();
+  T::clear();
+end if;
+
+T::include(file:"interface/t.port.java");
+T::emit( file:file.path + "/" + port.name + file.extension );
+T::clear();',
+	1,
+	'',
+	"cea93cc6-95ab-4669-b177-7bdf52f8cd8e",
+	0,
+	2);
+INSERT INTO O_TFR
+	VALUES ("4ec91a58-19ba-46f5-b6b6-c9f794541be7",
+	"905e3a64-67e9-4c20-9aa8-93f5685c88eb",
+	'create',
+	'',
+	"82eeec2d-dd16-45fb-8e06-2553ed4ff6c5",
+	0,
+	'create object instance std of xtUML;
+port = param.port;
+create object instance descr of PortDescriptor;
+relate std to descr across R4162;
+relate descr to port across R4161.''specializes'';
+return std;',
+	1,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	0,
+	4);
+INSERT INTO O_TPARM
+	VALUES ("d75def12-626e-4dbf-837e-f961885b0bdd",
+	"4ec91a58-19ba-46f5-b6b6-c9f794541be7",
+	'port',
+	"d29fe14e-2574-4613-ac57-716ebd8e905c",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("d29fe14e-2574-4613-ac57-716ebd8e905c",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Port>',
+	'',
+	'',
+	'../interfaces.xtuml');
+INSERT INTO S_DT_PROXY
+	VALUES ("82eeec2d-dd16-45fb-8e06-2553ed4ff6c5",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<xtUML>',
+	'',
+	'',
+	'../interfaces.xtuml');
+INSERT INTO O_TFR
+	VALUES ("cf3f4e12-3eb4-4b99-895d-cedabd70e8a8",
+	"905e3a64-67e9-4c20-9aa8-93f5685c88eb",
+	'render_comp_port_accessor',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'// a ''standard'' xtUML port is created on first invocation of its accessor.
+select one port related by self->PortDescriptor[R4162]->Port[R4161.''specializes''];
+use_singleton = false;
+T::include(file:"interface/t.portaccessor.java");',
+	1,
+	'',
+	"1600fa19-6b72-4499-9d8d-b18a92465f06",
+	0,
+	5);
+INSERT INTO O_TFR
+	VALUES ("bb9d6032-a247-4b7e-a915-7eb84af9b797",
+	"905e3a64-67e9-4c20-9aa8-93f5685c88eb",
+	'get_sendtest',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	1,
+	'// This test is used to determine whether a message should be presented to a Ciera port for transmission.
+// If the port is not ''satisfied'' - connected to a peer Ciera port - the port activity OAL is rendered.
+return "satisfied()";',
+	1,
+	'',
+	"e9119268-015e-452e-a0bb-bbeb084137c4",
+	0,
+	6);
+INSERT INTO O_TFR
+	VALUES ("e9119268-015e-452e-a0bb-bbeb084137c4",
+	"905e3a64-67e9-4c20-9aa8-93f5685c88eb",
+	'get_interface_file_suffix',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	1,
+	'return "";',
+	1,
+	'',
+	"cf3f4e12-3eb4-4b99-895d-cedabd70e8a8",
+	0,
+	7);
+INSERT INTO O_ID
+	VALUES (0,
+	"905e3a64-67e9-4c20-9aa8-93f5685c88eb");
+INSERT INTO O_ID
+	VALUES (1,
+	"905e3a64-67e9-4c20-9aa8-93f5685c88eb");
+INSERT INTO O_ID
+	VALUES (2,
+	"905e3a64-67e9-4c20-9aa8-93f5685c88eb");
+INSERT INTO PE_PE
+	VALUES ("905e3a64-67e9-4c20-9aa8-93f5685c88eb",
+	1,
+	"034a6dc6-ed87-4d18-8620-a825db8eaa7b",
+	"00000000-0000-0000-0000-000000000000",
+	4);
+INSERT INTO EP_PKG_PROXY
+	VALUES ("034a6dc6-ed87-4d18-8620-a825db8eaa7b",
+	"00000000-0000-0000-0000-000000000000",
+	"9092a4a9-91f5-4e59-984b-3ca72917240d",
+	'interfaces',
+	'Interfaces support passing instances and sets of instances as parameters on Port Messages.
+Where commmunicating components are represented by xtUML models, this is only practical 
+because components share component independent definitions of classes - and, therefore, 
+sets of class instances - through the Package Reference mechanism.
+
+While shared attribute, association and state model definitions of such classes are immutable,
+within xtUML components, shared classes may participate in component-specific associations.
+
+Since each component-specific class interface includes methods for all associations -
+including component-specific ones - in which the class participates, each method representing 
+an inter-component message must use component-independent interfaces to declare inst_ref and 
+inst_ref_set parameters. Therefore, methods realizing port-message activities must also use 
+component-independent interfaces when declaring such parameters which are then down-cast to 
+the receiving-component-specific class or class set required by the body of the port-message 
+activity.
+',
+	0,
+	'../interfaces.xtuml');
