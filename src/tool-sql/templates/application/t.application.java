@@ -5,7 +5,7 @@ ${imports}\
 ${app_nature}\
 public class ${self.name} implements IApplication {
 
-	private IComponent<?>[] components;
+    private IComponent<?>[] components;
     private ApplicationExecutor[] executors;
     private static ${self.name} singleton;
 

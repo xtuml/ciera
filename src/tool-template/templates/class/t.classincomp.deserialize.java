@@ -2,7 +2,7 @@
     	try {
 	        JSONObject jobj = new JSONObject((String)o);
 .if getstate	        
-	        ${self.name} inst = ${self.name}Impl.create( context${attribute_deserializers}, (int)jobj.get("m_Current_state" ) );
+	        ${self.name} inst = ${self.name}Impl.create( context${attribute_deserializers}, (int)jobj.get("current_state" ) );
 .else
             ${self.name} inst = ${self.name}Impl.create( context${attribute_deserializers} );
 .end if

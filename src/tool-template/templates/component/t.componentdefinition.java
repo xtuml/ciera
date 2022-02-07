@@ -6,6 +6,7 @@ public class ${self.name} extends ${self.extends} {
 
     private Map<String, Class<?>> classDirectory;
 
+    // Note: valid only if a deployment does not contain multiple instances of this component.
     private static ${self.name} singleton;
     public static ${self.name} Singleton() {
         return singleton;
