@@ -82,8 +82,12 @@ select one navigation_expression related by masl_expression->NavigationExpressio
 if (not_empty navigation_expression)
   ::transformNavigationExpression(navigation_expression:navigation_expression, smt:smt, expr_number:expr_number);
 else
+select one find_attribute_name_expression related by masl_expression->FindAttributeNameExpression[R5517];
+if (not_empty find_attribute_name_expression)
+  ::transformFindAttributeNameExpression(find_attribute_name_expression:find_attribute_name_expression, smt:smt, expr_number:expr_number);
+else
   LOG::LogInfo( message:"expression type not yet supported" );
-end if; end if; end if; end if; end if; end if; end if; end if; end if; end if;',
+end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -1385,32 +1389,81 @@ INSERT INTO S_SYNC
 smt = param.smt;
 expr_number = param.expr_number;
 
-if find_expression.flavor == FindType::find  // simply pass it through
-  select one root_expression related by find_expression->MaslExpression[R5519];
-  ::transformMaslExpression(masl_expression:root_expression, expr_number:expr_number, smt:smt);
-elif find_expression.flavor == FindType::find_one
+// get the where condition
+select one where_cond related by find_expression->MaslExpression[R5520];
+
+// get the find class
+select one find_class related by find_expression->MaslExpression[R5517]->BasicType[R5570]
+  ->InstanceType[R6205]->ObjectDeclaration[R6220]->Class[R8300];
+if empty find_class
+  select one find_class related by find_expression->MaslExpression[R5517]->BasicType[R5570]
+    ->CollectionType[R6205]->BasicType[R6208]->InstanceType[R6205]->ObjectDeclaration[R6220]->Class[R8300];
+end if;
+  
+// transform root expression
+root_expr_number = expr_number + ".1";
+if not_empty where_cond
+  root_expr_number = expr_number + ".1.1";
+end if;
+select one root_expression related by find_expression->MaslExpression[R5519];
+::transformMaslExpression(masl_expression:root_expression, expr_number:root_expr_number, smt:smt);
+select any root_expr related by smt->Expression[R775] where selected.expression_number == root_expr_number;
+
+// transform where clause
+if not_empty where_cond
+
+  // create where clause
+  create object instance where_expr of Expression;
+  relate where_expr to smt across R775;
+  where_expr.expression_number = expr_number + ".1";
+  select one root_type related by root_expr->TypeReference[R795]->Type[R3800];
+  where_type = ::getObjectStreamReference(obj:find_class);
+  relate where_type to where_expr across R795;
+  create object instance where_clause of WhereExpr;
+  relate where_clause to where_expr across R776;
+  relate root_expr to where_clause across R790;
+  
+  // transform condition expression
+  ::transformMaslExpression(masl_expression:where_cond, expr_number:expr_number + ".1.2", smt:smt);
+  select any cond_expr related by smt->Expression[R775] where selected.expression_number == expr_number + ".1.2";
+  relate cond_expr to where_clause across R796;
+  
+  root_expr = where_expr;
+
+end if;
+
+// create a type conversion from stream to set
+if find_expression.flavor == FindType::find
+  
+  // create expression
+  create object instance expr of Expression;
+  relate expr to smt across R775;
+  expr.expression_number = expr_number;
+  result_type = ::getObjectSetReference(obj:find_class);
+  relate result_type to expr across R795;
+
+  // create type conversion
+  create object instance type_conversion of TypeConversion;
+  relate type_conversion to expr across R776;
+  relate root_expr to type_conversion across R3907;
+  
+
+// create an any expression
+elif (find_expression.flavor == FindType::find_one or find_expression.flavor == FindType::find_only)
 
   // create expression
   create object instance expr of Expression;
   relate expr to smt across R775;
   expr.expression_number = expr_number;
-
-  // link type
-  select one find_class related by find_expression->MaslExpression[R5517]->BasicType[R5570]
-    ->InstanceType[R6205]->ObjectDeclaration[R6220]->Class[R8300];
   inst_type = ::getObjectReference(obj:find_class);
   relate inst_type to expr across R795;
-  
+
   // create any expression
   create object instance any_expr of AnyExpr;
   relate any_expr to expr across R776;
-  select one root_expression related by find_expression->MaslExpression[R5519];
-  ::transformMaslExpression(masl_expression:root_expression, expr_number:expr_number + ".1", smt:smt);
-  select any root_expr related by smt->Expression[R775] where (selected.expression_number == expr_number + ".1");
   relate root_expr to any_expr across R783;
+  any_expr.strict = find_expression.flavor == FindType::find_only;
 
-else
-  // TODO find_only
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -1467,32 +1520,93 @@ smt = param.smt;
 expr_number = param.expr_number;
 
 select one rel_spec related by navigation_expression->RelationshipSpecification[R5531];
+select one from_obj related by rel_spec->ObjectDeclaration[R6014];
+select one using_obj related by rel_spec->RelationshipDeclaration[R6015]->AssociativeRelationshipDeclaration[R6010]->ObjectDeclaration[R6001];
 select one lhs related by navigation_expression->MaslExpression[R5532];
-select one lhs_collection related by navigation_expression->MaslExpression[R5517]->BasicType[R5570]->CollectionType[R6205];
+select one lhs_collection related by lhs->BasicType[R5570]->CollectionType[R6205];
+
+multiplicity = "";
+
+// if the rel spec is a "many" association or the lhs is a collection type,
+// assure that the result type of the expression is an instance set
+select any result_type from instances of TypeReference where false;
+select any obj from instances of Class where false;
+if not_empty lhs_collection or ((empty using_obj or using_obj != from_obj) and (rel_spec.multiplicity == MaslMultiplicity::many))
+  select one obj related by navigation_expression->MaslExpression[R5517]->BasicType[R5570]->CollectionType[R6205]
+    ->BasicType[R6208]->InstanceType[R6205]->ObjectDeclaration[R6220]->Class[R8300];
+  result_type = ::getObjectStreamReference(obj:obj);
+  multiplicity = "many";
+else
+  select one obj related by navigation_expression->MaslExpression[R5517]->BasicType[R5570]->InstanceType[R6205]->ObjectDeclaration[R6220]->Class[R8300];
+  result_type = ::getObjectReference(obj:obj);
+  multiplicity = "one";
+end if;
+
+// create where clause if it exists
+select any where_clause from instances of WhereExpr where false;
+select one where_cond related by navigation_expression->MaslExpression[R5530];
+if not_empty where_cond
+  
+  select any any_expr from instances of AnyExpr where false;
+  if multiplicity == "one"
+
+    // create expression
+    create object instance expr of Expression;
+    relate expr to smt across R775;
+    expr.expression_number = expr_number;
+    any_type = ::getObjectReference(obj:obj);
+    relate any_type to expr across R795;
+    
+    // create any expression
+    create object instance any_expr of AnyExpr;
+    relate any_expr to expr across R776;
+    
+    expr_number = expr_number + ".1";
+    result_type = ::getObjectStreamReference(obj:obj);
+    
+  end if;
+
+  // create expression
+  create object instance expr of Expression;
+  relate expr to smt across R775;
+  expr.expression_number = expr_number;
+  relate result_type to expr across R795;
+  
+  // create where clause
+  create object instance where_clause of WhereExpr;
+  relate where_clause to expr across R776;
+  where_clause.multiplicity = multiplicity;
+  
+  // link to any if it exists
+  if not_empty any_expr
+    relate expr to any_expr across R783;
+  end if;
+  
+  // transform condition
+  ::transformMaslExpression( masl_expression:where_cond, expr_number:expr_number + ".2", smt:smt);
+  select any cond_expr related by smt->Expression[R775] where selected.expression_number == expr_number + ".2";
+  relate cond_expr to where_clause across R796;
+  
+  expr_number = expr_number + ".1";
+
+end if;
 
 // create expression
 create object instance expr of Expression;
 relate expr to smt across R775;
 expr.expression_number = expr_number;
-
-// link type
-// if the rel spec is a "many" association or the lhs is a collection type,
-// assure that the type of the expression is an instance set
-if (rel_spec.multiplicity == MaslMultiplicity::many or not_empty lhs_collection)
-  select one obj related by lhs_collection->BasicType[R6208]->InstanceType[R6205]->ObjectDeclaration[R6220]->Class[R8300];
-  stream_type = ::getObjectStreamReference(obj:obj);
-  relate stream_type to expr across R795;
-else
-  select one obj related by navigation_expression->MaslExpression[R5517]->BasicType[R5570]->InstanceType[R6205]->ObjectDeclaration[R6220]->Class[R8300];
-  inst_type = ::getObjectReference(obj:obj);
-  relate inst_type to expr across R795;
-end if;
+relate result_type to expr across R795;
 
 // create select expression
 create object instance sel of SelectExpr;
 relate sel to expr across R776;
 create object instance sel_rel of SelectRelated;
 relate sel_rel to sel across R789;
+
+// link to where clause
+if not_empty where_clause
+  relate expr to where_clause across R790;
+end if;
 
 select one rel related by rel_spec->RelationshipDeclaration[R6015];
 select one base_class related by rel_spec->ObjectDeclaration[R6014]->Class[R8300];
@@ -1622,6 +1736,86 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("1f49e223-377a-4f56-a00b-d6aa7bac6e06",
+	1,
+	"6b1296bb-978b-44fd-b197-7cada155e1c8",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("891caae2-7835-4d3f-bc31-a4a0d545045a",
+	"00000000-0000-0000-0000-000000000000",
+	'transformFindAttributeNameExpression',
+	'',
+	'find_attribute_name_expression = param.find_attribute_name_expression;
+smt = param.smt;
+expr_number = param.expr_number;
+
+select one attr related by find_attribute_name_expression->AttributeDeclaration[R5518]->Attribute[R8301];
+select one attr_type related by attr->TypeReference[R424];
+select one obj related by attr->Class[R410];
+inst_type = ::getObjectReference(obj:obj);
+  
+// create the expression
+create object instance expr of Expression;
+relate expr to smt across R775;
+expr.expression_number = expr_number;
+relate attr_type to expr across R795;
+
+// create attribute access
+create object instance attr_access of AttributeAccess;
+relate attr_access to expr across R776;
+relate attr to attr_access across R788;
+
+// create selected expression
+create object instance expr of Expression;
+relate expr to smt across R775;
+expr.expression_number = expr_number + ".1";
+relate inst_type to expr across R795;
+relate expr to attr_access across R785;
+
+// create selected reference
+create object instance sel of SelectedExpr;
+relate sel to expr across R776;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	6);
+INSERT INTO S_SPARM
+	VALUES ("789de300-5fe9-4279-abef-4a551790c9cd",
+	"891caae2-7835-4d3f-bc31-a4a0d545045a",
+	'find_attribute_name_expression',
+	"92f30641-ae05-4556-b03d-47d297ce752a",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("92f30641-ae05-4556-b03d-47d297ce752a",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<FindAttributeNameExpression>',
+	'',
+	'',
+	'../../../../../ooamasl/models/ooamasl/ooamasl/expression/expression.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("e32ee96b-6273-4403-9cc8-459b3024e5d8",
+	"891caae2-7835-4d3f-bc31-a4a0d545045a",
+	'smt',
+	"b586ec7e-41fe-4d50-9cf3-27b173e9848a",
+	0,
+	'',
+	"789de300-5fe9-4279-abef-4a551790c9cd",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("bf00e6ce-5034-48a2-abc8-9e1ed7ac7ebc",
+	"891caae2-7835-4d3f-bc31-a4a0d545045a",
+	'expr_number',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"e32ee96b-6273-4403-9cc8-459b3024e5d8",
+	'');
+INSERT INTO PE_PE
+	VALUES ("891caae2-7835-4d3f-bc31-a4a0d545045a",
 	1,
 	"6b1296bb-978b-44fd-b197-7cada155e1c8",
 	"00000000-0000-0000-0000-000000000000",
