@@ -2282,6 +2282,25 @@ expr_number = param.expr_number;
 where_type = param.where_type;
 multiplicity = param.multiplicity;
 
+// create any expression if multiplicity is one
+select any any_expr from instances of AnyExpr where false;
+if multiplicity == "one" or multiplicity == "any"
+
+  // create expression
+  create object instance expr of Expression;
+  relate expr to smt across R775;
+  expr.expression_number = expr_number;
+  relate where_type to expr across R795;
+  
+  // create any expression
+  create object instance any_expr of AnyExpr;
+  relate any_expr to expr across R776;
+  
+  expr_number = expr_number + ".1";
+  where_type = ::getStreamReference(element_type:where_type);
+
+end if;
+
 // transform all sort keys before creating the where clause
 select any sort_expr from instances of SortExpr where false;
 select many sort_keys from instances of V_VAL where false;
@@ -2306,6 +2325,10 @@ if not_empty sort_keys
   ::transformSort(v_vals:sort_keys, smt:smt, expr_number:expr_number, where_type:where_type);
   select any sort_expr related by smt->Expression[R775]->SortExpr[R776] where selected.expression_number == expr_number;
   expr_number = sort_expr.expression_number + ".1";
+  if not_empty any_expr
+    select one expr related by sort_expr->Expression[R776];
+    relate expr to any_expr across R783;
+  end if;
 end if;
 
 // create expression
@@ -2317,6 +2340,8 @@ relate where_type to expr across R795;
 // link to the sort expression if it exists
 if not_empty sort_expr
   relate expr to sort_expr across R3917;
+elif not_empty any_expr
+  relate expr to any_expr across R783;
 end if;
 
 // create where clause

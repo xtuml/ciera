@@ -1,11 +1,8 @@
 .if ("one" == self.multiplicity)
-Optional.of(${root_expression_body}).filter(selected -> ${where_expression_body}).orElse(${default_value})\
+Stream.of(${root_expression_body}).filter(Predicate.not(ObjectInstance::isEmpty))\
 .else
 ${root_expression_body}\
-  .if (where_expression_body != "true")
+.end if
+.if (where_expression_body != "true")
 ..filter(selected -> ${where_expression_body})\
-  .end if
-  .if ("any" == self.multiplicity)
-..findAny().orElse(${default_value})\
-  .end if
 .end if
