@@ -5,7 +5,7 @@ flatMap\
   .else
 map\
   .end if
-(${self.class_name}::${self.selector_name}).distinct()\
+(${self.class_name}::${self.selector_name}).filter(ObjectInstance::notEmpty).distinct()\
 .else
 ${self.selector_name}()\
 .end if

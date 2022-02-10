@@ -1,5 +1,5 @@
 .if ("one" == self.multiplicity)
-Stream.of(${root_expression_body}).filter(Predicate.not(ObjectInstance::isEmpty))\
+Stream.of(${root_expression_body}).filter(ObjectInstance::notEmpty)\
 .else
 ${root_expression_body}\
 .end if
