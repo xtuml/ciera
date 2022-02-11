@@ -643,6 +643,47 @@ INSERT INTO PE_PE
 	"181c88bd-e2a3-491d-81d4-90a42e0f11c1",
 	"00000000-0000-0000-0000-000000000000",
 	1);
+INSERT INTO S_SYNC
+	VALUES ("c230dd6e-0148-4ebb-9286-190a84d476e0",
+	"00000000-0000-0000-0000-000000000000",
+	'getListReference',
+	'',
+	'element_type = param.element_type;
+
+select any type_ref related by element_type->CollectionTypeReference[R3805]->ListTypeReference[R3806]->CollectionTypeReference[R3806]->TypeReference[R3801];
+if empty type_ref
+  select any base_type from instances of Type where selected.name == "List";
+  create object instance type_ref of TypeReference;
+  type_ref.type_reference = base_type.name + "<" + element_type.type_reference + ">";
+  relate type_ref to base_type across R3800;
+  create object instance col_ref of CollectionTypeReference;
+  relate col_ref to type_ref across R3801;
+  relate col_ref to element_type across R3805;
+  create object instance list_ref of ListTypeReference;
+  relate list_ref to col_ref across R3806;
+end if;
+
+return type_ref;',
+	"096d9dad-f227-4793-bb43-a1915881b825",
+	1,
+	'',
+	0,
+	3);
+INSERT INTO S_SPARM
+	VALUES ("d93a666a-000d-48a2-ac46-ecf5b0e214e1",
+	"c230dd6e-0148-4ebb-9286-190a84d476e0",
+	'element_type',
+	"096d9dad-f227-4793-bb43-a1915881b825",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO PE_PE
+	VALUES ("c230dd6e-0148-4ebb-9286-190a84d476e0",
+	1,
+	"181c88bd-e2a3-491d-81d4-90a42e0f11c1",
+	"00000000-0000-0000-0000-000000000000",
+	1);
 INSERT INTO PE_PE
 	VALUES ("181c88bd-e2a3-491d-81d4-90a42e0f11c1",
 	1,

@@ -25,14 +25,20 @@ iterator_name = iterator_var.scope_unique_name;
 select one iterable_expression related by self->Expression[R478];
 iterable_expression.render();
 iterable_expr = T::body();
+select one iterable_collection related by iterable_expression->TypeReference[R795]->CollectionTypeReference[R3801];
+iterable_is_collection = not_empty iterable_collection;
+T::include(file:"statement/t.for.iterable.java");
+iterable_expr = T::body();
 
 select one control_blk related by self->CodeBlock[R455];
 control_blk.render();
 control_block = T::body();
 T::pop_buffer();
 
-if self.reversed
+if (self.reversed)
   ::addStringImport(package:"java.util", class_name:"ArrayDeque");
+elif (not iterable_is_collection)
+  ::addStringImport(package:"java.util.stream", class_name:"Collectors");
 end if;
 
 if self.external_loop_variable

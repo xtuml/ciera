@@ -948,22 +948,16 @@ else
   select any l_op related by smt->Expression[R775] where ( selected.expression_number == "1.1" );
   relate l_op to binop across R779;
   select one ltype related by l_op->TypeReference[R795];
-  // create right operand
-  // no type promotion necessary or automatic promotion of integer to real or integer to timestamp
-  if l_val_dt == r_val_dt or (l_val_dt.Name == "real" and r_val_dt.Name == "integer") or (l_val_dt.Name == "timestamp" and r_val_dt.Name == "integer")
-    ::transformExpression( v_val:r_val, expr_number:"1.2", smt:smt );
-  else
-    // must do type promotion
-    create object instance prom_expr of Expression;
-    relate prom_expr to smt across R775;
-    prom_expr.expression_number = "1.2";
-    relate ltype to prom_expr across R795;
-    create object instance prom of TypeConversion;
-    relate prom to prom_expr across R776;
-    ::transformExpression(v_val:r_val, expr_number:"1.2.1", smt:smt);
-    select any prom_val related by smt->Expression[R775] where (selected.expression_number == "1.2.1");
-    relate prom_val to prom across R3907;
-  end if;
+  // do a type conversion
+  create object instance prom_expr of Expression;
+  relate prom_expr to smt across R775;
+  prom_expr.expression_number = "1.2";
+  relate ltype to prom_expr across R795;
+  create object instance prom of TypeConversion;
+  relate prom to prom_expr across R776;
+  ::transformExpression(v_val:r_val, expr_number:"1.2.1", smt:smt);
+  select any prom_val related by smt->Expression[R775] where (selected.expression_number == "1.2.1");
+  relate prom_val to prom across R3907;
   select any r_op related by smt->Expression[R775] where ( selected.expression_number == "1.2" );
   relate r_op to binop across R778;
   // link l_op type to the main expression
@@ -1969,24 +1963,18 @@ relate ret to smt across R451;
 select one ret_val related by act_ret->V_VAL[R668];
 if ( not_empty ret_val )
   select one act_act related by body->ACT_ACT[R432];
-  ret_dt = ::getReturnType(act_act:act_act);
   select one val_dt related by ret_val->S_DT[R820];
-  // no type promotion necessary or automatic promotion of integer to real or integer to timestamp
-  if ret_dt == val_dt or (ret_dt.Name == "real" and val_dt.Name == "integer") or (ret_dt.Name == "timestamp" and val_dt.Name == "integer")
-    ::transformExpression( v_val:ret_val, expr_number:"1", smt:smt );
-  else
-    // must do type promotion
-    create object instance prom_expr of Expression;
-    relate prom_expr to smt across R775;
-    prom_expr.expression_number = "1";
-    type = ::getTypeReferenceForS_DT(s_dt:val_dt);
-    relate type to prom_expr across R795;
-    create object instance prom of TypeConversion;
-    relate prom to prom_expr across R776;
-    ::transformExpression( v_val:ret_val, expr_number:"1.1", smt:smt );
-    select any prom_val related by smt->Expression[R775] where (selected.expression_number == "1.1");
-    relate prom_val to prom across R3907;
-  end if;
+  // must do type promotion
+  create object instance prom_expr of Expression;
+  relate prom_expr to smt across R775;
+  prom_expr.expression_number = "1";
+  type = ::getTypeReferenceForS_DT(s_dt:val_dt);
+  relate type to prom_expr across R795;
+  create object instance prom of TypeConversion;
+  relate prom to prom_expr across R776;
+  ::transformExpression( v_val:ret_val, expr_number:"1.1", smt:smt );
+  select any prom_val related by smt->Expression[R775] where (selected.expression_number == "1.1");
+  relate prom_val to prom across R3907;
   select any ret_expr related by smt->Expression[R775] where ( selected.expression_number == "1" );
   relate ret_expr to ret across R473;
 end if;',
@@ -2845,25 +2833,18 @@ select any expr from instances of Expression where false;
 
 select one v_val related by v_par->V_VAL[R800];
 if ( not_empty v_val )
-  par_dt = ::getParType(v_par:v_par);
+  // do a type conversion
   select one s_dt related by v_val->S_DT[R820];
-  // no type promotion necessary or automatic promotion of integer to real or integer to timestamp
-  if par_dt == s_dt or (par_dt.Name == "real" and s_dt.Name == "integer") or (par_dt.Name == "timestamp" and s_dt.Name == "integer")
-    ::transformExpression(v_val:v_val, expr_number:expr_number, smt:smt);
-  else
-    // must do type promotion
-    create object instance prom_expr of Expression;
-    relate prom_expr to smt across R775;
-    prom_expr.expression_number = expr_number;
-    type = ::getTypeReferenceForS_DT(s_dt:s_dt);
-    relate type to prom_expr across R795;
-    create object instance prom of TypeConversion;
-    relate prom to prom_expr across R776;
-    ::transformExpression(v_val:v_val, expr_number:expr_number + ".1", smt:smt);
-    select any prom_val related by smt->Expression[R775] where (selected.expression_number == expr_number + ".1");
-    relate prom_val to prom across R3907;
-  end if;
- 
+  create object instance prom_expr of Expression;
+  relate prom_expr to smt across R775;
+  prom_expr.expression_number = expr_number;
+  type = ::getTypeReferenceForS_DT(s_dt:s_dt);
+  relate type to prom_expr across R795;
+  create object instance prom of TypeConversion;
+  relate prom to prom_expr across R776;
+  ::transformExpression(v_val:v_val, expr_number:expr_number + ".1", smt:smt);
+  select any prom_val related by smt->Expression[R775] where (selected.expression_number == expr_number + ".1");
+  relate prom_val to prom across R3907;
   select any expr related by smt->Expression[R775] where (selected.expression_number == expr_number);
 else
   // TODO bad

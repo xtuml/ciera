@@ -119,10 +119,20 @@ if input_type_ref.type_reference != output_type_ref.type_reference
   if not_empty input_stream_type and not_empty output_collection_type and output_element_type.type_reference == input_element_type.type_reference
     // TODO handle other collection types
     select one output_set_type related by output_collection_type->SetTypeReference[R3806];
+    select one output_list_type related by output_collection_type->ListTypeReference[R3806];
     if not_empty output_set_type
+      // find a parent sort expression
+      select any sort_expr related by self->Expression[R776]->Statement[R775]->Expression[R775]->SortExpr[R776]
+        where STRING::indexof(haystack:selected.expression_number, needle:self.expression_number) == 0;
+      ordered_set = not_empty sort_expr;
+      if (ordered_set)
+        ::addStringImport(package:"java.util", class_name:"LinkedHashSet");
+      end if;
       ::addStringImport(package:"java.util.stream", class_name:"Collectors");
-      ::addStringImport(package:"java.util", class_name:"LinkedHashSet");
       T::include(file:"expression/t.streamtoset.java");
+    elif not_empty output_list_type
+      ::addStringImport(package:"java.util.stream", class_name:"Collectors");
+      T::include(file:"expression/t.streamtolist.java");
     end if;
   end if;
 
