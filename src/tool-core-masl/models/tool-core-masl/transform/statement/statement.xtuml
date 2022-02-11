@@ -920,18 +920,6 @@ end if;
 smt.actions = masl_statement.actions;
 smt.line_number = masl_statement.line_number;
 
-// collect info
-select one left_expr related by assign_statement->MaslExpression[R5101];
-select one left_type related by left_expr->BasicType[R5570];
-select one left_type_builtin related by left_type->BuiltinType[R6205];
-select one right_expr related by assign_statement->MaslExpression[R5100];
-select one right_type related by right_expr->BasicType[R5570];
-select one right_type_builtin related by right_type->BuiltinType[R6205];
-
-select one rhs_collection related by right_type->CollectionType[R6205];
-select one rhs_find related by right_expr->FindExpression[R5517];
-select one rhs_nav related by right_expr->NavigationExpression[R5517];
-
 // create expression as statement
 create object instance eas of ExpressionAsStatement;
 relate eas to smt across R451;
@@ -949,31 +937,26 @@ binop.operator = "=";
 binop.invocation = false;
 
 // create left operand
+select one left_expr related by assign_statement->MaslExpression[R5101];
 ::transformMaslExpression(masl_expression:left_expr, expr_number:"1.1", smt:smt);
 select any l_op related by smt->Expression[R775] where (selected.expression_number == "1.1");
 relate l_op to binop across R779;
 select one ltype related by l_op->TypeReference[R795];
 
-// create right operand
-// no type promotion necessary or automatic promotion of integer to real or integer to timestamp
-if (left_type == right_type and (empty rhs_collection or (empty rhs_find and empty rhs_nav))) or 
-    (not_empty left_type_builtin and not_empty right_type_builtin and 
-      (("" + left_type_builtin.name == "real" and "" + right_type_builtin.name == "integer") or
-       ("" + left_type_builtin.name == "timestamp" and "" + right_type_builtin.name == "integer")))
-  ::transformMaslExpression(masl_expression:right_expr, expr_number:"1.2", smt:smt);
-else
-  // must do type promotion
-  create object instance prom_expr of Expression;
-  relate prom_expr to smt across R775;
-  prom_expr.expression_number = "1.2";
-  relate ltype to prom_expr across R795;
-  create object instance prom of TypeConversion;
-  relate prom to prom_expr across R776;
-  // TODO
-  ::transformMaslExpression(masl_expression:right_expr, expr_number:"1.2.1", smt:smt);
-  select any prom_val related by smt->Expression[R775] where (selected.expression_number == "1.2.1");
-  relate prom_val to prom across R3907;
-end if;
+// do type conversion for all assignments (this will be a no-op if the types match)
+create object instance prom_expr of Expression;
+relate prom_expr to smt across R775;
+prom_expr.expression_number = "1.2";
+relate ltype to prom_expr across R795;
+create object instance prom of TypeConversion;
+relate prom to prom_expr across R776;
+
+// transform right hand side
+select one right_expr related by assign_statement->MaslExpression[R5100];
+::transformMaslExpression(masl_expression:right_expr, expr_number:"1.2.1", smt:smt);
+select any prom_val related by smt->Expression[R775] where (selected.expression_number == "1.2.1");
+relate prom_val to prom across R3907;
+
 select any r_op related by smt->Expression[R775] where (selected.expression_number == "1.2");
 relate r_op to binop across R778;
 
@@ -2741,37 +2724,10 @@ select one variable_elements related by loop_spec->VariableElements[R5123];
 if not_empty variable_elements
   
   expr_number = "1";
-  
-  // perform type conversion to set if the expression produces a stream
-  select one elements_val related by variable_elements->MaslExpression[R5139];
-  select one find_expr related by elements_val->FindExpression[R5517];
-  select one nav_expr related by elements_val->NavigationExpression[R5517];
-  
-  select any type_conversion from instances of TypeConversion where false;
-  if not_empty find_expr or not_empty nav_expr
-    // create expression
-    create object instance expr of Expression;
-    relate expr to smt across R775;
-    expr.expression_number = expr_number;
-    select one var_type related by iter_var->TypeReference[R461];
-    set_type = ::getSetReference(element_type:var_type);
-    relate set_type to expr across R795;
-    relate expr to for_smt across R478;
-    
-    // create type conversion
-    create object instance type_conversion of TypeConversion;
-    relate type_conversion to expr across R776;
-    
-    expr_number = expr_number + ".1";
-  end if;
-
+  select one elements_val related by variable_elements->MaslExpression[R5139]; 
   ::transformMaslExpression(masl_expression:elements_val, expr_number:expr_number, smt:smt);
   select any iterable_expr related by smt->Expression[R775] where selected.expression_number == expr_number;
-  if not_empty type_conversion
-    relate iterable_expr to type_conversion across R3907;
-  else
-    relate iterable_expr to for_smt across R478;
-  end if;
+  relate iterable_expr to for_smt across R478;
 
 else
   // TODO support other range type expressions

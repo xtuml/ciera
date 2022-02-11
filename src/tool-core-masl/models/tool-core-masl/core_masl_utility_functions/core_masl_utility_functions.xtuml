@@ -216,9 +216,13 @@ select one collection_type related by basic_type->CollectionType[R6205];
 if not_empty collection_type
   select one element_type related by collection_type->BasicType[R6208];
   select one set_type related by collection_type->SetType[R6207];
+  select one sequence_type related by collection_type->SequenceType[R6207];
   if not_empty set_type
     element_type_ref = ::getTypeReferenceForMASLType(basic_type:element_type);
     return ::getSetReference(element_type:element_type_ref);
+  elif not_empty sequence_type
+    element_type_ref = ::getTypeReferenceForMASLType(basic_type:element_type);
+    return ::getListReference(element_type:element_type_ref);
   end if;
   // TODO handle other collections
 end if;

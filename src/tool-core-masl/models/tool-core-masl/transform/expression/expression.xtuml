@@ -86,8 +86,12 @@ select one find_attribute_name_expression related by masl_expression->FindAttrib
 if (not_empty find_attribute_name_expression)
   ::transformFindAttributeNameExpression(find_attribute_name_expression:find_attribute_name_expression, smt:smt, expr_number:expr_number);
 else
+select one ordering_expression related by masl_expression->OrderingExpression[R5517];
+if (not_empty ordering_expression)
+  ::transformOrderingExpression(ordering_expression:ordering_expression, smt:smt, expr_number:expr_number);
+else
   LOG::LogInfo( message:"expression type not yet supported" );
-end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if;',
+end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -1812,6 +1816,99 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("891caae2-7835-4d3f-bc31-a4a0d545045a",
+	1,
+	"6b1296bb-978b-44fd-b197-7cada155e1c8",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("26f8d638-7ca2-4eb2-a339-5d61d48d9d60",
+	"00000000-0000-0000-0000-000000000000",
+	'transformOrderingExpression',
+	'',
+	'ordering_expression = param.ordering_expression;
+smt = param.smt;
+expr_number = param.expr_number;
+
+// create an expression
+create object instance expr of Expression;
+relate expr to smt across R775;
+expr.expression_number = expr_number;
+select one basic_type related by ordering_expression->MaslExpression[R5517]->BasicType[R5570]->CollectionType[R6205]->BasicType[R6208];
+element_type = ::getTypeReferenceForMASLType(basic_type:basic_type);
+sort_type = ::getStreamReference(element_type:element_type);
+relate sort_type to expr across R795;
+
+// create sort expression
+create object instance sort_expr of SortExpr;
+relate sort_expr to expr across R776;
+sort_expr.descending = ordering_expression.isreverse;
+
+// transform root expression
+select one root_val related by ordering_expression->MaslExpression[R5535];
+::transformMaslExpression(masl_expression:root_val, expr_number:expr_number + ".1", smt:smt);
+select any root_expr related by smt->Expression[R775] where selected.expression_number == expr_number + ".1";
+relate root_expr to sort_expr across R3917;
+
+// transform all sort keys
+select any prev_sort_key from instances of SortKey where false;
+select one instance_ordering_expression related by ordering_expression->InstanceOrderingExpression[R5534];
+if not_empty instance_ordering_expression
+  select many keys related by instance_ordering_expression->AttributeOrderingKey[R5563] where SORT::ascending(attr:"order");
+  for each key in keys
+    select one attr related by key->AttributeDeclaration[R5563]->Attribute[R8301];
+    create object instance sort_key of SortKey;
+    sort_key.descending = key.isreverse;
+    relate sort_key to sort_expr across R3906;
+    relate attr to sort_key across R3918;
+    if not_empty prev_sort_key
+      relate prev_sort_key to sort_key across R3920.''precedes'';
+    end if;
+    prev_sort_key = sort_key;
+  end for;
+else
+  LOG::LogFailure(message:"Structure ordering expression not supported");
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	4);
+INSERT INTO S_SPARM
+	VALUES ("66a5e8e9-5179-4fa0-abc9-f0e1785953ac",
+	"26f8d638-7ca2-4eb2-a339-5d61d48d9d60",
+	'ordering_expression',
+	"c91ad4ef-f132-440a-8a85-a39814523746",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("c91ad4ef-f132-440a-8a85-a39814523746",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<OrderingExpression>',
+	'',
+	'',
+	'../../../../../ooamasl/models/ooamasl/ooamasl/expression/expression.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("d9a9e910-c2c9-48c2-b085-bf89579d03a4",
+	"26f8d638-7ca2-4eb2-a339-5d61d48d9d60",
+	'smt',
+	"b586ec7e-41fe-4d50-9cf3-27b173e9848a",
+	0,
+	'',
+	"66a5e8e9-5179-4fa0-abc9-f0e1785953ac",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("1cb4f9d8-2d2b-4677-b927-955dc1716d71",
+	"26f8d638-7ca2-4eb2-a339-5d61d48d9d60",
+	'expr_number',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"d9a9e910-c2c9-48c2-b085-bf89579d03a4",
+	'');
+INSERT INTO PE_PE
+	VALUES ("26f8d638-7ca2-4eb2-a339-5d61d48d9d60",
 	1,
 	"6b1296bb-978b-44fd-b197-7cada155e1c8",
 	"00000000-0000-0000-0000-000000000000",
