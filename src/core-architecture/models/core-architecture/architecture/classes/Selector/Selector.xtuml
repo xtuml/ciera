@@ -30,7 +30,31 @@ type_name = selector_type.type_reference;
 multiplicity_many = self.multiplicity == Mult::MANY;
 select one rel related by self->Relationship[R4512];
 is_super = rel.rel_type == RelationshipType::SuperSubtype and self.class_name == rel.part_name;
-T::include(file:"class/t.selector.java");',
+T::include(file:"class/t.selector.java");
+
+// generate methods for correlated navigation
+select one rel1 related by self->Relationship[R4512];
+select one assoc_rel related by self->Relationship[R4512] where selected.rel_type == RelationshipType::Associative and selected.part_name == self.class_name;
+if not_empty assoc_rel
+  select one using_class related by assoc_rel->Class[R435];
+  select any other_rel related by assoc_rel->Class[R435]->Relationship[R435] where selected.name != assoc_rel.name and selected.num == assoc_rel.num;
+  select one other_class related by other_rel->Class[R434];
+  other_class_name = other_class.name;
+  select any other_selector related by other_rel->Selector[R4512] where selected.class_name == other_class_name;
+  other_selector_name = other_selector.name;
+  other_many = other_rel.form_mult == Mult::MANY;
+  inst_typeref = ::getObjectReference(obj:using_class);
+  inst_type = inst_typeref.type_reference;
+  // add imports
+  ::addStringImport(package:"java.util", class_name:"Collection");
+  ::addStringImport(package:"java.util.stream", class_name:"Stream");
+  select one other_class_file related by other_class->File[R401];
+  ::addFileImport(file:other_class_file);
+  if (not other_many)
+    ::addStringImport(package:"java.util", class_name:"Optional");
+  end if;
+  T::include(file:"class/t.selector.correlated.java");
+end if;',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",
