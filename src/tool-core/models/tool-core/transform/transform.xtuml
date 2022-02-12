@@ -2032,21 +2032,10 @@ file.exclude = false;
 // create the interface package object
 create object instance iface of Interface;
 relate iface to file across R401;
-iface.serialize_msgs = param.serialize;
 
 // relate to the c_i
 relate iface to c_i across R421;
 relate iface to port across R418;
-
-// is this Interface marked for message parameter serialization?
-select one pe related by c_i->PE_PE[R8001];
-select any serialize_mark from instances of Mark 
- where ( selected.markable_name == "Interface" and
-         selected.path == ::containerMarkingPath( pe:pe ) + "::" + c_i.Name and
-         selected.feature_name == "Serialize" );
-if ( not_empty serialize_mark )
-	iface.serialize_msgs = true;
-end if;                                                          
 
 // transform messages
 // sort by name to assure consistent translation
@@ -3856,6 +3845,13 @@ INSERT INTO S_SYNC
 path_for_mark = param.mark_path;
 xtuml = xtUML::create( port:port );
 
+select any serialize_mark from instances of Mark where ( selected.markable_name == "Port" and
+                                                      selected.path == path_for_mark and
+                                                      selected.feature_name == "SerializeMessages" );
+if ( not_empty serialize_mark )
+  xtuml.serialize_msgs = true;
+end if;
+
 select any c_i related by port->C_PO[R422]->C_IR[R4016]->C_I[R4012];
 select any xtuml_port related by c_i->Interface[R421]->Port[R418]->PortDescriptor[R4161]->xtUML[R4162];
 if ( not empty xtuml_port )
@@ -3864,7 +3860,7 @@ if ( not empty xtuml_port )
 else
   select one ep_pkg related by c_i->PE_PE[R8001]->EP_PKG[R8000];
   if ( not_empty ep_pkg )
-    ::transformInterface( c_i:c_i, path: ::ep_pkgToPath( ep_pkg:ep_pkg ), port:port, serialize:false );
+    ::transformInterface( c_i:c_i, path: ::ep_pkgToPath( ep_pkg:ep_pkg ), port:port, serialize:xtuml.serialize_msgs );
   end if;
 end if;
 ',
