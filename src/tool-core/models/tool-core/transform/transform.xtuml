@@ -2095,15 +2095,6 @@ INSERT INTO S_DT_PROXY
 	'',
 	'',
 	'../architecture/interfaces/interfaces.xtuml');
-INSERT INTO S_SPARM
-	VALUES ("ba6a8df8-d523-4612-9280-0a467cd6a83d",
-	"f8603c94-90cc-4b20-9c6e-f665ce733d20",
-	'serialize',
-	"ba5eda7a-def5-0000-0000-000000000001",
-	0,
-	'',
-	"b239a0ef-0346-49c6-b10e-dc828b5c8ea9",
-	'');
 INSERT INTO PE_PE
 	VALUES ("f8603c94-90cc-4b20-9c6e-f665ce733d20",
 	1,
@@ -3853,14 +3844,15 @@ if ( not_empty serialize_mark )
 end if;
 
 select any c_i related by port->C_PO[R422]->C_IR[R4016]->C_I[R4012];
-select any xtuml_port related by c_i->Interface[R421]->Port[R418]->PortDescriptor[R4161]->xtUML[R4162];
+select any xtuml_port related by c_i->Interface[R421]->Port[R418]->PortDescriptor[R4161]->xtUML[R4162]
+ where ( selected.serialize_msgs == xtuml.serialize_msgs );
 if ( not empty xtuml_port )
   select one iface related by xtuml_port->PortDescriptor[R4162]->Port[R4161]->Interface[R418];
   relate iface to port across R418;
 else
   select one ep_pkg related by c_i->PE_PE[R8001]->EP_PKG[R8000];
   if ( not_empty ep_pkg )
-    ::transformInterface( c_i:c_i, path: ::ep_pkgToPath( ep_pkg:ep_pkg ), port:port, serialize:xtuml.serialize_msgs );
+    ::transformInterface( c_i:c_i, path: ::ep_pkgToPath( ep_pkg:ep_pkg ), port:port );
   end if;
 end if;
 ',
@@ -3939,7 +3931,7 @@ if ( not empty spring_port )
 else
   select one ep_pkg related by c_i->PE_PE[R8001]->EP_PKG[R8000];
   if ( not_empty ep_pkg )
-    ::transformInterface( c_i:c_i, path: ::ep_pkgToPath( ep_pkg:ep_pkg ), port:port, serialize:true );
+    ::transformInterface( c_i:c_i, path: ::ep_pkgToPath( ep_pkg:ep_pkg ), port:port );
   end if;
 end if;
 ',
