@@ -82,6 +82,10 @@ select one navigation_expression related by masl_expression->NavigationExpressio
 if (not_empty navigation_expression)
   ::transformNavigationExpression(navigation_expression:navigation_expression, smt:smt, expr_number:expr_number);
 else
+select one correlated_nav_expression related by masl_expression->CorrelatedNavExpression[R5517];
+if (not_empty correlated_nav_expression)
+  ::transformCorrelatedNavExpression(correlated_nav_expression:correlated_nav_expression, smt:smt, expr_number:expr_number);
+else
 select one find_attribute_name_expression related by masl_expression->FindAttributeNameExpression[R5517];
 if (not_empty find_attribute_name_expression)
   ::transformFindAttributeNameExpression(find_attribute_name_expression:find_attribute_name_expression, smt:smt, expr_number:expr_number);
@@ -91,7 +95,7 @@ if (not_empty ordering_expression)
   ::transformOrderingExpression(ordering_expression:ordering_expression, smt:smt, expr_number:expr_number);
 else
   LOG::LogInfo( message:"expression type not yet supported" );
-end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if;',
+end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -1909,6 +1913,133 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("26f8d638-7ca2-4eb2-a339-5d61d48d9d60",
+	1,
+	"6b1296bb-978b-44fd-b197-7cada155e1c8",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("5e77da65-c7e4-4164-8395-ca754791fd2b",
+	"00000000-0000-0000-0000-000000000000",
+	'transformCorrelatedNavExpression',
+	'',
+	'correlated_nav_expression = param.correlated_nav_expression;
+smt = param.smt;
+expr_number = param.expr_number;
+
+select one rel_spec related by correlated_nav_expression->RelationshipSpecification[R5507];
+select one rel related by rel_spec->RelationshipDeclaration[R6015];
+select one base_class related by rel_spec->ObjectDeclaration[R6014]->Class[R8300];
+select one using_class related by rel->AssociativeRelationshipDeclaration[R6010]->ObjectDeclaration[R6001]->Class[R8300];
+select one lhs related by correlated_nav_expression->MaslExpression[R5506];
+select one lhs_collection related by lhs->BasicType[R5570]->CollectionType[R6205];
+select one rhs related by correlated_nav_expression->MaslExpression[R5508];
+select one rhs_collection related by rhs->BasicType[R5570]->CollectionType[R6205];
+
+// get the result type
+select any result_type from instances of TypeReference where false;
+if not_empty lhs_collection or not_empty rhs_collection
+  result_type = ::getObjectStreamReference(obj:using_class);
+else
+  result_type = ::getObjectReference(obj:using_class);
+end if;
+
+// create main expression
+create object instance expr of Expression;
+relate expr to smt across R775;
+expr.expression_number = expr_number;
+relate result_type to expr across R795;
+
+// create select expression
+create object instance sel of SelectExpr;
+relate sel to expr across R776;
+create object instance sel_rel of SelectRelated;
+relate sel_rel to sel across R789;
+
+// get the selector
+selector_name = "" + rel.name + "_";
+if (rel_spec.role != "")
+  selector_name = selector_name + T::sub(format:"_", s:rel_spec.role) + "_";
+end if;
+selector_name = selector_name + using_class.name;
+select any selector related by base_class->Selector[R442] where (selected.name == selector_name);
+relate selector to sel_rel across R797;
+
+expr_number = expr_number + ".1";
+
+// create type conversion if the left hand side is a collection
+select any type_conversion from instances of TypeConversion where false;
+if not_empty lhs_collection
+
+  // create expression
+  create object instance expr of Expression;
+  relate expr to smt across R775;
+  expr.expression_number = expr_number;
+  stream_type = ::getObjectStreamReference(obj:base_class);
+  relate stream_type to expr across R795;
+  relate expr to sel_rel across R791;
+  
+  // create type conversion
+  create object instance type_conversion of TypeConversion;
+  relate type_conversion to expr across R776;
+  
+  expr_number = expr_number + ".1";
+  
+end if;
+
+// transform the root value
+::transformMaslExpression(masl_expression:lhs, expr_number:expr_number, smt:smt);
+select any lhs_expr related by smt->Expression[R775] where (selected.expression_number == expr_number);
+if not_empty type_conversion
+  relate lhs_expr to type_conversion across R3907;
+else
+  relate lhs_expr to sel_rel across R791;
+end if;
+
+// transform the correlating value
+::transformMaslExpression(masl_expression:rhs, expr_number:sel_rel.expression_number + ".2", smt:smt);
+select any rhs_expr related by smt->Expression[R775] where (selected.expression_number == sel_rel.expression_number + ".2");
+relate rhs_expr to sel_rel across R3926;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	4);
+INSERT INTO S_SPARM
+	VALUES ("83a24028-c919-482f-8968-d0a4635e57d3",
+	"5e77da65-c7e4-4164-8395-ca754791fd2b",
+	'correlated_nav_expression',
+	"9db535bb-4b58-4ad2-9a89-11b77d891584",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("9db535bb-4b58-4ad2-9a89-11b77d891584",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<CorrelatedNavExpression>',
+	'',
+	'',
+	'../../../../../ooamasl/models/ooamasl/ooamasl/expression/expression.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("51ec6fe7-c2ac-4765-b0e5-cf0abab63af7",
+	"5e77da65-c7e4-4164-8395-ca754791fd2b",
+	'smt',
+	"b586ec7e-41fe-4d50-9cf3-27b173e9848a",
+	0,
+	'',
+	"83a24028-c919-482f-8968-d0a4635e57d3",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("5d2b758e-c583-4ad8-b2c7-35c80f2555cb",
+	"5e77da65-c7e4-4164-8395-ca754791fd2b",
+	'expr_number',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"51ec6fe7-c2ac-4765-b0e5-cf0abab63af7",
+	'');
+INSERT INTO PE_PE
+	VALUES ("5e77da65-c7e4-4164-8395-ca754791fd2b",
 	1,
 	"6b1296bb-978b-44fd-b197-7cada155e1c8",
 	"00000000-0000-0000-0000-000000000000",
