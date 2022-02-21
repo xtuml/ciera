@@ -5,7 +5,8 @@ INSERT INTO O_OBJ
 	'Iface',
 	2,
 	'Interface',
-	'Represents a single xtUML interface.',
+	'Represents an instance of an interface file which realizes the definition of a single xtUML interface.
+A given interface definition may be rendered differently. depending on port specialization.',
 	"00000000-0000-0000-0000-000000000000");
 INSERT INTO O_TFR
 	VALUES ("588f656a-06b0-4561-a456-4274bc77ffa9",
@@ -14,11 +15,26 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'// render interfaces which may be specialized by port type.
-select many ports related by self->Port[R418.''is implemented by''];
-for each port in ports;
+	'// Render an instance of an interface file.
+// This may be specialized by port type.
+// More than one port may share this particular specialization.
+// Only one copy of the file should be rendered.
+
+select any port related by self->Port[R418.''is implemented by''];
+if ( not_empty port )
   port.render_interface();
-end for;
+end if;
+
+// One or more of the associated ports may have requested message classes.
+// Only one set of message classes need be generated.
+select any port related by self->Port[R418.''is implemented by'']
+ where ( selected.gen_msg_classes );
+if ( not_empty port )
+  select many msgs related by self->Message[R419.''defines communication through''];
+  for each msg in msgs
+    msg.render_msgclass();
+  end for;
+end if;
 ',
 	1,
 	'',
@@ -152,24 +168,6 @@ INSERT INTO O_ATTR
 	"ba5eda7a-def5-0000-0000-000000000007",
 	'',
 	'');
-INSERT INTO O_NBATTR
-	VALUES ("7d637673-9c70-4adc-af92-7ad34f1885bd",
-	"26b351ef-ca37-4740-aeff-9c9ed1460938");
-INSERT INTO O_BATTR
-	VALUES ("7d637673-9c70-4adc-af92-7ad34f1885bd",
-	"26b351ef-ca37-4740-aeff-9c9ed1460938");
-INSERT INTO O_ATTR
-	VALUES ("7d637673-9c70-4adc-af92-7ad34f1885bd",
-	"26b351ef-ca37-4740-aeff-9c9ed1460938",
-	"50f706c0-6825-42f0-9079-bd21efa2fda0",
-	'gen_msg_classes',
-	'If true, java classes wil be generated for each interface message',
-	'',
-	'gen_msg_classes',
-	0,
-	"ba5eda7a-def5-0000-0000-000000000001",
-	'',
-	'');
 INSERT INTO O_REF
 	VALUES ("26b351ef-ca37-4740-aeff-9c9ed1460938",
 	"a9120b56-197a-48fd-9ca0-9774cba03f3f",
@@ -212,7 +210,7 @@ INSERT INTO O_BATTR_PROXY
 INSERT INTO O_ATTR
 	VALUES ("8fbdc780-cf45-48a2-ad55-ed4867ca9747",
 	"26b351ef-ca37-4740-aeff-9c9ed1460938",
-	"7d637673-9c70-4adc-af92-7ad34f1885bd",
+	"50f706c0-6825-42f0-9079-bd21efa2fda0",
 	'iface_Id',
 	'',
 	'iface_',
