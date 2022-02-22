@@ -8,17 +8,16 @@ import io.ciera.runtime.api.application.Logger;
 import io.ciera.runtime.api.domain.Domain;
 import io.ciera.runtime.api.domain.StateMachine;
 import io.ciera.runtime.api.domain.TransitionRule;
+import io.ciera.runtime.api.types.UniqueId;
 
 public abstract class AbstractStateMachine implements StateMachine {
 
     private final String name;
     private final Domain domain;
-    private ExecutionContext context;
 
     public AbstractStateMachine(String name, Domain domain) {
         this.name = name;
         this.domain = domain;
-        this.context = null;
     }
 
     protected void executeTransition(Event event, Consumer<Enum<?>> updateCurrentState) {
@@ -38,12 +37,12 @@ public abstract class AbstractStateMachine implements StateMachine {
 
     @Override
     public ExecutionContext getContext() {
-        return context != null ? context : getDomain().getContext();
+        return domain.getContext();
     }
 
     @Override
-    public void attachTo(ExecutionContext context) {
-        this.context = context;
+    public UniqueId getTargetId() {
+        return null;
     }
 
     @Override

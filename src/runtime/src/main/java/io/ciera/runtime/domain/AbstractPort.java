@@ -13,13 +13,11 @@ public abstract class AbstractPort implements Port, ActionHome {
 
     private final String name;
     private final Domain domain;
-    private ExecutionContext context;
     private MessageTarget peer;
 
     public AbstractPort(String name, Domain domain) {
         this.name = name;
         this.domain = domain;
-        this.context = null;
         this.peer = null;
     }
 
@@ -47,10 +45,10 @@ public abstract class AbstractPort implements Port, ActionHome {
     public void setPeer(MessageTarget peer) {
         this.peer = peer;
     }
-    
+
     @Override
     public MessageTarget getPeer() {
-    	return peer;
+        return peer;
     }
 
     @Override
@@ -65,12 +63,7 @@ public abstract class AbstractPort implements Port, ActionHome {
 
     @Override
     public ExecutionContext getContext() {
-        return context != null ? context : getDomain().getContext();
-    }
-
-    @Override
-    public void attachTo(ExecutionContext context) {
-        this.context = context;
+        return domain.getContext();
     }
 
     @Override

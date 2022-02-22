@@ -35,8 +35,6 @@ public interface ActionHome extends ExecutionContext {
      */
     public ExecutionContext getContext();
 
-    public void attachTo(ExecutionContext context);
-
     @Override
     public default String getName() {
         return getContext().getName();

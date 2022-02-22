@@ -1,12 +1,13 @@
 package io.ciera.runtime.api.application;
 
 import io.ciera.runtime.api.domain.Message;
+import io.ciera.runtime.api.types.UniqueId;
 
 public interface MessageTarget {
 
-    public void deliver(Message message);
+    public UniqueId getTargetId();
 
-    public void attachTo(ExecutionContext context);
+    public void deliver(Message message);
 
     public ExecutionContext getContext();
 

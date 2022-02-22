@@ -12,12 +12,13 @@ import io.ciera.runtime.api.domain.Domain;
 import io.ciera.runtime.api.time.SystemClock;
 import io.ciera.runtime.time.WallClock;
 
-public abstract class AbstractApplication implements Application {
+public class BaseApplication implements Application {
+
+    private static volatile Application instance;
 
     private final String name;
     private final Map<String, ThreadExecutionContext> contexts;
     private final Map<Class<?>, Domain> domains;
-    private final String[] args;
 
     private SystemClock clock;
     private Logger logger;
@@ -25,14 +26,14 @@ public abstract class AbstractApplication implements Application {
 
     private boolean running;
 
-    public AbstractApplication(String name, String[] args) {
+    public BaseApplication(String name) {
         this.name = name;
         this.contexts = new HashMap<>();
         this.domains = new HashMap<>();
-        this.args = args;
         this.clock = new WallClock();
         this.logger = new DefaultLogger(name + "Logger", this);
         this.exceptionHandler = new DefaultExceptionHandler();
+        BaseApplication.instance = this;
     }
 
     @Override
@@ -48,7 +49,7 @@ public abstract class AbstractApplication implements Application {
     @Override
     public void setup() {
         // create default execution context
-        addContext(new ThreadExecutionContext("DefaultExecutionContext", this));
+        addContext(new ThreadExecutionContext("DefaultExecutionContext"));
     }
 
     @Override
@@ -142,11 +143,6 @@ public abstract class AbstractApplication implements Application {
     }
 
     @Override
-    public String[] getArgs() {
-        return args;
-    }
-
-    @Override
     public boolean isRunning() {
         return running;
     }
@@ -156,4 +152,11 @@ public abstract class AbstractApplication implements Application {
         return name;
     }
 
+    public static Application getInstance() {
+        if (instance != null) {
+            return instance;
+        } else {
+            throw new IllegalStateException("Application is not setup");
+        }
+    }
 }

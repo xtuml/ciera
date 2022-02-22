@@ -1,5 +1,6 @@
-package io.ciera.runtime.util;
+package io.ciera.runtime.application;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.HashMap;
@@ -10,18 +11,30 @@ import java.util.regex.Pattern;
 
 public class CommandLine {
 
-    private Map<String, Option> options;
+    private static volatile String[] args;
+
+    private final Map<String, Option> options;
+    private final PrintStream console;
     private Set<String> flags;
     private Map<String, String> values;
-    private String[] args;
-    private PrintStream console;
 
-    public CommandLine(String[] args, OutputStream out) {
-        this.args = args;
+    public CommandLine() {
+        this(null);
+    }
+
+    public CommandLine(OutputStream out) {
         this.options = new HashMap<>();
         this.flags = null;
         this.values = null;
-        this.console = new PrintStream(out);
+        if (out != null) {
+            this.console = new PrintStream(out);
+        } else {
+            this.console = new PrintStream(new OutputStream() {
+                @Override
+                public void write(int b) throws IOException {
+                }
+            });
+        }
     }
 
     // class used for registering options
@@ -167,6 +180,10 @@ public class CommandLine {
                 console.printf("  %-20s : %s\n", name + " <" + opt.value_name + ">", opt.usage);
         }
         console.printf("  %-20s : Print usage information.\n", "-h, --help");
+    }
+
+    public static void setArgs(String[] args) {
+        CommandLine.args = args;
     }
 
 }

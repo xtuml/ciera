@@ -11,6 +11,8 @@ public interface ExecutionContext extends Executor {
 
     public String getName();
 
+    public Application getApplication();
+
     public <E extends Event> void generateEvent(Class<E> eventType, EventTarget target, Object... data);
 
     public <E extends Event> void generateEventToSelf(Class<E> eventType, EventTarget target, Object... data);
@@ -31,8 +33,6 @@ public interface ExecutionContext extends Executor {
 
     @Deprecated
     public void delay(Duration delay);
-
-    public Application getApplication();
 
     public ExecutionMode getExecutionMode();
 

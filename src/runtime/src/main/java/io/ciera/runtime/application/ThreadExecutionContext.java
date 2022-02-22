@@ -9,6 +9,7 @@ import io.ciera.runtime.api.application.Application;
 import io.ciera.runtime.api.application.Event;
 import io.ciera.runtime.api.application.EventTarget;
 import io.ciera.runtime.api.application.ExecutionContext;
+import io.ciera.runtime.api.application.Logger;
 import io.ciera.runtime.api.exceptions.EventTargetException;
 import io.ciera.runtime.api.time.SystemClock;
 import io.ciera.runtime.api.time.Timer;
@@ -22,22 +23,19 @@ import io.ciera.runtime.time.EventTimer;
 public class ThreadExecutionContext implements ExecutionContext, Runnable {
 
     private final String name;
-    private final Application application;
     private final ExecutionMode executionMode;
     private final ModelIntegrityMode modelIntegrityMode;
     private final Queue<Task> tasks;
 
     private static int taskSequenceNumber = 1;
 
-    public ThreadExecutionContext(String name, Application application) {
-        this(name, application, ExecutionMode.INTERLEAVED, ModelIntegrityMode.STRICT);
+    public ThreadExecutionContext(String name) {
+        this(name, ExecutionMode.INTERLEAVED, ModelIntegrityMode.STRICT);
 
     }
 
-    public ThreadExecutionContext(String name, Application application, ExecutionMode executionMode,
-            ModelIntegrityMode modelIntegrityMode) {
+    public ThreadExecutionContext(String name, ExecutionMode executionMode, ModelIntegrityMode modelIntegrityMode) {
         this.name = name;
-        this.application = application;
         this.executionMode = executionMode;
         this.modelIntegrityMode = modelIntegrityMode;
         this.tasks = new PriorityBlockingQueue<>();
@@ -65,9 +63,9 @@ public class ThreadExecutionContext implements ExecutionContext, Runnable {
             Constructor<E> eventBuilder = eventType.getConstructor(Object[].class);
             Event event = eventBuilder.newInstance((Object) data);
             if (toSelf) {
-                execute(new GeneratedEventToSelf(event, target));
+                target.getContext().execute(new GeneratedEventToSelf(event, target));
             } else {
-                execute(new GeneratedEvent(event, target, getExecutionMode()));
+                target.getContext().execute(new GeneratedEvent(event, target, getExecutionMode()));
             }
         } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException
                 | IllegalArgumentException | InvocationTargetException e) {
@@ -130,7 +128,7 @@ public class ThreadExecutionContext implements ExecutionContext, Runnable {
     @Override
     @Deprecated
     public void delay(Duration delay) {
-        application.getLogger().trace("DEL: delaying for %s", delay);
+        getLogger().trace("DEL: delaying for %s", delay);
         try {
             Thread.sleep(delay.getValue() / 1000000l, (int) delay.getValue() % 1000000);
         } catch (InterruptedException e) {
@@ -142,7 +140,7 @@ public class ThreadExecutionContext implements ExecutionContext, Runnable {
         if (tasks.offer(newTask)) {
             notify();
         } else {
-            application.getLogger().error("Could not add task to queue");
+            getLogger().error("Could not add task to queue");
         }
     }
 
@@ -161,7 +159,7 @@ public class ThreadExecutionContext implements ExecutionContext, Runnable {
 
     @Override
     public void run() {
-        while (application.isRunning()) {
+        while (getApplication().isRunning()) {
 
             // check to see if any expired timers need to be added to the task queue
             getClock().checkTimers(this);
@@ -174,7 +172,7 @@ public class ThreadExecutionContext implements ExecutionContext, Runnable {
                 try {
                     task.run();
                 } catch (RuntimeException e) {
-                    application.getExceptionHandler().handleError(e);
+                    getApplication().getExceptionHandler().handleError(e);
                 }
             } else {
                 // wait for something interesting to happen
@@ -184,7 +182,7 @@ public class ThreadExecutionContext implements ExecutionContext, Runnable {
                         getClock().waitForNextTimer(this);
                     } else {
                         if (System.getProperty("io.ciera.runtime.haltWhenIdle") != null) {
-                            application.stop();
+                            getApplication().stop();
                         } else {
                             // wait indefinitely for an external signal or for a
                             // timer to be scheduled in this context by another thread
@@ -208,11 +206,6 @@ public class ThreadExecutionContext implements ExecutionContext, Runnable {
     }
 
     @Override
-    public Application getApplication() {
-        return application;
-    }
-
-    @Override
     public ExecutionMode getExecutionMode() {
         return executionMode;
     }
@@ -224,11 +217,20 @@ public class ThreadExecutionContext implements ExecutionContext, Runnable {
 
     @Override
     public SystemClock getClock() {
-        return application.getClock();
+        return getApplication().getClock();
     }
 
     public static int nextSequenceNumber() {
         return taskSequenceNumber++;
+    }
+
+    private Logger getLogger() {
+        return getApplication().getLogger();
+    }
+
+    @Override
+    public Application getApplication() {
+        return BaseApplication.getInstance();
     }
 
     @Override

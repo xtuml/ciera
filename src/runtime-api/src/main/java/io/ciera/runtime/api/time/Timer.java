@@ -6,8 +6,11 @@ import io.ciera.runtime.api.types.TimeStamp;
 public interface Timer extends Comparable<Timer> {
 
     public void fire();
+
     public long getExpiration();
+
     public void setExpiration(long expiration);
+
     public boolean cancel();
 
     // a timer is "scheduled" from the point at which it is first scheduled

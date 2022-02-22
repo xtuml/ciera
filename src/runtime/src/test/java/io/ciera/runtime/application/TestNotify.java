@@ -9,6 +9,7 @@ import io.ciera.runtime.api.application.Event;
 import io.ciera.runtime.api.application.EventTarget;
 import io.ciera.runtime.api.application.ExecutionContext;
 import io.ciera.runtime.api.types.Duration;
+import io.ciera.runtime.api.types.UniqueId;
 
 @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
 public class TestNotify {
@@ -24,8 +25,7 @@ public class TestNotify {
         try {
 
             // create a test app
-            final AbstractApplication app = new AbstractApplication("TestNotify", new String[0]) {
-            };
+            final BaseApplication app = new BaseApplication("TestNotify");
             app.setup();
 
             // run the app in a new thread to protect timeouts
@@ -48,8 +48,7 @@ public class TestNotify {
         try {
 
             // create a test app
-            final AbstractApplication app = new AbstractApplication("TestNotify", new String[0]) {
-            };
+            final BaseApplication app = new BaseApplication("TestNotify");
             app.setup();
 
             // run the app in a new thread to protect timeouts
@@ -72,12 +71,13 @@ public class TestNotify {
                 }
 
                 @Override
-                public void attachTo(ExecutionContext context) {
+                public String toString() {
+                    return "TestTarget";
                 }
 
                 @Override
-                public String toString() {
-                    return "TestTarget";
+                public UniqueId getTargetId() {
+                    return null;
                 }
             };
             app.defaultContext().scheduleEvent(TestEvent.class, target, Duration.ZERO);

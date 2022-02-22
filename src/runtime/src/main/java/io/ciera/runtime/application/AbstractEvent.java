@@ -23,10 +23,10 @@ public abstract class AbstractEvent implements Event {
     public int getEventId() {
         return eventId;
     }
-    
+
     @Override
     public String getName() {
-    	return getClass().getSimpleName();
+        return getClass().getSimpleName();
     }
 
     @Override

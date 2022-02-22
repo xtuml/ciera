@@ -41,8 +41,6 @@ public interface Application {
 
     public void setExceptionHandler(ExceptionHandler exceptionHandler);
 
-    public String[] getArgs();
-
     public boolean isRunning();
 
 }

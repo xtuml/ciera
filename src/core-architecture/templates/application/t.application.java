@@ -2,18 +2,14 @@ package ${self.package};
 
 ${imports}
 
-public class ${self.name} extends AbstractApplication implements Application {
+public class ${self.name} extends BaseApplication implements Application {
 
     public ${self.name}() {
-        this("${self.name}", new String[0]);
+        this("${self.name}");
     }
 
-    public ${self.name}(String[] args) {
-        this("${self.name}", args);
-    }
-
-    public ${self.name}(String name, String[] args) {
-        super(name, args);
+    public ${self.name}(String name) {
+        super(name);
     }
 
     @Override
@@ -39,7 +35,8 @@ public class ${self.name} extends AbstractApplication implements Application {
     }
 
     public static void main(String[] args) {
-        Application app = new ${self.name}(args);
+        CommandLine.setArgs(args);
+        Application app = new ${self.name}();
         app.setup();
         app.initialize();
         app.start();

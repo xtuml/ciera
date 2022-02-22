@@ -5,6 +5,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
+import io.ciera.runtime.api.application.EventTarget;
 import io.ciera.runtime.api.types.UniqueId;
 
 public interface InstancePopulation {
@@ -24,7 +25,9 @@ public interface InstancePopulation {
     public <T extends ObjectInstance> Stream<T> getAllInstances(Class<T> object);
 
     public void deleteInstance(ObjectInstance instance);
-    
+
     public <T extends ObjectInstance> int getUniqueInteger(Class<T> object, Function<T, Integer> keyMapper);
+
+    public EventTarget getEventTarget(UniqueId targetHandle);
 
 }

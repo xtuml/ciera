@@ -1,6 +1,6 @@
 .if (is_getter)
 public ${type_name} ${name}() {
-    if (isAlive()) {
+    if (isActive()) {
   .if (attribute_derivation != "")
         ${attribute_derivation}
   .end if
@@ -12,7 +12,7 @@ public ${type_name} ${name}() {
 
 .else
 public void ${name}(${type_name} ${self.attribute_name}) {
-    if (isAlive()) {
+    if (isActive()) {
   .if (primitive)
         if (${self.attribute_name} != this.${self.attribute_name}) {
   .else

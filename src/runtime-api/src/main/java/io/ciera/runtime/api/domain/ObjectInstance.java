@@ -18,6 +18,11 @@ public interface ObjectInstance extends InstanceActionHome, EventTarget {
         return !isEmpty();
     }
 
-    public boolean isAlive();
+    public boolean isActive();
+
+    @Override
+    default public UniqueId getTargetId() {
+        return getInstanceId();
+    }
 
 }

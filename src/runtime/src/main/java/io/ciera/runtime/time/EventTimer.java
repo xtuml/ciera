@@ -3,6 +3,7 @@ package io.ciera.runtime.time;
 import io.ciera.runtime.api.application.Event;
 import io.ciera.runtime.api.application.EventTarget;
 import io.ciera.runtime.api.application.ExecutionContext;
+import io.ciera.runtime.api.application.Logger;
 import io.ciera.runtime.api.time.Timer;
 import io.ciera.runtime.api.types.Date;
 import io.ciera.runtime.api.types.Duration;
@@ -31,7 +32,8 @@ public class EventTimer implements Timer {
         this(UniqueId.random(), context, event, target, period);
     }
 
-    public EventTimer(UniqueId timerHandle, ExecutionContext context, Event event, EventTarget target, Duration period) {
+    public EventTimer(UniqueId timerHandle, ExecutionContext context, Event event, EventTarget target,
+            Duration period) {
         this.timerHandle = timerHandle;
         this.context = context;
         this.event = event;
@@ -43,7 +45,7 @@ public class EventTimer implements Timer {
     }
 
     public boolean schedule(long delay) {
-        context.getApplication().getLogger().trace("TMR: Scheduling timer: %s: %s -> %s at %s", this, event, target,
+        getLogger().trace("TMR: Scheduling timer: %s: %s -> %s at %s", this, event, target,
                 new Date(context.getClock().getTime() + delay));
         synchronized (context) {
             scheduled = context.getClock().scheduleTimer(context, this, event, target, delay);
@@ -55,7 +57,7 @@ public class EventTimer implements Timer {
     // trigger the scheduled event and reschedule recurring timers
     @Override
     public void fire() {
-        context.getApplication().getLogger().trace("TMR: Firing timer: %s", this);
+        getLogger().trace("TMR: Firing timer: %s", this);
         expired = true;
         context.execute(new TimerExpiration(event, target));
         if (period > 0l) {
@@ -69,7 +71,7 @@ public class EventTimer implements Timer {
     // return true if successful
     @Override
     public boolean cancel() {
-        context.getApplication().getLogger().trace("TMR: Cancelling timer: %s", this);
+        getLogger().trace("TMR: Cancelling timer: %s", this);
         scheduled = false;
         expired = false;
         if (context.getClock().cancelTimer(context, this)) {
@@ -150,10 +152,14 @@ public class EventTimer implements Timer {
     public void setExpiration(long expiration) {
         this.expiration = expiration;
     }
-    
+
     @Override
     public int compareTo(Timer o) {
         return Long.compare(expiration, o.getExpiration());
+    }
+
+    private Logger getLogger() {
+        return context.getApplication().getLogger();
     }
 
 }

@@ -14,14 +14,12 @@ public abstract class AbstractObjectInstance implements ObjectInstance {
 
     private final UniqueId instanceId;
     private final Domain domain;
-    private ExecutionContext context;
-    private boolean alive;
+    private boolean active;
 
     public AbstractObjectInstance() {
         this.instanceId = null;
         this.domain = null;
-        this.context = null;
-        this.alive = false;
+        this.active = false;
     }
 
     public AbstractObjectInstance(Domain domain) {
@@ -31,8 +29,7 @@ public abstract class AbstractObjectInstance implements ObjectInstance {
     public AbstractObjectInstance(UniqueId instanceId, Domain domain) {
         this.instanceId = instanceId;
         this.domain = domain;
-        this.context = null;
-        this.alive = true;
+        this.active = true;
     }
 
     public Set<ObjectInstance> getSubtypeInstances() {
@@ -46,8 +43,8 @@ public abstract class AbstractObjectInstance implements ObjectInstance {
 
     @Override
     public void delete() {
-        if (isAlive()) {
-            alive = false;
+        if (isActive()) {
+            active = false;
             domain.deleteInstance(this);
         } else {
             throw new DeletedInstanceException("Cannot delete instance that has already been deleted", getDomain(),
@@ -56,8 +53,8 @@ public abstract class AbstractObjectInstance implements ObjectInstance {
     }
 
     @Override
-    public boolean isAlive() {
-        return alive;
+    public boolean isActive() {
+        return active;
     }
 
     @Override
@@ -67,12 +64,7 @@ public abstract class AbstractObjectInstance implements ObjectInstance {
 
     @Override
     public ExecutionContext getContext() {
-        return context != null ? context : getDomain().getContext();
-    }
-
-    @Override
-    public void attachTo(ExecutionContext context) {
-        this.context = context;
+        return domain.getContext();
     }
 
     @Override

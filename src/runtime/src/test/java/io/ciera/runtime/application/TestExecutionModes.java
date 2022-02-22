@@ -13,6 +13,7 @@ import io.ciera.runtime.api.application.EventTarget;
 import io.ciera.runtime.api.application.ExecutionContext;
 import io.ciera.runtime.api.application.ExecutionContext.ExecutionMode;
 import io.ciera.runtime.api.application.ExecutionContext.ModelIntegrityMode;
+import io.ciera.runtime.api.types.UniqueId;
 import io.ciera.runtime.application.task.GeneratedEvent;
 
 public class TestExecutionModes {
@@ -28,10 +29,10 @@ public class TestExecutionModes {
     @Test
     public void testInterleavedMode() {
         // create fake application
-        AbstractApplication app = new AbstractApplication("testInterleavedMode", new String[0]) {
+        final BaseApplication app = new BaseApplication("testInterleavedMode") {
             @Override
             public void setup() {
-                addContext(new ThreadExecutionContext("SequentialContext", this, ExecutionMode.INTERLEAVED,
+                addContext(new ThreadExecutionContext("SequentialContext", ExecutionMode.INTERLEAVED,
                         ModelIntegrityMode.STRICT));
             }
         };
@@ -49,10 +50,10 @@ public class TestExecutionModes {
     @Test
     public void testSequentialMode() {
         // create fake application
-        AbstractApplication app = new AbstractApplication("testSequentialMode", new String[0]) {
+        final BaseApplication app = new BaseApplication("testSequentialMode") {
             @Override
             public void setup() {
-                addContext(new ThreadExecutionContext("SequentialContext", this, ExecutionMode.SEQUENTIAL,
+                addContext(new ThreadExecutionContext("SequentialContext", ExecutionMode.SEQUENTIAL,
                         ModelIntegrityMode.STRICT));
             }
         };
@@ -70,8 +71,7 @@ public class TestExecutionModes {
     @Test
     public void testDefaultMode() {
         // create fake application
-        AbstractApplication app = new AbstractApplication("testInterleavedMode", new String[0]) {
-        };
+        BaseApplication app = new BaseApplication("testDefaultMode");
         app.setup();
 
         app.getLogger().trace("Testing default (interleaved) mode");
@@ -83,7 +83,7 @@ public class TestExecutionModes {
         assertArrayEquals(new String[] { "A1", "B1", "A2", "B2", "A3", "B3" }, output);
     }
 
-    private String[] runEventSequence(AbstractApplication app) {
+    private String[] runEventSequence(BaseApplication app) {
         List<String> output = new ArrayList<>();
 
         // create fake events
@@ -124,12 +124,13 @@ public class TestExecutionModes {
             }
 
             @Override
-            public void attachTo(ExecutionContext context) {
+            public String toString() {
+                return "TestTarget";
             }
 
             @Override
-            public String toString() {
-                return "TestTarget";
+            public UniqueId getTargetId() {
+                return null;
             }
         };
 
