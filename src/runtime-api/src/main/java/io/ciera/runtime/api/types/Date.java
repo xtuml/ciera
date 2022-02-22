@@ -14,6 +14,8 @@ import io.ciera.runtime.api.time.SystemClock;
 
 public class Date extends TimeStamp {
 
+    private static final long serialVersionUID = 1L;
+
     public static final Date ZERO = new Date();
 
     private static final DateTimeFormatter SERIALIZE_FORMAT = DateTimeFormatter.ISO_INSTANT;

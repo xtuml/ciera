@@ -1,5 +1,6 @@
 package io.ciera.runtime.api.types;
 
+import java.io.Serializable;
 import java.util.UUID;
 
 import io.ciera.runtime.api.exceptions.DeserializationException;
@@ -8,7 +9,9 @@ import io.ciera.runtime.api.exceptions.DeserializationException;
  * The UniqueId class represents a universally unique identifier. It is
  * implemented internally by {@UUID}.
  */
-public class UniqueId implements Comparable<UniqueId> {
+public class UniqueId implements Comparable<UniqueId>, Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     /**
      * Default value

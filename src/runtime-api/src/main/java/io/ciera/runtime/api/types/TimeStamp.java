@@ -1,5 +1,7 @@
 package io.ciera.runtime.api.types;
 
+import java.io.Serializable;
+
 import io.ciera.runtime.api.time.SystemClock;
 
 /**
@@ -9,7 +11,9 @@ import io.ciera.runtime.api.time.SystemClock;
  * from, but will be interpreted by the runtime based on the current settings of
  * the {@link SystemClock}.
  */
-public class TimeStamp {
+public class TimeStamp implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     /**
      * Default value

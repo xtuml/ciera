@@ -1,5 +1,6 @@
 package io.ciera.runtime.api.types;
 
+import java.io.Serializable;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalUnit;
@@ -10,7 +11,9 @@ import io.ciera.runtime.api.exceptions.DeserializationException;
  * The Duration class represents a period of time. It is represented as a
  * quantity of nanoseconds. Durations can be represented as ISO-8601 strings.
  */
-public class Duration {
+public class Duration implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     /**
      * Default value
