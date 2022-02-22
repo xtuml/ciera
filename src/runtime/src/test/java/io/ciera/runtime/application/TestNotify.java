@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Timeout;
 import io.ciera.runtime.api.application.Event;
 import io.ciera.runtime.api.application.EventTarget;
 import io.ciera.runtime.api.application.ExecutionContext;
+import io.ciera.runtime.api.domain.Domain;
 import io.ciera.runtime.api.types.Duration;
 import io.ciera.runtime.api.types.UniqueId;
 
@@ -15,6 +16,9 @@ import io.ciera.runtime.api.types.UniqueId;
 public class TestNotify {
 
     private static final class TestEvent extends AbstractEvent {
+
+        private static final long serialVersionUID = 1L;
+
         public TestEvent(Object... data) {
             super(0);
         }
@@ -78,6 +82,11 @@ public class TestNotify {
                 @Override
                 public UniqueId getTargetId() {
                     return null;
+                }
+
+                @Override
+                public Domain getDomain() {
+                    return app.getDomains().stream().findAny().orElseThrow();
                 }
             };
             app.defaultContext().scheduleEvent(TestEvent.class, target, Duration.ZERO);

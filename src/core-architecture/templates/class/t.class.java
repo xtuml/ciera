@@ -44,7 +44,6 @@ ${supertypes}\
 .end if
 .if (has_ism)
         setCurrentState(${self.name}StateMachine.States.UNINITIALIZED);
-        setStateMachine(new ${self.name}StateMachine(domain, this));
 .end if
     }
 
@@ -59,9 +58,15 @@ ${attribute_initializer_params}) {
 .end if
 .if (has_ism)
         setCurrentState(initialState);
-        setStateMachine(new ${self.name}StateMachine(domain, this));
 .end if
     }
+.if (has_ism)
+
+    @Override
+    public StateMachine getStateMachine() {
+        return ${self.name}StateMachine.getInstance(getDomain(), this);
+    }
+.end if
 
     // attribute accessors
     ${attribute_accessors}

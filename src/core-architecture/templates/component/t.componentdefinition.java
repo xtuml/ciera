@@ -10,8 +10,8 @@ public class ${self.name} extends AbstractDomain implements Domain {
     // ports
     ${ports}
 
-    public ${self.name}(String name, Application application) {
-        super(name, application);
+    public ${self.name}(String name) {
+        super(name);
         ${utility_initializers}
         ${port_initializers}
     }

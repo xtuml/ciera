@@ -5,6 +5,8 @@ import io.ciera.runtime.api.application.EventTarget;
 
 public class GeneratedEventToSelf extends GeneratedEvent {
 
+    private static final long serialVersionUID = 1L;
+
     public GeneratedEventToSelf(Event event, EventTarget target) {
         super(event, target, null);
     }

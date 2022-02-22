@@ -4,19 +4,27 @@ import io.ciera.runtime.api.application.Event;
 import io.ciera.runtime.api.application.EventTarget;
 import io.ciera.runtime.api.application.ExecutionContext;
 import io.ciera.runtime.api.application.Logger;
+import io.ciera.runtime.api.domain.Domain;
 import io.ciera.runtime.api.time.Timer;
 import io.ciera.runtime.api.types.Date;
 import io.ciera.runtime.api.types.Duration;
 import io.ciera.runtime.api.types.TimeStamp;
 import io.ciera.runtime.api.types.UniqueId;
+import io.ciera.runtime.application.BaseApplication;
 import io.ciera.runtime.application.task.TimerExpiration;
 
 public class EventTimer implements Timer {
 
+    private static final long serialVersionUID = 1L;
+
+    private final Class<? extends Domain> domainClass;
     private final UniqueId timerHandle;
-    private final ExecutionContext context;
     private final Event event;
-    private final EventTarget target;
+    private final UniqueId targetId;
+    private final String contextId;
+    
+    private transient EventTarget target;
+    private transient ExecutionContext context;
 
     private final long period;
     private long expiration;
@@ -34,10 +42,13 @@ public class EventTimer implements Timer {
 
     public EventTimer(UniqueId timerHandle, ExecutionContext context, Event event, EventTarget target,
             Duration period) {
+        this.domainClass = target.getDomain().getClass();
         this.timerHandle = timerHandle;
         this.context = context;
+        this.contextId = context.getName();
         this.event = event;
         this.target = target;
+        this.targetId = target.getTargetId();
         this.period = period.getValue();
         this.expiration = 0;
         this.scheduled = false;
@@ -45,11 +56,11 @@ public class EventTimer implements Timer {
     }
 
     public boolean schedule(long delay) {
-        getLogger().trace("TMR: Scheduling timer: %s: %s -> %s at %s", this, event, target,
-                new Date(context.getClock().getTime() + delay));
-        synchronized (context) {
-            scheduled = context.getClock().scheduleTimer(context, this, event, target, delay);
-            context.notify();
+        getLogger().trace("TMR: Scheduling timer: %s: %s -> %s at %s", this, event, getTarget(),
+                new Date(getContext().getClock().getTime() + delay));
+        synchronized (getContext()) {
+            scheduled = getContext().getClock().scheduleTimer(getContext(), this, event, getTarget(), delay);
+            getContext().notify();
         }
         return scheduled;
     }
@@ -59,7 +70,7 @@ public class EventTimer implements Timer {
     public void fire() {
         getLogger().trace("TMR: Firing timer: %s", this);
         expired = true;
-        context.execute(new TimerExpiration(event, target));
+        getContext().execute(new TimerExpiration(event, getTarget()));
         if (period > 0l) {
             schedule(period);
         } else {
@@ -74,7 +85,7 @@ public class EventTimer implements Timer {
         getLogger().trace("TMR: Cancelling timer: %s", this);
         scheduled = false;
         expired = false;
-        if (context.getClock().cancelTimer(context, this)) {
+        if (getContext().getClock().cancelTimer(getContext(), this)) {
             return true;
         } else {
             return false;
@@ -99,7 +110,7 @@ public class EventTimer implements Timer {
 
     @Override
     public Duration remainingTime() {
-        return new Duration(expiration - context.getClock().getTime());
+        return new Duration(expiration - getContext().getClock().getTime());
     }
 
     @Override
@@ -135,7 +146,17 @@ public class EventTimer implements Timer {
     }
 
     public EventTarget getTarget() {
+        if (target == null) {
+            target = BaseApplication.getInstance().getDomain(domainClass).getEventTarget(targetId);
+        }
         return target;
+    }
+    
+    public ExecutionContext getContext() {
+        if (context == null) {
+            context = BaseApplication.getInstance().getContext(contextId);
+        }
+        return context;
     }
 
     @Override
@@ -159,7 +180,7 @@ public class EventTimer implements Timer {
     }
 
     private Logger getLogger() {
-        return context.getApplication().getLogger();
+        return getContext().getApplication().getLogger();
     }
 
 }

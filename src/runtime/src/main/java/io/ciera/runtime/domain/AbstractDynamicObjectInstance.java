@@ -11,8 +11,9 @@ import io.ciera.runtime.api.types.UniqueId;
 
 public abstract class AbstractDynamicObjectInstance extends AbstractObjectInstance implements DynamicObjectInstance {
 
+    private static final long serialVersionUID = 1L;
+
     private Enum<?> currentState;
-    private StateMachine stateMachine;
 
     public AbstractDynamicObjectInstance() {
         super();
@@ -20,19 +21,13 @@ public abstract class AbstractDynamicObjectInstance extends AbstractObjectInstan
 
     public AbstractDynamicObjectInstance(Domain domain) {
         super(domain);
-        this.stateMachine = null;
     }
 
     public AbstractDynamicObjectInstance(UniqueId instanceId, Domain domain) {
         super(instanceId, domain);
-        this.stateMachine = null;
     }
 
-    public void setStateMachine(StateMachine stateMachine) {
-        if (this.stateMachine == null) {
-            this.stateMachine = stateMachine;
-        }
-    }
+    public abstract StateMachine getStateMachine();
 
     @Override
     public Enum<?> getCurrentState() {
@@ -48,9 +43,9 @@ public abstract class AbstractDynamicObjectInstance extends AbstractObjectInstan
     public void consumeEvent(Event event) {
         if (isActive()) {
             if (!isEmpty()) {
-                if (stateMachine != null) {
+                if (getStateMachine() != null) {
                     if (event != null) {
-                        stateMachine.consumeEvent(event);
+                        getStateMachine().consumeEvent(event);
                         getSubtypeInstances().stream().forEach(o -> o.consumeEvent(event));
                     } else {
                         throw new EventTargetException("Cannot consume null event", this, event);

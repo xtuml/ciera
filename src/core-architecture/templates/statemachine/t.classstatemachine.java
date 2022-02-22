@@ -4,7 +4,7 @@ ${imports}
 
 public class ${self.name} extends AbstractStateMachine implements StateMachine {
 
-    private static ${self.name} instance;
+    private static volatile ${self.name} instance;
 
     public static enum States {
         ${state_declarations}\

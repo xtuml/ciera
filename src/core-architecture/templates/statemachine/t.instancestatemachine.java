@@ -4,6 +4,8 @@ ${imports}
 
 public class ${self.name} extends InstanceStateMachine implements StateMachine, InstanceActionHome {
 
+    private static volatile ${self.name} instance;
+
     public static enum States {
         ${state_declarations}\
     }
@@ -35,6 +37,13 @@ public class ${self.name} extends InstanceStateMachine implements StateMachine, 
     @Override
     public ${self.class_name} self() {
         return (${self.class_name}) super.self();
+    }
+
+    public static StateMachine getInstance(${self.comp_name} domain, ${self.class_name} self) {
+        if (instance == null || !instance.getDomain().equals(domain) || !instance.self().equals(self)) {
+            instance = new ${self.name}(domain, self);
+        }
+        return instance;
     }
 
 }

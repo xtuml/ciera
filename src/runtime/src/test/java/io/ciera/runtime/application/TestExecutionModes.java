@@ -13,12 +13,16 @@ import io.ciera.runtime.api.application.EventTarget;
 import io.ciera.runtime.api.application.ExecutionContext;
 import io.ciera.runtime.api.application.ExecutionContext.ExecutionMode;
 import io.ciera.runtime.api.application.ExecutionContext.ModelIntegrityMode;
+import io.ciera.runtime.api.domain.Domain;
 import io.ciera.runtime.api.types.UniqueId;
 import io.ciera.runtime.application.task.GeneratedEvent;
 
 public class TestExecutionModes {
 
     private static class TestEvent extends AbstractEvent {
+
+        private static final long serialVersionUID = 1L;
+
         public TestEvent(Object... data) {
             super(0, data);
         }
@@ -131,6 +135,11 @@ public class TestExecutionModes {
             @Override
             public UniqueId getTargetId() {
                 return null;
+            }
+
+            @Override
+            public Domain getDomain() {
+                return app.getDomains().stream().findAny().orElseThrow();
             }
         };
 

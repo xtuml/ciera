@@ -5,6 +5,8 @@ import io.ciera.runtime.api.types.UniqueId;
 
 public abstract class AbstractEvent implements Event {
 
+    private static final long serialVersionUID = 1L;
+
     private final UniqueId eventHandle;
     private final int eventId;
     private final Object[] parameterData;

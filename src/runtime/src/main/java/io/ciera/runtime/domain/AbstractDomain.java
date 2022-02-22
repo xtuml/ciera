@@ -14,10 +14,10 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import io.ciera.runtime.api.application.Application;
 import io.ciera.runtime.api.application.Event;
 import io.ciera.runtime.api.application.EventTarget;
 import io.ciera.runtime.api.application.ExecutionContext;
+import io.ciera.runtime.api.application.MessageTarget;
 import io.ciera.runtime.api.domain.Domain;
 import io.ciera.runtime.api.domain.ObjectInstance;
 import io.ciera.runtime.api.exceptions.EventTargetException;
@@ -36,7 +36,7 @@ public abstract class AbstractDomain implements Domain {
     private final String name;
     private final Map<Class<?>, Set<ObjectInstance>> instancePopulation;
 
-    public AbstractDomain(String name, Application application) {
+    public AbstractDomain(String name) {
         this.name = name;
         this.instancePopulation = new HashMap<>();
     }
@@ -120,13 +120,18 @@ public abstract class AbstractDomain implements Domain {
     }
 
     @Override
-    public EventTarget getEventTarget(UniqueId targetHandle) {
-        if (targetHandle == null) {
+    public EventTarget getEventTarget(UniqueId targetId) {
+        if (targetId == null) {
             return this;
         } else {
             return instancePopulation.values().stream().flatMap(Set::stream)
-                    .filter(inst -> inst.getInstanceId().equals(targetHandle)).findAny().orElse(null);
+                    .filter(inst -> inst.getInstanceId().equals(targetId)).findAny().orElse(null);
         }
+    }
+
+    @Override
+    public MessageTarget getMessageTarget(UniqueId targetId) {
+        throw new UnsupportedOperationException();  // TODO
     }
 
     @Override
@@ -144,7 +149,7 @@ public abstract class AbstractDomain implements Domain {
             throw new EventTargetException("Could not find state machine to handle event", this, event);
         }
     }
-
+    
     @Override
     public String toString() {
         return String.format("Domain[%s]", name);

@@ -2,6 +2,7 @@ package io.ciera.runtime.api.domain;
 
 import io.ciera.runtime.api.action.ActionHome;
 import io.ciera.runtime.api.application.EventTarget;
+import io.ciera.runtime.api.application.MessageTarget;
 import io.ciera.runtime.api.types.UniqueId;
 
 /**
@@ -13,6 +14,10 @@ import io.ciera.runtime.api.types.UniqueId;
 public interface Domain extends ActionHome, InstancePopulation, EventTarget {
 
     public void initialize();
+
+    public EventTarget getEventTarget(UniqueId targetId);
+
+    public MessageTarget getMessageTarget(UniqueId targetId);
 
     @Override
     default public Domain getDomain() {

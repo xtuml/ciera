@@ -9,15 +9,20 @@ import io.ciera.runtime.api.domain.ObjectInstance;
 import io.ciera.runtime.api.exceptions.DeletedInstanceException;
 import io.ciera.runtime.api.exceptions.EventTargetException;
 import io.ciera.runtime.api.types.UniqueId;
+import io.ciera.runtime.application.BaseApplication;
 
 public abstract class AbstractObjectInstance implements ObjectInstance {
 
+    private static final long serialVersionUID = 1L;
+
     private final UniqueId instanceId;
-    private final Domain domain;
+    private final Class<? extends Domain> domainClass;
+    private transient Domain domain;
     private boolean active;
 
     public AbstractObjectInstance() {
         this.instanceId = null;
+        this.domainClass = null;
         this.domain = null;
         this.active = false;
     }
@@ -28,6 +33,7 @@ public abstract class AbstractObjectInstance implements ObjectInstance {
 
     public AbstractObjectInstance(UniqueId instanceId, Domain domain) {
         this.instanceId = instanceId;
+        this.domainClass = domain.getClass();
         this.domain = domain;
         this.active = true;
     }
@@ -45,7 +51,7 @@ public abstract class AbstractObjectInstance implements ObjectInstance {
     public void delete() {
         if (isActive()) {
             active = false;
-            domain.deleteInstance(this);
+            getDomain().deleteInstance(this);
         } else {
             throw new DeletedInstanceException("Cannot delete instance that has already been deleted", getDomain(),
                     this);
@@ -59,12 +65,15 @@ public abstract class AbstractObjectInstance implements ObjectInstance {
 
     @Override
     public Domain getDomain() {
+        if (domain != null) {
+            domain = BaseApplication.getInstance().getDomain(domainClass);
+        }
         return domain;
     }
 
     @Override
     public ExecutionContext getContext() {
-        return domain.getContext();
+        return getDomain().getContext();
     }
 
     @Override

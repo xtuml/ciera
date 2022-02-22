@@ -17,6 +17,7 @@ import io.ciera.runtime.api.types.Duration;
 import io.ciera.runtime.api.types.TimeStamp;
 import io.ciera.runtime.application.task.GeneratedEvent;
 import io.ciera.runtime.application.task.GeneratedEventToSelf;
+import io.ciera.runtime.application.task.GenericTask;
 import io.ciera.runtime.application.task.Task;
 import io.ciera.runtime.time.EventTimer;
 
@@ -147,12 +148,7 @@ public class ThreadExecutionContext implements ExecutionContext, Runnable {
     @Override
     public void execute(Runnable command) {
         if (command != null) {
-            Task t = command instanceof Task ? (Task) command : new Task() {
-                @Override
-                public void run() {
-                    command.run();
-                }
-            };
+            Task t = command instanceof Task ? (Task) command : new GenericTask(command);
             addTask(t);
         }
     }
