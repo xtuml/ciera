@@ -1,9 +1,11 @@
 package io.ciera.runtime.api.time;
 
+import java.io.Serializable;
+
 import io.ciera.runtime.api.types.Duration;
 import io.ciera.runtime.api.types.TimeStamp;
 
-public interface Timer extends Comparable<Timer> {
+public interface Timer extends Comparable<Timer>, Serializable {
 
     public void fire();
 

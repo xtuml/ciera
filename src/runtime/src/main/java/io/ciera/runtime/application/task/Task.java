@@ -1,10 +1,13 @@
 package io.ciera.runtime.application.task;
 
+import java.io.Serializable;
 import java.util.Arrays;
 
 import io.ciera.runtime.application.ThreadExecutionContext;
 
-public abstract class Task implements Runnable, Comparable<Task> {
+public abstract class Task implements Runnable, Comparable<Task>, Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     public static final int SELF_EVENT_PRIORITY = 0x30;
     public static final int SEQUENTIAL_EVENT_PRIORITY = 0x20;

@@ -1,5 +1,6 @@
 package io.ciera.runtime.api.domain;
 
+import java.io.Serializable;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -13,7 +14,7 @@ import io.ciera.runtime.api.types.UniqueId;
  * message has a unique identifier to mark which message it is as well as data
  * items. Messages can be serialized and sent across a network interface.
  */
-public interface Message extends Comparable<Message> {
+public interface Message extends Comparable<Message>, Serializable {
 
     /**
      * Access the parameter datum at the specified index.
