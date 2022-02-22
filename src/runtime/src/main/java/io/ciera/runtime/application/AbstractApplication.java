@@ -1,9 +1,7 @@
 package io.ciera.runtime.application;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import io.ciera.runtime.api.application.Application;
@@ -17,7 +15,7 @@ import io.ciera.runtime.time.WallClock;
 public abstract class AbstractApplication implements Application {
 
     private final String name;
-    private final List<ThreadExecutionContext> contexts;
+    private final Map<String, ThreadExecutionContext> contexts;
     private final Map<Class<?>, Domain> domains;
     private final String[] args;
 
@@ -29,7 +27,7 @@ public abstract class AbstractApplication implements Application {
 
     public AbstractApplication(String name, String[] args) {
         this.name = name;
-        this.contexts = new ArrayList<>();
+        this.contexts = new HashMap<>();
         this.domains = new HashMap<>();
         this.args = args;
         this.clock = new WallClock();
@@ -65,10 +63,10 @@ public abstract class AbstractApplication implements Application {
         running = true;
         if (contexts.size() == 1) {
             // run the single context in the main thread
-            contexts.get(0).run();
+            contexts.values().stream().findAny().orElseThrow().run();
         } else if (contexts.size() > 1) {
             // run each context in its own thread and wait for them all to complete
-            contexts.stream().map(context -> context.start()).forEach(thread -> {
+            contexts.values().stream().map(context -> context.start()).forEach(thread -> {
                 try {
                     thread.join();
                 } catch (InterruptedException e) {
@@ -87,18 +85,24 @@ public abstract class AbstractApplication implements Application {
     }
 
     @Override
-    public List<ThreadExecutionContext> getContexts() {
-        return contexts;
+    public Collection<ThreadExecutionContext> getContexts() {
+        return contexts.values();
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public ThreadExecutionContext getContext(String name) {
+        return contexts.get(name);
     }
 
     @Override
     public ExecutionContext defaultContext() {
-        return !contexts.isEmpty() ? contexts.get(0) : null;
+        return contexts.values().stream().findAny().orElse(null);
     }
 
     @Override
     public void addContext(ExecutionContext context) {
-        this.contexts.add((ThreadExecutionContext) context);
+        this.contexts.put(context.getName(), (ThreadExecutionContext) context);
     }
 
     @Override

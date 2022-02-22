@@ -6,7 +6,7 @@ import io.ciera.runtime.api.application.EventTarget;
 public class GeneratedEventToSelf extends GeneratedEvent {
 
     public GeneratedEventToSelf(Event event, EventTarget target) {
-        super(event, target);
+        super(event, target, null);
     }
 
     @Override

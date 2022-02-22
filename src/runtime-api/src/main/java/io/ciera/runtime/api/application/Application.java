@@ -1,7 +1,6 @@
 package io.ciera.runtime.api.application;
 
 import java.util.Collection;
-import java.util.List;
 
 import io.ciera.runtime.api.domain.Domain;
 import io.ciera.runtime.api.time.SystemClock;
@@ -20,7 +19,9 @@ public interface Application {
 
     public void stop();
 
-    public List<? extends ExecutionContext> getContexts();
+    public Collection<? extends ExecutionContext> getContexts();
+
+    public <T extends ExecutionContext> T getContext(String name);
 
     public ExecutionContext defaultContext();
 

@@ -1,7 +1,6 @@
 package io.ciera.runtime.util;
 
 import io.ciera.runtime.api.domain.Domain;
-import io.ciera.runtime.application.task.Halt;
 
 public class ARCH {
 
@@ -12,7 +11,7 @@ public class ARCH {
     }
 
     public void shutdown() {
-        domain.getContext().execute(new Halt());
+        domain.getContext().halt();
     }
 
 }

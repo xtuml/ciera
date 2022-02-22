@@ -114,10 +114,12 @@ public class TestExecutionModes {
                 output.add(key);
                 if (key.startsWith("A") && Aiter.hasNext()) {
                     // generate the next event
-                    app.defaultContext().execute(new GeneratedEvent(Aiter.next(), target));
+                    app.defaultContext()
+                            .execute(new GeneratedEvent(Aiter.next(), target, app.defaultContext().getExecutionMode()));
                 } else if (key.startsWith("B") && Biter.hasNext()) {
                     // generate the next event
-                    app.defaultContext().execute(new GeneratedEvent(Biter.next(), target));
+                    app.defaultContext()
+                            .execute(new GeneratedEvent(Biter.next(), target, app.defaultContext().getExecutionMode()));
                 }
             }
 
@@ -134,13 +136,15 @@ public class TestExecutionModes {
         // queue primary task for A
         app.defaultContext().execute(() -> {
             app.getLogger().trace("Executing primary task A");
-            app.defaultContext().execute(new GeneratedEvent(Aiter.next(), target));
+            app.defaultContext()
+                    .execute(new GeneratedEvent(Aiter.next(), target, app.defaultContext().getExecutionMode()));
         });
 
         // queue primary task for B
         app.defaultContext().execute(() -> {
             app.getLogger().trace("Executing primary task B");
-            app.defaultContext().execute(new GeneratedEvent(Biter.next(), target));
+            app.defaultContext()
+                    .execute(new GeneratedEvent(Biter.next(), target, app.defaultContext().getExecutionMode()));
         });
 
         // set up idle halt

@@ -16,7 +16,6 @@ import io.ciera.runtime.api.types.Duration;
 import io.ciera.runtime.api.types.TimeStamp;
 import io.ciera.runtime.application.task.GeneratedEvent;
 import io.ciera.runtime.application.task.GeneratedEventToSelf;
-import io.ciera.runtime.application.task.Halt;
 import io.ciera.runtime.application.task.Task;
 import io.ciera.runtime.time.EventTimer;
 
@@ -45,6 +44,11 @@ public class ThreadExecutionContext implements ExecutionContext, Runnable {
     }
 
     @Override
+    public String getName() {
+        return name;
+    }
+
+    @Override
     public <E extends Event> void generateEvent(Class<E> eventType, EventTarget target, Object... data) {
         generateEvent(eventType, target, false, data);
 
@@ -63,7 +67,7 @@ public class ThreadExecutionContext implements ExecutionContext, Runnable {
             if (toSelf) {
                 execute(new GeneratedEventToSelf(event, target));
             } else {
-                execute(new GeneratedEvent(event, target));
+                execute(new GeneratedEvent(event, target, getExecutionMode()));
             }
         } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException
                 | IllegalArgumentException | InvocationTargetException e) {
@@ -120,7 +124,7 @@ public class ThreadExecutionContext implements ExecutionContext, Runnable {
 
     @Override
     public void halt() {
-        execute(new Halt());
+        execute(() -> getApplication().stop());
     }
 
     @Override
@@ -144,16 +148,15 @@ public class ThreadExecutionContext implements ExecutionContext, Runnable {
 
     @Override
     public void execute(Runnable command) {
-        Task t = command instanceof Task ? (Task) command : new Task() {
-            @Override
-            public void run() {
-                if (command != null) {
+        if (command != null) {
+            Task t = command instanceof Task ? (Task) command : new Task() {
+                @Override
+                public void run() {
                     command.run();
                 }
-            }
-        };
-        t.setContext(this);
-        addTask(t);
+            };
+            addTask(t);
+        }
     }
 
     @Override
@@ -180,15 +183,15 @@ public class ThreadExecutionContext implements ExecutionContext, Runnable {
                         // wait for the next timer to expire
                         getClock().waitForNextTimer(this);
                     } else {
-                    	if (System.getProperty("io.ciera.runtime.haltWhenIdle") != null) {
-                    		application.stop();
-                    	} else {
-							// wait indefinitely for an external signal or for a
-							// timer to be scheduled in this context by another thread
-							synchronized (this) {
-								wait();
-							}
-                    	}
+                        if (System.getProperty("io.ciera.runtime.haltWhenIdle") != null) {
+                            application.stop();
+                        } else {
+                            // wait indefinitely for an external signal or for a
+                            // timer to be scheduled in this context by another thread
+                            synchronized (this) {
+                                wait();
+                            }
+                        }
                     }
                 } catch (InterruptedException e) {
                     // woken up by external signal or new timer

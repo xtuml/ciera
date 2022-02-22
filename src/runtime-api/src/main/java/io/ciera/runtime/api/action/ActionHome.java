@@ -38,6 +38,11 @@ public interface ActionHome extends ExecutionContext {
     public void attachTo(ExecutionContext context);
 
     @Override
+    public default String getName() {
+        return getContext().getName();
+    }
+
+    @Override
     public default Application getApplication() {
         return getContext().getApplication();
     }
@@ -80,7 +85,7 @@ public interface ActionHome extends ExecutionContext {
     public default void halt() {
         getContext().halt();
     }
-    
+
     @Override
     public default void execute(Runnable command) {
         getContext().execute(command);
@@ -92,14 +97,17 @@ public interface ActionHome extends ExecutionContext {
         getContext().delay(delay);
     }
 
+    @Override
     public default ExecutionMode getExecutionMode() {
         return getContext().getExecutionMode();
     }
 
+    @Override
     public default ModelIntegrityMode getModelIntegrityMode() {
         return getContext().getModelIntegrityMode();
     }
 
+    @Override
     public default SystemClock getClock() {
         return getContext().getClock();
     }

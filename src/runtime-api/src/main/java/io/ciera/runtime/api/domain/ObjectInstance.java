@@ -10,10 +10,12 @@ public interface ObjectInstance extends InstanceActionHome, EventTarget {
 
     public void delete();
 
-    public boolean isEmpty();
-    
+    default public boolean isEmpty() {
+        return false;
+    }
+
     default public boolean notEmpty() {
-    	return !isEmpty();
+        return !isEmpty();
     }
 
     public boolean isAlive();

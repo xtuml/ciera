@@ -67,6 +67,7 @@ public class EventTimer implements Timer {
 
     // attempt to cancel the timer
     // return true if successful
+    @Override
     public boolean cancel() {
         context.getApplication().getLogger().trace("TMR: Cancelling timer: %s", this);
         scheduled = false;
@@ -81,6 +82,7 @@ public class EventTimer implements Timer {
     // a timer is "scheduled" from the point at which it is first scheduled
     // until it either expires and is not rescheduled (non-recurring) or is
     // cancelled
+    @Override
     public boolean isScheduled() {
         return scheduled;
     }
@@ -88,14 +90,17 @@ public class EventTimer implements Timer {
     // a timer is expired from the point where it fires the first time until it
     // is cancelled. after the first expiration, a recurring timer is both expired
     // and cancelled.
+    @Override
     public boolean isExpired() {
         return expired;
     }
 
+    @Override
     public Duration remainingTime() {
         return new Duration(expiration - context.getClock().getTime());
     }
 
+    @Override
     public TimeStamp getScheduledExpirationTime() {
         if (scheduled) {
             return new TimeStamp(expiration);
@@ -106,6 +111,7 @@ public class EventTimer implements Timer {
 
     // return the last expiration time (scheduled expiration, not real time at
     // expiration)
+    @Override
     public TimeStamp getLastExpirationTime() {
         if (expired) {
             return new TimeStamp(scheduled ? expiration - period : expiration);

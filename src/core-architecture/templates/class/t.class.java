@@ -34,7 +34,8 @@ ${supertypes}\
     ${relationship_decls}
 
     // constructors
-    private ${self.name}() {}
+    public ${self.name}() {
+    }
 
     public ${self.name}(${self.comp_name} domain) {
         super(UniqueId.random(), domain);

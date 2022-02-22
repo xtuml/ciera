@@ -34,9 +34,9 @@ public abstract class AbstractObjectInstance implements ObjectInstance {
         this.context = null;
         this.alive = true;
     }
-    
+
     public Set<ObjectInstance> getSubtypeInstances() {
-    	return Set.of();
+        return Set.of();
     }
 
     @Override
@@ -53,11 +53,6 @@ public abstract class AbstractObjectInstance implements ObjectInstance {
             throw new DeletedInstanceException("Cannot delete instance that has already been deleted", getDomain(),
                     this);
         }
-    }
-
-    @Override
-    public boolean isEmpty() {
-        return false;
     }
 
     @Override
@@ -92,12 +87,12 @@ public abstract class AbstractObjectInstance implements ObjectInstance {
 
     @Override
     public void consumeEvent(Event event) {
-    	if (getSubtypeInstances().isEmpty()) {
-          throw new EventTargetException("Cannot generate event to non-dynamic instance", this, event);
-    	} else {
-    		getApplication().getLogger().trace("Passing event through non-dynamic supertype: " + this);
-			getSubtypeInstances().stream().forEach(o -> o.consumeEvent(event));
-    	}
+        if (getSubtypeInstances().isEmpty()) {
+            throw new EventTargetException("Cannot generate event to non-dynamic instance", this, event);
+        } else {
+            getApplication().getLogger().trace("Passing event through non-dynamic supertype: " + this);
+            getSubtypeInstances().stream().forEach(o -> o.consumeEvent(event));
+        }
     }
 
 }

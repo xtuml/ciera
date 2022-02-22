@@ -9,7 +9,6 @@ import io.ciera.runtime.api.application.Event;
 import io.ciera.runtime.api.application.EventTarget;
 import io.ciera.runtime.api.application.ExecutionContext;
 import io.ciera.runtime.api.types.Duration;
-import io.ciera.runtime.application.task.Halt;
 
 @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
 public class TestNotify {
@@ -37,7 +36,7 @@ public class TestNotify {
             Thread.sleep(100);
 
             // add a task after it's started and it should wake up and run it
-            app.defaultContext().execute(new Halt());
+            app.defaultContext().halt();
 
             t.join();
         } catch (InterruptedException e) {
@@ -69,7 +68,7 @@ public class TestNotify {
 
                 @Override
                 public void consumeEvent(Event event) {
-                    app.defaultContext().execute(new Halt());
+                    app.defaultContext().halt();
                 }
 
                 @Override

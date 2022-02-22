@@ -2,7 +2,6 @@ package io.ciera.runtime.application.task;
 
 import java.util.Arrays;
 
-import io.ciera.runtime.api.application.ExecutionContext;
 import io.ciera.runtime.application.ThreadExecutionContext;
 
 public abstract class Task implements Runnable, Comparable<Task> {
@@ -12,7 +11,6 @@ public abstract class Task implements Runnable, Comparable<Task> {
     public static final int DEFAULT_PRIORITY = 0x10;
 
     private int sequenceNumber;
-    private ExecutionContext context;
 
     public Task() {
         this.sequenceNumber = ThreadExecutionContext.nextSequenceNumber();
@@ -20,14 +18,6 @@ public abstract class Task implements Runnable, Comparable<Task> {
 
     public int getSequenceNumber() {
         return sequenceNumber;
-    }
-
-    public ExecutionContext getContext() {
-        return context;
-    }
-
-    public void setContext(ExecutionContext context) {
-        this.context = context;
     }
 
     public int getPriority() {

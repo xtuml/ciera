@@ -9,6 +9,8 @@ import io.ciera.runtime.api.types.TimeStamp;
 
 public interface ExecutionContext extends Executor {
 
+    public String getName();
+
     public <E extends Event> void generateEvent(Class<E> eventType, EventTarget target, Object... data);
 
     public <E extends Event> void generateEventToSelf(Class<E> eventType, EventTarget target, Object... data);
