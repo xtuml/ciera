@@ -1,5 +1,7 @@
     @Override
+.if (body)
     @MessageMapping( "/${self.msg_name}${suffix}" )
+.end if
     public void ${self.msg_name}( ${self.msg_name}Msg message  ) throws Exception {
 .if (body)
         getRunContext().execute(new ReceivedMessageTask() {
@@ -13,5 +15,7 @@
                 }
             }
         });
+.else
+        // empty to satisfy override of interface definition
 .end if;
     }
