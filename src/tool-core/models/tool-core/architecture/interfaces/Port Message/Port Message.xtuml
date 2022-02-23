@@ -64,9 +64,10 @@ parmcasts = T::body();
 T::pop_buffer();
 
 select one port related by self->Port[R420.''is implemented within''];
-inbound = ( port.provider == message.to_provider );
+inbound = param.inbound;
 select one descriptor related by port->PortDescriptor[R4161.''is specialized by''];
 sendtest = descriptor.get_sendtest();
+override = descriptor.get_override();
 T::include(file:"interface/t.portmessage.java");',
 	1,
 	'',
@@ -89,6 +90,15 @@ INSERT INTO S_DT_PROXY
 	'',
 	'',
 	'../../component/component.xtuml');
+INSERT INTO O_TPARM
+	VALUES ("0eb35b57-9bd3-46b8-9d18-3f291cdcbd09",
+	"ebb83977-1afb-439f-99ff-6fcf7a82d93c",
+	'inbound',
+	"ba5eda7a-def5-0000-0000-000000000001",
+	0,
+	'',
+	"e095a6da-d2e8-4d52-925c-5d4f33e424c4",
+	'');
 INSERT INTO O_TFR
 	VALUES ("0b094dc4-af53-4c8f-8ee7-2d014dfe2d49",
 	"f324607b-67c6-4abd-90c0-9dfb3d9e8e63",
@@ -212,11 +222,31 @@ while ( not_empty parm )
   select one parm related by parm->FormalParameter[R404.''precedes''];
 end while;
 mname = self.msg_name;
-
+body = true;
+select one descriptor related by self->Port[R420.''is implemented within'']->PortDescriptor[R4161.''is specialized by''];
+suffix = descriptor.get_mapping_suffix();
 T::include(file:"interface/t.message.decode.java");',
 	1,
 	'',
 	"0b094dc4-af53-4c8f-8ee7-2d014dfe2d49",
+	0,
+	3);
+INSERT INTO O_TFR
+	VALUES ("75162351-d7c3-4f1d-bac3-8c8b0c1ec16c",
+	"f324607b-67c6-4abd-90c0-9dfb3d9e8e63",
+	'render_msg_override',
+	'Render the code to unpack port activity parameters from the members of an ''incoming'' message class.',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'mname = self.msg_name;
+parmlist = "";
+body = false;
+select one descriptor related by self->Port[R420.''is implemented within'']->PortDescriptor[R4161.''is specialized by''];
+suffix = descriptor.get_mapping_suffix();
+T::include(file:"interface/t.message.decode.java");',
+	1,
+	'',
+	"6f088eda-6930-4ff8-abec-c8c19bbd4e6e",
 	0,
 	3);
 INSERT INTO O_REF

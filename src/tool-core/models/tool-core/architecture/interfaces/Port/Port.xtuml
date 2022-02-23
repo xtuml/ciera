@@ -108,7 +108,7 @@ select one containing_comp_def related by self->ComponentDefinition[R417];
 select many inbound_msgs related by self->Interface[R418]->Message[R419] where ( selected.to_provider == self.provider );
 select many inbound_port_msgs related by inbound_msgs->PortMessage[R420] where ( selected.port_name == self.name );
 for each port_msg in inbound_port_msgs
-  port_msg.render( containing_comp_def:containing_comp_def );
+  port_msg.render( containing_comp_def:containing_comp_def, inbound:true );
 end for;
 return inbound_port_msgs;
 ',
@@ -136,7 +136,7 @@ select one containing_comp_def related by self->ComponentDefinition[R417];
 select many outbound_msgs related by self->Interface[R418]->Message[R419] where ( selected.to_provider != self.provider );
 select many outbound_port_msgs related by outbound_msgs->PortMessage[R420] where ( selected.port_name == self.name );
 for each port_msg in outbound_port_msgs
-  port_msg.render( containing_comp_def:containing_comp_def );
+  port_msg.render( containing_comp_def:containing_comp_def, inbound:false );
 end for;
 return outbound_port_msgs;',
 	1,

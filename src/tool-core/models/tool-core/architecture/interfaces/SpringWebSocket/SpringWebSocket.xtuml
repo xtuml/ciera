@@ -23,14 +23,15 @@ select many in_msgs related by iface->Message[R419.''defines communication throu
 select many out_msgs related by iface->Message[R419.''defines communication through'']
  where ( selected.to_provider != port.provider );
 
+select many msgs related by iface->Message[R419.''defines communication through''];
 in_message_block = "";
 out_message_block = "";
 
-self.render_inbound_msgs_iface( msgs:in_msgs );
+self.render_inbound_msgs_iface( msgs:msgs );
 in_message_block = T::body();
 T::clear();
 
-for each msg in out_msgs
+for each msg in msgs
   msg.render();
 end for;
 out_message_block = T::body();
@@ -113,22 +114,31 @@ T::clear();
 
 pkg = "";
 unpack_message_block = "";
-if ( not_empty inmsgs )
-  select one iface related by port->Interface[R418.''implements''];
-	msgpkg = T::sub( format:"l", s:STRING::substr( s:iface.name, begin:1, end:-1 ));
-	pkg = iface.package + "." + msgpkg;
-	for each port_msg in inmsgs
-    ::addStringToImports( file:file, s:pkg + "." + port_msg.msg_name + "Msg", type: ImportType::IMPL );
-    port_msg.render_msg_decode();
-	end for;
-  unpack_message_block = T::body();
-  T::clear();
+select one iface related by port->Interface[R418.''implements''];
+msgpkg = T::sub( format:"l", s:STRING::substr( s:iface.name, begin:1, end:-1 ));
+pkg = iface.package + "." + msgpkg;
+for each port_msg in inmsgs
+  ::addStringToImports( file:file, s:pkg + "." + port_msg.msg_name + "Msg", type: ImportType::IMPL );
+  port_msg.render_msg_decode();
+end for;
 
-	for each port_msg in inmsgs
-	  select one msg related by port_msg->Message[R420.''provides implementation for''];
-	  msg.render_msgclass();
-	end for;
-end if;
+for each port_msg in outmsgs
+  ::addStringToImports( file:file, s:pkg + "." + port_msg.msg_name + "Msg", type: ImportType::IMPL );
+  port_msg.render_msg_override();
+end for;
+
+unpack_message_block = T::body();
+T::clear();
+
+for each port_msg in inmsgs
+  select one msg related by port_msg->Message[R420.''provides implementation for''];
+  msg.render_msgclass();
+end for;
+
+for each port_msg in outmsgs
+  select one msg related by port_msg->Message[R420.''provides implementation for''];
+  msg.render_msgclass();
+end for;
 
 sendmethod = "";
 topic = self.subscribe_topic;
@@ -252,6 +262,32 @@ INSERT INTO O_TFR
 	"61e71294-d687-4a15-a2b9-2fac25180ee3",
 	0,
 	8);
+INSERT INTO O_TFR
+	VALUES ("c32d80e1-467e-4dad-89a4-44e332e4244e",
+	"b2989ac2-663c-402c-849f-59fe2b7ac4d9",
+	'get_mapping_suffix',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	1,
+	'return self.msg_mapping_suffix;',
+	1,
+	'',
+	"0bc802fd-abf3-487b-bc96-a358f5e88d27",
+	0,
+	9);
+INSERT INTO O_TFR
+	VALUES ("43c49443-5db8-4d80-be1b-58ed17da86ef",
+	"b2989ac2-663c-402c-849f-59fe2b7ac4d9",
+	'get_override',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	1,
+	'return "@Override";',
+	1,
+	'',
+	"c32d80e1-467e-4dad-89a4-44e332e4244e",
+	0,
+	10);
 INSERT INTO O_NBATTR
 	VALUES ("e38ce274-1d36-4d65-be04-ddd678b52c2a",
 	"b2989ac2-663c-402c-849f-59fe2b7ac4d9");
@@ -284,6 +320,24 @@ INSERT INTO O_ATTR
 	'The name of a message parameter which, if present, is used to refine the subscription topic.',
 	'',
 	'subtopic_parm',
+	0,
+	"ba5eda7a-def5-0000-0000-000000000004",
+	'',
+	'');
+INSERT INTO O_NBATTR
+	VALUES ("ccecab06-6572-4099-ae33-afc57feedaf9",
+	"b2989ac2-663c-402c-849f-59fe2b7ac4d9");
+INSERT INTO O_BATTR
+	VALUES ("ccecab06-6572-4099-ae33-afc57feedaf9",
+	"b2989ac2-663c-402c-849f-59fe2b7ac4d9");
+INSERT INTO O_ATTR
+	VALUES ("ccecab06-6572-4099-ae33-afc57feedaf9",
+	"b2989ac2-663c-402c-849f-59fe2b7ac4d9",
+	"c3530416-0b26-4326-ad28-4f3a4abb780c",
+	'msg_mapping_suffix',
+	'',
+	'',
+	'msg_mapping_suffix',
 	0,
 	"ba5eda7a-def5-0000-0000-000000000004",
 	'',
