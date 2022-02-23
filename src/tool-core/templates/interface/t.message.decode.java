@@ -1,5 +1,5 @@
     @Override
-.if (body)
+.if (mapping)
     @MessageMapping( "/${self.msg_name}${suffix}" )
 .end if
     public void ${self.msg_name}( ${self.msg_name}Msg message  ) throws Exception {
@@ -16,6 +16,6 @@
             }
         });
 .else
-        // empty to satisfy override of interface definition
+        // empty, to satisfy override of interface definition
 .end if;
     }
