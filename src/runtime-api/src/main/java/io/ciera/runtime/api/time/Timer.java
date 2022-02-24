@@ -2,6 +2,8 @@ package io.ciera.runtime.api.time;
 
 import java.io.Serializable;
 
+import io.ciera.runtime.api.application.ExecutionContext;
+import io.ciera.runtime.api.domain.Domain;
 import io.ciera.runtime.api.types.Duration;
 import io.ciera.runtime.api.types.TimeStamp;
 
@@ -32,5 +34,9 @@ public interface Timer extends Comparable<Timer>, Serializable {
     // return the last expiration time (scheduled expiration, not real time at
     // expiration)
     public TimeStamp getLastExpirationTime();
+
+    public Domain getDomain();
+
+    public ExecutionContext getContext();
 
 }

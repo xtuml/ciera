@@ -1,9 +1,11 @@
 package io.ciera.runtime.time;
 
 import java.time.Instant;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Set;
@@ -59,6 +61,16 @@ public abstract class AbstractClock implements SystemClock {
     }
 
     @Override
+    public Collection<Timer> getTimers(ExecutionContext context) {
+        return Optional.ofNullable(scheduledTimersMap.get(context)).orElse(new PriorityQueue<>());
+    }
+
+    @Override
+    public void registerTimers(Collection<Timer> timers) {
+        timers.stream().forEach(t -> this.registerTimer(t.getContext(), t));
+    }
+
+    @Override
     public boolean hasScheduledTimers(ExecutionContext context) {
         Queue<Timer> timers = scheduledTimersMap.get(context);
         return timers != null && !timers.isEmpty();
@@ -67,14 +79,8 @@ public abstract class AbstractClock implements SystemClock {
     @Override
     public boolean scheduleTimer(ExecutionContext context, Timer timer, Event event, EventTarget target, long delay) {
         if (delay >= 0) {
-            if (allScheduledTimers.add(timer)) {
-                Queue<Timer> timers = scheduledTimersMap.get(context);
-                if (timers == null) {
-                    timers = new PriorityQueue<>();
-                    scheduledTimersMap.put(context, timers);
-                }
-                timer.setExpiration(getTime() + delay);
-                timers.add(timer);
+            timer.setExpiration(getTime() + delay);
+            if (registerTimer(context, timer)) {
                 return true;
             } else {
                 return false;
@@ -82,6 +88,20 @@ public abstract class AbstractClock implements SystemClock {
         } else {
             throw new TimerScheduleException(String.format("Attempt to schedule timer %s in the past", timer), timer,
                     new Duration(-delay));
+        }
+    }
+
+    private boolean registerTimer(ExecutionContext context, Timer timer) {
+        if (allScheduledTimers.add(timer)) {
+            Queue<Timer> timers = scheduledTimersMap.get(context);
+            if (timers == null) {
+                timers = new PriorityQueue<>();
+                scheduledTimersMap.put(context, timers);
+            }
+            timers.add(timer);
+            return true;
+        } else {
+            return false;
         }
     }
 

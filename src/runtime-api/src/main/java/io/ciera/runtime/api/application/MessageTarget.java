@@ -11,7 +11,7 @@ public interface MessageTarget {
     public void deliver(Message message);
 
     public ExecutionContext getContext();
-    
+
     public Domain getDomain();
 
 }

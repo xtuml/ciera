@@ -8,7 +8,7 @@ import io.ciera.runtime.api.domain.Domain;
 import io.ciera.runtime.api.types.UniqueId;
 import io.ciera.runtime.application.BaseApplication;
 
-public class GeneratedEvent extends Task {
+public class GeneratedEvent extends Task implements DomainTask {
 
     private static final long serialVersionUID = 1L;
 
@@ -17,7 +17,11 @@ public class GeneratedEvent extends Task {
     private final UniqueId targetId;
     private final ExecutionContext.ExecutionMode executionMode;
     private transient EventTarget target;
-    
+
+    public GeneratedEvent(Event event, EventTarget target) {
+        this(event, target, null);
+    }
+
     public GeneratedEvent(Event event, EventTarget target, ExecutionContext.ExecutionMode executionMode) {
         this.domainClass = target.getDomain().getClass();
         this.event = event;
@@ -28,10 +32,7 @@ public class GeneratedEvent extends Task {
 
     @Override
     public void run() {
-        if (target == null) {
-            target = BaseApplication.getInstance().getDomain(domainClass).getEventTarget(targetId);
-        }
-        target.consumeEvent(event);
+        getTarget().consumeEvent(event);
     }
 
     @Override
@@ -42,5 +43,17 @@ public class GeneratedEvent extends Task {
             return super.getPriority();
         }
     }
-    
+
+    private EventTarget getTarget() {
+        if (target == null) {
+            target = BaseApplication.getInstance().getDomain(domainClass).getEventTarget(targetId);
+        }
+        return target;
+    }
+
+    @Override
+    public Domain getDomain() {
+        return getTarget().getDomain();
+    }
+
 }

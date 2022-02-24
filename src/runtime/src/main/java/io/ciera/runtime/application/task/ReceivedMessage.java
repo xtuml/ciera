@@ -6,7 +6,7 @@ import io.ciera.runtime.api.domain.Message;
 import io.ciera.runtime.api.types.UniqueId;
 import io.ciera.runtime.application.BaseApplication;
 
-public class ReceivedMessage extends Task {
+public class ReceivedMessage extends Task implements DomainTask {
 
     private static final long serialVersionUID = 1L;
 
@@ -24,10 +24,19 @@ public class ReceivedMessage extends Task {
 
     @Override
     public void run() {
+        getTarget().deliver(message);
+    }
+
+    private MessageTarget getTarget() {
         if (target == null) {
             target = BaseApplication.getInstance().getDomain(domainClass).getMessageTarget(targetId);
         }
-        target.deliver(message);
+        return target;
+    }
+
+    @Override
+    public Domain getDomain() {
+        return getTarget().getDomain();
     }
 
 }

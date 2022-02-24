@@ -10,7 +10,7 @@ public interface EventTarget {
     public void consumeEvent(Event event);
 
     public ExecutionContext getContext();
-    
+
     public Domain getDomain();
 
 }

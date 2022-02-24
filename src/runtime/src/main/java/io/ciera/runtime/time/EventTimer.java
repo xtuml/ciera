@@ -22,7 +22,7 @@ public class EventTimer implements Timer {
     private final Event event;
     private final UniqueId targetId;
     private final String contextId;
-    
+
     private transient EventTarget target;
     private transient ExecutionContext context;
 
@@ -151,7 +151,8 @@ public class EventTimer implements Timer {
         }
         return target;
     }
-    
+
+    @Override
     public ExecutionContext getContext() {
         if (context == null) {
             context = BaseApplication.getInstance().getContext(contextId);
@@ -181,6 +182,11 @@ public class EventTimer implements Timer {
 
     private Logger getLogger() {
         return getContext().getApplication().getLogger();
+    }
+
+    @Override
+    public Domain getDomain() {
+        return getTarget().getDomain();
     }
 
 }

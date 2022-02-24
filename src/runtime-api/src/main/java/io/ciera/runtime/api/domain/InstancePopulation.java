@@ -23,6 +23,8 @@ public interface InstancePopulation {
 
     public <T extends ObjectInstance> Stream<T> getAllInstances(Class<T> object);
 
+    public Stream<ObjectInstance> getAllInstances();
+
     public void deleteInstance(ObjectInstance instance);
 
     public <T extends ObjectInstance> int getUniqueInteger(Class<T> object, Function<T, Integer> keyMapper);

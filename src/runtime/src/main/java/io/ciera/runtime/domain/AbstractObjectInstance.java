@@ -65,7 +65,7 @@ public abstract class AbstractObjectInstance implements ObjectInstance {
 
     @Override
     public Domain getDomain() {
-        if (domain != null) {
+        if (domain == null) {
             domain = BaseApplication.getInstance().getDomain(domainClass);
         }
         return domain;

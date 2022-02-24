@@ -1,6 +1,7 @@
 package io.ciera.runtime.api.time;
 
 import java.time.Instant;
+import java.util.Collection;
 
 import io.ciera.runtime.api.application.Event;
 import io.ciera.runtime.api.application.EventTarget;
@@ -17,6 +18,10 @@ public interface SystemClock {
     public void setEpoch(Instant epoch);
 
     public void checkTimers(ExecutionContext context);
+
+    public Collection<Timer> getTimers(ExecutionContext context);
+
+    public void registerTimers(Collection<Timer> timers);
 
     public boolean hasScheduledTimers(ExecutionContext context);
 

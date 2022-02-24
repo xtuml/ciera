@@ -1,15 +1,26 @@
 package io.ciera.runtime.application;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Comparator;
 import java.util.Queue;
 import java.util.concurrent.PriorityBlockingQueue;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import io.ciera.runtime.api.application.Application;
 import io.ciera.runtime.api.application.Event;
 import io.ciera.runtime.api.application.EventTarget;
 import io.ciera.runtime.api.application.ExecutionContext;
 import io.ciera.runtime.api.application.Logger;
+import io.ciera.runtime.api.domain.Domain;
+import io.ciera.runtime.api.domain.PersistentDomain;
 import io.ciera.runtime.api.exceptions.EventTargetException;
 import io.ciera.runtime.api.time.SystemClock;
 import io.ciera.runtime.api.time.Timer;
@@ -28,8 +39,6 @@ public class ThreadExecutionContext implements ExecutionContext, Runnable {
     private final ModelIntegrityMode modelIntegrityMode;
     private final Queue<Task> tasks;
 
-    private static int taskSequenceNumber = 1;
-
     public ThreadExecutionContext(String name) {
         this(name, ExecutionMode.INTERLEAVED, ModelIntegrityMode.STRICT);
 
@@ -45,6 +54,10 @@ public class ThreadExecutionContext implements ExecutionContext, Runnable {
     @Override
     public String getName() {
         return name;
+    }
+
+    public Stream<Task> getTasks() {
+        return tasks.stream();
     }
 
     @Override
@@ -155,6 +168,22 @@ public class ThreadExecutionContext implements ExecutionContext, Runnable {
 
     @Override
     public void run() {
+        // load instance population
+        // TODO this is proof of concept
+        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(getApplication() + "-population.obj"))) {
+            getLogger().trace("Loading instance population...");
+            for (PersistentDomain domain : getApplication().getDomains().stream()
+                    .filter(d -> this.equals(d.getContext())).filter(PersistentDomain.class::isInstance)
+                    .map(PersistentDomain.class::cast).sorted(Comparator.comparing(Domain::getName))
+                    .collect(Collectors.toList())) {
+                domain.load(in);
+            }
+        } catch (FileNotFoundException e) {
+            // ignore if there is no population file
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
         while (getApplication().isRunning()) {
 
             // check to see if any expired timers need to be added to the task queue
@@ -170,6 +199,22 @@ public class ThreadExecutionContext implements ExecutionContext, Runnable {
                 } catch (RuntimeException e) {
                     getApplication().getExceptionHandler().handleError(e);
                 }
+
+                // persist instance population
+                // TODO this is proof of concept
+                try (ObjectOutputStream out = new ObjectOutputStream(
+                        new FileOutputStream(getApplication() + "-population.obj"))) {
+                    getLogger().trace("Dumping instance population...");
+                    for (PersistentDomain domain : getApplication().getDomains().stream()
+                            .filter(d -> this.equals(d.getContext())).filter(PersistentDomain.class::isInstance)
+                            .map(PersistentDomain.class::cast).sorted(Comparator.comparing(Domain::getName))
+                            .collect(Collectors.toList())) {
+                        domain.persist(out);
+                    }
+                } catch (IOException e) {
+                    getLogger().warn("Failed to dump instance population", e);
+                }
+
             } else {
                 // wait for something interesting to happen
                 try {
@@ -214,10 +259,6 @@ public class ThreadExecutionContext implements ExecutionContext, Runnable {
     @Override
     public SystemClock getClock() {
         return getApplication().getClock();
-    }
-
-    public static int nextSequenceNumber() {
-        return taskSequenceNumber++;
     }
 
     private Logger getLogger() {
