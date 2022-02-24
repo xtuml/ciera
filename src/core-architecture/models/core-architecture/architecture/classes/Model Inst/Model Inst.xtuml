@@ -128,6 +128,26 @@ if not_empty subsuper_rels
 end if;
 subtype_selections = T::body();
 
+// attributes for "toString" method
+sep = "";
+if has_ism
+  attribute_name = "currentState";
+  attribute_accessor = "getCurrentState";
+  T::include(file:"class/t.attribute_to_string.java");
+  sep = ", ";
+end if;
+for each attribute in attributes
+  select any ref related by attribute->AttributeReference[R4506.''has value provided by''];
+  if empty ref
+    select any getter related by attribute->AttributeAccessor[R4510] where selected.accessor_type == AttributeAccessorType::GETTER;
+    attribute_name = attribute.name;
+    attribute_accessor = getter.getName();
+    T::include(file:"class/t.attribute_to_string.java");
+    sep = ", ";
+  end if;
+end for;
+attribute_to_strings = T::body();
+
 // subtype interfaces
 last_rel_num = 0;
 for each rel in subsuper_rels

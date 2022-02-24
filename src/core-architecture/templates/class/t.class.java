@@ -97,6 +97,15 @@ ${attribute_initializer_params}) {
         return this;
     }
 
+    @Override
+    public String toString() {
+        if (isActive()) {
+            return super.toString() + " ("${attribute_to_strings} + ")";
+        } else {
+            return super.toString();
+        }
+    }
+
 .if (self.comparator != "")
     @Override
     @SuppressWarnings("unchecked")
@@ -111,7 +120,6 @@ ${attribute_initializer_params}) {
     }
 
 .end if
-
     // subtype interfaces
     ${subtype_interfaces}
 
