@@ -147,6 +147,42 @@ INSERT INTO O_ATTR
 	"ba5eda7a-def5-0000-0000-000000000001",
 	'',
 	'');
+INSERT INTO O_DBATTR
+	VALUES ("f8be1504-5279-4b26-8da5-e61d02033bfc",
+	"327e89b2-6713-4172-b27c-01d702ab5eed",
+	'select one base_type related by self->Type[R3800];
+select one basic_typeref related by self->BasicTypeReference[R3801];
+select one instance_typeref related by self->InstanceTypeReference[R3801];
+if not_empty basic_typeref or not_empty instance_typeref
+  self.serializable = base_type.serializable;
+else
+  select one collection_typeref related by self->CollectionTypeReference[R3801];
+  if not_empty collection_typeref
+    select one element_typeref related by collection_typeref->TypeReference[R3805];
+    self.serializable = base_type.serializable and element_typeref.serializable;
+  else
+    select one stream_typeref related by self->StreamTypeReference[R3801];
+    select one element_typeref related by stream_typeref->TypeReference[R3812];
+    self.serializable = base_type.serializable and element_typeref.serializable;
+  end if;
+end if;',
+	1,
+	0);
+INSERT INTO O_BATTR
+	VALUES ("f8be1504-5279-4b26-8da5-e61d02033bfc",
+	"327e89b2-6713-4172-b27c-01d702ab5eed");
+INSERT INTO O_ATTR
+	VALUES ("f8be1504-5279-4b26-8da5-e61d02033bfc",
+	"327e89b2-6713-4172-b27c-01d702ab5eed",
+	"2c6e757f-4f12-45a3-9639-1dadb55dd3ce",
+	'serializable',
+	'',
+	'',
+	'serializable',
+	0,
+	"ba5eda7a-def5-0000-0000-000000000001",
+	'',
+	'');
 INSERT INTO O_ID
 	VALUES (0,
 	"327e89b2-6713-4172-b27c-01d702ab5eed");
