@@ -8,7 +8,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -167,7 +166,7 @@ public abstract class AbstractDomain implements PersistentDomain {
     @Override
     public void persist(ObjectOutputStream out) throws IOException {
         // get active timers
-        Timer[] timers = getClock().getTimers(getContext()).stream().filter(t -> this.equals(t.getDomain()))
+        Timer[] timers = getClock().getScheduledTimers(getContext()).filter(t -> this.equals(t.getDomain()))
                 .toArray(Timer[]::new);
 
         // get task queue
@@ -207,7 +206,7 @@ public abstract class AbstractDomain implements PersistentDomain {
         ObjectInstance[] instances = (ObjectInstance[]) in.readObject();
 
         // register timers
-        getClock().registerTimers(List.of(timers));
+        Stream.of(timers).forEach(getClock()::registerTimer);
 
         // load tasks
         if (getContext() instanceof Executor) {

@@ -59,8 +59,14 @@ public class EventTimer implements Timer {
         getLogger().trace("TMR: Scheduling timer: %s: %s -> %s at %s", this, event, getTarget(),
                 new Date(getContext().getClock().getTime() + delay));
         synchronized (getContext()) {
-            scheduled = getContext().getClock().scheduleTimer(getContext(), this, event, getTarget(), delay);
-            getContext().notify();
+            if (delay < 0 && System.getProperty("io.ciera.runtime.dropNegativeDelays") != null) {
+                getLogger().trace("Dropping timer with negative delay: %s, %s", new Duration(delay), this);
+                cancel();
+            } else {
+                expiration = expired ? expiration + delay : getContext().getClock().getTime() + delay;
+                scheduled = getContext().getClock().registerTimer(this);
+                getContext().notify();
+            }
         }
         return scheduled;
     }
@@ -91,11 +97,7 @@ public class EventTimer implements Timer {
         getLogger().trace("TMR: Cancelling timer: %s", this);
         scheduled = false;
         expired = false;
-        if (getContext().getClock().cancelTimer(getContext(), this)) {
-            return true;
-        } else {
-            return false;
-        }
+        return getContext().getClock().unregisterTimer(this);
     }
 
     // a timer is "scheduled" from the point at which it is first scheduled

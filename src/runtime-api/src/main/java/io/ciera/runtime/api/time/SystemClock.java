@@ -1,10 +1,8 @@
 package io.ciera.runtime.api.time;
 
 import java.time.Instant;
-import java.util.Collection;
+import java.util.stream.Stream;
 
-import io.ciera.runtime.api.application.Event;
-import io.ciera.runtime.api.application.EventTarget;
 import io.ciera.runtime.api.application.ExecutionContext;
 
 public interface SystemClock {
@@ -19,16 +17,14 @@ public interface SystemClock {
 
     public void checkTimers(ExecutionContext context);
 
-    public Collection<Timer> getTimers(ExecutionContext context);
-
-    public void registerTimers(Collection<Timer> timers);
-
     public boolean hasScheduledTimers(ExecutionContext context);
 
+    public Stream<Timer> getScheduledTimers(ExecutionContext context);
+
+    public boolean registerTimer(Timer timer);
+
+    public boolean unregisterTimer(Timer timer);
+
     public void waitForNextTimer(ExecutionContext context) throws InterruptedException;
-
-    public boolean scheduleTimer(ExecutionContext context, Timer timer, Event event, EventTarget target, long delay);
-
-    public boolean cancelTimer(ExecutionContext context, Timer timer);
 
 }

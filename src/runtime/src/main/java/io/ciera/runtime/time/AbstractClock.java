@@ -1,22 +1,18 @@
 package io.ciera.runtime.time;
 
 import java.time.Instant;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Optional;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Stream;
 
-import io.ciera.runtime.api.application.Event;
-import io.ciera.runtime.api.application.EventTarget;
 import io.ciera.runtime.api.application.ExecutionContext;
 import io.ciera.runtime.api.time.SystemClock;
 import io.ciera.runtime.api.time.Timer;
-import io.ciera.runtime.api.types.Duration;
 
 public abstract class AbstractClock implements SystemClock {
 
@@ -60,13 +56,13 @@ public abstract class AbstractClock implements SystemClock {
     }
 
     @Override
-    public Collection<Timer> getTimers(ExecutionContext context) {
-        return Optional.ofNullable(scheduledTimersMap.get(context)).orElse(new PriorityQueue<>());
-    }
-
-    @Override
-    public void registerTimers(Collection<Timer> timers) {
-        timers.stream().forEach(t -> this.registerTimer(t.getContext(), t));
+    public Stream<Timer> getScheduledTimers(ExecutionContext context) {
+        Queue<Timer> timers = scheduledTimersMap.get(context);
+        if (timers != null) {
+            return timers.stream();
+        } else {
+            return Stream.of();
+        }
     }
 
     @Override
@@ -76,23 +72,12 @@ public abstract class AbstractClock implements SystemClock {
     }
 
     @Override
-    public boolean scheduleTimer(ExecutionContext context, Timer timer, Event event, EventTarget target, long delay) {
-        if (delay < 0 && System.getProperty("io.ciera.runtime.dropNegativeDelays") != null) {
-            context.getApplication().getLogger().trace("Dropping timer with negative delay: %s, %s", new Duration(delay), timer);
-            timer.cancel();
-            return false;
-        } else {
-            timer.setExpiration(timer.isExpired() ? timer.getExpiration() + delay : getTime() + delay);
-            return registerTimer(context, timer);
-        }
-    }
-
-    private boolean registerTimer(ExecutionContext context, Timer timer) {
+    public boolean registerTimer(Timer timer) {
         if (allScheduledTimers.add(timer)) {
-            Queue<Timer> timers = scheduledTimersMap.get(context);
+            Queue<Timer> timers = scheduledTimersMap.get(timer.getContext());
             if (timers == null) {
                 timers = new PriorityQueue<>();
-                scheduledTimersMap.put(context, timers);
+                scheduledTimersMap.put(timer.getContext(), timers);
             }
             timers.add(timer);
             return true;
@@ -102,9 +87,9 @@ public abstract class AbstractClock implements SystemClock {
     }
 
     @Override
-    public boolean cancelTimer(ExecutionContext context, Timer timer) {
+    public boolean unregisterTimer(Timer timer) {
         if (allScheduledTimers.remove(timer)) {
-            Queue<Timer> timers = scheduledTimersMap.get(context);
+            Queue<Timer> timers = scheduledTimersMap.get(timer.getContext());
             if (timers != null) {
                 timers.remove(timer);
             }
