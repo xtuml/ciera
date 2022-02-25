@@ -7,6 +7,7 @@ public abstract class Task implements Runnable, Comparable<Task>, Serializable {
 
     private static final long serialVersionUID = 1L;
 
+    public static final int INITIALIZATION_PRIORITY = 0x40;
     public static final int SELF_EVENT_PRIORITY = 0x30;
     public static final int SEQUENTIAL_EVENT_PRIORITY = 0x20;
     public static final int DEFAULT_PRIORITY = 0x10;
