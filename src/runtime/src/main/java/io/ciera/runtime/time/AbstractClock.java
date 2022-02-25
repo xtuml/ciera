@@ -14,7 +14,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import io.ciera.runtime.api.application.Event;
 import io.ciera.runtime.api.application.EventTarget;
 import io.ciera.runtime.api.application.ExecutionContext;
-import io.ciera.runtime.api.exceptions.TimerScheduleException;
 import io.ciera.runtime.api.time.SystemClock;
 import io.ciera.runtime.api.time.Timer;
 import io.ciera.runtime.api.types.Duration;
@@ -78,16 +77,13 @@ public abstract class AbstractClock implements SystemClock {
 
     @Override
     public boolean scheduleTimer(ExecutionContext context, Timer timer, Event event, EventTarget target, long delay) {
-        if (delay >= 0) {
-            timer.setExpiration(getTime() + delay);
-            if (registerTimer(context, timer)) {
-                return true;
-            } else {
-                return false;
-            }
+        if (delay < 0 && System.getProperty("io.ciera.runtime.dropNegativeDelays") != null) {
+            context.getApplication().getLogger().trace("Dropping timer with negative delay: %s, %s", new Duration(delay), timer);
+            timer.cancel();
+            return false;
         } else {
-            throw new TimerScheduleException(String.format("Attempt to schedule timer %s in the past", timer), timer,
-                    new Duration(-delay));
+            timer.setExpiration(timer.isExpired() ? timer.getExpiration() + delay : getTime() + delay);
+            return registerTimer(context, timer);
         }
     }
 

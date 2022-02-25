@@ -72,7 +72,13 @@ public class EventTimer implements Timer {
         expired = true;
         getContext().execute(new TimerExpiration(event, getTarget()));
         if (period > 0l) {
-            schedule(period);
+            long delay = period;
+            if (System.getProperty("io.ciera.runtime.skipMissedRecurringTimers") != null) {
+                while (expiration + delay < getContext().getClock().getTime()) {
+                    delay += period;
+                }
+            }
+            schedule(delay);
         } else {
             scheduled = false;
         }

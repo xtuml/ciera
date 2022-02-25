@@ -27,11 +27,7 @@ public class Duration implements Serializable {
     }
 
     public Duration(long value) {
-        if (value >= 0) {
-            this.value = value;
-        } else {
-            throw new IllegalArgumentException("Cannot create a negative delay");
-        }
+        this.value = value;
     }
 
     public Duration(long value, TemporalUnit unit) {
