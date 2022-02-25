@@ -401,6 +401,66 @@ INSERT INTO O_ATTR
 	"ba5eda7a-def5-0000-0000-000000000004",
 	'',
 	'');
+INSERT INTO O_DBATTR
+	VALUES ("5f30f676-d26a-44e2-81ef-ce9ccbb41325",
+	"82cf3088-71ed-48c3-850e-afe53bfc0fe5",
+	'fields = "";
+
+// instance state machine
+select one sm related by self->StateMachine[R4750];
+if not_empty sm and sm.is_instance;
+  fields = fields + "currentState";
+end if;
+
+// serializable attributes
+select many attrs related by self->Attribute[R410] where not selected.transient and SORT::ascending(attr:"name");
+for each attr in attrs
+  fields = fields + attr.name + attr.type_reference;
+end for;
+
+// relationships
+select many selects related by self->Selector[R442] where SORT::ascending(attr:"name");
+for each selector in selects
+  if (selector.multiplicity == Mult::MANY)
+    select one element_type_ref related by selector->TypeReference[R446]->StreamTypeReference[R3801]->TypeReference[R3812];
+    type_ref = ::getSetReference(element_type:element_type_ref);
+    fields = fields + selector.name + type_ref.type_reference;
+  else
+    select one rel related by selector->Relationship[R4512];
+    // check if this is a supertype selecting to a subtype
+    if rel.rel_type == RelationshipType::SuperSubtype and selector.class_name == rel.part_name and selector.class_package == rel.part_package
+      // only render one declaration
+      select many rels related by rel->Class[R434]->Relationship[R434] where selected.num == rel.num;
+      select any first_sel related by rels->Selector[R4512] where SORT::ascending(attr:"name") and
+        selected.class_name == selector.class_name and selected.class_package == selector.class_package;
+      if not_empty first_sel and first_sel.name == selector.name
+        fields = fields + STRING::itoa(i:rel.num);
+      end if;
+    else
+      select one type_ref related by selector->TypeReference[R446];
+      fields = fields + selector.name + type_ref.type_reference;
+    end if;
+  end if;
+end for;
+
+self.serial_version_id = C_UTIL::hashCode(s:fields);',
+	1,
+	0);
+INSERT INTO O_BATTR
+	VALUES ("5f30f676-d26a-44e2-81ef-ce9ccbb41325",
+	"82cf3088-71ed-48c3-850e-afe53bfc0fe5");
+INSERT INTO O_ATTR
+	VALUES ("5f30f676-d26a-44e2-81ef-ce9ccbb41325",
+	"82cf3088-71ed-48c3-850e-afe53bfc0fe5",
+	"c9564b5b-70c8-4271-b1a9-915035b947cb",
+	'serial_version_id',
+	'',
+	'',
+	'serial_version_id',
+	0,
+	"ba5eda7a-def5-0000-0000-000000000002",
+	'',
+	'1');
 INSERT INTO O_ID
 	VALUES (2,
 	"82cf3088-71ed-48c3-850e-afe53bfc0fe5");

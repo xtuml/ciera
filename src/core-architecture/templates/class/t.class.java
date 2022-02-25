@@ -18,6 +18,8 @@ ${supertypes}\
 .end if
  {
 
+    private static final long serialVersionUID = ${self.serial_version_id}L;
+
     public static final ${self.name} EMPTY = new Empty${self.name}();
 .if (has_csm)
 
@@ -125,6 +127,8 @@ ${attribute_initializer_params}) {
 
     // empty class
     private static final class Empty${self.name} extends ${self.name} {
+
+        private static final long serialVersionUID = ${self.serial_version_id}L;
 
         // attributes
         ${empty_attributes}

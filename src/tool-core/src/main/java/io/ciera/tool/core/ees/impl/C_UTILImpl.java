@@ -84,4 +84,7 @@ public class C_UTILImpl<C extends IComponent<C>> extends Utility<C> implements C
         return jsonString.substring("str".length() + 5, jsonString.length()-2);
     }
 
+    public int hashCode(final String s) {
+        return s.hashCode();
+    }
 }
