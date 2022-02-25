@@ -52,7 +52,6 @@ public class STRING {
         return s.replaceAll("''", "'");
     }
 
-    @Override
     public String replaceall(final String s, final String pattern, final String replacement) {
         return s.replaceAll(pattern, replacement);
     }
