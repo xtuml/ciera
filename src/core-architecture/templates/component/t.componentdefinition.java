@@ -2,7 +2,7 @@ package ${self.package};
 
 ${imports}
 
-public class ${self.name} extends AbstractDomain implements Domain {
+public class ${self.name} extends AbstractDomain implements PersistentDomain {
 
     // utilities
     ${utilities}
@@ -34,6 +34,32 @@ public class ${self.name} extends AbstractDomain implements Domain {
         ${init}
     }
 
+.if (csm_handlers != "")
+    @Override
+    public void consumeEvent(Event event) {
+        Class<?> cls = event.getClass().getDeclaringClass();
+        ${csm_handlers}else {
+            throw new EventTargetException("Could not find state machine to handle event", this, event);
+        }
+    }
+
+.end if
+.if (csm_persists != "")
+    @Override
+    public void persist(ObjectOutputStream out) throws IOException {
+        super.persist(out);
+        ${csm_persists}\
+    }
+
+.end if
+.if (csm_loads != "")
+    @Override
+    public void load(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        super.load(in);
+        ${csm_loads}\
+    }
+
+.end if
     @Override
     public ${self.name} getDomain() {
         return (${self.name}) super.getDomain();

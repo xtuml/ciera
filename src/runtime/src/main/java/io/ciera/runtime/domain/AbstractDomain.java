@@ -149,18 +149,7 @@ public abstract class AbstractDomain implements PersistentDomain {
 
     @Override
     public void consumeEvent(Event event) {
-        Class<?> cls = event.getClass().getDeclaringClass();
-        if (cls != null) {
-            try {
-                EventTarget target = (EventTarget) cls.getMethod("getInstance", getClass()).invoke(null, this);
-                target.consumeEvent(event);
-            } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException
-                    | NoSuchMethodException | SecurityException e) {
-                throw new EventTargetException("Failed to initialize state machine to handle event", e, this, event);
-            }
-        } else {
-            throw new EventTargetException("Could not find state machine to handle event", this, event);
-        }
+        throw new EventTargetException("Could not find state machine to handle event", this, event);
     }
 
     @Override
@@ -185,17 +174,8 @@ public abstract class AbstractDomain implements PersistentDomain {
         out.writeObject(instances);
 
         getApplication().getLogger().trace("%d pending timers persisted for: %s", timers.length, this);
-        for (Object o : timers) {
-            getApplication().getLogger().trace("  %s", o);
-        }
         getApplication().getLogger().trace("%d waiting tasks persisted for: %s", tasks.length, this);
-        for (Object o : tasks) {
-            getApplication().getLogger().trace("  %s", o);
-        }
         getApplication().getLogger().trace("%d object instances persisted for: %s", instances.length, this);
-        for (Object o : instances) {
-            getApplication().getLogger().trace("  %s", o);
-        }
     }
 
     @Override
@@ -217,17 +197,8 @@ public abstract class AbstractDomain implements PersistentDomain {
         Stream.of(instances).forEach(this::addInstance);
 
         getApplication().getLogger().trace("%d pending timers loaded for: %s", timers.length, this);
-        for (Object o : timers) {
-            getApplication().getLogger().trace("  %s", o);
-        }
         getApplication().getLogger().trace("%d waiting tasks loaded for: %s", tasks.length, this);
-        for (Object o : tasks) {
-            getApplication().getLogger().trace("  %s", o);
-        }
         getApplication().getLogger().trace("%d object instances loaded for: %s", instances.length, this);
-        for (Object o : instances) {
-            getApplication().getLogger().trace("  %s", o);
-        }
     }
 
     @Override

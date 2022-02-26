@@ -69,7 +69,31 @@ for each init_function in init_functions
   sep = "\n";
 end for;
 
-::addStringImport(package:"io.ciera.runtime.api.domain", class_name:"Domain");
+select many csms related by self->Class[R408]->StateMachine[R4750] where not selected.is_instance and SORT::ascending(attr:"class_name");
+for each csm in csms
+  csm.render_handler();
+end for;
+csm_handlers = T::body();
+
+for each csm in csms
+  csm.render_persist();
+end for;
+csm_persists = T::body();
+
+for each csm in csms
+  csm.render_load();
+end for;
+csm_loads = T::body();
+
+if not_empty csms
+  ::addStringImport(package:"io.ciera.runtime.api.application", class_name:"Event");
+  ::addStringImport(package:"io.ciera.runtime.api.exceptions", class_name:"EventTargetException");
+  ::addStringImport(package:"java.io", class_name:"IOException");
+  ::addStringImport(package:"java.io", class_name:"ObjectInputStream");
+  ::addStringImport(package:"java.io", class_name:"ObjectOutputStream");
+end if;
+
+::addStringImport(package:"io.ciera.runtime.api.domain", class_name:"PersistentDomain");
 ::addStringImport(package:"io.ciera.runtime.domain", class_name:"AbstractDomain");
 
 select one file related by self->File[R401];
