@@ -17,7 +17,7 @@ public interface Domain extends ActionHome, InstancePopulation, EventTarget {
 
     public EventTarget getEventTarget(UniqueId targetId);
 
-    public MessageTarget getMessageTarget(UniqueId targetId);
+    public MessageTarget getMessageTarget(Class<? extends MessageTarget> targetClass);
 
     @Override
     default public Domain getDomain() {

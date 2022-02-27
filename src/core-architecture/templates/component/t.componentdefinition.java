@@ -34,6 +34,15 @@ public class ${self.name} extends AbstractDomain implements PersistentDomain {
         ${init}
     }
 
+.if (port_handlers != "")
+    @Override
+    public MessageTarget getMessageTarget(Class<? extends MessageTarget> targetClass) {
+        ${port_handlers}else {
+            throw new MessageTargetException("Could not find port to deliver message", null, null);
+        }
+    }
+
+.end if
 .if (csm_handlers != "")
     @Override
     public void consumeEvent(Event event) {

@@ -27,6 +27,7 @@ import io.ciera.runtime.api.domain.ObjectInstance;
 import io.ciera.runtime.api.domain.PersistentDomain;
 import io.ciera.runtime.api.exceptions.EventTargetException;
 import io.ciera.runtime.api.exceptions.InstancePopulationException;
+import io.ciera.runtime.api.exceptions.MessageTargetException;
 import io.ciera.runtime.api.time.Timer;
 import io.ciera.runtime.api.types.UniqueId;
 import io.ciera.runtime.application.BaseApplication;
@@ -143,8 +144,8 @@ public abstract class AbstractDomain implements PersistentDomain {
     }
 
     @Override
-    public MessageTarget getMessageTarget(UniqueId targetId) {
-        throw new UnsupportedOperationException(); // TODO
+    public MessageTarget getMessageTarget(Class<? extends MessageTarget> targetClass) {
+        throw new MessageTargetException("Could not find port to deliver message", null, null);
     }
 
     @Override

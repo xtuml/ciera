@@ -26,12 +26,12 @@ utilities = T::body();
 
 select many comp_ports related by self->Port[R417];
 for each port in comp_ports
-  port.render_acccessor_decl();
+  port.render_accessor_decl();
 end for;
 ports = T::body();
 
 for each port in comp_ports
-  port.render_acccessor_init();
+  port.render_accessor_init();
 end for;
 port_initializers = T::body();
 
@@ -57,7 +57,7 @@ end for;
 relationship_modifiers = T::body();
 
 for each port in comp_ports
-  port.render_acccessor();
+  port.render_accessor();
 end for;
 port_accessors = T::body();
 
@@ -68,6 +68,11 @@ for each init_function in init_functions
   init = init + sep + init_function.name + "();";
   sep = "\n";
 end for;
+
+for each port in comp_ports
+  port.render_accessor_handler();
+end for;
+port_handlers = T::body();
 
 select many csms related by self->Class[R408]->StateMachine[R4750] where not selected.is_instance and SORT::ascending(attr:"class_name");
 for each csm in csms
@@ -84,6 +89,11 @@ for each csm in csms
   csm.render_load();
 end for;
 csm_loads = T::body();
+
+if not_empty comp_ports
+  ::addStringImport(package:"io.ciera.runtime.api.application", class_name:"MessageTarget");
+  ::addStringImport(package:"io.ciera.runtime.api.exceptions", class_name:"MessageTargetException");
+end if;
 
 if not_empty csms
   ::addStringImport(package:"io.ciera.runtime.api.application", class_name:"Event");
