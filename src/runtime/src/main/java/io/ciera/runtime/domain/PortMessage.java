@@ -1,5 +1,6 @@
 package io.ciera.runtime.domain;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -31,7 +32,7 @@ public class PortMessage implements Message {
     }
 
     public PortMessage(int id, Map<String, Object> parameterData) {
-        this(UniqueId.random(), id, null, parameterData);
+        this(UniqueId.random(), id, null, new HashMap<>(parameterData));
     }
 
     public PortMessage(UniqueId messageHandle, int id, String name, Map<String, Object> parameterData) {

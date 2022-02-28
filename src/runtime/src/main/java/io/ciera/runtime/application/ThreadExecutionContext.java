@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.UncheckedIOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Comparator;
@@ -38,6 +39,7 @@ public class ThreadExecutionContext implements ExecutionContext, Runnable {
     private final ExecutionMode executionMode;
     private final ModelIntegrityMode modelIntegrityMode;
     private final Queue<Task> tasks;
+    private Task currentTask;
 
     public ThreadExecutionContext(String name) {
         this(name, ExecutionMode.INTERLEAVED, ModelIntegrityMode.STRICT);
@@ -49,6 +51,7 @@ public class ThreadExecutionContext implements ExecutionContext, Runnable {
         this.executionMode = executionMode;
         this.modelIntegrityMode = modelIntegrityMode;
         this.tasks = new PriorityBlockingQueue<>();
+        this.currentTask = null;
     }
 
     @Override
@@ -151,6 +154,7 @@ public class ThreadExecutionContext implements ExecutionContext, Runnable {
     }
 
     private synchronized void addTask(Task newTask) {
+        newTask.setParent(currentTask);
         if (tasks.offer(newTask)) {
             notify();
         } else {
@@ -166,11 +170,22 @@ public class ThreadExecutionContext implements ExecutionContext, Runnable {
         }
     }
 
-    @Override
-    public void run() {
-        // load instance population
-        // TODO this is proof of concept
-        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(getApplication() + "-population.obj"))) {
+    private void commitTransaction(final String storeName) {
+        // persist the instance population
+        persistPopulation(storeName);
+
+        // check integrity if in strict mode
+        if (modelIntegrityMode == ModelIntegrityMode.STRICT) {
+            checkIntegrity();
+        }
+    }
+
+    private void checkIntegrity() {
+        // TODO
+    }
+
+    private void loadPopulation(final String storeName) {
+        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(storeName))) {
             getLogger().trace("Loading instance population...");
             for (PersistentDomain domain : getApplication().getDomains().stream()
                     .filter(d -> this.equals(d.getContext())).filter(PersistentDomain.class::isInstance)
@@ -179,42 +194,72 @@ public class ThreadExecutionContext implements ExecutionContext, Runnable {
                 domain.load(in);
             }
         } catch (FileNotFoundException e) {
-            // ignore if there is no population file
+            // ignore if the file doesn't exist
         } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
-            System.exit(1);
+            getLogger().error("Failed to load instance population", e);
+            getApplication().getExceptionHandler().handleError(new RuntimeException(e));
         }
+    }
+
+    private void persistPopulation(final String storeName) {
+        // persist instance population
+        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(storeName))) {
+            getLogger().trace("Dumping instance population...");
+            for (PersistentDomain domain : getApplication().getDomains().stream()
+                    .filter(d -> this.equals(d.getContext())).filter(PersistentDomain.class::isInstance)
+                    .map(PersistentDomain.class::cast).sorted(Comparator.comparing(Domain::getName))
+                    .collect(Collectors.toList())) {
+                domain.persist(out);
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    @Override
+    public void run() {
+        // load instance population
+        final String storeName = System.getProperty("io.ciera.runtime.objectStore");
+        if (storeName != null && System.getProperty("io.ciera.runtime.coldStart") == null) {
+            loadPopulation(storeName);
+        }
+
+        // main loop
         while (getApplication().isRunning()) {
 
             // check to see if any expired timers need to be added to the task queue
             getClock().checkTimers(this);
 
             // get the next task (if there are any)
-            Task task = tasks.poll();
+            currentTask = tasks.poll();
 
-            if (task != null) {
-                // execute the task
+            if (currentTask != null) {
                 try {
-                    task.run();
+                    // execute the task
+                    currentTask.run();
+
+                    // Commit the transaction
+                    // A transaction is committed after every task (excluding generic execution) in
+                    // interleaved mode.
+                    // In sequential mode, the transaction is complete when the queue is empty or
+                    // the next task is a primary task.
+                    if ((executionMode == ExecutionMode.INTERLEAVED && !(currentTask instanceof GenericTask)
+                            && storeName != null)
+                            || (executionMode == ExecutionMode.SEQUENTIAL
+                                    && (tasks.isEmpty() || tasks.peek().getParent() == null) && storeName != null)) {
+                        commitTransaction(storeName);
+                    }
+
+                    // check integrity if the task queue is empty and in relaxed model integrity
+                    // mode
+                    if (modelIntegrityMode == ModelIntegrityMode.RELAXED && tasks.isEmpty()) {
+                        checkIntegrity();
+                    }
                 } catch (RuntimeException e) {
                     getApplication().getExceptionHandler().handleError(e);
+                } finally {
+                    currentTask = null;
                 }
-
-                // persist instance population
-                // TODO this is proof of concept
-                try (ObjectOutputStream out = new ObjectOutputStream(
-                        new FileOutputStream(getApplication() + "-population.obj"))) {
-                    getLogger().trace("Dumping instance population...");
-                    for (PersistentDomain domain : getApplication().getDomains().stream()
-                            .filter(d -> this.equals(d.getContext())).filter(PersistentDomain.class::isInstance)
-                            .map(PersistentDomain.class::cast).sorted(Comparator.comparing(Domain::getName))
-                            .collect(Collectors.toList())) {
-                        domain.persist(out);
-                    }
-                } catch (IOException e) {
-                    getLogger().warn("Failed to dump instance population", e);
-                }
-
             } else {
                 // wait for something interesting to happen
                 try {

@@ -174,9 +174,11 @@ public abstract class AbstractDomain implements PersistentDomain {
         out.writeObject(tasks);
         out.writeObject(instances);
 
+        /*
         getApplication().getLogger().trace("%d pending timers persisted for: %s", timers.length, this);
         getApplication().getLogger().trace("%d waiting tasks persisted for: %s", tasks.length, this);
         getApplication().getLogger().trace("%d object instances persisted for: %s", instances.length, this);
+        */
     }
 
     @Override
@@ -197,9 +199,11 @@ public abstract class AbstractDomain implements PersistentDomain {
         // load instance population
         Stream.of(instances).forEach(this::addInstance);
 
+        /*
         getApplication().getLogger().trace("%d pending timers loaded for: %s", timers.length, this);
         getApplication().getLogger().trace("%d waiting tasks loaded for: %s", tasks.length, this);
         getApplication().getLogger().trace("%d object instances loaded for: %s", instances.length, this);
+        */
     }
 
     @Override

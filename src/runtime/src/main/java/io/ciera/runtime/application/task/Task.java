@@ -13,9 +13,19 @@ public abstract class Task implements Runnable, Comparable<Task>, Serializable {
     public static final int DEFAULT_PRIORITY = 0x10;
 
     private long sequenceNumber;
+    private Task parentTask;
 
     public Task() {
         sequenceNumber = System.currentTimeMillis();
+        parentTask = null;
+    }
+    
+    public Task getParent() {
+        return parentTask;
+    }
+    
+    public void setParent(Task task) {
+        parentTask = task;
     }
 
     public int getPriority() {
