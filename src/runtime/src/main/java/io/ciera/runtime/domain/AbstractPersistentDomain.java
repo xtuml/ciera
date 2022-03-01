@@ -12,18 +12,19 @@ import io.ciera.runtime.api.domain.PersistentDomain;
 import io.ciera.runtime.api.time.Timer;
 import io.ciera.runtime.application.ThreadExecutionContext;
 import io.ciera.runtime.application.task.DomainTask;
+import io.ciera.runtime.time.EventTimer;
 
 public abstract class AbstractPersistentDomain extends AbstractDomain implements PersistentDomain {
 
     public AbstractPersistentDomain(String name) {
         super(name);
     }
-    
+
     @Override
     public void persist(ObjectOutputStream out) throws IOException {
         // get active timers
-        Timer[] timers = getClock().getScheduledTimers(getContext()).filter(t -> this.equals(t.getDomain()))
-                .toArray(Timer[]::new);
+        Timer[] timers = getClock().getScheduledTimers(getContext()).filter(EventTimer.class::isInstance)
+                .filter(t -> this.equals(t.getDomain())).toArray(Timer[]::new);
 
         // get task queue
         DomainTask[] tasks = Stream.of(getContext()).filter(ThreadExecutionContext.class::isInstance)
@@ -44,7 +45,7 @@ public abstract class AbstractPersistentDomain extends AbstractDomain implements
         getApplication().getLogger().trace("%d pending timers persisted for: %s", timers.length, this);
         getApplication().getLogger().trace("%d waiting tasks persisted for: %s", tasks.length, this);
         getApplication().getLogger().trace("%d object instances persisted for: %s", instances.length, this);
-        */
+         */
     }
 
     @Override
@@ -69,7 +70,7 @@ public abstract class AbstractPersistentDomain extends AbstractDomain implements
         getApplication().getLogger().trace("%d pending timers loaded for: %s", timers.length, this);
         getApplication().getLogger().trace("%d waiting tasks loaded for: %s", tasks.length, this);
         getApplication().getLogger().trace("%d object instances loaded for: %s", instances.length, this);
-        */
+         */
     }
 
 }

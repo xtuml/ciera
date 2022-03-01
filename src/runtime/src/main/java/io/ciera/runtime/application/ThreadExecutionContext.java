@@ -31,7 +31,9 @@ import io.ciera.runtime.application.task.GeneratedEvent;
 import io.ciera.runtime.application.task.GeneratedEventToSelf;
 import io.ciera.runtime.application.task.GenericTask;
 import io.ciera.runtime.application.task.Task;
+import io.ciera.runtime.time.AbstractTimer;
 import io.ciera.runtime.time.EventTimer;
+import io.ciera.runtime.time.GenericTimer;
 
 public class ThreadExecutionContext implements ExecutionContext, Runnable {
 
@@ -97,7 +99,7 @@ public class ThreadExecutionContext implements ExecutionContext, Runnable {
         try {
             Constructor<E> eventBuilder = eventType.getConstructor(Object[].class);
             Event event = eventBuilder.newInstance((Object) eventData);
-            EventTimer timer = new EventTimer(this, event, target);
+            Timer timer = new EventTimer(this, event, target);
             timer.schedule(delay.getValue());
             return timer;
         } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException
@@ -115,12 +117,25 @@ public class ThreadExecutionContext implements ExecutionContext, Runnable {
     }
 
     @Override
+    public Timer scheduleAction(Duration delay, Runnable action) {
+        Timer timer = new GenericTimer(this, action);
+        timer.schedule(delay.getValue());
+        return timer;
+    }
+
+    @Override
+    public Timer scheduleAction(TimeStamp expiration, Runnable action) {
+        Duration delay = expiration.subtract(TimeStamp.now(getClock()));
+        return scheduleAction(delay, action);
+    }
+
+    @Override
     public <E extends Event> Timer scheduleRecurringEvent(Class<E> eventType, EventTarget target, Duration delay,
             Duration period, Object... eventData) {
         try {
             Constructor<E> eventBuilder = eventType.getConstructor(Object[].class);
             Event event = eventBuilder.newInstance((Object) eventData);
-            EventTimer timer = new EventTimer(this, event, target, period != null ? period : delay);
+            AbstractTimer timer = new EventTimer(this, event, target, period != null ? period : delay);
             timer.schedule(delay.getValue());
             return timer;
         } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException
@@ -135,6 +150,19 @@ public class ThreadExecutionContext implements ExecutionContext, Runnable {
             Duration period, Object... eventData) {
         Duration delay = expiration.subtract(TimeStamp.now(getClock()));
         return scheduleRecurringEvent(eventType, target, delay, period, eventData);
+    }
+
+    @Override
+    public Timer scheduleRecurringAction(Duration delay, Duration period, Runnable action) {
+        Timer timer = new GenericTimer(this, action, period);
+        timer.schedule(delay.getValue());
+        return timer;
+    }
+
+    @Override
+    public Timer scheduleRecurringAction(TimeStamp expiration, Duration period, Runnable action) {
+        Duration delay = expiration.subtract(TimeStamp.now(getClock()));
+        return scheduleRecurringAction(delay, period, action);
     }
 
     @Override

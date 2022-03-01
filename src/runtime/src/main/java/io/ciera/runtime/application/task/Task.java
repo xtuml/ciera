@@ -19,11 +19,11 @@ public abstract class Task implements Runnable, Comparable<Task>, Serializable {
         sequenceNumber = System.currentTimeMillis();
         parentTask = null;
     }
-    
+
     public Task getParent() {
         return parentTask;
     }
-    
+
     public void setParent(Task task) {
         parentTask = task;
     }

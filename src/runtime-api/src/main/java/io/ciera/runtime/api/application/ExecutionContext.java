@@ -23,11 +23,19 @@ public interface ExecutionContext extends Executor {
     public <E extends Event> Timer scheduleEvent(Class<E> eventType, EventTarget target, TimeStamp expiration,
             Object... eventData);
 
+    public Timer scheduleAction(Duration delay, Runnable action);
+
+    public Timer scheduleAction(TimeStamp expiration, Runnable action);
+
     public <E extends Event> Timer scheduleRecurringEvent(Class<E> eventType, EventTarget target, Duration delay,
             Duration period, Object... eventData);
 
     public <E extends Event> Timer scheduleRecurringEvent(Class<E> eventType, EventTarget target, TimeStamp expiration,
             Duration period, Object... eventData);
+
+    public Timer scheduleRecurringAction(Duration delay, Duration period, Runnable action);
+
+    public Timer scheduleRecurringAction(TimeStamp expiration, Duration period, Runnable action);
 
     public void halt();
 

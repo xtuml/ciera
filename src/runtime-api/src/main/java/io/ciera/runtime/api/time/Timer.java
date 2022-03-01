@@ -9,6 +9,8 @@ import io.ciera.runtime.api.types.TimeStamp;
 
 public interface Timer extends Comparable<Timer>, Serializable {
 
+    public boolean schedule(long delay);
+
     public void fire();
 
     public long getExpiration();

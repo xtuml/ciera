@@ -66,6 +66,16 @@ public interface ActionHome extends ExecutionContext {
             Object... eventData) {
         return getContext().scheduleEvent(eventType, target, expiration, eventData);
     }
+    
+    @Override
+    public default Timer scheduleAction(Duration delay, Runnable action) {
+        return getContext().scheduleAction(delay, action);
+    }
+    
+    @Override
+    public default Timer scheduleAction(TimeStamp expiration, Runnable action) {
+        return getContext().scheduleAction(expiration, action);
+    }
 
     @Override
     public default <E extends Event> Timer scheduleRecurringEvent(Class<E> eventType, EventTarget target,
@@ -77,6 +87,16 @@ public interface ActionHome extends ExecutionContext {
     public default <E extends Event> Timer scheduleRecurringEvent(Class<E> eventType, EventTarget target,
             TimeStamp expiration, Duration period, Object... eventData) {
         return getContext().scheduleRecurringEvent(eventType, target, expiration, period, eventData);
+    }
+    
+    @Override
+    public default Timer scheduleRecurringAction(Duration delay, Duration period, Runnable action) {
+        return getContext().scheduleRecurringAction(delay, period, action);
+    }
+    
+    @Override
+    public default Timer scheduleRecurringAction(TimeStamp expiration, Duration period, Runnable action) {
+        return getContext().scheduleRecurringAction(expiration, period, action);
     }
 
     @Override
