@@ -11,6 +11,7 @@ import io.ciera.runtime.api.application.ExecutionContext;
 import io.ciera.runtime.api.domain.Domain;
 import io.ciera.runtime.api.types.Duration;
 import io.ciera.runtime.api.types.UniqueId;
+import io.ciera.runtime.domain.AbstractDomain;
 
 @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
 public class TestNotify {
@@ -53,6 +54,11 @@ public class TestNotify {
 
             // create a test app
             final BaseApplication app = new BaseApplication("TestNotify");
+            app.addDomain(new AbstractDomain("TestDomain") {
+                @Override
+                public void initialize() {
+                }
+            });
             app.setup();
 
             // run the app in a new thread to protect timeouts

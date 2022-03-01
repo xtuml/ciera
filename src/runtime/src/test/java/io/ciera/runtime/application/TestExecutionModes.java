@@ -16,6 +16,7 @@ import io.ciera.runtime.api.application.ExecutionContext.ModelIntegrityMode;
 import io.ciera.runtime.api.domain.Domain;
 import io.ciera.runtime.api.types.UniqueId;
 import io.ciera.runtime.application.task.GeneratedEvent;
+import io.ciera.runtime.domain.AbstractDomain;
 
 public class TestExecutionModes {
 
@@ -38,6 +39,11 @@ public class TestExecutionModes {
             public void setup() {
                 addContext(new ThreadExecutionContext("SequentialContext", ExecutionMode.INTERLEAVED,
                         ModelIntegrityMode.STRICT));
+                addDomain(new AbstractDomain("TestDomain") {
+                    @Override
+                    public void initialize() {
+                    }
+                });
             }
         };
         app.setup();
@@ -59,6 +65,11 @@ public class TestExecutionModes {
             public void setup() {
                 addContext(new ThreadExecutionContext("SequentialContext", ExecutionMode.SEQUENTIAL,
                         ModelIntegrityMode.STRICT));
+                addDomain(new AbstractDomain("TestDomain") {
+                    @Override
+                    public void initialize() {
+                    }
+                });
             }
         };
         app.setup();
@@ -76,6 +87,11 @@ public class TestExecutionModes {
     public void testDefaultMode() {
         // create fake application
         BaseApplication app = new BaseApplication("testDefaultMode");
+        app.addDomain(new AbstractDomain("TestDomain") {
+            @Override
+            public void initialize() {
+            }
+        });
         app.setup();
 
         app.getLogger().trace("Testing default (interleaved) mode");
