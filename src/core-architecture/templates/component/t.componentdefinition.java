@@ -2,7 +2,12 @@ package ${self.package};
 
 ${imports}
 
-public class ${self.name} extends AbstractDomain implements PersistentDomain {
+public class ${self.name} extends \
+.if (self.transient)
+AbstractDomain implements Domain {
+.else
+AbstractPersistentDomain implements PersistentDomain {
+.end if
 
     // utilities
     ${utilities}

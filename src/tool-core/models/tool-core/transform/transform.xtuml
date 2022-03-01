@@ -692,6 +692,14 @@ select many s_dims related by o_attr->S_DIM[R120];
 type = ::getTypeReferenceForS_DTWithDims(s_dt:s_dt, s_dims:s_dims);
 relate type to attr across R424;
 
+// check transient mark
+select one o_obj related by obj->O_OBJ[R409];
+select one o_obj_pe related by o_obj->PE_PE[R8001];
+select any transient_mark from instances of Mark where (selected.markable_name == "Attribute" and
+                                                        selected.path == ::containerMarkingPath(pe:o_obj_pe) + "::" + o_obj.Name  + "::" + o_attr.Name and
+                                                        selected.feature_name == "Transient");
+attr.transient = not_empty transient_mark or not type.serializable;
+
 // set unique ID attributes to be unique
 if (type.type_reference == "UniqueId")
   attr.is_unique = true;
@@ -976,9 +984,15 @@ if (1 == param.pass)
   comp_def.version = "";
   comp_def.version_date = "";
   
+  // check the transient mark
+  select one c_c_pe related by c_c->PE_PE[R8001];
+  select any transient_mark from instances of Mark where (selected.markable_name == "Component" and
+                                                         selected.path == ::containerMarkingPath(pe:c_c_pe) + "::" + c_c.Name and
+                                                         selected.feature_name == "Transient");
+  comp_def.transient = not_empty transient_mark;
+  
   // set version information
   component_version = "";
-  select one c_c_pe related by c_c->PE_PE[R8001];
   select any version_mark from instances of Mark where (selected.markable_name == "Component" and
                                                          selected.path == ::containerMarkingPath(pe:c_c_pe) + "::" + c_c.Name and
                                                          selected.feature_name == "Version");

@@ -108,6 +108,11 @@ if (param.pass == 1)
   comp_def.version = "";
   comp_def.version_date = "";
   
+  // check the transient mark
+  select any transient_mark from instances of Mark
+    where (selected.markable_name == "Domain" and selected.path == "" + domain.name and selected.feature_name == "transient");
+  comp_def.transient = not_empty transient_mark;
+  
   // set version information TODO
   component_version = "";
   
@@ -1056,6 +1061,14 @@ relate attr to maslattr across R8301;
 select one basic_type related by maslattr->BasicType[R5803];
 type = ::getTypeReferenceForMASLType( basic_type:basic_type);
 relate type to attr across R424;
+
+// check transient mark
+select one maslobj related by maslattr->ObjectDeclaration[R5802];
+select one masldomain related by maslobj->Domain[R5805];
+select any transient_mark from instances of Mark where (selected.markable_name == "Attribute" and
+                                                        selected.path == "" + masldomain.name + "::" + maslobj.name  + "::" + maslattr.name and
+                                                        selected.feature_name == "transient");
+attr.transient = not_empty transient_mark or not type.serializable;
 
 // set unique
 if maslattr.isUnique
