@@ -8,43 +8,6 @@ INSERT INTO O_OBJ
 	'An extension class which specializes a port to support xtUML-to-xtUML messaging.',
 	"00000000-0000-0000-0000-000000000000");
 INSERT INTO O_TFR
-	VALUES ("cea93cc6-95ab-4669-b177-7bdf52f8cd8e",
-	"905e3a64-67e9-4c20-9aa8-93f5685c88eb",
-	'render_interface',
-	'Render a standard Ciera interface file.',
-	"ba5eda7a-def5-0000-0000-000000000000",
-	1,
-	'select one port related by self->PortDescriptor[R4162]->Port[R4161.''specializes''];
-select one iface related by port->Interface[R418.''implements''];
-select one file related by iface->File[R401];
-
-select many to_provider_msgs related by iface->Message[R419.''defines communication through'']
- where ( selected.to_provider );
-for each msg in to_provider_msgs
-  msg.render();
-end for;
-to_provider_message_block = T::body();
-T::clear();
-
-select many from_provider_msgs related by iface->Message[R419.''defines communication through'']
- where ( not selected.to_provider );
-for each msg in from_provider_msgs
-  msg.render();
-end for;
-from_provider_message_block = T::body();
-T::clear();
-
-imports = file.getFormattedImports( type:ImportType::IMPL );
-T::include(file:"interface/t.interface.java");
-T::emit( file:file.path + "/" + iface.name + file.extension );
-T::clear();
-',
-	1,
-	'',
-	"4ec91a58-19ba-46f5-b6b6-c9f794541be7",
-	0,
-	1);
-INSERT INTO O_TFR
 	VALUES ("1600fa19-6b72-4499-9d8d-b18a92465f06",
 	"905e3a64-67e9-4c20-9aa8-93f5685c88eb",
 	'render_port',
@@ -92,7 +55,7 @@ T::emit( file:file.path + "/" + port.name + file.extension );
 T::clear();',
 	1,
 	'',
-	"cea93cc6-95ab-4669-b177-7bdf52f8cd8e",
+	"4ec91a58-19ba-46f5-b6b6-c9f794541be7",
 	0,
 	2);
 INSERT INTO O_TFR
@@ -187,7 +150,8 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000001",
 	1,
-	'return false;',
+	'// currently, serialization is only applied - by port - if inst_ref/set parameters are present.
+return false;',
 	1,
 	'',
 	"bb9d6032-a247-4b7e-a915-7eb84af9b797",
@@ -197,28 +161,16 @@ INSERT INTO O_TFR
 	VALUES ("19adfcbe-5692-424b-8bf4-5ad051dbbbc1",
 	"905e3a64-67e9-4c20-9aa8-93f5685c88eb",
 	'get_mapping_suffix',
-	'',
+	'suffix is N/A for non-brokered messages; return null string.',
 	"ba5eda7a-def5-0000-0000-000000000004",
 	1,
-	'return "";',
+	'// mapping is N/A.
+return "";',
 	1,
 	'',
 	"0a0acc08-5c46-4023-88c1-3d5b3d4418ea",
 	0,
 	9);
-INSERT INTO O_TFR
-	VALUES ("78631770-e003-4199-9f7a-edba6c1bb09d",
-	"905e3a64-67e9-4c20-9aa8-93f5685c88eb",
-	'get_override',
-	'',
-	"ba5eda7a-def5-0000-0000-000000000004",
-	1,
-	'return "";',
-	1,
-	'',
-	"19adfcbe-5692-424b-8bf4-5ad051dbbbc1",
-	0,
-	10);
 INSERT INTO O_TFR
 	VALUES ("fd40b265-272f-406a-aa44-1b9283da5dc0",
 	"905e3a64-67e9-4c20-9aa8-93f5685c88eb",
@@ -229,7 +181,7 @@ INSERT INTO O_TFR
 	'return false;',
 	1,
 	'',
-	"78631770-e003-4199-9f7a-edba6c1bb09d",
+	"19adfcbe-5692-424b-8bf4-5ad051dbbbc1",
 	0,
 	11);
 INSERT INTO O_NBATTR

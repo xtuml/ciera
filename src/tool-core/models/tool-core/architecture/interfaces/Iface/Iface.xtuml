@@ -15,15 +15,26 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'// Render an instance of an interface file.
-// This may be specialized by port type.
-// More than one port may share this particular specialization.
-// Only one copy of the file should be rendered.
+	'select one file related by self->File[R401];
 
-select any port related by self->Port[R418.''is implemented by''];
-if ( not_empty port )
-  port.render_interface();
-end if;
+select many to_provider_msgs related by self->Message[R419] where ( selected.to_provider );
+for each msg in to_provider_msgs
+  msg.render();
+end for;
+to_provider_message_block = T::body();
+T::clear();
+
+select many from_provider_msgs related by self->Message[R419] where ( not selected.to_provider );
+for each msg in from_provider_msgs
+  msg.render();
+end for;
+from_provider_message_block = T::body();
+T::clear();
+
+imports = file.getFormattedImports( type:ImportType::IMPL );
+T::include(file:"interface/t.interface.java");
+T::emit( file:file.path + "/" + self.name + file.extension );
+T::clear();
 
 // One or more of the associated ports may have requested message classes.
 // Only one set of message classes need be generated.

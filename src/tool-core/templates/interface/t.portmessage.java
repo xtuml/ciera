@@ -1,4 +1,3 @@
-    ${override}
     public void ${self.msg_name}(${parameter_list}) throws XtumlException {
 ${parmcasts}\
 .if ( inbound )
