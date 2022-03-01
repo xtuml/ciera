@@ -1603,14 +1603,14 @@ relate sel to expr across R776;
 create object instance sel_rel of SelectRelated;
 relate sel_rel to sel across R789;
 
-// get the second selector
+// get the selector (or second selector if selecting across an associative)
 selector_name = "" + rel.name + "_";
 if (rel_spec.role != "")
   selector_name = selector_name + T::sub(format:"_", s:rel_spec.role) + "_";
 end if;
 selector_name = selector_name + target_class.name;
 select any selector related by base_class->Selector[R442] where (selected.name == selector_name);
-if not_empty using_class
+if (not_empty using_class and using_class.name != base_class.name and using_class.name != target_class.name)
   select any selector related by using_class->Selector[R442] where (selected.name == selector_name);
 end if;
 if (not_empty selector)
