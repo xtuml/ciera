@@ -20,6 +20,12 @@ select one operand related by self->Expression[R777];
 operand.render();
 operand_body = T::body();
 
+// if the operand is a binary operation not impelemented as an invocation, wrap in parentheses
+select one binop related by operand->BinaryOperation[R776];
+if not_empty binop and not binop.invocation
+  operand_body = "(" + operand_body + ")";
+end if;
+
 T::pop_buffer();
 T::include(file:"expression/t.unaryoperation.java");',
 	1,
