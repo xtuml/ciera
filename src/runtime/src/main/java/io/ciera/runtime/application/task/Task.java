@@ -11,12 +11,14 @@ public abstract class Task implements Runnable, Comparable<Task>, Serializable {
     public static final int SELF_EVENT_PRIORITY = 0x30;
     public static final int SEQUENTIAL_EVENT_PRIORITY = 0x20;
     public static final int DEFAULT_PRIORITY = 0x10;
+    
+    private static volatile int sequenceNumber = 0;
 
-    private long sequenceNumber;
+    private long taskId;
     private Task parentTask;
 
     public Task() {
-        sequenceNumber = System.currentTimeMillis();
+        taskId = (++sequenceNumber) + System.currentTimeMillis();
         parentTask = null;
     }
 
@@ -34,13 +36,13 @@ public abstract class Task implements Runnable, Comparable<Task>, Serializable {
 
     @Override
     public int compareTo(Task other) {
-        return Arrays.compare(new long[] { 0xFF - getPriority(), sequenceNumber },
-                new long[] { 0xFF - other.getPriority(), other.sequenceNumber });
+        return Arrays.compare(new long[] { 0xFF - getPriority(), taskId },
+                new long[] { 0xFF - other.getPriority(), other.taskId });
     }
 
     @Override
     public String toString() {
-        return String.format("%s[0x%X, %d]", getClass().getSimpleName(), getPriority(), sequenceNumber);
+        return String.format("%s[0x%X, %d]", getClass().getSimpleName(), getPriority(), taskId);
     }
 
 }
