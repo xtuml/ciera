@@ -1746,6 +1746,13 @@ for each comp_def in comp_defs
   relate utility to comp_def across R4558 using util_ref;
 end for;
 
+// check if this is implemented as native code
+select any native_util_mark from instances of Mark where
+  selected.markable_name == "Domain" and selected.feature_name == "native" and selected.path == "" + domain.name;
+if not_empty native_util_mark
+  utility.native_library = native_util_mark.value;
+end if;
+
 // transform each utility function
 select many domain_services related by domain->DomainService[R5303];
 for each domain_service in domain_services

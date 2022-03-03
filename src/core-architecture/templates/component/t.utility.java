@@ -8,6 +8,9 @@ public class ${self.name} {
 
     public ${self.name}(Domain domain) {
         this.domain = domain;
+.if (self.native_library != "")
+        System.loadLibrary("${self.native_library}");
+.end if
     }
 
     ${utility_functions}
