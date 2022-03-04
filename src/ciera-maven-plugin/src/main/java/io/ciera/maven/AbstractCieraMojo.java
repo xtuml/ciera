@@ -48,6 +48,8 @@ public abstract class AbstractCieraMojo extends AbstractMojo {
         args.add(inFile);
         args.add("-o");
         args.add(outFile);
+        args.add("-p");
+        args.add(project.getName());
         args.add("--cwd");
         args.add(project.getBasedir().getPath());
         args.add("--gendir");

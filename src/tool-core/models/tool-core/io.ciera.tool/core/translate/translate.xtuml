@@ -42,6 +42,7 @@ INSERT INTO S_SYNC
 CMD::register_value( name:"cwd", value_name:"root_dir", usage:"base working directory", default_value:".", required:false );
 CMD::register_value( name:"i", value_name:"input_file", usage:"input file", default_value:"", required:false );
 CMD::register_value( name:"o", value_name:"output_file", usage:"output file", default_value:"", required:false );
+CMD::register_value( name:"p", value_name:"project_name", usage:"xtUML project name", default_value:"", required:true );
 CMD::register_value( name:"gendir", value_name:"gen_dir", usage:"generated output directory", default_value:".", required:false );
 CMD::register_value( name:"use-version", value_name:"use_version", usage:"version identifier for generated components", default_value:"", required:false );
 CMD::read_command_line();
@@ -112,30 +113,22 @@ LOG::LogInfo( message:"  Translating builtin types..." );
 LOG::LogInfo( message:"  done." );
 LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
 
-// translate root package
-LOG::LogInfo( message:"  Translating application package..." );
-select any root_package_mark from instances of Mark where ( selected.markable_name == "*"
-                                                            and selected.path == "*"
-                                                            and selected.feature_name == "RootPackage" );
-if ( not_empty root_package_mark )
-  select any root_package from instances of EP_PKG where false;
-  select many s_syss from instances of S_SYS;
-  for each s_sys in s_syss
-    select any root_package related by s_sys->EP_PKG[R1401] where ( root_package_mark.value == s_sys.Name + "::" + selected.Name );
-    if ( not_empty root_package )
-      break;
-    end if;
-  end for;
-  if ( not_empty root_package )
-    ::transformApplication( root_package:root_package, path: ::ep_pkgToPath( ep_pkg:root_package ) );
-  else
-    LOG::LogFailure( message:"No root package found" );
-    ARCH::exit(code:1);
-  end if;
-else
-  LOG::LogFailure( message:"No root package specified" );
-  ARCH::exit(code:1);
+// translate all top level packages
+LOG::LogInfo( message:"  Translating root packages..." );
+select any empty_comp_def from instances of ComponentDefinition where false;
+project_name = CMD::get_value(name:"p");
+select any s_sys from instances of S_SYS where selected.Name == project_name;
+if empty s_sys
+  LOG::LogFailure(message:"Could not find project: ''" + project_name + "''");
 end if;
+select many root_packages related by s_sys->EP_PKG[R1401];
+for each root_package in root_packages
+  pass = 0;
+  while pass < 4
+    pass = pass + 1;
+    ::transformPackage(ep_pkg:root_package, containing_comp_def:empty_comp_def, path:"", pass:pass);
+  end while;
+end for;
 LOG::LogInfo( message:"  done." );
 LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
 

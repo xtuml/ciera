@@ -29,7 +29,7 @@ public class CSVImpl<C extends IComponent<C>> extends Utility<C> implements CSV 
             try {
                 sc = new Scanner(file);
             } catch (FileNotFoundException e) {
-                getRunContext().getLog().error(e);
+                getRunContext().getLog().warn("Could not find file: " + p_filename);
                 return 0;
             }
         }

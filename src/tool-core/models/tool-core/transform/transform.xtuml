@@ -963,17 +963,19 @@ INSERT INTO S_SYNC
 	'transformComponentDefinition',
 	'',
 	'c_c = param.c_c;
+path = param.path + "/" + T::sub(format:"l", s:c_c.Name);
 
-select any file from instances of File where (selected.name == ::camelCaseName(name:c_c.Name, start_lower:false) and selected.package == ::pathToPackage(path:param.path));
+select any file from instances of File where
+  selected.name == ::camelCaseName(name:c_c.Name, start_lower:false) and selected.package == ::pathToPackage(path:path);
 select one comp_def related by file->ComponentDefinition[R401];
 
-if (1 == param.pass)
+if (param.pass == 1)
 
   // create the file
   create object instance file of File;
   file.name = ::camelCaseName(name:c_c.Name, start_lower:false);
-  file.path = param.path;
-  file.package = ::pathToPackage(path:file.path);
+  file.path = path;
+  file.package = ::pathToPackage(path:path);
   file.extension = ".java";
   file.exclude = false;
 
@@ -981,8 +983,6 @@ if (1 == param.pass)
   create object instance comp_def of ComponentDefinition;
   relate comp_def to file across R401;
   relate c_c to comp_def across R4573;
-  comp_def.version = "";
-  comp_def.version_date = "";
   
   // check the transient mark
   select one c_c_pe related by c_c->PE_PE[R8001];
@@ -991,63 +991,12 @@ if (1 == param.pass)
                                                          selected.feature_name == "Transient");
   comp_def.transient = not_empty transient_mark;
   
-  // set version information
-  component_version = "";
-  select any version_mark from instances of Mark where (selected.markable_name == "Component" and
-                                                         selected.path == ::containerMarkingPath(pe:c_c_pe) + "::" + c_c.Name and
-                                                         selected.feature_name == "Version");
-  if (empty version_mark)
-    select any version_mark from instances of Mark where (selected.markable_name == "*" and
-                                                           selected.path == "*" and
-                                                           selected.feature_name == "UseVersion");
-  end if;
-  component_version = version_mark.value;
-  if ("" != component_version)
-    comp_def.version = component_version;
-    current_date = TIM::current_date();
-    year_string = STRING::itoa(i:TIM::get_year(date:current_date));
-    month_string = STRING::itoa(i:TIM::get_month(date:current_date));
-    if (STRING::strlen(s:month_string) < 2)
-      month_string = "0" + month_string;
-    end if;
-    day_string = STRING::itoa(i:TIM::get_day(date:current_date));
-    if (STRING::strlen(s:day_string) < 2)
-      day_string = "0" + day_string;
-    end if;
-    hour_string = STRING::itoa(i:TIM::get_hour(date:current_date));
-    if (STRING::strlen(s:hour_string) < 2)
-      hour_string = "0" + hour_string;
-    end if;
-    minute_string = STRING::itoa(i:TIM::get_minute(date:current_date));
-    if (STRING::strlen(s:minute_string) < 2)
-      minute_string = "0" + minute_string;
-    end if;
-    second_string = STRING::itoa(i:TIM::get_second(date:current_date));
-    if (STRING::strlen(s:second_string) < 2)
-      second_string = "0" + second_string;
-    end if;
-    comp_def.version_date = year_string + "-" + month_string + "-" + day_string + " " + hour_string + ":" + minute_string + ":" + second_string;
-  end if;
-  if ("" != component_version)
-    // create version file
-    create object instance prop_file of File;
-    prop_file.name = file.name + "Properties";
-    prop_file.path = file.path;
-    prop_file.package = file.package;
-    prop_file.extension = ".properties";
-    prop_file.exclude = false;
-    create object instance gen_file of GeneralFile;
-    relate gen_file to prop_file across R401;
-    comp_def.render_version();
-    gen_file.contents = T::body();
-  end if;
-
-elif (3 == param.pass)
+elif (param.pass == 3)
 
   // transform ports
   select many c_pos related by c_c->C_PO[R4010];
   for each c_po in c_pos
-    ::transformPort(c_po:c_po, comp_def:comp_def, path:file.path + "/" + T::sub(format:"l", s:c_c.Name));
+    ::transformPort(c_po:c_po, comp_def:comp_def, path:file.path);
   end for;
 
 end if;
@@ -1055,13 +1004,13 @@ end if;
 // transform inner packages
 select many ep_pkgs related by c_c->PE_PE[R8003]->EP_PKG[R8001];
 for each ep_pkg in ep_pkgs
-  ::transformPackage(ep_pkg:ep_pkg, containing_comp_def:comp_def, path:file.path + "/" + T::sub(format:"l", s:c_c.Name), pass:param.pass);
+  ::transformPackage(ep_pkg:ep_pkg, containing_comp_def:comp_def, path:file.path, pass:param.pass);
 end for;
 
 // transform inner components
 select many inner_c_cs related by c_c->PE_PE[R8003]->C_C[R8001];
 for each inner_c_c in inner_c_cs
-  ::transformComponentDefinition(c_c:inner_c_c, containing_comp_def:comp_def, path:file.path + "/" + T::sub(format:"l", s:c_c.Name), pass:param.pass);
+  ::transformComponentDefinition(c_c:inner_c_c, containing_comp_def:comp_def, path:file.path, pass:param.pass);
 end for;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -1131,7 +1080,7 @@ file.name = ::camelCaseName( name:s_dt.Name, start_lower:false );
 file.path = ::ep_pkgToPath( ep_pkg:ep_pkg );
 file.package = ::pathToPackage( path:file.path );
 file.extension = ".java";
-file.exclude = false;
+file.exclude = param.exclude;
 
 // create the type
 create object instance type of Type;
@@ -1181,6 +1130,15 @@ INSERT INTO S_DT_PROXY
 	'',
 	'',
 	'../../../../mcooa/models/mcooa/ooaofooa/Domain/Domain.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("8fd7666c-7b37-49cb-acac-245fe7a4c18e",
+	"a114d22b-91d1-4024-bd80-b10fccabec0f",
+	'exclude',
+	"ba5eda7a-def5-0000-0000-000000000001",
+	0,
+	'',
+	"52ce9b0d-3a5e-4b00-a118-31e4fea357d2",
+	'');
 INSERT INTO PE_PE
 	VALUES ("a114d22b-91d1-4024-bd80-b10fccabec0f",
 	1,
@@ -1389,7 +1347,7 @@ if ( empty iface )
   file.path = param.path;
   file.package = ::pathToPackage( path:file.path );
   file.extension = ".java";
-  file.exclude = false;
+  file.exclude = param.exclude;
 
   // create the interface package object
   create object instance iface of Interface;
@@ -1437,6 +1395,15 @@ INSERT INTO S_SPARM
 	0,
 	'',
 	"9fda5ab1-f5ea-49cf-a065-4acac8ccbb18",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("b67ed16a-244f-4d20-a42a-3a518f61005a",
+	"f8603c94-90cc-4b20-9c6e-f665ce733d20",
+	'exclude',
+	"ba5eda7a-def5-0000-0000-000000000001",
+	0,
+	'',
+	"3d1e527a-9091-4e1b-a000-daf06870359d",
 	'');
 INSERT INTO PE_PE
 	VALUES ("f8603c94-90cc-4b20-9c6e-f665ce733d20",
@@ -1680,83 +1647,95 @@ INSERT INTO S_SYNC
 	'ep_pkg = param.ep_pkg;
 path = param.path;
 
+select one s_sys related by ep_pkg->S_SYS[R1405];
+
+sub_path = T::sub(format:"rl", s:ep_pkg.Name);
+if path != ""
+  sub_path = path + "/" + sub_path;
+end if;
+
 // get all packageable elements
 select one referred_ep_pkg related by ep_pkg->EP_PKG[R1402.''refers to''];
-if ( not_empty referred_ep_pkg )
+if (not_empty referred_ep_pkg)
   ep_pkg = referred_ep_pkg;
 end if;
 containing_comp_def = param.containing_comp_def;
 select many pe_pes related by ep_pkg->PE_PE[R8000];
+select one pkg_s_sys related by ep_pkg->S_SYS[R1405];
 
-if ( 1 == param.pass )
+if (param.pass == 1)
 
   // transform datatypes
-  select many edts related by pe_pes->S_DT[R8001]->S_EDT[R17]->S_DT[R17];
-  for each edt in edts
-    ::transformEnumeratedType( s_dt:edt );
+  select many s_dts related by pe_pes->S_DT[R8001]->S_EDT[R17]->S_DT[R17];
+  for each s_dt in s_dts
+    ::transformDataType(s_dt:s_dt, exclude:pkg_s_sys != s_sys);
   end for;
+
+elif (param.pass == 2)
   
-  select many udts related by pe_pes->S_DT[R8001]->S_UDT[R17]->S_DT[R17];
-  for each udt in udts
-    ::transformUserDefinedType( s_dt:udt );
+  // transform interfaces
+  select many c_is related by pe_pes->C_I[R8001];
+  for each c_i in c_is
+    ::transformInterface(c_i:c_i, path:sub_path, exclude:pkg_s_sys != s_sys);
   end for;
 
-elif ( 2 == param.pass )
+  // don''t transform these elements unless they appear in the context of a component
+  if not_empty containing_comp_def
 
-  // transform functions
-  select many s_syncs related by pe_pes->S_SYNC[R8001];
-  for each s_sync in s_syncs
-    ::transformFunction( s_sync:s_sync, comp_def:containing_comp_def );
-  end for;
+    // transform functions
+    select many s_syncs related by pe_pes->S_SYNC[R8001];
+    for each s_sync in s_syncs
+      ::transformFunction(s_sync:s_sync, comp_def:containing_comp_def);
+    end for;
 
-  // transform EEs
-  select many s_ees related by pe_pes->S_EE[R8001];
-  for each s_ee in s_ees
-    ::transformUtility( s_ee:s_ee, ep_pkg:ep_pkg, containing_comp_def:containing_comp_def, exclude:false, path:path + "/" + T::sub( format:"rl", s:ep_pkg.Name ) );
-  end for;
+    // transform EEs
+    select many s_ees related by pe_pes->S_EE[R8001];
+    for each s_ee in s_ees
+      ::transformUtility(s_ee:s_ee, ep_pkg:ep_pkg, containing_comp_def:containing_comp_def, exclude:false, path:sub_path);
+    end for;
 
-  // transform classes
-  select many o_objs related by pe_pes->O_OBJ[R8001];
-  for each o_obj in o_objs
-    ::transformClass( o_obj:o_obj, containing_comp_def:containing_comp_def, path:path + "/" + T::sub( format:"rl", s:ep_pkg.Name ) );
-  end for;
-
-elif ( 3 == param.pass )
-
-  // transform associations
-  select many r_rels related by pe_pes->R_REL[R8001];
-  for each r_rel in r_rels
-    ::transformAssociation( r_rel:r_rel, containing_comp_def:containing_comp_def );
-  end for;
+    // transform classes
+    select many o_objs related by pe_pes->O_OBJ[R8001];
+    for each o_obj in o_objs
+      ::transformClass(o_obj:o_obj, containing_comp_def:containing_comp_def, path:sub_path);
+    end for;
   
-  // transform instance state machines
-  select many objs related by containing_comp_def->Class[R408];
-  for each obj in objs
-    select one ism related by obj->O_OBJ[R409]->SM_ISM[R518]->SM_SM[R517];
-    if not_empty ism
-      ::transformStateMachine(sm_sm:ism, obj:obj, is_instance:true);
-    else
-      select one asm related by obj->O_OBJ[R409]->SM_ASM[R519]->SM_SM[R517];
-      if not_empty asm
-        ::transformStateMachine(sm_sm:asm, obj:obj, is_instance:false);
+  end if;
+
+elif (param.pass == 3)
+
+  // don''t transform these elements unless they appear in the context of a component
+  if not_empty containing_comp_def
+
+    // transform associations
+    select many r_rels related by pe_pes->R_REL[R8001];
+    for each r_rel in r_rels
+      ::transformAssociation(r_rel:r_rel, containing_comp_def:containing_comp_def);
+    end for;
+    
+    // transform instance state machines
+    select many objs related by pe_pes->O_OBJ[R8001]->Class[R409];
+    for each obj in objs
+      select one ism related by obj->O_OBJ[R409]->SM_ISM[R518]->SM_SM[R517];
+      if not_empty ism
+        ::transformStateMachine(sm_sm:ism, obj:obj, is_instance:true);
+      else
+        select one asm related by obj->O_OBJ[R409]->SM_ASM[R519]->SM_SM[R517];
+        if not_empty asm
+          ::transformStateMachine(sm_sm:asm, obj:obj, is_instance:false);
+        end if;
       end if;
-    end if;
-  end for;
+    end for;
+  
+  end if;
 
 else
 
-  // transform selectors
-  select many o_objs related by pe_pes->O_OBJ[R8001];
-  select many objs related by o_objs->Class[R409];
+  // transform selectors and attribute references
+  select many objs related by pe_pes->O_OBJ[R8001]->Class[R409];
   for each obj in objs
-    ::transformSelectors( obj:obj );
-  end for;
-
-  // transform attribute references
-  select many o_objs related by pe_pes->O_OBJ[R8001];
-  select many objs related by o_objs->Class[R409];
-  for each obj in objs
-    ::transformAttributeReferences( obj:obj );
+    ::transformSelectors(obj:obj);
+    ::transformAttributeReferences(obj:obj);
   end for;
 
 end if;
@@ -1764,13 +1743,13 @@ end if;
 // transform components
 select many c_cs related by pe_pes->C_C[R8001];
 for each c_c in c_cs
-  ::transformComponentDefinition( c_c:c_c, containing_comp_def:containing_comp_def, path:path + "/" + T::sub( format:"rl", s:ep_pkg.Name ), pass:param.pass );
+  ::transformComponentDefinition(c_c:c_c, containing_comp_def:containing_comp_def, path:sub_path, pass:param.pass);
 end for;
 
 // transform packages
 select many inner_ep_pkgs related by pe_pes->EP_PKG[R8001];
 for each inner_ep_pkg in inner_ep_pkgs
-  ::transformPackage( ep_pkg:inner_ep_pkg, containing_comp_def:containing_comp_def, path:path + "/" + T::sub( format:"rl", s:ep_pkg.Name ), pass:param.pass );
+  ::transformPackage(ep_pkg:inner_ep_pkg, containing_comp_def:containing_comp_def, path:sub_path, pass:param.pass);
 end for;
 
 ',
@@ -1833,9 +1812,9 @@ select one pe related by c_c->PE_PE[R8001];
 
 // create the file
 create object instance file of File;
-file.name = comp_def.name + ::camelCaseName( name:c_po.Name, start_lower:false );
+file.name = comp_def.name + ::camelCaseName(name:c_po.Name, start_lower:false);
 file.path = param.path;
-file.package = ::pathToPackage( path:file.path );
+file.package = ::pathToPackage(path:file.path);
 file.extension = ".java";
 file.exclude = false;
 
@@ -1843,7 +1822,7 @@ file.exclude = false;
 create object instance port of Port;
 relate port to file across R401;
 relate port to c_po across R422;
-port.port_name = ::camelCaseName( name:c_po.Name, start_lower:false );
+port.port_name = ::camelCaseName(name:c_po.Name, start_lower:false);
 
 // set port as provider or requirer
 select any c_p related by c_po->C_IR[R4016]->C_P[R4009];
@@ -1855,18 +1834,16 @@ relate port to comp_def across R417;
 // relate to iface if the iface is there
 select any c_i related by c_po->C_IR[R4016]->C_I[R4012];
 select one iface related by c_i->Interface[R421];
-if ( empty iface and not_empty c_i )
+if empty iface
   select one ep_pkg related by c_i->PE_PE[R8001]->EP_PKG[R8000];
-  if ( not_empty ep_pkg )
-    ::transformInterface( c_i:c_i, path: ::ep_pkgToPath( ep_pkg:ep_pkg ) );
-  end if;
+  ::transformInterface(c_i:c_i, path: ::ep_pkgToPath(ep_pkg:ep_pkg), exclude:true);
   select one iface related by c_i->Interface[R421];
 end if;
-if ( not_empty iface )
+if not_empty iface
   relate port to iface across R418;
   select many msgs related by iface->Message[R419];
   for each msg in msgs
-    ::transformPortMessage( port:port, msg:msg );
+    ::transformPortMessage(port:port, msg:msg);
   end for;
 else
   // TODO bad
@@ -2322,7 +2299,7 @@ file.name = ::camelCaseName( name:s_dt.Name, start_lower:false );
 file.path = ::ep_pkgToPath( ep_pkg:ep_pkg );
 file.package = ::pathToPackage( path:file.path );
 file.extension = ".java";
-file.exclude = false;
+file.exclude = param.exclude;
 
 // create the type
 create object instance type of Type;
@@ -2347,6 +2324,15 @@ INSERT INTO S_SPARM
 	0,
 	'',
 	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("51281b01-7727-4521-8775-195558d0ebc9",
+	"d02e7000-869b-4743-9418-85576a503800",
+	'exclude',
+	"ba5eda7a-def5-0000-0000-000000000001",
+	0,
+	'',
+	"78c72c79-4b9b-423f-926e-db02292501ed",
 	'');
 INSERT INTO PE_PE
 	VALUES ("d02e7000-869b-4743-9418-85576a503800",
@@ -2711,6 +2697,53 @@ INSERT INTO S_DT_PROXY
 	'../../../../core-architecture/models/core-architecture/architecture/statemachine/statemachine.xtuml');
 INSERT INTO PE_PE
 	VALUES ("59873bd4-3180-4bda-a03f-0df9c6b6b4e8",
+	1,
+	"302d02ea-52a7-489d-a14b-18b29f3c8d86",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("1cfd3671-5013-4535-986f-f3f6ff283140",
+	"00000000-0000-0000-0000-000000000000",
+	'transformDataType',
+	'',
+	's_dt = param.s_dt;
+
+select one s_edt related by s_dt->S_EDT[R17];
+if not_empty s_edt
+  ::transformEnumeratedType(s_dt:s_dt, exclude:param.exclude);
+else
+  select one s_udt related by s_dt->S_UDT[R17];
+  if not_empty s_udt
+    ::transformUserDefinedType(s_dt:s_dt, exclude:param.exclude);
+  end if;
+end if;
+
+// TODO structured data types',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	4);
+INSERT INTO S_SPARM
+	VALUES ("e07e1f55-b86f-4df3-ac9e-6c366c5dd5db",
+	"1cfd3671-5013-4535-986f-f3f6ff283140",
+	's_dt',
+	"4a90cd45-ece0-4e72-afe7-44996f9d7e1e",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("5f4ecdf8-8e48-447c-b430-73691e06ab39",
+	"1cfd3671-5013-4535-986f-f3f6ff283140",
+	'exclude',
+	"ba5eda7a-def5-0000-0000-000000000001",
+	0,
+	'',
+	"e07e1f55-b86f-4df3-ac9e-6c366c5dd5db",
+	'');
+INSERT INTO PE_PE
+	VALUES ("1cfd3671-5013-4535-986f-f3f6ff283140",
 	1,
 	"302d02ea-52a7-489d-a14b-18b29f3c8d86",
 	"00000000-0000-0000-0000-000000000000",

@@ -27,11 +27,6 @@ public class ${self.name} extends BaseApplication implements Application {
         setClock(new SimulatedClock(${self.simulated_time}));
 
 .end if
-.if (idle_halt)
-        // add a task to terminate after the system quiets
-        getContexts().stream().forEach(c -> c.execute(new IdleHalt()));
-
-.end if
     }
 
     public static void main(String[] args) {

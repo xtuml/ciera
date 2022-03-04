@@ -1110,7 +1110,12 @@ end if;
 // enumerated data types
 select one edt related by s_dt->S_EDT[R17];
 if not_empty edt
-  select one type related by edt->S_DT[R17]->Type[R423];
+  select one type related by s_dt->Type[R423];
+  if empty type
+    // make sure the type gets translated for referred to types
+    ::transformDataType(s_dt:s_dt, exclude:true);
+    select one type related by s_dt->Type[R423];
+  end if;
   if not_empty type
     return ::getBasicTypeReference(type:type);
   end if;
