@@ -221,11 +221,6 @@ file.exclude = false;
 create object instance app of Application;
 relate app to file across R401;
 
-// see if this needs to be generated as an asynchronous application
-select any async_app_mark from instances of Mark where (selected.markable_name == "*" and selected.path == "*" and selected.feature_name == "AsyncApplication");
-app.async = not_empty async_app_mark;
-
-
 // check simulated time
 sim_time_mark = PROP::getProperty(key:"io.ciera.EnableSimulatedTime");
 if (sim_time_mark != "")
@@ -233,55 +228,30 @@ if (sim_time_mark != "")
   app.simulated_time = sim_time_mark;
 end if;
 
-// create application executors
-index = 0;
-while (index < 1) // single executor for now
-  create object instance executor of ApplicationExecutor;
-  if (app.async)
-    executor.index = -1;
-  else
-    executor.index = index;
-  end if;
-  relate executor to app across R4027;
-  index = index + 1;
-end while;
-
-// translate components definitions
+// translate components references
 select many c_cs related by root_package->PE_PE[R8000]->C_C[R8001];
 select many cl_ics related by root_package->PE_PE[R8000]->CL_IC[R8001]->C_C[R4201];
 c_cs = c_cs | cl_ics;
-select any empty_comp_def from instances of ComponentDefinition where false;
 select any current_comp_inst from instances of ComponentInstantiation where false;
 for each c_c in c_cs
-  select any comp_def from instances of ComponentDefinition where (selected.name == ::camelCaseName(name:c_c.Name, start_lower:false));
-  if (empty comp_def)
-    ::transformComponentDefinition(c_c:c_c, containing_comp_def:empty_comp_def, path:param.path, pass:1);
-    ::transformComponentDefinition(c_c:c_c, containing_comp_def:empty_comp_def, path:param.path, pass:2);
-    ::transformComponentDefinition(c_c:c_c, containing_comp_def:empty_comp_def, path:param.path, pass:3);
-    ::transformComponentDefinition(c_c:c_c, containing_comp_def:empty_comp_def, path:param.path, pass:4);
-    select any comp_def from instances of ComponentDefinition where (selected.name == ::camelCaseName(name:c_c.Name, start_lower:false));
+  select one comp_def related by c_c->ComponentDefinition[R4573];
+  if empty comp_def
+    ::transformComponentReference(c_c:c_c, path:param.path);
+    select one comp_def related by c_c->ComponentDefinition[R4573];
   end if;
-  create object instance comp_inst of ComponentInstantiation;
-  relate  comp_def to app across R426 using comp_inst;
-  select any executor related by app->ApplicationExecutor[R4027]; // single executor for now
-  relate executor to comp_inst across R4028;
-  if (not_empty current_comp_inst)
-    relate comp_inst to current_comp_inst across R4029.''follows'';
-    comp_inst.index = current_comp_inst.index + 1;
+  if not_empty comp_def
+    create object instance comp_inst of ComponentInstantiation;
+    relate  comp_def to app across R426 using comp_inst;
+    if (not_empty current_comp_inst)
+      relate comp_inst to current_comp_inst across R4029.''follows'';
+      comp_inst.index = current_comp_inst.index + 1;
+    else
+      comp_inst.index = 0;
+    end if;
+    current_comp_inst = comp_inst;
   else
-    comp_inst.index = 0;
+    LOG::LogFailure(message:"Could not find translated component definition for: " + c_c.Name);
   end if;
-
-  // apply instance loading
-  select one c_c_pe related by c_c->PE_PE[R8001];
-  select any inst_loading_mark from instances of Mark where (selected.markable_name == "Component" and
-                                                              selected.path == ::containerMarkingPath(pe:c_c_pe) + "::" + c_c.Name and
-                                                              selected.feature_name == "InstanceLoading");
-  if (not_empty inst_loading_mark)
-    comp_inst.instance_loading = inst_loading_mark.value;
-  end if;
-
-  current_comp_inst = comp_inst;
 end for;
 
 // transform satisfactions
@@ -996,7 +966,7 @@ elif (param.pass == 3)
   // transform ports
   select many c_pos related by c_c->C_PO[R4010];
   for each c_po in c_pos
-    ::transformPort(c_po:c_po, comp_def:comp_def, path:file.path);
+    ::transformPort(c_po:c_po, comp_def:comp_def, path:file.path, exclude:false);
   end for;
 
 end if;
@@ -1816,7 +1786,7 @@ file.name = comp_def.name + ::camelCaseName(name:c_po.Name, start_lower:false);
 file.path = param.path;
 file.package = ::pathToPackage(path:file.path);
 file.extension = ".java";
-file.exclude = false;
+file.exclude = param.exclude;
 
 // create the interface package object
 create object instance port of Port;
@@ -1886,6 +1856,15 @@ INSERT INTO S_SPARM
 	0,
 	'',
 	"2416fad3-aefa-4b39-be26-3377fa98d171",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("dd2ee594-07e2-4670-9d88-0fd7d211e6ae",
+	"dc54cc56-f3a1-40ce-9622-5b72536da732",
+	'exclude',
+	"ba5eda7a-def5-0000-0000-000000000001",
+	0,
+	'',
+	"5ca8d895-7b79-4c44-b608-ee46576c1d51",
 	'');
 INSERT INTO PE_PE
 	VALUES ("dc54cc56-f3a1-40ce-9622-5b72536da732",
@@ -2026,10 +2005,8 @@ INSERT INTO S_SYNC
 	'transformSatisfaction',
 	'',
 	'c_sf = param.c_sf;
-
 select one provider related by c_sf->C_P[R4002]->C_IR[R4009]->C_PO[R4016]->Port[R422];
 select one requirer related by c_sf->C_R[R4002]->C_IR[R4009]->C_PO[R4016]->Port[R422];
-
 relate provider to requirer across R4160.''satisfies required'';',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -2744,6 +2721,60 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("1cfd3671-5013-4535-986f-f3f6ff283140",
+	1,
+	"302d02ea-52a7-489d-a14b-18b29f3c8d86",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("0b1e28c3-bc08-473f-9b52-7e1852fdda24",
+	"00000000-0000-0000-0000-000000000000",
+	'transformComponentReference',
+	'',
+	'c_c = param.c_c;
+select one ep_pkg related by c_c->PE_PE[R8001]->EP_PKG[R8000];
+path = ::ep_pkgToPath(ep_pkg:ep_pkg) + "/" + T::sub(format:"l", s:c_c.Name);
+
+// create the file
+create object instance file of File;
+file.name = ::camelCaseName(name:c_c.Name, start_lower:false);
+file.path = path;
+file.package = ::pathToPackage(path:path);
+file.extension = ".java";
+file.exclude = true;
+
+// create the component definition object
+create object instance comp_def of ComponentDefinition;
+relate comp_def to file across R401;
+relate c_c to comp_def across R4573;
+
+// check the transient mark
+select one c_c_pe related by c_c->PE_PE[R8001];
+select any transient_mark from instances of Mark where (selected.markable_name == "Component" and
+                                                       selected.path == ::containerMarkingPath(pe:c_c_pe) + "::" + c_c.Name and
+                                                       selected.feature_name == "Transient");
+comp_def.transient = not_empty transient_mark;
+
+// transform ports
+select many c_pos related by c_c->C_PO[R4010];
+for each c_po in c_pos
+  ::transformPort(c_po:c_po, comp_def:comp_def, path:file.path, exclude:true);
+end for;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	0);
+INSERT INTO S_SPARM
+	VALUES ("d924cc1a-cfc9-4143-8c47-1ff3f2c399e7",
+	"0b1e28c3-bc08-473f-9b52-7e1852fdda24",
+	'c_c',
+	"67f93d18-1045-4c6c-b0d5-a692023c471c",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO PE_PE
+	VALUES ("0b1e28c3-bc08-473f-9b52-7e1852fdda24",
 	1,
 	"302d02ea-52a7-489d-a14b-18b29f3c8d86",
 	"00000000-0000-0000-0000-000000000000",

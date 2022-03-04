@@ -97,24 +97,24 @@ INSERT INTO S_SYNC
 	'',
 	'start_time = TIM::current_clock();
 
-LOG::LogInfo( message:"Translating..." );
+LOG::LogInfo(message:"Translating...");
 
 // static analysis tasks
 
 // resolve direct selections across associative relationships
-LOG::LogInfo( message:"  Resolving associative selections..." );
+LOG::LogInfo(message:"  Resolving associative selections...");
 ::resolveAssociativeSelections();
-LOG::LogInfo( message:"  done." );
-LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
+LOG::LogInfo(message:"  done.");
+LOG::LogTime(message:"  Elapsed time:", t:TIM::current_clock() - start_time);
 
 // translate builtin types
-LOG::LogInfo( message:"  Translating builtin types..." );
+LOG::LogInfo(message:"  Translating builtin types...");
 ::populateBuiltInTypes();
-LOG::LogInfo( message:"  done." );
-LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
+LOG::LogInfo(message:"  done.");
+LOG::LogTime(message:"  Elapsed time:", t:TIM::current_clock() - start_time);
 
 // translate all top level packages
-LOG::LogInfo( message:"  Translating root packages..." );
+LOG::LogInfo(message:"  Translating packages...");
 select any empty_comp_def from instances of ComponentDefinition where false;
 project_name = CMD::get_value(name:"p");
 select any s_sys from instances of S_SYS where selected.Name == project_name;
@@ -129,36 +129,60 @@ for each root_package in root_packages
     ::transformPackage(ep_pkg:root_package, containing_comp_def:empty_comp_def, path:"", pass:pass);
   end while;
 end for;
-LOG::LogInfo( message:"  done." );
-LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
+LOG::LogInfo(message:"  done.");
+LOG::LogTime(message:"  Elapsed time:", t:TIM::current_clock() - start_time);
 
 // translate bodies
-LOG::LogInfo( message:"  Translating OAL bodies..." );
+LOG::LogInfo(message:"  Translating OAL bodies...");
 select many invocables from instances of InvocableObject;
 for each invocable in invocables
-  LOG::LogInfo( message:"  Translating ''" + invocable.parent_package + "." + invocable.parent_name + "#" + invocable.name + "'' ..." );
-  ::transformBody( invocable:invocable );
+  LOG::LogInfo(message:"  Translating ''" + invocable.parent_package + "." + invocable.parent_name + "#" + invocable.name + "'' ...");
+  ::transformBody(invocable:invocable);
 end for;
-LOG::LogInfo( message:"  done." );
-LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
+LOG::LogInfo(message:"  done.");
+LOG::LogTime(message:"  Elapsed time:", t:TIM::current_clock() - start_time);
+
+// translate application package
+select any root_package_mark from instances of Mark where (selected.markable_name == "*"
+                                                            and selected.path == "*"
+                                                            and selected.feature_name == "RootPackage");
+if not_empty root_package_mark
+  LOG::LogInfo(message:"  Translating application package...");
+  select any root_package from instances of EP_PKG where false;
+  select many s_syss from instances of S_SYS;
+  for each s_sys in s_syss
+    select any root_package related by s_sys->EP_PKG[R1401] where (root_package_mark.value == s_sys.Name + "::" + selected.Name);
+    if (not_empty root_package)
+      break;
+    end if;
+  end for;
+  if (not_empty root_package)
+    ::transformApplication(root_package:root_package, path: ::ep_pkgToPath(ep_pkg:root_package));
+  else
+    LOG::LogFailure(message:"No root package found");
+    ARCH::exit(code:1);
+  end if;
+  LOG::LogInfo(message:"  done.");
+  LOG::LogTime(message:"  Elapsed time:", t:TIM::current_clock() - start_time);
+end if;
 
 // render all files
-LOG::LogInfo( message:"  Rendering application..." );
+LOG::LogInfo(message:"  Rendering application...");
 select many files from instances of File;
 for each file in files
-  if ( not file.exclude )
+  if (not file.exclude)
     file.rendering = true;
     file.render();
     file.rendering = false;
   end if;
 end for;
-LOG::LogInfo( message:"  done." );
-LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
+LOG::LogInfo(message:"  done.");
+LOG::LogTime(message:"  Elapsed time:", t:TIM::current_clock() - start_time);
 
-LOG::LogInfo( message:"Done." );
+LOG::LogInfo(message:"Done.");
 
 elapsed_time = TIM::current_clock() - start_time;
-LOG::LogTime( message:"Elapsed time:", t:elapsed_time );',
+LOG::LogTime(message:"Elapsed time:", t:elapsed_time);',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',

@@ -276,19 +276,6 @@ if (sim_time_mark != "")
   app.simulated_time = sim_time_mark;
 end if;
 
-// create application executors
-index = 0;
-while ( index < 1 ) // single executor for now
-  create object instance executor of ApplicationExecutor;
-  if ( app.async )
-    executor.index = -1;
-  else
-    executor.index = index;
-  end if;
-  relate executor to app across R4027;
-  index = index + 1;
-end while;
-
 // translate domains
 select many domains from instances of Domain;
 select any current_comp_inst from instances of ComponentInstantiation where false;
@@ -302,8 +289,6 @@ for each domain in domains
     select any comp_def from instances of ComponentDefinition where ( selected.name == ::camelCaseName( name:domain.name, start_lower:false ) );
     create object instance comp_inst of ComponentInstantiation;
     relate  comp_def to app across R426 using comp_inst;
-    select any executor related by app->ApplicationExecutor[R4027]; // single executor for now
-    relate executor to comp_inst across R4028;
     if ( not_empty current_comp_inst )
       relate comp_inst to current_comp_inst across R4029.''follows'';
       comp_inst.index = current_comp_inst.index + 1;
