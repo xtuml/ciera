@@ -3,6 +3,8 @@ package io.ciera.runtime.api.domain;
 import io.ciera.runtime.api.application.MessageTarget;
 
 public interface Port extends MessageTarget {
+    
+    public String getName();
 
     public void send(Message message);
 

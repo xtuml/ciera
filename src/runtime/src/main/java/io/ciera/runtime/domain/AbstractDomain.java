@@ -41,10 +41,15 @@ public abstract class AbstractDomain implements Domain {
         this.name = name;
         this.instancePopulation = new HashMap<>();
     }
+    
+    @Override
+    public String getName() {
+        return name;
+    }
 
     @Override
     public ExecutionContext getContext() {
-        return BaseApplication.getInstance().defaultContext();
+        return BaseApplication.provider().defaultContext();
     }
 
     @Override
@@ -137,7 +142,7 @@ public abstract class AbstractDomain implements Domain {
 
     @Override
     public MessageTarget getMessageTarget(Class<? extends MessageTarget> targetClass) {
-        throw new MessageTargetException("Could not find port to deliver message", null, null);
+        throw new MessageTargetException("Could not find target to deliver message: " + targetClass, null, null);
     }
 
     @Override

@@ -9,13 +9,13 @@ public class ReceivedMessage extends Task implements DomainTask {
 
     private static final long serialVersionUID = 1L;
 
-    private final Class<? extends Domain> domainClass;
+    private final String domainName;
     private final Message message;
     private final Class<? extends MessageTarget> targetClass;
     private transient MessageTarget target;
 
     public ReceivedMessage(Message message, MessageTarget target) {
-        this.domainClass = target.getDomain().getClass();
+        this.domainName = target.getDomain().getName();
         this.message = message;
         this.target = target;
         this.targetClass = target.getClass();
@@ -28,7 +28,7 @@ public class ReceivedMessage extends Task implements DomainTask {
 
     private MessageTarget getTarget() {
         if (target == null) {
-            target = BaseApplication.getInstance().getDomain(domainClass).getMessageTarget(targetClass);
+            target = BaseApplication.provider().getDomain(domainName).getMessageTarget(targetClass);
         }
         return target;
     }

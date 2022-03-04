@@ -133,7 +133,7 @@ public abstract class AbstractTimer implements Timer {
     @Override
     public ExecutionContext getContext() {
         if (context == null) {
-            context = BaseApplication.getInstance().getContext(contextId);
+            context = BaseApplication.provider().getContext(contextId);
         }
         return context;
     }

@@ -1,6 +1,7 @@
 package io.ciera.runtime.api.application;
 
 import java.util.Collection;
+import java.util.stream.Stream;
 
 import io.ciera.runtime.api.domain.Domain;
 import io.ciera.runtime.api.time.SystemClock;
@@ -29,9 +30,11 @@ public interface Application {
 
     public Collection<Domain> getDomains();
 
-    public <T extends Domain> T getDomain(Class<T> cls);
+    public Domain getDomain(String domainName);
 
     public void addDomain(Domain domain);
+    
+    public Stream<Domain> findDomains(String... domainNames);
 
     public Logger getLogger();
 

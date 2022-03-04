@@ -15,7 +15,7 @@ public class EventTimer extends AbstractTimer implements Timer {
 
     private static final long serialVersionUID = 1L;
 
-    private final Class<? extends Domain> domainClass;
+    private final String domainName;
     private final Event event;
     private final UniqueId targetId;
     private transient EventTarget target;
@@ -31,7 +31,7 @@ public class EventTimer extends AbstractTimer implements Timer {
     public EventTimer(UniqueId timerHandle, ExecutionContext context, Event event, EventTarget target,
             Duration period) {
         super(timerHandle, context, period);
-        this.domainClass = target.getDomain().getClass();
+        this.domainName = target.getDomain().getName();
         this.event = event;
         this.target = target;
         this.targetId = target.getTargetId();
@@ -48,7 +48,7 @@ public class EventTimer extends AbstractTimer implements Timer {
 
     public EventTarget getTarget() {
         if (target == null) {
-            target = BaseApplication.getInstance().getDomain(domainClass).getEventTarget(targetId);
+            target = BaseApplication.provider().getDomain(domainName).getEventTarget(targetId);
         }
         return target;
     }

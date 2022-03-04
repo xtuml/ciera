@@ -20,6 +20,11 @@ public abstract class AbstractPort implements Port, ActionHome {
         this.domain = domain;
         this.peer = null;
     }
+    
+    @Override
+    public String getName() {
+        return name;
+    }
 
     @Override
     public void send(Message message) {

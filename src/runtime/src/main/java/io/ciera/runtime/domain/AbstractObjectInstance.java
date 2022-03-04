@@ -16,13 +16,13 @@ public abstract class AbstractObjectInstance implements ObjectInstance {
     private static final long serialVersionUID = 1L;
 
     private final UniqueId instanceId;
-    private final Class<? extends Domain> domainClass;
+    private final String domainName;
     private transient Domain domain;
     private boolean active;
 
     public AbstractObjectInstance() {
         this.instanceId = null;
-        this.domainClass = null;
+        this.domainName = null;
         this.domain = null;
         this.active = false;
     }
@@ -33,7 +33,7 @@ public abstract class AbstractObjectInstance implements ObjectInstance {
 
     public AbstractObjectInstance(UniqueId instanceId, Domain domain) {
         this.instanceId = instanceId;
-        this.domainClass = domain.getClass();
+        this.domainName = domain.getName();
         this.domain = domain;
         this.active = true;
     }
@@ -66,7 +66,7 @@ public abstract class AbstractObjectInstance implements ObjectInstance {
     @Override
     public Domain getDomain() {
         if (domain == null) {
-            domain = BaseApplication.getInstance().getDomain(domainClass);
+            domain = BaseApplication.provider().getDomain(domainName);
         }
         return domain;
     }

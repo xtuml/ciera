@@ -61,8 +61,8 @@ public class ThreadExecutionContext implements ExecutionContext, Runnable {
         return name;
     }
 
-    public Stream<Task> getTasks() {
-        return tasks.stream();
+    public Stream<Runnable> getTasks() {
+        return tasks.stream().map(Runnable.class::cast);
     }
 
     @Override
@@ -340,7 +340,7 @@ public class ThreadExecutionContext implements ExecutionContext, Runnable {
 
     @Override
     public Application getApplication() {
-        return BaseApplication.getInstance();
+        return BaseApplication.provider();
     }
 
     @Override

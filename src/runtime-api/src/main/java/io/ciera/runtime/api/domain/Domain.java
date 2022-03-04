@@ -12,12 +12,16 @@ import io.ciera.runtime.api.types.UniqueId;
  * action within it.
  */
 public interface Domain extends ActionHome, InstancePopulation, EventTarget {
+    
+    public String getName();
 
     public void initialize();
 
     public EventTarget getEventTarget(UniqueId targetId);
 
     public MessageTarget getMessageTarget(Class<? extends MessageTarget> targetClass);
+
+    public Port getPort(String portName);
 
     @Override
     default public Domain getDomain() {

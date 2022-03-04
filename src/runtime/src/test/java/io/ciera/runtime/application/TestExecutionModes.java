@@ -14,6 +14,7 @@ import io.ciera.runtime.api.application.ExecutionContext;
 import io.ciera.runtime.api.application.ExecutionContext.ExecutionMode;
 import io.ciera.runtime.api.application.ExecutionContext.ModelIntegrityMode;
 import io.ciera.runtime.api.domain.Domain;
+import io.ciera.runtime.api.domain.Port;
 import io.ciera.runtime.api.types.UniqueId;
 import io.ciera.runtime.application.task.GeneratedEvent;
 import io.ciera.runtime.domain.AbstractDomain;
@@ -43,6 +44,10 @@ public class TestExecutionModes {
                     @Override
                     public void initialize() {
                     }
+                    @Override
+                    public Port getPort(String portName) {
+                        return null;
+                    }
                 });
             }
         };
@@ -69,6 +74,10 @@ public class TestExecutionModes {
                     @Override
                     public void initialize() {
                     }
+                    @Override
+                    public Port getPort(String portName) {
+                        return null;
+                    }
                 });
             }
         };
@@ -90,6 +99,10 @@ public class TestExecutionModes {
         app.addDomain(new AbstractDomain("TestDomain") {
             @Override
             public void initialize() {
+            }
+            @Override
+            public Port getPort(String portName) {
+                return null;
             }
         });
         app.setup();

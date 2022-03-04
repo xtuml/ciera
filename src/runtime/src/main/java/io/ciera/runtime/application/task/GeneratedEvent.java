@@ -12,7 +12,7 @@ public class GeneratedEvent extends Task implements DomainTask {
 
     private static final long serialVersionUID = 1L;
 
-    private final Class<? extends Domain> domainClass;
+    private final String domainName;
     private final Event event;
     private final UniqueId targetId;
     private final ExecutionContext.ExecutionMode executionMode;
@@ -23,7 +23,7 @@ public class GeneratedEvent extends Task implements DomainTask {
     }
 
     public GeneratedEvent(Event event, EventTarget target, ExecutionContext.ExecutionMode executionMode) {
-        this.domainClass = target.getDomain().getClass();
+        this.domainName = target.getDomain().getName();
         this.event = event;
         this.target = target;
         this.targetId = target.getTargetId();
@@ -46,7 +46,7 @@ public class GeneratedEvent extends Task implements DomainTask {
 
     private EventTarget getTarget() {
         if (target == null) {
-            target = BaseApplication.getInstance().getDomain(domainClass).getEventTarget(targetId);
+            target = BaseApplication.provider().getDomain(domainName).getEventTarget(targetId);
         }
         return target;
     }

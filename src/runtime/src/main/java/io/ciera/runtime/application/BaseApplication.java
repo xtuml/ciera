@@ -1,8 +1,12 @@
 package io.ciera.runtime.application;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.ServiceLoader;
+import java.util.stream.Stream;
 
 import io.ciera.runtime.api.application.Application;
 import io.ciera.runtime.api.application.ExceptionHandler;
@@ -19,7 +23,7 @@ public class BaseApplication implements Application {
 
     private final String name;
     private final Map<String, ThreadExecutionContext> contexts;
-    private final Map<Class<?>, Domain> domains;
+    private final Map<String, Domain> domains;
 
     private SystemClock clock;
     private Logger logger;
@@ -113,14 +117,21 @@ public class BaseApplication implements Application {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public <T extends Domain> T getDomain(Class<T> cls) {
-        return (T) domains.get(cls);
+    public Domain getDomain(String domainName) {
+        return domains.get(domainName);
     }
 
     @Override
     public void addDomain(Domain domain) {
-        this.domains.put(domain.getClass(), domain);
+        domains.put(domain.getName(), domain);
+    }
+
+    @Override
+    public Stream<Domain> findDomains(String... domainNames) {
+        List<String> domains = Arrays.asList(domainNames);
+        return ServiceLoader.load(Domain.class).stream()
+                .map(ServiceLoader.Provider::get)
+                .filter(p -> domains.contains(p.getName()));
     }
 
     @Override
@@ -153,7 +164,7 @@ public class BaseApplication implements Application {
         return name;
     }
 
-    public static Application getInstance() {
+    public static Application provider() {
         if (instance != null) {
             return instance;
         } else {

@@ -23,7 +23,7 @@ public abstract class AbstractPersistentDomain extends AbstractDomain implements
     @Override
     public void persist(ObjectOutputStream out) throws IOException {
         // get active timers
-        Timer[] timers = getClock().getScheduledTimers(getContext()).filter(EventTimer.class::isInstance)
+        Timer[] timers = getContext().getClock().getScheduledTimers(getContext()).filter(EventTimer.class::isInstance)
                 .filter(t -> this.equals(t.getDomain())).toArray(Timer[]::new);
 
         // get task queue
@@ -56,7 +56,7 @@ public abstract class AbstractPersistentDomain extends AbstractDomain implements
         ObjectInstance[] instances = (ObjectInstance[]) in.readObject();
 
         // register timers
-        Stream.of(timers).forEach(getClock()::registerTimer);
+        Stream.of(timers).forEach(getContext().getClock()::registerTimer);
 
         // load tasks
         if (getContext() instanceof Executor) {
