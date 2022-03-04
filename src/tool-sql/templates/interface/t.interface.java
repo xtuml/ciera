@@ -1,8 +1,8 @@
-package ${iface.package};
+package ${self.package};
 
 ${imports}
 
-public interface ${iface.name} {
+public interface ${self.name} {
 
     // to provider messages
 ${to_provider_message_block}

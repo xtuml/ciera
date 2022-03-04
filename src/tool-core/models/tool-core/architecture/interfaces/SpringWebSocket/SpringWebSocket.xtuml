@@ -8,85 +8,6 @@ INSERT INTO O_OBJ
 	'An extension class which specializes a port to support Spring WebSocket communication.',
 	"00000000-0000-0000-0000-000000000000");
 INSERT INTO O_TFR
-	VALUES ("72dfcf15-84d1-477f-9e32-2d55230ee7fb",
-	"b2989ac2-663c-402c-849f-59fe2b7ac4d9",
-	'render_interface',
-	'Render an interface file appropriate to the Spring messaging protocol.',
-	"ba5eda7a-def5-0000-0000-000000000000",
-	1,
-	'select one port related by self->PortDescriptor[R4162]->Port[R4161.''specializes''];
-select one iface related by port->Interface[R418.''implements''];
-select one file related by iface->File[R401];
-
-select many in_msgs related by iface->Message[R419.''defines communication through'']
- where ( selected.to_provider == port.provider );
-select many out_msgs related by iface->Message[R419.''defines communication through'']
- where ( selected.to_provider != port.provider );
-
-in_message_block = "";
-out_message_block = "";
-
-self.render_inbound_msgs_iface( msgs:in_msgs );
-in_message_block = T::body();
-T::clear();
-
-for each msg in out_msgs
-  msg.render();
-end for;
-out_message_block = T::body();
-
-imports = file.getFormattedImports( type:ImportType::IMPL );
-T::include(file:"interface/t.springws.iface.java");
-T::emit( file:file.path + "/" + iface.name + file.extension );
-T::clear();
-',
-	1,
-	'',
-	"4bd420c6-057a-4a88-8456-5400d27fc2a0",
-	0,
-	1);
-INSERT INTO O_TFR
-	VALUES ("c941aa65-0432-46d6-b689-12c8eaf187f4",
-	"b2989ac2-663c-402c-849f-59fe2b7ac4d9",
-	'render_inbound_msgs_iface',
-	'Spring WebSocket ports require a different interface for inbound messages, carring a message-specific class instance.',
-	"ba5eda7a-def5-0000-0000-000000000000",
-	1,
-	'// for each inbound message render a definition that receives a single message class parameter.
-// add each message class to the imports for the interface being rendered.
-select one port related by self->PortDescriptor[R4162]->Port[R4161.''specializes''];
-select one iface related by port->Interface[R418.''implements''];
-select one file related by iface->File[R401];
-msgpkg = T::sub( format:"l", s:STRING::substr( s:iface.name, begin:1, end:-1 ));
-pkg = iface.package + "." + msgpkg;
-
-msgs = param.msgs;
-for each msg in msgs
-	::addStringToImports( file:file, s:pkg + "." + msg.name + "Msg", type: ImportType::IMPL );
-	T::include(file:"interface/t.springmsg.def.java");	
-end for;   ',
-	1,
-	'',
-	"72dfcf15-84d1-477f-9e32-2d55230ee7fb",
-	0,
-	2);
-INSERT INTO O_TPARM
-	VALUES ("7d597e5d-d9ad-449e-84d0-ed97f2078304",
-	"c941aa65-0432-46d6-b689-12c8eaf187f4",
-	'msgs',
-	"22c2b7b2-b4eb-410e-ba26-53683605f2be",
-	0,
-	'',
-	"00000000-0000-0000-0000-000000000000",
-	'');
-INSERT INTO S_DT_PROXY
-	VALUES ("22c2b7b2-b4eb-410e-ba26-53683605f2be",
-	"00000000-0000-0000-0000-000000000000",
-	'inst_ref_set<Message>',
-	'',
-	'',
-	'../interfaces.xtuml');
-INSERT INTO O_TFR
 	VALUES ("140b1c54-1226-4f98-a703-1c38f5e335a2",
 	"b2989ac2-663c-402c-849f-59fe2b7ac4d9",
 	'render_port',
@@ -113,28 +34,31 @@ T::clear();
 
 pkg = "";
 unpack_message_block = "";
-if ( not_empty inmsgs )
-  select one iface related by port->Interface[R418.''implements''];
-	msgpkg = T::sub( format:"l", s:STRING::substr( s:iface.name, begin:1, end:-1 ));
-	pkg = iface.package + "." + msgpkg;
-	for each port_msg in inmsgs
-    ::addStringToImports( file:file, s:pkg + "." + port_msg.msg_name + "Msg", type: ImportType::IMPL );
-    port_msg.render_msg_decode();
-	end for;
-  unpack_message_block = T::body();
-  T::clear();
+select one iface related by port->Interface[R418.''implements''];
+if ( not_empty iface )
+  pkg = iface.package + "." + T::sub( format:"l", s:STRING::substr( s:iface.name, begin:1, end:-1 ));
+end if; // iface
+	
+// render and import the message classes for inbound messages from client
+for each port_msg in inmsgs
+  select one msg related by port_msg->Message[R420.''provides implementation for''];
+  msg.render_msgclass();
+  ::addStringToImports( file:file, s:pkg + "." + port_msg.msg_name + "Msg", type: ImportType::IMPL );
+end for;
 
-	for each port_msg in inmsgs
-	  select one msg related by port_msg->Message[R420.''provides implementation for''];
-	  msg.render_msgclass();
-	end for;
-end if;
+// render mapping-annotated methods to extract port activity parameters from inbound message instances.
+for each port_msg in inmsgs
+  port_msg.render_msg_decode();
+end for;
+unpack_message_block = T::body();
+T::clear();
 
+// render the overridden ''send'' for outbound messages to client
 sendmethod = "";
 topic = self.subscribe_topic;
 if ( topic == "" )  // default topic to endpoint value string
-	select one endpoint related by self->StompEndPoint[R4163.''specifies''];
-	topic = endpoint.endpoint;
+  select one endpoint related by self->StompEndPoint[R4163.''specifies''];
+  topic = endpoint.endpoint;
 end if;
 add_sub_topic = self.subtopic_parm;
 T::include(file:"interface/t.port.send.java");
@@ -142,13 +66,12 @@ sendmethod = T::body();
 T::clear();
 
 imports = file.getFormattedImports( type:ImportType::IMPL );
-
 T::include(file:"interface/t.spring.port.java");
 T::emit( file:file.path + "/" + port.name + file.extension );
 T::clear();',
 	1,
 	'',
-	"c941aa65-0432-46d6-b689-12c8eaf187f4",
+	"4bd420c6-057a-4a88-8456-5400d27fc2a0",
 	0,
 	3);
 INSERT INTO O_TFR
@@ -239,6 +162,46 @@ INSERT INTO O_TFR
 	"094608ee-c234-4be4-b39c-76eaa7dd0b02",
 	0,
 	7);
+INSERT INTO O_TFR
+	VALUES ("0bc802fd-abf3-487b-bc96-a358f5e88d27",
+	"b2989ac2-663c-402c-849f-59fe2b7ac4d9",
+	'get_serialize',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000001",
+	1,
+	'// WebSocket messages are always serialized.
+return true;',
+	1,
+	'',
+	"61e71294-d687-4a15-a2b9-2fac25180ee3",
+	0,
+	8);
+INSERT INTO O_TFR
+	VALUES ("c32d80e1-467e-4dad-89a4-44e332e4244e",
+	"b2989ac2-663c-402c-849f-59fe2b7ac4d9",
+	'get_mapping_suffix',
+	'return any suffix string this port has been marked with.',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	1,
+	'return self.msg_mapping_suffix;',
+	1,
+	'',
+	"0bc802fd-abf3-487b-bc96-a358f5e88d27",
+	0,
+	9);
+INSERT INTO O_TFR
+	VALUES ("a4d6e93e-0680-4917-9974-601e0bdafa57",
+	"b2989ac2-663c-402c-849f-59fe2b7ac4d9",
+	'send_enums_by_name',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000001",
+	1,
+	'return true;',
+	1,
+	'',
+	"c32d80e1-467e-4dad-89a4-44e332e4244e",
+	0,
+	11);
 INSERT INTO O_NBATTR
 	VALUES ("e38ce274-1d36-4d65-be04-ddd678b52c2a",
 	"b2989ac2-663c-402c-849f-59fe2b7ac4d9");
@@ -271,6 +234,24 @@ INSERT INTO O_ATTR
 	'The name of a message parameter which, if present, is used to refine the subscription topic.',
 	'',
 	'subtopic_parm',
+	0,
+	"ba5eda7a-def5-0000-0000-000000000004",
+	'',
+	'');
+INSERT INTO O_NBATTR
+	VALUES ("ccecab06-6572-4099-ae33-afc57feedaf9",
+	"b2989ac2-663c-402c-849f-59fe2b7ac4d9");
+INSERT INTO O_BATTR
+	VALUES ("ccecab06-6572-4099-ae33-afc57feedaf9",
+	"b2989ac2-663c-402c-849f-59fe2b7ac4d9");
+INSERT INTO O_ATTR
+	VALUES ("ccecab06-6572-4099-ae33-afc57feedaf9",
+	"b2989ac2-663c-402c-849f-59fe2b7ac4d9",
+	"c3530416-0b26-4326-ad28-4f3a4abb780c",
+	'msg_mapping_suffix',
+	'A suffix to inbound-to-xtUML message mapping which disambiguates same-name messages.',
+	'',
+	'msg_mapping_suffix',
 	0,
 	"ba5eda7a-def5-0000-0000-000000000004",
 	'',

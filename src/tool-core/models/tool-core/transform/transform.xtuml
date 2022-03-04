@@ -2032,21 +2032,10 @@ file.exclude = false;
 // create the interface package object
 create object instance iface of Interface;
 relate iface to file across R401;
-iface.serialize_msgs = param.serialize;
 
 // relate to the c_i
 relate iface to c_i across R421;
 relate iface to port across R418;
-
-// is this Interface marked for message parameter serialization?
-select one pe related by c_i->PE_PE[R8001];
-select any serialize_mark from instances of Mark 
- where ( selected.markable_name == "Interface" and
-         selected.path == ::containerMarkingPath( pe:pe ) + "::" + c_i.Name and
-         selected.feature_name == "Serialize" );
-if ( not_empty serialize_mark )
-	iface.serialize_msgs = true;
-end if;                                                          
 
 // transform messages
 // sort by name to assure consistent translation
@@ -2106,15 +2095,6 @@ INSERT INTO S_DT_PROXY
 	'',
 	'',
 	'../architecture/interfaces/interfaces.xtuml');
-INSERT INTO S_SPARM
-	VALUES ("ba6a8df8-d523-4612-9280-0a467cd6a83d",
-	"f8603c94-90cc-4b20-9c6e-f665ce733d20",
-	'serialize',
-	"ba5eda7a-def5-0000-0000-000000000001",
-	0,
-	'',
-	"b239a0ef-0346-49c6-b10e-dc828b5c8ea9",
-	'');
 INSERT INTO PE_PE
 	VALUES ("f8603c94-90cc-4b20-9c6e-f665ce733d20",
 	1,
@@ -2599,8 +2579,8 @@ end if;
 
 // determine port specialization
 select any port_type_mark from instances of Mark where ( selected.markable_name == "Port" and
-                                                          selected.path == path_for_mark and
-                                                          selected.feature_name == "PortType" );
+                                                         selected.path == path_for_mark and
+                                                         selected.feature_name == "PortType" );
 if ( not_empty port_type_mark )
   if (port_type_mark.value == "SpringWebSocket" )
     ::transformSpringPort( port:port, mark_path: path_for_mark );
@@ -2609,6 +2589,12 @@ if ( not_empty port_type_mark )
     ::transformXtumlPort( port:port, mark_path: path_for_mark );
   end if;
 else
+  select any msg_class_mark from instances of Mark where ( selected.markable_name == "Port" and
+                                                           selected.path == path_for_mark and
+                                                           selected.feature_name == "GenerateMessageClasses" );
+  if ( not_empty msg_class_mark )
+    port.gen_msg_classes = true;
+  end if;
   ::transformXtumlPort( port:port, mark_path: path_for_mark );
 end if;
 
@@ -2618,11 +2604,11 @@ if ( not_empty iface )
   for each msg in msgs
     ::transformPortMessage( port:port, msg:msg );
   end for;
+  select one iface_file related by iface->File[R401];
+  ::addFileToImports( file:file, file_to_import:iface_file, type:ImportType::IMPL );
 else
   LOG::LogInfo( message:"No interface associated with port: " + port.port_name );
-  return;  // no iface->File...
 end if;
-
 
 // add imports
 ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.BadArgumentException", type:ImportType::IMPL );
@@ -2631,8 +2617,6 @@ end if;
 ::addStringToImports( file:file, s:"io.ciera.runtime.summit.interfaces.IPort", type:ImportType::IMPL );
 ::addStringToImports( file:file, s:"java.util.Iterator", type:ImportType::IMPL );
 ::addFileToImports( file:file, file_to_import:component_file, type:ImportType::IMPL );
-select one iface_file related by iface->File[R401];
-::addFileToImports( file:file, file_to_import:iface_file, type:ImportType::IMPL );
 ',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -3864,7 +3848,7 @@ if ( not empty xtuml_port )
 else
   select one ep_pkg related by c_i->PE_PE[R8001]->EP_PKG[R8000];
   if ( not_empty ep_pkg )
-    ::transformInterface( c_i:c_i, path: ::ep_pkgToPath( ep_pkg:ep_pkg ), port:port, serialize:false );
+    ::transformInterface( c_i:c_i, path: ::ep_pkgToPath( ep_pkg:ep_pkg ), port:port );
   end if;
 end if;
 ',
@@ -3934,6 +3918,12 @@ if ( not_empty subtopic_mark )
   sws.subtopic_parm = subtopic_mark.value;
 end if;
 
+select any map_suffix_mark from instances of Mark where ( selected.markable_name == "Port" and
+                                                      selected.path == path_for_mark and
+                                                      selected.feature_name == "MappingSuffix" );
+if ( not_empty map_suffix_mark )
+  sws.msg_mapping_suffix = map_suffix_mark.value;
+end if;
 
 select any c_i related by port->C_PO[R422]->C_IR[R4016]->C_I[R4012];
 select any spring_port related by c_i->Interface[R421]->Port[R418]->PortDescriptor[R4161]->SpringWebSocket[R4162];
@@ -3943,7 +3933,7 @@ if ( not empty spring_port )
 else
   select one ep_pkg related by c_i->PE_PE[R8001]->EP_PKG[R8000];
   if ( not_empty ep_pkg )
-    ::transformInterface( c_i:c_i, path: ::ep_pkgToPath( ep_pkg:ep_pkg ), port:port, serialize:true );
+    ::transformInterface( c_i:c_i, path: ::ep_pkgToPath( ep_pkg:ep_pkg ), port:port );
   end if;
 end if;
 ',

@@ -1,1 +1,1 @@
-            super.addParm("${key}", ${pname});
+            super.addParm("${key}", ${pname}${name_enum});

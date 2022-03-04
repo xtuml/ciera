@@ -37,6 +37,11 @@ while ( not_empty prev_parm )
   select one prev_parm related by parm->FormalParameter[R404.''follows''];
 end while;
 
+select any port_specializer related by self->Interface[R419.''defines message format for'']
+                                           ->Port[R418.''is implemented by'']
+                                           ->PortDescriptor[R4161.''is specialized by''];
+name_enums = port_specializer.send_enums_by_name();
+
 // prepare to build both parameter-handling fragments: one a text string; one a rendered buffer.
 pname = "";
 addparms = "";
@@ -46,12 +51,19 @@ serialize = false;
 
 T::push_buffer();
 while ( not_empty parm )
-	// If this parameter is a component-specific type, it is either an instance reference or a set reference;
-	// either case requires that the message be serialized.
+  // If this parameter is a component-specific type, it is either an instance reference or a set reference;
+  // either case requires that the message be serialized.
   select one comp_specific related by parm->TypeReference[R431.''is typed by'']
                                            ->Type[R3800.''based on'']->ComponentSpecificType[R407];
   if ( not_empty comp_specific )
   	serialize = true;
+  end if;
+
+  name_enum = "";
+  select one enum_type related by parm->TypeReference[R431.''is typed by'']
+                                      ->Type[R3800.''based on'']->EnumeratedType[R407];
+  if ( not_empty enum_type ) and ( name_enums )
+    name_enum = ".name()";
   end if;
   invocation_parameter_list = invocation_parameter_list + separator + parm.name;
   separator = ", ";
@@ -63,8 +75,8 @@ while ( not_empty parm )
 end while;
 
 // select/modify fragments to be passed to template, based on serialize choice.
-select one iface related by self->Interface[R419.''defines message format for''];
-if ( iface.serialize_msgs ) or ( serialize )
+// this may be determined either by port requirement, or by inst_ref/set message parameter
+if ( port_specializer.get_serialize() ) or ( serialize )
   addparms = T::body();
   invocation_parameter_list = "";
   serialize = true;
@@ -81,7 +93,7 @@ INSERT INTO O_TFR
 	VALUES ("84ee45b7-7c16-48b1-a413-4c090a90874d",
 	"8f02fe11-ef0d-4fb7-a888-408deb5ae3c8",
 	'render_msgclass',
-	'',
+	'render a class definition which can represent the message instance for non-default communication.',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'// Render a Java class that corresponds to a message defined by an interface.
