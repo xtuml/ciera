@@ -121,6 +121,10 @@ mvn versions:use-latest-versions
    ```
    `<version>` should be the next SNAPSHOT version. As the default, increment
    the third number from the release version and add "-SNAPSHOT".
+7. Use current version to build next development version by modifying POMs for
+   tool-core, tool-sql, and tool-template to use the latest release of the 
+   ciera Maven plugin.
+8. Commit, push, and promote the changes to master.
 
 ### Publishing the API docs
 
