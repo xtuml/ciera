@@ -105,36 +105,22 @@ mvn versions:use-latest-versions
 1. Set release version
    ```
    mvn versions:set -DnewVersion=<version> -DgenerateBackupPoms=false
-   git add .
-   git commit -m "bump version to <version>"
-   git tag v<version>
-   git push
-   git push --tags
    ```
-2. Build and deploy release
+2. Build and smoke-test the release
+3. Commit, push, and promote the release source to master
+4. Build and deploy release
    ```
-   export GPG_TTY=$(tty)
-   mvn deploy -Prelease
+   mvn deploy
    ```
-3. Push to maven central through sonatype
-   - Login at https://oss.sonatype.org/
-   - Navigate to "Staging Repositories"
-   - Select the repository and click "Release"
-   - Copy the link to the Redmine release into the description box and confirm
-4. Create github release
-   - In Github, edit the tag and copy in the link to the Redmine release from
-     the issue tracker.
-5. Set next development version
+5. Create GitHub release
+   - In GitHub, create a release, which will package the entire project in 
+   zip and tar files and create a tag for the source that created the release.
+6. Set next development version
    ```
    mvn versions:set -DnewVersion=<version> -DgenerateBackupPoms=false
-   git add .
-   git commit -m "bump version to <version>"
-   git push
    ```
    `<version>` should be the next SNAPSHOT version. As the default, increment
    the third number from the release version and add "-SNAPSHOT".
-6. Update the user guide as appropriate. Find and replace all instances of the
-   latest version ID.
 
 ### Publishing the API docs
 
