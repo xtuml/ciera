@@ -1,12 +1,15 @@
 package io.ciera.runtime.api.application;
 
 import java.util.Collection;
+import java.util.ServiceLoader;
 import java.util.stream.Stream;
 
 import io.ciera.runtime.api.domain.Domain;
 import io.ciera.runtime.api.time.SystemClock;
 
 public interface Application {
+
+    public String getName();
 
     public SystemClock getClock();
 
@@ -33,7 +36,7 @@ public interface Application {
     public Domain getDomain(String domainName);
 
     public void addDomain(Domain domain);
-    
+
     public Stream<Domain> findDomains(String... domainNames);
 
     public Logger getLogger();
@@ -46,4 +49,12 @@ public interface Application {
 
     public boolean isRunning();
 
+    public static Application getInstance(String name) {
+        return ServiceLoader.load(Application.class).stream().map(ServiceLoader.Provider::get)
+                .filter(app -> app.getName().equals(name)).findAny().orElseThrow();
+    }
+
+    public static Application getInstance() {
+        return ServiceLoader.load(Application.class).findFirst().orElseThrow();
+    }
 }

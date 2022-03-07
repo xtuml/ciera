@@ -1,12 +1,12 @@
 package io.ciera.runtime.application.task;
 
+import io.ciera.runtime.api.application.Application;
 import io.ciera.runtime.api.application.Event;
 import io.ciera.runtime.api.application.EventTarget;
 import io.ciera.runtime.api.application.ExecutionContext;
 import io.ciera.runtime.api.application.ExecutionContext.ExecutionMode;
 import io.ciera.runtime.api.domain.Domain;
 import io.ciera.runtime.api.types.UniqueId;
-import io.ciera.runtime.application.BaseApplication;
 
 public class GeneratedEvent extends Task implements DomainTask {
 
@@ -46,7 +46,7 @@ public class GeneratedEvent extends Task implements DomainTask {
 
     private EventTarget getTarget() {
         if (target == null) {
-            target = BaseApplication.provider().getDomain(domainName).getEventTarget(targetId);
+            target = Application.getInstance().getDomain(domainName).getEventTarget(targetId);
         }
         return target;
     }

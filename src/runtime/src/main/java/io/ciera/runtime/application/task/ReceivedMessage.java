@@ -1,9 +1,9 @@
 package io.ciera.runtime.application.task;
 
+import io.ciera.runtime.api.application.Application;
 import io.ciera.runtime.api.application.MessageTarget;
 import io.ciera.runtime.api.domain.Domain;
 import io.ciera.runtime.api.domain.Message;
-import io.ciera.runtime.application.BaseApplication;
 
 public class ReceivedMessage extends Task implements DomainTask {
 
@@ -28,7 +28,7 @@ public class ReceivedMessage extends Task implements DomainTask {
 
     private MessageTarget getTarget() {
         if (target == null) {
-            target = BaseApplication.provider().getDomain(domainName).getMessageTarget(targetClass);
+            target = Application.getInstance().getDomain(domainName).getMessageTarget(targetClass);
         }
         return target;
     }

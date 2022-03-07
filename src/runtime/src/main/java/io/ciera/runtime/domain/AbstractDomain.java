@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import io.ciera.runtime.api.application.Application;
 import io.ciera.runtime.api.application.Event;
 import io.ciera.runtime.api.application.EventTarget;
 import io.ciera.runtime.api.application.ExecutionContext;
@@ -24,7 +25,6 @@ import io.ciera.runtime.api.exceptions.EventTargetException;
 import io.ciera.runtime.api.exceptions.InstancePopulationException;
 import io.ciera.runtime.api.exceptions.MessageTargetException;
 import io.ciera.runtime.api.types.UniqueId;
-import io.ciera.runtime.application.BaseApplication;
 
 /**
  * A domain is a composite of translated model elements including classes,
@@ -54,7 +54,7 @@ public abstract class AbstractDomain implements Domain {
 
     @Override
     public ExecutionContext getContext() {
-        return BaseApplication.provider().defaultContext();
+        return Application.getInstance().defaultContext();
     }
 
     @Override

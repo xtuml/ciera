@@ -340,7 +340,7 @@ public class ThreadExecutionContext implements ExecutionContext, Runnable {
 
     @Override
     public Application getApplication() {
-        return BaseApplication.provider();
+        return Application.getInstance();
     }
 
     @Override

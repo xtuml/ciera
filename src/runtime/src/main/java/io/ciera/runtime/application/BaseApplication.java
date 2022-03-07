@@ -19,8 +19,6 @@ import io.ciera.runtime.time.WallClock;
 
 public class BaseApplication implements Application {
 
-    private static volatile Application instance;
-
     private final String name;
     private final Map<String, ThreadExecutionContext> contexts;
     private final Map<String, Domain> domains;
@@ -38,7 +36,11 @@ public class BaseApplication implements Application {
         this.clock = new WallClock();
         this.logger = new DefaultLogger(name + "Logger", this);
         this.exceptionHandler = new DefaultExceptionHandler();
-        BaseApplication.instance = this;
+    }
+    
+    @Override
+    public String getName() {
+        return name;
     }
 
     @Override
@@ -164,11 +166,4 @@ public class BaseApplication implements Application {
         return name;
     }
 
-    public static Application provider() {
-        if (instance != null) {
-            return instance;
-        } else {
-            throw new IllegalStateException("Application is not setup");
-        }
-    }
 }

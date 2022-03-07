@@ -1,6 +1,4 @@
-import io.ciera.runtime.api.application.Application;
 import io.ciera.runtime.api.domain.Domain;
-import io.ciera.runtime.application.BaseApplication;
 
 module io.ciera.runtime {
     exports io.ciera.runtime.domain;
@@ -9,8 +7,6 @@ module io.ciera.runtime {
     
     uses Domain;
     
-    provides Application with BaseApplication;
-
     requires transitive io.ciera.runtime.api;
     requires transitive java.logging;
 }

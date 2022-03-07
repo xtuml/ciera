@@ -1,5 +1,6 @@
 package io.ciera.runtime.time;
 
+import io.ciera.runtime.api.application.Application;
 import io.ciera.runtime.api.application.Event;
 import io.ciera.runtime.api.application.EventTarget;
 import io.ciera.runtime.api.application.ExecutionContext;
@@ -7,7 +8,6 @@ import io.ciera.runtime.api.domain.Domain;
 import io.ciera.runtime.api.time.Timer;
 import io.ciera.runtime.api.types.Duration;
 import io.ciera.runtime.api.types.UniqueId;
-import io.ciera.runtime.application.BaseApplication;
 import io.ciera.runtime.application.task.Task;
 import io.ciera.runtime.application.task.TimerExpiration;
 
@@ -48,7 +48,7 @@ public class EventTimer extends AbstractTimer implements Timer {
 
     public EventTarget getTarget() {
         if (target == null) {
-            target = BaseApplication.provider().getDomain(domainName).getEventTarget(targetId);
+            target = Application.getInstance().getDomain(domainName).getEventTarget(targetId);
         }
         return target;
     }
