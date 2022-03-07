@@ -9,11 +9,19 @@ AbstractDomain implements Domain {
 AbstractPersistentDomain implements PersistentDomain {
 .end if
 
+.if (utilities != "")
     // utilities
     ${utilities}
 
+.end if
+.if (ports != "")
     // ports
     ${ports}
+
+.end if
+    public ${self.name}() {
+        this("${self.name}");
+    }
 
     public ${self.name}(String name) {
         super(name);
@@ -21,24 +29,35 @@ AbstractPersistentDomain implements PersistentDomain {
         ${port_initializers}
     }
 
+.if (functions != "")
     // domain functions
     ${functions}
 
+.end if
+.if (class_operations != "")
     // static class operations
     ${class_operations}
 
+.end if
+.if (relationship_modifiers != "")
     // relates and unrelates
     ${relationship_modifiers}
 
+.end if
+.if (port_accessors != "")
     // port accessors
     ${port_accessors}
 
+.end if
+.if (init != "")
     // component initialization function
     @Override
     public void initialize() {
-        ${init}
+        ${init}\
+        super.initialize();
     }
 
+.end if
 .if (port_handlers != "")
     @Override
     public MessageTarget getMessageTarget(Class<? extends MessageTarget> targetClass) {
@@ -48,6 +67,15 @@ AbstractPersistentDomain implements PersistentDomain {
     }
 
 .end if
+    @Override
+    public Port getPort(final String portName) {
+        switch (portName) {
+        ${port_handlers2}\
+        default:
+            throw new IllegalArgumentException("Port with the name '" + portName + "' does not exist in domain: " + this);
+        }
+    }
+
 .if (csm_handlers != "")
     @Override
     public void consumeEvent(Event event) {
@@ -78,5 +106,10 @@ AbstractPersistentDomain implements PersistentDomain {
     public ${self.name} getDomain() {
         return (${self.name}) super.getDomain();
     }
+
+    public static Domain provider() {
+        return Optional.ofNullable(ServiceLoader.load(Application.class).findFirst().orElseThrow().getDomain("${self.name}")).orElseGet(${self.name}::new);
+    }
+
 
 }

@@ -62,17 +62,20 @@ end for;
 port_accessors = T::body();
 
 init = "";
-sep = "";
 select many init_functions related by self->Function[R4561];
 for each init_function in init_functions
-  init = init + sep + init_function.name + "();";
-  sep = "\n";
+  init = init + init_function.name + "();\n";
 end for;
 
 for each port in comp_ports
   port.render_accessor_handler();
 end for;
 port_handlers = T::body();
+
+for each port in comp_ports
+  port.render_accessor_handler2();
+end for;
+port_handlers2 = T::body();
 
 select many csms related by self->Class[R408]->StateMachine[R4750] where not selected.is_instance and SORT::ascending(attr:"class_name");
 for each csm in csms
@@ -104,12 +107,17 @@ if not_empty csms
 end if;
 
 if self.transient
-  ::addStringImport(package:"io.ciera.runtime.api.domain", class_name:"Domain");
   ::addStringImport(package:"io.ciera.runtime.domain", class_name:"AbstractDomain");
 else
   ::addStringImport(package:"io.ciera.runtime.api.domain", class_name:"PersistentDomain");
   ::addStringImport(package:"io.ciera.runtime.domain", class_name:"AbstractPersistentDomain");
 end if;
+
+::addStringImport(package:"io.ciera.runtime.api.application", class_name:"Application");
+::addStringImport(package:"io.ciera.runtime.api.domain", class_name:"Domain");
+::addStringImport(package:"io.ciera.runtime.api.domain", class_name:"Port");
+::addStringImport(package:"java.util", class_name:"Optional");
+::addStringImport(package:"java.util", class_name:"ServiceLoader");
 
 select one file related by self->File[R401];
 imports = file.get_imports();

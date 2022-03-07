@@ -46,6 +46,11 @@ public abstract class AbstractDomain implements Domain {
     public String getName() {
         return name;
     }
+    
+    @Override
+    public void initialize() {
+        getApplication().getLogger().trace("%s initialized", this);
+    }
 
     @Override
     public ExecutionContext getContext() {
