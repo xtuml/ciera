@@ -4,6 +4,8 @@ ${imports}
 
 public class ${self.name} extends BaseApplication implements Application {
 
+    private static volatile Application instance;
+
     public ${self.name}() {
         this("${self.name}");
     }
@@ -17,7 +19,7 @@ public class ${self.name} extends BaseApplication implements Application {
         super.setup();
 
         // create domains
-        ${domains}
+        findDomains(${domains}).forEach(this::addDomain);
 
         // link ports
         ${component_satisfactions}
@@ -29,10 +31,17 @@ public class ${self.name} extends BaseApplication implements Application {
 .end if
     }
 
+    public static Application provider() {
+        if (instance == null) {
+            instance = new ${self.name}();
+            instance.setup();
+        }
+        return instance;
+    }
+
     public static void main(String[] args) {
         CommandLine.setArgs(args);
-        Application app = new ${self.name}();
-        app.setup();
+        Application app = Application.getInstance();
         app.initialize();
         app.start();
     }
