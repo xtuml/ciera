@@ -108,7 +108,7 @@ AbstractPersistentDomain implements PersistentDomain {
     }
 
     public static Domain provider() {
-        return Optional.ofNullable(ServiceLoader.load(Application.class).findFirst().orElseThrow().getDomain("${self.name}")).orElseGet(${self.name}::new);
+        return Optional.ofNullable(Application.getInstance().getDomain("${self.name}")).orElseGet(${self.name}::new);
     }
 
 
