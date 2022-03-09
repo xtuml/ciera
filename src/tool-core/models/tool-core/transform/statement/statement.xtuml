@@ -63,6 +63,18 @@ if ( empty util_func )
   select any empty_comp_def from instances of ComponentDefinition where false;
   ::transformUtility( s_ee:s_ee, ep_pkg:s_ee_pkg, containing_comp_def:empty_comp_def, exclude:true, path: ::ep_pkgToPath( ep_pkg:s_ee_pkg ) );
   select one util_func related by act_brg->S_BRG[R674]->UtilityFunction[R4570];
+
+  // add module dependency if necessary
+  select any main_mod from instances of Module where selected.main_module;
+  select one mod related by s_ee->PE_PE[R8001]->EP_PKG[R8000]->S_SYS[R1405]->Module[R4760];
+  if mod != main_mod
+    select any dependency related by main_mod->Dependency[R5753.''requires''] where selected.required_module_name == mod.name;
+    if empty dependency
+      create object instance dependency of Dependency;
+      relate mod to main_mod across R5753.''required by'' using dependency;
+    end if;
+  end if;
+ 
 end if;
 select one invocable related by util_func->InvocableObject[R427];
 select one utility related by util_func->Utility[R4559];

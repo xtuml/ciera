@@ -1051,6 +1051,17 @@ INSERT INTO S_SYNC
 	'',
 	's_dt = param.s_dt;
 
+// add module dependency if necessary
+select any main_mod from instances of Module where selected.main_module;
+select one mod related by s_dt->PE_PE[R8001]->EP_PKG[R8000]->S_SYS[R1405]->Module[R4760];
+if not_empty mod and not_empty main_mod and mod != main_mod
+  select any dependency related by main_mod->Dependency[R5753.''requires''] where selected.required_module_name == mod.name;
+  if empty dependency
+    create object instance dependency of Dependency;
+    relate mod to main_mod across R5753.''required by'' using dependency;
+  end if;
+end if;
+
 select any empty_type_ref from instances of TypeReference where false;
 
 // xtUML core data types
@@ -1113,7 +1124,8 @@ if not_empty edt
   select one type related by s_dt->Type[R423];
   if empty type
     // make sure the type gets translated for referred to types
-    ::transformDataType(s_dt:s_dt, exclude:true);
+    select any empty_comp_def from instances of ComponentDefinition where false;
+    ::transformDataType(s_dt:s_dt, exclude:true, containing_comp_def:empty_comp_def);
     select one type related by s_dt->Type[R423];
   end if;
   if not_empty type

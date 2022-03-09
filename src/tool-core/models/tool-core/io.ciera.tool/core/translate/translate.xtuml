@@ -107,21 +107,32 @@ LOG::LogInfo(message:"  Resolving associative selections...");
 LOG::LogInfo(message:"  done.");
 LOG::LogTime(message:"  Elapsed time:", t:TIM::current_clock() - start_time);
 
-// translate builtin types
+// populate builtin types
 LOG::LogInfo(message:"  Translating builtin types...");
 ::populateBuiltInTypes();
+LOG::LogInfo(message:"  done.");
+LOG::LogTime(message:"  Elapsed time:", t:TIM::current_clock() - start_time);
+
+// create modules
+LOG::LogInfo(message:"  Creating modules...");
+project_name = CMD::get_value(name:"p");
+select any module_sys from instances of S_SYS where selected.Name == project_name;
+if empty module_sys
+  LOG::LogFailure(message:"Could not find project: ''" + project_name + "''");
+  ARCH::exit(code:1);
+end if;
+::transformModule(s_sys:module_sys, main_module:true);
+select many other_syss from instances of S_SYS where selected.Name != project_name;
+for each other_sys in other_syss
+  ::transformModule(s_sys:other_sys, main_module:false);
+end for;
 LOG::LogInfo(message:"  done.");
 LOG::LogTime(message:"  Elapsed time:", t:TIM::current_clock() - start_time);
 
 // translate all top level packages
 LOG::LogInfo(message:"  Translating packages...");
 select any empty_comp_def from instances of ComponentDefinition where false;
-project_name = CMD::get_value(name:"p");
-select any s_sys from instances of S_SYS where selected.Name == project_name;
-if empty s_sys
-  LOG::LogFailure(message:"Could not find project: ''" + project_name + "''");
-end if;
-select many root_packages related by s_sys->EP_PKG[R1401];
+select many root_packages related by module_sys->EP_PKG[R1401];
 for each root_package in root_packages
   pass = 0;
   while pass < 4

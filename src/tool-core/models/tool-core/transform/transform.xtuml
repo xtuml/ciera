@@ -221,6 +221,14 @@ file.exclude = false;
 create object instance app of Application;
 relate app to file across R401;
 
+// add this application as an export of the module
+select one mod related by root_package->S_SYS[R1405]->Module[R4760];
+if not_empty mod
+  relate app to mod across R5751;
+else
+  // TODO bad
+end if;
+
 // check simulated time
 sim_time_mark = PROP::getProperty(key:"io.ciera.EnableSimulatedTime");
 if (sim_time_mark != "")
@@ -236,7 +244,7 @@ select any current_comp_inst from instances of ComponentInstantiation where fals
 for each c_c in c_cs
   select one comp_def related by c_c->ComponentDefinition[R4573];
   if empty comp_def
-    ::transformComponentReference(c_c:c_c, path:param.path);
+    ::transformComponentReference(c_c:c_c);
     select one comp_def related by c_c->ComponentDefinition[R4573];
   end if;
   if not_empty comp_def
@@ -847,6 +855,15 @@ if (empty class_exclude_mark)
   // relate to the OOA class
   relate obj to o_obj across R409;
 
+  // add to open package
+  select one mod related by containing_comp_def->Module[R5752];
+  select any open_package related by mod->OpenedPackage[R5754] where selected.name == obj.package;
+  if empty open_package
+    create object instance open_package of OpenedPackage;
+    open_package.name = obj.package;
+    relate open_package to mod across R5754;
+  end if;
+
   // transform attributes
   select any o_attr related by o_obj->O_ATTR[R102];
   select one prev_attr related by o_attr->O_ATTR[R103.''succeeds''];
@@ -960,6 +977,14 @@ if (param.pass == 1)
                                                          selected.path == ::containerMarkingPath(pe:c_c_pe) + "::" + c_c.Name and
                                                          selected.feature_name == "Transient");
   comp_def.transient = not_empty transient_mark;
+  
+  // add this component as an export of the module
+  select one mod related by c_c->PE_PE[R8001]->EP_PKG[R8000]->S_SYS[R1405]->Module[R4760];
+  if not_empty mod
+    relate comp_def to mod across R5752;
+  else
+    // TODO bad
+  end if;
   
 elif (param.pass == 3)
 
@@ -1308,6 +1333,7 @@ INSERT INTO S_SYNC
 	'transformInterface',
 	'',
 	'c_i = param.c_i;
+containing_comp_def = param.containing_comp_def;
 select one iface related by c_i->Interface[R421];
 if ( empty iface )
 
@@ -1334,6 +1360,18 @@ if ( empty iface )
     ::transformMessage( c_ep:c_ep, iface:iface, index:index );
     index = index + 1;
   end for;
+
+  // add to export package
+  select one iface related by c_i->Interface[R421];
+  if not param.exclude and not_empty iface and empty containing_comp_def
+    select one mod related by c_i->PE_PE[R8001]->EP_PKG[R8000]->S_SYS[R1405]->Module[R4760];
+    select any export_package related by mod->ExportedPackage[R5750] where selected.name == iface.package;
+    if empty export_package
+      create object instance export_package of ExportedPackage;
+      export_package.name = iface.package;
+      relate export_package to mod across R5750;
+    end if;
+  end if;
 
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
@@ -1374,6 +1412,15 @@ INSERT INTO S_SPARM
 	0,
 	'',
 	"3d1e527a-9091-4e1b-a000-daf06870359d",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("a7838204-71df-4011-bae6-75fe5a1953c8",
+	"f8603c94-90cc-4b20-9c6e-f665ce733d20",
+	'containing_comp_def',
+	"109e90cb-1d66-46ee-88db-a568044879d0",
+	0,
+	'',
+	"b67ed16a-244f-4d20-a42a-3a518f61005a",
 	'');
 INSERT INTO PE_PE
 	VALUES ("f8603c94-90cc-4b20-9c6e-f665ce733d20",
@@ -1617,28 +1664,29 @@ INSERT INTO S_SYNC
 	'ep_pkg = param.ep_pkg;
 path = param.path;
 
-select one s_sys related by ep_pkg->S_SYS[R1405];
+containing_comp_def = param.containing_comp_def;
+select one mod related by ep_pkg->S_SYS[R1405]->Module[R4760];
 
 sub_path = T::sub(format:"rl", s:ep_pkg.Name);
 if path != ""
   sub_path = path + "/" + sub_path;
 end if;
+pkg_name = ::pathToPackage(path:sub_path);
 
 // get all packageable elements
 select one referred_ep_pkg related by ep_pkg->EP_PKG[R1402.''refers to''];
 if (not_empty referred_ep_pkg)
   ep_pkg = referred_ep_pkg;
 end if;
-containing_comp_def = param.containing_comp_def;
 select many pe_pes related by ep_pkg->PE_PE[R8000];
-select one pkg_s_sys related by ep_pkg->S_SYS[R1405];
+select one pkg_mod related by ep_pkg->S_SYS[R1405]->Module[R4760];
 
 if (param.pass == 1)
 
   // transform datatypes
   select many s_dts related by pe_pes->S_DT[R8001]->S_EDT[R17]->S_DT[R17];
   for each s_dt in s_dts
-    ::transformDataType(s_dt:s_dt, exclude:pkg_s_sys != s_sys);
+    ::transformDataType(s_dt:s_dt, exclude:pkg_mod != mod, containing_comp_def:containing_comp_def);
   end for;
 
 elif (param.pass == 2)
@@ -1646,7 +1694,7 @@ elif (param.pass == 2)
   // transform interfaces
   select many c_is related by pe_pes->C_I[R8001];
   for each c_i in c_is
-    ::transformInterface(c_i:c_i, path:sub_path, exclude:pkg_s_sys != s_sys);
+    ::transformInterface(c_i:c_i, path:sub_path, exclude:pkg_mod != mod, containing_comp_def:containing_comp_def);
   end for;
 
   // don''t transform these elements unless they appear in the context of a component
@@ -1801,22 +1849,38 @@ port.provider = not_empty c_p;
 // relate to other component
 relate port to comp_def across R417;
 
-// relate to iface if the iface is there
-select any c_i related by c_po->C_IR[R4016]->C_I[R4012];
-select one iface related by c_i->Interface[R421];
-if empty iface
-  select one ep_pkg related by c_i->PE_PE[R8001]->EP_PKG[R8000];
-  ::transformInterface(c_i:c_i, path: ::ep_pkgToPath(ep_pkg:ep_pkg), exclude:true);
+if not param.exclude
+
+  // relate to iface if the iface is there
+  select any c_i related by c_po->C_IR[R4016]->C_I[R4012];
   select one iface related by c_i->Interface[R421];
-end if;
-if not_empty iface
-  relate port to iface across R418;
-  select many msgs related by iface->Message[R419];
-  for each msg in msgs
-    ::transformPortMessage(port:port, msg:msg);
-  end for;
-else
-  // TODO bad
+  if empty iface
+    select one ep_pkg related by c_i->PE_PE[R8001]->EP_PKG[R8000];
+    select any empty_comp_def from instances of ComponentDefinition where false;
+    ::transformInterface(c_i:c_i, path: ::ep_pkgToPath(ep_pkg:ep_pkg), exclude:true, containing_comp_def:empty_comp_def);
+    select one iface related by c_i->Interface[R421];
+  end if;
+  if not_empty iface
+    relate port to iface across R418;
+    select many msgs related by iface->Message[R419];
+    for each msg in msgs
+      ::transformPortMessage(port:port, msg:msg);
+    end for;
+  else
+    // TODO bad
+  end if;
+
+  // add module dependency if necessary
+  select one main_mod related by c_po->C_C[R4010]->PE_PE[R8001]->EP_PKG[R8000]->S_SYS[R1405]->Module[R4760];
+  select one mod related by c_i->PE_PE[R8001]->EP_PKG[R8000]->S_SYS[R1405]->Module[R4760];
+  if mod != main_mod
+    select any dependency related by main_mod->Dependency[R5753.''requires''] where selected.required_module_name == mod.name;
+    if empty dependency
+      create object instance dependency of Dependency;
+      relate mod to main_mod across R5753.''required by'' using dependency;
+    end if;
+  end if;
+
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -2684,6 +2748,7 @@ INSERT INTO S_SYNC
 	'transformDataType',
 	'',
 	's_dt = param.s_dt;
+containing_comp_def = param.containing_comp_def;
 
 select one s_edt related by s_dt->S_EDT[R17];
 if not_empty s_edt
@@ -2695,7 +2760,19 @@ else
   end if;
 end if;
 
-// TODO structured data types',
+// TODO structured data types
+
+// add to export package
+select one type related by s_dt->Type[R423];
+if not param.exclude and not_empty type and empty containing_comp_def
+  select one mod related by s_dt->PE_PE[R8001]->EP_PKG[R8000]->S_SYS[R1405]->Module[R4760];
+  select any export_package related by mod->ExportedPackage[R5750] where selected.name == type.package;
+  if empty export_package
+    create object instance export_package of ExportedPackage;
+    export_package.name = type.package;
+    relate export_package to mod across R5750;
+  end if;
+end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -2718,6 +2795,15 @@ INSERT INTO S_SPARM
 	0,
 	'',
 	"e07e1f55-b86f-4df3-ac9e-6c366c5dd5db",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("c2facdb5-456c-443e-8deb-938b8246ccf7",
+	"1cfd3671-5013-4535-986f-f3f6ff283140",
+	'containing_comp_def',
+	"109e90cb-1d66-46ee-88db-a568044879d0",
+	0,
+	'',
+	"5f4ecdf8-8e48-447c-b430-73691e06ab39",
 	'');
 INSERT INTO PE_PE
 	VALUES ("1cfd3671-5013-4535-986f-f3f6ff283140",
@@ -2747,14 +2833,6 @@ create object instance comp_def of ComponentDefinition;
 relate comp_def to file across R401;
 relate c_c to comp_def across R4573;
 
-// check the transient mark
-select one c_c_pe related by c_c->PE_PE[R8001];
-select any transient_mark from instances of Mark where (selected.markable_name == "Component" and
-                                                       selected.path == ::containerMarkingPath(pe:c_c_pe) + "::" + c_c.Name and
-                                                       selected.feature_name == "Transient");
-comp_def.transient = not_empty transient_mark;
-
-// transform ports
 select many c_pos related by c_c->C_PO[R4010];
 for each c_po in c_pos
   ::transformPort(c_po:c_po, comp_def:comp_def, path:file.path, exclude:true);
@@ -2775,6 +2853,64 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("0b1e28c3-bc08-473f-9b52-7e1852fdda24",
+	1,
+	"302d02ea-52a7-489d-a14b-18b29f3c8d86",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("0ef8060d-9493-4354-8f6e-aea7c5cc1479",
+	"00000000-0000-0000-0000-000000000000",
+	'transformModule',
+	'',
+	's_sys = param.s_sys;
+
+// create a file
+create object instance file of File;
+file.name = s_sys.Name;
+file.exclude = not param.main_module;
+
+// special cases for built in modules
+if s_sys.Name == "runtime-util"
+  file.name = "io.ciera.runtime.util";
+end if;
+
+// create the module object
+create object instance mod of Module;
+relate mod to file across R401;
+mod.main_module = param.main_module;
+relate s_sys to mod across R4760;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	5);
+INSERT INTO S_SPARM
+	VALUES ("787c7dc2-6786-42f2-bc1e-ec7e2cb73ddf",
+	"0ef8060d-9493-4354-8f6e-aea7c5cc1479",
+	's_sys',
+	"4b886601-55ee-4d42-a1f8-f5c45d459db2",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("4b886601-55ee-4d42-a1f8-f5c45d459db2",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<System Model>',
+	'',
+	'',
+	'../../../../mcooa/models/mcooa/ooaofooa/Domain/Domain.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("29086176-dd71-45ca-82f1-1441c510fe69",
+	"0ef8060d-9493-4354-8f6e-aea7c5cc1479",
+	'main_module',
+	"ba5eda7a-def5-0000-0000-000000000001",
+	0,
+	'',
+	"787c7dc2-6786-42f2-bc1e-ec7e2cb73ddf",
+	'');
+INSERT INTO PE_PE
+	VALUES ("0ef8060d-9493-4354-8f6e-aea7c5cc1479",
 	1,
 	"302d02ea-52a7-489d-a14b-18b29f3c8d86",
 	"00000000-0000-0000-0000-000000000000",
