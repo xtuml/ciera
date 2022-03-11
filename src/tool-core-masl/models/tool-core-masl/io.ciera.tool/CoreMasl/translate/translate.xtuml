@@ -39,19 +39,13 @@ INSERT INTO S_SYNC
 	'init',
 	'',
 	'// set up command line options
-CMD::register_value(name:"cwd", value_name:"root_dir", usage:"base working directory", default_value:".", required:false);
-CMD::register_value(name:"i", value_name:"input_file", usage:"input file", default_value:"", required:false);
-CMD::register_value(name:"o", value_name:"output_file", usage:"output file", default_value:"", required:false);
-CMD::register_value(name:"p", value_name:"project_name", usage:"xtUML project name", default_value:"", required:true);  // TODO
-CMD::register_value(name:"gendir", value_name:"gen_dir", usage:"generated output directory", default_value:".", required:false);
-CMD::register_value(name:"use-version", value_name:"use_version", usage:"version identifier for generated components", default_value:"", required:false);
+CMD::register_value(name:"mod", value_name:"mod_file", usage:"Domain model file", default_value:"", required:false);
+CMD::register_value(name:"prj", value_name:"prj_file", usage:"Project model file", default_value:"", required:false);
+CMD::register_value(name:"domainpath", value_name:"domain_path", usage:"Colon separated path of domain interface locations", default_value:"", required:false);
+CMD::register_value(name:"output", value_name:"output_file", usage:"output file", default_value:".", required:false);
 CMD::read_command_line();
 
 ::configure_features();
-
-// set project root
-project_root = CMD::get_value(name:"cwd");
-::create_mark(markable:"*", feature:"ProjectRoot", path:"*", value:project_root);
 
 // set system properties for all system level marks
 select many system_marks from instances of Mark where selected.markable_name == "*" and selected.path == "*";
@@ -59,16 +53,14 @@ for each system_mark in system_marks
   PROP::setProperty(key:"io.ciera." + system_mark.feature_name, value:system_mark.value);
 end for;
 
-T::set_output_directory(dir:project_root + "/" + CMD::get_value(name:"gendir"));
+T::set_output_directory(dir:CMD::get_value(name:"output"));
 
 // translate
-::translate();
-
-// dump instances
-//output_file = CMD::get_value(name:"o");
-//if ("" != output_file)
-//  SQL::serialize_file(file:project_root.value + "/" + output_file);
-//end if;
+if (CMD::get_value(name:"prj") != "")
+  ::translate_project();
+else
+  ::translate_domain();
+end if;
 
 // exit
 control stop;',
@@ -86,32 +78,11 @@ INSERT INTO PE_PE
 INSERT INTO S_SYNC
 	VALUES ("7d5ab1db-be04-4119-8c06-85236906e57b",
 	"00000000-0000-0000-0000-000000000000",
-	'translate',
+	'translate_domain',
 	'',
 	'start_time = TIM::current_clock();
 
 LOG::LogInfo( message:"Translating..." );
-
-// LOAD MASL
-LOG::LogInfo( message:"Loading MASL model..." );
-
-// Create the preexisting instances of built-in types.
-::BuiltinType_populate();
-
-// Create the preexisting instances of internal types.
-::InternalType_populate();
-
-// Parse and load input MASL.
-LOG::LogInfo( message: "stratus loading MASL" );
-args[1] = CMD::get_value(name:"i");
-args[0] = "-d";
-LOAD::load2(args:args);
-
-// Resolve referential attribute linkage.
-::ReferentialAttribute_resolve();
-
-elapsed_time = TIM::current_clock() - start_time;
-LOG::LogTime( message:"Elapsed time:", t:elapsed_time );
 
 // translate builtin types
 LOG::LogInfo( message:"  Translating buitlin types..." );
@@ -120,9 +91,47 @@ LOG::LogInfo( message:"  Translating buitlin types..." );
 LOG::LogInfo( message:"  done." );
 LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
 
-// Translate application
-LOG::LogInfo( message:"Translating..." );
-::transformMaslApplication();
+// LOAD MASL
+LOG::LogInfo( message:"Loading MASL model..." );
+
+// Create the preexisting instances
+::BuiltinType_populate();
+::InternalType_populate();
+
+// Parse and load input MASL
+LOG::LogInfo( message: "stratus loading MASL" );
+args[3] = CMD::get_value(name:"domainpath");
+args[2] = "--domainpath";
+args[1] = CMD::get_value(name:"mod");
+args[0] = "--mod";
+LOAD::load2(args:args);
+
+// Resolve referential attribute linkage.
+::ReferentialAttribute_resolve();
+
+elapsed_time = TIM::current_clock() - start_time;
+LOG::LogTime( message:"Elapsed time:", t:elapsed_time );
+
+// Translate interface domains
+LOG::LogInfo( message:"Translating interface domains..." );
+select many interface_domains from instances of Domain where selected.interface;
+pass = 1;
+while pass <= 2
+  for each interface_domain in interface_domains
+    ::transformDomain(domain:interface_domain, path:T::sub(format:"l", s:interface_domain.name), pass:pass);
+  end for;
+  pass = pass + 1;
+end while;
+
+// Translate main domain
+LOG::LogInfo( message:"Translating domain..." );
+select any domain from instances of Domain where not selected.interface;
+pass = 1;
+while pass <= 5
+  ::transformDomain(domain:domain, path:T::sub(format:"l", s:domain.name), pass:pass);
+  pass = pass + 1;
+end while;
+
 // translate bodies
 select many invocables from instances of InvocableObject;
 select many invocables related by invocables->MaslCodeBlock[R8306]->InvocableObject[R8306];  // only translate bodies that have code
@@ -132,12 +141,6 @@ for each invocable in invocables
   LOG::LogInfo(message:"  Translating ''" + invocable.parent_package + "." + invocable.parent_name + "#" + invocable.name + "'' ...");
   ::transformMaslBody(invocable:invocable);
 end for;
-LOG::LogInfo( message:"  done." );
-LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
-
-// resolve user defined types
-LOG::LogInfo( message:"  Resolving user defined types..." );
-//::resolveUserDefinedTypes();  TODO
 LOG::LogInfo( message:"  done." );
 LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
 
@@ -207,9 +210,6 @@ relate app_name to universal_markable across R2822;
 app_package = Feature::populate(name: "ApplicationPackage");
 relate app_package to universal_markable across R2822;
 
-project_root = Feature::populate(name: "ProjectRoot");
-relate project_root to universal_markable across R2822;
-
 idle_halt = Feature::populate(name: "IdleHalt");
 relate idle_halt to universal_markable across R2822;',
 	"ba5eda7a-def5-0000-0000-000000000000",
@@ -219,6 +219,84 @@ relate idle_halt to universal_markable across R2822;',
 	1);
 INSERT INTO PE_PE
 	VALUES ("d8ecaa77-6822-4b3f-8050-9dc67ed7abd2",
+	1,
+	"71959823-0e17-46fb-8e33-a2062e470c4c",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("cbc9ead1-7a36-44ef-bbaf-063ac50b152e",
+	"00000000-0000-0000-0000-000000000000",
+	'translate_project',
+	'',
+	'start_time = TIM::current_clock();
+
+LOG::LogInfo( message:"Translating..." );
+
+// translate builtin types
+LOG::LogInfo( message:"  Translating buitlin types..." );
+::populateBuiltInTypes();
+::transformBuiltinMaslTypeCharacteristics();
+LOG::LogInfo( message:"  done." );
+LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
+
+// LOAD MASL
+LOG::LogInfo( message:"Loading MASL model..." );
+
+// Create the preexisting instances
+::BuiltinType_populate();
+::InternalType_populate();
+
+// Parse and load input MASL
+LOG::LogInfo( message: "stratus loading MASL" );
+args[3] = CMD::get_value(name:"domainpath");
+args[2] = "--domainpath";
+args[1] = CMD::get_value(name:"prj");
+args[0] = "--prj";
+LOAD::load2(args:args);
+
+elapsed_time = TIM::current_clock() - start_time;
+LOG::LogTime( message:"Elapsed time:", t:elapsed_time );
+
+// Translate application
+LOG::LogInfo( message:"Translating..." );
+// TODO
+
+// translate bodies
+select many invocables from instances of InvocableObject;
+select many invocables related by invocables->MaslCodeBlock[R8306]->InvocableObject[R8306];  // only translate bodies that have code
+num_bodies = cardinality invocables;
+LOG::LogInfo(message:"  Translating " + STRING::itoa(i:num_bodies) + " MASL bodies...");
+for each invocable in invocables
+  LOG::LogInfo(message:"  Translating ''" + invocable.parent_package + "." + invocable.parent_name + "#" + invocable.name + "'' ...");
+  ::transformMaslBody(invocable:invocable);
+end for;
+LOG::LogInfo( message:"  done." );
+LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
+
+// render all files
+LOG::LogInfo( message:"  Rendering application..." );
+select many files from instances of File;
+for each file in files
+  if ( not file.exclude )
+    file.rendering = true;
+    file.render();
+    file.rendering = false;
+  end if;
+end for;
+LOG::LogInfo( message:"  done." );
+LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
+
+LOG::LogInfo( message:"Done." );
+
+elapsed_time = TIM::current_clock() - start_time;
+LOG::LogTime( message:"Elapsed time:", t:elapsed_time );',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	0);
+INSERT INTO PE_PE
+	VALUES ("cbc9ead1-7a36-44ef-bbaf-063ac50b152e",
 	1,
 	"71959823-0e17-46fb-8e33-a2062e470c4c",
 	"00000000-0000-0000-0000-000000000000",

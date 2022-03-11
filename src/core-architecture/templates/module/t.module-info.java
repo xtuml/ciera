@@ -21,6 +21,6 @@ module ${self.name} {
 .if (dependencies != "")
     ${dependencies}\
 .end if
-    requires io.ciera.runtime;
+    requires transitive io.ciera.runtime;
 
 }

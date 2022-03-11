@@ -7,24 +7,16 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.maven.plugin.AbstractMojo;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.sonatype.plexus.build.incremental.BuildContext;
 
 import io.ciera.runtime.summit.application.IApplication;
-import io.ciera.runtime.summit.exceptions.XtumlExitException;
 
 public abstract class AbstractCieraMojo extends AbstractMojo {
 
     /** @component */
     private BuildContext buildContext;
-
-    @Parameter(defaultValue = "${project.build.directory}/${project.name}.sql")
-    protected String input;
-
-    @Parameter(defaultValue = "")
-    protected String output;
 
     @Parameter(defaultValue = "${project.build.directory}/generated-sources/java")
     protected String genDir;
@@ -35,44 +27,11 @@ public abstract class AbstractCieraMojo extends AbstractMojo {
     @Parameter
     private Map<String, String> systemMarks;
 
-    @Override
-    public void execute() throws MojoExecutionException {
-        initProperties();
-        String inFile = null == input ? "" : project.getBasedir().toURI().relativize(new File(input).toURI()).getPath();
-        String outFile = null == output ? ""
-                : project.getBasedir().toURI().relativize(new File(output).toURI()).getPath();
-        String genDirPath = project.getBasedir().toURI().relativize(new File(genDir).toURI()).getPath();
-        IApplication compiler = getTool();
-        List<String> args = new ArrayList<>();
-        args.add("-i");
-        args.add(inFile);
-        args.add("-o");
-        args.add(outFile);
-        args.add("-p");
-        args.add(project.getName());
-        args.add("--cwd");
-        args.add(project.getBasedir().getPath());
-        args.add("--gendir");
-        args.add(genDirPath);
-        args.addAll(getAdditionalArguments());
-        try {
-            compiler.setup(args.toArray(new String[0]), new CieraMavenLogger(getLog()));
-            compiler.initialize();
-            this.postInitialize(compiler);
-            compiler.start();
-        } catch (XtumlExitException e) {
-            throw new MojoExecutionException("Ciera compiler failure", e);
-        }
-        copyCustomCode();
-        addSrcGen();
-        refreshFiles();
-    }
-
     protected void postInitialize(IApplication compiler) {
         // no-op
     }
 
-    private void initProperties() {
+    protected void initProperties() {
         if (systemMarks != null) {
             for (String prop : systemMarks.keySet()) {
                 System.setProperty("io.ciera." + prop, systemMarks.get(prop));
@@ -80,20 +39,20 @@ public abstract class AbstractCieraMojo extends AbstractMojo {
         }
     }
 
-    private void refreshFiles() {
+    protected void refreshFiles() {
         if (null != buildContext) {
             buildContext.refresh(new File(genDir));
         }
     }
 
-    private void addSrcGen() {
+    protected void addSrcGen() {
         File srcGen = new File(genDir);
         if (srcGen.exists()) {
             project.addCompileSourceRoot(srcGen.getAbsolutePath());
         }
     }
 
-    private void copyCustomCode() {
+    protected void copyCustomCode() {
         copyCustomCode(new File(project.getBuild().getSourceDirectory()), "");
     }
 

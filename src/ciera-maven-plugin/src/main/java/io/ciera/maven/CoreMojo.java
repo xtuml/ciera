@@ -13,7 +13,7 @@ import org.apache.maven.plugins.annotations.Mojo;
  * Goal which runs the Core builder.
  */
 @Mojo(name="core", defaultPhase=LifecyclePhase.GENERATE_SOURCES)
-public class CoreMojo extends AbstractCieraMojo {
+public class CoreMojo extends AbstractXtumlCieraMojo {
 
     protected IApplication getTool() {
         return new CoreTool();

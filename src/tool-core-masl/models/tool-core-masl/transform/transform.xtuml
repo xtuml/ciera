@@ -91,44 +91,91 @@ INSERT INTO S_SYNC
 select any file from instances of File where (selected.name == ::camelCaseName(name:domain.name, start_lower:false) and selected.package == ::pathToPackage(path:param.path));
 select one comp_def related by file->ComponentDefinition[R401];
 
-
 if (param.pass == 1)
 
+  // create module file
+	create object instance module_file of File;
+	module_file.name = domain.name;
+  module_file.exclude = domain.interface;
+
+	// create the module object
+	create object instance mod of Module;
+	relate mod to module_file across R401;
+	mod.main_module = not domain.interface;
+	relate mod to domain across R8309;
+	
   // create the file
   create object instance file of File;
   file.name = ::camelCaseName(name:domain.name, start_lower:false);
   file.path = param.path;
   file.package = ::pathToPackage(path:file.path);
   file.extension = ".java";
-  file.exclude = false;
+  file.exclude = domain.interface;
 
   // create the component definition object
   create object instance comp_def of ComponentDefinition;
   relate comp_def to file across R401;
+	relate comp_def to mod across R5752;
+
+  // for full domain definitions, do a bit more transformation
+  if not domain.interface
   
-  // check the transient mark
-  select any transient_mark from instances of Mark
-    where (selected.markable_name == "Domain" and selected.path == "" + domain.name and selected.feature_name == "transient");
-  comp_def.transient = not_empty transient_mark;
-  
-  // set version information TODO
-  component_version = "";
+    // check the transient mark
+    select any transient_mark from instances of Mark
+      where (selected.markable_name == "Domain" and selected.path == "" + domain.name and selected.feature_name == "transient");
+    comp_def.transient = not_empty transient_mark;
+
+    // export the domain package
+    create object instance export_package of ExportedPackage;
+    export_package.name = comp_def.package;
+    relate export_package to mod across R5750;
+    
+    // create single domain application
+    create object instance app_file of File;
+    app_file.name = domain.name + "Application";
+    app_file.path = file.path + "/application";
+    app_file.package = ::pathToPackage(path:app_file.path);
+    app_file.extension = ".java";
+    app_file.exclude = false;
+    
+    // create the application object
+    create object instance app of Application;
+    relate app to app_file across R401;
+    relate app to mod across R5751;
+    
+    // add the domain to the application
+    create object instance comp_inst of ComponentInstantiation;
+    relate comp_def to app across R426 using comp_inst;
+    
+    // check simulated time
+    sim_time_mark = PROP::getProperty(key:"io.ciera.EnableSimulatedTime");
+    if (sim_time_mark != "")
+      LOG::LogInfo(message:"Enabling simulated time");
+      app.simulated_time = sim_time_mark;
+    end if;
+
+  end if;
   
   // transform exceptions
-  select many exception_declarations related by domain->ExceptionDeclaration[R5400];
+  select many exception_declarations related by domain->ExceptionDeclaration[R5400]
+    where selected.visibility == MaslVisibility::public or not domain.interface;
   for each exception_declaration in exception_declarations
-    ::transformMaslException(exception_declaration: exception_declaration, comp_def:comp_def);
+    ::transformMaslException(exception_declaration: exception_declaration, comp_def:comp_def, exclude:domain.interface);
   end for;
 
   // TODO data types
-
+  
 elif (param.pass == 2)
   
   // transform services
-  select many domain_services related by domain->DomainService[R5303];
-  for each domain_service in domain_services
+  select many domain_services related by domain->DomainService[R5303]->Service[R5203]
+    where selected.visibility == MaslVisibility::public or not domain.interface;
+  for each service in domain_services
+    select one domain_service related by service->DomainService[R5203];
     ::transformDomainService(domain_service:domain_service, comp_def:comp_def);
   end for;
+
+elif (param.pass == 3)
 
   // transform objects
   select many object_declarations related by domain->ObjectDeclaration[R5805];
@@ -136,7 +183,7 @@ elif (param.pass == 2)
     ::transformObject(object_declaration:object_declaration, comp_def:comp_def);
   end for;
 
-elif (param.pass == 3)
+elif (param.pass == 4)
 
   // transform relationships
   select many rels related by domain->RelationshipDeclaration[R6003];
@@ -202,7 +249,16 @@ INSERT INTO S_DT_PROXY
 	'',
 	'../../../../ooamasl/models/ooamasl/ooamasl/domain/domain.xtuml');
 INSERT INTO S_SPARM
-	VALUES ("2323d00b-3688-4778-bdd1-ed140fe79329",
+	VALUES ("edc05e97-5ed4-4104-a130-64e0364e7841",
+	"4c867d76-54b3-4504-9e60-e54f73be10c2",
+	'path',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"6cd98962-4dae-47e4-8d82-c3fd8a06e897",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("6cd98962-4dae-47e4-8d82-c3fd8a06e897",
 	"4c867d76-54b3-4504-9e60-e54f73be10c2",
 	'pass',
 	"ba5eda7a-def5-0000-0000-000000000002",
@@ -210,109 +266,8 @@ INSERT INTO S_SPARM
 	'',
 	"e060eb45-49af-4d1d-b4bb-880b8b10a937",
 	'');
-INSERT INTO S_SPARM
-	VALUES ("edc05e97-5ed4-4104-a130-64e0364e7841",
-	"4c867d76-54b3-4504-9e60-e54f73be10c2",
-	'path',
-	"ba5eda7a-def5-0000-0000-000000000004",
-	0,
-	'',
-	"2323d00b-3688-4778-bdd1-ed140fe79329",
-	'');
 INSERT INTO PE_PE
 	VALUES ("4c867d76-54b3-4504-9e60-e54f73be10c2",
-	1,
-	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
-	"00000000-0000-0000-0000-000000000000",
-	1);
-INSERT INTO S_SYNC
-	VALUES ("a273ac6b-7940-4d3d-8c41-b8c33c8c5922",
-	"00000000-0000-0000-0000-000000000000",
-	'transformMaslApplication',
-	'',
-	'// get application marks
-app_name = PROP::getProperty(key:"io.ciera.ApplicationName");
-app_pkg = PROP::getProperty(key:"io.ciera.ApplicationPackage");
-
-// create the file
-create object instance file of File;
-if app_name != ""
-  file.name = app_name;
-else
-  select any real_domain from instances of Domain where false;
-  select many domains from instances of Domain;
-  num_domains = 0;
-  for each domain in domains
-    select any util_domain_mark from instances of Mark where selected.markable_name == "Domain" and selected.feature_name == "utility" and selected.path == "" + domain.name;
-    if empty util_domain_mark
-      real_domain = domain;
-      num_domains = num_domains + 1;
-    end if;
-  end for;
-  if num_domains == 1
-    file.name = real_domain.name + "Application";
-  else
-    file.name = "UnnamedApplication";
-  end if;
-end if;
-if app_pkg != ""
-  file.package = app_pkg;
-  file.path = ::formatPath( path:file.package );
-else
-  file.path = T::sub(format:"l", s:file.name);
-  file.package = ::pathToPackage( path:file.path );
-end if;
-file.extension = ".java";
-file.exclude = false;
-
-// create the application object
-create object instance app of Application;
-relate app to file across R401;
-
-// check simulated time
-sim_time_mark = PROP::getProperty(key:"io.ciera.EnableSimulatedTime");
-if (sim_time_mark != "")
-  LOG::LogInfo(message:"Enabling simulated time");
-  app.simulated_time = sim_time_mark;
-end if;
-
-// translate domains
-select many domains from instances of Domain;
-select any current_comp_inst from instances of ComponentInstantiation where false;
-for each domain in domains
-  select any util_domain_mark from instances of Mark where selected.markable_name == "Domain" and selected.feature_name == "utility" and selected.path == "" + domain.name;
-  if empty util_domain_mark
-    ::transformDomain(domain:domain, path:file.path, pass:1);
-    ::transformDomain(domain:domain, path:file.path, pass:2);
-    ::transformDomain(domain:domain, path:file.path, pass:3);
-    ::transformDomain(domain:domain, path:file.path, pass:4);
-    select any comp_def from instances of ComponentDefinition where ( selected.name == ::camelCaseName( name:domain.name, start_lower:false ) );
-    create object instance comp_inst of ComponentInstantiation;
-    relate  comp_def to app across R426 using comp_inst;
-    if ( not_empty current_comp_inst )
-      relate comp_inst to current_comp_inst across R4029.''follows'';
-      comp_inst.index = current_comp_inst.index + 1;
-    else
-      comp_inst.index = 0;
-    end if;
-    current_comp_inst = comp_inst;
-  end if;
-end for;
-
-// transform utility domains
-for each domain in domains
-  select any util_domain_mark from instances of Mark where selected.markable_name == "Domain" and selected.feature_name == "utility" and selected.path == "" + domain.name;
-  if not_empty util_domain_mark
-    ::transformUtilityDomain(domain:domain, path:file.path, util_package:util_domain_mark.value);
-  end if;
-end for;',
-	"ba5eda7a-def5-0000-0000-000000000000",
-	1,
-	'',
-	0,
-	2);
-INSERT INTO PE_PE
-	VALUES ("a273ac6b-7940-4d3d-8c41-b8c33c8c5922",
 	1,
 	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
 	"00000000-0000-0000-0000-000000000000",
@@ -435,6 +390,15 @@ relate obj to comp_def across R408;
 
 // connect to the arch model
 relate obj to object_declaration across R8300;
+
+// open the class package
+select one mod related by object_declaration->Domain[R5805]->Module[R8309];
+select any opened_package related by mod->OpenedPackage[R5754] where selected.name == obj.package;
+if empty opened_package
+  create object instance opened_package of OpenedPackage;
+  opened_package.name = obj.package;
+  relate opened_package to mod across R5754;
+end if;
 
 // transform attributes
 select any maslattr related by object_declaration->AttributeDeclaration[R5802];
@@ -1634,7 +1598,10 @@ select one domain related by exception_declaration->Domain[R5400];
 comp_def = param.comp_def;
 
 select one component_file related by comp_def->File[R401];
-path = component_file.path + "/" + "exceptions";  // put all exceptions in one package called ''exceptions''
+path = component_file.path + "/internal/exceptions";  // put all exceptions in one package called ''exceptions''
+if exception_declaration.visibility == MaslVisibility::public
+  path = component_file.path + "/exceptions";  // put all public exceptions in a separate package
+end if;
 
 // create the object file
 create object instance file of File;
@@ -1659,7 +1626,22 @@ relate udt to exp across R3803;
 relate udt to file across R401;
 
 // link to arch model
-relate exception_declaration to udt across R8307;',
+relate exception_declaration to udt across R8307;
+  
+if exception_declaration.visibility == MaslVisibility::public
+
+  // add to export package
+  if not param.exclude and not_empty type
+    select one mod related by exception_declaration->Domain[R5400]->Module[R8309];
+    select any export_package related by mod->ExportedPackage[R5750] where selected.name == type.package;
+    if empty export_package
+      create object instance export_package of ExportedPackage;
+      export_package.name = type.package;
+      relate export_package to mod across R5750;
+    end if;
+  end if;
+
+end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -1689,6 +1671,15 @@ INSERT INTO S_SPARM
 	0,
 	'',
 	"62431a64-c1ce-48aa-a1e3-586a53b20bf2",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("67540e4c-17ae-45bd-a1cd-2586b4479a79",
+	"547b37dd-8782-43e5-b030-2fd67a8ffb26",
+	'exclude',
+	"ba5eda7a-def5-0000-0000-000000000001",
+	0,
+	'',
+	"b8b24aa5-5a7d-4b30-9e20-ef0c2d517ae5",
 	'');
 INSERT INTO PE_PE
 	VALUES ("547b37dd-8782-43e5-b030-2fd67a8ffb26",
