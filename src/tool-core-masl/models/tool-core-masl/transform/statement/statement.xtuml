@@ -1111,15 +1111,20 @@ smt.line_number = masl_statement.line_number;
 
 select one domain_service_invocation related by service_call->ServiceInvocation[R5161]->DomainServiceInvocation[R5610];
 if (not_empty domain_service_invocation)
+  select any utility from instances of Utility where false;
   select one service related by domain_service_invocation->DomainService[R5611]->Service[R5203];
   containing_comp_def = ::getCompDefForStatement(smt:smt);
-  select any utility from instances of Utility where false;
-  select any invocable related by containing_comp_def->Function[R405]->InvocableObject[R427] where (selected.name == "" + service.name);
+
+  // look for local domain services
+  select one domain related by domain_service_invocation->DomainService[R5611]->Domain[R5303];
+  select one comp_def related by domain->ComponentDefinition[R8310];
+  select any invocable related by comp_def->Function[R405]->InvocableObject[R427] where (selected.name == "" + service.name);
   if empty invocable
-    select one domain related by domain_service_invocation->DomainService[R5611]->Domain[R5303];
+    // look for utility functions
     select any utility related by containing_comp_def->Utility[R4558] where selected.name == "" + domain.name;
     select any invocable related by utility->UtilityFunction[R4559]->InvocableObject[R427] where selected.name == "" + service.name;
   end if;
+
   if (not_empty invocable)
     // create expression as statement
     create object instance eas of ExpressionAsStatement;
@@ -1152,6 +1157,19 @@ if (not_empty domain_service_invocation)
       // create domain reference
       create object instance domain_ref of DomainReference;
       relate domain_ref to expr2 across R776;
+      if comp_def != containing_comp_def
+        relate comp_def to domain_ref across R3927;
+        // add a module dependency
+				select one main_mod related by containing_comp_def->Module[R5752];
+				select one mod related by comp_def->Module[R5752];
+				if not_empty mod and not_empty main_mod and mod != main_mod
+					select any dependency related by main_mod->Dependency[R5753.''requires''] where selected.required_module_name == mod.name;
+					if empty dependency
+						create object instance dependency of Dependency;
+						relate mod to main_mod across R5753.''required by'' using dependency;
+					end if;
+				end if;
+      end if;
       relate expr2 to invoc across R798;
     end if;
     // transform actual parameters

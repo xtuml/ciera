@@ -108,7 +108,11 @@ AbstractPersistentDomain implements PersistentDomain {
     }
 
     public static Domain provider() {
-        return Optional.ofNullable(Application.getInstance().getDomain("${self.name}")).orElseGet(${self.name}::new);
+        try {
+            return Application.getInstance().getDomain("${self.name}");
+        } catch (NoSuchElementException e) {
+            return new ${self.name}();
+        }
     }
 
 

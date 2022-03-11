@@ -116,6 +116,7 @@ if (param.pass == 1)
   create object instance comp_def of ComponentDefinition;
   relate comp_def to file across R401;
 	relate comp_def to mod across R5752;
+	relate comp_def to domain across R8310;
 
   // for full domain definitions, do a bit more transformation
   if not domain.interface
@@ -146,6 +147,13 @@ if (param.pass == 1)
     // add the domain to the application
     create object instance comp_inst of ComponentInstantiation;
     relate comp_def to app across R426 using comp_inst;
+    
+    // add any other domains to the application
+    select many other_comps from instances of ComponentDefinition where selected.name != comp_def.name;
+    for each other_comp in other_comps
+      create object instance comp_inst of ComponentInstantiation;
+      relate other_comp to app across R426 using comp_inst;
+    end for;
     
     // check simulated time
     sim_time_mark = PROP::getProperty(key:"io.ciera.EnableSimulatedTime");

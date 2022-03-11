@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.ServiceLoader;
 import java.util.stream.Stream;
 
@@ -120,7 +121,7 @@ public class BaseApplication implements Application {
 
     @Override
     public Domain getDomain(String domainName) {
-        return domains.get(domainName);
+        return Optional.ofNullable(domains.get(domainName)).orElseThrow();
     }
 
     @Override

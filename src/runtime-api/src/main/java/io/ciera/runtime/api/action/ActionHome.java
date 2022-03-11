@@ -25,6 +25,10 @@ public interface ActionHome {
      *         defined.
      */
     public Domain getDomain();
+    
+    default public Domain getDomain(String domainName) {
+        return getApplication().getDomain(domainName);
+    }
 
     /**
      * Get the execution context.
