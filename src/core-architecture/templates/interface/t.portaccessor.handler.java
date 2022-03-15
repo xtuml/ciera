@@ -2,5 +2,5 @@
 else \
 .end if
 if (${self.name}.class.equals(targetClass)) {
-    return ${self.name}();
+    return ${self.port_name}();
 } \

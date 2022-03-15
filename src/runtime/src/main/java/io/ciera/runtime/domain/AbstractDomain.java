@@ -21,6 +21,7 @@ import io.ciera.runtime.api.application.ExecutionContext;
 import io.ciera.runtime.api.application.MessageTarget;
 import io.ciera.runtime.api.domain.Domain;
 import io.ciera.runtime.api.domain.ObjectInstance;
+import io.ciera.runtime.api.domain.Port;
 import io.ciera.runtime.api.exceptions.EventTargetException;
 import io.ciera.runtime.api.exceptions.InstancePopulationException;
 import io.ciera.runtime.api.exceptions.MessageTargetException;
@@ -41,12 +42,12 @@ public abstract class AbstractDomain implements Domain {
         this.name = name;
         this.instancePopulation = new HashMap<>();
     }
-    
+
     @Override
     public String getName() {
         return name;
     }
-    
+
     @Override
     public void initialize() {
         getApplication().getLogger().trace("%s initialized", this);
@@ -65,7 +66,10 @@ public abstract class AbstractDomain implements Domain {
     @Override
     public <T extends ObjectInstance> T createInstance(Class<T> type, Consumer<T> instanceInitializer) {
         try {
-            Constructor<T> constructor = type.getConstructor(getClass());
+            @SuppressWarnings("unchecked")
+            Constructor<T> constructor = (Constructor<T>) Stream.of(type.getConstructors()).filter(
+                    c -> c.getParameterTypes().length == 1 && c.getParameterTypes()[0].isAssignableFrom(getClass()))
+                    .findAny().orElseThrow(NoSuchMethodException::new);
             T instance = constructor.newInstance(this);
             if (instanceInitializer != null) {
                 instanceInitializer.accept(instance);
@@ -153,6 +157,11 @@ public abstract class AbstractDomain implements Domain {
     @Override
     public void consumeEvent(Event event) {
         throw new EventTargetException("Could not find state machine to handle event", this, event);
+    }
+
+    @Override
+    public Port getPort(final String portName) {
+        throw new IllegalArgumentException("Port with the name '" + portName + "' does not exist in domain: " + this);
     }
 
     @Override

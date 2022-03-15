@@ -2,10 +2,20 @@ package ${self.package};
 
 ${imports}
 
-public class ${self.name} extends AbstractPort implements ${self.iface_name} {
+public class ${self.name} extends \
+.if (self.supertype_name != "")
+${self.supertype_name} \
+.else
+AbstractPort \
+.end if
+implements ${self.iface_name} {
 
     public ${self.name}(${self.comp_name} domain) {
         super("${self.name}", domain);
+    }
+
+    public ${self.name}(String name, ${self.comp_name} domain) {
+        super(name, domain);
     }
 
     // inbound messages

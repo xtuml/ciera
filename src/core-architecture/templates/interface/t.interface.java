@@ -2,7 +2,11 @@ package ${self.package};
 
 ${imports}
 
-public interface ${self.name} extends Port {
+public interface ${self.name} extends \
+.if (self.supertype_name != "")
+${self.supertype_name}, \
+.end if
+Port {
 
     // messages IDs
     ${message_id_declarations}\

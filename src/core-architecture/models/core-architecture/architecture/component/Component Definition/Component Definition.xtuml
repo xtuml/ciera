@@ -67,12 +67,13 @@ for each init_function in init_functions
   init = init + init_function.name + "();\n";
 end for;
 
-for each port in comp_ports
+select many local_comp_ports related by self->Port[R417] where selected.supertype_name == "";
+for each port in local_comp_ports
   port.render_accessor_handler();
 end for;
 port_handlers = T::body();
 
-for each port in comp_ports
+for each port in local_comp_ports
   port.render_accessor_handler2();
 end for;
 port_handlers2 = T::body();
@@ -93,9 +94,14 @@ for each csm in csms
 end for;
 csm_loads = T::body();
 
-if not_empty comp_ports
+select one supertype_comp_def_file related by self->ComponentDefinition[R4562.''extends'']->File[R401];
+if not_empty supertype_comp_def_file
+  ::addFileImport(file:supertype_comp_def_file);
+end if;
+
+if not_empty local_comp_ports
   ::addStringImport(package:"io.ciera.runtime.api.application", class_name:"MessageTarget");
-  ::addStringImport(package:"io.ciera.runtime.api.exceptions", class_name:"MessageTargetException");
+  ::addStringImport(package:"io.ciera.runtime.api.domain", class_name:"Port");
 end if;
 
 if not_empty csms
@@ -106,16 +112,17 @@ if not_empty csms
   ::addStringImport(package:"java.io", class_name:"ObjectOutputStream");
 end if;
 
-if self.transient
-  ::addStringImport(package:"io.ciera.runtime.domain", class_name:"AbstractDomain");
-else
-  ::addStringImport(package:"io.ciera.runtime.api.domain", class_name:"PersistentDomain");
-  ::addStringImport(package:"io.ciera.runtime.domain", class_name:"AbstractPersistentDomain");
+if empty supertype_comp_def_file
+  if self.transient
+    ::addStringImport(package:"io.ciera.runtime.domain", class_name:"AbstractDomain");
+  else
+    ::addStringImport(package:"io.ciera.runtime.api.domain", class_name:"PersistentDomain");
+    ::addStringImport(package:"io.ciera.runtime.domain", class_name:"AbstractPersistentDomain");
+  end if;
 end if;
 
 ::addStringImport(package:"io.ciera.runtime.api.application", class_name:"Application");
 ::addStringImport(package:"io.ciera.runtime.api.domain", class_name:"Domain");
-::addStringImport(package:"io.ciera.runtime.api.domain", class_name:"Port");
 ::addStringImport(package:"java.util", class_name:"NoSuchElementException");
 
 select one file related by self->File[R401];
@@ -307,6 +314,95 @@ INSERT INTO O_ATTR
 	'',
 	'module_',
 	'name',
+	1,
+	"ba5eda7a-def5-0000-0000-000000000007",
+	'',
+	'');
+INSERT INTO O_REF
+	VALUES ("23f9d7b1-3127-4414-9299-e535bda771bf",
+	"23f9d7b1-3127-4414-9299-e535bda771bf",
+	0,
+	"144e3dd3-5675-4754-a262-0b2fb7161f64",
+	"fda177ee-f8b5-46bb-81b5-c50e2343bdf0",
+	"05236c42-dd4b-490a-a4c9-354d4fdb9d75",
+	"9c8632dd-842c-4862-95a9-f799905ef4ee",
+	"07548997-a575-4758-a151-373c88a2477e",
+	"d01116cb-0e2a-41d3-824f-dc5fcfb0edb6",
+	"00000000-0000-0000-0000-000000000000",
+	0,
+	'',
+	'Component Definition',
+	'name',
+	'R4562.''extends''');
+INSERT INTO R_RGO_PROXY
+	VALUES ("23f9d7b1-3127-4414-9299-e535bda771bf",
+	"fda177ee-f8b5-46bb-81b5-c50e2343bdf0",
+	"05236c42-dd4b-490a-a4c9-354d4fdb9d75",
+	'../component.xtuml');
+INSERT INTO O_RTIDA_PROXY
+	VALUES ("144e3dd3-5675-4754-a262-0b2fb7161f64",
+	"23f9d7b1-3127-4414-9299-e535bda771bf",
+	0,
+	"fda177ee-f8b5-46bb-81b5-c50e2343bdf0",
+	"9c8632dd-842c-4862-95a9-f799905ef4ee",
+	'../component.xtuml');
+INSERT INTO O_RATTR
+	VALUES ("07548997-a575-4758-a151-373c88a2477e",
+	"23f9d7b1-3127-4414-9299-e535bda771bf",
+	"c49819d1-92ba-4732-98e5-2b3eca8bc470",
+	"dc9c4877-4fcb-49df-a886-ab917b250774",
+	1,
+	'name');
+INSERT INTO O_ATTR
+	VALUES ("07548997-a575-4758-a151-373c88a2477e",
+	"23f9d7b1-3127-4414-9299-e535bda771bf",
+	"280b27ad-f32f-4dac-b5f1-ca5f8a5e4b5f",
+	'supertype_name',
+	'',
+	'supertype_',
+	'name',
+	1,
+	"ba5eda7a-def5-0000-0000-000000000007",
+	'',
+	'');
+INSERT INTO O_REF
+	VALUES ("23f9d7b1-3127-4414-9299-e535bda771bf",
+	"23f9d7b1-3127-4414-9299-e535bda771bf",
+	0,
+	"797a56de-c62e-4fd8-8d8e-dc868af7d628",
+	"fda177ee-f8b5-46bb-81b5-c50e2343bdf0",
+	"05236c42-dd4b-490a-a4c9-354d4fdb9d75",
+	"9c8632dd-842c-4862-95a9-f799905ef4ee",
+	"9458f44e-7abc-4ab9-b63c-3af7562b0f96",
+	"cdd6a907-6576-49e0-b586-995387816120",
+	"00000000-0000-0000-0000-000000000000",
+	0,
+	'',
+	'Component Definition',
+	'package',
+	'R4562.''extends''');
+INSERT INTO O_RTIDA_PROXY
+	VALUES ("797a56de-c62e-4fd8-8d8e-dc868af7d628",
+	"23f9d7b1-3127-4414-9299-e535bda771bf",
+	0,
+	"fda177ee-f8b5-46bb-81b5-c50e2343bdf0",
+	"9c8632dd-842c-4862-95a9-f799905ef4ee",
+	'../component.xtuml');
+INSERT INTO O_RATTR
+	VALUES ("9458f44e-7abc-4ab9-b63c-3af7562b0f96",
+	"23f9d7b1-3127-4414-9299-e535bda771bf",
+	"3dfc4c02-94c0-4383-8964-c3bfa4b2e9bd",
+	"dc9c4877-4fcb-49df-a886-ab917b250774",
+	1,
+	'package');
+INSERT INTO O_ATTR
+	VALUES ("9458f44e-7abc-4ab9-b63c-3af7562b0f96",
+	"23f9d7b1-3127-4414-9299-e535bda771bf",
+	"07548997-a575-4758-a151-373c88a2477e",
+	'supertype_package',
+	'',
+	'supertype_',
+	'package',
 	1,
 	"ba5eda7a-def5-0000-0000-000000000007",
 	'',

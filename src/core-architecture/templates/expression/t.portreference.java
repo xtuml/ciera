@@ -1,1 +1,1 @@
-${domain_reference}.${self.port_name}()\
+${domain_reference}.${port_name}()\

@@ -15,7 +15,7 @@ INSERT INTO O_TFR
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'// render inbound messages
-select many inbound_msgs related by self->Interface[R418]->Message[R419]
+select many inbound_msgs related by self->Message[R420]
   where SORT::ascending(attr:"id") and ((not selected.to_provider and not self.provider) or (selected.to_provider and self.provider));
 select many inbound_port_msgs related by inbound_msgs->PortMessage[R420] where selected.port_name == self.name;
 for each port_msg in inbound_port_msgs
@@ -24,7 +24,7 @@ end for;
 inbound_message_block = T::body();
 
 // render outbound messages
-select many outbound_msgs related by self->Interface[R418]->Message[R419]
+select many outbound_msgs related by self->Message[R420]
   where SORT::ascending(attr:"id") and ((selected.to_provider and not self.provider) or (not selected.to_provider and self.provider));
 select many outbound_port_msgs related by outbound_msgs->PortMessage[R420] where selected.port_name == self.name;
 for each port_msg in outbound_port_msgs
@@ -33,9 +33,10 @@ end for;
 outbound_message_block = T::body();
 
 // render switch block
-select many inbound_msgs related by self->Interface[R418]->Message[R419]
+// only handle messages defined in the port''s interface and not in any superinterfaces
+select many local_inbound_msgs related by self->Interface[R418]->Message[R419]
   where selected.async and SORT::ascending(attr:"id") and ((not selected.to_provider and not self.provider) or (selected.to_provider and self.provider));
-select many inbound_port_msgs related by inbound_msgs->PortMessage[R420] where selected.port_name == self.name;
+select many inbound_port_msgs related by local_inbound_msgs->PortMessage[R420] where selected.port_name == self.name;
 if not_empty inbound_port_msgs
   for each msg in inbound_port_msgs
     msg.render_deliver();
@@ -45,7 +46,13 @@ if not_empty inbound_port_msgs
 end if;
 message_switch_block = T::body();
 
-::addStringImport(package:"io.ciera.runtime.domain", class_name:"AbstractPort");
+select one supertype_port_file related by self->Port[R4162.''extends'']->File[R401];
+if not_empty supertype_port_file
+  ::addFileImport(file:supertype_port_file);
+else
+  ::addStringImport(package:"io.ciera.runtime.domain", class_name:"AbstractPort");
+end if;
+
 select one iface_file related by self->Interface[R418]->File[R401];
 ::addFileImport(file:iface_file);
 select one comp_file related by self->ComponentDefinition[R417]->File[R401];
@@ -532,6 +539,95 @@ INSERT INTO O_ATTR
 	'provider_port_package',
 	'',
 	'provider_port_',
+	'package',
+	1,
+	"ba5eda7a-def5-0000-0000-000000000007",
+	'',
+	'');
+INSERT INTO O_REF
+	VALUES ("28dc1d65-54a1-4be8-98f3-a6f65c69cdff",
+	"28dc1d65-54a1-4be8-98f3-a6f65c69cdff",
+	0,
+	"ce44331a-692f-4f5c-a738-ad34799509d0",
+	"d71e77ca-15f4-4a30-bea4-49d06a562871",
+	"e6706c11-280d-4e40-9343-48e91977a83c",
+	"e6c03068-ffe3-4568-b1f8-4ac315568bbf",
+	"589cdb73-038b-4afe-aad8-1bcb9130f0bc",
+	"6a2006b8-52ca-4a76-b962-120729c98bad",
+	"00000000-0000-0000-0000-000000000000",
+	0,
+	'',
+	'Port',
+	'name',
+	'R4162.''extends''');
+INSERT INTO R_RGO_PROXY
+	VALUES ("28dc1d65-54a1-4be8-98f3-a6f65c69cdff",
+	"d71e77ca-15f4-4a30-bea4-49d06a562871",
+	"e6706c11-280d-4e40-9343-48e91977a83c",
+	'../interfaces.xtuml');
+INSERT INTO O_RTIDA_PROXY
+	VALUES ("ce44331a-692f-4f5c-a738-ad34799509d0",
+	"28dc1d65-54a1-4be8-98f3-a6f65c69cdff",
+	0,
+	"d71e77ca-15f4-4a30-bea4-49d06a562871",
+	"e6c03068-ffe3-4568-b1f8-4ac315568bbf",
+	'../interfaces.xtuml');
+INSERT INTO O_RATTR
+	VALUES ("589cdb73-038b-4afe-aad8-1bcb9130f0bc",
+	"28dc1d65-54a1-4be8-98f3-a6f65c69cdff",
+	"c49819d1-92ba-4732-98e5-2b3eca8bc470",
+	"dc9c4877-4fcb-49df-a886-ab917b250774",
+	1,
+	'name');
+INSERT INTO O_ATTR
+	VALUES ("589cdb73-038b-4afe-aad8-1bcb9130f0bc",
+	"28dc1d65-54a1-4be8-98f3-a6f65c69cdff",
+	"af9071e4-c512-44ef-851f-3637988da574",
+	'supertype_name',
+	'',
+	'supertype_',
+	'name',
+	1,
+	"ba5eda7a-def5-0000-0000-000000000007",
+	'',
+	'');
+INSERT INTO O_REF
+	VALUES ("28dc1d65-54a1-4be8-98f3-a6f65c69cdff",
+	"28dc1d65-54a1-4be8-98f3-a6f65c69cdff",
+	0,
+	"bfe99a99-b411-4155-9544-bec025ecea50",
+	"d71e77ca-15f4-4a30-bea4-49d06a562871",
+	"e6706c11-280d-4e40-9343-48e91977a83c",
+	"e6c03068-ffe3-4568-b1f8-4ac315568bbf",
+	"ae4ee92c-71c1-4470-9ddd-858baf7bc5f8",
+	"8033ddd6-ba9f-425b-85f6-cc2e18c1f7ec",
+	"00000000-0000-0000-0000-000000000000",
+	0,
+	'',
+	'Port',
+	'package',
+	'R4162.''extends''');
+INSERT INTO O_RTIDA_PROXY
+	VALUES ("bfe99a99-b411-4155-9544-bec025ecea50",
+	"28dc1d65-54a1-4be8-98f3-a6f65c69cdff",
+	0,
+	"d71e77ca-15f4-4a30-bea4-49d06a562871",
+	"e6c03068-ffe3-4568-b1f8-4ac315568bbf",
+	'../interfaces.xtuml');
+INSERT INTO O_RATTR
+	VALUES ("ae4ee92c-71c1-4470-9ddd-858baf7bc5f8",
+	"28dc1d65-54a1-4be8-98f3-a6f65c69cdff",
+	"3dfc4c02-94c0-4383-8964-c3bfa4b2e9bd",
+	"dc9c4877-4fcb-49df-a886-ab917b250774",
+	1,
+	'package');
+INSERT INTO O_ATTR
+	VALUES ("ae4ee92c-71c1-4470-9ddd-858baf7bc5f8",
+	"28dc1d65-54a1-4be8-98f3-a6f65c69cdff",
+	"589cdb73-038b-4afe-aad8-1bcb9130f0bc",
+	'supertype_package',
+	'',
+	'supertype_',
 	'package',
 	1,
 	"ba5eda7a-def5-0000-0000-000000000007",

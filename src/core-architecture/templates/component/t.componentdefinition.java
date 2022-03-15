@@ -3,10 +3,14 @@ package ${self.package};
 ${imports}
 
 public class ${self.name} extends \
-.if (self.transient)
-AbstractDomain implements Domain {
+.if (self.supertype_name != "")
+${self.supertype_name} {
 .else
+  .if (self.transient)
+AbstractDomain implements Domain {
+  .else
 AbstractPersistentDomain implements PersistentDomain {
+  .end if
 .end if
 
 .if (utilities != "")
@@ -62,20 +66,22 @@ AbstractPersistentDomain implements PersistentDomain {
     @Override
     public MessageTarget getMessageTarget(Class<? extends MessageTarget> targetClass) {
         ${port_handlers}else {
-            throw new MessageTargetException("Could not find port to deliver message", null, null);
+            return super.getMessageTarget(targetClass);
         }
     }
 
 .end if
+.if (port_handlers2 != "")
     @Override
     public Port getPort(final String portName) {
         switch (portName) {
         ${port_handlers2}\
         default:
-            throw new IllegalArgumentException("Port with the name '" + portName + "' does not exist in domain: " + this);
+            return super.getPort(portName);
         }
     }
 
+.end if
 .if (csm_handlers != "")
     @Override
     public void consumeEvent(Event event) {

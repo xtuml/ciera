@@ -131,37 +131,6 @@ if (param.pass == 1)
     export_package.name = comp_def.package;
     relate export_package to mod across R5750;
     
-    // create single domain application
-    create object instance app_file of File;
-    app_file.name = domain.name + "Application";
-    app_file.path = file.path + "/application";
-    app_file.package = ::pathToPackage(path:app_file.path);
-    app_file.extension = ".java";
-    app_file.exclude = false;
-    
-    // create the application object
-    create object instance app of Application;
-    relate app to app_file across R401;
-    relate app to mod across R5751;
-    
-    // add the domain to the application
-    create object instance comp_inst of ComponentInstantiation;
-    relate comp_def to app across R426 using comp_inst;
-    
-    // add any other domains to the application
-    select many other_comps from instances of ComponentDefinition where selected.name != comp_def.name;
-    for each other_comp in other_comps
-      create object instance comp_inst of ComponentInstantiation;
-      relate other_comp to app across R426 using comp_inst;
-    end for;
-    
-    // check simulated time
-    sim_time_mark = PROP::getProperty(key:"io.ciera.EnableSimulatedTime");
-    if (sim_time_mark != "")
-      LOG::LogInfo(message:"Enabling simulated time");
-      app.simulated_time = sim_time_mark;
-    end if;
-
   end if;
   
   // transform exceptions
@@ -185,34 +154,42 @@ elif (param.pass == 2)
 
 elif (param.pass == 3)
 
-  // transform objects
-  select many object_declarations related by domain->ObjectDeclaration[R5805];
-  for each object_declaration in object_declarations
-    ::transformObject(object_declaration:object_declaration, comp_def:comp_def);
-  end for;
+  if not domain.interface
+
+    // transform objects
+    select many object_declarations related by domain->ObjectDeclaration[R5805];
+    for each object_declaration in object_declarations
+      ::transformObject(object_declaration:object_declaration, comp_def:comp_def);
+    end for;
+  
+  end if;
 
 elif (param.pass == 4)
 
-  // transform relationships
-  select many rels related by domain->RelationshipDeclaration[R6003];
-  for each rel in rels
-    ::transformRelationship(rel:rel, comp_def:comp_def);
-  end for;
+  if not domain.interface
 
-  // transform transition tables
-  select many transition_tables related by domain->ObjectDeclaration[R5805]->TransitionTable[R6113];
-  for each transition_table in transition_tables
-    // check to assure there are not 2 transition tables
-    select many transition_tables related by transition_table->ObjectDeclaration[R6113]->TransitionTable[R6113];
-    if cardinality transition_tables == 1
-      select one obj related by transition_table->ObjectDeclaration[R6113]->Class[R8300];
-      if not_empty transition_table
-        ::transformTransitionTable(transition_table:transition_table, obj:obj);
+    // transform relationships
+    select many rels related by domain->RelationshipDeclaration[R6003];
+    for each rel in rels
+      ::transformRelationship(rel:rel, comp_def:comp_def);
+    end for;
+
+    // transform transition tables
+    select many transition_tables related by domain->ObjectDeclaration[R5805]->TransitionTable[R6113];
+    for each transition_table in transition_tables
+      // check to assure there are not 2 transition tables
+      select many transition_tables related by transition_table->ObjectDeclaration[R6113]->TransitionTable[R6113];
+      if cardinality transition_tables == 1
+        select one obj related by transition_table->ObjectDeclaration[R6113]->Class[R8300];
+        if not_empty transition_table
+          ::transformTransitionTable(transition_table:transition_table, obj:obj);
+        end if;
+      else
+        LOG::LogFailure(message:"Objects can have at most one transition table");
       end if;
-    else
-      LOG::LogFailure(message:"Objects can have at most one transition table");
-    end if;
-  end for;
+    end for;
+  
+  end if;
 
   // transform terminators
   select many terms related by domain->DomainTerminator[R5304];
@@ -222,17 +199,21 @@ elif (param.pass == 4)
  
 else
 
-  // transform selectors
-  select many objs related by comp_def->Class[R408];
-  for each obj in objs
-    ::transformSelectors(obj:obj);
-  end for;
+  if not domain.interface
 
-  // transform attribute references
-  select many objs related by comp_def->Class[R408];
-  for each obj in objs
-    ::transformMaslAttributeReferences(obj:obj);
-  end for;
+    // transform selectors
+    select many objs related by comp_def->Class[R408];
+    for each obj in objs
+      ::transformSelectors(obj:obj);
+    end for;
+
+    // transform attribute references
+    select many objs related by comp_def->Class[R408];
+    for each obj in objs
+      ::transformMaslAttributeReferences(obj:obj);
+    end for;
+  
+  end if;
 
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
@@ -387,7 +368,6 @@ file.name = ::camelCaseName(name:object_declaration.name, start_lower:false );
 file.path = path;
 file.package = ::pathToPackage(path:file.path);
 file.extension = ".java";
-file.exclude = false;
 
 // create the object
 create object instance obj of Class;
@@ -509,6 +489,7 @@ INSERT INTO S_SYNC
 	'',
 	'domain_terminator = param.domain_terminator;
 comp_def = param.comp_def;
+select one mod related by comp_def->Module[R5752];
 
 // create the port file
 create object instance port_file of File;
@@ -516,12 +497,13 @@ port_file.name = comp_def.name + ::camelCaseName(name:domain_terminator.name, st
 port_file.path = param.path;
 port_file.package = ::pathToPackage(path:port_file.path);
 port_file.extension = ".java";
-port_file.exclude = false;
+port_file.exclude = not mod.main_module;
 
-// create the interface package object
+// create the port object
 create object instance port of Port;
 relate port to port_file across R401;
 port.port_name = ::camelCaseName(name:domain_terminator.name, start_lower:false);
+relate port to domain_terminator across R8313;
 
 // set port as requirer
 port.provider = false;
@@ -535,12 +517,13 @@ iface_file.name = ::camelCaseName(name:domain_terminator.name, start_lower:false
 iface_file.path = param.path;
 iface_file.package = ::pathToPackage( path:iface_file.path );
 iface_file.extension = ".java";
-iface_file.exclude = false;
+iface_file.exclude = not mod.main_module;
 
 // create the interface package object
 create object instance iface of Interface;
 relate iface to iface_file across R401;
 relate port to iface across R418;
+relate iface to domain_terminator across R8312;
 
 // transform terminator services
 select many terminator_services related by domain_terminator->DomainTerminatorService[R5306];
@@ -548,7 +531,13 @@ index = 1;
 for each terminator_service in terminator_services
   ::transformDomainTerminatorService(terminator_service:terminator_service, iface:iface, port:port, index:index);
   index = index + 1;
-end for;',
+end for;
+
+// add as an export package
+select one mod related by comp_def->Module[R5752];
+create object instance export_package of ExportedPackage;
+export_package.name = port.package;
+relate export_package to mod across R5750;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -1199,7 +1188,6 @@ if (empty sm)
   file.path = ::formatPath(path:obj.package);
   file.package = obj.package;
   file.extension = ".java";
-  file.exclude = false;
   // create the state machine
   create object instance sm of StateMachine;
   relate sm to file across R401;
@@ -1617,7 +1605,6 @@ file.name = ::camelCaseName(name:exception_declaration.name, start_lower:false )
 file.path = path;
 file.package = ::pathToPackage(path:file.path);
 file.extension = ".java";
-file.exclude = false;
 
 // create the type
 create object instance type of Type;
@@ -1709,7 +1696,6 @@ if param.util_package == ""
   file.path = param.path + "/util";
   file.package = ::pathToPackage(path:file.path);
   file.extension = ".java";
-  file.exclude = false;
 else
   file.package = param.util_package;
   file.path = ::formatPath( path:file.package );
@@ -1840,6 +1826,383 @@ INSERT INTO S_DT_PROXY
 	'../../../../core-architecture/models/core-architecture/architecture/component/component.xtuml');
 INSERT INTO PE_PE
 	VALUES ("31e06f99-9ec8-4e40-9113-fefbca8c0552",
+	1,
+	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("89da2336-e662-44fb-98b9-05d5b80d09ba",
+	"00000000-0000-0000-0000-000000000000",
+	'transformProject',
+	'',
+	'project = param.project;
+
+// create module file
+create object instance module_file of File;
+module_file.name = project.name;
+
+// create the module object
+create object instance mod of Module;
+relate mod to module_file across R401;
+mod.main_module = true;
+relate mod to project across R8311;
+
+// create application
+create object instance app_file of File;
+app_file.name = project.name;
+app_file.path = param.path;
+app_file.package = ::pathToPackage(path:app_file.path);
+app_file.extension = ".java";
+
+// create the application object
+create object instance app of Application;
+relate app to app_file across R401;
+relate app to mod across R5751;
+
+// check simulated time
+sim_time_mark = PROP::getProperty(key:"io.ciera.EnableSimulatedTime");
+if (sim_time_mark != "")
+  LOG::LogInfo(message:"Enabling simulated time");
+  app.simulated_time = sim_time_mark;
+end if;
+
+// transform project domains
+select many domains related by project->ProjectDomain[R5900];
+for each domain in domains
+  ::transformProjectDomain(project_domain:domain, path:param.path + "/domains");
+end for;
+
+// link all domains to the application
+select many comp_defs from instances of ComponentDefinition;
+for each comp_def in comp_defs
+  select any sub_domain related by comp_def->ComponentDefinition[R4562.''extended by''];
+  // ignore domains that are extended by a sub domain
+  if empty sub_domain
+    create object instance comp_inst of ComponentInstantiation;
+    relate comp_def to app across R426 using comp_inst;
+  end if;
+end for;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	14);
+INSERT INTO S_SPARM
+	VALUES ("6459289d-5d01-4961-9841-59730b6a091f",
+	"89da2336-e662-44fb-98b9-05d5b80d09ba",
+	'project',
+	"441f24d5-1449-4a86-a093-cf7c331418a3",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("441f24d5-1449-4a86-a093-cf7c331418a3",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Project>',
+	'',
+	'',
+	'../../../../ooamasl/models/ooamasl/ooamasl/project/project.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("abe8c8e6-aed7-4736-9474-cf231911b603",
+	"89da2336-e662-44fb-98b9-05d5b80d09ba",
+	'path',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"6459289d-5d01-4961-9841-59730b6a091f",
+	'');
+INSERT INTO PE_PE
+	VALUES ("89da2336-e662-44fb-98b9-05d5b80d09ba",
+	1,
+	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("3b7396bd-a27d-49dc-8680-056e8981033c",
+	"00000000-0000-0000-0000-000000000000",
+	'transformProjectDomain',
+	'',
+	'project_domain = param.project_domain;
+select one project related by project_domain->Project[R5900];
+select one domain related by project_domain->Domain[R5901];
+select one ref_comp_def related by domain->ComponentDefinition[R8310];
+
+// create the file
+create object instance file of File;
+file.name = project.name + ::camelCaseName(name:domain.name, start_lower:false);
+file.path = param.path;
+file.package = ::pathToPackage(path:file.path);
+file.extension = ".java";
+
+// create the component definition object
+create object instance comp_def of ComponentDefinition;
+relate comp_def to file across R401;
+select one mod related by project_domain->Project[R5900]->Module[R8311];
+relate comp_def to mod across R5752;
+relate comp_def to ref_comp_def across R4562.''extends'';
+
+// transform terminators
+select many terms related by project_domain->ProjectTerminator[R5902];
+for each term in terms
+  ::transformProjectTerminator(project_terminator:term, comp_def:comp_def, path:file.path + "/" + T::sub(format:"l", s:term.name));
+end for;
+
+// add a module dependency
+select one main_mod related by project->Module[R8311];
+select one mod related by ref_comp_def->Module[R5752];
+if not_empty mod and not_empty main_mod and mod != main_mod
+	select any dependency related by main_mod->Dependency[R5753.''requires''] where selected.required_module_name == mod.name;
+	if empty dependency
+		create object instance dependency of Dependency;
+		relate mod to main_mod across R5753.''required by'' using dependency;
+	end if;
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	1);
+INSERT INTO S_SPARM
+	VALUES ("bac56e18-da09-4a15-a74d-546e23a64daf",
+	"3b7396bd-a27d-49dc-8680-056e8981033c",
+	'project_domain',
+	"dd011dcb-a5b9-4fbb-a8e3-22610c45343f",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("dd011dcb-a5b9-4fbb-a8e3-22610c45343f",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<ProjectDomain>',
+	'',
+	'',
+	'../../../../ooamasl/models/ooamasl/ooamasl/project/project.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("e270b0c7-b274-4ac8-baf9-63f7898e205b",
+	"3b7396bd-a27d-49dc-8680-056e8981033c",
+	'path',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"bac56e18-da09-4a15-a74d-546e23a64daf",
+	'');
+INSERT INTO PE_PE
+	VALUES ("3b7396bd-a27d-49dc-8680-056e8981033c",
+	1,
+	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("ea6eeb27-5f65-4960-99c5-f711920ca460",
+	"00000000-0000-0000-0000-000000000000",
+	'transformProjectTerminator',
+	'',
+	'project_terminator = param.project_terminator;
+select one project related by project_terminator->ProjectDomain[R5902]->Project[R5900];
+comp_def = param.comp_def;
+
+// create the port file
+create object instance port_file of File;
+port_file.name = comp_def.name + ::camelCaseName(name:project_terminator.name, start_lower:false);
+port_file.path = param.path;
+port_file.package = ::pathToPackage(path:port_file.path);
+port_file.extension = ".java";
+
+// create the port object
+create object instance port of Port;
+relate port to port_file across R401;
+port.port_name = ::camelCaseName(name:project_terminator.name, start_lower:false);
+
+// get the domain port if it exists
+select any corresponding_terminator related by project_terminator->ProjectDomain[R5902]->Domain[R5901]->DomainTerminator[R5304]
+  where selected.name == project_terminator.name;
+select one corresponding_port related by corresponding_terminator->Port[R8313];
+relate port to corresponding_port across R4162.''extends'';
+
+// set port as requirer
+port.provider = false;
+
+// relate to other component
+relate port to comp_def across R417;
+
+// create the interface file
+create object instance iface_file of File;
+iface_file.name = project.name + ::camelCaseName(name:project_terminator.name, start_lower:false);
+iface_file.path = param.path;
+iface_file.package = ::pathToPackage( path:iface_file.path );
+iface_file.extension = ".java";
+  
+// create the interface package object
+create object instance iface of Interface;
+relate iface to iface_file across R401;
+relate port to iface across R418;
+
+// get the domain interface if it exists
+select one corresponding_iface related by corresponding_terminator->Interface[R8312];
+if not_empty corresponding_iface
+  relate iface to corresponding_iface across R4161.''extends'';
+end if;
+
+// transform terminator services
+select many terminator_services related by project_terminator->ProjectTerminatorService[R5903];
+index = 1;
+for each terminator_service in terminator_services
+  ::transformProjectTerminatorService(terminator_service:terminator_service, iface:iface, port:port, index:index);
+  index = index + 1;
+end for;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	5);
+INSERT INTO S_SPARM
+	VALUES ("fedf98ac-46ad-4001-b486-7714bbcd7739",
+	"ea6eeb27-5f65-4960-99c5-f711920ca460",
+	'project_terminator',
+	"4b9202a7-2be1-45d8-87d5-2f1aee2f06be",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("4b9202a7-2be1-45d8-87d5-2f1aee2f06be",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<ProjectTerminator>',
+	'',
+	'',
+	'../../../../ooamasl/models/ooamasl/ooamasl/project/project.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("cf6dfbbc-c819-4fca-b265-d5044b25fadd",
+	"ea6eeb27-5f65-4960-99c5-f711920ca460",
+	'comp_def',
+	"109e90cb-1d66-46ee-88db-a568044879d0",
+	0,
+	'',
+	"fedf98ac-46ad-4001-b486-7714bbcd7739",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("9dbe2f65-ab36-4217-aa4c-0d017efb4b60",
+	"ea6eeb27-5f65-4960-99c5-f711920ca460",
+	'path',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"cf6dfbbc-c819-4fca-b265-d5044b25fadd",
+	'');
+INSERT INTO PE_PE
+	VALUES ("ea6eeb27-5f65-4960-99c5-f711920ca460",
+	1,
+	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("53d4d11d-7601-4a51-94d4-8c4db0089ab0",
+	"00000000-0000-0000-0000-000000000000",
+	'transformProjectTerminatorService',
+	'',
+	'terminator_service = param.terminator_service;
+select one service related by terminator_service->Service[R5203];
+select one terminator related by terminator_service->ProjectTerminator[R5903];
+select one domain related by terminator->ProjectDomain[R5902]->Domain[R5901];
+select one basic_type related by service->BasicType[R5205];
+iface = param.iface;
+index = param.index;
+port = param.port;
+
+select any msg related by iface->Interface[R4161.''extends'']->Message[R419] where selected.name == "" + service.name;
+if empty msg
+
+  // create message object
+  create object instance msg of Message;
+  msg.name = service.name;
+  msg.to_provider = true;
+  msg.id = index;
+  relate msg to iface across R419;
+  
+  // check if this service has a return type
+  msg.async = empty basic_type;
+
+end if;
+
+// create port message
+create object instance port_msg of PortMessage;
+relate port to msg across R420 using port_msg;
+
+// create invocable
+create object instance invocable of InvocableObject;
+invocable.name = msg.name;
+invocable.parent_name = port.name;
+invocable.parent_package = port.package;
+invocable.original_parent_name = "" + domain.name + "::" + terminator.name;
+invocable.original_body_name = "" + service.name;
+invocable.original_filename = service.filename;
+relate port_msg to invocable across R427;
+
+// copy actions
+select one code_block related by service->MaslCodeBlock[R5403];
+if not_empty code_block
+  relate code_block to invocable across R8306;
+end if;
+
+// link type
+type = ::getTypeReferenceForMASLType(basic_type:basic_type);
+relate type to invocable across R428;
+
+// create parameters
+select one first_parameter related by service->ParameterDefinition[R5204];
+::transformParameterList(first_parameter:first_parameter, invocable:invocable);',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	6);
+INSERT INTO S_SPARM
+	VALUES ("8f6adbb0-448e-4199-bc50-26c58a0e125d",
+	"53d4d11d-7601-4a51-94d4-8c4db0089ab0",
+	'terminator_service',
+	"64bf0599-7a0e-4cfd-b4c9-d0b7f36db4b5",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("64bf0599-7a0e-4cfd-b4c9-d0b7f36db4b5",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<ProjectTerminatorService>',
+	'',
+	'',
+	'../../../../ooamasl/models/ooamasl/ooamasl/project/project.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("f72e1f46-0168-4a3e-83f2-6911ed13864a",
+	"53d4d11d-7601-4a51-94d4-8c4db0089ab0",
+	'iface',
+	"003d869d-0580-4a1f-b1c8-e1657cc0248c",
+	0,
+	'',
+	"8f6adbb0-448e-4199-bc50-26c58a0e125d",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("f38918ce-d643-4468-80ac-3e7b5b2f62eb",
+	"53d4d11d-7601-4a51-94d4-8c4db0089ab0",
+	'port',
+	"d29fe14e-2574-4613-ac57-716ebd8e905c",
+	0,
+	'',
+	"f72e1f46-0168-4a3e-83f2-6911ed13864a",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("70475964-1662-47ab-834f-f4b568b8b439",
+	"53d4d11d-7601-4a51-94d4-8c4db0089ab0",
+	'index',
+	"ba5eda7a-def5-0000-0000-000000000002",
+	0,
+	'',
+	"f38918ce-d643-4468-80ac-3e7b5b2f62eb",
+	'');
+INSERT INTO PE_PE
+	VALUES ("53d4d11d-7601-4a51-94d4-8c4db0089ab0",
 	1,
 	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
 	"00000000-0000-0000-0000-000000000000",

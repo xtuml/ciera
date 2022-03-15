@@ -1,2 +1,2 @@
 case "${self.port_name}":
-    return ${self.name}();
+    return ${self.port_name}();
