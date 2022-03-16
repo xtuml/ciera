@@ -5,7 +5,7 @@ public static interface R${self.num}Subtype extends ObjectInstance {
 
     // relationship modifiers
     public void setR${self.num}_is_a_${self.part_name}(${self.part_name} inst);
-    public void clearR${self.num}_is_a_${self.part_name}();
+    public void clearR${self.num}_is_a_${self.part_name}(${self.part_name} inst);
 
     // supertype selector
     public ${self.part_name} ${supertype_selector}();
