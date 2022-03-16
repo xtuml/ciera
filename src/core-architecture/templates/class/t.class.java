@@ -126,7 +126,7 @@ ${attribute_initializer_params}) {
     ${subtype_interfaces}
 
     // empty class
-    private static final class Empty${self.name} extends ${self.name} {
+    private static final class Empty${self.name} extends ${self.name} implements EmptyInstance {
 
         private static final long serialVersionUID = ${self.serial_version_id}L;
 
@@ -138,11 +138,6 @@ ${attribute_initializer_params}) {
 
         // selections
         ${empty_selectors}
-
-        @Override
-        public boolean isEmpty() {
-            return true;
-        }
 
         @Override
         public UniqueId getInstanceId() {

@@ -3,7 +3,7 @@ public void relate_${rel_name}(${self.part_name}.R${self.num}Subtype form, ${sel
 .else
 public void relate_${rel_name}(${self.form_name} form, ${self.part_name} part) {
 .end if
-    if (!form.isEmpty() && !part.isEmpty()) {
+    if (form.notEmpty() && part.notEmpty()) {
         if (form.isActive() && part.isActive()) {
             ${relationship_setters}\
             ${attribute_propagations}\
@@ -36,7 +36,7 @@ public void unrelate_${rel_name}(${self.part_name}.R${self.num}Subtype form, ${s
 .else
 public void unrelate_${rel_name}(${self.form_name} form, ${self.part_name} part) {
 .end if
-    if (!form.isEmpty() && !part.isEmpty()) {
+    if (form.notEmpty() && part.notEmpty()) {
         if (form.isActive() && part.isActive()) {
             ${relationship_unsetters}\
         } else {

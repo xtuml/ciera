@@ -12,9 +12,7 @@ public interface ObjectInstance extends InstanceActionHome, EventTarget, Seriali
 
     public void delete();
 
-    default public boolean isEmpty() {
-        return false;
-    }
+    public boolean isEmpty();
 
     default public boolean notEmpty() {
         return !isEmpty();

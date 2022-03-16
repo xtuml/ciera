@@ -6,6 +6,8 @@ import io.ciera.runtime.api.application.Application;
 import io.ciera.runtime.api.application.Event;
 import io.ciera.runtime.api.application.ExecutionContext;
 import io.ciera.runtime.api.domain.Domain;
+import io.ciera.runtime.api.domain.DynamicObjectInstance;
+import io.ciera.runtime.api.domain.EmptyInstance;
 import io.ciera.runtime.api.domain.ObjectInstance;
 import io.ciera.runtime.api.exceptions.DeletedInstanceException;
 import io.ciera.runtime.api.exceptions.EventTargetException;
@@ -59,6 +61,11 @@ public abstract class AbstractObjectInstance implements ObjectInstance {
     }
 
     @Override
+    public boolean isEmpty() {
+        return this instanceof EmptyInstance;
+    }
+
+    @Override
     public boolean isActive() {
         return active;
     }
@@ -88,12 +95,20 @@ public abstract class AbstractObjectInstance implements ObjectInstance {
 
     @Override
     public void consumeEvent(Event event) {
-        if (getSubtypeInstances().isEmpty()) {
-            throw new EventTargetException("Cannot generate event to non-dynamic instance", this, event);
-        } else {
+        if (isDynamic()) {
             getApplication().getLogger().trace("Passing event through non-dynamic supertype: " + this);
-            getSubtypeInstances().stream().forEach(o -> o.consumeEvent(event));
+            getSubtypeInstances().stream().filter(AbstractObjectInstance.class::isInstance)
+                    .map(AbstractObjectInstance.class::cast).filter(AbstractObjectInstance::isDynamic)
+                    .forEach(o -> o.consumeEvent(event));
+        } else {
+            throw new EventTargetException("Cannot generate event to non-dynamic instance", this, event);
         }
+    }
+
+    protected boolean isDynamic() {
+        return this instanceof DynamicObjectInstance
+                || getSubtypeInstances().stream().filter(AbstractObjectInstance.class::isInstance)
+                        .map(AbstractObjectInstance.class::cast).anyMatch(AbstractObjectInstance::isDynamic);
     }
 
 }

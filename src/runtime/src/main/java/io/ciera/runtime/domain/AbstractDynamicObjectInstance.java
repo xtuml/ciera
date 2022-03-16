@@ -42,11 +42,13 @@ public abstract class AbstractDynamicObjectInstance extends AbstractObjectInstan
     @Override
     public void consumeEvent(Event event) {
         if (isActive()) {
-            if (!isEmpty()) {
+            if (notEmpty()) {
                 if (getStateMachine() != null) {
                     if (event != null) {
                         getStateMachine().consumeEvent(event);
-                        getSubtypeInstances().stream().forEach(o -> o.consumeEvent(event));
+                        getSubtypeInstances().stream().filter(AbstractObjectInstance.class::isInstance)
+                                .map(AbstractObjectInstance.class::cast).filter(AbstractObjectInstance::isDynamic)
+                                .forEach(o -> o.consumeEvent(event));
                     } else {
                         throw new EventTargetException("Cannot consume null event", this, event);
                     }
@@ -64,4 +66,5 @@ public abstract class AbstractDynamicObjectInstance extends AbstractObjectInstan
                     event);
         }
     }
+
 }
