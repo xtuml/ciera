@@ -32,6 +32,25 @@ primitive = type_ref.primitive;
 is_getter = self.accessor_type == AttributeAccessorType::GETTER;
 
 if (not is_getter)
+  select many refs related by self->Attribute[R4510]->AttributeReference[R4506.''has value provided by''];
+  for each ref in refs
+    select any accessor related by ref->Attribute[R4506.''has value provided by'']->AttributeAccessor[R4510]
+      where (selected.accessor_type == AttributeAccessorType::GETTER);
+    accessor_name = accessor.getName();
+    select one rel related by ref->Relationship[R4511];
+    select any selector related by ref->Relationship[R4511]->Selector[R4512]
+      where selected.class_name == self.class_name and selected.class_package == self.class_package and
+            selected.name == "R" + STRING::itoa(i:rel.num) + "_" + T::sub(format:"_", s:ref.part_phrase) + "_" + ref.referred_to_attribute_class_name;
+    selector_name = selector.name;
+    select one ref_type_ref related by ref->Attribute[R4506.''has value provided by'']->TypeReference[R424];
+    ref_primitive = ref_type_ref.primitive;
+    ::addStringImport(package:"io.ciera.runtime.api.exceptions", class_name:"ReferentialAttributeException");
+    T::include(file:"class/t.refattributecheck.java");
+  end for;
+end if;
+ref_attr_checks = T::body();
+
+if (not is_getter)
   select many refs related by self->Attribute[R4510]->AttributeReference[R4506.''provides value for''];
   for each ref in refs
     attribute_name = ref.referred_to_attribute_name;

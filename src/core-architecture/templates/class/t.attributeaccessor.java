@@ -18,6 +18,9 @@ public void ${name}(${type_name} ${self.attribute_name}) {
   .else
         if (!${self.attribute_name}.equals(this.${self.attribute_name})) {
   .end if
+  .if (ref_attr_checks != "")
+            ${ref_attr_checks}\
+  .end if
             this.${self.attribute_name} = ${self.attribute_name};
   .if (propagations != "")
             ${propagations}\
