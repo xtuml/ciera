@@ -89,6 +89,14 @@ ${attribute_initializer_params}) {
     }
 
 .end if
+.if (active_relationship_checks != "")
+    @Override
+    public void delete() {
+        ${active_relationship_checks}\
+        super.delete();
+    }
+
+.end if
     @Override
     public ${self.comp_name} getDomain() {
         return (${self.comp_name}) super.getDomain();

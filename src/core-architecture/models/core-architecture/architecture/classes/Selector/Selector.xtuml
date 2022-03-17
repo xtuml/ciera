@@ -155,6 +155,36 @@ T::include(file:"class/t.selector.modifiers.java");',
 	"2c717bcb-79fc-4d8a-822e-436b4ab018e5",
 	0,
 	4);
+INSERT INTO O_TFR
+	VALUES ("48eeb028-3d8b-47b4-8e8a-c530ae2bac82",
+	"49f03569-1ab3-4237-af87-899e99ffc284",
+	'render_active_check',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'::addStringImport(package:"io.ciera.runtime.api.exceptions", class_name:"InvalidRelationshipException");
+if (self.multiplicity == Mult::MANY)
+  T::include(file:"class/t.relationshiplink.many.check.java");
+else
+  select one rel related by self->Relationship[R4512];
+  // check if this is a supertype selecting to a subtype
+  if rel.rel_type == RelationshipType::SuperSubtype and self.class_name == rel.part_name and self.class_package == rel.part_package
+    // only render one declaration
+    select many rels related by rel->Class[R434]->Relationship[R434] where selected.num == rel.num;
+    select any first_sel related by rels->Selector[R4512] where SORT::ascending(attr:"name") and
+      selected.class_name == self.class_name and selected.class_package == self.class_package;
+    if not_empty first_sel and first_sel.name == self.name
+      T::include(file:"class/t.relationshiplink.sub.check.java");
+    end if;
+  else
+    T::include(file:"class/t.relationshiplink.one.check.java");
+  end if;
+end if;',
+	1,
+	'',
+	"f468cd28-1646-4377-a7c8-4f73bef01097",
+	0,
+	5);
 INSERT INTO O_NBATTR
 	VALUES ("9f7cf2bd-bd88-4367-a2fb-c7019e803b54",
 	"49f03569-1ab3-4237-af87-899e99ffc284");
