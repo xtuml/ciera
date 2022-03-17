@@ -38,7 +38,10 @@ if (not is_getter)
     select any accessor related by ref->Attribute[R4506.''provides value for'']->AttributeAccessor[R4510]
       where (selected.accessor_type == AttributeAccessorType::SETTER);
     accessor_name = accessor.getName();
-    select any selector related by ref->Relationship[R4511]->Selector[R4512] where selected.class_name == self.class_name and selected.class_package == self.class_package;
+    select one rel related by ref->Relationship[R4511];
+    select any selector related by ref->Relationship[R4511]->Selector[R4512]
+      where selected.class_name == self.class_name and selected.class_package == self.class_package and
+            selected.name == "R" + STRING::itoa(i:rel.num) + "_" + T::sub(format:"_", s:ref.form_phrase) + "_" + ref.referring_attribute_class_name;
     selector_name = selector.name;
     multiplicity_many = selector.multiplicity == Mult::MANY;
     T::include(file:"class/t.attributepropagation.java");
