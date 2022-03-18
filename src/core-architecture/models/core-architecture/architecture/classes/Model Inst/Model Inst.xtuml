@@ -134,6 +134,19 @@ for each selector in selects
 end for;
 active_relationship_checks = T::body();
 
+// preferred identifier getter
+identifier_attribute_getters = "";
+sep = "";
+select many preferred_id_attrs related by self->Attribute[R410] where selected.identifier == 1;
+select many preferred_id_getters related by preferred_id_attrs->AttributeAccessor[R4510] where selected.accessor_type == AttributeAccessorType::GETTER;
+if not_empty preferred_id_getters
+  for each preferred_id_getter in preferred_id_getters
+    identifier_attribute_getters = identifier_attribute_getters + sep + preferred_id_getter.getName() + "()";
+    sep = ", ";
+  end for;
+  ::addStringImport(package:"io.ciera.runtime.domain", class_name:"InstanceIdentifier");
+end if;
+
 // attributes for "toString" method
 sep = "";
 if has_ism

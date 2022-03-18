@@ -97,6 +97,13 @@ ${attribute_initializer_params}) {
     }
 
 .end if
+.if (identifier_attribute_getters != "")
+    @Override
+    public Object getIdentifier() {
+        return new InstanceIdentifier(${identifier_attribute_getters});
+    }
+
+.end if
     @Override
     public ${self.comp_name} getDomain() {
         return (${self.comp_name}) super.getDomain();

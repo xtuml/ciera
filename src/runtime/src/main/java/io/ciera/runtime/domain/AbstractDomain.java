@@ -3,6 +3,7 @@ package io.ciera.runtime.domain;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Optional;
@@ -10,6 +11,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -35,12 +37,18 @@ import io.ciera.runtime.api.types.UniqueId;
  */
 public abstract class AbstractDomain implements Domain {
 
+    private final Supplier<Set<ObjectInstance>> objectPopulationSupplier;
     private final String name;
     private final Map<Class<?>, Set<ObjectInstance>> instancePopulation;
 
     public AbstractDomain(String name) {
+        this(name, ObjectPopulation::new);
+    }
+
+    public AbstractDomain(String name, Supplier<Set<ObjectInstance>> objectPopulationSupplier) {
         this.name = name;
         this.instancePopulation = new HashMap<>();
+        this.objectPopulationSupplier = objectPopulationSupplier;
     }
 
     @Override
@@ -88,7 +96,7 @@ public abstract class AbstractDomain implements Domain {
         Class<?> object = instance.getClass();
         Set<ObjectInstance> objectPopulation = instancePopulation.get(object);
         if (objectPopulation == null) {
-            objectPopulation = new LinkedHashSet<>();
+            objectPopulation = objectPopulationSupplier.get();
             instancePopulation.put(object, objectPopulation);
         }
         boolean success = objectPopulation.add(instance);
@@ -167,6 +175,39 @@ public abstract class AbstractDomain implements Domain {
     @Override
     public String toString() {
         return String.format("Domain[%s]", name);
+    }
+
+    private static final class ObjectPopulation extends LinkedHashSet<ObjectInstance> implements Set<ObjectInstance> {
+
+        private static final long serialVersionUID = 1L;
+
+        private final Set<Object> primaryIdentifierSet;
+
+        private ObjectPopulation() {
+            primaryIdentifierSet = new HashSet<>();
+        }
+
+        @Override
+        public boolean add(ObjectInstance e) {
+            final Object identifier = e.getIdentifier();
+            return (InstanceIdentifier.EMPTY_IDENTIFIER.equals(identifier) || primaryIdentifierSet.add(identifier))
+                    && super.add(e);
+        }
+
+        @Override
+        public boolean remove(Object o) {
+            if (o instanceof ObjectInstance) {
+                primaryIdentifierSet.remove(((ObjectInstance) o).getIdentifier());
+            }
+            return super.remove(o);
+        }
+
+        @Override
+        public void clear() {
+            primaryIdentifierSet.clear();
+            super.clear();
+        }
+
     }
 
 }

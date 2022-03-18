@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Comparator;
+import java.util.Set;
 import java.util.concurrent.Executor;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import io.ciera.runtime.api.domain.ObjectInstance;
@@ -18,6 +20,10 @@ public abstract class AbstractPersistentDomain extends AbstractDomain implements
 
     public AbstractPersistentDomain(String name) {
         super(name);
+    }
+
+    public AbstractPersistentDomain(String name, Supplier<Set<ObjectInstance>> objectPopulationSupplier) {
+        super(name, objectPopulationSupplier);
     }
 
     @Override

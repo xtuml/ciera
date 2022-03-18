@@ -19,6 +19,10 @@ public interface ObjectInstance extends InstanceActionHome, EventTarget, Seriali
     }
 
     public boolean isActive();
+    
+    public Object getIdentifier();
+
+    public Object getIdentifier(int index);
 
     @Override
     default public UniqueId getTargetId() {

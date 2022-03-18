@@ -28,7 +28,11 @@ AbstractPersistentDomain implements PersistentDomain {
     }
 
     public ${self.name}(String name) {
-        super(name);
+        super(name\
+.if (population_class != "")
+, ${population_class}::new\
+.end if;
+);
         ${utility_initializers}
         ${port_initializers}
     }

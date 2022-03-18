@@ -69,6 +69,16 @@ public abstract class AbstractObjectInstance implements ObjectInstance {
     public boolean isActive() {
         return active;
     }
+    
+    @Override
+    public Object getIdentifier() {
+        return InstanceIdentifier.EMPTY_IDENTIFIER;
+    }
+    
+    @Override
+    public Object getIdentifier(int index) {
+        throw new IndexOutOfBoundsException(index);
+    }
 
     @Override
     public Domain getDomain() {
