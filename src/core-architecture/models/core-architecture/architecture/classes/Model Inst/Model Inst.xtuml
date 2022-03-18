@@ -193,7 +193,14 @@ end for;
 empty_operations = T::body();
 
 // empty selectors
+last_rel_num = 0;
 for each selector in selects
+  // only render one set of modifiers for sub/super relationships
+  select one rel related by selector->Relationship[R4512];
+  if rel.rel_type != RelationshipType::SuperSubtype or last_rel_num != rel.num
+    selector.render_modifiers_empty();
+  end if;
+  last_rel_num = rel.num;
   selector.render_empty();
 end for;
 empty_selectors = T::body();

@@ -5,7 +5,7 @@ public void add${self.name}(${inst_type_name} inst) {
             throw new InvalidRelationshipException("Relationship R${rel_num} already exists for instance", getDomain(), this, inst);
         }
     } else {
-        throw new DeletedInstanceException("Cannot create relationship with deleted instance", getDomain(), this);
+        throw new DeletedInstanceException("Cannot create relationship on deleted instance", getDomain(), this);
     }
 }
 
@@ -15,7 +15,7 @@ public void remove${self.name}(${inst_type_name} inst) {
             throw new InvalidRelationshipException("Relationship R${rel_num} does not exist between instances", getDomain(), this, inst);
         }
     } else {
-        throw new DeletedInstanceException("Cannot delete relationship with deleted instance", getDomain(), this);
+        throw new DeletedInstanceException("Cannot delete relationship on deleted instance", getDomain(), this);
     }
 }
 
@@ -28,7 +28,7 @@ public void setR${rel_num}_Subtype(R${rel_num}Subtype inst) {
             throw new InvalidRelationshipException("Relationship R${rel_num} already exists for instance", getDomain(), this, inst, R${rel_num}_subtype);
         }
     } else {
-        throw new DeletedInstanceException("Cannot create relationship with deleted instance", getDomain(), this);
+        throw new DeletedInstanceException("Cannot create relationship on deleted instance", getDomain(), this);
     }
 }
 
@@ -40,7 +40,7 @@ public void clearR${rel_num}_Subtype(R${rel_num}Subtype inst) {
             throw new InvalidRelationshipException("Relationship R${rel_num} does not exist between instances", getDomain(), this, inst, R${rel_num}_subtype);
         }
     } else {
-        throw new DeletedInstanceException("Cannot delete relationship with deleted instance", getDomain(), this);
+        throw new DeletedInstanceException("Cannot delete relationship on deleted instance", getDomain(), this);
     }
 }
 
@@ -53,7 +53,7 @@ public void set${self.name}(${inst_type_name} inst) {
             throw new InvalidRelationshipException("Relationship R${rel_num} already exists for instance", getDomain(), this, inst, ${self.name}_inst);
         }
     } else {
-        throw new DeletedInstanceException("Cannot create relationship with deleted instance", getDomain(), this);
+        throw new DeletedInstanceException("Cannot create relationship on deleted instance", getDomain(), this);
     }
 }
 
@@ -65,7 +65,7 @@ public void clear${self.name}(${inst_type_name} inst) {
             throw new InvalidRelationshipException("Relationship R${rel_num} does not exist between instances", getDomain(), this, inst, ${self.name}_inst);
         }
     } else {
-        throw new DeletedInstanceException("Cannot delete relationship with deleted instance", getDomain(), this);
+        throw new DeletedInstanceException("Cannot delete relationship on deleted instance", getDomain(), this);
     }
 }
 

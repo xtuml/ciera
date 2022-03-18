@@ -3,16 +3,8 @@ public void relate_${rel_name}(${self.part_name}.R${self.num}Subtype form, ${sel
 .else
 public void relate_${rel_name}(${self.form_name} form, ${self.part_name} part) {
 .end if
-    if (form.notEmpty() && part.notEmpty()) {
-        if (form.isActive() && part.isActive()) {
-            ${relationship_setters}\
-            ${attribute_propagations}\
-        } else {
-            throw new DeletedInstanceException("Cannot relate deleted instances", this, Stream.of(form, part).filter(inst -> !inst.isActive()).toArray(ObjectInstance[]::new));
-        }
-    } else {
-        throw new EmptyInstanceException("Cannot relate empty instances", this, Stream.of(form, part).filter(ObjectInstance::isEmpty).toArray(ObjectInstance[]::new));
-    }
+    ${relationship_setters}\
+    ${attribute_propagations}\
 }
 
 .if (part_uncond_one)
@@ -36,14 +28,6 @@ public void unrelate_${rel_name}(${self.part_name}.R${self.num}Subtype form, ${s
 .else
 public void unrelate_${rel_name}(${self.form_name} form, ${self.part_name} part) {
 .end if
-    if (form.notEmpty() && part.notEmpty()) {
-        if (form.isActive() && part.isActive()) {
-            ${relationship_unsetters}\
-        } else {
-            throw new DeletedInstanceException("Cannot unrelate deleted instances", this, Stream.of(form, part).filter(inst -> !inst.isActive()).toArray(ObjectInstance[]::new));
-        }
-    } else {
-        throw new EmptyInstanceException("Cannot unrelate empty instances", this, Stream.of(form, part).filter(ObjectInstance::isEmpty).toArray(ObjectInstance[]::new));
-    }
+    ${relationship_unsetters}\
 }
 
