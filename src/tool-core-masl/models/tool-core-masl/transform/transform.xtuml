@@ -362,9 +362,17 @@ comp_def = param.comp_def;
 select one component_file related by comp_def->File[R401];
 path = component_file.path + "/" + "classes";  // put all classes in one package called ''classes''
 
+// if there is a key letter mark, use it as the object name
+select any key_letter_mark from instances of Mark where selected.markable_name == "Object" and selected.feature_name == "key_letter"
+  and selected.path == "" + domain.name + "::" + object_declaration.name;
+
 // create the object file
 create object instance file of File;
-file.name = ::camelCaseName(name:object_declaration.name, start_lower:false );
+if not_empty key_letter_mark
+  file.name = key_letter_mark.value;
+else
+  file.name = ::camelCaseName(name:object_declaration.name, start_lower:false );
+end if;
 file.path = path;
 file.package = ::pathToPackage(path:file.path);
 file.extension = ".java";
