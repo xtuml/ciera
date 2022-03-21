@@ -1,1 +1,1 @@
-provides Application with ${self.name};
+provides Application with ${app_names};

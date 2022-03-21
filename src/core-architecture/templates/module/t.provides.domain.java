@@ -1,1 +1,1 @@
-provides Domain with ${self.name};
+provides Domain with ${domain_names};

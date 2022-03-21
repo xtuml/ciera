@@ -30,16 +30,34 @@ opens = T::body();
 
 // render domain provisions
 select many domain_provisions related by self->ComponentDefinition[R5752] where SORT::ascending(attr:"name");
-for each domain_provision in domain_provisions
-  domain_provision.render_provides();
-end for;
+if not_empty domain_provisions
+  domain_names = "";
+  sep = "";
+  for each domain_provision in domain_provisions
+    select one file related by domain_provision->File[R401];
+    ::addFileImport(file:file);
+    domain_names = domain_names + sep + domain_provision.name;
+    sep = ", ";
+  end for;
+  ::addStringImport(package:"io.ciera.runtime.api.domain", class_name:"Domain");
+  T::include(file:"module/t.provides.domain.java");
+end if;
 domains = T::body();
 
 // render application provisions
 select many application_provisions related by self->Application[R5751] where SORT::ascending(attr:"name");
-for each application_provision in application_provisions
-  application_provision.render_provides();
-end for;
+if not_empty application_provisions
+  app_names = "";
+  sep = "";
+  for each application_provision in application_provisions
+  	select one file related by application_provision->File[R401];
+  	::addFileImport(file:file);
+    app_names = app_names + sep + application_provision.name;
+    sep = ", ";
+  end for;
+  ::addStringImport(package:"io.ciera.runtime.api.application", class_name:"Application");
+  T::include(file:"module/t.provides.application.java");
+end if;
 applications = T::body();
 
 // render module dependencies
