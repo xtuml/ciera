@@ -236,7 +236,21 @@ if not_empty console_literal
   create object instance lit of Literal;
   relate lit to expr across R776;
   lit.value = "Device.console()";
-end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; ',
+else
+select one enumerate_literal related by literal_expression->EnumerateLiteral[R5700];
+if not_empty enumerate_literal
+  create object instance enum_ref of EnumeratorReference;
+  relate enum_ref to expr across R776;
+  select one enumerate_item related by enumerate_literal->EnumerateItem[R5701];
+  select any enumer related by enumerate_item->EnumerateType[R6245]->FullTypeDefinition[R6219]->TypeDefinition[R6236]
+    ->TypeDeclaration[R6234]->MaslUserDefinedType[R6241]->Type[R8314]->EnumeratedType[R407]->Enumerator[R415]
+    where selected.name == "" + enumerate_item.name;
+  if not_empty enumer
+    relate enumer to enum_ref across R786;
+  else
+    // TODO bad
+  end if;
+end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -592,6 +606,25 @@ else
   select one masl_type related by binary_expression->MaslExpression[R5517]->BasicType[R5570];
   type = ::getTypeReferenceForMASLType(basic_type:masl_type);
   relate type to expr across R795;
+  
+  // if this is a not-equals comparison, we create unary not and an equals comparison
+  select any unary_not from instances of UnaryOperation where false;
+  if (binary_expression.operator == Operator::notequal)
+    // create the unary expression
+    create object instance unary_not of UnaryOperation;
+    relate unary_not to expr across R776;
+    unary_not.operator = "!";
+    unary_not.invocation = false;
+
+    // create ''equal'' expression
+    create object instance expr of Expression;
+    relate expr to smt across R775;
+    expr.expression_number = expr.expression_number + ".1";
+    relate expr to unary_not across R777;
+    boolean_type = ::getBasicTypeReferenceByName(name:"boolean");
+    relate boolean_type to expr across R795;
+
+  end if;
 
   // create the binary expression
   create object instance binary of BinaryOperation;
@@ -618,18 +651,11 @@ else
       binary.operator = "or";
       binary.invocation = true;
     end if;
-  elif (binary_expression.operator == Operator::equal)
+  elif (binary_expression.operator == Operator::equal) or (not_empty unary_not and binary_expression.operator == Operator::notequal)
     if (l_type.primitive)
       binary.operator = "==";
     else
       binary.operator = "equals";
-      binary.invocation = true;
-    end if;
-  elif (binary_expression.operator == Operator::notequal)
-    if (l_type.primitive)
-      binary.operator = "!=";
-    else
-      binary.operator = "inequality";  // TODO
       binary.invocation = true;
     end if;
   elif (binary_expression.operator == Operator::lessthan)
@@ -1009,6 +1035,8 @@ if (not_empty characteristic_expression)
     characteristic_name = "isScheduled";
   elif characteristic_expression.characteristic == "expired"
     characteristic_name = "isExpired";
+  elif characteristic_expression.characteristic == "length"
+    characteristic_name = "size";
   else
     LOG::LogFailure(message:"Unsupported type characterstic ''" + characteristic_expression.characteristic + "'' for type: " + base_type.name);
   end if;

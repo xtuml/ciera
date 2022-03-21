@@ -89,7 +89,10 @@ INSERT INTO S_SYNC
 ::createCharacteristic(type:"Timer", name:"getScheduledExpirationTime", return_type:"TimeStamp");
 ::createCharacteristic(type:"Timer", name:"getLastExpirationTime", return_type:"TimeStamp");
 ::createCharacteristic(type:"Timer", name:"isScheduled", return_type:"boolean");
-::createCharacteristic(type:"Timer", name:"isExpired", return_type:"boolean");',
+::createCharacteristic(type:"Timer", name:"isExpired", return_type:"boolean");
+
+// set characteristics TODO move this to the main arch project
+::createCharacteristic(type:"Set", name:"size", return_type:"int");',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -163,12 +166,14 @@ INSERT INTO S_SYNC
 
 select any empty_type_ref from instances of TypeReference where false;
 
-// TODO currently just support builtin types, instance types, and sets
+// TODO currently just support builtin types, instance types, enumerated types, and sets
 
+// void type
 if empty basic_type
   return ::getBasicTypeReferenceByName(name:"void");
 end if;
 
+// builtin types
 select one builtin related by basic_type->BuiltinType[R6205];
 if not_empty builtin
   // map from MASL builtins to Ciera builtins
@@ -206,12 +211,14 @@ if not_empty builtin
   end if;
 end if;
 
+// instance types
 select one instance_type related by basic_type->InstanceType[R6205];
 if not_empty instance_type
   select one obj related by instance_type->ObjectDeclaration[R6220]->Class[R8300];
   return ::getObjectReference(obj:obj);
 end if;
 
+// collection types
 select one collection_type related by basic_type->CollectionType[R6205];
 if not_empty collection_type
   select one element_type related by collection_type->BasicType[R6208];
@@ -225,6 +232,17 @@ if not_empty collection_type
     return ::getListReference(element_type:element_type_ref);
   end if;
   // TODO handle other collections
+end if;
+
+// user defined types
+select one user_defined_type related by basic_type->MaslUserDefinedType[R6205];
+if not_empty user_defined_type
+  select one type related by user_defined_type->Type[R8314];
+  if not_empty type
+    return ::getBasicTypeReference(type:type);
+  else
+    // TODO bad
+  end if;
 end if;
 
 return empty_type_ref;',
