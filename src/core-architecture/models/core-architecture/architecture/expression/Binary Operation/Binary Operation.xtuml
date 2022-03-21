@@ -17,23 +17,63 @@ INSERT INTO O_TFR
 	'T::push_buffer();
 
 select one left_operand related by self->Expression[R779];
+select one right_operand related by self->Expression[R778];
 operator = self.operator;
-if ( "=" == self.operator ) // special rules for assignments
+
+right_operand_body = "";
+
+// special rules for assignments
+if self.operator == "="
+
+  // for attribute accesses on the left hand side, the operator is the name of the setter
   select one attr_access related by left_operand->AttributeAccess[R776];
-  if ( not_empty attr_access ) // for attribute accesses on the left hand side, the operator is the name of the setter
+  if not_empty attr_access
     select any accessor related by attr_access->Attribute[R788]->AttributeAccessor[R4510]
-      where ( selected.accessor_type == AttributeAccessorType::SETTER );
+      where selected.accessor_type == AttributeAccessorType::SETTER;
     operator = accessor.getName();
     self.invocation = true;
     select one left_operand related by attr_access->Expression[R785];
   end if;
+
+  // for by ref param accesses on the left hand side, the operator is the name of the setter
+  select one param_ref related by left_operand->ParameterReference[R776];
+  select one form_param related by param_ref->FormalParameter[R781];
+  if not_empty param_ref and form_param.by_ref
+    operator = "set";
+    self.invocation = true;
+  end if;
+
+  // for by variable references on the left hand side (where the variable is
+  // eventually passed as a parameter by reference), the operator is the name of
+  // the setter
+  select one var_ref related by left_operand->VariableReference[R776];
+  select any by_ref_param related by var_ref->Variable[R782]->VariableReference[R782]->Expression[R776]
+    ->ActualParameter[R794]->FormalParameter[R3904] where selected.by_ref;
+  if not_empty var_ref and not_empty by_ref_param and not var_ref.declaration
+    operator = "set";
+    self.invocation = true;
+
+  // properly set the initial value for local variables which will be eventually
+  // passed by reference
+  elif not_empty var_ref and not_empty by_ref_param and var_ref.declaration
+    ::addStringImport(package:"io.ciera.runtime.domain", class_name:"LocalVariable");
+    right_operand.render();
+    base_expr = T::body();
+    T::include(file:"expression/t.variableinitialization.byref.java");
+    right_operand_body = T::body();
+  end if;
+
 end if;
+
+// render right operand
 left_operand.render();
 left_operand_body = T::body();
 
-select one right_operand related by self->Expression[R778];
-right_operand.render();
-right_operand_body = T::body();
+// render right operand
+if right_operand_body == ""
+	right_operand.render();
+	right_operand_body = T::body();
+end if;
 
 T::pop_buffer();
 T::include(file:"expression/t.binaryoperation.java");',

@@ -15,19 +15,55 @@ INSERT INTO O_TFR
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'select one var related by self->Variable[R782];
-var_readonly = var.readonly;
-select one var_type related by var->TypeReference[R461];
-type_name = var_type.type_reference;
+
+// check if this variable is passed as a by reference parameter somewhere in the body
+select any by_ref_param related by var->VariableReference[R782]->Expression[R776]
+  ->ActualParameter[R794]->FormalParameter[R3904] where selected.by_ref;
+is_passed_by_ref = not_empty by_ref_param;
+
+// check if this variable reference is the declaration
+if self.declaration
+
+  // variables are read only if they are marked readonly
+  var_readonly = var.readonly;
+  
+  // get the type name
+  select one var_type related by var->TypeReference[R461];
+  type_name = var_type.type_reference;
+  if is_passed_by_ref
+    select one var_builtin_type related by var_type->BasicTypeReference[R3801]->TypeReference[R3801]->Type[R3800]->BuiltInType[R407];
+    if not_empty var_builtin_type
+      type_name = var_builtin_type.object_name;
+    end if;
+  end if;
+  
+  // resolve imports
+  if (is_passed_by_ref)
+    ::addStringImport(package:"io.ciera.runtime.domain", class_name:"LocalVariable");
+  end if;
+  ::resolveImportsForTypeReference(type_ref:var_type);
+  
+  T::include(file:"expression/t.variabledeclaration.java");
+end if;
+
+// check if this reference is referring to a finalization
 finalization_num = 0;
-select any finalization related by self->Variable[R782]->Finalization[R485] where (selected.block_number == self.block_number and selected.statement_number == self.statement_number);
-if (not_empty finalization)
-  finalization_num = finalization.finalization_number;
+if not is_passed_by_ref
+  select any finalization related by self->Variable[R782]->Finalization[R485] where (selected.block_number == self.block_number and selected.statement_number == self.statement_number);
+  if (not_empty finalization)
+    finalization_num = finalization.finalization_number;
+  end if;
 end if;
 var_name = var.scope_unique_name;
-if self.declaration
-  ::resolveImportsForTypeReference(type_ref:var_type);
-end if;
-T::include(file:"expression/t.variablereference.java");',
+
+// if the variable is passed by reference at some point and this is either a
+// parameter value or the left hand side of an assignment, handle things
+// slightly differently
+select one act_parm related by self->Expression[R776]->ActualParameter[R794];
+select one assign_lhs related by self->Expression[R776]->BinaryOperation[R779] where selected.operator == "=";
+
+T::include(file:"expression/t.variablereference.java");
+',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",

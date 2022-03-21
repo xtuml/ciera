@@ -14,7 +14,16 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'T::include(file:"expression/t.parameterreference.java");',
+	'select one formal_param related by self->FormalParameter[R781];
+
+// if it refers to a by ref parameter and this is either a parameter value
+// itself or the left hand side of an assignment, handle things slightly
+// differently
+by_ref = formal_param.by_ref;
+select one act_parm related by self->Expression[R776]->ActualParameter[R794];
+select one assign_lhs related by self->Expression[R776]->BinaryOperation[R779] where selected.operator == "=";
+
+T::include(file:"expression/t.parameterreference.java");',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",

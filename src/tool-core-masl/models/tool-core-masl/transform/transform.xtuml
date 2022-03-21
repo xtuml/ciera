@@ -603,10 +603,6 @@ msg.to_provider = true;
 msg.id = index;
 relate msg to iface across R419;
 
-// check if this service has a return type
-select one basic_type related by service->BasicType[R5205];
-msg.async = empty basic_type;
-
 // create port message
 create object instance port_msg of PortMessage;
 relate port to msg across R420 using port_msg;
@@ -628,12 +624,17 @@ if not_empty code_block
 end if;
 
 // link type
+select one basic_type related by service->BasicType[R5205];
 type = ::getTypeReferenceForMASLType(basic_type:basic_type);
 relate type to invocable across R428;
 
 // create parameters
 select one first_parameter related by service->ParameterDefinition[R5204];
-::transformParameterList(first_parameter:first_parameter, invocable:invocable);',
+::transformParameterList(first_parameter:first_parameter, invocable:invocable);
+
+// check if this service has a return type or ''out'' parameters
+select any by_ref_param related by invocable->FormalParameter[R429] where selected.by_ref;
+msg.async = empty basic_type and empty by_ref_param;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',

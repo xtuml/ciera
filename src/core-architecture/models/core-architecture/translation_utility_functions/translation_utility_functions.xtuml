@@ -633,7 +633,9 @@ for each affected_expr in affected_exprs
     select many var_assignments related by var_ref->Variable[R782]->VariableReference[R782]->Expression[R776]->BinaryOperation[R779]
       where (selected.operator == "=");
     select one for_smt related by var_ref->Variable[R782]->ForSmt[R459];
-    if (cardinality var_assignments > 1 or not_empty for_smt)
+    select any by_ref_param related by var_ref->Variable[R782]->VariableReference[R782]->Expression[R776]->ActualParameter[R794]->FormalParameter[R3904]
+      where selected.by_ref;
+    if ((cardinality var_assignments > 1 or not_empty for_smt) and empty by_ref_param)
       select one smt related by var_ref->Expression[R776]->Statement[R775];
       select one var related by var_ref->Variable[R782];
       select any finalization related by smt->Finalization[R485] where (selected.var_block_number == var.block_number and selected.var_name == var.name);
