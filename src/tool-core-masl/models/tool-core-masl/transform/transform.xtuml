@@ -88,135 +88,150 @@ INSERT INTO S_SYNC
 	'',
 	'domain = param.domain;
 
-select any file from instances of File where (selected.name == ::camelCaseName(name:domain.name, start_lower:false) and selected.package == ::pathToPackage(path:param.path));
-select one comp_def related by file->ComponentDefinition[R401];
+  // check if this is a utility domain
+select any utility_mark from instances of Mark where
+  selected.markable_name == "Domain" and selected.feature_name == "utility" and selected.path == "" + domain.name;
+if domain.interface and not_empty utility_mark
 
-if (param.pass == 1)
+  if (param.pass == 1)
 
-  // create module file
-	create object instance module_file of File;
-	module_file.name = domain.name;
-  module_file.exclude = domain.interface;
+    ::transformUtilityDomain(domain:domain, path:param.path, util_package:utility_mark.value);
 
-	// create the module object
-	create object instance mod of Module;
-	relate mod to module_file across R401;
-	mod.main_module = not domain.interface;
-	relate mod to domain across R8309;
-	
-  // create the file
-  create object instance file of File;
-  file.name = ::camelCaseName(name:domain.name, start_lower:false);
-  file.path = param.path;
-  file.package = ::pathToPackage(path:file.path);
-  file.extension = ".java";
-  file.exclude = domain.interface;
-
-  // create the component definition object
-  create object instance comp_def of ComponentDefinition;
-  relate comp_def to file across R401;
-	relate comp_def to mod across R5752;
-	relate comp_def to domain across R8310;
-
-  // for full domain definitions, do a bit more transformation
-  if not domain.interface
-  
-    // check the transient mark
-    select any transient_mark from instances of Mark
-      where (selected.markable_name == "Domain" and selected.path == "" + domain.name and selected.feature_name == "transient");
-    comp_def.transient = not_empty transient_mark;
-
-    // export the domain package
-    create object instance export_package of ExportedPackage;
-    export_package.name = comp_def.package;
-    relate export_package to mod across R5750;
-    
-  end if;
-  
-  // transform exceptions
-  select many exception_declarations related by domain->ExceptionDeclaration[R5400]
-    where selected.visibility == MaslVisibility::public or not domain.interface;
-  for each exception_declaration in exception_declarations
-    ::transformMaslException(exception_declaration: exception_declaration, comp_def:comp_def, exclude:domain.interface);
-  end for;
-
-  // transform data types
-  select many type_declarations related by domain->MaslUserDefinedType[R6235]
-    where selected.visibility == MaslVisibility::public or not domain.interface;
-  for each type_declaration in type_declarations
-    ::transformTypeDeclaration(type_declaration:type_declaration, comp_def:comp_def, exclude:domain.interface);
-  end for;
-  
-elif (param.pass == 2)
-  
-  // transform services
-  select many domain_services related by domain->DomainService[R5303]->Service[R5203]
-    where selected.visibility == MaslVisibility::public or not domain.interface;
-  for each service in domain_services
-    select one domain_service related by service->DomainService[R5203];
-    ::transformDomainService(domain_service:domain_service, comp_def:comp_def);
-  end for;
-
-elif (param.pass == 3)
-
-  if not domain.interface
-
-    // transform objects
-    select many object_declarations related by domain->ObjectDeclaration[R5805];
-    for each object_declaration in object_declarations
-      ::transformObject(object_declaration:object_declaration, comp_def:comp_def);
-    end for;
-  
   end if;
 
-elif (param.pass == 4)
-
-  if not domain.interface
-
-    // transform relationships
-    select many rels related by domain->RelationshipDeclaration[R6003];
-    for each rel in rels
-      ::transformRelationship(rel:rel, comp_def:comp_def);
-    end for;
-
-    // transform transition tables
-    select many transition_tables related by domain->ObjectDeclaration[R5805]->TransitionTable[R6113];
-    for each transition_table in transition_tables
-      // check to assure there are not 2 transition tables
-      select many transition_tables related by transition_table->ObjectDeclaration[R6113]->TransitionTable[R6113];
-      if cardinality transition_tables == 1
-        select one obj related by transition_table->ObjectDeclaration[R6113]->Class[R8300];
-        if not_empty transition_table
-          ::transformTransitionTable(transition_table:transition_table, obj:obj);
-        end if;
-      else
-        LOG::LogFailure(message:"Objects can have at most one transition table");
-      end if;
-    end for;
-  
-  end if;
-
-  // transform terminators
-  select many terms related by domain->DomainTerminator[R5304];
-  for each term in terms
-    ::transformDomainTerminator(domain_terminator:term, comp_def:comp_def, path:file.path + "/" + T::sub(format:"l", s:term.name));
-  end for;
- 
 else
-
-  if not domain.interface
-
-    // transform selectors
-    select many objs related by comp_def->Class[R408];
-    for each obj in objs
-      ::transformSelectors(obj:obj);
+  
+  select any file from instances of File where (selected.name == ::camelCaseName(name:domain.name, start_lower:false) and selected.package == ::pathToPackage(path:param.path));
+  select one comp_def related by file->ComponentDefinition[R401];
+  
+  if (param.pass == 1)
+  
+    // create module file
+    create object instance module_file of File;
+    module_file.name = domain.name;
+    module_file.exclude = domain.interface;
+  
+    // create the module object
+    create object instance mod of Module;
+    relate mod to module_file across R401;
+    mod.main_module = not domain.interface;
+    relate mod to domain across R8309;
+  
+    // create the file
+    create object instance file of File;
+    file.name = ::camelCaseName(name:domain.name, start_lower:false);
+    file.path = param.path;
+    file.package = ::pathToPackage(path:file.path);
+    file.extension = ".java";
+    file.exclude = domain.interface;
+  
+    // create the component definition object
+    create object instance comp_def of ComponentDefinition;
+    relate comp_def to file across R401;
+    relate comp_def to mod across R5752;
+    relate comp_def to domain across R8310;
+  
+    // for full domain definitions, do a bit more transformation
+    if not domain.interface
+  
+      // check the transient mark
+      select any transient_mark from instances of Mark
+        where (selected.markable_name == "Domain" and selected.path == "" + domain.name and selected.feature_name == "transient");
+      comp_def.transient = not_empty transient_mark;
+  
+      // export the domain package
+      create object instance export_package of ExportedPackage;
+      export_package.name = comp_def.package;
+      relate export_package to mod across R5750;
+  
+    end if;
+  
+    // transform exceptions
+    select many exception_declarations related by domain->ExceptionDeclaration[R5400]
+      where selected.visibility == MaslVisibility::public or not domain.interface;
+    for each exception_declaration in exception_declarations
+      ::transformMaslException(exception_declaration: exception_declaration, comp_def:comp_def, exclude:domain.interface);
     end for;
-
-    // transform attribute references
-    select many objs related by comp_def->Class[R408];
-    for each obj in objs
-      ::transformMaslAttributeReferences(obj:obj);
+  
+    // transform data types
+    select many type_declarations related by domain->MaslUserDefinedType[R6235]
+      where selected.visibility == MaslVisibility::public or not domain.interface;
+    for each type_declaration in type_declarations
+      ::transformTypeDeclaration(type_declaration:type_declaration, comp_def:comp_def, exclude:domain.interface);
     end for;
+  
+  elif (param.pass == 2)
+  
+    // transform services
+    select many domain_services related by domain->DomainService[R5303]->Service[R5203]
+      where selected.visibility == MaslVisibility::public or not domain.interface;
+    for each service in domain_services
+      select one domain_service related by service->DomainService[R5203];
+      ::transformDomainService(domain_service:domain_service, comp_def:comp_def);
+    end for;
+  
+  elif (param.pass == 3)
+  
+    if not domain.interface
+  
+      // transform objects
+      select many object_declarations related by domain->ObjectDeclaration[R5805];
+      for each object_declaration in object_declarations
+        ::transformObject(object_declaration:object_declaration, comp_def:comp_def);
+      end for;
+  
+    end if;
+  
+  elif (param.pass == 4)
+  
+    if not domain.interface
+  
+      // transform relationships
+      select many rels related by domain->RelationshipDeclaration[R6003];
+      for each rel in rels
+        ::transformRelationship(rel:rel, comp_def:comp_def);
+      end for;
+  
+      // transform transition tables
+      select many transition_tables related by domain->ObjectDeclaration[R5805]->TransitionTable[R6113];
+      for each transition_table in transition_tables
+        // check to assure there are not 2 transition tables
+        select many transition_tables related by transition_table->ObjectDeclaration[R6113]->TransitionTable[R6113];
+        if cardinality transition_tables == 1
+          select one obj related by transition_table->ObjectDeclaration[R6113]->Class[R8300];
+          if not_empty transition_table
+            ::transformTransitionTable(transition_table:transition_table, obj:obj);
+          end if;
+        else
+          LOG::LogFailure(message:"Objects can have at most one transition table");
+        end if;
+      end for;
+  
+    end if;
+  
+    // transform terminators
+    select many terms related by domain->DomainTerminator[R5304];
+    for each term in terms
+      ::transformDomainTerminator(domain_terminator:term, comp_def:comp_def, path:file.path + "/" + T::sub(format:"l", s:term.name));
+    end for;
+  
+  else
+  
+    if not domain.interface
+  
+      // transform selectors
+      select many objs related by comp_def->Class[R408];
+      for each obj in objs
+        ::transformSelectors(obj:obj);
+      end for;
+  
+      // transform attribute references
+      select many objs related by comp_def->Class[R408];
+      for each obj in objs
+        ::transformMaslAttributeReferences(obj:obj);
+      end for;
+  
+    end if;
   
   end if;
 
@@ -1702,16 +1717,24 @@ INSERT INTO S_SYNC
 	'',
 	'domain = param.domain;
 
+// get the parameters
+utility_module = STRING::substr(s:param.util_package, begin:0, end:STRING::indexof(haystack:param.util_package, needle:","));
+utility_package = utility_module;
+if STRING::indexof(haystack:param.util_package, needle:",") != -1
+  utility_package = STRING::substr(s:param.util_package, begin:STRING::indexof(haystack:param.util_package, needle:",") + 1, end:-1);
+end if;
+
 // create the file
 create object instance file of File;
 file.name = domain.name;
-if param.util_package == ""
+if utility_package == ""
+  // if no pacakge is passed in, this is a private utility within this domain
   file.path = param.path + "/util";
   file.package = ::pathToPackage(path:file.path);
   file.extension = ".java";
 else
-  file.package = param.util_package;
-  file.path = ::formatPath( path:file.package );
+  file.package = utility_package;
+  file.path = ::formatPath(path:file.package);
   file.extension = ".java";
   file.exclude = true;
 end if;
@@ -1720,12 +1743,34 @@ end if;
 create object instance utility of Utility;
 relate utility to file across R401;
 
-// relate the containing component
-select many comp_defs from instances of ComponentDefinition;
-for each comp_def in comp_defs
-  create object instance util_ref of UtilityInComponent;
-  relate utility to comp_def across R4558 using util_ref;
-end for;
+// create the module if this is an external module
+if utility_module != ""
+
+  select any mod from instances of Module where selected.name == utility_module;
+  if empty mod
+ 
+    // create module file
+    create object instance module_file of File;
+    module_file.name = utility_module;
+    module_file.exclude = true;
+    
+    // create the module object
+    create object instance mod of Module;
+    relate mod to module_file across R401;
+    mod.main_module = false;
+    relate mod to domain across R8309;
+
+  end if;
+  
+  // create an export package
+  select any export_package related by mod->ExportedPackage[R5750] where selected.name == utility.package;
+  if empty export_package
+    create object instance export_package of ExportedPackage;
+    export_package.name = utility.package;
+    relate export_package to mod across R5750;
+  end if;
+  
+end if;
 
 // check if this is implemented as native code
 select any native_util_mark from instances of Mark where
@@ -1738,7 +1783,9 @@ end if;
 select many domain_services related by domain->DomainService[R5303];
 for each domain_service in domain_services
   ::transformUtilityDomainService(domain_service:domain_service, utility:utility);
-end for;',
+end for;
+
+// TODO types and exceptions',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',

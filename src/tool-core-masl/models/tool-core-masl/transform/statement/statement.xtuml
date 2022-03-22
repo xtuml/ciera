@@ -1122,6 +1122,10 @@ if (not_empty domain_service_invocation)
   if empty invocable
     // look for utility functions
     select any utility related by containing_comp_def->Utility[R4558] where selected.name == "" + domain.name;
+    if empty utility
+      select any utility from instances of Utility where selected.name == "" + domain.name;
+      ::importUtility(utility:utility, comp_def:containing_comp_def);
+    end if;
     select any invocable related by utility->UtilityFunction[R4559]->InvocableObject[R427] where selected.name == "" + service.name;
   end if;
 

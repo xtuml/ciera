@@ -280,6 +280,76 @@ INSERT INTO S_DT_PROXY
 	'',
 	'',
 	'../../../../core-architecture/models/core-architecture/architecture/type/type.xtuml');
+INSERT INTO S_SYNC
+	VALUES ("ae37fe58-7405-43b3-aeb4-3027ebd88fce",
+	"00000000-0000-0000-0000-000000000000",
+	'importUtility',
+	'',
+	'utility = param.utility;
+comp_def = param.comp_def;
+
+if not_empty utility and not_empty comp_def
+
+  // link the utility and the component definition
+  create object instance uic of UtilityInComponent;
+  relate utility to comp_def across R4558 using uic;
+  
+  // create a module dependency
+  select any util_package from instances of ExportedPackage where selected.name == utility.package;
+  select one util_mod related by util_package->Module[R5750];
+  select one comp_mod related by comp_def->Module[R5752];
+  if not_empty util_mod and not_empty comp_mod and util_mod != comp_mod
+    select any dependency related by comp_mod->Dependency[R5753.''requires''] where selected.required_module_name == util_mod.name;
+    if empty dependency
+      create object instance dependency of Dependency;
+      relate util_mod to comp_mod across R5753.''required by'' using dependency;
+    end if;
+  end if;
+
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	14);
+INSERT INTO S_SPARM
+	VALUES ("03d91030-4c78-4956-b3c2-71fd411300f3",
+	"ae37fe58-7405-43b3-aeb4-3027ebd88fce",
+	'utility',
+	"05845c9d-7216-4905-8b60-6bf9f95f42e7",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("05845c9d-7216-4905-8b60-6bf9f95f42e7",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Utility>',
+	'',
+	'',
+	'../../../../core-architecture/models/core-architecture/architecture/component/component.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("4bce4917-b632-4b5b-98f2-6011af314706",
+	"ae37fe58-7405-43b3-aeb4-3027ebd88fce",
+	'comp_def',
+	"109e90cb-1d66-46ee-88db-a568044879d0",
+	0,
+	'',
+	"03d91030-4c78-4956-b3c2-71fd411300f3",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("109e90cb-1d66-46ee-88db-a568044879d0",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Component Definition>',
+	'',
+	'',
+	'../../../../core-architecture/models/core-architecture/architecture/component/component.xtuml');
+INSERT INTO PE_PE
+	VALUES ("ae37fe58-7405-43b3-aeb4-3027ebd88fce",
+	1,
+	"3e3aaf4c-aba5-451d-b263-e8fc1b717bce",
+	"00000000-0000-0000-0000-000000000000",
+	1);
 INSERT INTO PE_PE
 	VALUES ("3e3aaf4c-aba5-451d-b263-e8fc1b717bce",
 	1,
