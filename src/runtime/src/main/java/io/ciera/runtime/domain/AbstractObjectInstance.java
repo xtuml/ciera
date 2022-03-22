@@ -52,8 +52,8 @@ public abstract class AbstractObjectInstance implements ObjectInstance {
     @Override
     public void delete() {
         if (isActive()) {
-            active = false;
             getDomain().deleteInstance(this);
+            active = false;
         } else {
             throw new DeletedInstanceException("Cannot delete instance that has already been deleted", getDomain(),
                     this);

@@ -38,7 +38,7 @@ public class BaseApplication implements Application {
         this.logger = new DefaultLogger(name + "Logger", this);
         this.exceptionHandler = new DefaultExceptionHandler();
     }
-    
+
     @Override
     public String getName() {
         return name;
@@ -132,9 +132,8 @@ public class BaseApplication implements Application {
     @Override
     public Stream<Domain> findDomains(String... domainNames) {
         List<String> domains = Arrays.asList(domainNames);
-        return ServiceLoader.load(Domain.class).stream()
-                .map(ServiceLoader.Provider::get)
-                .filter(p -> domains.contains(p.getName()));
+        return ServiceLoader.load(Domain.class).stream().map(ServiceLoader.Provider::get)
+                .filter(p -> domains.stream().anyMatch(d -> p.getClass().getSimpleName().endsWith(d)));
     }
 
     @Override

@@ -24,7 +24,11 @@ AbstractPersistentDomain implements PersistentDomain {
 
 .end if
     public ${self.name}() {
+.if (self.supertype_name != "")
+        this("${self.supertype_name}");
+.else
         this("${self.name}");
+.end if
     }
 
     public ${self.name}(String name) {
