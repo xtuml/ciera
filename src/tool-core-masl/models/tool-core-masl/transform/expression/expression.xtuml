@@ -58,6 +58,10 @@ select one selected_attribute_expression related by masl_expression->SelectedAtt
 if (not_empty selected_attribute_expression)
   ::transformSelectedAttributeExpression(selected_attribute_expression:selected_attribute_expression, smt:smt, expr_number:expr_number);
 else
+select one unary_expression related by masl_expression->UnaryExpression[R5517];
+if (not_empty unary_expression)
+  ::transformUnaryExpression(unary_expression:unary_expression, smt:smt, expr_number:expr_number);
+else
 select one binary_expression related by masl_expression->BinaryExpression[R5517];
 if (not_empty binary_expression)
   ::transformBinaryExpression(binary_expression:binary_expression, smt:smt, expr_number:expr_number);
@@ -95,7 +99,7 @@ if (not_empty ordering_expression)
   ::transformOrderingExpression(ordering_expression:ordering_expression, smt:smt, expr_number:expr_number);
 else
   LOG::LogInfo( message:"expression type not yet supported" );
-end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if;',
+end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -2090,6 +2094,91 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("5e77da65-c7e4-4164-8395-ca754791fd2b",
+	1,
+	"6b1296bb-978b-44fd-b197-7cada155e1c8",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("f13df76c-4e75-486d-a0de-f6e5676e3a20",
+	"00000000-0000-0000-0000-000000000000",
+	'transformUnaryExpression',
+	'',
+	'unary_expression = param.unary_expression;
+smt = param.smt;
+expr_number = param.expr_number;
+file = ::getFileForStatement(smt:smt);
+
+// create expression
+create object instance expr of Expression;
+relate expr to smt across R775;
+expr.expression_number = expr_number;
+
+// link type
+select one masl_type related by unary_expression->MaslExpression[R5517]->BasicType[R5570];
+type = ::getTypeReferenceForMASLType(basic_type:masl_type);
+relate type to expr across R795;
+
+// create the unary expression
+create object instance uny of UnaryOperation;
+relate uny to expr across R776;
+
+// translate the operator
+if (unary_expression.operator == Operator::minus)
+  uny.operator = "-";
+elif (unary_expression.operator == Operator::not)
+  uny.operator = "!";
+elif (unary_expression.operator == Operator::abs)
+  uny.operator = "Math.abs";
+  uny.invocation = true;
+  uny.util = true;
+end if;
+
+// transform the operand
+select one op related by unary_expression->MaslExpression[R5561];
+::transformMaslExpression(masl_expression:op, expr_number:expr.expression_number + ".1", smt:smt);
+select any op_expr related by smt->Expression[R775] where (selected.expression_number == expr.expression_number + ".1");
+relate op_expr to uny across R777;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	2);
+INSERT INTO S_SPARM
+	VALUES ("278a2201-d0e0-41ea-8b2d-fac350dd9839",
+	"f13df76c-4e75-486d-a0de-f6e5676e3a20",
+	'unary_expression',
+	"4630e64b-b590-4a1d-ba70-9c9207d3c8e0",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("4630e64b-b590-4a1d-ba70-9c9207d3c8e0",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<UnaryExpression>',
+	'',
+	'',
+	'../../../../../ooamasl/models/ooamasl/ooamasl/expression/expression.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("22a6d86d-411f-4962-8a12-b491ae4d1a6f",
+	"f13df76c-4e75-486d-a0de-f6e5676e3a20",
+	'smt',
+	"b586ec7e-41fe-4d50-9cf3-27b173e9848a",
+	0,
+	'',
+	"278a2201-d0e0-41ea-8b2d-fac350dd9839",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("8dabff17-1877-4add-bdda-b9714d137af6",
+	"f13df76c-4e75-486d-a0de-f6e5676e3a20",
+	'expr_number',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"22a6d86d-411f-4962-8a12-b491ae4d1a6f",
+	'');
+INSERT INTO PE_PE
+	VALUES ("f13df76c-4e75-486d-a0de-f6e5676e3a20",
 	1,
 	"6b1296bb-978b-44fd-b197-7cada155e1c8",
 	"00000000-0000-0000-0000-000000000000",
