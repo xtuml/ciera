@@ -55,4 +55,9 @@ public class ReadableDevice extends Device {
         throw new UnsupportedOperationException("Cannot write to read-only device");
     }
 
+    @Override
+    public void flush() {
+        throw new UnsupportedOperationException("Cannot flush read-only device");
+    }
+
 }

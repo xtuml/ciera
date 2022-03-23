@@ -23,5 +23,10 @@ public class ReadWriteDevice extends ReadableDevice {
         write(o);
         out.println();
     }
+    
+    @Override
+    public void flush() {
+        out.flush();
+    }
 
 }

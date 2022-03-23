@@ -409,43 +409,66 @@ while not_empty stream_operator
   relate expr to smt across R775;
   expr.expression_number = "1";
   relate expr to eas across R476;
-
-  // create binary operation and assignment expression
-  create object instance binop of BinaryOperation;
-  relate binop to expr across R776;
-  if (stream_operator.operator == IOop::in)
-    binop.operator = "read";
-  elif (stream_operator.operator == IOop::linein)
-    binop.operator = "readLine";
-  elif (stream_operator.operator == IOop::out)
-    binop.operator = "write";
-  elif (stream_operator.operator == IOop::lineout)
-    binop.operator = "writeLine";
-  else
-    // TODO bad
-  end if;
-  binop.invocation = true;
-
-  // create left operand
-  ::transformMaslExpression(masl_expression:device_expression, expr_number:"1.1", smt:smt );
-  select any l_op related by smt->Expression[R775] where (selected.expression_number == "1.1");
-  relate l_op to binop across R779;
-  select one ltype related by l_op->TypeReference[R795];
-
-  // create right operand
+  
+  // if this is a flush, use a unary operation
   select one other_expression related by stream_operator->MaslExpression[R5115];
-  ::transformMaslExpression(masl_expression:other_expression, expr_number:"1.2", smt:smt);
-  select any r_op related by smt->Expression[R775] where (selected.expression_number == "1.2");
-  relate r_op to binop across R778;
+  select one flush_expr related by other_expression->LiteralExpression[R5517]->FlushLiteral[R5700];
+  if not_empty flush_expr and (stream_operator.operator == IOop::out or stream_operator.operator == IOop::lineout)
 
-  if (stream_operator.operator == IOop::in or stream_operator.operator == IOop::linein)
-    // link r_op type to the main expression for reads
-    select one type related by r_op->TypeReference[R795];
-    relate type to expr across R795;
-  else
-    // link ''void'' to the main expression for writes
+    // flush if void type
     type = ::getBasicTypeReferenceByName(name:"void");
     relate type to expr across R795;
+
+    // create unary operation
+    create object instance uny of UnaryOperation;
+    relate uny to expr across R776;
+    uny.operator = "flush";
+    uny.invocation = true;
+
+    // create operand
+    ::transformMaslExpression(masl_expression:device_expression, expr_number:"1.1", smt:smt);
+    select any op related by smt->Expression[R775] where (selected.expression_number == "1.1");
+    relate op to uny across R777;
+    
+  else
+
+    // create binary operation and assignment expression
+    create object instance binop of BinaryOperation;
+    relate binop to expr across R776;
+    if (stream_operator.operator == IOop::in)
+      binop.operator = "read";
+    elif (stream_operator.operator == IOop::linein)
+      binop.operator = "readLine";
+    elif (stream_operator.operator == IOop::out)
+      binop.operator = "write";
+    elif (stream_operator.operator == IOop::lineout)
+      binop.operator = "writeLine";
+    else
+      // TODO bad
+    end if;
+    binop.invocation = true;
+
+    // create left operand
+    ::transformMaslExpression(masl_expression:device_expression, expr_number:"1.1", smt:smt );
+    select any l_op related by smt->Expression[R775] where (selected.expression_number == "1.1");
+    relate l_op to binop across R779;
+    select one ltype related by l_op->TypeReference[R795];
+
+    // create right operand
+    ::transformMaslExpression(masl_expression:other_expression, expr_number:"1.2", smt:smt);
+    select any r_op related by smt->Expression[R775] where (selected.expression_number == "1.2");
+    relate r_op to binop across R778;
+
+    if (stream_operator.operator == IOop::in or stream_operator.operator == IOop::linein)
+      // link r_op type to the main expression for reads
+      select one type related by r_op->TypeReference[R795];
+      relate type to expr across R795;
+    else
+      // link ''void'' to the main expression for writes
+      type = ::getBasicTypeReferenceByName(name:"void");
+      relate type to expr across R795;
+    end if;
+
   end if;
 
   // set this statement as the previous statement

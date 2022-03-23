@@ -49,6 +49,11 @@ public abstract class Device {
      * @param o
      */
     public abstract void writeLine(Object o);
+    
+    /**
+     * Flush the output stream.
+     */
+    public abstract void flush();
 
     /**
      * Get a reference to the built in console device.
