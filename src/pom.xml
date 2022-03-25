@@ -3,7 +3,7 @@
   <groupId>io.ciera</groupId>
   <artifactId>cmcc</artifactId>
   <packaging>pom</packaging>
-  <version>2.6.4-SNAPSHOT</version>
+  <version>3.0.0-SNAPSHOT</version>
   <name>Ciera Model Compiler Collection</name>
   <description>Java model compiler and tools for xtUML models</description>
   <url>https://github.com/xtuml/ciera</url>
@@ -24,6 +24,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>11</maven.compiler.source>
     <maven.compiler.target>11</maven.compiler.target>
+    <maven.test.skip>true</maven.test.skip>
   </properties>
   <scm>
     <connection>scm:git:git@github.com:xtuml/ciera.git</connection>
@@ -41,6 +42,43 @@
       <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
     </repository>
   </distributionManagement>
+  <repositories>
+    <repository>
+      <id>snapshot-repo</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+      <releases><enabled>false</enabled></releases>
+      <snapshots><enabled>true</enabled></snapshots>
+    </repository>
+    <repository>
+      <id>snapshot-repo2</id>
+      <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
+      <releases><enabled>false</enabled></releases>
+      <snapshots><enabled>true</enabled></snapshots>
+    </repository>
+  </repositories>
+  <pluginRepositories>
+    <pluginRepository>
+      <id>snapshot-repo</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+      <releases><enabled>false</enabled></releases>
+      <snapshots><enabled>true</enabled></snapshots>
+    </pluginRepository>
+    <pluginRepository>
+      <id>snapshot-repo2</id>
+      <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
+      <releases><enabled>false</enabled></releases>
+      <snapshots><enabled>true</enabled></snapshots>
+    </pluginRepository>
+  </pluginRepositories>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.10.0</version>
+      </plugin>
+    </plugins>
+  </build>
   <profiles>
     <profile>
       <id>release</id>
@@ -52,6 +90,9 @@
             <version>3.1.1</version>
             <configuration>
               <additionalJOption>-Xdoclint:none</additionalJOption>
+              <links>
+                <link>http://www.slf4j.org/api/</link>
+              </links>
             </configuration>
             <executions>
               <execution>
@@ -105,11 +146,12 @@
     </profile>
   </profiles>
   <modules>
+    <module>runtime-api</module>
     <module>runtime</module>
+    <module>runtime-util</module>
     <module>core-architecture</module>
     <module>tool-core</module>
-    <module>tool-sql</module>
-    <module>tool-template</module>
+    <module>tool-core-masl</module>
     <module>ciera-maven-plugin</module>
   </modules>
 </project>

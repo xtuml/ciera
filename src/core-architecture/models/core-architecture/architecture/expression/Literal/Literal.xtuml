@@ -15,13 +15,33 @@ INSERT INTO O_TFR
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'select one type related by self->Expression[R776]->TypeReference[R795];
-is_string = type.type_name == "String" and type.type_package == "";
+is_string = type.type_reference == "String";
+if type.type_reference == "Device" or
+   type.type_reference == "Duration"
+  ::resolveImportsForTypeReference(type_ref:type);
+elif type.type_reference == "TimeStamp"
+  ::addStringImport(package:"io.ciera.runtime.api.types", class_name:"Date");
+end if;
 T::include(file:"expression/t.literal.java");',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",
 	0,
 	0);
+INSERT INTO O_TFR
+	VALUES ("f7f30764-1745-491e-92cc-dcd4e7fb917c",
+	"b909e2e7-98d9-4371-bc9a-ec73c1317079",
+	'is_constant',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000001",
+	1,
+	'select one type_ref related by self->Expression[R776]->TypeReference[R795];
+return type_ref.type_reference == "String" or type_ref.primitive;',
+	1,
+	'',
+	"2778d3fa-680e-422a-9519-0e53ec1907a2",
+	0,
+	1);
 INSERT INTO O_REF
 	VALUES ("b909e2e7-98d9-4371-bc9a-ec73c1317079",
 	"18b2e941-9111-4db8-bc15-79e9be5abfd7",

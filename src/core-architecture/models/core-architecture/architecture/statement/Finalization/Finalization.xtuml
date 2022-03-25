@@ -14,19 +14,10 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'select one var related by self->Variable[R485];
-select many previous_finalizations related by var->Finalization[R485] where ( selected.block_number < self.block_number or
-                                                                            ( selected.block_number == self.block_number and selected.statement_number < self.statement_number ) );
-finalization_num = cardinality previous_finalizations;
-select one var_type related by var->TypeReference[R461];
-type_name = var_type.type_reference_name;
-select one smt related by self->Statement[R485];
-select one block related by smt->CodeBlock[R450];
-indent = ::getIndent( tab_depth:block.tab_depth + 1 );
-T::push_buffer();
-T::include(file:"statement/t.finalization.java");
-smt.prefix = smt.prefix + T::body();
-T::pop_buffer();',
+	'select one var_type related by self->Variable[R485]->TypeReference[R461];
+type_name = var_type.type_reference;
+::resolveImportsForTypeReference(type_ref:var_type);
+T::include(file:"statement/t.finalization.java");',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",
@@ -428,6 +419,30 @@ INSERT INTO O_ATTR
 	'name',
 	1,
 	"ba5eda7a-def5-0000-0000-000000000007",
+	'',
+	'');
+INSERT INTO O_DBATTR
+	VALUES ("bdb4c004-64aa-4daa-94b5-7e887a39b125",
+	"a9055c7d-969d-44ef-a6d1-079a461f63c7",
+	'select many previous_finalizations related by self->Variable[R485]->Finalization[R485]
+  where (selected.block_number < self.block_number or
+    (selected.block_number == self.block_number and selected.statement_number < self.statement_number));
+self.finalization_number = cardinality previous_finalizations + 1;',
+	1,
+	0);
+INSERT INTO O_BATTR
+	VALUES ("bdb4c004-64aa-4daa-94b5-7e887a39b125",
+	"a9055c7d-969d-44ef-a6d1-079a461f63c7");
+INSERT INTO O_ATTR
+	VALUES ("bdb4c004-64aa-4daa-94b5-7e887a39b125",
+	"a9055c7d-969d-44ef-a6d1-079a461f63c7",
+	"e67531ac-7aca-4d9a-89ef-7ba40f69b681",
+	'finalization_number',
+	'',
+	'',
+	'finalization_number',
+	0,
+	"ba5eda7a-def5-0000-0000-000000000002",
 	'',
 	'');
 INSERT INTO O_ID

@@ -2,88 +2,132 @@ package ${self.package};
 
 ${imports}
 
-public class ${self.name} extends ${self.extends} {
+public class ${self.name} extends \
+.if (self.supertype_name != "")
+${self.supertype_name} {
+.else
+  .if (self.transient)
+AbstractDomain implements Domain {
+  .else
+AbstractPersistentDomain implements PersistentDomain {
+  .end if
+.end if
 
-    private Map<String, Class<?>> classDirectory;
+.if (utilities != "")
+    // utilities
+    ${utilities}
 
-    public ${self.name}(IApplication app, IRunContext runContext, int populationId) {
-        super(app, runContext, populationId);
-${instance_extent_initializers}
-${relationship_extent_initializers}
-${utility_initializers}
-        classDirectory = new TreeMap<>();
-${class_directory}
+.end if
+.if (ports != "")
+    // ports
+    ${ports}
+
+.end if
+    public ${self.name}() {
+.if (self.supertype_name != "")
+        this("${self.supertype_name}");
+.else
+        this("${self.name}");
+.end if
     }
 
+    public ${self.name}(String name) {
+        super(name\
+.if (population_class != "")
+, ${population_class}::new\
+.end if;
+);
+        ${utility_initializers}
+        ${port_initializers}
+    }
+
+.if (functions != "")
     // domain functions
-${functions}
+    ${functions}
 
+.end if
+.if (class_operations != "")
+    // static class operations
+    ${class_operations}
+
+.end if
+.if (relationship_modifiers != "")
     // relates and unrelates
-${relationship_modifiers}
+    ${relationship_modifiers}
 
-    // instance selections
-${instance_selectors}
+.end if
+.if (port_accessors != "")
+    // port accessors
+    ${port_accessors}
 
-    // relationship selections
-${relationship_selectors}
-
-    // ports
-${ports}
-
-    // utilities
-${utilities}
-
+.end if
+.if (init != "")
     // component initialization function
     @Override
-    public void initialize() throws XtumlException {
-${init}
+    public void initialize() {
+        ${init}\
+        super.initialize();
     }
 
-.if ( "" != self.version )
-    @Override
-    public String getVersion() {
-        Properties prop = new Properties();
-        try {
-            prop.load(getClass().getResourceAsStream("${self.name}Properties.properties"));
-        } catch (IOException e) { /* do nothing */ }
-        return prop.getProperty("version", "Unknown");
-    }
 .end if
-.if ( "" != self.version_date )
+.if (port_handlers != "")
     @Override
-    public String getVersionDate() {
-        Properties prop = new Properties();
-        try {
-            prop.load(getClass().getResourceAsStream("${self.name}Properties.properties"));
-        } catch (IOException e) { /* do nothing */ }
-        return prop.getProperty("version_date", "Unknown");
+    public MessageTarget getMessageTarget(Class<? extends MessageTarget> targetClass) {
+        ${port_handlers}else {
+            return super.getMessageTarget(targetClass);
+        }
     }
+
 .end if
-
+.if (port_handlers2 != "")
     @Override
-    public boolean addInstance( IModelInstance<?,?> instance ) throws XtumlException {
-        if ( null == instance ) throw new BadArgumentException( "Null instance passed." );
-        if ( instance.isEmpty() ) throw new EmptyInstanceException( "Cannot add empty instance to population." );
-${instance_adds}
-        return false;
+    public Port getPort(final String portName) {
+        switch (portName) {
+        ${port_handlers2}\
+        default:
+            return super.getPort(portName);
+        }
     }
 
+.end if
+.if (csm_handlers != "")
     @Override
-    public boolean removeInstance( IModelInstance<?,?> instance ) throws XtumlException {
-        if ( null == instance ) throw new BadArgumentException( "Null instance passed." );
-        if ( instance.isEmpty() ) throw new EmptyInstanceException( "Cannot remove empty instance from population." );
-${instance_removes}
-        return false;
+    public void consumeEvent(Event event) {
+        Class<?> cls = event.getClass().getDeclaringClass();
+        ${csm_handlers}else {
+            throw new EventTargetException("Could not find state machine to handle event", this, event);
+        }
     }
 
+.end if
+.if (csm_persists != "")
     @Override
-    public ${self.name} context() {
-        return this;
+    public void persist(ObjectOutputStream out) throws IOException {
+        super.persist(out);
+        ${csm_persists}\
     }
 
+.end if
+.if (csm_loads != "")
     @Override
-    public Class<?> getClassByKeyLetters(String keyLetters) {
-        return classDirectory.get(keyLetters);
+    public void load(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        super.load(in);
+        ${csm_loads}\
     }
+
+.end if
+    @Override
+    public ${self.name} getDomain() {
+        return (${self.name}) super.getDomain();
+    }
+
+    public static Domain provider() {
+        try {
+            return Application.getInstance().getDomain("${self.name}");
+        } catch (NoSuchElementException e) {
+            return new ${self.name}();
+        }
+    }
+
 
 }

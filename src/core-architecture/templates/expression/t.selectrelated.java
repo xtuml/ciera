@@ -1,1 +1,11 @@
-${root_expression_body}.${self.selector_name}()\
+${root_expression_body}.\
+.if (set_select)
+  .if (multiplicity_many)
+flatMap\
+  .else
+map\
+  .end if
+(${self.class_name}::${self.selector_name}).filter(ObjectInstance::notEmpty).distinct()\
+.else
+${self.selector_name}()\
+.end if

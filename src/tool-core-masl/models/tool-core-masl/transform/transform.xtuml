@@ -1,0 +1,2457 @@
+-- BP 7.1.6 content: Package syschar: 3 persistence-version: 7.1.6
+
+INSERT INTO EP_PKG
+	VALUES ("e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
+	"ff182108-eff3-4cdc-81dd-efdc6098874b",
+	"ff182108-eff3-4cdc-81dd-efdc6098874b",
+	'transform',
+	'',
+	0);
+INSERT INTO GD_MD
+	VALUES ("47e4b6ea-f0f7-485f-ac79-7dc65833956f",
+	112,
+	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
+	108,
+	0,
+	0,
+	1,
+	1,
+	1,
+	12,
+	1,
+	0,
+	0,
+	200,
+	150,
+	0,
+	'',
+	'tool-core-masl::transform');
+INSERT INTO GD_GE
+	VALUES ("600654d0-4063-4a2d-9665-805c35143bb6",
+	"47e4b6ea-f0f7-485f-ac79-7dc65833956f",
+	"c45f2f21-d5ff-4652-999f-d4808df1e2ef",
+	108,
+	0,
+	'tool-core-masl::transform::statement');
+INSERT INTO GD_SHP
+	VALUES ("600654d0-4063-4a2d-9665-805c35143bb6");
+INSERT INTO GD_NCS
+	VALUES ("600654d0-4063-4a2d-9665-805c35143bb6");
+INSERT INTO DIM_ND
+	VALUES (200.000000,
+	150.000000,
+	"600654d0-4063-4a2d-9665-805c35143bb6");
+INSERT INTO DIM_GE
+	VALUES (0.000000,
+	0.000000,
+	"600654d0-4063-4a2d-9665-805c35143bb6",
+	"00000000-0000-0000-0000-000000000000");
+INSERT INTO DIM_ELE
+	VALUES ("600654d0-4063-4a2d-9665-805c35143bb6",
+	0,
+	"00000000-0000-0000-0000-000000000000");
+INSERT INTO GD_GE
+	VALUES ("a78f236e-73ae-4bad-8e4d-7614ff047d86",
+	"47e4b6ea-f0f7-485f-ac79-7dc65833956f",
+	"6b1296bb-978b-44fd-b197-7cada155e1c8",
+	108,
+	0,
+	'tool-core-masl::transform::expression');
+INSERT INTO GD_SHP
+	VALUES ("a78f236e-73ae-4bad-8e4d-7614ff047d86");
+INSERT INTO GD_NCS
+	VALUES ("a78f236e-73ae-4bad-8e4d-7614ff047d86");
+INSERT INTO DIM_ND
+	VALUES (200.000000,
+	150.000000,
+	"a78f236e-73ae-4bad-8e4d-7614ff047d86");
+INSERT INTO DIM_GE
+	VALUES (220.000000,
+	0.000000,
+	"a78f236e-73ae-4bad-8e4d-7614ff047d86",
+	"00000000-0000-0000-0000-000000000000");
+INSERT INTO DIM_ELE
+	VALUES ("a78f236e-73ae-4bad-8e4d-7614ff047d86",
+	0,
+	"00000000-0000-0000-0000-000000000000");
+INSERT INTO DIM_DIA
+	VALUES ("47e4b6ea-f0f7-485f-ac79-7dc65833956f",
+	'',
+	1.000000,
+	0.000000,
+	0.000000,
+	"00000000-0000-0000-0000-000000000000");
+INSERT INTO S_SYNC
+	VALUES ("4c867d76-54b3-4504-9e60-e54f73be10c2",
+	"00000000-0000-0000-0000-000000000000",
+	'transformDomain',
+	'',
+	'domain = param.domain;
+
+  // check if this is a utility domain
+select any utility_mark from instances of Mark where
+  selected.markable_name == "Domain" and selected.feature_name == "utility" and selected.path == "" + domain.name;
+if domain.interface and not_empty utility_mark
+
+  if (param.pass == 1)
+
+    ::transformUtilityDomain(domain:domain, path:param.path, util_package:utility_mark.value);
+
+  end if;
+
+else
+  
+  select any file from instances of File where (selected.name == ::camelCaseName(name:domain.name, start_lower:false) and selected.package == ::pathToPackage(path:param.path));
+  select one comp_def related by file->ComponentDefinition[R401];
+  
+  if (param.pass == 1)
+  
+    // create module file
+    create object instance module_file of File;
+    module_file.name = domain.name;
+    module_file.exclude = domain.interface;
+  
+    // create the module object
+    create object instance mod of Module;
+    relate mod to module_file across R401;
+    mod.main_module = not domain.interface;
+    relate mod to domain across R8309;
+  
+    // create the file
+    create object instance file of File;
+    file.name = ::camelCaseName(name:domain.name, start_lower:false);
+    file.path = param.path;
+    file.package = ::pathToPackage(path:file.path);
+    file.extension = ".java";
+    file.exclude = domain.interface;
+  
+    // create the component definition object
+    create object instance comp_def of ComponentDefinition;
+    relate comp_def to file across R401;
+    relate comp_def to mod across R5752;
+    relate comp_def to domain across R8310;
+  
+    // for full domain definitions, do a bit more transformation
+    if not domain.interface
+  
+      // check the transient mark
+      select any transient_mark from instances of Mark
+        where (selected.markable_name == "Domain" and selected.path == "" + domain.name and selected.feature_name == "transient");
+      comp_def.transient = not_empty transient_mark;
+  
+      // export the domain package
+      create object instance export_package of ExportedPackage;
+      export_package.name = comp_def.package;
+      relate export_package to mod across R5750;
+  
+    end if;
+  
+    // transform exceptions
+    select many exception_declarations related by domain->ExceptionDeclaration[R5400]
+      where selected.visibility == MaslVisibility::public or not domain.interface;
+    for each exception_declaration in exception_declarations
+      ::transformMaslException(exception_declaration: exception_declaration, comp_def:comp_def, exclude:domain.interface);
+    end for;
+  
+    // transform data types
+    select many type_declarations related by domain->MaslUserDefinedType[R6235]
+      where selected.visibility == MaslVisibility::public or not domain.interface;
+    for each type_declaration in type_declarations
+      ::transformTypeDeclaration(type_declaration:type_declaration, comp_def:comp_def, exclude:domain.interface);
+    end for;
+  
+  elif (param.pass == 2)
+  
+    // transform services
+    select many domain_services related by domain->DomainService[R5303]->Service[R5203]
+      where selected.visibility == MaslVisibility::public or not domain.interface;
+    for each service in domain_services
+      select one domain_service related by service->DomainService[R5203];
+      ::transformDomainService(domain_service:domain_service, comp_def:comp_def);
+    end for;
+  
+  elif (param.pass == 3)
+  
+    if not domain.interface
+  
+      // transform objects
+      select many object_declarations related by domain->ObjectDeclaration[R5805];
+      for each object_declaration in object_declarations
+        ::transformObject(object_declaration:object_declaration, comp_def:comp_def);
+      end for;
+  
+    end if;
+  
+  elif (param.pass == 4)
+  
+    if not domain.interface
+  
+      // transform relationships
+      select many rels related by domain->RelationshipDeclaration[R6003];
+      for each rel in rels
+        ::transformRelationship(rel:rel, comp_def:comp_def);
+      end for;
+  
+      // transform transition tables
+      select many transition_tables related by domain->ObjectDeclaration[R5805]->TransitionTable[R6113];
+      for each transition_table in transition_tables
+        // check to assure there are not 2 transition tables
+        select many transition_tables related by transition_table->ObjectDeclaration[R6113]->TransitionTable[R6113];
+        if cardinality transition_tables == 1
+          select one obj related by transition_table->ObjectDeclaration[R6113]->Class[R8300];
+          if not_empty transition_table
+            ::transformTransitionTable(transition_table:transition_table, obj:obj);
+          end if;
+        else
+          LOG::LogFailure(message:"Objects can have at most one transition table");
+        end if;
+      end for;
+  
+    end if;
+  
+    // transform terminators
+    select many terms related by domain->DomainTerminator[R5304];
+    for each term in terms
+      ::transformDomainTerminator(domain_terminator:term, comp_def:comp_def, path:file.path + "/" + T::sub(format:"l", s:term.name));
+    end for;
+  
+  else
+  
+    if not domain.interface
+  
+      // transform selectors
+      select many objs related by comp_def->Class[R408];
+      for each obj in objs
+        ::transformSelectors(obj:obj);
+      end for;
+  
+      // transform attribute references
+      select many objs related by comp_def->Class[R408];
+      for each obj in objs
+        ::transformMaslAttributeReferences(obj:obj);
+      end for;
+  
+    end if;
+  
+  end if;
+
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	1);
+INSERT INTO S_SPARM
+	VALUES ("e060eb45-49af-4d1d-b4bb-880b8b10a937",
+	"4c867d76-54b3-4504-9e60-e54f73be10c2",
+	'domain',
+	"d467079c-c61e-4b05-8498-3fe2f24782a6",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("d467079c-c61e-4b05-8498-3fe2f24782a6",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Domain>',
+	'',
+	'',
+	'../../../../ooamasl/models/ooamasl/ooamasl/domain/domain.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("edc05e97-5ed4-4104-a130-64e0364e7841",
+	"4c867d76-54b3-4504-9e60-e54f73be10c2",
+	'path',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"6cd98962-4dae-47e4-8d82-c3fd8a06e897",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("6cd98962-4dae-47e4-8d82-c3fd8a06e897",
+	"4c867d76-54b3-4504-9e60-e54f73be10c2",
+	'pass',
+	"ba5eda7a-def5-0000-0000-000000000002",
+	0,
+	'',
+	"e060eb45-49af-4d1d-b4bb-880b8b10a937",
+	'');
+INSERT INTO PE_PE
+	VALUES ("4c867d76-54b3-4504-9e60-e54f73be10c2",
+	1,
+	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("6337d8b4-4779-4670-be9f-e297eabcf5d1",
+	"00000000-0000-0000-0000-000000000000",
+	'transformDomainService',
+	'',
+	'domain_service = param.domain_service;
+select one domain related by domain_service->Domain[R5303];
+comp_def = param.comp_def;
+
+select one service related by domain_service->Service[R5203];
+
+// create function object
+create object instance func of Function;
+relate func to comp_def across R405;
+
+// create invocable
+create object instance invocable of InvocableObject;
+invocable.name = service.name;
+invocable.parent_name = comp_def.name;
+invocable.parent_package = comp_def.package;
+invocable.original_parent_name = "" + domain.name;
+invocable.original_body_name = "" + service.name;
+invocable.original_filename = service.filename;
+relate func to invocable across R427;
+
+// copy actions
+select one code_block related by service->MaslCodeBlock[R5403];
+if not_empty code_block
+  relate code_block to invocable across R8306;
+end if;
+
+// link type
+select one basic_type related by service->BasicType[R5205];
+type = ::getTypeReferenceForMASLType(basic_type:basic_type);
+relate type to invocable across R428;
+
+// create parameters
+select one first_parameter related by service->ParameterDefinition[R5204];
+::transformParameterList(first_parameter:first_parameter, invocable:invocable);
+
+// see if this is an initializer function
+select any init_function_mark from instances of Mark where (selected.markable_name == "DomainService" and
+  selected.path == "" + domain.name + "::" + service.name and
+  selected.feature_name == "startup");
+if (not_empty init_function_mark)
+  relate func to comp_def across R4561;
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	3);
+INSERT INTO S_SPARM
+	VALUES ("5ee0efbd-acd2-4732-9a5f-db65dbabc35c",
+	"6337d8b4-4779-4670-be9f-e297eabcf5d1",
+	'domain_service',
+	"ffebe79c-5289-41c4-9a6c-4c6b8346d989",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("ffebe79c-5289-41c4-9a6c-4c6b8346d989",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<DomainService>',
+	'',
+	'',
+	'../../../../ooamasl/models/ooamasl/ooamasl/domain/domain.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("6e4c46fe-109d-4d62-a11f-1a7070c44b2a",
+	"6337d8b4-4779-4670-be9f-e297eabcf5d1",
+	'comp_def',
+	"109e90cb-1d66-46ee-88db-a568044879d0",
+	0,
+	'',
+	"5ee0efbd-acd2-4732-9a5f-db65dbabc35c",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("109e90cb-1d66-46ee-88db-a568044879d0",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Component Definition>',
+	'',
+	'',
+	'../../../../core-architecture/models/core-architecture/architecture/component/component.xtuml');
+INSERT INTO PE_PE
+	VALUES ("6337d8b4-4779-4670-be9f-e297eabcf5d1",
+	1,
+	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("a167f7d5-3c79-4ff5-8b40-a091b9b1a31e",
+	"00000000-0000-0000-0000-000000000000",
+	'transformObject',
+	'',
+	'object_declaration = param.object_declaration;
+select one domain related by object_declaration->Domain[R5805];
+comp_def = param.comp_def;
+select one component_file related by comp_def->File[R401];
+path = component_file.path + "/" + "classes";  // put all classes in one package called ''classes''
+
+// if there is a key letter mark, use it as the object name
+select any key_letter_mark from instances of Mark where selected.markable_name == "Object" and selected.feature_name == "key_letter"
+  and selected.path == "" + domain.name + "::" + object_declaration.name;
+
+// create the object file
+create object instance file of File;
+if not_empty key_letter_mark
+  file.name = key_letter_mark.value;
+else
+  file.name = ::camelCaseName(name:object_declaration.name, start_lower:false );
+end if;
+file.path = path;
+file.package = ::pathToPackage(path:file.path);
+file.extension = ".java";
+
+// create the object
+create object instance obj of Class;
+relate obj to file across R401;
+
+// add the class to the component
+relate obj to comp_def across R408;
+
+// connect to the arch model
+relate obj to object_declaration across R8300;
+
+// open the class package
+select one mod related by object_declaration->Domain[R5805]->Module[R8309];
+select any opened_package related by mod->OpenedPackage[R5754] where selected.name == obj.package;
+if empty opened_package
+  create object instance opened_package of OpenedPackage;
+  opened_package.name = obj.package;
+  relate opened_package to mod across R5754;
+end if;
+
+// transform attributes
+select any maslattr related by object_declaration->AttributeDeclaration[R5802];
+select one prev_attr related by maslattr->AttributeDeclaration[R5809.''succeeds''];
+while (not_empty prev_attr)
+  maslattr = prev_attr;
+  select one prev_attr related by maslattr->AttributeDeclaration[R5809.''succeeds''];
+end while;
+index = 0;
+while (not_empty maslattr)
+  ::transformAttributeDeclaration(attr:maslattr, obj:obj, index:index);
+  index = index + 1;
+  select one maslattr related by maslattr->AttributeDeclaration[R5809.''precedes''];
+end while;
+
+// transform operations
+select many object_services related by object_declaration->ObjectService[R5808];
+for each object_service in object_services
+  ::transformObjectService(object_service:object_service, obj:obj);
+end for;
+
+// check to assure there are not 2 transition tables
+select many transition_tables related by object_declaration->TransitionTable[R6113];
+if cardinality transition_tables > 1
+  LOG::LogFailure(message:"Objects can have at most one transition table");
+  return;
+end if;
+
+// transform states
+select many states related by object_declaration->MaslState[R6105] where ("" + selected.name != "Non_Existent");
+for each state in states
+  ::transformMaslState(state:state, obj:obj);
+end for;
+
+select one sm related by obj->StateMachine[R4750];
+if (not_empty sm and sm.is_instance)
+  // create the default initial state
+  create object instance uninitialized of State;
+  relate uninitialized to sm across R4751;
+  uninitialized.final = false;
+  uninitialized.number = 0;
+  
+  // create invocable for non-existent state
+  create object instance invocable of InvocableObject;
+  invocable.name = "UNINITIALIZED";
+  invocable.parent_name = sm.name;
+  invocable.parent_package = sm.package;
+  relate uninitialized to invocable across R427;
+  
+  // link type
+  type = ::getBasicTypeReferenceByName(name:"void");
+  relate type to invocable across R428;
+end if;
+
+// transform events
+select many evts related by object_declaration->EventDeclaration[R6101];
+for each evt in evts
+  ::transformMaslEvent(evt:evt, obj:obj);
+end for;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	4);
+INSERT INTO S_SPARM
+	VALUES ("de3adfbb-18df-4417-8e71-9157b189c106",
+	"a167f7d5-3c79-4ff5-8b40-a091b9b1a31e",
+	'object_declaration',
+	"ccbbc697-c60c-4034-8e31-7a46032151eb",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("ccbbc697-c60c-4034-8e31-7a46032151eb",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<ObjectDeclaration>',
+	'',
+	'',
+	'../../../../ooamasl/models/ooamasl/ooamasl/object/object.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("192d3817-53e8-46de-a490-3b0072f3eafc",
+	"a167f7d5-3c79-4ff5-8b40-a091b9b1a31e",
+	'comp_def',
+	"109e90cb-1d66-46ee-88db-a568044879d0",
+	0,
+	'',
+	"de3adfbb-18df-4417-8e71-9157b189c106",
+	'');
+INSERT INTO PE_PE
+	VALUES ("a167f7d5-3c79-4ff5-8b40-a091b9b1a31e",
+	1,
+	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("93597cc3-f7ca-44bf-86ff-6d3f3d9b6818",
+	"00000000-0000-0000-0000-000000000000",
+	'transformDomainTerminator',
+	'',
+	'domain_terminator = param.domain_terminator;
+comp_def = param.comp_def;
+select one mod related by comp_def->Module[R5752];
+
+// create the port file
+create object instance port_file of File;
+port_file.name = comp_def.name + ::camelCaseName(name:domain_terminator.name, start_lower:false);
+port_file.path = param.path;
+port_file.package = ::pathToPackage(path:port_file.path);
+port_file.extension = ".java";
+port_file.exclude = not mod.main_module;
+
+// create the port object
+create object instance port of Port;
+relate port to port_file across R401;
+port.port_name = ::camelCaseName(name:domain_terminator.name, start_lower:false);
+relate port to domain_terminator across R8313;
+
+// set port as requirer
+port.provider = false;
+
+// relate to other component
+relate port to comp_def across R417;
+
+// create the interface file
+create object instance iface_file of File;
+iface_file.name = "I" + ::camelCaseName(name:domain_terminator.name, start_lower:false);
+iface_file.path = param.path;
+iface_file.package = ::pathToPackage( path:iface_file.path );
+iface_file.extension = ".java";
+iface_file.exclude = not mod.main_module;
+
+// create the interface package object
+create object instance iface of Interface;
+relate iface to iface_file across R401;
+relate port to iface across R418;
+relate iface to domain_terminator across R8312;
+
+// transform terminator services
+select many terminator_services related by domain_terminator->DomainTerminatorService[R5306];
+index = 1;
+for each terminator_service in terminator_services
+  ::transformDomainTerminatorService(terminator_service:terminator_service, iface:iface, port:port, index:index);
+  index = index + 1;
+end for;
+
+// add as an export package
+select one mod related by comp_def->Module[R5752];
+create object instance export_package of ExportedPackage;
+export_package.name = port.package;
+relate export_package to mod across R5750;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	5);
+INSERT INTO S_SPARM
+	VALUES ("eb52c79f-0717-4418-894d-a0b1e2376de0",
+	"93597cc3-f7ca-44bf-86ff-6d3f3d9b6818",
+	'domain_terminator',
+	"d32c0dae-6ff9-4154-9607-21e8f5db2bb8",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("d32c0dae-6ff9-4154-9607-21e8f5db2bb8",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<DomainTerminator>',
+	'',
+	'',
+	'../../../../ooamasl/models/ooamasl/ooamasl/domain/domain.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("75ae6a28-2f7c-47fb-8c94-54e2ed02bc7f",
+	"93597cc3-f7ca-44bf-86ff-6d3f3d9b6818",
+	'comp_def',
+	"109e90cb-1d66-46ee-88db-a568044879d0",
+	0,
+	'',
+	"eb52c79f-0717-4418-894d-a0b1e2376de0",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("d94d9f11-d275-46ee-bd4b-007a40971ec3",
+	"93597cc3-f7ca-44bf-86ff-6d3f3d9b6818",
+	'path',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"75ae6a28-2f7c-47fb-8c94-54e2ed02bc7f",
+	'');
+INSERT INTO PE_PE
+	VALUES ("93597cc3-f7ca-44bf-86ff-6d3f3d9b6818",
+	1,
+	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("004b6365-0d67-4a5a-9f29-ec2b21938c21",
+	"00000000-0000-0000-0000-000000000000",
+	'transformDomainTerminatorService',
+	'',
+	'terminator_service = param.terminator_service;
+select one service related by terminator_service->Service[R5203];
+select one terminator related by terminator_service->DomainTerminator[R5306];
+select one domain related by terminator->Domain[R5304];
+iface = param.iface;
+index = param.index;
+port = param.port;
+
+// create message object
+create object instance msg of Message;
+msg.name = service.name;
+msg.to_provider = true;
+msg.id = index;
+relate msg to iface across R419;
+
+// create port message
+create object instance port_msg of PortMessage;
+relate port to msg across R420 using port_msg;
+
+// create invocable
+create object instance invocable of InvocableObject;
+invocable.name = msg.name;
+invocable.parent_name = port.name;
+invocable.parent_package = port.package;
+invocable.original_parent_name = "" + domain.name + "::" + terminator.name;
+invocable.original_body_name = "" + service.name;
+invocable.original_filename = service.filename;
+relate port_msg to invocable across R427;
+
+// copy actions
+select one code_block related by service->MaslCodeBlock[R5403];
+if not_empty code_block
+  relate code_block to invocable across R8306;
+end if;
+
+// link type
+select one basic_type related by service->BasicType[R5205];
+type = ::getTypeReferenceForMASLType(basic_type:basic_type);
+relate type to invocable across R428;
+
+// create parameters
+select one first_parameter related by service->ParameterDefinition[R5204];
+::transformParameterList(first_parameter:first_parameter, invocable:invocable);
+
+// check if this service has a return type or ''out'' parameters
+select any by_ref_param related by invocable->FormalParameter[R429] where selected.by_ref;
+msg.async = empty basic_type and empty by_ref_param;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	6);
+INSERT INTO S_SPARM
+	VALUES ("52d90d59-5ad7-4837-b360-2b6196ac6741",
+	"004b6365-0d67-4a5a-9f29-ec2b21938c21",
+	'terminator_service',
+	"1f9d3f63-cc27-4669-8de9-5252b9fcf08b",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("1f9d3f63-cc27-4669-8de9-5252b9fcf08b",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<DomainTerminatorService>',
+	'',
+	'',
+	'../../../../ooamasl/models/ooamasl/ooamasl/domain/domain.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("d3e4b9a3-faf0-4293-b987-c0ea8ba0a858",
+	"004b6365-0d67-4a5a-9f29-ec2b21938c21",
+	'iface',
+	"003d869d-0580-4a1f-b1c8-e1657cc0248c",
+	0,
+	'',
+	"52d90d59-5ad7-4837-b360-2b6196ac6741",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("003d869d-0580-4a1f-b1c8-e1657cc0248c",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Iface>',
+	'',
+	'',
+	'../../../../core-architecture/models/core-architecture/architecture/interfaces/interfaces.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("4129176a-2b25-4e95-a495-c11796d7248e",
+	"004b6365-0d67-4a5a-9f29-ec2b21938c21",
+	'port',
+	"d29fe14e-2574-4613-ac57-716ebd8e905c",
+	0,
+	'',
+	"d3e4b9a3-faf0-4293-b987-c0ea8ba0a858",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("d29fe14e-2574-4613-ac57-716ebd8e905c",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Port>',
+	'',
+	'',
+	'../../../../core-architecture/models/core-architecture/architecture/interfaces/interfaces.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("a0f09456-2189-496f-979d-cb3a27b9dc40",
+	"004b6365-0d67-4a5a-9f29-ec2b21938c21",
+	'index',
+	"ba5eda7a-def5-0000-0000-000000000002",
+	0,
+	'',
+	"4129176a-2b25-4e95-a495-c11796d7248e",
+	'');
+INSERT INTO PE_PE
+	VALUES ("004b6365-0d67-4a5a-9f29-ec2b21938c21",
+	1,
+	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("14b42ff1-d03f-4557-bb85-e0d523c9f560",
+	"00000000-0000-0000-0000-000000000000",
+	'transformRelationship',
+	'',
+	'maslrel = param.rel;
+comp_def = param.comp_def;
+select one file related by comp_def->File[R401];
+
+select any form_class from instances of Class where false;
+form_phrase = "";
+form_mult = Mult::ONE;
+form_cond = Cond::UNCONDITIONAL;
+select any part_class from instances of Class where false;
+part_phrase = "";
+part_mult = Mult::ONE;
+part_cond = Cond::UNCONDITIONAL;
+
+// determine if this is a simple relationship
+select one normal related by maslrel->NormalRelationshipDeclaration[R6010];
+if (not_empty normal)
+
+  // get the formalizer and participant information
+  select one half_rel_1 related by normal->HalfRelationship[R6007];
+  select one half_rel_2 related by normal->HalfRelationship[R6008];
+  select many rel_specs related by half_rel_1->ObjectDeclaration[R6004]->AttributeDeclaration[R5802]
+    ->ReferentialAttributeDefinition[R5800.''is_referenced_by'']->RelationshipSpecification[R5811] where (
+    selected.role == half_rel_1.role or selected.role == "");
+  select any ref_rel related by rel_specs->RelationshipDeclaration[R6015] where (selected.name == maslrel.name);
+  if (not_empty ref_rel)  // the first half "to" class is the participant
+    select one form_class related by half_rel_2->ObjectDeclaration[R6004]->Class[R8300];
+    form_phrase = half_rel_2.role;
+    if (half_rel_2.multiplicity == MaslMultiplicity::many)
+      form_mult = Mult::MANY;
+    end if;
+    if (half_rel_2.isconditional)
+      form_cond = Cond::CONDITIONAL;
+    end if;
+    select one part_class related by half_rel_1->ObjectDeclaration[R6004]->Class[R8300];
+    part_phrase = half_rel_1.role;
+    if (half_rel_1.multiplicity == MaslMultiplicity::many)
+      part_mult = Mult::MANY;
+    end if;
+    if (half_rel_1.isconditional)
+      part_cond = Cond::CONDITIONAL;
+    end if;
+  else
+    select one form_class related by half_rel_1->ObjectDeclaration[R6004]->Class[R8300];
+    form_phrase = half_rel_1.role;
+    if (half_rel_1.multiplicity == MaslMultiplicity::many)
+      form_mult = Mult::MANY;
+    end if;
+    if (half_rel_1.isconditional)
+      form_cond = Cond::CONDITIONAL;
+    end if;
+    select one part_class related by half_rel_2->ObjectDeclaration[R6004]->Class[R8300];
+    part_phrase = half_rel_2.role;
+    if (half_rel_2.multiplicity == MaslMultiplicity::many)
+      part_mult = Mult::MANY;
+    end if;
+    if (half_rel_2.isconditional)
+      part_cond = Cond::CONDITIONAL;
+    end if;
+  end if;
+
+  // create the relationship
+  create object instance rel of Relationship;
+  name = maslrel.name + "_" + form_class.name + "_";
+  if (part_phrase != "")
+    name = name + T::sub(format:"_", s:part_phrase) + "_";
+  end if;
+  name = name + part_class.name;
+  rel.name = name;
+  rel.num = STRING::atoi(s:STRING::substr(s:maslrel.name, begin:1, end:-1));
+  rel.form_phrase = form_phrase;
+  rel.part_phrase = part_phrase;
+  rel.form_mult = form_mult;
+  rel.part_mult = part_mult;
+  rel.form_cond = form_cond;
+  rel.part_cond = part_cond;
+  rel.rel_type = RelationshipType::Binary;
+  relate rel to comp_def across R448;
+  relate rel to form_class across R435;
+  relate rel to part_class across R434;
+  relate rel to maslrel across R8304;
+
+  /* TODO get the ID number
+  select any o_id related by r_simp->R_PART[R207]->R_RTO[R204]->O_ID[R109];
+  if ( not_empty o_id )
+    rel.id_num = o_id.Oid_ID + 1;
+  else
+    rel.id_num = 0;
+  end if;
+  */
+
+else
+select one subsup related by maslrel->SubtypeRelationshipDeclaration[R6010];
+if ( not_empty subsup )
+
+  select one part_class related by subsup->ObjectDeclaration[R6017]->Class[R8300];
+  select many sub_classes related by subsup->ObjectDeclaration[R6016]->Class[R8300];
+  part_phrase = "is_a";
+  for each form_class in sub_classes
+
+    form_phrase = "is_a";
+    form_cond = Cond::CONDITIONAL;
+
+    // create the relationship
+    create object instance rel of Relationship;
+    name = maslrel.name + "_" + form_class.name + "_is_a_" + part_class.name;
+    rel.name = name;
+    rel.num = STRING::atoi(s:STRING::substr(s:maslrel.name, begin:1, end:-1));
+    rel.form_phrase = form_phrase;
+    rel.part_phrase = part_phrase;
+    rel.form_mult = form_mult;
+    rel.part_mult = part_mult;
+    rel.form_cond = form_cond;
+    rel.part_cond = part_cond;
+    rel.rel_type = RelationshipType::SuperSubtype;
+    relate rel to comp_def across R448;
+    relate rel to form_class across R435;
+    relate rel to part_class across R434;
+    relate rel to maslrel across R8304;
+    
+    /* TODO get the ID number
+    select one o_id related by r_subsup->R_SUPER[R212]->R_RTO[R204]->O_ID[R109];
+    if ( not_empty o_id )
+      rel.id_num = o_id.Oid_ID + 1;
+    else
+      rel.id_num = 0;
+    end if;
+    */
+  end for;
+
+else
+select one assoc related by maslrel->AssociativeRelationshipDeclaration[R6010];
+if (not_empty assoc)
+  
+  select one half_rel_1 related by assoc->HalfRelationship[R6000];
+  select one half_rel_2 related by assoc->HalfRelationship[R6002];
+  
+  // get the formalizer and participant information for the first relationship
+  select one form_class related by assoc->ObjectDeclaration[R6001]->Class[R8300];
+  form_phrase = half_rel_2.role;
+  if (half_rel_2.multiplicity == MaslMultiplicity::many)
+    form_mult = Mult::MANY;
+  end if;
+  if (half_rel_2.isconditional)
+    form_cond = Cond::CONDITIONAL;
+  end if;
+  select one part_class related by half_rel_1->ObjectDeclaration[R6004]->Class[R8300];
+  part_phrase = half_rel_1.role;
+
+  // create the first relationship
+  create object instance rel1 of Relationship;
+  name1 = maslrel.name + "_" + form_class.name + "_";
+  if (part_phrase != "")
+    name1 = name1 + T::sub(format:"_", s:part_phrase) + "_";
+  end if;
+  name1 = name1 + part_class.name;
+  rel1.name = name1;
+  rel1.num = STRING::atoi(s:STRING::substr(s:maslrel.name, begin:1, end:-1));
+  rel1.form_phrase = form_phrase;
+  rel1.part_phrase = part_phrase;
+  rel1.form_mult = form_mult;
+  rel1.part_mult = part_mult;
+  rel1.form_cond = form_cond;
+  rel1.part_cond = part_cond;
+  rel1.rel_type = RelationshipType::Associative;
+  relate rel1 to comp_def across R448;
+  relate rel1 to form_class across R435;
+  relate rel1 to part_class across R434;
+  relate rel1 to maslrel across R8304;
+
+  /* TODO get the ID number
+  select one o_id1 related by r_assoc->R_AONE[R209]->R_RTO[R204]->O_ID[R109];
+  if ( not_empty o_id1 )
+    rel1.id_num = o_id1.Oid_ID + 1;
+  else
+    rel1.id_num = 0;
+  end if;
+  */
+
+  // get the formalizer and participant information for the second relationship
+  form_phrase = "";
+  form_mult = Mult::ONE;
+  form_cond = Cond::UNCONDITIONAL;
+  part_phrase = "";
+  part_cond = Cond::UNCONDITIONAL;
+
+  select one form_class related by assoc->ObjectDeclaration[R6001]->Class[R8300];
+  form_phrase = half_rel_1.role;
+  if (half_rel_1.multiplicity == MaslMultiplicity::many)
+    form_mult = Mult::MANY;
+  end if;
+  if (half_rel_1.isconditional)
+    form_cond = Cond::CONDITIONAL;
+  end if;
+  select one part_class related by half_rel_2->ObjectDeclaration[R6004]->Class[R8300];
+  part_phrase = half_rel_2.role;
+
+  // create the second relationship
+  create object instance rel2 of Relationship;
+  name2 = maslrel.name + "_" + form_class.name + "_";
+  if (part_phrase != "")
+    name2 = name2 + T::sub(format:"_", s:part_phrase) + "_";
+  end if;
+  name2 = name2 + part_class.name;
+  rel2.name = name2;
+  rel2.num = STRING::atoi(s:STRING::substr(s:maslrel.name, begin:1, end:-1));
+  rel2.form_phrase = form_phrase;
+  rel2.part_phrase = part_phrase;
+  rel2.form_mult = form_mult;
+  rel2.part_mult = part_mult;
+  rel2.form_cond = form_cond;
+  rel2.part_cond = part_cond;
+  rel2.rel_type = RelationshipType::Associative;
+  relate rel2 to comp_def across R448;
+  relate rel2 to form_class across R435;
+  relate rel2 to part_class across R434;
+  relate rel2 to maslrel across R8304;
+
+  /* TODO get the ID number
+  select one o_id2 related by r_assoc->R_AOTH[R210]->R_RTO[R204]->O_ID[R109];
+  if ( not_empty o_id2 )
+    rel2.id_num = o_id2.Oid_ID + 1;
+  else
+    rel2.id_num = 0;
+  end if;
+  */
+  
+  relate rel1 to rel2 across R436.''is one half of associative'';  // note these are a symmetric pair.
+end if; end if; end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	7);
+INSERT INTO S_SPARM
+	VALUES ("873ac9c0-9196-4cdd-a01f-24cd999bc3f9",
+	"14b42ff1-d03f-4557-bb85-e0d523c9f560",
+	'rel',
+	"fc9b3839-3ca6-48c8-b09a-c036f8335a12",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("fc9b3839-3ca6-48c8-b09a-c036f8335a12",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<RelationshipDeclaration>',
+	'',
+	'',
+	'../../../../ooamasl/models/ooamasl/ooamasl/relationship/relationship.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("696819c1-b1a7-4a5a-a0f7-dbb08f6621d3",
+	"14b42ff1-d03f-4557-bb85-e0d523c9f560",
+	'comp_def',
+	"109e90cb-1d66-46ee-88db-a568044879d0",
+	0,
+	'',
+	"873ac9c0-9196-4cdd-a01f-24cd999bc3f9",
+	'');
+INSERT INTO PE_PE
+	VALUES ("14b42ff1-d03f-4557-bb85-e0d523c9f560",
+	1,
+	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("d13703e8-082b-41d8-9e21-0e3d97d6da31",
+	"00000000-0000-0000-0000-000000000000",
+	'transformAttributeDeclaration',
+	'',
+	'maslattr = param.attr;
+obj = param.obj;
+
+// create the attribute
+create object instance attr of Attribute;
+select many referentials related by maslattr->ReferentialAttributeDefinition[R5800.''refers_to''];
+if (not_empty referentials)
+  attr.name = "ref_" + maslattr.name;
+else
+  attr.name = "m_" + maslattr.name;
+end if;
+attr.base_name = maslattr.name;
+attr.order = param.index;
+attr.default_value = "";
+relate attr to obj across R410;
+
+// set part of identifier
+if maslattr.isPreferredIdentifier
+  attr.identifier = 1;
+end if;
+
+// relate to masl class
+relate attr to maslattr across R8301;
+
+// set the type
+select one basic_type related by maslattr->BasicType[R5803];
+type = ::getTypeReferenceForMASLType( basic_type:basic_type);
+relate type to attr across R424;
+
+// check transient mark
+select one maslobj related by maslattr->ObjectDeclaration[R5802];
+select one masldomain related by maslobj->Domain[R5805];
+select any transient_mark from instances of Mark where (selected.markable_name == "Attribute" and
+                                                        selected.path == "" + masldomain.name + "::" + maslobj.name  + "::" + maslattr.name and
+                                                        selected.feature_name == "transient");
+attr.transient = not_empty transient_mark or not type.serializable;
+
+// set unique
+if maslattr.isUnique
+  if type.type_reference == "int"
+    attr.is_unique = true;
+  else
+    LOG::LogFailure(message:"Invalid unique attribute type: " + type.type_reference);
+  end if;
+end if;
+
+// create accessors
+create object instance getter of AttributeAccessor;
+getter.accessor_type = AttributeAccessorType::GETTER;
+relate getter to attr across R4510;
+create object instance setter of AttributeAccessor;
+setter.accessor_type = AttributeAccessorType::SETTER;
+relate setter to attr across R4510;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	8);
+INSERT INTO S_SPARM
+	VALUES ("0634ff00-eab7-45e6-b893-1874b2a5c7e8",
+	"d13703e8-082b-41d8-9e21-0e3d97d6da31",
+	'attr',
+	"bc9fb0af-6887-4a01-9bad-2412058db57c",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("bc9fb0af-6887-4a01-9bad-2412058db57c",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<AttributeDeclaration>',
+	'',
+	'',
+	'../../../../ooamasl/models/ooamasl/ooamasl/object/object.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("85724f64-796f-4d88-a420-3ce289a4b058",
+	"d13703e8-082b-41d8-9e21-0e3d97d6da31",
+	'obj',
+	"a519e323-b117-4a03-9435-b88e56c2443d",
+	0,
+	'',
+	"0634ff00-eab7-45e6-b893-1874b2a5c7e8",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("a519e323-b117-4a03-9435-b88e56c2443d",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Model Inst>',
+	'',
+	'',
+	'../../../../core-architecture/models/core-architecture/architecture/classes/classes.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("fc943558-6916-44c3-8857-8d46e5beb953",
+	"d13703e8-082b-41d8-9e21-0e3d97d6da31",
+	'index',
+	"ba5eda7a-def5-0000-0000-000000000002",
+	0,
+	'',
+	"85724f64-796f-4d88-a420-3ce289a4b058",
+	'');
+INSERT INTO PE_PE
+	VALUES ("d13703e8-082b-41d8-9e21-0e3d97d6da31",
+	1,
+	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("ea574998-30fc-4373-a1c8-d4b289d85244",
+	"00000000-0000-0000-0000-000000000000",
+	'transformObjectService',
+	'',
+	'object_service = param.object_service;
+select one service related by object_service->Service[R5203];
+select one masl_object related by object_service->ObjectDeclaration[R5808];
+select one domain related by masl_object->Domain[R5805];
+obj = param.obj;
+
+// create operation object
+create object instance op of Operation;
+op.is_class_based = not object_service.isInstance;
+relate op to obj across R416;
+
+// create invocable
+create object instance invocable of InvocableObject;
+invocable.name = service.name;
+if op.is_class_based
+  invocable.name = "_" + obj.name + "_" + invocable.name;
+end if;
+invocable.parent_name = op.class_name;
+invocable.parent_package = op.class_package;
+invocable.original_parent_name = "" + domain.name + "::" + masl_object.name;
+invocable.original_body_name = "" + service.name;
+invocable.original_filename = service.filename;
+relate op to invocable across R427;
+
+// copy actions
+select one code_block related by service->MaslCodeBlock[R5403];
+if not_empty code_block
+  relate code_block to invocable across R8306;
+end if;
+
+// link type
+select one basic_type related by service->BasicType[R5205];
+type = ::getTypeReferenceForMASLType(basic_type:basic_type);
+relate type to invocable across R428;
+
+// create parameters
+select one first_parameter related by service->ParameterDefinition[R5204];
+::transformParameterList(first_parameter:first_parameter, invocable:invocable);
+
+// if this is an optional deferred operation, create a second operation for the supertype implementation
+// TODO',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	3);
+INSERT INTO S_SPARM
+	VALUES ("ca074451-023a-420f-b508-78f978e97d7b",
+	"ea574998-30fc-4373-a1c8-d4b289d85244",
+	'object_service',
+	"4ad9b822-f9c4-40b0-bfd6-44ed4fbaaf33",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("4ad9b822-f9c4-40b0-bfd6-44ed4fbaaf33",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<ObjectService>',
+	'',
+	'',
+	'../../../../ooamasl/models/ooamasl/ooamasl/object/object.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("a4f23ffc-c780-4de8-ac12-e8e66ba04067",
+	"ea574998-30fc-4373-a1c8-d4b289d85244",
+	'obj',
+	"a519e323-b117-4a03-9435-b88e56c2443d",
+	0,
+	'',
+	"ca074451-023a-420f-b508-78f978e97d7b",
+	'');
+INSERT INTO PE_PE
+	VALUES ("ea574998-30fc-4373-a1c8-d4b289d85244",
+	1,
+	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("438be88e-6ba7-41ed-bf4c-7361ded3bbed",
+	"00000000-0000-0000-0000-000000000000",
+	'transformMaslState',
+	'',
+	'maslstate = param.state;
+select one masl_object related by maslstate->ObjectDeclaration[R6105];
+select one domain related by masl_object->Domain[R5805];
+obj = param.obj;
+
+if (maslstate.flavor == StateType::creation)
+  LOG::LogFailure(message:"State type not supported for state: " + obj.name + "." + maslstate.name);
+  return;
+end if;
+
+// create state machine if necessary
+select one sm related by obj->StateMachine[R4750];
+if (empty sm)
+  // create the state machine file
+  create object instance file of File;
+  file.name = obj.name + "StateMachine";
+  file.path = ::formatPath(path:obj.package);
+  file.package = obj.package;
+  file.extension = ".java";
+  // create the state machine
+  create object instance sm of StateMachine;
+  relate sm to file across R401;
+  relate sm to obj across R4750;
+  sm.is_instance = not (maslstate.flavor == StateType::assigner or maslstate.flavor == StateType::assigner_start);
+end if;
+
+// create state
+create object instance state of State;
+relate state to sm across R4751;
+state.final = maslstate.flavor == StateType::terminal;
+select many existing_states related by sm->State[R4751];
+state.number = cardinality existing_states;
+state.initial = maslstate.flavor == StateType::assigner_start;
+
+// create invocable
+create object instance invocable of InvocableObject;
+invocable.name = T::sub(format:"_u", s:maslstate.name);
+invocable.parent_name = sm.name;
+invocable.parent_package = sm.package;
+invocable.original_parent_name = "" + domain.name + "::" + masl_object.name;
+invocable.original_body_name = "" + maslstate.name;
+invocable.original_filename = maslstate.filename;
+relate state to invocable across R427;
+
+// copy actions
+select one code_block related by maslstate->MaslCodeBlock[R6115];
+if not_empty code_block
+  relate code_block to invocable across R8306;
+end if;
+
+// link type
+type = ::getBasicTypeReferenceByName(name:"void");
+relate type to invocable across R428;
+
+// create parameters
+select one first_parameter related by maslstate->ParameterDefinition[R6104];
+::transformParameterList(first_parameter:first_parameter, invocable:invocable);
+
+// link to masl state
+relate state to maslstate across R8302;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	9);
+INSERT INTO S_SPARM
+	VALUES ("fbf7ba79-96fc-4e02-bd44-2c6030200492",
+	"438be88e-6ba7-41ed-bf4c-7361ded3bbed",
+	'state',
+	"640e9a30-074e-45fd-aa2b-fdcc3fc56f5b",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("640e9a30-074e-45fd-aa2b-fdcc3fc56f5b",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<State>',
+	'',
+	'',
+	'../../../../ooamasl/models/ooamasl/ooamasl/statemodel/statemodel.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("c2fcb60e-fa83-428e-bd18-4ab828c25aa1",
+	"438be88e-6ba7-41ed-bf4c-7361ded3bbed",
+	'obj',
+	"a519e323-b117-4a03-9435-b88e56c2443d",
+	0,
+	'',
+	"fbf7ba79-96fc-4e02-bd44-2c6030200492",
+	'');
+INSERT INTO PE_PE
+	VALUES ("438be88e-6ba7-41ed-bf4c-7361ded3bbed",
+	1,
+	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("48de3bbe-9980-41be-8853-893f124f6be8",
+	"00000000-0000-0000-0000-000000000000",
+	'transformMaslEvent',
+	'',
+	'maslevt = param.evt;
+obj = param.obj;
+
+if maslevt.flavor == EventType::creation
+  LOG::LogFailure(message:"Creation events are not supported");
+  return;
+end if;
+
+// create event
+create object instance evt of Event;
+relate evt to obj across R4752;
+select many existing_evts from instances of Event;
+evt.id = cardinality existing_evts;
+
+// create invocable
+create object instance invocable of InvocableObject;
+invocable.name = T::sub(format:"c_", s:maslevt.name);
+invocable.parent_name = obj.name;
+invocable.parent_package = obj.package;
+relate evt to invocable across R427;
+
+// link type
+type = ::getBasicTypeReferenceByName(name:"void");
+relate type to invocable across R428;
+
+// create parameters
+select one first_parameter related by maslevt->ParameterDefinition[R6100];
+::transformParameterList(first_parameter:first_parameter, invocable:invocable);
+
+// link to masl event
+relate evt to maslevt across R8303;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	11);
+INSERT INTO S_SPARM
+	VALUES ("1e58e713-463c-42b9-ab0c-45d4045f7889",
+	"48de3bbe-9980-41be-8853-893f124f6be8",
+	'evt',
+	"4cfcfee8-b8db-43f0-9290-af0d49e530d4",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("4cfcfee8-b8db-43f0-9290-af0d49e530d4",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<EventDeclaration>',
+	'',
+	'',
+	'../../../../ooamasl/models/ooamasl/ooamasl/statemodel/statemodel.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("7ea28e80-e4ec-45f1-b97f-5571da228235",
+	"48de3bbe-9980-41be-8853-893f124f6be8",
+	'obj',
+	"a519e323-b117-4a03-9435-b88e56c2443d",
+	0,
+	'',
+	"1e58e713-463c-42b9-ab0c-45d4045f7889",
+	'');
+INSERT INTO PE_PE
+	VALUES ("48de3bbe-9980-41be-8853-893f124f6be8",
+	1,
+	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("7a140795-ad3a-4902-b565-414d39405728",
+	"00000000-0000-0000-0000-000000000000",
+	'transformTransitionTable',
+	'',
+	'transition_table = param.transition_table;
+obj = param.obj;
+
+select one sm related by obj->StateMachine[R4750];
+
+select many transition_rows related by transition_table->TransitionRow[R6114];
+for each transition_row in transition_rows
+  
+  select one start_state related by transition_row->MaslState[R6111]->State[R8302];
+  if (not_empty start_state)  // ignore Non_Existent state (creation events not supported)
+
+    // create a row for this start state
+    create object instance row of TransitionTableRow;
+    relate row to sm across R4753;
+    relate row to start_state across R4754;
+    row.index = start_state.number;
+    
+    select many transition_options related by transition_row->TransitionOption[R6112];
+    for each transition_option in transition_options
+      
+      select one evt related by transition_option->EventDeclaration[R6108]->Event[R8303];
+      
+      // create a cell for this option
+      create object instance cell of TransitionTableCell;
+      relate cell to row across R4755;
+      relate cell to evt across R4756;
+      cell.index = evt.id;
+      
+      if (transition_option.flavor == MaslTransitionType::ignore)
+        cell.transition_type = TransitionType::IGNORE;
+      elif (transition_option.flavor == MaslTransitionType::cannot_happen)
+        cell.transition_type = TransitionType::CANT_HAPPEN;
+      else
+        select one dest_state related by transition_option->MaslState[R6109]->State[R8302];
+        
+        // create transition
+        create object instance txn of Transition;
+        relate dest_state to cell across R4757 using txn;
+        cell.transition_type = TransitionType::TRANSITION;
+
+        // create invocable
+        create object instance invocable of InvocableObject;
+        invocable.name = start_state.name + "_txn_" + dest_state.name;
+        invocable.parent_name = sm.name;
+        invocable.parent_package = sm.package;
+        relate txn to invocable across R427;
+        
+        // link type
+        type = ::getBasicTypeReferenceByName(name:"void");
+        relate type to invocable across R428;
+
+      end if;
+    end for;
+  end if;
+end for;
+ ',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	12);
+INSERT INTO S_SPARM
+	VALUES ("5c80d557-a927-4b35-9546-21f7d4c64605",
+	"7a140795-ad3a-4902-b565-414d39405728",
+	'transition_table',
+	"1562ccf7-11fc-4113-b5e2-b75406fe923c",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("1562ccf7-11fc-4113-b5e2-b75406fe923c",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<TransitionTable>',
+	'',
+	'',
+	'../../../../ooamasl/models/ooamasl/ooamasl/statemodel/statemodel.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("1df2a65e-2f3b-4091-967b-d0bd4c1a32ab",
+	"7a140795-ad3a-4902-b565-414d39405728",
+	'obj',
+	"a519e323-b117-4a03-9435-b88e56c2443d",
+	0,
+	'',
+	"5c80d557-a927-4b35-9546-21f7d4c64605",
+	'');
+INSERT INTO PE_PE
+	VALUES ("7a140795-ad3a-4902-b565-414d39405728",
+	1,
+	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("c63f93b6-1fa9-4e4d-887e-4bd100f4454d",
+	"00000000-0000-0000-0000-000000000000",
+	'transformParameterList',
+	'',
+	'parameter = param.first_parameter;
+invocable = param.invocable;
+while (not_empty parameter)
+  // create parameter
+  create object instance parm of FormalParameter;
+  parm.name = "p_" + parameter.name;
+  parm.by_ref = parameter.mode == ParameterMode::out;
+  // data type
+  select one basic_type related by parameter->BasicType[R5200];
+  type = ::getTypeReferenceForMASLType(basic_type:basic_type);
+  relate type to parm across R431;
+  ::linkParameter(invocable:invocable, parameter:parm);
+  select one parameter related by parameter->ParameterDefinition[R5208.''precedes''];
+end while;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	13);
+INSERT INTO S_SPARM
+	VALUES ("996bca01-17c9-4861-8b2f-b07616499676",
+	"c63f93b6-1fa9-4e4d-887e-4bd100f4454d",
+	'first_parameter',
+	"f4d42a8f-58ea-4bca-ac49-ea1239d45a52",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("f4d42a8f-58ea-4bca-ac49-ea1239d45a52",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<ParameterDefinition>',
+	'',
+	'',
+	'../../../../ooamasl/models/ooamasl/ooamasl/domain/domain.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("fa2f0c8a-eba8-4433-864d-c56ceb40413b",
+	"c63f93b6-1fa9-4e4d-887e-4bd100f4454d",
+	'invocable',
+	"3ab44839-4426-4754-b12a-0a00ce4dae1a",
+	0,
+	'',
+	"996bca01-17c9-4861-8b2f-b07616499676",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("3ab44839-4426-4754-b12a-0a00ce4dae1a",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Invocable Object>',
+	'',
+	'',
+	'../../../../core-architecture/models/core-architecture/architecture/invocable/invocable.xtuml');
+INSERT INTO PE_PE
+	VALUES ("c63f93b6-1fa9-4e4d-887e-4bd100f4454d",
+	1,
+	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("51320e2f-c4fa-41fc-bc81-caab2798fed8",
+	"00000000-0000-0000-0000-000000000000",
+	'transformMaslAttributeReferences',
+	'',
+	'obj = param.obj;
+select many attrs related by obj->Attribute[R410];
+for each attr in attrs
+  select many masl_attr_refs related by attr->AttributeDeclaration[R8301]->ReferentialAttributeDefinition[R5800.''refers_to''];
+  for each masl_attr_ref in masl_attr_refs
+    // gather identifying information
+    select one referred_to_attr related by masl_attr_ref->AttributeDeclaration[R5800.''refers_to'']->Attribute[R8301];
+    select one referred_to_obj related by referred_to_attr->Class[R410];
+    select one rel_spec related by masl_attr_ref->RelationshipSpecification[R5811];
+    select any relationship related by rel_spec->RelationshipDeclaration[R6015]->Relationship[R8304] where (
+      selected.form_name == obj.name and selected.part_name == referred_to_obj.name and
+      (selected.part_phrase == rel_spec.role or rel_spec.role == ""));
+    // create attribute reference
+    create object instance attr_ref of AttributeReference;
+    relate attr to referred_to_attr across R4506.''has value provided by'' using attr_ref;
+    relate relationship to attr_ref across R4511;
+  end for;
+end for;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	0);
+INSERT INTO S_SPARM
+	VALUES ("540870ed-c564-4091-bd40-0ff07d10947b",
+	"51320e2f-c4fa-41fc-bc81-caab2798fed8",
+	'obj',
+	"a519e323-b117-4a03-9435-b88e56c2443d",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO PE_PE
+	VALUES ("51320e2f-c4fa-41fc-bc81-caab2798fed8",
+	1,
+	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("c352eb0f-0c3e-481a-97fb-af66f7d79a60",
+	"00000000-0000-0000-0000-000000000000",
+	'transformMaslBody',
+	'',
+	'invocable = param.invocable;
+select one code_block related by invocable->MaslCodeBlock[R8306];
+select one first_statement related by code_block->MaslStatement[R5150];
+select any empty_statement from instances of MaslStatement where false;
+if (not_empty first_statement)
+    
+  // check if deferred operation TODO
+
+  select any upper_block from instances of CodeBlock where false;
+  select many additional_vars from instances of Variable where false;
+  ::transformMaslBlock(invocable:invocable, upper_block:upper_block, code_block:code_block, block_number:"1", additional_vars:additional_vars);
+  select any top_level_block related by invocable->CodeBlock[R4000] where selected.top_level;
+  ::transformMaslBlockStatements(block:top_level_block, code_block:code_block, first_statement:empty_statement);
+    
+  // finalize variables referenced from within a where clause
+  ::resloveVariableFinalizations( invocable:invocable );
+  
+else
+  // TODO bad
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	0);
+INSERT INTO S_SPARM
+	VALUES ("1191186d-8702-464b-a3e5-f65b9bab6612",
+	"c352eb0f-0c3e-481a-97fb-af66f7d79a60",
+	'invocable',
+	"3ab44839-4426-4754-b12a-0a00ce4dae1a",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO PE_PE
+	VALUES ("c352eb0f-0c3e-481a-97fb-af66f7d79a60",
+	1,
+	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("547b37dd-8782-43e5-b030-2fd67a8ffb26",
+	"00000000-0000-0000-0000-000000000000",
+	'transformMaslException',
+	'',
+	'exception_declaration = param.exception_declaration;
+select one domain related by exception_declaration->Domain[R5400];
+comp_def = param.comp_def;
+
+select one component_file related by comp_def->File[R401];
+path = component_file.path + "/internal/exceptions";  // put all exceptions in one package called ''exceptions''
+if exception_declaration.visibility == MaslVisibility::public
+  path = component_file.path + "/exceptions";  // put all public exceptions in a separate package
+end if;
+
+// create the object file
+create object instance file of File;
+file.name = ::camelCaseName(name:exception_declaration.name, start_lower:false );
+file.path = path;
+file.package = ::pathToPackage(path:file.path);
+file.extension = ".java";
+
+// create the type
+create object instance type of Type;
+type.name = file.name;
+type.package = file.package;
+create object instance exp of NamedTypeReference;
+relate exp to type across R407;
+exp_type = ::getBasicTypeReferenceByName(name:"ActionException");
+relate exp_type to exp across R3804;
+
+// create the user defined type
+create object instance udt of UserDefinedType;
+relate udt to exp across R3803;
+relate udt to file across R401;
+
+// link to arch model
+relate exception_declaration to udt across R8307;
+  
+if exception_declaration.visibility == MaslVisibility::public
+
+  // add to export package
+  if not param.exclude and not_empty type
+    select one mod related by exception_declaration->Domain[R5400]->Module[R8309];
+    select any export_package related by mod->ExportedPackage[R5750] where selected.name == type.package;
+    if empty export_package
+      create object instance export_package of ExportedPackage;
+      export_package.name = type.package;
+      relate export_package to mod across R5750;
+    end if;
+  end if;
+
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	3);
+INSERT INTO S_SPARM
+	VALUES ("62431a64-c1ce-48aa-a1e3-586a53b20bf2",
+	"547b37dd-8782-43e5-b030-2fd67a8ffb26",
+	'exception_declaration',
+	"fcbc46ab-aa9a-4a5f-a61c-93953c3dcf03",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("fcbc46ab-aa9a-4a5f-a61c-93953c3dcf03",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<ExceptionDeclaration>',
+	'',
+	'',
+	'../../../../ooamasl/models/ooamasl/ooamasl/domain/domain.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("b8b24aa5-5a7d-4b30-9e20-ef0c2d517ae5",
+	"547b37dd-8782-43e5-b030-2fd67a8ffb26",
+	'comp_def',
+	"109e90cb-1d66-46ee-88db-a568044879d0",
+	0,
+	'',
+	"62431a64-c1ce-48aa-a1e3-586a53b20bf2",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("67540e4c-17ae-45bd-a1cd-2586b4479a79",
+	"547b37dd-8782-43e5-b030-2fd67a8ffb26",
+	'exclude',
+	"ba5eda7a-def5-0000-0000-000000000001",
+	0,
+	'',
+	"b8b24aa5-5a7d-4b30-9e20-ef0c2d517ae5",
+	'');
+INSERT INTO PE_PE
+	VALUES ("547b37dd-8782-43e5-b030-2fd67a8ffb26",
+	1,
+	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("9cf82c18-8e40-4dd1-9bf5-23aa838eb6a7",
+	"00000000-0000-0000-0000-000000000000",
+	'transformUtilityDomain',
+	'',
+	'domain = param.domain;
+
+// get the parameters
+utility_module = STRING::substr(s:param.util_package, begin:0, end:STRING::indexof(haystack:param.util_package, needle:","));
+utility_package = utility_module;
+if STRING::indexof(haystack:param.util_package, needle:",") != -1
+  utility_package = STRING::substr(s:param.util_package, begin:STRING::indexof(haystack:param.util_package, needle:",") + 1, end:-1);
+end if;
+
+// create the file
+create object instance file of File;
+file.name = domain.name;
+if utility_package == ""
+  // if no pacakge is passed in, this is a private utility within this domain
+  file.path = param.path + "/util";
+  file.package = ::pathToPackage(path:file.path);
+  file.extension = ".java";
+else
+  file.package = utility_package;
+  file.path = ::formatPath(path:file.package);
+  file.extension = ".java";
+  file.exclude = true;
+end if;
+
+// create the utility object
+create object instance utility of Utility;
+relate utility to file across R401;
+
+// create the module if this is an external module
+if utility_module != ""
+
+  select any mod from instances of Module where selected.name == utility_module;
+  if empty mod
+ 
+    // create module file
+    create object instance module_file of File;
+    module_file.name = utility_module;
+    module_file.exclude = true;
+    
+    // create the module object
+    create object instance mod of Module;
+    relate mod to module_file across R401;
+    mod.main_module = false;
+    relate mod to domain across R8309;
+
+  end if;
+  
+  // create an export package
+  select any export_package related by mod->ExportedPackage[R5750] where selected.name == utility.package;
+  if empty export_package
+    create object instance export_package of ExportedPackage;
+    export_package.name = utility.package;
+    relate export_package to mod across R5750;
+  end if;
+  
+end if;
+
+// check if this is implemented as native code
+select any native_util_mark from instances of Mark where
+  selected.markable_name == "Domain" and selected.feature_name == "native" and selected.path == "" + domain.name;
+if not_empty native_util_mark
+  utility.native_library = native_util_mark.value;
+end if;
+
+// transform each utility function
+select many domain_services related by domain->DomainService[R5303];
+for each domain_service in domain_services
+  ::transformUtilityDomainService(domain_service:domain_service, utility:utility);
+end for;
+
+// TODO types and exceptions',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	1);
+INSERT INTO S_SPARM
+	VALUES ("f6d0ad1c-dc42-4625-8257-2ffae5547c83",
+	"9cf82c18-8e40-4dd1-9bf5-23aa838eb6a7",
+	'domain',
+	"d467079c-c61e-4b05-8498-3fe2f24782a6",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("786f37a9-6a20-4b89-84cc-24ae21dd0c70",
+	"9cf82c18-8e40-4dd1-9bf5-23aa838eb6a7",
+	'path',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"f6d0ad1c-dc42-4625-8257-2ffae5547c83",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("6c9dda9d-c9bd-48e5-99d7-35f6df6cc5be",
+	"9cf82c18-8e40-4dd1-9bf5-23aa838eb6a7",
+	'util_package',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"786f37a9-6a20-4b89-84cc-24ae21dd0c70",
+	'');
+INSERT INTO PE_PE
+	VALUES ("9cf82c18-8e40-4dd1-9bf5-23aa838eb6a7",
+	1,
+	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("31e06f99-9ec8-4e40-9113-fefbca8c0552",
+	"00000000-0000-0000-0000-000000000000",
+	'transformUtilityDomainService',
+	'',
+	'domain_service = param.domain_service;
+select one domain related by domain_service->Domain[R5303];
+utility = param.utility;
+
+select one service related by domain_service->Service[R5203];
+
+// create utility function object
+create object instance util_func of UtilityFunction;
+relate util_func to utility across R4559;
+
+// create invocable
+create object instance invocable of InvocableObject;
+invocable.name = service.name;
+invocable.parent_name = utility.name;
+invocable.parent_package = utility.package;
+relate util_func to invocable across R427;
+
+// link type
+select one basic_type related by service->BasicType[R5205];
+type = ::getTypeReferenceForMASLType(basic_type:basic_type);
+relate type to invocable across R428;
+
+// create parameters
+select one first_parameter related by service->ParameterDefinition[R5204];
+::transformParameterList(first_parameter:first_parameter, invocable:invocable);',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	3);
+INSERT INTO S_SPARM
+	VALUES ("30749198-b48c-4bff-a9d5-ab6e68173872",
+	"31e06f99-9ec8-4e40-9113-fefbca8c0552",
+	'domain_service',
+	"ffebe79c-5289-41c4-9a6c-4c6b8346d989",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("d85f65dd-d6be-4c10-a08a-60cce177204b",
+	"31e06f99-9ec8-4e40-9113-fefbca8c0552",
+	'utility',
+	"05845c9d-7216-4905-8b60-6bf9f95f42e7",
+	0,
+	'',
+	"30749198-b48c-4bff-a9d5-ab6e68173872",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("05845c9d-7216-4905-8b60-6bf9f95f42e7",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Utility>',
+	'',
+	'',
+	'../../../../core-architecture/models/core-architecture/architecture/component/component.xtuml');
+INSERT INTO PE_PE
+	VALUES ("31e06f99-9ec8-4e40-9113-fefbca8c0552",
+	1,
+	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("89da2336-e662-44fb-98b9-05d5b80d09ba",
+	"00000000-0000-0000-0000-000000000000",
+	'transformProject',
+	'',
+	'project = param.project;
+
+// create module file
+create object instance module_file of File;
+module_file.name = project.name;
+
+// create the module object
+create object instance mod of Module;
+relate mod to module_file across R401;
+mod.main_module = true;
+relate mod to project across R8311;
+
+// create application
+create object instance app_file of File;
+app_file.name = project.name;
+app_file.path = param.path;
+app_file.package = ::pathToPackage(path:app_file.path);
+app_file.extension = ".java";
+
+// create the application object
+create object instance app of Application;
+relate app to app_file across R401;
+relate app to mod across R5751;
+
+// check simulated time
+sim_time_mark = PROP::getProperty(key:"io.ciera.EnableSimulatedTime");
+if (sim_time_mark != "")
+  LOG::LogInfo(message:"Enabling simulated time");
+  app.simulated_time = sim_time_mark;
+end if;
+
+// transform project domains
+select many domains related by project->ProjectDomain[R5900];
+for each domain in domains
+  ::transformProjectDomain(project_domain:domain, path:param.path + "/domains");
+end for;
+
+// link all domains to the application
+select many comp_defs from instances of ComponentDefinition;
+for each comp_def in comp_defs
+  select any sub_domain related by comp_def->ComponentDefinition[R4562.''extended by''];
+  // ignore domains that are extended by a sub domain
+  if empty sub_domain
+    create object instance comp_inst of ComponentInstantiation;
+    relate comp_def to app across R426 using comp_inst;
+  end if;
+end for;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	14);
+INSERT INTO S_SPARM
+	VALUES ("6459289d-5d01-4961-9841-59730b6a091f",
+	"89da2336-e662-44fb-98b9-05d5b80d09ba",
+	'project',
+	"441f24d5-1449-4a86-a093-cf7c331418a3",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("441f24d5-1449-4a86-a093-cf7c331418a3",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Project>',
+	'',
+	'',
+	'../../../../ooamasl/models/ooamasl/ooamasl/project/project.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("abe8c8e6-aed7-4736-9474-cf231911b603",
+	"89da2336-e662-44fb-98b9-05d5b80d09ba",
+	'path',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"6459289d-5d01-4961-9841-59730b6a091f",
+	'');
+INSERT INTO PE_PE
+	VALUES ("89da2336-e662-44fb-98b9-05d5b80d09ba",
+	1,
+	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("3b7396bd-a27d-49dc-8680-056e8981033c",
+	"00000000-0000-0000-0000-000000000000",
+	'transformProjectDomain',
+	'',
+	'project_domain = param.project_domain;
+select one project related by project_domain->Project[R5900];
+select one domain related by project_domain->Domain[R5901];
+select one ref_comp_def related by domain->ComponentDefinition[R8310];
+
+// create the file
+create object instance file of File;
+file.name = project.name + ::camelCaseName(name:domain.name, start_lower:false);
+file.path = param.path;
+file.package = ::pathToPackage(path:file.path);
+file.extension = ".java";
+
+// create the component definition object
+create object instance comp_def of ComponentDefinition;
+relate comp_def to file across R401;
+select one mod related by project_domain->Project[R5900]->Module[R8311];
+relate comp_def to mod across R5752;
+relate comp_def to ref_comp_def across R4562.''extends'';
+
+// transform terminators
+select many terms related by project_domain->ProjectTerminator[R5902];
+for each term in terms
+  ::transformProjectTerminator(project_terminator:term, comp_def:comp_def, path:file.path + "/" + T::sub(format:"l", s:term.name));
+end for;
+
+// add a module dependency
+select one main_mod related by project->Module[R8311];
+select one mod related by ref_comp_def->Module[R5752];
+if not_empty mod and not_empty main_mod and mod != main_mod
+	select any dependency related by main_mod->Dependency[R5753.''requires''] where selected.required_module_name == mod.name;
+	if empty dependency
+		create object instance dependency of Dependency;
+		relate mod to main_mod across R5753.''required by'' using dependency;
+	end if;
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	1);
+INSERT INTO S_SPARM
+	VALUES ("bac56e18-da09-4a15-a74d-546e23a64daf",
+	"3b7396bd-a27d-49dc-8680-056e8981033c",
+	'project_domain',
+	"dd011dcb-a5b9-4fbb-a8e3-22610c45343f",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("dd011dcb-a5b9-4fbb-a8e3-22610c45343f",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<ProjectDomain>',
+	'',
+	'',
+	'../../../../ooamasl/models/ooamasl/ooamasl/project/project.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("e270b0c7-b274-4ac8-baf9-63f7898e205b",
+	"3b7396bd-a27d-49dc-8680-056e8981033c",
+	'path',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"bac56e18-da09-4a15-a74d-546e23a64daf",
+	'');
+INSERT INTO PE_PE
+	VALUES ("3b7396bd-a27d-49dc-8680-056e8981033c",
+	1,
+	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("ea6eeb27-5f65-4960-99c5-f711920ca460",
+	"00000000-0000-0000-0000-000000000000",
+	'transformProjectTerminator',
+	'',
+	'project_terminator = param.project_terminator;
+select one project related by project_terminator->ProjectDomain[R5902]->Project[R5900];
+comp_def = param.comp_def;
+
+// create the port file
+create object instance port_file of File;
+port_file.name = comp_def.name + ::camelCaseName(name:project_terminator.name, start_lower:false);
+port_file.path = param.path;
+port_file.package = ::pathToPackage(path:port_file.path);
+port_file.extension = ".java";
+
+// create the port object
+create object instance port of Port;
+relate port to port_file across R401;
+port.port_name = ::camelCaseName(name:project_terminator.name, start_lower:false);
+
+// get the domain port if it exists
+select any corresponding_terminator related by project_terminator->ProjectDomain[R5902]->Domain[R5901]->DomainTerminator[R5304]
+  where selected.name == project_terminator.name;
+select one corresponding_port related by corresponding_terminator->Port[R8313];
+relate port to corresponding_port across R4162.''extends'';
+
+// set port as requirer
+port.provider = false;
+
+// relate to other component
+relate port to comp_def across R417;
+
+// create the interface file
+create object instance iface_file of File;
+iface_file.name = project.name + ::camelCaseName(name:project_terminator.name, start_lower:false);
+iface_file.path = param.path;
+iface_file.package = ::pathToPackage( path:iface_file.path );
+iface_file.extension = ".java";
+  
+// create the interface package object
+create object instance iface of Interface;
+relate iface to iface_file across R401;
+relate port to iface across R418;
+
+// get the domain interface if it exists
+select one corresponding_iface related by corresponding_terminator->Interface[R8312];
+if not_empty corresponding_iface
+  relate iface to corresponding_iface across R4161.''extends'';
+end if;
+
+// transform terminator services
+select many terminator_services related by project_terminator->ProjectTerminatorService[R5903];
+index = 1;
+for each terminator_service in terminator_services
+  ::transformProjectTerminatorService(terminator_service:terminator_service, iface:iface, port:port, index:index);
+  index = index + 1;
+end for;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	5);
+INSERT INTO S_SPARM
+	VALUES ("fedf98ac-46ad-4001-b486-7714bbcd7739",
+	"ea6eeb27-5f65-4960-99c5-f711920ca460",
+	'project_terminator',
+	"4b9202a7-2be1-45d8-87d5-2f1aee2f06be",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("4b9202a7-2be1-45d8-87d5-2f1aee2f06be",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<ProjectTerminator>',
+	'',
+	'',
+	'../../../../ooamasl/models/ooamasl/ooamasl/project/project.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("cf6dfbbc-c819-4fca-b265-d5044b25fadd",
+	"ea6eeb27-5f65-4960-99c5-f711920ca460",
+	'comp_def',
+	"109e90cb-1d66-46ee-88db-a568044879d0",
+	0,
+	'',
+	"fedf98ac-46ad-4001-b486-7714bbcd7739",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("9dbe2f65-ab36-4217-aa4c-0d017efb4b60",
+	"ea6eeb27-5f65-4960-99c5-f711920ca460",
+	'path',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"cf6dfbbc-c819-4fca-b265-d5044b25fadd",
+	'');
+INSERT INTO PE_PE
+	VALUES ("ea6eeb27-5f65-4960-99c5-f711920ca460",
+	1,
+	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("53d4d11d-7601-4a51-94d4-8c4db0089ab0",
+	"00000000-0000-0000-0000-000000000000",
+	'transformProjectTerminatorService',
+	'',
+	'terminator_service = param.terminator_service;
+select one service related by terminator_service->Service[R5203];
+select one terminator related by terminator_service->ProjectTerminator[R5903];
+select one domain related by terminator->ProjectDomain[R5902]->Domain[R5901];
+select one basic_type related by service->BasicType[R5205];
+iface = param.iface;
+index = param.index;
+port = param.port;
+
+select any msg related by iface->Interface[R4161.''extends'']->Message[R419] where selected.name == "" + service.name;
+if empty msg
+
+  // create message object
+  create object instance msg of Message;
+  msg.name = service.name;
+  msg.to_provider = true;
+  msg.id = index;
+  relate msg to iface across R419;
+  
+  // check if this service has a return type
+  msg.async = empty basic_type;
+
+end if;
+
+// create port message
+create object instance port_msg of PortMessage;
+relate port to msg across R420 using port_msg;
+
+// create invocable
+create object instance invocable of InvocableObject;
+invocable.name = msg.name;
+invocable.parent_name = port.name;
+invocable.parent_package = port.package;
+invocable.original_parent_name = "" + domain.name + "::" + terminator.name;
+invocable.original_body_name = "" + service.name;
+invocable.original_filename = service.filename;
+relate port_msg to invocable across R427;
+
+// copy actions
+select one code_block related by service->MaslCodeBlock[R5403];
+if not_empty code_block
+  relate code_block to invocable across R8306;
+end if;
+
+// link type
+type = ::getTypeReferenceForMASLType(basic_type:basic_type);
+relate type to invocable across R428;
+
+// create parameters
+select one first_parameter related by service->ParameterDefinition[R5204];
+::transformParameterList(first_parameter:first_parameter, invocable:invocable);',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	6);
+INSERT INTO S_SPARM
+	VALUES ("8f6adbb0-448e-4199-bc50-26c58a0e125d",
+	"53d4d11d-7601-4a51-94d4-8c4db0089ab0",
+	'terminator_service',
+	"64bf0599-7a0e-4cfd-b4c9-d0b7f36db4b5",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("64bf0599-7a0e-4cfd-b4c9-d0b7f36db4b5",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<ProjectTerminatorService>',
+	'',
+	'',
+	'../../../../ooamasl/models/ooamasl/ooamasl/project/project.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("f72e1f46-0168-4a3e-83f2-6911ed13864a",
+	"53d4d11d-7601-4a51-94d4-8c4db0089ab0",
+	'iface',
+	"003d869d-0580-4a1f-b1c8-e1657cc0248c",
+	0,
+	'',
+	"8f6adbb0-448e-4199-bc50-26c58a0e125d",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("f38918ce-d643-4468-80ac-3e7b5b2f62eb",
+	"53d4d11d-7601-4a51-94d4-8c4db0089ab0",
+	'port',
+	"d29fe14e-2574-4613-ac57-716ebd8e905c",
+	0,
+	'',
+	"f72e1f46-0168-4a3e-83f2-6911ed13864a",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("70475964-1662-47ab-834f-f4b568b8b439",
+	"53d4d11d-7601-4a51-94d4-8c4db0089ab0",
+	'index',
+	"ba5eda7a-def5-0000-0000-000000000002",
+	0,
+	'',
+	"f38918ce-d643-4468-80ac-3e7b5b2f62eb",
+	'');
+INSERT INTO PE_PE
+	VALUES ("53d4d11d-7601-4a51-94d4-8c4db0089ab0",
+	1,
+	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("1b3c4251-8761-4fa9-864f-03078d1b2420",
+	"00000000-0000-0000-0000-000000000000",
+	'transformTypeDeclaration',
+	'',
+	'type_declaration = param.type_declaration;
+
+select one enumerate_type related by type_declaration->TypeDeclaration[R6241]->TypeDefinition[R6234]->FullTypeDefinition[R6236]->EnumerateType[R6219];
+if not_empty enumerate_type
+  ::transformEnumerateType(enumerate_type:enumerate_type, type_declaration:type_declaration, comp_def:param.comp_def, exclude:param.exclude);
+end if;
+
+// TODO transform other types
+
+// add to export package
+if type_declaration.visibility == MaslVisibility::public
+  select one type related by type_declaration->Type[R8314];
+  if not param.exclude and not_empty type
+    select one mod related by type_declaration->Domain[R6235]->Module[R8309];
+    select any export_package related by mod->ExportedPackage[R5750] where selected.name == type.package;
+    if empty export_package
+      create object instance export_package of ExportedPackage;
+      export_package.name = type.package;
+      relate export_package to mod across R5750;
+    end if;
+  end if;
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	15);
+INSERT INTO S_SPARM
+	VALUES ("f6caa655-dbf4-42db-982d-20e0b46a34f8",
+	"1b3c4251-8761-4fa9-864f-03078d1b2420",
+	'type_declaration',
+	"5f5b21a5-3fd7-4b46-970e-812947d7a192",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("5f5b21a5-3fd7-4b46-970e-812947d7a192",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<UserDefinedType>',
+	'',
+	'',
+	'../../../../ooamasl/models/ooamasl/ooamasl/type/type.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("7bbc36a7-dc27-45d6-9249-0d9545cda411",
+	"1b3c4251-8761-4fa9-864f-03078d1b2420",
+	'comp_def',
+	"109e90cb-1d66-46ee-88db-a568044879d0",
+	0,
+	'',
+	"f6caa655-dbf4-42db-982d-20e0b46a34f8",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("cf72297b-6f6e-4404-aaf1-7b086c06cea8",
+	"1b3c4251-8761-4fa9-864f-03078d1b2420",
+	'exclude',
+	"ba5eda7a-def5-0000-0000-000000000001",
+	0,
+	'',
+	"7bbc36a7-dc27-45d6-9249-0d9545cda411",
+	'');
+INSERT INTO PE_PE
+	VALUES ("1b3c4251-8761-4fa9-864f-03078d1b2420",
+	1,
+	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("1a74d339-a16d-4cad-9c0c-e8737babf5be",
+	"00000000-0000-0000-0000-000000000000",
+	'transformEnumerateType',
+	'',
+	'enumerate_type = param.enumerate_type;
+type_declaration = param.type_declaration;
+select one domain related by type_declaration->Domain[R6235];
+comp_def = param.comp_def;
+
+select one component_file related by comp_def->File[R401];
+path = component_file.path + "/internal/types";  // put all types in one package called ''exceptions''
+if type_declaration.visibility == MaslVisibility::public
+  path = component_file.path + "/types";  // put all public types in a separate package
+end if;
+
+// create the file
+create object instance file of File;
+file.name = ::camelCaseName(name:type_declaration.name, start_lower:false);
+file.path = path;
+file.package = ::pathToPackage( path:file.path );
+file.extension = ".java";
+file.exclude = param.exclude;
+
+// create the type
+create object instance type of Type;
+type.name = file.name;
+type.package = file.package;
+type.default_value = "null";
+create object instance edt of EnumeratedType;
+relate type to edt across R407;
+relate edt to file across R401;
+relate type to type_declaration across R8314;
+
+// transform enumerators
+select any enumer related by enumerate_type->EnumerateItem[R6245];
+select one prev_enumer related by enumer->EnumerateItem[R6242.''succeeds''];
+while ( not_empty prev_enumer )
+  enumer = prev_enumer;
+  select one prev_enumer related by enumer->EnumerateItem[R6242.''succeeds''];
+end while;
+value = 0;
+while ( not_empty enumer )
+  create object instance e of Enumerator;
+  e.name = enumer.name;
+  e.value = value;
+  e.comment = "";
+  value = value + 1;
+  relate e to edt across R415;
+  select one enumer related by enumer->EnumerateItem[R6242.''precedes''];
+end while;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	15);
+INSERT INTO S_SPARM
+	VALUES ("a48ab08f-bfa4-486c-b9de-a0a27762ff02",
+	"1a74d339-a16d-4cad-9c0c-e8737babf5be",
+	'enumerate_type',
+	"882cf33d-967a-45a6-8f88-0967861697ab",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("882cf33d-967a-45a6-8f88-0967861697ab",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<EnumerateType>',
+	'',
+	'',
+	'../../../../ooamasl/models/ooamasl/ooamasl/type/type.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("969e7fd2-7986-4962-8791-f6e8a4dfd974",
+	"1a74d339-a16d-4cad-9c0c-e8737babf5be",
+	'comp_def',
+	"109e90cb-1d66-46ee-88db-a568044879d0",
+	0,
+	'',
+	"be053d32-23a4-43db-b329-aed03580772e",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("3fbd8eb0-48dc-48d1-8e55-66d4ccc48d92",
+	"1a74d339-a16d-4cad-9c0c-e8737babf5be",
+	'exclude',
+	"ba5eda7a-def5-0000-0000-000000000001",
+	0,
+	'',
+	"969e7fd2-7986-4962-8791-f6e8a4dfd974",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("be053d32-23a4-43db-b329-aed03580772e",
+	"1a74d339-a16d-4cad-9c0c-e8737babf5be",
+	'type_declaration',
+	"5f5b21a5-3fd7-4b46-970e-812947d7a192",
+	0,
+	'',
+	"a48ab08f-bfa4-486c-b9de-a0a27762ff02",
+	'');
+INSERT INTO PE_PE
+	VALUES ("1a74d339-a16d-4cad-9c0c-e8737babf5be",
+	1,
+	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO PE_PE
+	VALUES ("e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
+	1,
+	"00000000-0000-0000-0000-000000000000",
+	"00000000-0000-0000-0000-000000000000",
+	7);
+INSERT INTO S_SYS_PROXY
+	VALUES ("ff182108-eff3-4cdc-81dd-efdc6098874b",
+	'tool-core-masl',
+	1,
+	'../tool-core-masl.xtuml');

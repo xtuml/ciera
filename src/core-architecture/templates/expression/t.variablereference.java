@@ -1,7 +1,10 @@
-.if ( self.declaration )
-  .if ( var_readonly )
-final \
-  .end if
-${type_name} \
+.if (finalization_num > 0)
+_final${finalization_num}_\
 .end if
-${var_prefix}${self.var_name}\
+${var_name}\
+.if (is_passed_by_ref and (empty act_parm) and (empty assign_lhs) and (not self.declaration))
+..get()\
+.end if
+.if (is_passed_by_ref and self.declaration and (empty assign_lhs))
+ = new LocalVariable<>()\
+.end if

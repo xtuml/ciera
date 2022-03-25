@@ -14,29 +14,109 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'select any invocable related by self->PortMessage[R420]->InvocableObject[R427];
+	'select any type related by self->PortMessage[R420]->InvocableObject[R427]->TypeReference[R428];
+type_name = type.type_reference;
+::resolveImportsForTypeReference(type_ref:type);
+
+select any invocable related by self->PortMessage[R420]->InvocableObject[R427];
 parameter_list = invocable.parameter_list();
-
-invocation_parameter_list = "";
-select any parm from instances of FormalParameter where false;
-select any prev_parm related by invocable->FormalParameter[R429];
-while ( not_empty prev_parm )
-  parm = prev_parm;
-  select one prev_parm related by parm->FormalParameter[R404.''follows''];
-end while;
-separator = "";
-while ( not_empty parm )
-  invocation_parameter_list = invocation_parameter_list + separator + parm.name;
-  separator = ",  ";
-  select one parm related by parm->FormalParameter[R404.''precedes''];
-end while;
-
 T::include(file:"interface/t.message.java");',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",
 	0,
 	0);
+INSERT INTO O_TFR
+	VALUES ("c7cdbfc9-43a7-40a2-9878-ed340e4e38b0",
+	"8f02fe11-ef0d-4fb7-a888-408deb5ae3c8",
+	'render_id',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'select any invocable related by self->PortMessage[R420]->InvocableObject[R427];
+
+T::push_buffer();
+select any parm from instances of FormalParameter where false;
+select any prev_parm related by invocable->FormalParameter[R429];
+while ( not_empty prev_parm )
+  parm = prev_parm;
+  select one prev_parm related by parm->FormalParameter[R404.''follows''];
+end while;
+sep = "";
+while ( not_empty parm )
+  T::include(file:"interface/t.message.param.name.java");
+  sep = ",  ";
+  select one parm related by parm->FormalParameter[R404.''precedes''];
+end while;
+names_list = T::body();
+T::pop_buffer();
+
+T::push_buffer();
+select any parm from instances of FormalParameter where false;
+select any prev_parm related by invocable->FormalParameter[R429];
+while ( not_empty prev_parm )
+  parm = prev_parm;
+  select one prev_parm related by parm->FormalParameter[R404.''follows''];
+end while;
+sep = "";
+while ( not_empty parm )
+  select one type_ref related by parm->TypeReference[R431];
+  ::resolveImportsForTypeReference(type_ref:type_ref);
+  select one type related by type_ref->Type[R3800];
+  type_name = type.name;
+  T::include(file:"interface/t.message.param.type.java");
+  sep = ",  ";
+  select one parm related by parm->FormalParameter[R404.''precedes''];
+end while;
+types_list = T::body();
+T::pop_buffer();
+
+T::include(file:"interface/t.message.id.java");',
+	1,
+	'',
+	"df440f1c-1f71-4122-82f1-fc71336cf426",
+	0,
+	1);
+INSERT INTO O_TFR
+	VALUES ("8e3a782d-84cc-41cf-99c9-62732c74a839",
+	"8f02fe11-ef0d-4fb7-a888-408deb5ae3c8",
+	'render_decl',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'select any invocable related by self->PortMessage[R420]->InvocableObject[R427];
+parameter_list = invocable.parameter_list();
+
+T::push_buffer();
+select many parms related by invocable->FormalParameter[R429];
+if (cardinality parms > 10)
+  LOG::LogFailure(message:"Port messages can''t have more than 10 parameters");
+end if;
+select any parm from instances of FormalParameter where false;
+select any prev_parm related by invocable->FormalParameter[R429];
+while ( not_empty prev_parm )
+  parm = prev_parm;
+  select one prev_parm related by parm->FormalParameter[R404.''follows''];
+end while;
+sep = "";
+while ( not_empty parm )
+  T::include(file:"interface/t.message.param.java");
+  sep = ",  ";
+  select one parm related by parm->FormalParameter[R404.''precedes''];
+end while;
+invocation_parameter_list = T::body();
+T::pop_buffer();
+
+::addStringImport(package:"io.ciera.runtime.api.domain", class_name:"Message");
+::addStringImport(package:"io.ciera.runtime.domain", class_name:"PortMessage");
+::addStringImport(package:"java.util", class_name:"Map");
+
+T::include(file:"interface/t.message.decl.java");',
+	1,
+	'',
+	"c7cdbfc9-43a7-40a2-9878-ed340e4e38b0",
+	0,
+	2);
 INSERT INTO O_NBATTR
 	VALUES ("7ad04da4-0d63-47e6-86a4-dfc351516b37",
 	"8f02fe11-ef0d-4fb7-a888-408deb5ae3c8");
@@ -184,6 +264,51 @@ INSERT INTO O_ATTR
 	'',
 	'',
 	'id',
+	0,
+	"ba5eda7a-def5-0000-0000-000000000002",
+	'',
+	'');
+INSERT INTO O_NBATTR
+	VALUES ("0a4615f4-eec3-42f0-9405-4deb21db005b",
+	"8f02fe11-ef0d-4fb7-a888-408deb5ae3c8");
+INSERT INTO O_BATTR
+	VALUES ("0a4615f4-eec3-42f0-9405-4deb21db005b",
+	"8f02fe11-ef0d-4fb7-a888-408deb5ae3c8");
+INSERT INTO O_ATTR
+	VALUES ("0a4615f4-eec3-42f0-9405-4deb21db005b",
+	"8f02fe11-ef0d-4fb7-a888-408deb5ae3c8",
+	"536e05c6-df8c-4f0f-8076-7e785a384f58",
+	'async',
+	'',
+	'',
+	'async',
+	0,
+	"ba5eda7a-def5-0000-0000-000000000001",
+	'',
+	'');
+INSERT INTO O_DBATTR
+	VALUES ("bb2a6e96-4c90-41a2-a6bd-93e9b4a7d3bf",
+	"8f02fe11-ef0d-4fb7-a888-408deb5ae3c8",
+	'data_items = self.name;
+select any port_message related by self->PortMessage[R420];
+select many params related by port_message->InvocableObject[R427]->FormalParameter[R429];
+for each parm in params
+  data_items = data_items + parm.name + parm.type_reference;
+end for;
+self.serial_version_id = C_UTIL::hashCode(s:data_items);',
+	1,
+	0);
+INSERT INTO O_BATTR
+	VALUES ("bb2a6e96-4c90-41a2-a6bd-93e9b4a7d3bf",
+	"8f02fe11-ef0d-4fb7-a888-408deb5ae3c8");
+INSERT INTO O_ATTR
+	VALUES ("bb2a6e96-4c90-41a2-a6bd-93e9b4a7d3bf",
+	"8f02fe11-ef0d-4fb7-a888-408deb5ae3c8",
+	"0a4615f4-eec3-42f0-9405-4deb21db005b",
+	'serial_version_id',
+	'',
+	'',
+	'serial_version_id',
 	0,
 	"ba5eda7a-def5-0000-0000-000000000002",
 	'',

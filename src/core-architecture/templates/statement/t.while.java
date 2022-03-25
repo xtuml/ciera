@@ -1,4 +1,4 @@
-.if ( "" != actions )
-${indent}/* ${actions} */
+.if (self.label != "")
+${self.label}:
 .end if
-${prefix}${indent}while ( ${cond_expr} ) ${control_block}\
+while (${cond_expr}) ${control_block}

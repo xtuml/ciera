@@ -42,12 +42,17 @@ INSERT INTO S_SYNC
 CMD::register_value( name:"cwd", value_name:"root_dir", usage:"base working directory", default_value:".", required:false );
 CMD::register_value( name:"i", value_name:"input_file", usage:"input file", default_value:"", required:false );
 CMD::register_value( name:"o", value_name:"output_file", usage:"output file", default_value:"", required:false );
+CMD::register_value( name:"p", value_name:"project_name", usage:"xtUML project name", default_value:"", required:true );
 CMD::register_value( name:"gendir", value_name:"gen_dir", usage:"generated output directory", default_value:".", required:false );
 CMD::register_value( name:"use-version", value_name:"use_version", usage:"version identifier for generated components", default_value:"", required:false );
 CMD::read_command_line();
 
 // set up available marks
 ::configure_features();
+
+// set the default object population class
+// this is needed because the architecture default is not compatible with OAL identifiers
+PROP::setProperty(key:"io.ciera.ObjectPopulationClass", value:"java.util.LinkedHashSet");
 
 // set project root and version
 project_root = CMD::get_value(name:"cwd");
@@ -96,92 +101,103 @@ INSERT INTO S_SYNC
 	'',
 	'start_time = TIM::current_clock();
 
-LOG::LogInfo( message:"Translating..." );
+LOG::LogInfo(message:"Translating...");
 
 // static analysis tasks
 
 // resolve direct selections across associative relationships
-LOG::LogInfo( message:"  Resolving associative selections..." );
+LOG::LogInfo(message:"  Resolving associative selections...");
 ::resolveAssociativeSelections();
-LOG::LogInfo( message:"  done." );
-LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
+LOG::LogInfo(message:"  done.");
+LOG::LogTime(message:"  Elapsed time:", t:TIM::current_clock() - start_time);
 
-// translate builtin types
-LOG::LogInfo( message:"  Translating builtin types..." );
-::transformBuiltinTypes();
-LOG::LogInfo( message:"  done." );
-LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
+// populate builtin types
+LOG::LogInfo(message:"  Translating builtin types...");
+::populateBuiltInTypes();
+LOG::LogInfo(message:"  done.");
+LOG::LogTime(message:"  Elapsed time:", t:TIM::current_clock() - start_time);
 
-// assure all classes have IRDTs
-LOG::LogInfo( message:"  Publishing IRDTs..." );
-::transformInstanceReferenceTypes();
-LOG::LogInfo( message:"  done." );
-LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
+// create modules
+LOG::LogInfo(message:"  Creating modules...");
+project_name = CMD::get_value(name:"p");
+select any module_sys from instances of S_SYS where selected.Name == project_name;
+if empty module_sys
+  LOG::LogFailure(message:"Could not find project: ''" + project_name + "''");
+  ARCH::exit(code:1);
+end if;
+::transformModule(s_sys:module_sys, main_module:true);
+select many other_syss from instances of S_SYS where selected.Name != project_name;
+for each other_sys in other_syss
+  ::transformModule(s_sys:other_sys, main_module:false);
+end for;
+LOG::LogInfo(message:"  done.");
+LOG::LogTime(message:"  Elapsed time:", t:TIM::current_clock() - start_time);
 
-// translate root package
-LOG::LogInfo( message:"  Translating application package..." );
-select any root_package_mark from instances of Mark where ( selected.markable_name == "*"
+// translate all top level packages
+LOG::LogInfo(message:"  Translating packages...");
+select any empty_comp_def from instances of ComponentDefinition where false;
+select many root_packages related by module_sys->EP_PKG[R1401];
+for each root_package in root_packages
+  pass = 0;
+  while pass < 4
+    pass = pass + 1;
+    ::transformPackage(ep_pkg:root_package, containing_comp_def:empty_comp_def, path:"", pass:pass);
+  end while;
+end for;
+LOG::LogInfo(message:"  done.");
+LOG::LogTime(message:"  Elapsed time:", t:TIM::current_clock() - start_time);
+
+// translate bodies
+LOG::LogInfo(message:"  Translating OAL bodies...");
+select many invocables from instances of InvocableObject;
+for each invocable in invocables
+  LOG::LogInfo(message:"  Translating ''" + invocable.parent_package + "." + invocable.parent_name + "#" + invocable.name + "'' ...");
+  ::transformBody(invocable:invocable);
+end for;
+LOG::LogInfo(message:"  done.");
+LOG::LogTime(message:"  Elapsed time:", t:TIM::current_clock() - start_time);
+
+// translate application package
+select any root_package_mark from instances of Mark where (selected.markable_name == "*"
                                                             and selected.path == "*"
-                                                            and selected.feature_name == "RootPackage" );
-if ( not_empty root_package_mark )
+                                                            and selected.feature_name == "RootPackage");
+if not_empty root_package_mark
+  LOG::LogInfo(message:"  Translating application package...");
   select any root_package from instances of EP_PKG where false;
   select many s_syss from instances of S_SYS;
   for each s_sys in s_syss
-    select any root_package related by s_sys->EP_PKG[R1401] where ( root_package_mark.value == s_sys.Name + "::" + selected.Name );
-    if ( not_empty root_package )
+    select any root_package related by s_sys->EP_PKG[R1401] where (root_package_mark.value == s_sys.Name + "::" + selected.Name);
+    if (not_empty root_package)
       break;
     end if;
   end for;
-  if ( not_empty root_package )
-    ::transformApplication( root_package:root_package, path: ::ep_pkgToPath( ep_pkg:root_package ) );
+  if (not_empty root_package)
+    ::transformApplication(root_package:root_package, path: ::ep_pkgToPath(ep_pkg:root_package));
   else
-    LOG::LogFailure( message:"No root package found" );
+    LOG::LogFailure(message:"No root package found");
     ARCH::exit(code:1);
   end if;
-else
-  LOG::LogFailure( message:"No root package specified" );
-  ARCH::exit(code:1);
+  LOG::LogInfo(message:"  done.");
+  LOG::LogTime(message:"  Elapsed time:", t:TIM::current_clock() - start_time);
 end if;
-LOG::LogInfo( message:"  done." );
-LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
-
-// resolve types
-LOG::LogInfo( message:"  Resolving type references..." );
-::resolveTypeImports();
-LOG::LogInfo( message:"  done." );
-LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
-
-// resolve user defined types
-LOG::LogInfo( message:"  Resolving user defined types..." );
-::resolveUserDefinedTypes();
-LOG::LogInfo( message:"  done." );
-LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
-
-// translate bodies
-LOG::LogInfo( message:"  Translating OAL bodies..." );
-select many invocables from instances of InvocableObject;
-for each invocable in invocables
-  LOG::LogInfo( message:"  Translating ''" + invocable.parent_package + "." + invocable.parent_name + "#" + invocable.name + "'' ..." );
-  ::transformBody( invocable:invocable );
-end for;
-LOG::LogInfo( message:"  done." );
-LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
 
 // render all files
-LOG::LogInfo( message:"  Rendering application..." );
+LOG::LogInfo(message:"  Rendering application...");
 select many files from instances of File;
 for each file in files
-  if ( not file.exclude )
+  if (not file.exclude)
+    file.rendering = true;
     file.render();
+    file.rendering = false;
   end if;
 end for;
-LOG::LogInfo( message:"  done." );
-LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
+LOG::LogInfo(message:"  done.");
+LOG::LogTime(message:"  Elapsed time:", t:TIM::current_clock() - start_time);
 
-LOG::LogInfo( message:"Done." );
+LOG::LogInfo(message:"Done.");
 
 elapsed_time = TIM::current_clock() - start_time;
-LOG::LogTime( message:"Elapsed time:", t:elapsed_time );',
+LOG::LogTime(message:"Elapsed time:", t:elapsed_time);',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -204,6 +220,7 @@ assoc_markable = Markable::populate(name:"Association");
 comp_markable = Markable::populate(name:"Component");
 class_markable = Markable::populate(name:"Model Class");
 port_markable = Markable::populate(name:"Port");
+attr_markable = Markable::populate(name:"Attribute");
 
 // create available features
 app_name = Feature::populate(name:"ApplicationName");
@@ -221,18 +238,26 @@ relate use_version to universal_markable across R2822;
 sort_comparator = Feature::populate(name:"SortComparator");
 relate sort_comparator to universal_markable across R2822;
 sim_time = Feature::populate(name:"EnableSimulatedTime");
-relate sim_time to comp_markable across R2822;
+relate sim_time to universal_markable across R2822;
+statement_comments = Feature::populate(name:"IncludeStatementComments");
+relate statement_comments to universal_markable across R2822;
+
 init_function = Feature::populate(name:"InitFunction");
 relate init_function to comp_markable across R2822;
 inst_loading = Feature::populate(name:"InstanceLoading");
 relate inst_loading to comp_markable across R2822;
 version = Feature::populate(name:"Version");
 relate version to comp_markable across R2822;
+is_transient = Feature::populate(name:"Transient");
+relate is_transient to comp_markable across R2822;
+relate is_transient to attr_markable across R2822;
+
 exclude = Feature::populate(name:"Exclude");
 relate exclude to class_markable across R2822;
 relate exclude to assoc_markable across R2822;
 use_key_letters = Feature::populate(name:"UseKeyLettersForName");
 relate use_key_letters to class_markable across R2822;
+
 base_class = Feature::populate(name:"BaseClass");
 relate base_class to port_markable across R2822;',
 	"ba5eda7a-def5-0000-0000-000000000000",

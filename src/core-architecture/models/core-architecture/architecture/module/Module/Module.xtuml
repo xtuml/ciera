@@ -1,0 +1,224 @@
+-- BP 7.1.6 content: ModelClass syschar: 3 persistence-version: 7.1.6
+
+INSERT INTO O_OBJ
+	VALUES ("53bae248-963b-434c-a749-552a8307bfce",
+	'Module',
+	5000,
+	'Module',
+	'',
+	"00000000-0000-0000-0000-000000000000");
+INSERT INTO O_TFR
+	VALUES ("bb14103d-97b0-4732-8e8a-0a559434dfe6",
+	"53bae248-963b-434c-a749-552a8307bfce",
+	'render',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'// render package exports
+select many package_exports related by self->ExportedPackage[R5750] where SORT::ascending(attr:"name");
+for each package_export in package_exports
+  package_export.render();
+end for;
+exports = T::body();
+
+// render package opens
+select many package_opens related by self->OpenedPackage[R5754] where SORT::ascending(attr:"name");
+for each package_open in package_opens
+  package_open.render();
+end for;
+opens = T::body();
+
+// render domain provisions
+select many domain_provisions related by self->ComponentDefinition[R5752] where SORT::ascending(attr:"name");
+if not_empty domain_provisions
+  domain_names = "";
+  sep = "";
+  for each domain_provision in domain_provisions
+    select one file related by domain_provision->File[R401];
+    ::addFileImport(file:file);
+    domain_names = domain_names + sep + domain_provision.name;
+    sep = ", ";
+  end for;
+  ::addStringImport(package:"io.ciera.runtime.api.domain", class_name:"Domain");
+  T::include(file:"module/t.provides.domain.java");
+end if;
+domains = T::body();
+
+// render application provisions
+select many application_provisions related by self->Application[R5751] where SORT::ascending(attr:"name");
+if not_empty application_provisions
+  app_names = "";
+  sep = "";
+  for each application_provision in application_provisions
+  	select one file related by application_provision->File[R401];
+  	::addFileImport(file:file);
+    app_names = app_names + sep + application_provision.name;
+    sep = ", ";
+  end for;
+  ::addStringImport(package:"io.ciera.runtime.api.application", class_name:"Application");
+  T::include(file:"module/t.provides.application.java");
+end if;
+applications = T::body();
+
+// render module dependencies
+select many module_dependencies related by self->Dependency[R5753.''requires''];
+for each dependency in module_dependencies
+  dependency.render();
+end for;
+dependencies = T::body();
+
+// get imports
+select one file related by self->File[R401];
+imports = file.get_imports();
+
+T::include(file:"module/t.module-info.java");
+T::emit(file:"module-info.java");
+T::clear();',
+	1,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	0,
+	1);
+INSERT INTO O_REF
+	VALUES ("53bae248-963b-434c-a749-552a8307bfce",
+	"dc9c4877-4fcb-49df-a886-ab917b250774",
+	0,
+	"c49819d1-92ba-4732-98e5-2b3eca8bc470",
+	"8f0c124a-55f6-41de-9844-451b6463ab15",
+	"21b55ec4-ef3d-46b8-b07f-682759a6087b",
+	"d0fabe99-0939-4ae6-9c05-740746d8b95b",
+	"da2abf1a-d7b6-4c43-9534-23a9f2df820d",
+	"73746309-e380-4974-8130-cc7c4c615d11",
+	"00000000-0000-0000-0000-000000000000",
+	0,
+	'',
+	'File',
+	'name',
+	'R401');
+INSERT INTO R_RGO_PROXY
+	VALUES ("53bae248-963b-434c-a749-552a8307bfce",
+	"8f0c124a-55f6-41de-9844-451b6463ab15",
+	"21b55ec4-ef3d-46b8-b07f-682759a6087b",
+	'../../file/file.xtuml');
+INSERT INTO O_RTIDA_PROXY
+	VALUES ("c49819d1-92ba-4732-98e5-2b3eca8bc470",
+	"dc9c4877-4fcb-49df-a886-ab917b250774",
+	0,
+	"8f0c124a-55f6-41de-9844-451b6463ab15",
+	"d0fabe99-0939-4ae6-9c05-740746d8b95b",
+	'../../file/file.xtuml');
+INSERT INTO O_RATTR
+	VALUES ("da2abf1a-d7b6-4c43-9534-23a9f2df820d",
+	"53bae248-963b-434c-a749-552a8307bfce",
+	"c49819d1-92ba-4732-98e5-2b3eca8bc470",
+	"dc9c4877-4fcb-49df-a886-ab917b250774",
+	1,
+	'name');
+INSERT INTO O_BATTR_PROXY
+	VALUES ("c49819d1-92ba-4732-98e5-2b3eca8bc470",
+	"dc9c4877-4fcb-49df-a886-ab917b250774",
+	'../../file/File/File.xtuml');
+INSERT INTO O_ATTR
+	VALUES ("da2abf1a-d7b6-4c43-9534-23a9f2df820d",
+	"53bae248-963b-434c-a749-552a8307bfce",
+	"00000000-0000-0000-0000-000000000000",
+	'name',
+	'',
+	'',
+	'name',
+	0,
+	"ba5eda7a-def5-0000-0000-000000000007",
+	'',
+	'');
+INSERT INTO O_REF
+	VALUES ("53bae248-963b-434c-a749-552a8307bfce",
+	"dc9c4877-4fcb-49df-a886-ab917b250774",
+	0,
+	"3dfc4c02-94c0-4383-8964-c3bfa4b2e9bd",
+	"8f0c124a-55f6-41de-9844-451b6463ab15",
+	"21b55ec4-ef3d-46b8-b07f-682759a6087b",
+	"d0fabe99-0939-4ae6-9c05-740746d8b95b",
+	"2d725f0e-756b-40f6-8a39-a66ac5e4db96",
+	"49c1346d-30d0-44fb-81a9-1169adf121b7",
+	"00000000-0000-0000-0000-000000000000",
+	0,
+	'',
+	'File',
+	'package',
+	'R401');
+INSERT INTO O_RTIDA_PROXY
+	VALUES ("3dfc4c02-94c0-4383-8964-c3bfa4b2e9bd",
+	"dc9c4877-4fcb-49df-a886-ab917b250774",
+	0,
+	"8f0c124a-55f6-41de-9844-451b6463ab15",
+	"d0fabe99-0939-4ae6-9c05-740746d8b95b",
+	'../../file/file.xtuml');
+INSERT INTO O_RATTR
+	VALUES ("2d725f0e-756b-40f6-8a39-a66ac5e4db96",
+	"53bae248-963b-434c-a749-552a8307bfce",
+	"3dfc4c02-94c0-4383-8964-c3bfa4b2e9bd",
+	"dc9c4877-4fcb-49df-a886-ab917b250774",
+	1,
+	'package');
+INSERT INTO O_BATTR_PROXY
+	VALUES ("3dfc4c02-94c0-4383-8964-c3bfa4b2e9bd",
+	"dc9c4877-4fcb-49df-a886-ab917b250774",
+	'../../file/File/File.xtuml');
+INSERT INTO O_ATTR
+	VALUES ("2d725f0e-756b-40f6-8a39-a66ac5e4db96",
+	"53bae248-963b-434c-a749-552a8307bfce",
+	"da2abf1a-d7b6-4c43-9534-23a9f2df820d",
+	'package',
+	'',
+	'',
+	'package',
+	0,
+	"ba5eda7a-def5-0000-0000-000000000007",
+	'',
+	'');
+INSERT INTO O_NBATTR
+	VALUES ("15c9855e-5892-4e93-a327-e879bc01769d",
+	"53bae248-963b-434c-a749-552a8307bfce");
+INSERT INTO O_BATTR
+	VALUES ("15c9855e-5892-4e93-a327-e879bc01769d",
+	"53bae248-963b-434c-a749-552a8307bfce");
+INSERT INTO O_ATTR
+	VALUES ("15c9855e-5892-4e93-a327-e879bc01769d",
+	"53bae248-963b-434c-a749-552a8307bfce",
+	"2d725f0e-756b-40f6-8a39-a66ac5e4db96",
+	'main_module',
+	'',
+	'',
+	'main_module',
+	0,
+	"ba5eda7a-def5-0000-0000-000000000001",
+	'',
+	'');
+INSERT INTO O_ID
+	VALUES (0,
+	"53bae248-963b-434c-a749-552a8307bfce");
+INSERT INTO O_OIDA
+	VALUES ("da2abf1a-d7b6-4c43-9534-23a9f2df820d",
+	"53bae248-963b-434c-a749-552a8307bfce",
+	0,
+	'name');
+INSERT INTO O_ID
+	VALUES (1,
+	"53bae248-963b-434c-a749-552a8307bfce");
+INSERT INTO O_ID
+	VALUES (2,
+	"53bae248-963b-434c-a749-552a8307bfce");
+INSERT INTO PE_PE
+	VALUES ("53bae248-963b-434c-a749-552a8307bfce",
+	1,
+	"27bf89bc-5641-4e6d-8da9-9f4c6fc83f40",
+	"00000000-0000-0000-0000-000000000000",
+	4);
+INSERT INTO EP_PKG_PROXY
+	VALUES ("27bf89bc-5641-4e6d-8da9-9f4c6fc83f40",
+	"00000000-0000-0000-0000-000000000000",
+	"21d38790-b93a-4ad6-b0a2-e3ba56baed8a",
+	'module',
+	'',
+	5000,
+	'../module.xtuml');

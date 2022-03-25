@@ -1,9 +1,5 @@
-.if ( "" != actions )
-${indent}/* ${actions} */
-.end if
-${prefix}\
-.if ( "" == ret_expression_body )
-${block_suffix}${indent}return;
+.if (ret_expression_body == "")
+return;
 .else
-${block_suffix}${indent}return ${ret_expression_body};
+return ${ret_expression_body};
 .end if

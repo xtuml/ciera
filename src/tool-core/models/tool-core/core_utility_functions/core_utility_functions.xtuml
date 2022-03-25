@@ -266,113 +266,100 @@ INSERT INTO PE_PE
 	"00000000-0000-0000-0000-000000000000",
 	1);
 INSERT INTO S_SYNC
-	VALUES ("f3958084-9e75-4dcd-9c5b-acc44aa9cc7f",
-	"00000000-0000-0000-0000-000000000000",
-	'getInstRefTypeForClass',
-	'',
-	's_dt = param.s_dt;
-o_obj = param.o_obj;
-if ( not_empty s_dt and not_empty o_obj )
-  if ( "inst_ref<Object>" == s_dt.Name )
-    select any s_irdt related by o_obj->S_IRDT[R123] where ( not selected.isSet );
-    select one s_dt related by s_irdt->S_DT[R17];
-  elif ( "inst_ref_set<Object>" == s_dt.Name )
-    select any s_irdt related by o_obj->S_IRDT[R123] where ( selected.isSet );
-    select one s_dt related by s_irdt->S_DT[R17];
-  end if;
-end if;
-return s_dt;',
-	"4a90cd45-ece0-4e72-afe7-44996f9d7e1e",
-	1,
-	'',
-	0,
-	0);
-INSERT INTO S_SPARM
-	VALUES ("cfeeacf6-552e-46fe-ad93-59f2664c34da",
-	"f3958084-9e75-4dcd-9c5b-acc44aa9cc7f",
-	's_dt',
-	"4a90cd45-ece0-4e72-afe7-44996f9d7e1e",
-	0,
-	'',
-	"00000000-0000-0000-0000-000000000000",
-	'');
-INSERT INTO S_DT_PROXY
-	VALUES ("4a90cd45-ece0-4e72-afe7-44996f9d7e1e",
-	"00000000-0000-0000-0000-000000000000",
-	'inst_ref<Data Type>',
-	'',
-	'',
-	'../../../../mcooa/models/mcooa/ooaofooa/Domain/Domain.xtuml');
-INSERT INTO S_SPARM
-	VALUES ("4ace5fe7-2ac8-4731-bf67-cf55c9b8869f",
-	"f3958084-9e75-4dcd-9c5b-acc44aa9cc7f",
-	'o_obj',
-	"63f4ff99-f127-443b-a678-30ace41da702",
-	0,
-	'',
-	"cfeeacf6-552e-46fe-ad93-59f2664c34da",
-	'');
-INSERT INTO S_DT_PROXY
-	VALUES ("63f4ff99-f127-443b-a678-30ace41da702",
-	"00000000-0000-0000-0000-000000000000",
-	'inst_ref<Model Class>',
-	'',
-	'',
-	'../../../../mcooa/models/mcooa/ooaofooa/Subsystem/Subsystem.xtuml');
-INSERT INTO PE_PE
-	VALUES ("f3958084-9e75-4dcd-9c5b-acc44aa9cc7f",
-	1,
-	"5c0e4147-5dfb-48d3-a70d-1020d78fa1e2",
-	"00000000-0000-0000-0000-000000000000",
-	1);
-INSERT INTO S_SYNC
 	VALUES ("49e1849f-89ff-4aad-a91a-b882a0e32410",
 	"00000000-0000-0000-0000-000000000000",
 	'getOalStatement',
 	'',
-	'// TODO this routine assumes a statement is only one line long
+	'act_smt = param.act_smt;
 
-body = param.body;
-line_num = param.line_num;
+// basic case
+actions = act_smt.Label;
 
-i = 0;
-line = "";
-while ( i < line_num )
-  end_of_line = STRING::indexof( haystack:body, needle:"\n" );
-  if ( -1 != end_of_line )
-    line = STRING::substr( s:body, begin:0, end:end_of_line );
-    body = STRING::substr( s:body, begin:end_of_line+1, end:-1 );
+// if this is a statement that containts inner blocks, we only want part of the actions
+// NOTE: this could fail if you have two statements that start on the same line
+// since sorting on multiple attributes is not currently supported. This case is
+// so rare that I''m not really worried about it. The failure would only be in
+// appearance of the generated code anyway...
+
+// if statements
+select one if_smt related by act_smt->ACT_IF[R603];
+if not_empty if_smt
+  select any first_smt related by if_smt->ACT_BLK[R607]->ACT_SMT[R602] where SORT::ascending(attr:"LineNumber"); //and SORT::ascending(attr:"StartPosition");
+  if not_empty first_smt
+    actions = STRING::substr(s:actions, begin:0, end: STRING::indexof(haystack:actions, needle:first_smt.Label));
   else
-    line = body;
-    break;
+    end_index = STRING::indexof(haystack:actions, needle:"elif");
+    if end_index == -1
+      end_index = STRING::indexof(haystack:actions, needle:"else");
+      if end_index == -1
+        end_index = STRING::indexof(haystack:actions, needle:"end if;");
+      end if;
+    end if;
+    actions = STRING::substr(s:actions, begin:0, end:end_index);
   end if;
-  i = i + 1;
-end while;
+else
+  
+// elif statements
+select one elif_smt related by act_smt->ACT_EL[R603];
+if not_empty elif_smt
+  select any first_smt related by elif_smt->ACT_BLK[R658]->ACT_SMT[R602] where SORT::ascending(attr:"LineNumber"); //and SORT::ascending(attr:"StartPosition");
+  if not_empty first_smt
+    actions = "elif " + STRING::substr(s:actions, begin:0, end: STRING::indexof(haystack:actions, needle:first_smt.Label));
+  else
+    end_index = STRING::indexof(haystack:actions, needle:"else");
+    if end_index == -1
+      actions = "elif " + actions;
+    else
+      actions = "elif " + STRING::substr(s:actions, begin:0, end: end_index);
+    end if;
+  end if;
+else
 
-return STRING::trim( s:line );',
+// for statements
+select one for_smt related by act_smt->ACT_FOR[R603];
+if not_empty for_smt
+  select any first_smt related by for_smt->ACT_BLK[R605]->ACT_SMT[R602] where SORT::ascending(attr:"LineNumber"); //and SORT::ascending(attr:"StartPosition");
+  if not_empty first_smt
+    actions = STRING::substr(s:actions, begin:0, end: STRING::indexof(haystack:actions, needle:first_smt.Label));
+  else
+    actions = STRING::substr(s:actions, begin:0, end: STRING::indexof(haystack:actions, needle:"end for;"));
+  end if;
+else
+
+// while statements
+select one while_smt related by act_smt->ACT_WHL[R603];
+if not_empty while_smt
+  select any first_smt related by while_smt->ACT_BLK[R608]->ACT_SMT[R602] where SORT::ascending(attr:"LineNumber"); //and SORT::ascending(attr:"StartPosition");
+  if not_empty first_smt
+    actions = STRING::substr(s:actions, begin:0, end: STRING::indexof(haystack:actions, needle:first_smt.Label));
+  else
+    actions = STRING::substr(s:actions, begin:0, end: STRING::indexof(haystack:actions, needle:"end while;"));
+  end if;
+end if; end if; end if; end if;
+
+// trim the final string
+return STRING::trim(s:actions);',
 	"ba5eda7a-def5-0000-0000-000000000004",
 	1,
 	'',
 	0,
 	0);
 INSERT INTO S_SPARM
-	VALUES ("67fd0ddd-1560-4db2-be9f-245148f5c09f",
+	VALUES ("2a545b81-823f-4e9e-981e-c2413710ee44",
 	"49e1849f-89ff-4aad-a91a-b882a0e32410",
-	'body',
-	"ba5eda7a-def5-0000-0000-000000000004",
+	'act_smt',
+	"8ca0ad46-f8b8-47ba-9456-548bf0777490",
 	0,
 	'',
 	"00000000-0000-0000-0000-000000000000",
 	'');
-INSERT INTO S_SPARM
-	VALUES ("a492c3af-35d7-41c1-99b1-15e289d4d8f8",
-	"49e1849f-89ff-4aad-a91a-b882a0e32410",
-	'line_num',
-	"ba5eda7a-def5-0000-0000-000000000002",
-	0,
+INSERT INTO S_DT_PROXY
+	VALUES ("8ca0ad46-f8b8-47ba-9456-548bf0777490",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Statement>',
 	'',
-	"67fd0ddd-1560-4db2-be9f-245148f5c09f",
-	'');
+	'',
+	'../../../../mcooa/models/mcooa/ooaofooa/Body/Body.xtuml');
 INSERT INTO PE_PE
 	VALUES ("49e1849f-89ff-4aad-a91a-b882a0e32410",
 	1,
@@ -469,6 +456,13 @@ INSERT INTO PE_PE
 	"5c0e4147-5dfb-48d3-a70d-1020d78fa1e2",
 	"00000000-0000-0000-0000-000000000000",
 	1);
+INSERT INTO S_DT_PROXY
+	VALUES ("4a90cd45-ece0-4e72-afe7-44996f9d7e1e",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Data Type>',
+	'',
+	'',
+	'../../../../mcooa/models/mcooa/ooaofooa/Domain/Domain.xtuml');
 INSERT INTO S_SYNC
 	VALUES ("30a8a39d-35cf-4601-9643-e0b5785ae1ec",
 	"00000000-0000-0000-0000-000000000000",
@@ -949,6 +943,12 @@ if (empty s_dt)
     select one s_dt related by act_act->ACT_BRB[R698]->S_BRG[R697]->S_DT[R20];
     if (empty s_dt)
       select one s_dt related by act_act->ACT_DAB[R698]->O_DBATTR[R693]->O_BATTR[R107]->O_ATTR[R106]->S_DT[R114];
+      if (empty s_dt)
+        select one s_dt related by act_act->ACT_POB[R698]->SPR_PO[R687]->SPR_PEP[R4503]->C_EP[R4501]->C_IO[R4004]->S_DT[R4008];
+        if (empty s_dt)
+          select one s_dt related by act_act->ACT_ROB[R698]->SPR_RO[R685]->SPR_REP[R4502]->C_EP[R4500]->C_IO[R4004]->S_DT[R4008];
+        end if;
+      end if;
     end if;
   end if;
 end if;
@@ -981,178 +981,179 @@ INSERT INTO PE_PE
 	"00000000-0000-0000-0000-000000000000",
 	1);
 INSERT INTO S_SYNC
-	VALUES ("69e225ca-1e1d-49bf-b836-419932fa9142",
+	VALUES ("8fb7f1e1-31fc-4cf6-b803-3e5c69af23f2",
 	"00000000-0000-0000-0000-000000000000",
-	'transformBuiltinTypes',
+	'setOriginalNames',
 	'',
-	'select many s_dts from instances of S_DT;
-for each s_dt in s_dts
+	'invocable = param.invocable;
+label = param.label;
 
-  if ( ::s_dtIsBuiltin( s_dt:s_dt ) )
+// Split a double colon delimited string into two segments around the last
+// occurance of double colon the first segment is assigned as the parent name
+// and the second segment is assigned as the body name. If there is no double
+// colon in the label, assume the whole thing is the body name and do not
+// assign the parent name.
 
-    type_name = "";
-    type_package = "";
-    type_primitive = false;
-    type_unique = false;
-    type_inst = false;
-    type_instset = false;
-    type_default_value = "";
-    if ( "boolean" == s_dt.Name )
-      type_name = "boolean";
-      type_primitive = true;
-      type_default_value = "false";
-    elif ( "component_ref" == s_dt.Name )
-      type_name = "IComponent";
-      type_package = "io.ciera.runtime.summit.components";
-      type_default_value = "null";
-    elif ( "date" == s_dt.Name )
-      type_name = "Date";
-      type_package = "io.ciera.runtime.summit.types";
-      type_default_value = "new Date()";
-    elif ( "inst<Event>" == s_dt.Name )
-      type_name = "EventHandle";
-      type_package = "io.ciera.runtime.summit.statemachine";
-      type_default_value = "new EventHandle()";
-    elif ( "inst_ref<Timer>" == s_dt.Name )
-      type_name = "TimerHandle";
-      type_package = "io.ciera.runtime.summit.time";
-      type_default_value = "new TimerHandle()";
-    elif ( "integer" == s_dt.Name )
-      type_name = "int";
-      type_primitive = true;
-      type_default_value = "0";
-    elif ( "real" == s_dt.Name )
-      type_name = "double";
-      type_primitive = true;
-      type_default_value = "0d";
-    elif ( "string" == s_dt.Name )
-      type_name = "String";
-      type_package = "";
-      type_default_value = STRING::quote() + STRING::quote();
-    elif ( "timestamp" == s_dt.Name )
-      type_name = "long";
-      type_primitive = true;
-      type_default_value = "0L";
-    elif ( "unique_id" == s_dt.Name )
-      type_name = "UniqueId";
-      type_package = "io.ciera.runtime.summit.types";
-      type_unique = true;
-      type_default_value = "new UniqueId()";
-    elif ( "void" == s_dt.Name )
-      type_name = "void";
-      type_primitive = true;
-      type_default_value = "";
-    elif ( "inst_ref_set<Object>" == s_dt.Name )
-      type_name = "IInstanceSet";
-      type_package = "io.ciera.runtime.summit.classes";
-      type_instset = true;
-      type_default_value = "null";
-    elif ( "inst_ref<Object>" == s_dt.Name )
-      type_name = "IModelInstance";
-      type_package = "io.ciera.runtime.summit.classes";
-      type_inst = true;
-      type_default_value = "null";
-    elif ( "inst_ref<Mapping>" == s_dt.Name ) // TODO
-      type_name = "InstRefMapping";
-      type_package = "io.ciera.runtime.summit.types";
-      type_default_value = "null";
-    elif ( "inst<Mapping>" == s_dt.Name ) // TODO
-      type_name = "InstMapping";
-      type_package = "io.ciera.runtime.summit.types";
-      type_default_value = "null";
-    end if;
+dcolon_index = STRING::indexof(haystack:label, needle:"::");
+split_index = -2;
+while dcolon_index != -1;
+  split_index = split_index + 2 + dcolon_index;
+  dcolon_index = STRING::indexof(haystack:STRING::substr(s:label, begin:split_index + 2, end:-1), needle:"::");
+end while;
 
-    if ( "" != type_name )
-      create object instance type of Type;
-      type.name = type_name;
-      type.package = type_package;
-      type.default_value = type_default_value;
-      ::Type_resolve(t:type,  s_dt:s_dt );
-      create object instance builtin of BuiltInType;
-      relate builtin to type across R407;
-      builtin.primitive = type_primitive;
-      builtin.unique = type_unique;
-      builtin.inst = type_inst;
-      builtin.instset = type_instset;
-    end if;
-
-  end if;
-
-end for;',
+if split_index != -1;
+  invocable.original_parent_name = STRING::substr(s:label, begin:0, end:split_index);
+  invocable.original_body_name = STRING::substr(s:label, begin:split_index + 2, end:-1);
+else
+  invocable.original_parent_name = "";
+  invocable.original_body_name = label;
+end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
 	0,
-	0);
+	6);
+INSERT INTO S_SPARM
+	VALUES ("15a1bddd-0876-4c20-9a92-195e1a216965",
+	"8fb7f1e1-31fc-4cf6-b803-3e5c69af23f2",
+	'invocable',
+	"3ab44839-4426-4754-b12a-0a00ce4dae1a",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("3ab44839-4426-4754-b12a-0a00ce4dae1a",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Invocable Object>',
+	'',
+	'',
+	'../../../../core-architecture/models/core-architecture/architecture/invocable/invocable.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("b1097c45-f345-40bf-81cb-bc179175ffb4",
+	"8fb7f1e1-31fc-4cf6-b803-3e5c69af23f2",
+	'label',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"15a1bddd-0876-4c20-9a92-195e1a216965",
+	'');
 INSERT INTO PE_PE
-	VALUES ("69e225ca-1e1d-49bf-b836-419932fa9142",
+	VALUES ("8fb7f1e1-31fc-4cf6-b803-3e5c69af23f2",
 	1,
 	"5c0e4147-5dfb-48d3-a70d-1020d78fa1e2",
 	"00000000-0000-0000-0000-000000000000",
 	1);
 INSERT INTO S_SYNC
-	VALUES ("f393769d-d630-4d0a-a083-332ccde2fbcf",
+	VALUES ("ffdb6f61-4a3f-4d6d-b8e9-628f7fbeb7e7",
 	"00000000-0000-0000-0000-000000000000",
-	'TypeReference_getInstance',
+	'getTypeReferenceForS_DT',
 	'',
 	's_dt = param.s_dt;
-s_dims = param.s_dims;
-select one type related by s_dt->Type[R423];
-if ( empty type ) // Create new Unresolved Type
-  // get the next unique number
-  num = 0;
-  select many unresolved_types from instances of UnresolvedType;
-  for each ut in unresolved_types
-    if ( ut.num >= num )
-      num = ut.num + 1;
-    end if;
-  end for;
 
-  create object instance type of Type;
-  type.name = "UnresolvedType" + STRING::itoa( i:num );
-  type.package = "";
-  if ( not_empty s_dt )
-    relate s_dt to type across R423;
-  else
-    // TODO bad
+// add module dependency if necessary
+select any main_mod from instances of Module where selected.main_module;
+select one mod related by s_dt->PE_PE[R8001]->EP_PKG[R8000]->S_SYS[R1405]->Module[R4760];
+if not_empty mod and not_empty main_mod and mod != main_mod
+  select any dependency related by main_mod->Dependency[R5753.''requires''] where selected.required_module_name == mod.name;
+  if empty dependency
+    create object instance dependency of Dependency;
+    relate mod to main_mod across R5753.''required by'' using dependency;
   end if;
-  create object instance unresolved_type of UnresolvedType;
-  relate unresolved_type to type across R407;
-  unresolved_type.num = num;
 end if;
-return ::TypeReference_getInstanceFromType( type:type, s_dims:s_dims );',
+
+select any empty_type_ref from instances of TypeReference where false;
+
+// xtUML core data types
+select one cdt related by s_dt->S_CDT[R17];
+if not_empty cdt
+  // map from xtUML builtins to Ciera builtins
+  if s_dt.Name == "void"
+    return ::getBasicTypeReferenceByName(name:"void");
+  elif s_dt.Name == "boolean"
+    return ::getBasicTypeReferenceByName(name:"boolean");
+  elif s_dt.Name == "integer"
+    return ::getBasicTypeReferenceByName(name:"int");
+  elif s_dt.Name == "real"
+    return ::getBasicTypeReferenceByName(name:"double");
+  elif s_dt.Name == "string"
+    return ::getBasicTypeReferenceByName(name:"String");
+  elif s_dt.Name == "unique_id"
+    return ::getBasicTypeReferenceByName(name:"UniqueId");
+  elif s_dt.Name == "inst<Event>"
+    // return ''Object'' for deprecated inst<Event> type
+    return ::getBasicTypeReferenceByName(name:"Object");
+  else
+    // for unsupported builtins, return an empty type reference
+    return empty_type_ref;
+  end if;
+end if;
+
+select one udt related by s_dt->S_UDT[R17];
+if not_empty udt
+  
+  // xtUML built in types defined as UDTs
+  if s_dt.Name == "date"
+    return ::getBasicTypeReferenceByName(name:"Date");
+  elif s_dt.Name == "inst_ref<Timer>"
+    return ::getBasicTypeReferenceByName(name:"Timer");
+  elif s_dt.Name == "timestamp"
+    return ::getBasicTypeReferenceByName(name:"TimeStamp");
+  else
+    // User defined types
+    // TODO
+
+  end if;
+  
+end if;
+
+// instance reference data types
+select one irdt related by s_dt->S_IRDT[R17];
+if not_empty irdt
+  select one obj related by irdt->O_OBJ[R123]->Class[R409];
+  if irdt.isSet
+    return ::getObjectSetReference(obj:obj);
+  else
+    return ::getObjectReference(obj:obj);
+  end if;
+end if;
+
+// enumerated data types
+select one edt related by s_dt->S_EDT[R17];
+if not_empty edt
+  select one type related by s_dt->Type[R423];
+  if empty type
+    // make sure the type gets translated for referred to types
+    select any empty_comp_def from instances of ComponentDefinition where false;
+    ::transformDataType(s_dt:s_dt, exclude:true, containing_comp_def:empty_comp_def);
+    select one type related by s_dt->Type[R423];
+  end if;
+  if not_empty type
+    return ::getBasicTypeReference(type:type);
+  end if;
+end if;
+
+/*
+_ SDT TODO
+*/
+
+return empty_type_ref;',
 	"096d9dad-f227-4793-bb43-a1915881b825",
 	1,
 	'',
 	0,
-	1);
+	7);
 INSERT INTO S_SPARM
-	VALUES ("398bf587-a414-4949-b577-6d61c9da0264",
-	"f393769d-d630-4d0a-a083-332ccde2fbcf",
+	VALUES ("918e4443-e04a-4414-932d-f26b4f6482b1",
+	"ffdb6f61-4a3f-4d6d-b8e9-628f7fbeb7e7",
 	's_dt',
 	"4a90cd45-ece0-4e72-afe7-44996f9d7e1e",
 	0,
 	'',
 	"00000000-0000-0000-0000-000000000000",
 	'');
-INSERT INTO S_SPARM
-	VALUES ("71bffa9e-ef39-477d-bd30-1ea9cb631bf1",
-	"f393769d-d630-4d0a-a083-332ccde2fbcf",
-	's_dims',
-	"9e615117-5ec7-43cc-a3c5-fe7cdd626110",
-	0,
-	'',
-	"398bf587-a414-4949-b577-6d61c9da0264",
-	'');
-INSERT INTO S_DT_PROXY
-	VALUES ("9e615117-5ec7-43cc-a3c5-fe7cdd626110",
-	"00000000-0000-0000-0000-000000000000",
-	'inst_ref_set<Dimensions>',
-	'',
-	'',
-	'../../../../mcooa/models/mcooa/ooaofooa/Domain/Domain.xtuml');
 INSERT INTO PE_PE
-	VALUES ("f393769d-d630-4d0a-a083-332ccde2fbcf",
+	VALUES ("ffdb6f61-4a3f-4d6d-b8e9-628f7fbeb7e7",
 	1,
 	"5c0e4147-5dfb-48d3-a70d-1020d78fa1e2",
 	"00000000-0000-0000-0000-000000000000",
@@ -1165,189 +1166,83 @@ INSERT INTO S_DT_PROXY
 	'',
 	'../../../../core-architecture/models/core-architecture/architecture/type/type.xtuml');
 INSERT INTO S_SYNC
-	VALUES ("6efdf054-c8e5-4bf1-8cf1-973f0d9f9006",
+	VALUES ("30244605-4cb5-4688-87ae-d9bce21cd2a9",
 	"00000000-0000-0000-0000-000000000000",
-	'TypeReference_getInstanceFromType',
+	'getTypeReferenceForS_DTWithDims',
 	'',
-	'type = param.type;
-s_dims = param.s_dims;
-dim_string = "";
-if ( not_empty s_dims )
-  i = 0;
-  while ( i < cardinality s_dims )
-    for each s_dim in s_dims
-      if ( s_dim.dimensionCount == i )
-        dim_string = dim_string + "[]";
-        break;
-      end if;
-    end for;
-    i = i + 1;
-  end while;
-  select any type_ref related by type->TypeReference[R3800]->ArrayTypeReference[R3801]->TypeReference[R3801] where ( selected.type_reference_name == type.name + dim_string );
-  if ( empty type_ref )
-    create object instance type_ref of TypeReference;
-    type_ref.type_reference_name = type.name + dim_string;
-    create object instance array_type_ref of ArrayTypeReference;
-    array_type_ref.dims = dim_string;
-    relate type_ref to type across R3800;
-    relate type_ref to array_type_ref across R3801;
-  end if;
-end if;
-return ::TypeReference_getInstanceWithDimString(type:type, dims:dim_string);',
+	'// TODO
+return ::getTypeReferenceForS_DT(s_dt:param.s_dt);',
 	"096d9dad-f227-4793-bb43-a1915881b825",
 	1,
 	'',
 	0,
-	4);
+	7);
 INSERT INTO S_SPARM
-	VALUES ("52bcad56-6b29-467f-aa8d-f5b3c56798c9",
-	"6efdf054-c8e5-4bf1-8cf1-973f0d9f9006",
-	'type',
-	"b4a754cc-b0a5-4777-ae98-df570434ea2a",
-	0,
-	'',
-	"00000000-0000-0000-0000-000000000000",
-	'');
-INSERT INTO S_DT_PROXY
-	VALUES ("b4a754cc-b0a5-4777-ae98-df570434ea2a",
-	"00000000-0000-0000-0000-000000000000",
-	'inst_ref<Type>',
-	'',
-	'',
-	'../../../../core-architecture/models/core-architecture/architecture/type/type.xtuml');
-INSERT INTO S_SPARM
-	VALUES ("af910824-2877-4160-9c4c-cf5950ac6ba0",
-	"6efdf054-c8e5-4bf1-8cf1-973f0d9f9006",
-	's_dims',
-	"9e615117-5ec7-43cc-a3c5-fe7cdd626110",
-	0,
-	'',
-	"52bcad56-6b29-467f-aa8d-f5b3c56798c9",
-	'');
-INSERT INTO PE_PE
-	VALUES ("6efdf054-c8e5-4bf1-8cf1-973f0d9f9006",
-	1,
-	"5c0e4147-5dfb-48d3-a70d-1020d78fa1e2",
-	"00000000-0000-0000-0000-000000000000",
-	1);
-INSERT INTO S_SYNC
-	VALUES ("3ef486f5-d6f6-4393-a048-ae1dbd8b08af",
-	"00000000-0000-0000-0000-000000000000",
-	'Type_resolve',
-	'',
-	's_dt = param.s_dt;
-t = param.t;
-select one unresolved_type related by s_dt->Type[R423]->UnresolvedType[R407];
-if ( not_empty unresolved_type )
-  select one old_type related by unresolved_type->Type[R407];
-  
-  // unrelate old types and hook up the new types
-  select many old_type_refs related by old_type->TypeReference[R3800];
-  for each old_type_ref in old_type_refs
-    // get the corresponding new type ref
-    select any self_ref related by t->TypeReference[R3800] where false;
-    select one old_basic_ref related by old_type_ref->BasicTypeReference[R3801];
-    if ( not_empty old_basic_ref )
-      self_ref = ::TypeReference_getInstanceWithDimString( type:t, dims:"" );
-    else
-    select one old_array_ref related by old_type_ref->ArrayTypeReference[R3801];
-    if ( not_empty old_array_ref )
-      self_ref = ::TypeReference_getInstanceWithDimString( type:t, dims:old_array_ref.dims );
-    end if; end if;
-    // replace types
-    select many attrs related by old_type_ref->Attribute[R424];
-    for each attr in attrs
-      unrelate old_type_ref from attr across R424;
-      relate self_ref to attr across R424;
-    end for;
-    select many invocables related by old_type_ref->InvocableObject[R428];
-    for each invocable in invocables
-      unrelate old_type_ref from invocable across R428;
-      relate self_ref to invocable across R428;
-    end for;
-    select many parms related by old_type_ref->FormalParameter[R431];
-    for each parm in parms
-      unrelate old_type_ref from parm across R431;
-      relate self_ref to parm across R431;
-    end for;
-    select many selectors related by old_type_ref->Selector[R446];
-    for each selector in selectors
-      unrelate old_type_ref from selector across R446;
-      relate self_ref to selector across R446;
-    end for;
-    select many expressions related by old_type_ref->Expression[R795];
-    for each expression in expressions
-      unrelate old_type_ref from expression across R795;
-      relate self_ref to expression across R795;
-    end for;
-  end for;
-
-  unrelate old_type from s_dt across R423;
-  relate t to s_dt across R423;
-  old_type.dispose();
-
-elif ( not_empty s_dt )
-  relate t to s_dt across R423;
-else
-  // TODO bad
-end if;',
-	"ba5eda7a-def5-0000-0000-000000000000",
-	1,
-	'',
-	0,
-	5);
-INSERT INTO S_SPARM
-	VALUES ("5f9a2eab-9ac8-4604-9c75-555663d8ec74",
-	"3ef486f5-d6f6-4393-a048-ae1dbd8b08af",
+	VALUES ("3720d6e4-2bf8-4aa3-ad48-b7a635cac8d0",
+	"30244605-4cb5-4688-87ae-d9bce21cd2a9",
 	's_dt',
 	"4a90cd45-ece0-4e72-afe7-44996f9d7e1e",
 	0,
 	'',
-	"a8339540-0bfc-4610-8fec-5a7b9cee896a",
-	'');
-INSERT INTO S_SPARM
-	VALUES ("a8339540-0bfc-4610-8fec-5a7b9cee896a",
-	"3ef486f5-d6f6-4393-a048-ae1dbd8b08af",
-	't',
-	"b4a754cc-b0a5-4777-ae98-df570434ea2a",
-	0,
-	'',
 	"00000000-0000-0000-0000-000000000000",
 	'');
+INSERT INTO S_SPARM
+	VALUES ("754434c6-e103-4373-b0f6-62e762ff6e95",
+	"30244605-4cb5-4688-87ae-d9bce21cd2a9",
+	's_dims',
+	"9e615117-5ec7-43cc-a3c5-fe7cdd626110",
+	0,
+	'',
+	"3720d6e4-2bf8-4aa3-ad48-b7a635cac8d0",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("9e615117-5ec7-43cc-a3c5-fe7cdd626110",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref_set<Dimensions>',
+	'',
+	'',
+	'../../../../mcooa/models/mcooa/ooaofooa/Domain/Domain.xtuml');
 INSERT INTO PE_PE
-	VALUES ("3ef486f5-d6f6-4393-a048-ae1dbd8b08af",
+	VALUES ("30244605-4cb5-4688-87ae-d9bce21cd2a9",
 	1,
 	"5c0e4147-5dfb-48d3-a70d-1020d78fa1e2",
 	"00000000-0000-0000-0000-000000000000",
 	1);
 INSERT INTO S_SYNC
-	VALUES ("59e4b4ae-a559-4bcc-b859-851adb7ee179",
+	VALUES ("611aaf93-adfb-4e52-ae6f-7bd65d8855ee",
 	"00000000-0000-0000-0000-000000000000",
-	'resolveUserDefinedTypes',
+	'getTypeReferenceForV_VAR',
 	'',
-	'select many udts from instances of UserDefinedType;
-for each udt in udts
-
-  select one type related by udt->Type[R407];
-  select one base_type related by type->S_DT[R423]->S_UDT[R17]->S_DT[R18]->Type[R423];
-  if ( empty base_type )
-    // TODO bad
+	'v_var = param.v_var;
+select one var_s_dt related by v_var->S_DT[R848];
+select many s_dims related by v_var->S_DIM[R849];
+var_type = ::getTypeReferenceForS_DTWithDims( s_dt:var_s_dt, s_dims:s_dims );
+if empty var_type
+  select one var_obj related by v_var->V_INT[R814]->O_OBJ[R818]->Class[R409];
+  if not_empty var_obj
+    var_type = ::getObjectReference(obj:var_obj);
+  else
+    select one var_obj related by v_var->V_INS[R814]->O_OBJ[R819]->Class[R409];
+    var_type = ::getObjectSetReference(obj:var_obj);
   end if;
-  
-  relate udt to base_type across R3802;
-  
-  // add to imports
-  select one file related by udt->File[R401];
-  ::addTypeToImports( file:file, type_to_import:base_type, type:ImportType::IMPL );
-
-end for;',
-	"ba5eda7a-def5-0000-0000-000000000000",
+end if;
+return var_type;',
+	"096d9dad-f227-4793-bb43-a1915881b825",
 	1,
 	'',
 	0,
-	0);
+	8);
+INSERT INTO S_SPARM
+	VALUES ("a58d6fc2-4cce-4ced-ab43-8d606a1f71a9",
+	"611aaf93-adfb-4e52-ae6f-7bd65d8855ee",
+	'v_var',
+	"0e65b778-e815-4f26-b470-456b52561157",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
 INSERT INTO PE_PE
-	VALUES ("59e4b4ae-a559-4bcc-b859-851adb7ee179",
+	VALUES ("611aaf93-adfb-4e52-ae6f-7bd65d8855ee",
 	1,
 	"5c0e4147-5dfb-48d3-a70d-1020d78fa1e2",
 	"00000000-0000-0000-0000-000000000000",

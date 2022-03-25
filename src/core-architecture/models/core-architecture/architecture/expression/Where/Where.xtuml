@@ -15,32 +15,24 @@ INSERT INTO O_TFR
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'T::push_buffer();
-sorted = self.sorted != SortType::NONE;
-sort_descending = self.sorted == SortType::DESCENDING;
-use_util = false;
-util_name = "";
-accessor = "";
-if (sorted)
-  select one sort_attr_type related by self->Attribute[R3906]->TypeReference[R424]->Type[R3800];
-  use_util = sort_attr_type.primitive();
-  if ("boolean" == sort_attr_type.name)
-    util_name = "BooleanUtil";
-  elif ("int" == sort_attr_type.name)
-    util_name = "IntegerUtil";
-  elif ("double" == sort_attr_type.name)
-    util_name = "RealUtil";
-  end if;
-  select any attr_accessor related by self->Attribute[R3906]->AttributeAccessor[R4510] where (selected.accessor_type == AttributeAccessorType::GETTER);
-  accessor = attr_accessor.getName();
-end if;
+
+// render base expression
 select one base_expression related by self->Expression[R790];
 base_expression.render();
 root_expression_body = T::body();
-T::clear();
+
+// render where expression
 select one where_expression related by self->Expression[R796];
 where_expression.render();
 where_expression_body = T::body();
 T::pop_buffer();
+
+// add import
+if self.multiplicity == "one"
+  ::addStringImport(package:"io.ciera.runtime.api.domain", class_name:"ObjectInstance");
+  ::addStringImport(package:"java.util.stream", class_name:"Stream");
+end if;
+
 T::include(file:"expression/t.where.java");',
 	1,
 	'',
@@ -686,192 +678,6 @@ INSERT INTO O_ATTR
 	'',
 	'',
 	'multiplicity',
-	0,
-	"ba5eda7a-def5-0000-0000-000000000004",
-	'',
-	'');
-INSERT INTO O_NBATTR
-	VALUES ("891182fe-ae1e-40e3-b50e-4fda5885041c",
-	"cfcbe410-734f-42dc-a59d-4d520a84f3fa");
-INSERT INTO O_BATTR
-	VALUES ("891182fe-ae1e-40e3-b50e-4fda5885041c",
-	"cfcbe410-734f-42dc-a59d-4d520a84f3fa");
-INSERT INTO O_ATTR
-	VALUES ("891182fe-ae1e-40e3-b50e-4fda5885041c",
-	"cfcbe410-734f-42dc-a59d-4d520a84f3fa",
-	"96892f44-a4aa-40fc-a031-8d21de5374bc",
-	'sorted',
-	'',
-	'',
-	'sorted',
-	0,
-	"2ae2e511-adcd-4e6d-9957-5ffa7631541a",
-	'',
-	'');
-INSERT INTO S_DT_PROXY
-	VALUES ("2ae2e511-adcd-4e6d-9957-5ffa7631541a",
-	"00000000-0000-0000-0000-000000000000",
-	'SortType',
-	'',
-	'',
-	'../../../types/types.xtuml');
-INSERT INTO O_REF
-	VALUES ("cfcbe410-734f-42dc-a59d-4d520a84f3fa",
-	"4104c6e9-9797-48fb-bc1e-db640682f1ca",
-	0,
-	"45af2b1a-3c9f-4c14-908c-85ab59e7e257",
-	"ad3ef205-1bed-4225-bca8-229778d8d662",
-	"538eea14-e8af-4024-a3da-ec27bac1e58a",
-	"061960eb-0655-4d92-b405-09f77e3fbae1",
-	"1b9b14b7-f607-4cac-9b08-52ac00501f59",
-	"70cee800-3d12-422f-97c9-4a34127d555e",
-	"00000000-0000-0000-0000-000000000000",
-	0,
-	'',
-	'Attribute',
-	'name',
-	'R3906.''sorts set by''');
-INSERT INTO R_RGO_PROXY
-	VALUES ("cfcbe410-734f-42dc-a59d-4d520a84f3fa",
-	"ad3ef205-1bed-4225-bca8-229778d8d662",
-	"538eea14-e8af-4024-a3da-ec27bac1e58a",
-	'../expression.xtuml');
-INSERT INTO O_RTIDA_PROXY
-	VALUES ("45af2b1a-3c9f-4c14-908c-85ab59e7e257",
-	"4104c6e9-9797-48fb-bc1e-db640682f1ca",
-	0,
-	"ad3ef205-1bed-4225-bca8-229778d8d662",
-	"061960eb-0655-4d92-b405-09f77e3fbae1",
-	'../expression.xtuml');
-INSERT INTO O_RATTR
-	VALUES ("1b9b14b7-f607-4cac-9b08-52ac00501f59",
-	"cfcbe410-734f-42dc-a59d-4d520a84f3fa",
-	"45af2b1a-3c9f-4c14-908c-85ab59e7e257",
-	"4104c6e9-9797-48fb-bc1e-db640682f1ca",
-	1,
-	'name');
-INSERT INTO O_BATTR_PROXY
-	VALUES ("45af2b1a-3c9f-4c14-908c-85ab59e7e257",
-	"4104c6e9-9797-48fb-bc1e-db640682f1ca",
-	'../../classes/Attribute/Attribute.xtuml');
-INSERT INTO O_ATTR
-	VALUES ("1b9b14b7-f607-4cac-9b08-52ac00501f59",
-	"cfcbe410-734f-42dc-a59d-4d520a84f3fa",
-	"84d2b500-46e0-4cd7-9540-f702ae7071d1",
-	'attr_name',
-	'',
-	'attr_',
-	'name',
-	1,
-	"ba5eda7a-def5-0000-0000-000000000007",
-	'',
-	'');
-INSERT INTO O_REF
-	VALUES ("cfcbe410-734f-42dc-a59d-4d520a84f3fa",
-	"4104c6e9-9797-48fb-bc1e-db640682f1ca",
-	0,
-	"151898ae-d75d-4eae-aa0b-2bc34600b07c",
-	"ad3ef205-1bed-4225-bca8-229778d8d662",
-	"538eea14-e8af-4024-a3da-ec27bac1e58a",
-	"061960eb-0655-4d92-b405-09f77e3fbae1",
-	"e149c39e-0aea-4e92-944b-09d456d1874f",
-	"5da66efd-7967-4efc-aecf-805146c11f36",
-	"00000000-0000-0000-0000-000000000000",
-	0,
-	'',
-	'Attribute',
-	'class_package',
-	'R3906.''sorts set by''');
-INSERT INTO O_RTIDA_PROXY
-	VALUES ("151898ae-d75d-4eae-aa0b-2bc34600b07c",
-	"4104c6e9-9797-48fb-bc1e-db640682f1ca",
-	0,
-	"ad3ef205-1bed-4225-bca8-229778d8d662",
-	"061960eb-0655-4d92-b405-09f77e3fbae1",
-	'../expression.xtuml');
-INSERT INTO O_RATTR
-	VALUES ("e149c39e-0aea-4e92-944b-09d456d1874f",
-	"cfcbe410-734f-42dc-a59d-4d520a84f3fa",
-	"3dfc4c02-94c0-4383-8964-c3bfa4b2e9bd",
-	"dc9c4877-4fcb-49df-a886-ab917b250774",
-	1,
-	'package');
-INSERT INTO O_BATTR_PROXY
-	VALUES ("3dfc4c02-94c0-4383-8964-c3bfa4b2e9bd",
-	"dc9c4877-4fcb-49df-a886-ab917b250774",
-	'../../file/File/File.xtuml');
-INSERT INTO O_ATTR
-	VALUES ("e149c39e-0aea-4e92-944b-09d456d1874f",
-	"cfcbe410-734f-42dc-a59d-4d520a84f3fa",
-	"1b9b14b7-f607-4cac-9b08-52ac00501f59",
-	'attr_class_package',
-	'',
-	'attr_class_',
-	'class_package',
-	1,
-	"ba5eda7a-def5-0000-0000-000000000007",
-	'',
-	'');
-INSERT INTO O_REF
-	VALUES ("cfcbe410-734f-42dc-a59d-4d520a84f3fa",
-	"4104c6e9-9797-48fb-bc1e-db640682f1ca",
-	0,
-	"c5581156-01eb-47af-a806-ed7cd6772926",
-	"ad3ef205-1bed-4225-bca8-229778d8d662",
-	"538eea14-e8af-4024-a3da-ec27bac1e58a",
-	"061960eb-0655-4d92-b405-09f77e3fbae1",
-	"bac63db8-170e-4866-bb03-b3f0d8b2eabb",
-	"03854a54-d24d-44fc-9a84-271e2df50db1",
-	"00000000-0000-0000-0000-000000000000",
-	0,
-	'',
-	'Attribute',
-	'class_name',
-	'R3906.''sorts set by''');
-INSERT INTO O_RTIDA_PROXY
-	VALUES ("c5581156-01eb-47af-a806-ed7cd6772926",
-	"4104c6e9-9797-48fb-bc1e-db640682f1ca",
-	0,
-	"ad3ef205-1bed-4225-bca8-229778d8d662",
-	"061960eb-0655-4d92-b405-09f77e3fbae1",
-	'../expression.xtuml');
-INSERT INTO O_RATTR
-	VALUES ("bac63db8-170e-4866-bb03-b3f0d8b2eabb",
-	"cfcbe410-734f-42dc-a59d-4d520a84f3fa",
-	"c49819d1-92ba-4732-98e5-2b3eca8bc470",
-	"dc9c4877-4fcb-49df-a886-ab917b250774",
-	1,
-	'name');
-INSERT INTO O_BATTR_PROXY
-	VALUES ("c49819d1-92ba-4732-98e5-2b3eca8bc470",
-	"dc9c4877-4fcb-49df-a886-ab917b250774",
-	'../../file/File/File.xtuml');
-INSERT INTO O_ATTR
-	VALUES ("bac63db8-170e-4866-bb03-b3f0d8b2eabb",
-	"cfcbe410-734f-42dc-a59d-4d520a84f3fa",
-	"e149c39e-0aea-4e92-944b-09d456d1874f",
-	'attr_class_name',
-	'',
-	'attr_class_',
-	'class_name',
-	1,
-	"ba5eda7a-def5-0000-0000-000000000007",
-	'',
-	'');
-INSERT INTO O_NBATTR
-	VALUES ("84d2b500-46e0-4cd7-9540-f702ae7071d1",
-	"cfcbe410-734f-42dc-a59d-4d520a84f3fa");
-INSERT INTO O_BATTR
-	VALUES ("84d2b500-46e0-4cd7-9540-f702ae7071d1",
-	"cfcbe410-734f-42dc-a59d-4d520a84f3fa");
-INSERT INTO O_ATTR
-	VALUES ("84d2b500-46e0-4cd7-9540-f702ae7071d1",
-	"cfcbe410-734f-42dc-a59d-4d520a84f3fa",
-	"891182fe-ae1e-40e3-b50e-4fda5885041c",
-	'cast',
-	'',
-	'',
-	'cast',
 	0,
 	"ba5eda7a-def5-0000-0000-000000000004",
 	'',

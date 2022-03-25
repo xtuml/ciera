@@ -9,19 +9,6 @@ INSERT INTO O_OBJ
 ',
 	"00000000-0000-0000-0000-000000000000");
 INSERT INTO O_TFR
-	VALUES ("085b032b-0957-4f25-9cf1-491675419d35",
-	"88a618cf-f271-4cd5-a6d4-64be4106d78d",
-	'modifiers',
-	'',
-	"ba5eda7a-def5-0000-0000-000000000004",
-	1,
-	'return "";',
-	1,
-	'',
-	"00000000-0000-0000-0000-000000000000",
-	0,
-	0);
-INSERT INTO O_TFR
 	VALUES ("dff37204-9330-40a9-8bab-d9af715aba36",
 	"88a618cf-f271-4cd5-a6d4-64be4106d78d",
 	'parameter_list',
@@ -35,20 +22,28 @@ while ( not_empty prev_parm )
   parm = prev_parm;
   select one prev_parm related by parm->FormalParameter[R404.''follows''];
 end while;
-separator = " ";
+separator = "";
 while ( not_empty parm )
   select one parm_type related by parm->TypeReference[R431];
-  parameter_list = parameter_list + separator + "final " + parm_type.type_reference_name + " "  + parm.name;
+  ::resolveImportsForTypeReference(type_ref:parm_type);
+  if parm.by_ref
+    type_ref = parm_type.type_reference;
+    select one builtin related by parm_type->BasicTypeReference[R3801]->TypeReference[R3801]->Type[R3800]->BuiltInType[R407];
+    if not_empty builtin
+      type_ref = builtin.object_name;
+    end if;
+    parameter_list = parameter_list + separator + "final Variable<" + type_ref + "> "  + parm.name;
+    ::addStringImport(package:"io.ciera.runtime.api.domain", class_name:"Variable");
+  else
+    parameter_list = parameter_list + separator + "final " + parm_type.type_reference + " "  + parm.name;
+  end if;
   separator = ",  ";
   select one parm related by parm->FormalParameter[R404.''precedes''];
-  if ( empty parm )
-    parameter_list = parameter_list + " ";
-  end if;
 end while;
 return parameter_list;',
 	1,
 	'',
-	"085b032b-0957-4f25-9cf1-491675419d35",
+	"00000000-0000-0000-0000-000000000000",
 	0,
 	0);
 INSERT INTO O_TFR
@@ -59,16 +54,52 @@ INSERT INTO O_TFR
 	"ba5eda7a-def5-0000-0000-000000000004",
 	1,
 	'body = "{}";
-select any code_block related by self->CodeBlock[R4000] where ( selected.top_level );
-if ( not_empty code_block )
+select any code_block related by self->CodeBlock[R4000] where (selected.top_level);
+select any statement related by code_block->Statement[R450];
+if (not_empty statement)
+
+  // render the top level codeblock
+  T::push_buffer();
   code_block.render();
-  body = T::body();
-  T::clear();
+  code = T::body();
+  T::pop_buffer();
+
+  disable_tracing = PROP::getFlag(key:"io.ciera.DisableCodeTracing");
+  if disable_tracing
+    body = code + "\n";
+  else
+    
+    // render the body
+    T::push_buffer();
+    original_parent_name = self.original_parent_name;
+    if (STRING::indexof(haystack:original_parent_name, needle:" ") != -1)
+      original_parent_name = "''" + self.original_parent_name + "''";
+    end if;
+    original_body_name = self.original_body_name;
+    if (STRING::indexof(haystack:original_body_name, needle:" ") != -1)
+      original_body_name = "''" + self.original_body_name + "''";
+    end if;
+    ::addStringImport(package:"io.ciera.runtime.api.exceptions", class_name:"ActionException");
+    T::include(file:"invocable/t.invocable.trace.java");
+    body = T::body();
+    T::pop_buffer();
+  
+  end if;
+
+else
+
+  // generate default return
+  select one type_ref related by self->TypeReference[R428]->Type[R3800];
+  if type_ref.name != "void"
+    body = "{ return " + type_ref.default_value + "; }";
+  end if;
+
 end if;
+
 return body;',
 	1,
 	'',
-	"dff37204-9330-40a9-8bab-d9af715aba36",
+	"1deca5c4-523f-4fab-9100-3dbfebeaaf95",
 	0,
 	0);
 INSERT INTO O_TFR
@@ -79,7 +110,7 @@ INSERT INTO O_TFR
 	"ba5eda7a-def5-0000-0000-000000000004",
 	1,
 	'select one return_type related by self->TypeReference[R428];
-signature = return_type.type_reference_name + "(";
+signature = return_type.type_reference + "(";
 select any parm related by self->FormalParameter[R429];
 select one prev_parm related by parm->FormalParameter[R404.''follows''];
 while (not_empty prev_parm)
@@ -89,7 +120,7 @@ end while;
 sep = "";
 while (not_empty parm)
   select one parm_type related by parm->TypeReference[R431];
-  signature = signature + sep + parm_type.type_reference_name;
+  signature = signature + sep + parm_type.type_reference;
   sep = ",";
   select one parm related by parm->FormalParameter[R404.''precedes''];
 end while;
@@ -97,7 +128,7 @@ signature = signature + ")";
 return signature;',
 	1,
 	'',
-	"b3c8267c-6e1f-4f02-ba16-05770552de77",
+	"dff37204-9330-40a9-8bab-d9af715aba36",
 	0,
 	0);
 INSERT INTO O_NBATTR
@@ -154,121 +185,6 @@ INSERT INTO O_ATTR
 	"ba5eda7a-def5-0000-0000-000000000004",
 	'',
 	'');
-INSERT INTO O_NBATTR
-	VALUES ("20019f89-5755-47da-b341-bd55b39603e0",
-	"88a618cf-f271-4cd5-a6d4-64be4106d78d");
-INSERT INTO O_BATTR
-	VALUES ("20019f89-5755-47da-b341-bd55b39603e0",
-	"88a618cf-f271-4cd5-a6d4-64be4106d78d");
-INSERT INTO O_ATTR
-	VALUES ("20019f89-5755-47da-b341-bd55b39603e0",
-	"88a618cf-f271-4cd5-a6d4-64be4106d78d",
-	"2f7716f3-2226-44d5-845e-4a012ffba05d",
-	'actions',
-	'',
-	'',
-	'actions',
-	0,
-	"ba5eda7a-def5-0000-0000-000000000004",
-	'',
-	'');
-INSERT INTO O_REF
-	VALUES ("88a618cf-f271-4cd5-a6d4-64be4106d78d",
-	"327e89b2-6713-4172-b27c-01d702ab5eed",
-	0,
-	"f7707eb9-14c3-40d1-b877-11c6c546d011",
-	"e33eff55-2377-4a98-b036-1a007c11c4f9",
-	"45045dbd-7075-4585-9c37-7b9f37d1c786",
-	"3389654a-fc1d-46a2-b18d-a762e7c62cab",
-	"8a535428-db8a-4db9-8107-b27cb8416fd2",
-	"d58f4e8f-5a48-445f-b689-7a9809ad229d",
-	"00000000-0000-0000-0000-000000000000",
-	0,
-	'',
-	'Type Reference',
-	'type_name',
-	'R428.''return value is typed by''');
-INSERT INTO R_RGO_PROXY
-	VALUES ("88a618cf-f271-4cd5-a6d4-64be4106d78d",
-	"e33eff55-2377-4a98-b036-1a007c11c4f9",
-	"45045dbd-7075-4585-9c37-7b9f37d1c786",
-	'../invocable.xtuml');
-INSERT INTO O_RTIDA_PROXY
-	VALUES ("f7707eb9-14c3-40d1-b877-11c6c546d011",
-	"327e89b2-6713-4172-b27c-01d702ab5eed",
-	0,
-	"e33eff55-2377-4a98-b036-1a007c11c4f9",
-	"3389654a-fc1d-46a2-b18d-a762e7c62cab",
-	'../invocable.xtuml');
-INSERT INTO O_RATTR
-	VALUES ("8a535428-db8a-4db9-8107-b27cb8416fd2",
-	"88a618cf-f271-4cd5-a6d4-64be4106d78d",
-	"864744e7-2f4c-4f9f-b744-73335f8defd3",
-	"b5de937b-55ee-48e4-8e91-d9d73c3f0fab",
-	1,
-	'name');
-INSERT INTO O_BATTR_PROXY
-	VALUES ("864744e7-2f4c-4f9f-b744-73335f8defd3",
-	"b5de937b-55ee-48e4-8e91-d9d73c3f0fab",
-	'../../type/Type/Type.xtuml');
-INSERT INTO O_ATTR
-	VALUES ("8a535428-db8a-4db9-8107-b27cb8416fd2",
-	"88a618cf-f271-4cd5-a6d4-64be4106d78d",
-	"d30a895c-0c5d-447c-b544-108e3c2030cd",
-	'type_name',
-	'',
-	'',
-	'type_name',
-	2,
-	"ba5eda7a-def5-0000-0000-000000000007",
-	'',
-	'');
-INSERT INTO O_REF
-	VALUES ("88a618cf-f271-4cd5-a6d4-64be4106d78d",
-	"327e89b2-6713-4172-b27c-01d702ab5eed",
-	0,
-	"af88f1a2-fd10-4195-a254-e9bfbcf8257a",
-	"e33eff55-2377-4a98-b036-1a007c11c4f9",
-	"45045dbd-7075-4585-9c37-7b9f37d1c786",
-	"3389654a-fc1d-46a2-b18d-a762e7c62cab",
-	"a72b7e58-7b4a-447e-89b7-816f72e951b0",
-	"a93d1f76-aab0-4b62-98d8-f9d313a73294",
-	"00000000-0000-0000-0000-000000000000",
-	0,
-	'',
-	'Type Reference',
-	'type_package',
-	'R428.''return value is typed by''');
-INSERT INTO O_RTIDA_PROXY
-	VALUES ("af88f1a2-fd10-4195-a254-e9bfbcf8257a",
-	"327e89b2-6713-4172-b27c-01d702ab5eed",
-	0,
-	"e33eff55-2377-4a98-b036-1a007c11c4f9",
-	"3389654a-fc1d-46a2-b18d-a762e7c62cab",
-	'../invocable.xtuml');
-INSERT INTO O_RATTR
-	VALUES ("a72b7e58-7b4a-447e-89b7-816f72e951b0",
-	"88a618cf-f271-4cd5-a6d4-64be4106d78d",
-	"f44b46d8-90bf-4603-93b9-9beb6bd0fe62",
-	"b5de937b-55ee-48e4-8e91-d9d73c3f0fab",
-	1,
-	'package');
-INSERT INTO O_BATTR_PROXY
-	VALUES ("f44b46d8-90bf-4603-93b9-9beb6bd0fe62",
-	"b5de937b-55ee-48e4-8e91-d9d73c3f0fab",
-	'../../type/Type/Type.xtuml');
-INSERT INTO O_ATTR
-	VALUES ("a72b7e58-7b4a-447e-89b7-816f72e951b0",
-	"88a618cf-f271-4cd5-a6d4-64be4106d78d",
-	"8a535428-db8a-4db9-8107-b27cb8416fd2",
-	'type_package',
-	'',
-	'',
-	'type_package',
-	2,
-	"ba5eda7a-def5-0000-0000-000000000007",
-	'',
-	'');
 INSERT INTO O_REF
 	VALUES ("88a618cf-f271-4cd5-a6d4-64be4106d78d",
 	"327e89b2-6713-4172-b27c-01d702ab5eed",
@@ -283,8 +199,13 @@ INSERT INTO O_REF
 	0,
 	'',
 	'Type Reference',
-	'type_reference_name',
+	'type_reference',
 	'R428.''return value is typed by''');
+INSERT INTO R_RGO_PROXY
+	VALUES ("88a618cf-f271-4cd5-a6d4-64be4106d78d",
+	"e33eff55-2377-4a98-b036-1a007c11c4f9",
+	"45045dbd-7075-4585-9c37-7b9f37d1c786",
+	'../invocable.xtuml');
 INSERT INTO O_RTIDA_PROXY
 	VALUES ("8bc7428e-8bab-489b-93ff-987226daf7d9",
 	"327e89b2-6713-4172-b27c-01d702ab5eed",
@@ -298,7 +219,7 @@ INSERT INTO O_RATTR
 	"8bc7428e-8bab-489b-93ff-987226daf7d9",
 	"327e89b2-6713-4172-b27c-01d702ab5eed",
 	1,
-	'type_reference_name');
+	'type_reference');
 INSERT INTO O_BATTR_PROXY
 	VALUES ("8bc7428e-8bab-489b-93ff-987226daf7d9",
 	"327e89b2-6713-4172-b27c-01d702ab5eed",
@@ -306,13 +227,67 @@ INSERT INTO O_BATTR_PROXY
 INSERT INTO O_ATTR
 	VALUES ("2f7716f3-2226-44d5-845e-4a012ffba05d",
 	"88a618cf-f271-4cd5-a6d4-64be4106d78d",
-	"a72b7e58-7b4a-447e-89b7-816f72e951b0",
-	'type_reference_name',
+	"d30a895c-0c5d-447c-b544-108e3c2030cd",
+	'type_reference',
 	'',
 	'',
 	'type_reference_name',
 	0,
 	"ba5eda7a-def5-0000-0000-000000000007",
+	'',
+	'');
+INSERT INTO O_NBATTR
+	VALUES ("c097bb05-f070-47e4-961e-6e8e5766762d",
+	"88a618cf-f271-4cd5-a6d4-64be4106d78d");
+INSERT INTO O_BATTR
+	VALUES ("c097bb05-f070-47e4-961e-6e8e5766762d",
+	"88a618cf-f271-4cd5-a6d4-64be4106d78d");
+INSERT INTO O_ATTR
+	VALUES ("c097bb05-f070-47e4-961e-6e8e5766762d",
+	"88a618cf-f271-4cd5-a6d4-64be4106d78d",
+	"2f7716f3-2226-44d5-845e-4a012ffba05d",
+	'original_parent_name',
+	'',
+	'',
+	'original_parent_name',
+	0,
+	"ba5eda7a-def5-0000-0000-000000000004",
+	'',
+	'');
+INSERT INTO O_NBATTR
+	VALUES ("0fc36555-e25e-46a0-90d0-03641b2e5464",
+	"88a618cf-f271-4cd5-a6d4-64be4106d78d");
+INSERT INTO O_BATTR
+	VALUES ("0fc36555-e25e-46a0-90d0-03641b2e5464",
+	"88a618cf-f271-4cd5-a6d4-64be4106d78d");
+INSERT INTO O_ATTR
+	VALUES ("0fc36555-e25e-46a0-90d0-03641b2e5464",
+	"88a618cf-f271-4cd5-a6d4-64be4106d78d",
+	"c097bb05-f070-47e4-961e-6e8e5766762d",
+	'original_body_name',
+	'',
+	'',
+	'original_body_name',
+	0,
+	"ba5eda7a-def5-0000-0000-000000000004",
+	'',
+	'');
+INSERT INTO O_NBATTR
+	VALUES ("389c4993-4b90-4edd-b597-9968b526bfe1",
+	"88a618cf-f271-4cd5-a6d4-64be4106d78d");
+INSERT INTO O_BATTR
+	VALUES ("389c4993-4b90-4edd-b597-9968b526bfe1",
+	"88a618cf-f271-4cd5-a6d4-64be4106d78d");
+INSERT INTO O_ATTR
+	VALUES ("389c4993-4b90-4edd-b597-9968b526bfe1",
+	"88a618cf-f271-4cd5-a6d4-64be4106d78d",
+	"0fc36555-e25e-46a0-90d0-03641b2e5464",
+	'original_filename',
+	'',
+	'',
+	'original_filename',
+	0,
+	"ba5eda7a-def5-0000-0000-000000000004",
 	'',
 	'');
 INSERT INTO O_ID

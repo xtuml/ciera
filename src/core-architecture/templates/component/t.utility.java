@@ -2,8 +2,17 @@ package ${self.package};
 
 ${imports}
 
-public interface ${self.name} {
+public class ${self.name} {
 
-${utility_functions}
+    private final Domain domain;
+
+    public ${self.name}(Domain domain) {
+        this.domain = domain;
+.if (self.native_library != "")
+        System.loadLibrary("${self.native_library}");
+.end if
+    }
+
+    ${utility_functions}
 
 }

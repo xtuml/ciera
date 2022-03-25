@@ -53,7 +53,8 @@ else
   smt.statement_number = "1";
 end if;
 select one body related by block->InvocableObject[R4000];
-smt.actions = ::getOalStatement( body:body.actions, line_num:act_smt.LineNumber );
+smt.actions = ::getOalStatement(act_smt:act_smt);
+smt.line_number = act_smt.LineNumber;
 
 select one util_func related by act_brg->S_BRG[R674]->UtilityFunction[R4570];
 if ( empty util_func )
@@ -62,18 +63,27 @@ if ( empty util_func )
   select any empty_comp_def from instances of ComponentDefinition where false;
   ::transformUtility( s_ee:s_ee, ep_pkg:s_ee_pkg, containing_comp_def:empty_comp_def, exclude:true, path: ::ep_pkgToPath( ep_pkg:s_ee_pkg ) );
   select one util_func related by act_brg->S_BRG[R674]->UtilityFunction[R4570];
+
+  // add module dependency if necessary
+  select any main_mod from instances of Module where selected.main_module;
+  select one mod related by s_ee->PE_PE[R8001]->EP_PKG[R8000]->S_SYS[R1405]->Module[R4760];
+  if mod != main_mod
+    select any dependency related by main_mod->Dependency[R5753.''requires''] where selected.required_module_name == mod.name;
+    if empty dependency
+      create object instance dependency of Dependency;
+      relate mod to main_mod across R5753.''required by'' using dependency;
+    end if;
+  end if;
+ 
 end if;
 select one invocable related by util_func->InvocableObject[R427];
 select one utility related by util_func->Utility[R4559];
 select one utility_file related by utility->File[R401];
 containing_comp_def = ::getCompDefForStatement( smt:smt );
-select one containing_comp_file related by containing_comp_def->File[R401];
-::addFileToImports( file:containing_comp_file, file_to_import:utility_file, type:ImportType::IMPL );
-::addStringToImports( file:containing_comp_file, s: ::pathToPackage( path:utility_file.path ) + ".impl." + utility_file.name + "Impl", type:ImportType::IMPL );
 if ( not_empty containing_comp_def )
-  select any util_ref related by utility->UtilityReference[R4558] where ( selected.comp_name == containing_comp_def.name and selected.comp_package == containing_comp_def.package );
+  select any util_ref related by utility->UtilityInComponent[R4558] where ( selected.comp_name == containing_comp_def.name and selected.comp_package == containing_comp_def.package );
   if ( empty util_ref )
-    create object instance util_ref of UtilityReference;
+    create object instance util_ref of UtilityInComponent;
     relate utility to containing_comp_def across R4558 using util_ref;
   end if;
 end if;
@@ -85,7 +95,7 @@ if ( not_empty invocable )
   create object instance expr of Expression;
   relate expr to smt across R775;
   expr.expression_number = "1";
-  void_type = ::TypeReference_getBuiltinTypeReference( name:"void" );
+  void_type = ::getBasicTypeReferenceByName( name:"void" );
   relate void_type to expr across R795;
   // create invocation
   create object instance invoc of Invocation;
@@ -97,13 +107,13 @@ if ( not_empty invocable )
   create object instance expr2 of Expression;
   relate expr2 to smt across R775;
   expr2.expression_number = "1.1";
-  void_type = ::TypeReference_getBuiltinTypeReference( name:"void" );
+  void_type = ::getBasicTypeReferenceByName( name:"void" );
   relate void_type to expr2 across R795;
-  // create named reference
-  create object instance named_ref of NamedReference;
-  relate named_ref to expr2 across R776;
+  // create utility reference
+  create object instance utility_ref of UtilityReference;
+  relate utility_ref to utility across R3914;
+  relate utility_ref to expr2 across R776;
   relate expr2 to invoc across R798;
-  named_ref.name = "context()." + utility.name + "()";
   // transform actual parameters
   select many v_pars related by act_brg->V_PAR[R628];
   ::transformActualParameters( invocation:invoc, v_pars:v_pars, expr_number:"1", base_num:2 );
@@ -189,7 +199,8 @@ else
   smt.statement_number = "1";
 end if;
 select one body related by block->InvocableObject[R4000];
-smt.actions = ::getOalStatement( body:body.actions, line_num:act_smt.LineNumber );
+smt.actions = ::getOalStatement(act_smt:act_smt);
+smt.line_number = act_smt.LineNumber;
 
 select one s_sync related by act_fnc->S_SYNC[R675];
 containing_comp_def = ::getCompDefForStatement( smt:smt );
@@ -202,7 +213,7 @@ if ( not_empty invocable )
   create object instance expr of Expression;
   relate expr to smt across R775;
   expr.expression_number = "1";
-  void_type = ::TypeReference_getBuiltinTypeReference( name:"void" );
+  void_type = ::getBasicTypeReferenceByName( name:"void" );
   relate void_type to expr across R795;
   // create invocation
   create object instance invoc of Invocation;
@@ -214,13 +225,12 @@ if ( not_empty invocable )
   create object instance expr2 of Expression;
   relate expr2 to smt across R775;
   expr2.expression_number = "1.1";
-  void_type = ::TypeReference_getBuiltinTypeReference( name:"void" );
+  void_type = ::getBasicTypeReferenceByName( name:"void" );
   relate void_type to expr2 across R795;
   // create named reference
-  create object instance named_ref of NamedReference;
-  relate named_ref to expr2 across R776;
+  create object instance domain_ref of DomainReference;
+  relate domain_ref to expr2 across R776;
   relate expr2 to invoc across R798;
-  named_ref.name = "context()";
   // transform actual parameters
   select many v_pars related by act_fnc->V_PAR[R669];
   ::transformActualParameters( invocation:invoc, v_pars:v_pars, expr_number:"1", base_num:2 );
@@ -292,10 +302,13 @@ else
   smt.statement_number = "1";
 end if;
 select one body related by block->InvocableObject[R4000];
-smt.actions = ::getOalStatement( body:body.actions, line_num:act_smt.LineNumber );
+smt.actions = ::getOalStatement(act_smt:act_smt);
+smt.line_number = act_smt.LineNumber;
 
 select one o_tfr related by act_tfm->O_TFR[R673];
-select any invocable related by o_tfr->O_OBJ[R115]->Class[R409]->Operation[R416]->InvocableObject[R427] where ( selected.name == o_tfr.Name );
+select one obj related by o_tfr->O_OBJ[R115]->Class[R409];
+select any invocable related by obj->Operation[R416]->InvocableObject[R427]
+  where ( selected.name == o_tfr.Name or selected.name == "_" + obj.name + "_" + o_tfr.Name );
 if ( not_empty invocable )
   // create expression as statement
   create object instance eas of ExpressionAsStatement;
@@ -305,7 +318,7 @@ if ( not_empty invocable )
   relate expr to smt across R775;
   expr.expression_number = "1";
   relate eas to expr across R476;
-  void_type = ::TypeReference_getBuiltinTypeReference( name:"void" );
+  void_type = ::getBasicTypeReferenceByName( name:"void" );
   relate void_type to expr across R795;
   // create invocation
   create object instance invoc of Invocation;
@@ -314,39 +327,33 @@ if ( not_empty invocable )
   // relate expression to expression as statement
   select one op_v_var related by act_tfm->V_VAR[R667];
   if ( empty op_v_var ) // class based operation
-    // create named reference expression
-    create object instance expr2 of Expression;
-    relate expr2 to smt across R775;
-    expr2.expression_number = "1.1";
-    relate expr2 to invoc across R798;
-    void_type = ::TypeReference_getBuiltinTypeReference( name:"void" );
-    relate void_type to expr2 across R795;
+    // for class based operations, add domain as first parameter
+    create object instance expr3 of Expression;
+    relate expr3 to smt across R775;
+    expr3.expression_number = "1.1";
+    relate void_type to expr3 across R795;
+    relate expr3 to invoc across R798;
     // create named reference
-    create object instance named_ref of NamedReference;
-    relate named_ref to expr2 across R776;
-    select one target_class related by invocable->Operation[R427]->Class[R416];
-    named_ref.name = "new " + target_class.name + "Impl.CLASS(context())";
-    select one class_file related by target_class->File[R401];
-    ::addStringToImports( file: ::getFileForStatement( smt:smt ), s: ::pathToPackage( path:class_file.path ) + ".impl." + class_file.name + "Impl", type:ImportType::IMPL );
+    create object instance domain_ref of DomainReference;
+    relate domain_ref to expr3 across R776;
+
+		// transform actual parameters
+		select many v_pars related by act_tfm->V_PAR[R627];
+		::transformActualParameters( invocation:invoc, v_pars:v_pars, expr_number:"1", base_num:2 );
+
   else // instance based operation
     // create variable reference expression
     create object instance expr2 of Expression;
     relate expr2 to smt across R775;
     expr2.expression_number = "1.1";
     relate expr2 to invoc across R798;
-    select one op_s_dt related by op_v_var->S_DT[R848];
-    select one op_obj related by o_tfr->O_OBJ[R115];
-    op_s_dt = ::getInstRefTypeForClass( s_dt:op_s_dt, o_obj:op_obj );
-    select many s_dims related by op_v_var->S_DIM[R849];
-    op_type = ::TypeReference_getInstance( s_dt:op_s_dt, s_dims:s_dims );
+    op_var = ::getVariableInScope(smt:smt, name:op_v_var.Name);
+    op_type = ::getObjectReference(obj:obj);
     relate op_type to expr2 across R795;
-    select any op_var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == op_v_var.Name );
     if ( not_empty op_var ) // cannot declare two variables of the same name in the same scope
       create object instance var_ref of VariableReference;
       relate op_var to var_ref across R782;
       relate var_ref to expr2 across R776;
-      select one type related by expr2->TypeReference[R795]->Type[R3800];
-      ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:type, type:ImportType::IMPL );
     elif ( "self" == op_v_var.Name )
       // create named reference
       create object instance self_ref of NamedReference;
@@ -355,10 +362,10 @@ if ( not_empty invocable )
     else
       // TODO bad
     end if;
+		// transform actual parameters
+		select many v_pars related by act_tfm->V_PAR[R627];
+		::transformActualParameters( invocation:invoc, v_pars:v_pars, expr_number:"1", base_num:2 );
   end if;
-  // transform actual parameters
-  select many v_pars related by act_tfm->V_PAR[R627];
-  ::transformActualParameters( invocation:invoc, v_pars:v_pars, expr_number:"1", base_num:2 );
 else
   // TODO bad
 end if;',
@@ -427,7 +434,8 @@ else
   smt.statement_number = "1";
 end if;
 select one body related by block->InvocableObject[R4000];
-smt.actions = ::getOalStatement( body:body.actions, line_num:act_smt.LineNumber );
+smt.actions = ::getOalStatement(act_smt:act_smt);
+smt.line_number = act_smt.LineNumber;
 
 select one spr_rs related by act_sgn->SPR_RS[R660];
 select one spr_ps related by act_sgn->SPR_PS[R663];
@@ -450,7 +458,7 @@ if ( not_empty invocable )
   relate expr to smt across R775;
   expr.expression_number = "1";
   relate eas to expr across R476;
-  void_type = ::TypeReference_getBuiltinTypeReference( name:"void" );
+  void_type = ::getBasicTypeReferenceByName( name:"void" );
   relate void_type to expr across R795;
   // create invocation
   create object instance invoc of Invocation;
@@ -461,12 +469,12 @@ if ( not_empty invocable )
   relate expr2 to smt across R775;
   expr2.expression_number = "1.1";
   relate expr2 to invoc across R798;
-  void_type = ::TypeReference_getBuiltinTypeReference( name:"void" );
+  void_type = ::getBasicTypeReferenceByName( name:"void" );
   relate void_type to expr2 across R795;
-  // create named reference
-  create object instance named_ref of NamedReference;
-  relate named_ref to expr2 across R776;
-  named_ref.name = "context()." + target_port.port_name + "()";
+  // create port reference
+  create object instance port_ref of PortReference;
+  relate port_ref to target_port across R3915;
+  relate port_ref to expr2 across R776;
   // transform actual parameters
   select many v_pars related by act_sgn->V_PAR[R662];
   ::transformActualParameters( invocation:invoc, v_pars:v_pars, expr_number:"1", base_num:2 );
@@ -538,7 +546,8 @@ else
   smt.statement_number = "1";
 end if;
 select one body related by block->InvocableObject[R4000];
-smt.actions = ::getOalStatement( body:body.actions, line_num:act_smt.LineNumber );
+smt.actions = ::getOalStatement(act_smt:act_smt);
+smt.line_number = act_smt.LineNumber;
 
 select any empty_invocable from instances of InvocableObject where false;
 // create if statement
@@ -660,7 +669,8 @@ else
   smt.statement_number = "1";
 end if;
 select one body related by block->InvocableObject[R4000];
-smt.actions = ::getOalStatement( body:body.actions, line_num:act_smt.LineNumber );
+smt.actions = ::getOalStatement(act_smt:act_smt);
+smt.line_number = act_smt.LineNumber;
 
 select any empty_invocable from instances of InvocableObject where false;
 // create while statement
@@ -732,21 +742,37 @@ block = param.block;
 prev_smt = param.prev_smt;
 select one act_smt related by act_brk->ACT_SMT[R603];
 
-// create a statement
-create object instance smt of Statement;
-relate smt to block across R450;
-if ( not_empty prev_smt )
-  smt.statement_number = STRING::itoa( i:STRING::atoi( s:prev_smt.statement_number ) + 1 );
-  relate smt to prev_smt across R477.''executes after'';
-else
-  smt.statement_number = "1";
+// find a for or while statement in a block that is a direct ancestor of the current block
+select any loop_smt related by block->InvocableObject[R4000]->CodeBlock[R4000]->Statement[R450]->ForSmt[R451]->Statement[R451]
+  where (selected.block_number != block.block_number and STRING::indexof(haystack:block.block_number, needle:selected.block_number) == 0);
+if empty loop_smt
+  select any loop_smt related by block->InvocableObject[R4000]->CodeBlock[R4000]->Statement[R450]->WhileSmt[R451]->Statement[R451]
+    where (selected.block_number != block.block_number and STRING::indexof(haystack:block.block_number, needle:selected.block_number) == 0);
 end if;
-select one body related by block->InvocableObject[R4000];
-smt.actions = ::getOalStatement( body:body.actions, line_num:act_smt.LineNumber );
 
-// create break statement
-create object instance break_smt of BreakSmt;
-relate break_smt to smt across R451;',
+if not_empty loop_smt
+
+  // create a statement
+  create object instance smt of Statement;
+  relate smt to block across R450;
+  if ( not_empty prev_smt )
+    smt.statement_number = STRING::itoa( i:STRING::atoi( s:prev_smt.statement_number ) + 1 );
+    relate smt to prev_smt across R477.''executes after'';
+  else
+    smt.statement_number = "1";
+  end if;
+  select one body related by block->InvocableObject[R4000];
+  smt.actions = ::getOalStatement(act_smt:act_smt);
+  smt.line_number = act_smt.LineNumber;
+  
+  // create break statement
+  create object instance break_smt of BreakSmt;
+  relate break_smt to smt across R451;
+
+else
+  select one invocable related by block->InvocableObject[R4000];
+  ::semanticError(invocable:invocable, line_number:act_smt.LineNumber, message:"''break'' statement must be within a loop");
+end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -812,7 +838,8 @@ else
   smt.statement_number = "1";
 end if;
 select one body related by block->InvocableObject[R4000];
-smt.actions = ::getOalStatement( body:body.actions, line_num:act_smt.LineNumber );
+smt.actions = ::getOalStatement(act_smt:act_smt);
+smt.line_number = act_smt.LineNumber;
 
 // create continue statement
 create object instance continue_smt of ContinueSmt;
@@ -882,7 +909,8 @@ else
   smt.statement_number = "1";
 end if;
 select one body related by block->InvocableObject[R4000];
-smt.actions = ::getOalStatement( body:body.actions, line_num:act_smt.LineNumber );
+smt.actions = ::getOalStatement(act_smt:act_smt);
+smt.line_number = act_smt.LineNumber;
 
 // create expression as statement
 create object instance eas of ExpressionAsStatement;
@@ -932,31 +960,16 @@ else
   select any l_op related by smt->Expression[R775] where ( selected.expression_number == "1.1" );
   relate l_op to binop across R779;
   select one ltype related by l_op->TypeReference[R795];
-  // create right operand
-  // no type promotion necessary or automatic promotion of integer to real or integer to timestamp
-  if l_val_dt == r_val_dt or (l_val_dt.Name == "real" and r_val_dt.Name == "integer") or (l_val_dt.Name == "timestamp" and r_val_dt.Name == "integer")
-    ::transformExpression( v_val:r_val, expr_number:"1.2", smt:smt );
-  else
-    // must do type promotion
-    create object instance prom_expr of Expression;
-    relate prom_expr to smt across R775;
-    prom_expr.expression_number = "1.2";
-    relate ltype to prom_expr across R795;
-    create object instance prom of Promotion;
-    relate prom to prom_expr across R776;
-    if ::typeIsBasedOn(type:r_val_dt, parentType:l_val_dt)
-      // only a simple cast is required
-      prom.cast = true;
-    else
-      prom.cast = false;
-      file = ::getFileForStatement(smt:smt);
-      select one l_type related by ltype->Type[R3800];
-      ::addTypeToImports(file:file, type_to_import:l_type, type:ImportType::IMPL);
-    end if;
-    ::transformExpression(v_val:r_val, expr_number:"1.2.1", smt:smt);
-    select any prom_val related by smt->Expression[R775] where (selected.expression_number == "1.2.1");
-    relate prom_val to prom across R3907;
-  end if;
+  // do a type conversion
+  create object instance prom_expr of Expression;
+  relate prom_expr to smt across R775;
+  prom_expr.expression_number = "1.2";
+  relate ltype to prom_expr across R795;
+  create object instance prom of TypeConversion;
+  relate prom to prom_expr across R776;
+  ::transformExpression(v_val:r_val, expr_number:"1.2.1", smt:smt);
+  select any prom_val related by smt->Expression[R775] where (selected.expression_number == "1.2.1");
+  relate prom_val to prom across R3907;
   select any r_op related by smt->Expression[R775] where ( selected.expression_number == "1.2" );
   relate r_op to binop across R778;
   // link l_op type to the main expression
@@ -1028,48 +1041,40 @@ else
   smt.statement_number = "1";
 end if;
 select one body related by block->InvocableObject[R4000];
-smt.actions = ::getOalStatement( body:body.actions, line_num:act_smt.LineNumber );
+smt.actions = ::getOalStatement(act_smt:act_smt);
+smt.line_number = act_smt.LineNumber;
 
 // create for statement
 create object instance for_smt of ForSmt;
 relate for_smt to smt across R451;
+for_smt.external_loop_variable = true;  // OAL defines the loop variable in the outer scope
+
 // translate iterable expression
 select one iterable_v_var related by act_for->V_VAR[R652];
 select one iterable_o_obj related by iterable_v_var->V_INS[R814]->O_OBJ[R819];
-select any iterable_var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == iterable_v_var.Name );
+iterable_var = ::getVariableInScope(smt:smt, name:iterable_v_var.Name);
 create object instance expr of Expression;
 relate expr to smt across R775;
 expr.expression_number = "1";
-select one s_dt related by iterable_v_var->S_DT[R848];
-s_dt = ::getInstRefTypeForClass( s_dt:s_dt, o_obj:iterable_o_obj );
-select many s_dims related by iterable_v_var->S_DIM[R849];
-type = ::TypeReference_getInstance( s_dt:s_dt, s_dims:s_dims );
+type = ::getTypeReferenceForV_VAR(v_var:iterable_v_var);
 relate type to expr across R795;
 create object instance var_ref of VariableReference;
 relate iterable_var to var_ref across R782;
 relate var_ref to expr across R776;
 relate expr to for_smt across R478;
-select one expr_type related by expr->TypeReference[R795]->Type[R3800];
-::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:expr_type, type:ImportType::IMPL );
+
 // create iterator variable
 select one iter_v_var related by act_for->V_VAR[R614];
-select any existing_var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == iter_v_var.Name );
-if ( empty existing_var ) // cannot declare two variables of the same name in the same scope
-  ::transformVariable( v_var:iter_v_var, smt:smt );
-end if;
-select any iter_var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == iter_v_var.Name );
+iter_var = ::getVariableInScope(smt:smt, name:iter_v_var.Name);
 relate iter_var to for_smt across R459;
-// link iterator variable type
-select one iter_type related by iter_var->TypeReference[R461]->Type[R3800];
-::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:iter_type, type:ImportType::IMPL );
+
 // create control block
 control_block_number = ::getNextBlockNumber( upper_block:block );
 select one control_blk related by act_for->ACT_BLK[R605];
-::transformBlockForFor( upper_block:block, act_blk:control_blk, block_number:control_block_number, iter_var:iter_var, for_smt:for_smt );
+select any empty_invocable from instances of InvocableObject where false;
+::transformBlock(upper_block:block, act_blk:control_blk, block_number:control_block_number, invocable:empty_invocable);
 select any control_block related by block->InvocableObject[R4000]->CodeBlock[R4000] where ( selected.block_number == control_block_number );
-relate control_block to for_smt across R455;
-for_smt.initializeIterator();
-::addStringToImports( file: ::getFileForStatement( smt:smt ), s:"java.util.Iterator", type:ImportType::IMPL );',
+relate control_block to for_smt across R455;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -1135,7 +1140,8 @@ else
   smt.statement_number = "1";
 end if;
 select one body related by block->InvocableObject[R4000];
-smt.actions = ::getOalStatement( body:body.actions, line_num:act_smt.LineNumber );
+smt.actions = ::getOalStatement(act_smt:act_smt);
+smt.line_number = act_smt.LineNumber;
 
 // create expression as statement
 create object instance eas of ExpressionAsStatement;
@@ -1156,48 +1162,43 @@ select one select_v_var related by act_fio->V_VAR[R639];
 create object instance l_op of Expression;
 relate l_op to smt across R775;
 l_op.expression_number = "1.1";
-select one select_s_dt related by select_v_var->S_DT[R848];
-select one select_obj related by act_fio->O_OBJ[R677];
-select_s_dt = ::getInstRefTypeForClass( s_dt:select_s_dt, o_obj:select_obj );
-select many s_dims related by select_v_var->S_DIM[R849];
-select_type = ::TypeReference_getInstance( s_dt:select_s_dt, s_dims:s_dims );
+select_var = ::getVariableInScope(smt:smt, name:select_v_var.Name);
+select_type = ::getTypeReferenceForV_VAR(v_var:select_v_var);
 relate select_type to l_op across R795;
-select any existing_var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == select_v_var.Name );
-if ( empty existing_var ) // cannot declare two variables of the same name in the same scope
-  ::transformVariable( v_var:select_v_var, smt:smt );
-end if;
-select any select_var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == select_v_var.Name );
 create object instance var_ref of VariableReference;
 relate select_var to var_ref across R782;
 relate var_ref to l_op across R776;
 relate l_op to binop across R779;
-select one expr_type related by l_op->TypeReference[R795]->Type[R3800];
-::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:expr_type, type:ImportType::IMPL );
 // create right operand
-select one selector related by select_obj->Class[R409]->InstancePopulationSelector[R449];
+select one obj related by act_fio->O_OBJ[R677]->Class[R409];
 create object instance r_op of Expression;
 relate r_op to smt across R775;
 r_op.expression_number = "1.2";
 relate r_op to binop across R778;
-select any s_irdt related by act_fio->O_OBJ[R677]->S_IRDT[R123] where ( selected.isSet );
-select one s_dt related by s_irdt->S_DT[R17];
-select many s_dims from instances of S_DIM where false;
-fio_type = ::TypeReference_getInstance( s_dt:s_dt, s_dims:s_dims );
-relate fio_type to r_op across R795;
+relate select_type to r_op across R795;
+fio_type = ::getObjectStreamReference(obj:obj);
 if ( "any" == act_fio.cardinality ) // create another expression for the ''any''. Note that this is a little tricky because the local var ''r_op'' is being reused
   create object instance any_expr of AnyExpr;
   relate any_expr to r_op across R776;
   create object instance r_op of Expression;
   relate r_op to smt across R775;
   r_op.expression_number = "1.2.1";
-  relate select_type to r_op across R795;
+  relate fio_type to r_op across R795;
   relate r_op to any_expr across R783;
+else  // create a type conversion expression
+  create object instance cast_expr of TypeConversion;
+  relate cast_expr to r_op across R776;
+  create object instance r_op of Expression;
+  relate r_op to smt across R775;
+  r_op.expression_number = "1.2.1";
+  relate fio_type to r_op across R795;
+  relate r_op to cast_expr across R3907;
 end if;
 create object instance sel of SelectExpr;
 relate sel to r_op across R776;
 create object instance sel_fi of SelectFromInstances;
 relate sel_fi to sel across R789;
-relate selector to sel_fi across R799;
+relate obj to sel_fi across R799;
 // link select type to the main expression
 relate select_type to expr across R795;',
 	"ba5eda7a-def5-0000-0000-000000000000",
@@ -1265,7 +1266,8 @@ else
   smt.statement_number = "1";
 end if;
 select one body related by block->InvocableObject[R4000];
-smt.actions = ::getOalStatement( body:body.actions, line_num:act_smt.LineNumber );
+smt.actions = ::getOalStatement(act_smt:act_smt);
+smt.line_number = act_smt.LineNumber;
 
 // create expression as statement
 create object instance eas of ExpressionAsStatement;
@@ -1286,23 +1288,13 @@ select one select_v_var related by act_fiw->V_VAR[R665];
 create object instance l_op of Expression;
 relate l_op to smt across R775;
 l_op.expression_number = "1.1";
-select one select_s_dt related by select_v_var->S_DT[R848];
-select one select_obj related by act_fiw->O_OBJ[R676];
-select_s_dt = ::getInstRefTypeForClass( s_dt:select_s_dt, o_obj:select_obj );
-select many s_dims related by select_v_var->S_DIM[R849];
-select_type = ::TypeReference_getInstance( s_dt:select_s_dt, s_dims:s_dims );
+select_var = ::getVariableInScope(smt:smt, name:select_v_var.Name);
+select_type = ::getTypeReferenceForV_VAR(v_var:select_v_var);
 relate select_type to l_op across R795;
-select any existing_var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == select_v_var.Name );
-if ( empty existing_var ) // cannot declare two variables of the same name in the same scope
-  ::transformVariable( v_var:select_v_var, smt:smt );
-end if;
-select any select_var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == select_v_var.Name );
 create object instance var_ref of VariableReference;
 relate select_var to var_ref across R782;
 relate var_ref to l_op across R776;
 relate l_op to binop across R779;
-select one type related by l_op->TypeReference[R795]->Type[R3800];
-::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:type, type:ImportType::IMPL );
 // create right operand
 select one where_clause_val related by act_fiw->V_VAL[R610];
 select one where_clause_lbo related by where_clause_val->V_LBO[R801];
@@ -1316,45 +1308,41 @@ if ( not_empty where_clause_lbo and ( "false" == T::sub( format:"l", s:where_cla
   relate named_expr to r_op across R776;
   select one select_type_def related by select_type->Type[R3800];
   named_expr.name = select_type_def.default_value;
-  ::addStringToImports( file: ::getFileForStatement( smt:smt ), s:select_type_def.package + ".impl." + select_type_def.name + "Impl", type:ImportType::IMPL );
 else
-  select one selector related by select_obj->Class[R409]->InstancePopulationSelector[R449];
-  create object instance r_op of Expression;
-  relate r_op to smt across R775;
-  r_op.expression_number = "1.2";
-  relate select_type to r_op across R795;
-  relate r_op to binop across R778;
-  create object instance where_expr of WhereExpr;
-  relate where_expr to r_op across R776;
-  where_expr.multiplicity = act_fiw.cardinality;
-  where_expr.sorted = SortType::NONE;
-  if ("many" == where_expr.multiplicity)
-    select one cls_set related by select_obj->Class[R409]->ClassSet[R406];
-    where_expr.cast = cls_set.name;
-  elif ("one" == where_expr.multiplicity)
-    select one cls related by select_obj->Class[R409];
-    where_expr.cast = cls.name;
+  select one obj related by act_fiw->O_OBJ[R676]->Class[R409];
+  fiw_type = ::getObjectStreamReference(obj:obj);
+  // if this is a select many, create a type conversion first
+  if act_fiw.cardinality == "many"
+		create object instance r_op of Expression;
+		relate r_op to smt across R775;
+		r_op.expression_number = "1.2";
+		relate select_type to r_op across R795;
+		relate r_op to binop across R778;
+    create object instance cast_expr of TypeConversion;
+    relate cast_expr to r_op across R776;
+    // create where clause
+    ::transformWhereClause(v_val:where_clause_val, smt:smt, expr_number:"1.2.1", where_type:fiw_type, multiplicity:act_fiw.cardinality);
+    select any where_expr related by smt->Expression[R775] where selected.expression_number == "1.2.1";
+    relate where_expr to cast_expr across R3907;
+  else
+    // create where clause
+    ::transformWhereClause(v_val:where_clause_val, smt:smt, expr_number:"1.2", where_type:select_type, multiplicity:act_fiw.cardinality);
+    select any where_expr related by smt->Expression[R775] where selected.expression_number == "1.2";
+    relate where_expr to binop across R778;
   end if;
   // create selection expr
+  // this selection assumes only 1 where clause per statement which is always true in OAL
+  select any where_expr related by smt->Expression[R775]->WhereExpr[R776];
   create object instance sel_expr of Expression;
   relate sel_expr to smt across R775;
-  sel_expr.expression_number = "1.2.1";
-  select any s_irdt related by act_fiw->O_OBJ[R676]->S_IRDT[R123] where ( selected.isSet );
-  select one s_dt related by s_irdt->S_DT[R17];
-  select many s_dims from instances of S_DIM where false;
-  fiw_type = ::TypeReference_getInstance( s_dt:s_dt, s_dims:s_dims );
+  sel_expr.expression_number = where_expr.expression_number + ".1";
   relate fiw_type to sel_expr across R795;
   relate sel_expr to where_expr across R790;
   create object instance sel of SelectExpr;
   relate sel to sel_expr across R776;
   create object instance sel_fi of SelectFromInstances;
   relate sel_fi to sel across R789;
-  relate selector to sel_fi across R799;
-  // transform the where clause condition
-  ::transformExpression( v_val:where_clause_val, expr_number:"1.2.2", smt:smt );
-  select any where_clause_expr related by smt->Expression[R775] where ( selected.expression_number == "1.2.2" );
-  relate where_clause_expr to where_expr across R796;
-  ::resolveSortedSelection(where_expr:where_expr);
+  relate obj to sel_fi across R799;
 end if;
 // link select type to the main expression
 relate select_type to expr across R795;',
@@ -1423,7 +1411,8 @@ else
   smt.statement_number = "1";
 end if;
 select one body related by block->InvocableObject[R4000];
-smt.actions = ::getOalStatement( body:body.actions, line_num:act_smt.LineNumber );
+smt.actions = ::getOalStatement(act_smt:act_smt);
+smt.line_number = act_smt.LineNumber;
 
 // create expression as statement
 create object instance eas of ExpressionAsStatement;
@@ -1444,29 +1433,19 @@ select one select_v_var related by act_sel->V_VAR[R638];
 create object instance l_op of Expression;
 relate l_op to smt across R775;
 l_op.expression_number = "1.1";
-select one select_s_dt related by select_v_var->S_DT[R848];
 select one last_lnk related by act_sel->ACT_LNK[R637];
 select one next_lnk related by last_lnk->ACT_LNK[R604.''precedes''];
 while ( not_empty next_lnk )
   last_lnk = next_lnk;
   select one next_lnk related by last_lnk->ACT_LNK[R604.''precedes''];
 end while;
-select one select_obj related by last_lnk->O_OBJ[R678];
-select_s_dt = ::getInstRefTypeForClass( s_dt:select_s_dt, o_obj:select_obj );
-select many s_dims related by select_v_var->S_DIM[R849];
-select_type = ::TypeReference_getInstance( s_dt:select_s_dt, s_dims:s_dims );
+select_var = ::getVariableInScope(smt:smt, name:select_v_var.Name);
+select_type = ::getTypeReferenceForV_VAR(v_var:select_v_var);
 relate select_type to l_op across R795;
-select any existing_var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == select_v_var.Name );
-if ( empty existing_var ) // cannot declare two variables of the same name in the same scope
-  ::transformVariable( v_var:select_v_var, smt:smt );
-end if;
-select any select_var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == select_v_var.Name );
 create object instance var_ref of VariableReference;
 relate select_var to var_ref across R782;
 relate var_ref to l_op across R776;
 relate l_op to binop across R779;
-select one type related by l_op->TypeReference[R795]->Type[R3800];
-::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:type, type:ImportType::IMPL );
 // create right operand
 select one where_clause_val related by act_sel->ACT_SRW[R664]->V_VAL[R611];
 select one where_clause_lbo related by where_clause_val->V_LBO[R801];
@@ -1480,7 +1459,6 @@ if ( not_empty where_clause_lbo and ( "false" == T::sub( format:"l", s:where_cla
   relate named_expr to r_op across R776;
   select one select_type_def related by select_type->Type[R3800];
   named_expr.name = select_type_def.default_value;
-  ::addStringToImports( file: ::getFileForStatement( smt:smt ), s:select_type_def.package + ".impl." + select_type_def.name + "Impl", type:ImportType::IMPL );
 else
   // get the final selection chain link
   select one lnk related by act_sel->ACT_LNK[R637];
@@ -1489,47 +1467,68 @@ else
     lnk = next_lnk;
     select one next_lnk related by lnk->ACT_LNK[R604.''precedes''];
   end while;
-  if ( not_empty where_clause_val or "any" == act_sel.cardinality )
+
+  if not_empty where_clause_val
+    // create a type conversion for select many expression
+    if act_sel.cardinality == "many"
+      select one target_class related by lnk->O_OBJ[R678]->Class[R409];
+      sel_type = ::getObjectStreamReference(obj:target_class);
+      create object instance r_op of Expression;
+      relate r_op to smt across R775;
+      r_op.expression_number = "1.2";
+      relate r_op to binop across R778;
+      relate select_type to r_op across R795;
+      create object instance cast_expr of TypeConversion;
+      relate cast_expr to r_op across R776;
+      // create where clause
+      ::transformWhereClause(v_val:where_clause_val, smt:smt, expr_number:"1.2.1", where_type:sel_type, multiplicity:act_sel.cardinality);
+      select any where_expr related by smt->Expression[R775] where selected.expression_number == "1.2.1";
+      relate where_expr to cast_expr across R3907;
+    else
+      // create where clause
+      ::transformWhereClause(v_val:where_clause_val, smt:smt, expr_number:"1.2", where_type:select_type, multiplicity:act_sel.cardinality);
+      select any where_expr related by smt->Expression[R775] where selected.expression_number == "1.2";
+      relate where_expr to binop across R778;
+    end if;
+    // create expression for last chain link
+    // this selection assumes only 1 where clause per statement which is always true in OAL
+    select any where_expr related by smt->Expression[R775]->WhereExpr[R776];
+    ::transformSelectionLink( act_lnk:lnk, expr_number:where_expr.expression_number + ".1", smt:smt );
+    select any sel_expr related by smt->Expression[R775] where selected.expression_number == where_expr.expression_number + ".1";
+    relate sel_expr to where_expr across R790;
+
+  elif act_sel.cardinality == "one"
+    // link the selection directly
+    ::transformSelectionLink( act_lnk:lnk, expr_number:"1.2", smt:smt );
+    select any select_expr related by smt->Expression[R775] where ( selected.expression_number == "1.2" );
+    relate select_expr to binop across R778;
+
+  elif act_sel.cardinality == "any"
+    // create an any expression
     create object instance r_op of Expression;
     relate r_op to smt across R775;
     r_op.expression_number = "1.2";
     relate r_op to binop across R778;
     relate select_type to r_op across R795;
+    create object instance any_expr of AnyExpr;
+    relate any_expr to r_op across R776;
     // create expression for last chain link
-    ::transformSelectionLink( act_lnk:lnk, expr_number:"1.2.1", smt:smt );
-    if ( not_empty where_clause_val )
-      create object instance where_expr of WhereExpr;
-      relate where_expr to r_op across R776;
-      where_expr.multiplicity = act_sel.cardinality;
-      where_expr.sorted = SortType::NONE;
-      if ("many" == where_expr.multiplicity)
-        select one cls_set related by select_obj->Class[R409]->ClassSet[R406];
-        where_expr.cast = cls_set.name;
-      elif ("one" == where_expr.multiplicity)
-        select one cls related by select_obj->Class[R409];
-        where_expr.cast = cls.name;
-      end if;
-      // select the transformed link, relate it to the where clause
-      select any select_expr related by smt->Expression[R775] where ( selected.expression_number == "1.2.1" );
-      relate select_expr to where_expr across R790;
-      // transform the where clause condition
-      ::transformExpression( v_val:where_clause_val, expr_number:"1.2.2", smt:smt );
-      select any where_clause_expr related by smt->Expression[R775] where ( selected.expression_number == "1.2.2" );
-      relate where_clause_expr to where_expr across R796;
-      ::resolveSortedSelection(where_expr:where_expr);
-    else
-      create object instance any_expr of AnyExpr;
-      relate any_expr to r_op across R776;
-      // select the transformed link, relate it to the any expression
-      select any select_expr related by smt->Expression[R775] where ( selected.expression_number == "1.2.1" );
-      relate select_expr to any_expr across R783;
-    end if;
+    ::transformSelectionLink( act_lnk:lnk, expr_number:r_op.expression_number + ".1", smt:smt );
+    select any select_expr related by smt->Expression[R775] where ( selected.expression_number == r_op.expression_number + ".1" );
+    relate select_expr to any_expr across R783;
+
   else
-    // create expression for last chain link
-    ::transformSelectionLink( act_lnk:lnk, expr_number:"1.2", smt:smt );
-    // select the transformed link, relate it to the
-    select any select_expr related by smt->Expression[R775] where ( selected.expression_number == "1.2" );
-    relate select_expr to binop across R778;
+    // create a type conversion for select many expression
+    create object instance r_op of Expression;
+    relate r_op to smt across R775;
+    r_op.expression_number = "1.2";
+    relate r_op to binop across R778;
+    relate select_type to r_op across R795;
+    create object instance cast_expr of TypeConversion;
+    relate cast_expr to r_op across R776;
+    ::transformSelectionLink( act_lnk:lnk, expr_number:"1.2.1", smt:smt );
+    select any select_expr related by smt->Expression[R775] where ( selected.expression_number == "1.2.1" );
+    relate select_expr to cast_expr across R3907;
   end if;
 end if;
 // link select type to the main expression
@@ -1599,7 +1598,8 @@ else
   smt.statement_number = "1";
 end if;
 select one body related by block->InvocableObject[R4000];
-smt.actions = ::getOalStatement( body:body.actions, line_num:act_smt.LineNumber );
+smt.actions = ::getOalStatement(act_smt:act_smt);
+smt.line_number = act_smt.LineNumber;
 
 // create expression as statement
 create object instance eas of ExpressionAsStatement;
@@ -1620,23 +1620,13 @@ select one cr_v_var related by act_cr->V_VAR[R633];
 create object instance l_op of Expression;
 relate l_op to smt across R775;
 l_op.expression_number = "1.1";
-select one cr_s_dt related by cr_v_var->S_DT[R848];
-select one cr_obj related by act_cr->O_OBJ[R671];
-cr_s_dt = ::getInstRefTypeForClass( s_dt:cr_s_dt, o_obj:cr_obj );
-select many s_dims related by cr_v_var->S_DIM[R849];
-cr_type = ::TypeReference_getInstance( s_dt:cr_s_dt, s_dims:s_dims );
+cr_var = ::getVariableInScope(smt:smt, name:cr_v_var.Name);
+cr_type = ::getTypeReferenceForV_VAR(v_var:cr_v_var);
 relate cr_type to l_op across R795;
-select any existing_var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == cr_v_var.Name );
-if ( empty existing_var ) // cannot declare two variables of the same name in the same scope
-  ::transformVariable( v_var:cr_v_var, smt:smt );
-end if;
-select any cr_var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == cr_v_var.Name );
 create object instance var_ref of VariableReference;
 relate cr_var to var_ref across R782;
 relate var_ref to l_op across R776;
 relate l_op to binop across R779;
-select one type related by l_op->TypeReference[R795]->Type[R3800];
-::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:type, type:ImportType::IMPL );
 // create right operand
 create object instance r_op of Expression;
 relate r_op to smt across R775;
@@ -1644,13 +1634,17 @@ r_op.expression_number = "1.2";
 relate cr_type to r_op across R795;
 create object instance cr of Creation;
 relate cr to r_op across R776;
-select one obj related by cr_obj->Class[R409];
+select one obj related by act_cr->O_OBJ[R671]->Class[R409];
 relate cr to obj across R780;
 relate r_op to binop across R778;
-select one class_file related by obj->File[R401];
-::addStringToImports( file: ::getFileForStatement( smt:smt ), s: ::pathToPackage( path:class_file.path ) + ".impl." + class_file.name + "Impl", type:ImportType::IMPL );
 // link create type to the main expression
-relate cr_type to expr across R795;',
+relate cr_type to expr across R795;
+// link the initial state (lowest numbered state)
+select one ism related by obj->StateMachine[R4750] where selected.is_instance;
+select any init_state related by ism->State[R4751] where SORT::ascending(attr:"number") and selected.number > 0;
+if not_empty init_state
+  relate init_state to cr across R3923;
+end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -1716,7 +1710,8 @@ else
   smt.statement_number = "1";
 end if;
 select one body related by block->InvocableObject[R4000];
-smt.actions = ::getOalStatement( body:body.actions, line_num:act_smt.LineNumber );
+smt.actions = ::getOalStatement(act_smt:act_smt);
+smt.line_number = act_smt.LineNumber;
 
 // create expression as statement
 create object instance eas of ExpressionAsStatement;
@@ -1728,8 +1723,7 @@ expr.expression_number = "1";
 relate eas to expr across R476;
 select any s_irdt related by act_cnv->O_OBJ[R672]->S_IRDT[R123] where ( not selected.isSet );
 select one s_dt related by s_irdt->S_DT[R17];
-select many s_dims from instances of S_DIM where false;
-cr_type = ::TypeReference_getInstance( s_dt:s_dt, s_dims:s_dims );
+cr_type = ::getTypeReferenceForS_DT(s_dt:s_dt);
 relate cr_type to expr across R795;
 // create creation
 create object instance cr of Creation;
@@ -1737,7 +1731,12 @@ relate cr to expr across R776;
 select one obj related by act_cnv->O_OBJ[R672]->Class[R409];
 relate cr to obj across R780;
 select one class_file related by obj->File[R401];
-::addStringToImports( file: ::getFileForStatement( smt:smt ), s: ::pathToPackage( path:class_file.path ) + ".impl." + class_file.name + "Impl", type:ImportType::IMPL );',
+// link the initial state (lowest numbered state)
+select one ism related by obj->StateMachine[R4750] where selected.is_instance;
+select any init_state related by ism->State[R4751] where SORT::ascending(attr:"number") and selected.number > 0;
+if not_empty init_state
+  relate init_state to cr across R3923;
+end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -1803,12 +1802,12 @@ else
   smt.statement_number = "1";
 end if;
 select one body related by block->InvocableObject[R4000];
-smt.actions = ::getOalStatement( body:body.actions, line_num:act_smt.LineNumber );
+smt.actions = ::getOalStatement(act_smt:act_smt);
+smt.line_number = act_smt.LineNumber;
 
 // create halt statement
 create object instance halt_smt of Halt;
-relate halt_smt to smt across R451;
-::addStringToImports( file: ::getFileForStatement( smt:smt ), s:"io.ciera.runtime.summit.application.tasks.HaltExecutionTask", type:ImportType::IMPL );',
+relate halt_smt to smt across R451;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -1874,7 +1873,8 @@ else
   smt.statement_number = "1";
 end if;
 select one body related by block->InvocableObject[R4000];
-smt.actions = ::getOalStatement( body:body.actions, line_num:act_smt.LineNumber );
+smt.actions = ::getOalStatement(act_smt:act_smt);
+smt.line_number = act_smt.LineNumber;
 
 // create delete statement
 create object instance del of DeleteSmt;
@@ -1885,19 +1885,13 @@ relate expr to smt across R775;
 expr.expression_number = "1";
 relate del to expr across R462;
 select one del_v_var related by act_del->V_VAR[R634];
-select one del_s_dt related by del_v_var->S_DT[R848];
-select one del_obj related by del_v_var->V_INT[R814]->O_OBJ[R818];
-del_s_dt = ::getInstRefTypeForClass( s_dt:del_s_dt, o_obj:del_obj );
-select many s_dims related by del_v_var->S_DIM[R849];
-del_type = ::TypeReference_getInstance( s_dt:del_s_dt, s_dims:s_dims );
+del_var = ::getVariableInScope(smt:smt, name:del_v_var.Name);
+del_type = ::getTypeReferenceForV_VAR(v_var:del_v_var);
 relate del_type to expr across R795;
-select any del_var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == del_v_var.Name );
 if ( not_empty del_var ) // cannot declare two variables of the same name in the same scope
   create object instance var_ref of VariableReference;
   relate del_var to var_ref across R782;
   relate var_ref to expr across R776;
-  select one type related by expr->TypeReference[R795]->Type[R3800];
-  ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:type, type:ImportType::IMPL );
 elif ( "self" == del_v_var.Name )
   // create named reference
   create object instance self_ref of NamedReference;
@@ -1971,7 +1965,8 @@ else
   smt.statement_number = "1";
 end if;
 select one body related by block->InvocableObject[R4000];
-smt.actions = ::getOalStatement( body:body.actions, line_num:act_smt.LineNumber );
+smt.actions = ::getOalStatement(act_smt:act_smt);
+smt.line_number = act_smt.LineNumber;
 
 // create return statement
 create object instance ret of ReturnSmt;
@@ -1980,34 +1975,18 @@ relate ret to smt across R451;
 select one ret_val related by act_ret->V_VAL[R668];
 if ( not_empty ret_val )
   select one act_act related by body->ACT_ACT[R432];
-  ret_dt = ::getReturnType(act_act:act_act);
   select one val_dt related by ret_val->S_DT[R820];
-  // no type promotion necessary or automatic promotion of integer to real or integer to timestamp
-  if ret_dt == val_dt or (ret_dt.Name == "real" and val_dt.Name == "integer") or (ret_dt.Name == "timestamp" and val_dt.Name == "integer")
-    ::transformExpression( v_val:ret_val, expr_number:"1", smt:smt );
-  else
-    // must do type promotion
-    create object instance prom_expr of Expression;
-    relate prom_expr to smt across R775;
-    prom_expr.expression_number = "1";
-    select many s_dims from instances of S_DIM where false;  // TODO does not support array types in type promotions
-    type = ::TypeReference_getInstance(s_dt:ret_dt, s_dims:s_dims);
-    relate type to prom_expr across R795;
-    create object instance prom of Promotion;
-    relate prom to prom_expr across R776;
-    if ::typeIsBasedOn(type:val_dt, parentType:ret_dt)
-      // only a simple cast is required
-      prom.cast = true;
-    else
-      prom.cast = false;
-      file = ::getFileForStatement(smt:smt);
-      select one l_type related by type->Type[R3800];
-      ::addTypeToImports(file:file, type_to_import:l_type, type:ImportType::IMPL);
-    end if;
-    ::transformExpression( v_val:ret_val, expr_number:"1.1", smt:smt );
-    select any prom_val related by smt->Expression[R775] where (selected.expression_number == "1.1");
-    relate prom_val to prom across R3907;
-  end if;
+  // must do type promotion
+  create object instance prom_expr of Expression;
+  relate prom_expr to smt across R775;
+  prom_expr.expression_number = "1";
+  type = ::getTypeReferenceForS_DT(s_dt:val_dt);
+  relate type to prom_expr across R795;
+  create object instance prom of TypeConversion;
+  relate prom to prom_expr across R776;
+  ::transformExpression( v_val:ret_val, expr_number:"1.1", smt:smt );
+  select any prom_val related by smt->Expression[R775] where (selected.expression_number == "1.1");
+  relate prom_val to prom across R3907;
   select any ret_expr related by smt->Expression[R775] where ( selected.expression_number == "1" );
   relate ret_expr to ret across R473;
 end if;',
@@ -2076,7 +2055,8 @@ else
   smt.statement_number = "1";
 end if;
 select one body related by block->InvocableObject[R4000];
-smt.actions = ::getOalStatement( body:body.actions, line_num:act_smt.LineNumber );
+smt.actions = ::getOalStatement(act_smt:act_smt);
+smt.line_number = act_smt.LineNumber;
 
 // create relate statement
 create object instance relsmt of RelateSmt;
@@ -2154,18 +2134,14 @@ create object instance form_expr of Expression;
 relate form_expr to smt across R775;
 form_expr.expression_number = "1";
 relate relsmt to form_expr across R479;
+form_var = ::getVariableInScope(smt:smt, name:form_v_var.Name);
 select one form_s_dt related by form_v_var->S_DT[R848];
-form_s_dt = ::getInstRefTypeForClass( s_dt:form_s_dt, o_obj:form_obj );
-select many s_dims related by form_v_var->S_DIM[R849];
-form_type = ::TypeReference_getInstance( s_dt:form_s_dt, s_dims:s_dims );
+form_type = ::getTypeReferenceForV_VAR(v_var:form_v_var);
 relate form_type to form_expr across R795;
-select any form_var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == form_v_var.Name );
 if ( not_empty form_var ) // cannot declare two variables of the same name in the same scope
   create object instance var_ref of VariableReference;
   relate form_var to var_ref across R782;
   relate var_ref to form_expr across R776;
-  select one type related by form_expr->TypeReference[R795]->Type[R3800];
-  ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:type, type:ImportType::IMPL );
 elif ( "self" == form_v_var.Name )
   // create named reference
   create object instance self_ref of NamedReference;
@@ -2179,18 +2155,13 @@ create object instance part_expr of Expression;
 relate part_expr to smt across R775;
 part_expr.expression_number = "2";
 relate relsmt to part_expr across R480;
-select one part_s_dt related by part_v_var->S_DT[R848];
-part_s_dt = ::getInstRefTypeForClass( s_dt:part_s_dt, o_obj:part_obj );
-select many s_dims related by part_v_var->S_DIM[R849];
-part_type = ::TypeReference_getInstance( s_dt:part_s_dt, s_dims:s_dims );
+part_var = ::getVariableInScope(smt:smt, name:part_v_var.Name);
+part_type = ::getTypeReferenceForV_VAR(v_var:part_v_var);
 relate part_type to part_expr across R795;
-select any part_var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == part_v_var.Name );
 if ( not_empty part_var ) // cannot declare two variables of the same name in the same scope
   create object instance var_ref of VariableReference;
   relate part_var to var_ref across R782;
   relate var_ref to part_expr across R776;
-  select one type related by part_expr->TypeReference[R795]->Type[R3800];
-  ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:type, type:ImportType::IMPL );
 elif ( "self" == part_v_var.Name )
   // create named reference
   create object instance self_ref of NamedReference;
@@ -2264,7 +2235,8 @@ else
   smt.statement_number = "1";
 end if;
 select one body related by block->InvocableObject[R4000];
-smt.actions = ::getOalStatement( body:body.actions, line_num:act_smt.LineNumber );
+smt.actions = ::getOalStatement(act_smt:act_smt);
+smt.line_number = act_smt.LineNumber;
 
 // select the relationship
 select one r_rel related by act_ru->R_REL[R654];
@@ -2327,18 +2299,13 @@ if ( not_empty rel1 and not_empty rel2 )
   relate form_expr1 to smt across R775;
   form_expr1.expression_number = "1";
   relate relsmt1 to form_expr1 across R479;
-  select one form_s_dt related by link_v_var->S_DT[R848];
-  form_s_dt = ::getInstRefTypeForClass( s_dt:form_s_dt, o_obj:link_o_obj );
-  select many s_dims related by link_v_var->S_DIM[R849];
-  form_type = ::TypeReference_getInstance( s_dt:form_s_dt, s_dims:s_dims );
+  form_var = ::getVariableInScope(smt:smt, name:link_v_var.Name);
+  form_type = ::getTypeReferenceForV_VAR(v_var:link_v_var);
   relate form_type to form_expr1 across R795;
-  select any form_var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == link_v_var.Name );
   if ( not_empty form_var ) // cannot declare two variables of the same name in the same scope
     create object instance var_ref of VariableReference;
     relate form_var to var_ref across R782;
     relate var_ref to form_expr1 across R776;
-    select one type related by form_expr1->TypeReference[R795]->Type[R3800];
-    ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:type, type:ImportType::IMPL );
   elif ( "self" == link_v_var.Name )
     // create named reference
     create object instance self_ref of NamedReference;
@@ -2352,18 +2319,13 @@ if ( not_empty rel1 and not_empty rel2 )
   relate part_expr1 to smt across R775;
   part_expr1.expression_number = "2";
   relate relsmt1 to part_expr1 across R480;
-  select one part_s_dt related by one_v_var->S_DT[R848];
-  part_s_dt = ::getInstRefTypeForClass( s_dt:part_s_dt, o_obj:one_o_obj );
-  select many s_dims related by one_v_var->S_DIM[R849];
-  part_type = ::TypeReference_getInstance( s_dt:part_s_dt, s_dims:s_dims );
+  part_var = ::getVariableInScope(smt:smt, name:one_v_var.Name);
+  part_type = ::getTypeReferenceForV_VAR(v_var:one_v_var);
   relate part_type to part_expr1 across R795;
-  select any part_var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == one_v_var.Name );
   if ( not_empty part_var ) // cannot declare two variables of the same name in the same scope
     create object instance var_ref of VariableReference;
     relate part_var to var_ref across R782;
     relate var_ref to part_expr1 across R776;
-    select one type related by part_expr1->TypeReference[R795]->Type[R3800];
-    ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:type, type:ImportType::IMPL );
   elif ( "self" == one_v_var.Name )
     // create named reference
     create object instance self_ref of NamedReference;
@@ -2387,13 +2349,11 @@ if ( not_empty rel1 and not_empty rel2 )
   form_expr2.expression_number = "1";
   relate relsmt2 to form_expr2 across R479;
   relate form_type to form_expr2 across R795;
-  select any form_var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == link_v_var.Name );
+  form_var = ::getVariableInScope(smt:smt, name:link_v_var.Name);
   if ( not_empty form_var ) // cannot declare two variables of the same name in the same scope
     create object instance var_ref of VariableReference;
     relate form_var to var_ref across R782;
     relate var_ref to form_expr2 across R776;
-    select one type related by form_expr2->TypeReference[R795]->Type[R3800];
-    ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:type, type:ImportType::IMPL );
   elif ( "self" == link_v_var.Name )
     // create named reference
     create object instance self_ref of NamedReference;
@@ -2407,18 +2367,13 @@ if ( not_empty rel1 and not_empty rel2 )
   relate part_expr2 to smt2 across R775;
   part_expr2.expression_number = "2";
   relate relsmt2 to part_expr2 across R480;
-  select one part_s_dt related by other_v_var->S_DT[R848];
-  part_s_dt = ::getInstRefTypeForClass( s_dt:part_s_dt, o_obj:other_o_obj );
-  select many s_dims related by other_v_var->S_DIM[R849];
-  part_type = ::TypeReference_getInstance( s_dt:part_s_dt, s_dims:s_dims );
+  part_var = ::getVariableInScope(smt:smt, name:other_v_var.Name);
+  part_type = ::getTypeReferenceForV_VAR(v_var:other_v_var);
   relate part_type to part_expr2 across R795;
-  select any part_var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == other_v_var.Name );
   if ( not_empty part_var ) // cannot declare two variables of the same name in the same scope
     create object instance var_ref of VariableReference;
     relate part_var to var_ref across R782;
     relate var_ref to part_expr2 across R776;
-    select one type related by part_expr2->TypeReference[R795]->Type[R3800];
-    ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:type, type:ImportType::IMPL );
   elif ( "self" == other_v_var.Name )
     // create named reference
     create object instance self_ref of NamedReference;
@@ -2427,6 +2382,8 @@ if ( not_empty rel1 and not_empty rel2 )
   else
     // TODO bad
   end if;
+  // couple the two statements together
+  relate relsmt1 to relsmt2 across R523.''couples with'';
 else
   // TODO bad
 end if;',
@@ -2495,7 +2452,8 @@ else
   smt.statement_number = "1";
 end if;
 select one body related by block->InvocableObject[R4000];
-smt.actions = ::getOalStatement( body:body.actions, line_num:act_smt.LineNumber );
+smt.actions = ::getOalStatement(act_smt:act_smt);
+smt.line_number = act_smt.LineNumber;
 
 // create unrelate statement
 create object instance unrelsmt of UnrelateSmt;
@@ -2573,18 +2531,13 @@ create object instance form_expr of Expression;
 relate form_expr to smt across R775;
 form_expr.expression_number = "1";
 relate unrelsmt to form_expr across R483;
-select one form_s_dt related by form_v_var->S_DT[R848];
-form_s_dt = ::getInstRefTypeForClass( s_dt:form_s_dt, o_obj:form_obj );
-select many s_dims related by form_v_var->S_DIM[R849];
-form_type = ::TypeReference_getInstance( s_dt:form_s_dt, s_dims:s_dims );
+form_var = ::getVariableInScope(smt:smt, name:form_v_var.Name);
+form_type = ::getTypeReferenceForV_VAR(v_var:form_v_var);
 relate form_type to form_expr across R795;
-select any form_var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == form_v_var.Name );
 if ( not_empty form_var ) // cannot declare two variables of the same name in the same scope
   create object instance var_ref of VariableReference;
   relate form_var to var_ref across R782;
   relate var_ref to form_expr across R776;
-  select one type related by form_expr->TypeReference[R795]->Type[R3800];
-  ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:type, type:ImportType::IMPL );
 elif ( "self" == form_v_var.Name )
   // create named reference
   create object instance self_ref of NamedReference;
@@ -2598,18 +2551,13 @@ create object instance part_expr of Expression;
 relate part_expr to smt across R775;
 part_expr.expression_number = "2";
 relate unrelsmt to part_expr across R482;
-select one part_s_dt related by part_v_var->S_DT[R848];
-part_s_dt = ::getInstRefTypeForClass( s_dt:part_s_dt, o_obj:part_obj );
-select many s_dims related by part_v_var->S_DIM[R849];
-part_type = ::TypeReference_getInstance( s_dt:part_s_dt, s_dims:s_dims );
+part_var = ::getVariableInScope(smt:smt, name:part_v_var.Name);
+part_type = ::getTypeReferenceForV_VAR(v_var:part_v_var);
 relate part_type to part_expr across R795;
-select any part_var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == part_v_var.Name );
 if ( not_empty part_var ) // cannot declare two variables of the same name in the same scope
   create object instance var_ref of VariableReference;
   relate part_var to var_ref across R782;
   relate var_ref to part_expr across R776;
-  select one type related by part_expr->TypeReference[R795]->Type[R3800];
-  ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:type, type:ImportType::IMPL );
 elif ( "self" == part_v_var.Name )
   // create named reference
   create object instance self_ref of NamedReference;
@@ -2683,7 +2631,8 @@ else
   smt.statement_number = "1";
 end if;
 select one body related by block->InvocableObject[R4000];
-smt.actions = ::getOalStatement( body:body.actions, line_num:act_smt.LineNumber );
+smt.actions = ::getOalStatement(act_smt:act_smt);
+smt.line_number = act_smt.LineNumber;
 
 // select the relationship
 select one r_rel related by act_uru->R_REL[R656];
@@ -2746,18 +2695,13 @@ if ( not_empty rel1 and not_empty rel2 )
   relate form_expr1 to smt across R775;
   form_expr1.expression_number = "1";
   relate unrelsmt1 to form_expr1 across R483;
-  select one form_s_dt related by link_v_var->S_DT[R848];
-  form_s_dt = ::getInstRefTypeForClass( s_dt:form_s_dt, o_obj:link_o_obj );
-  select many s_dims related by link_v_var->S_DIM[R849];
-  form_type = ::TypeReference_getInstance( s_dt:form_s_dt, s_dims:s_dims );
+  form_var = ::getVariableInScope(smt:smt, name:link_v_var.Name);
+  form_type = ::getTypeReferenceForV_VAR(v_var:link_v_var);
   relate form_type to form_expr1 across R795;
-  select any form_var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == link_v_var.Name );
   if ( not_empty form_var ) // cannot declare two variables of the same name in the same scope
     create object instance var_ref of VariableReference;
     relate form_var to var_ref across R782;
     relate var_ref to form_expr1 across R776;
-    select one type related by form_expr1->TypeReference[R795]->Type[R3800];
-    ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:type, type:ImportType::IMPL );
   elif ( "self" == link_v_var.Name )
     // create named reference
     create object instance self_ref of NamedReference;
@@ -2771,18 +2715,13 @@ if ( not_empty rel1 and not_empty rel2 )
   relate part_expr1 to smt across R775;
   part_expr1.expression_number = "2";
   relate unrelsmt1 to part_expr1 across R482;
-  select one part_s_dt related by one_v_var->S_DT[R848];
-  part_s_dt = ::getInstRefTypeForClass( s_dt:part_s_dt, o_obj:one_o_obj );
-  select many s_dims related by one_v_var->S_DIM[R849];
-  part_type = ::TypeReference_getInstance( s_dt:part_s_dt, s_dims:s_dims );
+  part_var = ::getVariableInScope(smt:smt, name:one_v_var.Name);
+  part_type = ::getTypeReferenceForV_VAR(v_var:one_v_var);
   relate part_type to part_expr1 across R795;
-  select any part_var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == one_v_var.Name );
   if ( not_empty part_var ) // cannot declare two variables of the same name in the same scope
     create object instance var_ref of VariableReference;
     relate part_var to var_ref across R782;
     relate var_ref to part_expr1 across R776;
-    select one type related by part_expr1->TypeReference[R795]->Type[R3800];
-    ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:type, type:ImportType::IMPL );
   elif ( "self" == one_v_var.Name )
     // create named reference
     create object instance self_ref of NamedReference;
@@ -2806,13 +2745,11 @@ if ( not_empty rel1 and not_empty rel2 )
   form_expr2.expression_number = "1";
   relate unrelsmt2 to form_expr2 across R483;
   relate form_type to form_expr2 across R795;
-  select any form_var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == link_v_var.Name );
+  form_var = ::getVariableInScope(smt:smt, name:link_v_var.Name);
   if ( not_empty form_var ) // cannot declare two variables of the same name in the same scope
     create object instance var_ref of VariableReference;
     relate form_var to var_ref across R782;
     relate var_ref to form_expr2 across R776;
-    select one type related by form_expr2->TypeReference[R795]->Type[R3800];
-    ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:type, type:ImportType::IMPL );
   elif ( "self" == link_v_var.Name )
     // create named reference
     create object instance self_ref of NamedReference;
@@ -2826,18 +2763,13 @@ if ( not_empty rel1 and not_empty rel2 )
   relate part_expr2 to smt2 across R775;
   part_expr2.expression_number = "2";
   relate unrelsmt2 to part_expr2 across R482;
-  select one part_s_dt related by other_v_var->S_DT[R848];
-  part_s_dt = ::getInstRefTypeForClass( s_dt:part_s_dt, o_obj:other_o_obj );
-  select many s_dims related by other_v_var->S_DIM[R849];
-  part_type = ::TypeReference_getInstance( s_dt:part_s_dt, s_dims:s_dims );
+  part_var = ::getVariableInScope(smt:smt, name:other_v_var.Name);
+  part_type = ::getTypeReferenceForV_VAR(v_var:other_v_var);
   relate part_type to part_expr2 across R795;
-  select any part_var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == other_v_var.Name );
   if ( not_empty part_var ) // cannot declare two variables of the same name in the same scope
     create object instance var_ref of VariableReference;
     relate part_var to var_ref across R782;
     relate var_ref to part_expr2 across R776;
-    select one type related by part_expr2->TypeReference[R795]->Type[R3800];
-    ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:type, type:ImportType::IMPL );
   elif ( "self" == other_v_var.Name )
     // create named reference
     create object instance self_ref of NamedReference;
@@ -2846,6 +2778,8 @@ if ( not_empty rel1 and not_empty rel2 )
   else
     // TODO bad
   end if;
+  // couple the two statements together
+  relate unrelsmt1 to unrelsmt2 across R452.''couples with'';
 else
   // TODO bad
 end if;',
@@ -2911,35 +2845,18 @@ select any expr from instances of Expression where false;
 
 select one v_val related by v_par->V_VAL[R800];
 if ( not_empty v_val )
-  par_dt = ::getParType(v_par:v_par);
+  // do a type conversion
   select one s_dt related by v_val->S_DT[R820];
-  // no type promotion necessary or automatic promotion of integer to real or integer to timestamp
-  if par_dt == s_dt or (par_dt.Name == "real" and s_dt.Name == "integer") or (par_dt.Name == "timestamp" and s_dt.Name == "integer")
-    ::transformExpression(v_val:v_val, expr_number:expr_number, smt:smt);
-  else
-    // must do type promotion
-    create object instance prom_expr of Expression;
-    relate prom_expr to smt across R775;
-    prom_expr.expression_number = expr_number;
-    select many s_dims from instances of S_DIM where false;  // TODO does not support array types in type promotions
-    type = ::TypeReference_getInstance(s_dt:par_dt, s_dims:s_dims);
-    relate type to prom_expr across R795;
-    create object instance prom of Promotion;
-    relate prom to prom_expr across R776;
-    if ::typeIsBasedOn(type:s_dt, parentType:par_dt)
-      // only a simple cast is required
-      prom.cast = true;
-    else
-      prom.cast = false;
-      file = ::getFileForStatement(smt:smt);
-      select one l_type related by type->Type[R3800];
-      ::addTypeToImports(file:file, type_to_import:l_type, type:ImportType::IMPL);
-    end if;
-    ::transformExpression(v_val:v_val, expr_number:expr_number + ".1", smt:smt);
-    select any prom_val related by smt->Expression[R775] where (selected.expression_number == expr_number + ".1");
-    relate prom_val to prom across R3907;
-  end if;
- 
+  create object instance prom_expr of Expression;
+  relate prom_expr to smt across R775;
+  prom_expr.expression_number = expr_number;
+  type = ::getTypeReferenceForS_DT(s_dt:s_dt);
+  relate type to prom_expr across R795;
+  create object instance prom of TypeConversion;
+  relate prom to prom_expr across R776;
+  ::transformExpression(v_val:v_val, expr_number:expr_number + ".1", smt:smt);
+  select any prom_val related by smt->Expression[R775] where (selected.expression_number == expr_number + ".1");
+  relate prom_val to prom across R3907;
   select any expr related by smt->Expression[R775] where (selected.expression_number == expr_number);
 else
   // TODO bad
@@ -3063,10 +2980,17 @@ while ( not_empty prev_parm )
   select one prev_parm related by parm->FormalParameter[R404.''follows''];
 end while;
 
+// get the last parameter in the current list
+select any prev_act_parm related by invocation->ActualParameter[R793];
+select one prev_prev_act_parm related by prev_act_parm->ActualParameter[R3905.''follows''];
+while not_empty prev_prev_act_parm
+  prev_act_parm = prev_prev_act_parm;
+  select one prev_prev_act_parm related by prev_act_parm->ActualParameter[R3905.''follows''];
+end while;
+
 // transform each parameter
 num = base_num;
 select any v_par from instances of V_PAR where false;
-select any prev_act_parm from instances of ActualParameter where false;
 while ( not_empty parm )
   for each par in v_pars
     if ( "p_" + par.Name == parm.name )
@@ -3140,7 +3064,7 @@ INSERT INTO S_SYNC
 	'',
 	'upper_block = param.upper_block;
 act_blk = param.act_blk;
-if ( not_empty act_blk )
+if (not_empty act_blk)
 
   invocable = param.invocable;
 
@@ -3148,34 +3072,25 @@ if ( not_empty act_blk )
   create object instance block of CodeBlock;
   if ( empty upper_block )
     block.top_level = true;
-    block.tab_depth = 1;
-    select one port_msg related by invocable->PortMessage[R427];
-    if ( not_empty port_msg )
-      select one port related by port_msg->Port[R420];
-      select one msg related by port_msg->Message[R420];
-      if ( ( msg.to_provider and not port.provider ) or ( not msg.to_provider and port.provider ) )
-        block.tab_depth = 2; // increase the tab depth by one for bodies which belong to outbound port messages
-      end if;
-    end if;
-    select one deriv related by invocable->AttributeDerivation[R427];
-    select one class_op related by invocable->Operation[R427] where ( selected.is_class_based );
-    if ( not_empty deriv  or not_empty class_op )
-      block.tab_depth = 2; // increase the tab depth by one for bodies which belong to derived attributes and class based operations
-    end if;
   else
     select one invocable related by upper_block->InvocableObject[R4000];
     block.top_level = false;
-    block.tab_depth = upper_block.tab_depth + 1;
+    relate block to upper_block across R498.''contained by'';
   end if;
   relate block to invocable across R4000;
   block.block_number = param.block_number;
 
   // copy visibile variables from upper block
-  select many vars related by upper_block->Variable[R458];
+  select many vars related by upper_block->VariableInScope[R458];
   for each var in vars
-    create object instance var_in_scope of VariableInScope;
-    relate var to block across R458 using var_in_scope;
+		create object instance var_in_scope of VariableInScope;
+		var_in_scope.distance = var.distance + 1;
+		select one var_decl related by var->Variable[R458];
+		relate var_decl to block across R458 using var_in_scope;
   end for;
+
+  // create variable declarations for this code block
+  ::transformVariables(act_blk:act_blk, block:block);
 
   // transform all statements
   ::transformStatements( act_blk:act_blk, block:block );
@@ -3257,13 +3172,15 @@ select one invocable related by upper_block->InvocableObject[R4000];
 create object instance block of CodeBlock;
 relate block to invocable across R4000;
 block.block_number = param.block_number;
-block.tab_depth = upper_block.tab_depth;  // keep same tab depth
+relate block to upper_block across R498.''contained by'';
 
 // copy visibile variables from upper block
-select many vars related by upper_block->Variable[R458];
+select many vars related by upper_block->VariableInScope[R458];
 for each var in vars
-  create object instance var_in_scope of VariableInScope;
-  relate var to block across R458 using var_in_scope;
+	create object instance var_in_scope of VariableInScope;
+	var_in_scope.distance = var.distance + 1;
+	select one var_decl related by var->Variable[R458];
+	relate var_decl to block across R458 using var_in_scope;
 end for;
 
 // create single statement in block
@@ -3272,7 +3189,8 @@ relate smt to block across R450;
 smt.statement_number = "1";
 select one body related by block->InvocableObject[R4000];
 select one act_smt related by act_el->ACT_SMT[R603];
-smt.actions = ::getOalStatement( body:body.actions, line_num:act_smt.LineNumber );
+smt.actions = ::getOalStatement(act_smt:act_smt);
+smt.line_number = act_smt.LineNumber;
 
 // create if statement
 create object instance if_smt of IfSmt;
@@ -3333,100 +3251,6 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("1f9fe480-5772-4b3b-9bc1-137bca58c156",
-	1,
-	"1aa08c2b-b96c-4c66-8c25-c079950eef10",
-	"00000000-0000-0000-0000-000000000000",
-	1);
-INSERT INTO S_SYNC
-	VALUES ("a1626421-4c40-4eec-96aa-f6a8308f9d49",
-	"00000000-0000-0000-0000-000000000000",
-	'transformBlockForFor',
-	'',
-	'upper_block = param.upper_block;
-act_blk = param.act_blk;
-
-// create code block
-create object instance block of CodeBlock;
-select one invocable related by upper_block->InvocableObject[R4000];
-block.tab_depth = upper_block.tab_depth + 1;
-relate block to invocable across R4000;
-block.block_number = param.block_number;
-
-// copy visibile variables from upper block
-select many vars related by upper_block->Variable[R458];
-for each var in vars
-  create object instance var_in_scope of VariableInScope;
-  relate var to block across R458 using var_in_scope;
-end for;
-
-// transform all statements
-::transformStatements( act_blk:act_blk, block:block );',
-	"ba5eda7a-def5-0000-0000-000000000000",
-	1,
-	'',
-	0,
-	0);
-INSERT INTO S_SPARM
-	VALUES ("95163797-f92a-4cde-8bd1-653fc93e495e",
-	"a1626421-4c40-4eec-96aa-f6a8308f9d49",
-	'upper_block',
-	"60d4da0e-4cbe-4620-8c16-4e1dba1c6b8d",
-	0,
-	'',
-	"00000000-0000-0000-0000-000000000000",
-	'');
-INSERT INTO S_SPARM
-	VALUES ("56ae9715-a512-4828-af92-32914de2ed6b",
-	"a1626421-4c40-4eec-96aa-f6a8308f9d49",
-	'act_blk',
-	"069f7c9f-7387-4d78-8d66-5f72c773e58e",
-	0,
-	'',
-	"95163797-f92a-4cde-8bd1-653fc93e495e",
-	'');
-INSERT INTO S_SPARM
-	VALUES ("f8f85dfe-4bcf-4059-90da-40fd4d6da916",
-	"a1626421-4c40-4eec-96aa-f6a8308f9d49",
-	'block_number',
-	"ba5eda7a-def5-0000-0000-000000000004",
-	0,
-	'',
-	"56ae9715-a512-4828-af92-32914de2ed6b",
-	'');
-INSERT INTO S_SPARM
-	VALUES ("13db2b19-4749-4b6f-9dff-db535c20e770",
-	"a1626421-4c40-4eec-96aa-f6a8308f9d49",
-	'iter_var',
-	"c9708af9-d7e3-4342-b794-8c2671da2530",
-	0,
-	'',
-	"f8f85dfe-4bcf-4059-90da-40fd4d6da916",
-	'');
-INSERT INTO S_DT_PROXY
-	VALUES ("c9708af9-d7e3-4342-b794-8c2671da2530",
-	"00000000-0000-0000-0000-000000000000",
-	'inst_ref<Variable>',
-	'',
-	'',
-	'../../../../../core-architecture/models/core-architecture/architecture/statement/statement.xtuml');
-INSERT INTO S_SPARM
-	VALUES ("5135db2b-c762-4330-9272-898ef5a621f4",
-	"a1626421-4c40-4eec-96aa-f6a8308f9d49",
-	'for_smt',
-	"5b47ee89-895b-438a-928d-743a7ac25fa3",
-	0,
-	'',
-	"13db2b19-4749-4b6f-9dff-db535c20e770",
-	'');
-INSERT INTO S_DT_PROXY
-	VALUES ("5b47ee89-895b-438a-928d-743a7ac25fa3",
-	"00000000-0000-0000-0000-000000000000",
-	'inst_ref<For>',
-	'',
-	'',
-	'../../../../../core-architecture/models/core-architecture/architecture/statement/statement.xtuml');
-INSERT INTO PE_PE
-	VALUES ("a1626421-4c40-4eec-96aa-f6a8308f9d49",
 	1,
 	"1aa08c2b-b96c-4c66-8c25-c079950eef10",
 	"00000000-0000-0000-0000-000000000000",
@@ -3605,7 +3429,7 @@ if ( not_empty e_ess )
 else
 select one e_gpr related by act_smt->E_GPR[R603];
 if ( not_empty e_gpr )
-  ::transformGeneratePreexistingEventStatement( e_gpr:e_gpr, block:block, prev_smt:prev_smt );
+  LOG::LogFailure(message:"Generate pre-existing event is not supported");
 
 else
   LOG::LogFailure( message:"statement type not supported" );
@@ -3680,20 +3504,28 @@ for each smt in act_smts
   end if;
 end for;
 
-select any prev_smt from instances of Statement where false;
-smt_num = 1;
+prev_smt = ::lastStatementInBlock(block:block);
 while ( not_empty act_smt )
+  // transform the statement
   ::transformStatement( act_smt:act_smt, block:block, prev_smt:prev_smt );
-  select any prev_smt related by block->Statement[R450] where ( selected.statement_number == STRING::itoa( i:smt_num + 1 ) ); // for OAL statements that result in 2 statements
-  if ( not_empty prev_smt )
-    smt_num = smt_num + 2;
-  else
-    select any prev_smt related by block->Statement[R450] where ( selected.statement_number == STRING::itoa( i:smt_num ) );
-    smt_num = smt_num + 1;
-  end if;
-  select one act_smt related by act_smt->ACT_SMT[R661.''succeeds''];
+  
+  // get the last created statement by selecting any ordered descending by statement number
+  prev_smt = ::lastStatementInBlock(block:block);
+
   // see if array needs to be declared
-  ::resolveArrayDeclaration( smt:prev_smt );
+  ::resolveArrayDeclaration(smt:prev_smt);
+  
+  // get next statement
+  select one act_smt related by act_smt->ACT_SMT[R661.''succeeds''];
+  
+  // skip remaining statements if previous statement causes exit
+  exiting_statement = ::getExitingStatement(block:block);
+  if not_empty act_smt and not_empty exiting_statement
+    select one invocable related by block->InvocableObject[R4000];
+    ::semanticWarning(invocable:invocable, line_number:prev_smt.line_number, message:"Warning! Skipping unreachable statements after block exiting statement");
+    return;
+  end if;
+
 end while;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -3725,76 +3557,6 @@ INSERT INTO PE_PE
 	"00000000-0000-0000-0000-000000000000",
 	1);
 INSERT INTO S_SYNC
-	VALUES ("85cbd402-8906-4b60-9700-a81e119bef37",
-	"00000000-0000-0000-0000-000000000000",
-	'transformVariable',
-	'',
-	'v_var = param.v_var;
-smt = param.smt;
-
-// create new variable
-create object instance new_var of Variable;
-relate new_var to smt across R457;
-new_var.name = v_var.Name;
-
-// link in scope
-select one scope related by smt->CodeBlock[R450];
-select any existing_var_in_scope related by scope->VariableInScope[R458] where ( selected.var_name == new_var.name );
-if ( not_empty existing_var_in_scope )  // shadow variable of same name
-  LOG::LogInfo( message:"warning: shadowing variable" );
-  select one existing_var related by existing_var_in_scope->Variable[R458];
-  unrelate existing_var from scope across R458 using existing_var_in_scope;
-end if;
-create object instance var_in_scope of VariableInScope;
-relate new_var to scope across R458 using var_in_scope;
-
-// link data type
-select one var_dt related by v_var->S_DT[R848];
-select one var_obj related by v_var->V_INT[R814]->O_OBJ[R818];
-if ( empty var_obj )
-  select one var_obj related by v_var->V_INS[R814]->O_OBJ[R819];
-end if;
-var_dt = ::getInstRefTypeForClass( s_dt:var_dt, o_obj:var_obj );
-select many s_dims related by v_var->S_DIM[R849];
-var_type = ::TypeReference_getInstance( s_dt:var_dt, s_dims:s_dims );
-relate var_type to new_var across R461;',
-	"ba5eda7a-def5-0000-0000-000000000000",
-	1,
-	'',
-	0,
-	0);
-INSERT INTO S_SPARM
-	VALUES ("953bf602-54fb-42df-842d-b8e5e6f19fe8",
-	"85cbd402-8906-4b60-9700-a81e119bef37",
-	'v_var',
-	"0e65b778-e815-4f26-b470-456b52561157",
-	0,
-	'',
-	"00000000-0000-0000-0000-000000000000",
-	'');
-INSERT INTO S_DT_PROXY
-	VALUES ("0e65b778-e815-4f26-b470-456b52561157",
-	"00000000-0000-0000-0000-000000000000",
-	'inst_ref<Variable>',
-	'',
-	'',
-	'../../../../../mcooa/models/mcooa/ooaofooa/Value/Value.xtuml');
-INSERT INTO S_SPARM
-	VALUES ("a0768183-bea9-4ca2-95b9-595cd6261b39",
-	"85cbd402-8906-4b60-9700-a81e119bef37",
-	'smt',
-	"b586ec7e-41fe-4d50-9cf3-27b173e9848a",
-	0,
-	'',
-	"953bf602-54fb-42df-842d-b8e5e6f19fe8",
-	'');
-INSERT INTO PE_PE
-	VALUES ("85cbd402-8906-4b60-9700-a81e119bef37",
-	1,
-	"1aa08c2b-b96c-4c66-8c25-c079950eef10",
-	"00000000-0000-0000-0000-000000000000",
-	1);
-INSERT INTO S_SYNC
 	VALUES ("66cd847e-1baf-4368-98bd-abc7fffced6f",
 	"00000000-0000-0000-0000-000000000000",
 	'transformSelectionLink',
@@ -3808,17 +3570,6 @@ create object instance expr of Expression;
 relate expr to smt across R775;
 expr.expression_number = expr_number;
 
-// link type
-select one o_obj related by act_lnk->O_OBJ[R678];
-select any irdt related by o_obj->S_IRDT[R123] where ( ( selected.isSet and ::act_lnkGetMult( act_lnk:act_lnk ) == Mult::MANY ) or ( not selected.isSet and ::act_lnkGetMult( act_lnk:act_lnk ) == Mult::ONE ) );
-select one s_dt related by irdt->S_DT[R17];
-if ( empty s_dt )
-  // TODO bad
-end if;
-select many s_dims from instances of S_DIM where false;
-type = ::TypeReference_getInstance( s_dt:s_dt, s_dims:s_dims );
-relate type to expr across R795;
-
 // create select expression
 create object instance sel of SelectExpr;
 relate sel to expr across R776;
@@ -3826,27 +3577,51 @@ create object instance sel_rel of SelectRelated;
 relate sel_rel to sel across R789;
 
 // transform the previous link
+select any base_expr from instances of Expression where false;
 select one prev_lnk related by act_lnk->ACT_LNK[R604.''succeeds''];
 select any base_class from instances of Class where false;
 if ( not_empty prev_lnk )
   ::transformSelectionLink( act_lnk:prev_lnk, expr_number:expr_number + ".1", smt:smt );
-  select any prev_lnk_expr related by smt->Expression[R775] where ( selected.expression_number == expr_number + ".1" );
-  relate prev_lnk_expr to sel_rel across R791;
+  select any base_expr related by smt->Expression[R775] where ( selected.expression_number == expr_number + ".1" );
+  relate base_expr to sel_rel across R791;
   select one base_class related by prev_lnk->O_OBJ[R678]->Class[R409];
 else
   select one base_val related by act_lnk->ACT_SEL[R637]->V_VAL[R613];
-  ::transformExpression( v_val:base_val, expr_number:expr_number + ".1", smt:smt );
-  select any base_expr related by smt->Expression[R775] where ( selected.expression_number == expr_number + ".1" );
-  relate base_expr to sel_rel across R791;
   select one base_class related by base_val->V_IRF[R801]->V_VAR[R808]->V_INT[R814]->O_OBJ[R818]->Class[R409];
-  if ( empty base_class )
+  if (empty base_class)
     select one base_class related by base_val->V_ISR[R801]->V_VAR[R809]->V_INS[R814]->O_OBJ[R819]->Class[R409];
+    // if the base expression is a set reference, use a type conversion
+    create object instance base_expr of Expression;
+    relate base_expr to smt across R775;
+    base_expr.expression_number = expr_number + ".1";
+    base_type = ::getObjectStreamReference(obj:base_class);
+    relate base_type to base_expr across R795;
+    relate base_expr to sel_rel across R791;
+    create object instance cast_expr of TypeConversion;
+    relate cast_expr to base_expr across R776;
+    ::transformExpression( v_val:base_val, expr_number:base_expr.expression_number + ".1", smt:smt );
+    select any base_expr2 related by smt->Expression[R775] where ( selected.expression_number == base_expr.expression_number + ".1" );
+    relate base_expr2 to cast_expr across R3907;
+  else
+    ::transformExpression( v_val:base_val, expr_number:expr_number + ".1", smt:smt );
+    select any base_expr related by smt->Expression[R775] where ( selected.expression_number == expr_number + ".1" );
+    relate base_expr to sel_rel across R791;
   end if;
 end if;
 
+// link type
+select one base_expr_stream_type related by base_expr->TypeReference[R795]->StreamTypeReference[R3801];
+select one target_class related by act_lnk->O_OBJ[R678]->Class[R409];
+select any type from instances of TypeReference where false;
+if not_empty base_expr_stream_type or ::act_lnkGetMult( act_lnk:act_lnk ) == Mult::MANY
+  type = ::getObjectStreamReference(obj:target_class);
+else
+  type = ::getObjectReference(obj:target_class);
+end if;
+relate type to expr across R795;
+
 // get the selector
 select one r_rel related by act_lnk->R_REL[R681];
-select one target_class related by o_obj->Class[R409];
 phrase = C_UTIL::stripTics( s:act_lnk.Rel_Phrase );
 if ( "" == phrase ) // if the phrase is not included, may need to get the phrase for getting the selector
   select any relationship from instances of Relationship where ( selected.num == r_rel.Numb and
@@ -3868,10 +3643,7 @@ if ( "" != phrase )
   selector_name = selector_name + T::sub( format:"_", s:phrase ) + "_";
 end if;
 selector_name = selector_name + target_class.name;
-select any selector related by base_class->InstanceSelector[R442]->Selector[R445] where ( selected.name == selector_name );
-if ( empty selector )
-  select any selector related by base_class->ClassSet[R406]->SetSelector[R444]->Selector[R445] where ( selected.name == selector_name );
-end if;
+select any selector related by base_class->Selector[R442] where ( selected.name == selector_name );
 if ( not_empty selector )
   relate selector to sel_rel across R797;
 else
@@ -3928,8 +3700,6 @@ INSERT INTO S_SYNC
 	'resolveArrayDeclaration',
 	'',
 	'smt = param.smt;
-select one block related by smt->CodeBlock[R450];
-indent = ::getIndent( tab_depth:block.tab_depth + 1 );
 
 select many declared_vars related by smt->Variable[R457];
 for each declared_var in declared_vars
@@ -3947,7 +3717,8 @@ end for;
 
 select many array_vars related by smt->Expression[R775]->ArrayElementReference[R776]->Expression[R3900]->VariableReference[R776]->Variable[R782];
 for each array_var in array_vars
-  if ( smt.block_number == array_var.block_number and smt.statement_number == array_var.statement_number ) // variable was declared in this statement
+  select one declaring_smt related by array_var->Statement[R457];
+  if ( smt.block_number == declaring_smt.block_number and smt.statement_number == declaring_smt.statement_number ) // variable was declared in this statement
     select many array_refs related by array_var->VariableReference[R782]->Expression[R776]->ArrayElementReference[R3900] where ( selected.block_number == smt.block_number and selected.statement_number == smt.statement_number );
     select any earliest_array_ref from instances of ArrayElementReference where false;
     for each array_ref in array_refs
@@ -3959,7 +3730,8 @@ for each array_var in array_vars
     select one array_index related by earliest_array_ref->Expression[R3901];;
     T::push_buffer();
     array_index.render();
-    smt.prefix = smt.prefix + indent + var_type.type_reference_name + " " + array_var.name + " = new " + var_type.type_name + "[" + T::body() + "+1];\n";
+    // TODO handle array initialization
+    //smt.prefix = smt.prefix + var_type.type_reference_name + " " + array_var.name + " = new " + var_type.type_name + "[" + T::body() + "+1];\n";
     T::pop_buffer();
     // no longer need to mark the first reference as a declaration
     select many var_refs related by array_var->VariableReference[R782] where ( selected.block_number == smt.block_number and selected.statement_number == smt.statement_number );
@@ -3998,213 +3770,83 @@ block = param.block;
 prev_smt = param.prev_smt;
 select one act_smt related by e_ess->ACT_SMT[R603];
 
-// create a statement
-create object instance smt of Statement;
-relate smt to block across R450;
-if ( not_empty prev_smt )
-  smt.statement_number = STRING::itoa( i:STRING::atoi( s:prev_smt.statement_number ) + 1 );
-  relate smt to prev_smt across R477.''executes after'';
-else
-  smt.statement_number = "1";
-end if;
-select one body related by block->InvocableObject[R4000];
-smt.actions = ::getOalStatement( body:body.actions, line_num:act_smt.LineNumber );
-
 select one e_ges related by e_ess->E_GES[R701];
-if ( not_empty e_ges )
+if (not_empty e_ges)
+
+  // create a statement
+  create object instance smt of Statement;
+  relate smt to block across R450;
+  if (not_empty prev_smt)
+    smt.statement_number = STRING::itoa(i:STRING::atoi(s:prev_smt.statement_number) + 1);
+    relate smt to prev_smt across R477.''executes after'';
+  else
+    smt.statement_number = "1";
+  end if;
+  select one body related by block->InvocableObject[R4000];
+  smt.actions = ::getOalStatement(act_smt:act_smt);
+  smt.line_number = act_smt.LineNumber;
 
   // transform generate statements
   select one evt related by e_ges->E_GSME[R703]->SM_EVT[R707]->Event[R4759];
   select one target_v_var related by e_ges->E_GSME[R703]->E_GEN[R705]->V_VAR[R712];
-  if ( empty target_v_var )
-    // TODO bad
-    LOG::LogFailure( message:"Generation to class and generation to creator not supported." );
-  end if;
   
   // create generate statement
   create object instance gen_smt of Generate;
   relate gen_smt to smt across R451;
+  gen_smt.to_self = false;
   
-  // create the event expression
+  // create event reference expression
   create object instance evt_expr of Expression;
   relate evt_expr to smt across R775;
   evt_expr.expression_number = "1";
-  evt_type_ref = ::TypeReference_getBuiltinTypeReference( name:"EventHandle" );
-  relate evt_type_ref to evt_expr across R795;
+  obj_type_ref = ::getBasicTypeReferenceByName(name:"Object");
+  relate obj_type_ref to evt_expr across R795;
+  create object instance event_ref of EventReference;
+  relate event_ref to evt_expr across R776;
+  relate event_ref to evt across R3916;
   relate evt_expr to gen_smt across R486;
-  // create event creation
-  create object instance evt_cr of EventCreation;
-  relate evt_cr to evt_expr across R776;
-  evt_cr.to_self = false;
-  // create the event invocation
-  create object instance invoc_expr of Expression;
-  relate invoc_expr to smt across R775;
-  invoc_expr.expression_number = evt_expr.expression_number + ".1";
-  relate evt_type_ref to invoc_expr across R795;
-  relate invoc_expr to evt_cr across R3903;
-  create object instance invoc of Invocation;
-  relate invoc to invoc_expr across R776;
-  select one evt_invocable related by evt->InvocableObject[R427];
-  relate invoc to evt_invocable across R792;
-  // create named reference expression
-  create object instance expr2 of Expression;
-  relate expr2 to smt across R775;
-  expr2.expression_number = invoc_expr.expression_number + ".1";
-  select one obj related by evt->StateMachine[R4752]->Class[R4750];
-  select one inst_type related by obj->Type[R407];
-  select many s_dims from instances of S_DIM where false;
-  inst_type_ref = ::TypeReference_getInstanceFromType( type:inst_type, s_dims:s_dims );
-  relate inst_type_ref to expr2 across R795;
-  // create named reference
-  create object instance named_ref of NamedReference;
-  relate named_ref to expr2 across R776;
-  relate expr2 to invoc across R798;
-  named_ref.name = obj.name + "Impl";
-  // transform actual parameters
-  select many v_pars related by e_ess->V_PAR[R700];
-  ::transformActualParameters( invocation:invoc, v_pars:v_pars, expr_number:invoc_expr.expression_number, base_num:2 );
-  
+
   // create the target expression
   create object instance target_expr of Expression;
   relate target_expr to smt across R775;
-  target_expr.expression_number = evt_expr.expression_number + ".2";
-  relate evt_cr to target_expr across R3902;
-  select one target_s_dt related by target_v_var->S_DT[R848];
-  select one target_obj related by target_v_var->V_INT[R814]->O_OBJ[R818];
-  target_s_dt = ::getInstRefTypeForClass( s_dt:target_s_dt, o_obj:target_obj );
-  target_type = ::TypeReference_getInstance( s_dt:target_s_dt, s_dims:s_dims );
-  relate target_type to target_expr across R795;
-  select any target_var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == target_v_var.Name );
-  if ( not_empty target_var ) // cannot declare two variables of the same name in the same scope
-    create object instance var_ref of VariableReference;
-    relate target_var to var_ref across R782;
-    relate var_ref to target_expr across R776;
-    select one type related by target_expr->TypeReference[R795]->Type[R3800];
-    ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:type, type:ImportType::IMPL );
-  elif ( "self" == target_v_var.Name )
-    // create named reference
-    create object instance self_ref of NamedReference;
-    relate self_ref to target_expr across R776;
-    self_ref.name = "self()";
-    evt_cr.to_self = true;
+  target_expr.expression_number = "2";
+  relate target_expr to gen_smt across R487;
+  if (not_empty target_v_var)
+    select one target_obj related by target_v_var->V_INT[R814]->O_OBJ[R818]->Class[R409];
+    target_type = ::getObjectReference(obj:target_obj);
+    relate target_type to target_expr across R795;
+    target_var = ::getVariableInScope(smt:smt, name:target_v_var.Name);
+    if (not_empty target_var)
+      create object instance var_ref of VariableReference;
+      relate target_var to var_ref across R782;
+      relate var_ref to target_expr across R776;
+    elif (target_v_var.Name == "self")
+      // create named reference
+      create object instance self_ref of NamedReference;
+      relate self_ref to target_expr across R776;
+      self_ref.name = "self()";
+      gen_smt.to_self = true;
+    else
+      // TODO bad
+    end if;
   else
-    // TODO bad
+    void_type = ::getBasicTypeReferenceByName(name:"void");
+    relate void_type to target_expr across R795;
+    // create class state machine reference
+    create object instance state_machine_ref of ClassStateMachineReference;
+    relate state_machine_ref to target_expr across R776;
+    select one sm related by evt->Class[R4752]->StateMachine[R4750];
+    relate sm to state_machine_ref across R3922;
   end if;
 
-  // add import for class
-  ::addStringToImports( file: ::getFileForStatement( smt:smt ), s:obj.package + ".impl." + obj.name + "Impl", type:ImportType::IMPL );
-
+  // transform event parameters
+  select many v_pars related by e_ess->V_PAR[R700];
+  select any null_expr from instances of Expression where false;
+  ::transformEventParameters(smt:smt, expr:null_expr, evt:evt, v_pars:v_pars, base_num:3);
+  
 else
-
-  // transform create event statements
-  select one e_ces related by e_ess->E_CES[R701];
-  select one evt related by e_ces->E_CSME[R702]->SM_EVT[R706]->Event[R4759];
-  select one result_v_var related by e_ces->V_VAR[R710];
-  select one target_v_var related by e_ces->E_CSME[R702]->E_CEI[R704]->V_VAR[R711];
-  if ( empty target_v_var )
-    // TODO bad
-    LOG::LogFailure( message:"Event creation to class and event creation to creator not supported." );
-  end if;
   
-  // create expression as statement
-  create object instance eas of ExpressionAsStatement;
-  relate eas to smt across R451;
-  // create main expression
-  create object instance expr of Expression;
-  relate expr to smt across R775;
-  expr.expression_number = "1";
-  evt_type_ref = ::TypeReference_getBuiltinTypeReference( name:"EventHandle" );
-  relate evt_type_ref to expr across R795;
-  // create binary operation and assignment expression
-  create object instance binop of BinaryOperation;
-  relate binop to expr across R776;
-  binop.operator = "=";
-  binop.invocation = false;
-  // relate expression to expression as statement
-  relate eas to expr across R476;
-  // create left operand
-  create object instance l_op of Expression;
-  relate l_op to smt across R775;
-  l_op.expression_number = "1.1";
-  relate evt_type_ref to l_op across R795;
-  select any existing_var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == result_v_var.Name );
-  if ( empty existing_var ) // cannot declare two variables of the same name in the same scope
-    ::transformVariable( v_var:result_v_var, smt:smt );
-  end if;
-  select any result_var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == result_v_var.Name );
-  create object instance var_ref of VariableReference;
-  relate result_var to var_ref across R782;
-  relate var_ref to l_op across R776;
-  relate l_op to binop across R779;
-  select one type related by l_op->TypeReference[R795]->Type[R3800];
-  ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:type, type:ImportType::IMPL );
-  // create right operand
-  create object instance r_op of Expression;
-  relate r_op to smt across R775;
-  r_op.expression_number = "1.2";
-  relate evt_type_ref to r_op across R795;
-  relate r_op to binop across R778;
-  // create event creation
-  create object instance evt_cr of EventCreation;
-  relate evt_cr to r_op across R776;
-  evt_cr.to_self = false;
-  // create the event invocation
-  create object instance invoc_expr of Expression;
-  relate invoc_expr to smt across R775;
-  invoc_expr.expression_number = r_op.expression_number + ".1";
-  relate evt_type_ref to invoc_expr across R795;
-  relate invoc_expr to evt_cr across R3903;
-  create object instance invoc of Invocation;
-  relate invoc to invoc_expr across R776;
-  select one evt_invocable related by evt->InvocableObject[R427];
-  relate invoc to evt_invocable across R792;
-  // create named reference expression
-  create object instance expr2 of Expression;
-  relate expr2 to smt across R775;
-  expr2.expression_number = invoc_expr.expression_number + ".1";
-  select one obj related by evt->StateMachine[R4752]->Class[R4750];
-  select one inst_type related by obj->Type[R407];
-  select many s_dims from instances of S_DIM where false;
-  inst_type_ref = ::TypeReference_getInstanceFromType( type:inst_type, s_dims:s_dims );
-  relate inst_type_ref to expr2 across R795;
-  // create named reference
-  create object instance named_ref of NamedReference;
-  relate named_ref to expr2 across R776;
-  relate expr2 to invoc across R798;
-  named_ref.name = obj.name + "Impl";
-  // transform actual parameters
-  select many v_pars related by e_ess->V_PAR[R700];
-  ::transformActualParameters( invocation:invoc, v_pars:v_pars, expr_number:invoc_expr.expression_number, base_num:2 );
-  
-  // create the target expression
-  create object instance target_expr of Expression;
-  relate target_expr to smt across R775;
-  target_expr.expression_number = r_op.expression_number + ".2";
-  relate evt_cr to target_expr across R3902;
-  select one target_s_dt related by target_v_var->S_DT[R848];
-  select one target_obj related by target_v_var->V_INT[R814]->O_OBJ[R818];
-  target_s_dt = ::getInstRefTypeForClass( s_dt:target_s_dt, o_obj:target_obj );
-  target_type = ::TypeReference_getInstance( s_dt:target_s_dt, s_dims:s_dims );
-  relate target_type to target_expr across R795;
-  select any target_var related by smt->CodeBlock[R450]->Variable[R458] where ( selected.name == target_v_var.Name );
-  if ( not_empty target_var ) // cannot declare two variables of the same name in the same scope
-    create object instance var_ref of VariableReference;
-    relate target_var to var_ref across R782;
-    relate var_ref to target_expr across R776;
-    select one type related by target_expr->TypeReference[R795]->Type[R3800];
-    ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:type, type:ImportType::IMPL );
-  elif ( "self" == target_v_var.Name )
-    // create named reference
-    create object instance self_ref of NamedReference;
-    relate self_ref to target_expr across R776;
-    self_ref.name = "self()";
-    evt_cr.to_self = true;
-  else
-    // TODO bad
-  end if;
-  
-  // add import for class
-  ::addStringToImports( file: ::getFileForStatement( smt:smt ), s:obj.package + ".impl." + obj.name + "Impl", type:ImportType::IMPL );
+  // event creation statements not supported except directly preceding a timer start invocation
 
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
@@ -4253,82 +3895,6 @@ INSERT INTO PE_PE
 	"00000000-0000-0000-0000-000000000000",
 	1);
 INSERT INTO S_SYNC
-	VALUES ("72fc322d-1724-4725-9fad-9b8215ab0fd3",
-	"00000000-0000-0000-0000-000000000000",
-	'transformGeneratePreexistingEventStatement',
-	'',
-	'e_gpr = param.e_gpr;
-block = param.block;
-prev_smt = param.prev_smt;
-select one act_smt related by e_gpr->ACT_SMT[R603];
-
-// create a statement
-create object instance smt of Statement;
-relate smt to block across R450;
-if ( not_empty prev_smt )
-  smt.statement_number = STRING::itoa( i:STRING::atoi( s:prev_smt.statement_number ) + 1 );
-  relate smt to prev_smt across R477.''executes after'';
-else
-  smt.statement_number = "1";
-end if;
-select one body related by block->InvocableObject[R4000];
-smt.actions = ::getOalStatement( body:body.actions, line_num:act_smt.LineNumber );
-
-// create generate statement
-create object instance gen_smt of Generate;
-relate gen_smt to smt across R451;
-
-// create the event expression
-select one evt_v_val related by e_gpr->V_VAL[R714];
-::transformExpression( v_val:evt_v_val, expr_number:"1", smt:smt );
-select any evt_expr related by smt->Expression[R775] where ( selected.expression_number == "1" );
-relate evt_expr to gen_smt across R486;',
-	"ba5eda7a-def5-0000-0000-000000000000",
-	1,
-	'',
-	0,
-	0);
-INSERT INTO S_SPARM
-	VALUES ("2c9f8764-5e1e-4a13-a7b8-9d7d8783ea73",
-	"72fc322d-1724-4725-9fad-9b8215ab0fd3",
-	'e_gpr',
-	"13c04771-67be-42a3-a789-b68f0f9c6f54",
-	0,
-	'',
-	"00000000-0000-0000-0000-000000000000",
-	'');
-INSERT INTO S_DT_PROXY
-	VALUES ("13c04771-67be-42a3-a789-b68f0f9c6f54",
-	"00000000-0000-0000-0000-000000000000",
-	'inst_ref<Generate Preexisting Event>',
-	'',
-	'',
-	'../../../../../mcooa/models/mcooa/ooaofooa/Event/Event.xtuml');
-INSERT INTO S_SPARM
-	VALUES ("f3781110-14d6-422a-9c62-6f7d5ac63407",
-	"72fc322d-1724-4725-9fad-9b8215ab0fd3",
-	'block',
-	"60d4da0e-4cbe-4620-8c16-4e1dba1c6b8d",
-	0,
-	'',
-	"2c9f8764-5e1e-4a13-a7b8-9d7d8783ea73",
-	'');
-INSERT INTO S_SPARM
-	VALUES ("00a11383-e402-4704-9854-dc4611a6a493",
-	"72fc322d-1724-4725-9fad-9b8215ab0fd3",
-	'prev_smt',
-	"b586ec7e-41fe-4d50-9cf3-27b173e9848a",
-	0,
-	'',
-	"f3781110-14d6-422a-9c62-6f7d5ac63407",
-	'');
-INSERT INTO PE_PE
-	VALUES ("72fc322d-1724-4725-9fad-9b8215ab0fd3",
-	1,
-	"1aa08c2b-b96c-4c66-8c25-c079950eef10",
-	"00000000-0000-0000-0000-000000000000",
-	1);
-INSERT INTO S_SYNC
 	VALUES ("56dd991f-2c16-4b8a-9f82-b3dd99c25611",
 	"00000000-0000-0000-0000-000000000000",
 	'transformDeferral',
@@ -4338,13 +3904,12 @@ deferral = param.deferral;
 
 select one o_tfr related by deferral->O_TFR[R126];
 select one type related by invocable->TypeReference[R428];
-returns_value = "void" != type.type_name;
+returns_value = "void" != type.type_reference;
 select many subtypes related by deferral->R_REL[R126]->R_SUBSUP[R206]->R_SUB[R213]->R_RGO[R205]->R_OIR[R203]->O_OBJ[R201];
 
 // create code block
 create object instance block of CodeBlock;
 block.top_level = true;
-block.tab_depth = 1;
 relate block to invocable across R4000;
 block.block_number = "1";
 
@@ -4382,8 +3947,7 @@ for each subtype in subtypes
     LOG::LogFailure(message:"Could not find matching operation: " + invocable.name + " for subtype: " + subtype.Name);
   end if;
   select one select_class related by subtype->Class[R409];
-  select one select_type_def related by select_class->Type[R407];
-  select_type = ::TypeReference_getInstanceWithDimString(type:select_type_def, dims:"");
+  select_type = ::getObjectReference(obj:select_class);
   relate select_type to l_op across R795;
   // create new variable
   create object instance select_var of Variable;
@@ -4391,6 +3955,7 @@ for each subtype in subtypes
   select_var.name = T::sub(format:"l", s:select_class.name);
   // link in scope
   select one block related by smt->CodeBlock[R450];
+  relate select_var to block across R496;
   create object instance var_in_scope of VariableInScope;
   relate select_var to block across R458 using var_in_scope;
   // link data type
@@ -4401,7 +3966,6 @@ for each subtype in subtypes
   relate select_var to var_ref across R782;
   relate var_ref to l_op across R776;
   relate l_op to binop across R779;
-  ::addTypeToImports( file: ::getFileForStatement( smt:smt ), type_to_import:select_type_def, type:ImportType::IMPL );
   // create right operand
   create object instance r_op of Expression;
   relate r_op to smt across R775;
@@ -4418,8 +3982,7 @@ for each subtype in subtypes
   relate self_expr to smt across R775;
   self_expr.expression_number = "1.2.1";
   select one self_class related by invocable->Operation[R427]->Class[R416];
-  select one self_type_def related by self_class->Type[R407];
-  self_type = ::TypeReference_getInstanceWithDimString(type:self_type_def, dims:"");
+  self_type = ::getObjectReference(obj:self_class);
   relate self_type to self_expr across R795;
   create object instance self_ref of NamedReference;
   relate self_ref to self_expr across R776;
@@ -4431,7 +3994,7 @@ for each subtype in subtypes
                                                                  selected.form_name == select_class.name and
                                                                  selected.part_name == self_class.name ); // if no phrase was included, the target and base class must be different
   selector_name = "R" + STRING::itoa( i:r_rel.Numb ) + "_is_a_" + select_class.name;
-  select any selector related by self_class->InstanceSelector[R442]->Selector[R445] where ( selected.name == selector_name );
+  select any selector related by self_class->Selector[R442] where ( selected.name == selector_name );
   if ( not_empty selector )
     relate selector to sel_rel across R797;
   else
@@ -4455,7 +4018,7 @@ for each subtype in subtypes
   if_expr.expression_number = "1";
   relate if_expr to if_smt across R471;
   // link type
-  if_type = ::TypeReference_getBuiltinTypeReference(name:"boolean");
+  if_type = ::getBasicTypeReferenceByName(name:"boolean");
   relate if_type to if_expr across R795;
   // create the unary expression
   create object instance unary of UnaryOperation;
@@ -4486,8 +4049,8 @@ for each subtype in subtypes
   // create then block
   then_block_number = ::getNextBlockNumber(upper_block:block);
   create object instance then_block of CodeBlock;
+  relate then_block to block across R498.''contained by'';
   then_block.top_level = false;
-  then_block.tab_depth = block.tab_depth + 1;
   relate then_block to invocable across R4000;
   then_block.block_number = then_block_number;
   relate then_block to if_smt across R453;
@@ -4501,7 +4064,7 @@ for each subtype in subtypes
   relate invoc_expr to smt3 across R775;
   invoc_expr.expression_number = "1";
   // link type
-  void_type = ::TypeReference_getBuiltinTypeReference(name:"void");
+  void_type = ::getBasicTypeReferenceByName(name:"void");
   relate void_type to invoc_expr across R795;
   // create invocation
   create object instance invoc of Invocation;
@@ -4575,10 +4138,10 @@ for each subtype in subtypes
   else_block_number = ::getNextBlockNumber(upper_block:block);
   create object instance else_block of CodeBlock;
   else_block.top_level = false;
-  else_block.tab_depth = block.tab_depth + 1;
   relate else_block to invocable across R4000;
   else_block.block_number = else_block_number;
   relate else_block to if_smt across R454;
+  relate else_block to block across R498.''contained by'';
   
   block = else_block;
 
@@ -4593,7 +4156,7 @@ smt4.actions = "";
 create object instance throws_expr of Expression;
 relate throws_expr to smt4 across R775;
 throws_expr.expression_number = "1.2.1";
-void_type = ::TypeReference_getBuiltinTypeReference(name:"void");
+void_type = ::getBasicTypeReferenceByName(name:"void");
 relate void_type to throws_expr across R795;
 create object instance throws_ref of NamedReference;
 relate throws_ref to throws_expr across R776;
@@ -4639,79 +4202,219 @@ INSERT INTO PE_PE
 	"00000000-0000-0000-0000-000000000000",
 	1);
 INSERT INTO S_SYNC
-	VALUES ("b224dbc7-8ee3-42cf-9aea-12a3211e411b",
+	VALUES ("aebd9ad8-4479-40dd-abaf-2af93c833ae5",
 	"00000000-0000-0000-0000-000000000000",
-	'resolveSortedSelection',
+	'transformEventParameters',
 	'',
-	'where_expr = param.where_expr;
+	'smt = param.smt;
+expr = param.expr;
+evt = param.evt;
+v_pars = param.v_pars;
+base_num = param.base_num;
 
-// check if there is an invocation of a SORT bridge in the where expression
-select one where_clause_expr related by where_expr->Expression[R796];
-select any invoc related by where_clause_expr->Statement[R775]->Expression[R775]->Invocation[R776] where 
-  (selected.invoked_parent_name == "SORT" and STRING::indexof(haystack:selected.expression_number, needle:where_clause_expr.expression_number) == 0);
-if (not_empty invoc)
-  sort_type = SortType::NONE;
-  if (invoc.invoked_name == "ascending")
-    sort_type = SortType::ASCENDING;
-  elif (invoc.invoked_name == "descending")
-    sort_type = SortType::DESCENDING;
-  end if;
-  // select the sort attribute
-  select any attr_parm related by invoc->ActualParameter[R793] where (selected.param_name == "p_attr");
-  select one literal related by attr_parm->Expression[R794]->Literal[R776];
-  if (not_empty literal)
-    select one cls related by where_expr->Expression[R776]->TypeReference[R795]->Type[R3800]->Class[R407];
-    if (empty cls)
-      select one cls related by where_expr->Expression[R776]->TypeReference[R795]->Type[R3800]->ClassSet[R407]->Class[R406];
+expr_number = "";
+if not_empty expr
+  expr_number = expr.expression_number;
+end if;
+
+select one generate_smt related by smt->Generate[R451];
+select one schedule_expr related by expr->Schedule[R776];
+order = 1;
+
+// loop through event formal parameters in order and find a matching actual parameter
+select any formal_param related by evt->InvocableObject[R427]->FormalParameter[R429];
+select one prev_formal_param related by formal_param->FormalParameter[R404.''follows''];
+while not_empty prev_formal_param
+  formal_param = prev_formal_param;
+  select one prev_formal_param related by formal_param->FormalParameter[R404.''follows''];
+end while;
+while not_empty formal_param
+  
+  // wish there was a better way in OAL...
+  select any v_par from instances of V_PAR where false;
+  for each v_par in v_pars
+    if "p_" + v_par.Name == formal_param.name;
+      break;
     end if;
-    select any attr related by cls->Attribute[R410] where (selected.name == "m_" + literal.value or selected.name == "ref_" + literal.value);
-    if (not_empty attr)
-      // relate attribute to where expression
-      where_expr.sorted = sort_type;
-      relate attr to where_expr across R3906;
-      // add util import if necessary
-      select one attr_type related by attr->TypeReference[R424]->Type[R3800];
-      if (attr_type.primitive())
-        select one smt related by where_expr->Expression[R776]->Statement[R775];
-        file = ::getFileForStatement(smt:smt);
-        if ("boolean" == attr_type.name)
-          ::addStringToImports(file:file, s:"io.ciera.runtime.summit.types.BooleanUtil", type:ImportType::BOTH);
-        elif ("int" == attr_type.name)
-          ::addStringToImports(file:file, s:"io.ciera.runtime.summit.types.IntegerUtil", type:ImportType::BOTH);
-        elif ("double" == attr_type.name)
-          ::addStringToImports(file:file, s:"io.ciera.runtime.summit.types.RealUtil", type:ImportType::BOTH);
-        end if;
-      end if;
-    else
-      LOG::LogFailure(message:"Could not find attribute ''" + literal.value + "'' in class ''" + cls.name + "'' for sorting");
-    end if;
-  else
-    LOG::LogFailure(message:"SORT bridges require literal string parameters");
+  end for;
+  
+  // transform the expression
+  select one v_val related by v_par->V_VAL[R800];
+  if (expr_number != "")
+    expr_number = expr_number + ".";
   end if;
-end if;',
+  expr_number = expr_number + STRING::itoa(i:base_num);
+  ::transformExpression(v_val:v_val, expr_number:expr_number, smt:smt);
+  select any expr related by smt->Expression[R775] where selected.expression_number == expr_number;
+  
+  // relate to the statement
+  if not_empty generate_smt
+		create object instance evt_arg of GenerateEventArgument;
+		evt_arg.order = order;
+		relate expr to generate_smt across R488 using evt_arg;
+	elif not_empty schedule_expr
+		create object instance evt_arg of ScheduleEventArgument;
+		evt_arg.order = order;
+		relate expr to schedule_expr across R3913 using evt_arg;
+	else
+	  LOG::LogFailure(message:"cannot transform event parameter");
+	end if;
+  
+  order = order + 1;
+  base_num = base_num + 1;
+  select one formal_param related by formal_param->FormalParameter[R404.''precedes''];
+end while;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
 	0,
-	0);
+	1);
 INSERT INTO S_SPARM
-	VALUES ("040b9859-feb4-47d6-b987-e4df27fafd0d",
-	"b224dbc7-8ee3-42cf-9aea-12a3211e411b",
-	'where_expr',
-	"8a75e82a-db3d-4bdb-aba6-6de4e88a243e",
+	VALUES ("ab2c4cc4-47f1-4244-8e3b-31542f01294c",
+	"aebd9ad8-4479-40dd-abaf-2af93c833ae5",
+	'smt',
+	"b586ec7e-41fe-4d50-9cf3-27b173e9848a",
 	0,
 	'',
 	"00000000-0000-0000-0000-000000000000",
 	'');
+INSERT INTO S_SPARM
+	VALUES ("e98a7819-aeb7-4c3e-9f5b-5f1a885b7436",
+	"aebd9ad8-4479-40dd-abaf-2af93c833ae5",
+	'evt',
+	"6f9d5490-60e9-489c-a2c7-507dc913da72",
+	0,
+	'',
+	"8b9c0acf-6494-480d-b8fb-20f8a2ab120e",
+	'');
 INSERT INTO S_DT_PROXY
-	VALUES ("8a75e82a-db3d-4bdb-aba6-6de4e88a243e",
+	VALUES ("6f9d5490-60e9-489c-a2c7-507dc913da72",
 	"00000000-0000-0000-0000-000000000000",
-	'inst_ref<Where>',
+	'inst_ref<Event>',
+	'',
+	'',
+	'../../../../../core-architecture/models/core-architecture/architecture/statemachine/statemachine.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("26f1c76c-efab-411e-9d5f-c89f452efc7d",
+	"aebd9ad8-4479-40dd-abaf-2af93c833ae5",
+	'v_pars',
+	"cff0610c-aa78-4735-bf53-f7fa31ce74fd",
+	0,
+	'',
+	"e98a7819-aeb7-4c3e-9f5b-5f1a885b7436",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("8b9c0acf-6494-480d-b8fb-20f8a2ab120e",
+	"aebd9ad8-4479-40dd-abaf-2af93c833ae5",
+	'expr',
+	"c732060c-653b-48f6-8ce5-99439b2a9c63",
+	0,
+	'',
+	"ab2c4cc4-47f1-4244-8e3b-31542f01294c",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("c732060c-653b-48f6-8ce5-99439b2a9c63",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Expression>',
 	'',
 	'',
 	'../../../../../core-architecture/models/core-architecture/architecture/expression/expression.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("370634a7-d3fc-4c62-921e-0e6df9e1dcc4",
+	"aebd9ad8-4479-40dd-abaf-2af93c833ae5",
+	'base_num',
+	"ba5eda7a-def5-0000-0000-000000000002",
+	0,
+	'',
+	"26f1c76c-efab-411e-9d5f-c89f452efc7d",
+	'');
 INSERT INTO PE_PE
-	VALUES ("b224dbc7-8ee3-42cf-9aea-12a3211e411b",
+	VALUES ("aebd9ad8-4479-40dd-abaf-2af93c833ae5",
+	1,
+	"1aa08c2b-b96c-4c66-8c25-c079950eef10",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("031efdba-e4fd-4f49-a706-41adaee562a2",
+	"00000000-0000-0000-0000-000000000000",
+	'transformVariables',
+	'',
+	'act_blk = param.act_blk;
+block = param.block;
+
+// create a forward delcaration for all vars defined in this scope
+// ignore the deprecated event type and references to "self"
+select any evt_dt from instances of S_DT where selected.Name == "inst<Event>";
+select many v_vars related by act_blk->V_VAR[R823] where selected.DT_ID != evt_dt.DT_ID and selected.Name != "self";
+for each v_var in v_vars
+  
+  // create a statement
+  prev_smt = ::lastStatementInBlock(block:block);
+  create object instance smt of Statement;
+  relate smt to block across R450;
+  if (not_empty prev_smt)
+    smt.statement_number = STRING::itoa(i:STRING::atoi(s:prev_smt.statement_number) + 1);
+    relate smt to prev_smt across R477.''executes after'';
+  else
+    smt.statement_number = "1";
+  end if;
+
+  // create new variable
+  create object instance new_var of Variable;
+  relate new_var to smt across R457;
+  new_var.name = v_var.Name;
+  var_type = ::getTypeReferenceForV_VAR(v_var:v_var);
+  relate var_type to new_var across R461;
+  
+  // link in scope
+  select one scope related by smt->CodeBlock[R450];
+  relate new_var to scope across R496;
+  create object instance var_in_scope of VariableInScope;
+  relate new_var to scope across R458 using var_in_scope;
+
+  // create expression as statement
+  create object instance eas of ExpressionAsStatement;
+  relate eas to smt across R451;
+
+  // create main expression
+  create object instance expr of Expression;
+  relate expr to smt across R775;
+  expr.expression_number = "1";
+  relate var_type to expr across R795;
+  relate expr to eas across R476;
+
+  // create variable reference
+  create object instance var_ref of VariableReference;
+  relate new_var to var_ref across R782;
+  relate var_ref to expr across R776;
+  var_ref.declaration = true;
+
+end for;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	2);
+INSERT INTO S_SPARM
+	VALUES ("71ce16cc-35bd-4dec-a4fc-9902743e213c",
+	"031efdba-e4fd-4f49-a706-41adaee562a2",
+	'act_blk',
+	"069f7c9f-7387-4d78-8d66-5f72c773e58e",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("8bcadfc8-90ba-40cd-88b8-2d87434e9e20",
+	"031efdba-e4fd-4f49-a706-41adaee562a2",
+	'block',
+	"60d4da0e-4cbe-4620-8c16-4e1dba1c6b8d",
+	0,
+	'',
+	"71ce16cc-35bd-4dec-a4fc-9902743e213c",
+	'');
+INSERT INTO PE_PE
+	VALUES ("031efdba-e4fd-4f49-a706-41adaee562a2",
 	1,
 	"1aa08c2b-b96c-4c66-8c25-c079950eef10",
 	"00000000-0000-0000-0000-000000000000",

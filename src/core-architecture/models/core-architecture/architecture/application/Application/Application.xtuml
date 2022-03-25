@@ -16,34 +16,34 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'select one file related by self->File[R401];
-imports = file.getFormattedImports( type:ImportType::IMPL );
+	'// domains
+domains = "";
+sep = "";
 select many comps related by self->ComponentInstantiation[R426];
 for each comp in comps
-  comp.render();
+  domains = domains + sep + STRING::quote() + comp.comp_name + STRING::quote();
+  sep = ", ";
 end for;
-component_instantiations = T::body();
-T::clear();
+
+// satisfactions
 for each comp in comps
   comp.render_satisfactions();
 end for;
 component_satisfactions = T::body();
-T::clear();
-for each comp in comps
-  comp.render_getter();
-end for;
-component_getters = T::body();
-T::clear();
-num_component_instances = cardinality comps;
-select many executors related by self->ApplicationExecutor[R4027];
-num_executors = cardinality executors;
-if ( self.async )
-  T::include(file:"application/t.application.async.java");
-else
-  T::include(file:"application/t.application.java");
-end if;
 
-T::emit( file:file.path + "/" + self.name + file.extension );
+// resolve imports
+if self.simulated_time != ""
+  ::addStringImport(package:"io.ciera.runtime.time", class_name:"SimulatedClock");
+end if;
+::addStringImport(package:"io.ciera.runtime.api.application", class_name:"Application");
+::addStringImport(package:"io.ciera.runtime.application", class_name:"BaseApplication");
+::addStringImport(package:"io.ciera.runtime.application", class_name:"CommandLine");
+
+select one file related by self->File[R401];
+imports = file.get_imports();
+
+T::include(file:"application/t.application.java");
+T::emit(file:file.path + "/" + self.name + file.extension);
 T::clear();',
 	1,
 	'',
@@ -148,21 +148,68 @@ INSERT INTO O_ATTR
 	'',
 	'');
 INSERT INTO O_NBATTR
-	VALUES ("eb7ce079-94bf-4525-8aa6-989883445b8f",
+	VALUES ("ad2ee0d6-1039-4d1d-9dc2-4c29c79770d6",
 	"d2a3c815-1c2f-49ea-82f1-129383fd0090");
 INSERT INTO O_BATTR
-	VALUES ("eb7ce079-94bf-4525-8aa6-989883445b8f",
+	VALUES ("ad2ee0d6-1039-4d1d-9dc2-4c29c79770d6",
 	"d2a3c815-1c2f-49ea-82f1-129383fd0090");
 INSERT INTO O_ATTR
-	VALUES ("eb7ce079-94bf-4525-8aa6-989883445b8f",
+	VALUES ("ad2ee0d6-1039-4d1d-9dc2-4c29c79770d6",
 	"d2a3c815-1c2f-49ea-82f1-129383fd0090",
 	"f020d787-e8c3-4aec-a3fe-c7d7f3b69aee",
-	'async',
+	'simulated_time',
 	'',
 	'',
-	'async',
+	'simulated_time',
 	0,
-	"ba5eda7a-def5-0000-0000-000000000001",
+	"ba5eda7a-def5-0000-0000-000000000004",
+	'',
+	'');
+INSERT INTO O_REF
+	VALUES ("d2a3c815-1c2f-49ea-82f1-129383fd0090",
+	"53bae248-963b-434c-a749-552a8307bfce",
+	0,
+	"da2abf1a-d7b6-4c43-9534-23a9f2df820d",
+	"8e4c0c62-c4fa-4386-bbac-80f55c6e8c95",
+	"1fd29ede-5a8f-43b8-aac6-7fcceaaf134a",
+	"f44371e8-8f2f-40dd-87c2-86f1a25eb130",
+	"79bc5e8c-d205-42d8-9459-d0602458210d",
+	"16d0bd23-5daa-4f14-a321-47e201ddb19b",
+	"00000000-0000-0000-0000-000000000000",
+	0,
+	'',
+	'Module',
+	'name',
+	'R5751.''provided by''');
+INSERT INTO R_RGO_PROXY
+	VALUES ("d2a3c815-1c2f-49ea-82f1-129383fd0090",
+	"8e4c0c62-c4fa-4386-bbac-80f55c6e8c95",
+	"1fd29ede-5a8f-43b8-aac6-7fcceaaf134a",
+	'../../module/module.xtuml');
+INSERT INTO O_RTIDA_PROXY
+	VALUES ("da2abf1a-d7b6-4c43-9534-23a9f2df820d",
+	"53bae248-963b-434c-a749-552a8307bfce",
+	0,
+	"8e4c0c62-c4fa-4386-bbac-80f55c6e8c95",
+	"f44371e8-8f2f-40dd-87c2-86f1a25eb130",
+	'../../module/module.xtuml');
+INSERT INTO O_RATTR
+	VALUES ("79bc5e8c-d205-42d8-9459-d0602458210d",
+	"d2a3c815-1c2f-49ea-82f1-129383fd0090",
+	"c49819d1-92ba-4732-98e5-2b3eca8bc470",
+	"dc9c4877-4fcb-49df-a886-ab917b250774",
+	1,
+	'name');
+INSERT INTO O_ATTR
+	VALUES ("79bc5e8c-d205-42d8-9459-d0602458210d",
+	"d2a3c815-1c2f-49ea-82f1-129383fd0090",
+	"ad2ee0d6-1039-4d1d-9dc2-4c29c79770d6",
+	'module_name',
+	'',
+	'module_',
+	'name',
+	1,
+	"ba5eda7a-def5-0000-0000-000000000007",
 	'',
 	'');
 INSERT INTO O_ID

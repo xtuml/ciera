@@ -1,4 +1,5 @@
-.if ( "" != actions )
-${indent}/* ${actions} */
+generateEvent\
+.if (self.to_self)
+ToSelf\
 .end if
-${prefix}${indent}context().generate(${evt_expr});
+(${evt_expr}, ${target_expr}${parameter_list});

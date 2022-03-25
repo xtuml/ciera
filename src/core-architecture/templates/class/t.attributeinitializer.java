@@ -1,1 +1,1 @@
-        ${self.name} = ${initializer};
+this.${attribute_name} = ${init_value};

@@ -1,1 +1,1 @@
-    public static final int ${self.name} = ${self.number};
+$u_{self.name}${line_end}

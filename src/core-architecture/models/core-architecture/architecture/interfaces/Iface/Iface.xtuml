@@ -14,26 +14,52 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'select one file related by self->File[R401];
-imports = file.getFormattedImports( type:ImportType::IMPL );
+	'// only render the interface if at least one port implements it
+select any port related by self->Port[R418];
+if not_empty port
 
-select many to_provider_msgs related by self->Message[R419] where ( selected.to_provider );
-for each msg in to_provider_msgs
-  msg.render();
-end for;
-to_provider_message_block = T::body();
-T::clear();
+  // render message IDs
+  select many messages related by self->Message[R419] where selected.async and SORT::ascending(attr:"id");
+  for each msg in messages
+    msg.render_id();
+  end for;
+  message_id_declarations = T::body();
+  
+  // render message classes
+  for each msg in messages
+    msg.render_decl();
+  end for;
+  message_declarations = T::body();
+  
+  // render to provider message methods
+  select many to_provider_msgs related by self->Message[R419] where SORT::ascending(attr:"id") and selected.to_provider;
+  for each msg in to_provider_msgs
+    msg.render();
+  end for;
+  to_provider_message_block = T::body();
+  
+  // render from provider message methods
+  select many from_provider_msgs related by self->Message[R419] where SORT::ascending(attr:"id") and not selected.to_provider;
+  for each msg in from_provider_msgs
+    msg.render();
+  end for;
+  from_provider_message_block = T::body();
 
-select many from_provider_msgs related by self->Message[R419] where ( not selected.to_provider );
-for each msg in from_provider_msgs
-  msg.render();
-end for;
-from_provider_message_block = T::body();
-T::clear();
+  select one supertype_iface_file related by self->Interface[R4161.''extends'']->File[R401];
+  if not_empty supertype_iface_file
+    ::addFileImport(file:supertype_iface_file);
+  end if;
+  
+  ::addStringImport(package:"io.ciera.runtime.api.domain", class_name:"Port");
+  
+  select one file related by self->File[R401];
+  imports = file.get_imports();
+  
+  T::include(file:"interface/t.interface.java");
+  T::emit( file:file.path + "/" + self.name + file.extension );
+  T::clear();
 
-T::include(file:"interface/t.interface.java");
-T::emit( file:file.path + "/" + self.name + file.extension );
-T::clear();',
+end if;',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",
@@ -133,6 +159,95 @@ INSERT INTO O_ATTR
 	'',
 	'path',
 	0,
+	"ba5eda7a-def5-0000-0000-000000000007",
+	'',
+	'');
+INSERT INTO O_REF
+	VALUES ("26b351ef-ca37-4740-aeff-9c9ed1460938",
+	"26b351ef-ca37-4740-aeff-9c9ed1460938",
+	0,
+	"2921f1f9-f920-48fc-80e0-c280e48e8e85",
+	"3729703b-f402-44e6-a217-e1ff31caeb8f",
+	"b40eaf7b-5da6-4cc7-979c-e4af34695fdf",
+	"87317130-6bc8-44bd-acb5-0a74a8db0c32",
+	"12dd108c-7492-4fb7-b606-c21d8b714cd0",
+	"6a3adf3a-404b-46c2-8700-947a6dd4868d",
+	"00000000-0000-0000-0000-000000000000",
+	0,
+	'',
+	'Iface',
+	'name',
+	'R4161.''extends''');
+INSERT INTO R_RGO_PROXY
+	VALUES ("26b351ef-ca37-4740-aeff-9c9ed1460938",
+	"3729703b-f402-44e6-a217-e1ff31caeb8f",
+	"b40eaf7b-5da6-4cc7-979c-e4af34695fdf",
+	'../interfaces.xtuml');
+INSERT INTO O_RTIDA_PROXY
+	VALUES ("2921f1f9-f920-48fc-80e0-c280e48e8e85",
+	"26b351ef-ca37-4740-aeff-9c9ed1460938",
+	0,
+	"3729703b-f402-44e6-a217-e1ff31caeb8f",
+	"87317130-6bc8-44bd-acb5-0a74a8db0c32",
+	'../interfaces.xtuml');
+INSERT INTO O_RATTR
+	VALUES ("12dd108c-7492-4fb7-b606-c21d8b714cd0",
+	"26b351ef-ca37-4740-aeff-9c9ed1460938",
+	"c49819d1-92ba-4732-98e5-2b3eca8bc470",
+	"dc9c4877-4fcb-49df-a886-ab917b250774",
+	1,
+	'name');
+INSERT INTO O_ATTR
+	VALUES ("12dd108c-7492-4fb7-b606-c21d8b714cd0",
+	"26b351ef-ca37-4740-aeff-9c9ed1460938",
+	"50f706c0-6825-42f0-9079-bd21efa2fda0",
+	'supertype_name',
+	'',
+	'supertype_',
+	'name',
+	1,
+	"ba5eda7a-def5-0000-0000-000000000007",
+	'',
+	'');
+INSERT INTO O_REF
+	VALUES ("26b351ef-ca37-4740-aeff-9c9ed1460938",
+	"26b351ef-ca37-4740-aeff-9c9ed1460938",
+	0,
+	"50f706c0-6825-42f0-9079-bd21efa2fda0",
+	"3729703b-f402-44e6-a217-e1ff31caeb8f",
+	"b40eaf7b-5da6-4cc7-979c-e4af34695fdf",
+	"87317130-6bc8-44bd-acb5-0a74a8db0c32",
+	"6f73d0c0-406a-49ef-9bda-2049d232f74a",
+	"e3fc3288-67e9-41fa-8977-b34e183d5522",
+	"00000000-0000-0000-0000-000000000000",
+	0,
+	'',
+	'Iface',
+	'package',
+	'R4161.''extends''');
+INSERT INTO O_RTIDA_PROXY
+	VALUES ("50f706c0-6825-42f0-9079-bd21efa2fda0",
+	"26b351ef-ca37-4740-aeff-9c9ed1460938",
+	0,
+	"3729703b-f402-44e6-a217-e1ff31caeb8f",
+	"87317130-6bc8-44bd-acb5-0a74a8db0c32",
+	'../interfaces.xtuml');
+INSERT INTO O_RATTR
+	VALUES ("6f73d0c0-406a-49ef-9bda-2049d232f74a",
+	"26b351ef-ca37-4740-aeff-9c9ed1460938",
+	"3dfc4c02-94c0-4383-8964-c3bfa4b2e9bd",
+	"dc9c4877-4fcb-49df-a886-ab917b250774",
+	1,
+	'package');
+INSERT INTO O_ATTR
+	VALUES ("6f73d0c0-406a-49ef-9bda-2049d232f74a",
+	"26b351ef-ca37-4740-aeff-9c9ed1460938",
+	"12dd108c-7492-4fb7-b606-c21d8b714cd0",
+	'supertype_package',
+	'',
+	'supertype_',
+	'package',
+	1,
 	"ba5eda7a-def5-0000-0000-000000000007",
 	'',
 	'');

@@ -15,23 +15,77 @@ INSERT INTO O_TFR
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'select one var related by self->Variable[R782];
-var_readonly = var.readonly;
-select one var_type related by var->TypeReference[R461];
-type_name = var_type.type_reference_name;
-var_prefix = "";
-select any finalization related by self->Variable[R782]->Finalization[R485] where ( selected.block_number == self.block_number and selected.statement_number == self.statement_number );
-if ( not_empty finalization )
-  select many previous_finalizations related by self->Variable[R782]->Finalization[R485] where ( selected.block_number < self.block_number or
-                                                                                               ( selected.block_number == self.block_number and selected.statement_number < self.statement_number ) );
-  finalization_num = cardinality previous_finalizations;
-  var_prefix = "_final" + STRING::itoa( i:finalization_num ) + "_";
+
+// check if this variable is passed as a by reference parameter somewhere in the body
+select any by_ref_param related by var->VariableReference[R782]->Expression[R776]
+  ->ActualParameter[R794]->FormalParameter[R3904] where selected.by_ref;
+is_passed_by_ref = not_empty by_ref_param;
+
+// check if this variable reference is the declaration
+if self.declaration
+
+  // variables are read only if they are marked readonly
+  var_readonly = var.readonly;
+  
+  // get the type name
+  select one var_type related by var->TypeReference[R461];
+  type_name = var_type.type_reference;
+  if is_passed_by_ref
+    select one var_builtin_type related by var_type->BasicTypeReference[R3801]->TypeReference[R3801]->Type[R3800]->BuiltInType[R407];
+    if not_empty var_builtin_type
+      type_name = var_builtin_type.object_name;
+    end if;
+  end if;
+  
+  // resolve imports
+  if (is_passed_by_ref)
+    ::addStringImport(package:"io.ciera.runtime.domain", class_name:"LocalVariable");
+  end if;
+  ::resolveImportsForTypeReference(type_ref:var_type);
+  
+  T::include(file:"expression/t.variabledeclaration.java");
 end if;
-T::include(file:"expression/t.variablereference.java");',
+
+// check if this reference is referring to a finalization
+finalization_num = 0;
+if not is_passed_by_ref
+  select any finalization related by self->Variable[R782]->Finalization[R485] where (selected.block_number == self.block_number and selected.statement_number == self.statement_number);
+  if (not_empty finalization)
+    finalization_num = finalization.finalization_number;
+  end if;
+end if;
+var_name = var.scope_unique_name;
+
+// if the variable is passed by reference at some point and this is either a
+// parameter value or the left hand side of an assignment, handle things
+// slightly differently
+select one act_parm related by self->Expression[R776]->ActualParameter[R794];
+select one assign_lhs related by self->Expression[R776]->BinaryOperation[R779] where selected.operator == "=";
+
+T::include(file:"expression/t.variablereference.java");
+',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",
 	0,
 	0);
+INSERT INTO O_TFR
+	VALUES ("0a306f02-55b8-435e-8b9e-5d453f55f406",
+	"40d13553-3c07-47b7-afc0-5b3dc8f8a11f",
+	'is_constant',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000001",
+	1,
+	'select one var related by self->Variable[R782];
+select one var_assignment related by var->Statement[R457]->ExpressionAsStatement[R451]->Expression[R476]->BinaryOperation[R776]
+  where selected.operator == "=";
+select one init_val related by var_assignment->Expression[R778];
+return var.readonly and not_empty init_val and init_val.is_constant();',
+	1,
+	'',
+	"e226eb73-130c-4d01-a7f1-d3ab45901c54",
+	0,
+	1);
 INSERT INTO O_REF
 	VALUES ("40d13553-3c07-47b7-afc0-5b3dc8f8a11f",
 	"18b2e941-9111-4db8-bc15-79e9be5abfd7",

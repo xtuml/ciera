@@ -14,221 +14,216 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'select one file related by self->File[R401];
-imports = file.getFormattedImports( type:ImportType::IMPL );
-
-// TODO select ordered by
-index = 0;
-select any attribute related by self->Attribute[R410] where ( index == selected.order);
-while ( not_empty attribute ) 
-  attribute.render_initializer();
-  index = index + 1;
-  select any attribute related by self->Attribute[R410] where ( index == selected.order);
-end while;
-attribute_initializers = T::body();
-T::clear();
-
-attribute_list = "";
-attribute_invocation_list = "";
-attribute_initializers2 = "";
-index = 0;
-select any attribute related by self->Attribute[R410] where ( index == selected.order);
-while ( not_empty attribute ) 
-  attribute_list = attribute_list + ", " + attribute.type_reference_name + " " + attribute.name;
-  attribute_invocation_list = attribute_invocation_list + ", " + attribute.name;
-  attribute_initializers2 = attribute_initializers2 + "        this." + attribute.name + " = " + attribute.name + ";\n";
-  index = index + 1;
-  select any attribute related by self->Attribute[R410] where ( index == selected.order);
-end while;
-
-id1_attributes = "";
-id2_attributes = "";
-id3_attributes = "";
-sep1 = "";
-sep2 = "";
-sep3 = "";
-index = 0;
-select any attribute related by self->Attribute[R410] where ( index == selected.order);
-while ( not_empty attribute ) 
-  attribute.render();
-  select many accessors related by attribute->AttributeAccessor[R4510];
-  for each accessor in accessors
-    accessor.render();
-    if ( AttributeAccessorType::GETTER == accessor.accessor_type and attribute.identifier % 2 == 1 )
-      id1_attributes = id1_attributes + sep1 + accessor.getName() + "()";
-      sep1 = ", ";
-    end if;
-    if ( AttributeAccessorType::GETTER == accessor.accessor_type and ( attribute.identifier / 2 ) % 2 == 1 )
-      id2_attributes = id2_attributes + sep2 + accessor.getName() + "()";
-      sep2 = ", ";
-    end if;
-    if ( AttributeAccessorType::GETTER == accessor.accessor_type and ( attribute.identifier / 4 ) % 2 == 1 )
-      id3_attributes = id3_attributes + sep3 + accessor.getName() + "()";
-      sep3 = ", ";
-    end if;
-  end for;
-  index = index + 1;
-  select any attribute related by self->Attribute[R410] where ( index == selected.order);
-end while;
-attributes = T::body();
-T::clear();
-
-select many class_ops related by self->Operation[R416] where ( selected.is_class_based );
-if ( not_empty class_ops )
-  for each operation in class_ops
-    operation.render();
-  end for;
-  operations = T::body();
-  T::clear();
-  T::include(file:"class/t.operations.static.java");
+	'// get the state machine if it exists
+select one sm related by self->StateMachine[R4750];
+has_ism = not_empty sm and sm.is_instance;
+has_csm = not_empty sm and not sm.is_instance;
+init_state_name = "";
+if (has_ism)
+  ::addStringImport(package:"io.ciera.runtime.api.domain", class_name:"DynamicObjectInstance");
+  ::addStringImport(package:"io.ciera.runtime.api.domain", class_name:"StateMachine");
+  ::addStringImport(package:"io.ciera.runtime.domain", class_name:"AbstractDynamicObjectInstance");
+else
+  ::addStringImport(package:"io.ciera.runtime.api.domain", class_name:"ObjectInstance");
+  ::addStringImport(package:"io.ciera.runtime.domain", class_name:"AbstractObjectInstance");
+  select one sm_file related by sm->File[R401];
+  ::addFileImport(file:sm_file);
 end if;
-static_operations = T::body();
-T::clear();
+if (has_csm)
+  select any init_state related by self->StateMachine[R4750]->State[R4751] where selected.initial;
+  init_state_name = init_state.name;
+end if;
 
-select many inst_ops related by self->Operation[R416] where ( not selected.is_class_based );
+// get any subtype interfaces this class implements
+select many subsuper_rels related by self->Relationship[R435] where selected.rel_type == RelationshipType::SuperSubtype;
+for each rel in subsuper_rels
+  rel.render_supertype_implementation();
+end for;
+supertypes = T::body();
+
+// event declarations
+select many events related by self->Event[R4752] where SORT::ascending(attr:"id");
+for each evt in events
+  evt.render_decl();
+end for;
+event_declarations = T::body();
+
+// attribute declarations
+select many attributes related by self->Attribute[R410] where SORT::ascending(attr:"order");
+for each attribute in attributes
+  attribute.render();
+end for;
+attribute_decls = T::body();
+
+// relationship link declarations
+select many selects related by self->Selector[R442] where SORT::ascending(attr:"name");
+for each selector in selects
+  selector.render_declaration();
+end for;
+relationship_decls = T::body();
+
+// constructors
+for each attribute in attributes
+  attribute.render_initializer();
+end for;
+attribute_initializers1 = T::body();
+
+attribute_initializer_params = "";
+for each attribute in attributes
+  attribute_initializer_params = attribute_initializer_params + ", " + attribute.type_reference + " " + attribute.name;
+  init_value = attribute.name;
+  attribute_name = attribute.name;
+  T::include(file:"class/t.attributeinitializer.java");
+end for;
+attribute_initializers2 = T::body();
+
+// empty attribute accessros
+for each attribute in attributes
+  select any getter related by attribute->AttributeAccessor[R4510] where selected.accessor_type == AttributeAccessorType::GETTER;
+  select any setter related by attribute->AttributeAccessor[R4510] where selected.accessor_type == AttributeAccessorType::SETTER;
+  getter.render();
+  setter.render();
+end for;
+attribute_accessors = T::body();
+
+// instance based operations
+select many inst_ops related by self->Operation[R416] where (not selected.is_class_based);
 for each operation in inst_ops
   operation.render();
 end for;
 operations = T::body();
-T::clear();
 
-initial_state = "";
-initial_state2 = "";
-state_machine_initializer = "";
-state_machine_initializer2 = "";
-state_machine_decl = "";
-select one sm related by self->StateMachine[R4750];
-if ( not_empty sm )
-  initial_state = ", int initialState";
-  initial_state2 = ", initialState";
-  state_machine_initializer = "        statemachine = new " + sm.name + "(this, context());\n";
-  state_machine_initializer2 = "        statemachine = new " + sm.name + "(this, context(), initialState);\n";
-  sm.render_decl();
-  state_machine_decl = T::body();
-  T::clear();
-end if;
-
-select many evts related by sm->Event[R4752];
-for each evt in evts
+// event definitions
+for each evt in events
   evt.render();
 end for;
-state_machine_events = T::body();
-T::clear();
+event_definitions = T::body();
 
-select many selects related by self->InstanceSelector[R442];
-relationship_initializers = "";
+// selectors
+last_rel_num = 0;
 for each selector in selects
-  selector.render();
-  select one sel related by selector->Selector[R445];
-  if ( sel.multiplicity == Mult::MANY )
-    relationship_initializers = relationship_initializers + "        " + selector.name + "_set = new " + sel.type_reference_name + "Impl();\n";
-  else
-    relationship_initializers = relationship_initializers + "        " + selector.name + "_inst = " + sel.type_reference_name + "Impl.EMPTY_" + T::sub( format:"u_", s:sel.type_reference_name ) + ";\n";
+  // only render one set of modifiers for sub/super relationships
+  select one rel related by selector->Relationship[R4512];
+  if rel.rel_type != RelationshipType::SuperSubtype or last_rel_num != rel.num
+    selector.render_modifiers();
   end if;
+  last_rel_num = rel.num;
+  selector.render();
 end for;
 selectors = T::body();
-T::clear();
 
-index = 0;
-select any attribute related by self->Attribute[R410] where ( index == selected.order);
-while ( not_empty attribute ) 
-  select many accessors related by attribute->AttributeAccessor[R4510];
-  for each accessor in accessors
-    accessor.render_empty();
+// all subtype selector
+last_rel_num = 0;
+select many subsuper_rels related by self->Relationship[R434] where SORT::ascending(attr:"num") and selected.rel_type == RelationshipType::SuperSubtype;
+if not_empty subsuper_rels
+  ::addStringImport(package:"io.ciera.runtime.api.domain", class_name:"ObjectInstance");
+  ::addStringImport(package:"java.util", class_name:"Set");
+  for each rel in subsuper_rels
+    if rel.num != last_rel_num
+      rel_num = rel.num;
+      T::include(file:"class/t.subtypeselection.java");
+    end if;
+    last_rel_num = rel.num;
   end for;
-  index = index + 1;
-  select any attribute related by self->Attribute[R410] where ( index == selected.order);
-end while;
-empty_attributes = T::body();
-T::clear();
+end if;
+subtype_selections = T::body();
 
+// active relationship checks
+for each selector in selects
+  selector.render_active_check();
+end for;
+active_relationship_checks = T::body();
+
+// preferred identifier getter
+identifier_attribute_getters = "";
+sep = "";
+select many preferred_id_attrs related by self->Attribute[R410] where selected.identifier == 1;
+select many preferred_id_getters related by preferred_id_attrs->AttributeAccessor[R4510] where selected.accessor_type == AttributeAccessorType::GETTER;
+if not_empty preferred_id_getters
+  for each preferred_id_getter in preferred_id_getters
+    identifier_attribute_getters = identifier_attribute_getters + sep + preferred_id_getter.getName() + "()";
+    sep = ", ";
+  end for;
+  ::addStringImport(package:"io.ciera.runtime.domain", class_name:"InstanceIdentifier");
+end if;
+
+// attributes for "toString" method
+sep = "";
+if has_ism
+  attribute_name = "currentState";
+  attribute_accessor = "getCurrentState";
+  T::include(file:"class/t.attribute_to_string.java");
+  sep = ", ";
+end if;
+for each attribute in attributes
+  select any ref related by attribute->AttributeReference[R4506.''has value provided by''];
+  if empty ref
+    select any getter related by attribute->AttributeAccessor[R4510] where selected.accessor_type == AttributeAccessorType::GETTER;
+    attribute_name = attribute.name;
+    attribute_accessor = getter.getName();
+    T::include(file:"class/t.attribute_to_string.java");
+    sep = ", ";
+  end if;
+end for;
+attribute_to_strings = T::body();
+
+// subtype interfaces
+last_rel_num = 0;
+for each rel in subsuper_rels
+  if rel.num != last_rel_num
+    rel.render_subtype_interface();
+  end if;
+  last_rel_num = rel.num;
+end for;
+subtype_interfaces = T::body();
+
+// empty attribute accessros
+for each attribute in attributes
+  select any getter related by attribute->AttributeAccessor[R4510] where selected.accessor_type == AttributeAccessorType::GETTER;
+  select any setter related by attribute->AttributeAccessor[R4510] where selected.accessor_type == AttributeAccessorType::SETTER;
+  getter.render_empty();
+  setter.render_empty();
+end for;
+empty_attributes = T::body();
+
+// empty operations
 for each operation in inst_ops
   operation.render_empty();
 end for;
 empty_operations = T::body();
-T::clear();
 
+// empty selectors
+last_rel_num = 0;
 for each selector in selects
+  // only render one set of modifiers for sub/super relationships
+  select one rel related by selector->Relationship[R4512];
+  if rel.rel_type != RelationshipType::SuperSubtype or last_rel_num != rel.num
+    selector.render_modifiers_empty();
+  end if;
+  last_rel_num = rel.num;
   selector.render_empty();
 end for;
 empty_selectors = T::body();
-T::clear();
 
-T::include(file:"class/t.class.impl.java");
-T::emit( file:file.path + "/impl/" + self.name + "Impl" + file.extension );
-T::clear();
+::addStringImport(package:"io.ciera.runtime.api.application", class_name:"ExecutionContext");
+::addStringImport(package:"io.ciera.runtime.api.domain", class_name:"EmptyInstance");
+::addStringImport(package:"io.ciera.runtime.api.exceptions", class_name:"EmptyInstanceException");
+::addStringImport(package:"io.ciera.runtime.api.types", class_name:"UniqueId");
+select one comp_file related by self->ComponentDefinition[R408]->File[R401];
+::addFileImport(file:comp_file);
 
-imports = file.getFormattedImports( type:ImportType::INT );
+select one file related by self->File[R401];
+imports = file.get_imports();
 
-index = 0;
-select any attribute related by self->Attribute[R410] where ( index == selected.order);
-while ( not_empty attribute ) 
-  select many accessors related by attribute->AttributeAccessor[R4510];
-  for each accessor in accessors
-    accessor.render_interface();
-  end for;
-  index = index + 1;
-  select any attribute related by self->Attribute[R410] where ( index == selected.order);
-end while;
-attributes = T::body();
-T::clear();
-
-for each operation in inst_ops
-  operation.render_interface();
-end for;
-operations = T::body();
-T::clear();
-
-for each selector in selects
-  selector.render_interface();
-end for;
-selectors = T::body();
-T::clear();
-
+// emit the file
 T::include(file:"class/t.class.java");
-T::emit( file:file.path + "/" + self.name + file.extension );
+T::emit(file:file.path + "/" + self.name + file.extension);
 T::clear();',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",
 	0,
 	0);
-INSERT INTO O_NBATTR
-	VALUES ("e1102dc5-96a8-43ba-8f27-735c3be3b0ac",
-	"82cf3088-71ed-48c3-850e-afe53bfc0fe5");
-INSERT INTO O_BATTR
-	VALUES ("e1102dc5-96a8-43ba-8f27-735c3be3b0ac",
-	"82cf3088-71ed-48c3-850e-afe53bfc0fe5");
-INSERT INTO O_ATTR
-	VALUES ("e1102dc5-96a8-43ba-8f27-735c3be3b0ac",
-	"82cf3088-71ed-48c3-850e-afe53bfc0fe5",
-	"cbb93527-a951-4d52-b6c5-13d33521339c",
-	'extends',
-	'',
-	'',
-	'extends',
-	0,
-	"ba5eda7a-def5-0000-0000-000000000004",
-	'',
-	'');
-INSERT INTO O_NBATTR
-	VALUES ("a97bc160-b446-4fde-8058-02e0b97739dc",
-	"82cf3088-71ed-48c3-850e-afe53bfc0fe5");
-INSERT INTO O_BATTR
-	VALUES ("a97bc160-b446-4fde-8058-02e0b97739dc",
-	"82cf3088-71ed-48c3-850e-afe53bfc0fe5");
-INSERT INTO O_ATTR
-	VALUES ("a97bc160-b446-4fde-8058-02e0b97739dc",
-	"82cf3088-71ed-48c3-850e-afe53bfc0fe5",
-	"e1102dc5-96a8-43ba-8f27-735c3be3b0ac",
-	'key_letters',
-	'',
-	'',
-	'key_letters',
-	0,
-	"ba5eda7a-def5-0000-0000-000000000004",
-	'',
-	'');
 INSERT INTO O_REF
 	VALUES ("82cf3088-71ed-48c3-850e-afe53bfc0fe5",
 	"dc9c4877-4fcb-49df-a886-ab917b250774",
@@ -257,34 +252,6 @@ INSERT INTO O_RTIDA_PROXY
 	"8f0c124a-55f6-41de-9844-451b6463ab15",
 	"d0fabe99-0939-4ae6-9c05-740746d8b95b",
 	'../../file/file.xtuml');
-INSERT INTO O_REF
-	VALUES ("82cf3088-71ed-48c3-850e-afe53bfc0fe5",
-	"b5de937b-55ee-48e4-8e91-d9d73c3f0fab",
-	0,
-	"f44b46d8-90bf-4603-93b9-9beb6bd0fe62",
-	"e5dad769-3068-4d6b-bdca-63c34edafaf5",
-	"6b2b7202-ddac-42b0-a843-7eddedc9543b",
-	"556adddf-6013-43d6-bee0-5b682a812874",
-	"cbb93527-a951-4d52-b6c5-13d33521339c",
-	"c4bbabb0-3603-4282-89b3-fa1009f00a40",
-	"2b153378-9acf-41e3-b85c-b49fb016a5d4",
-	0,
-	'',
-	'Type',
-	'package',
-	'R407');
-INSERT INTO R_RGO_PROXY
-	VALUES ("82cf3088-71ed-48c3-850e-afe53bfc0fe5",
-	"e5dad769-3068-4d6b-bdca-63c34edafaf5",
-	"6b2b7202-ddac-42b0-a843-7eddedc9543b",
-	'../../type/type.xtuml');
-INSERT INTO O_RTIDA_PROXY
-	VALUES ("f44b46d8-90bf-4603-93b9-9beb6bd0fe62",
-	"b5de937b-55ee-48e4-8e91-d9d73c3f0fab",
-	0,
-	"e5dad769-3068-4d6b-bdca-63c34edafaf5",
-	"556adddf-6013-43d6-bee0-5b682a812874",
-	'../../type/type.xtuml');
 INSERT INTO O_RATTR
 	VALUES ("cbb93527-a951-4d52-b6c5-13d33521339c",
 	"82cf3088-71ed-48c3-850e-afe53bfc0fe5",
@@ -331,29 +298,6 @@ INSERT INTO O_RTIDA_PROXY
 	"8f0c124a-55f6-41de-9844-451b6463ab15",
 	"d0fabe99-0939-4ae6-9c05-740746d8b95b",
 	'../../file/file.xtuml');
-INSERT INTO O_REF
-	VALUES ("82cf3088-71ed-48c3-850e-afe53bfc0fe5",
-	"b5de937b-55ee-48e4-8e91-d9d73c3f0fab",
-	0,
-	"864744e7-2f4c-4f9f-b744-73335f8defd3",
-	"e5dad769-3068-4d6b-bdca-63c34edafaf5",
-	"6b2b7202-ddac-42b0-a843-7eddedc9543b",
-	"556adddf-6013-43d6-bee0-5b682a812874",
-	"ae4de985-deee-4396-a035-f8874abd3c23",
-	"d3a118aa-5572-4d10-8112-3f77eacdd381",
-	"1eced1eb-bd5f-4c2f-9ae5-2436dfbc4a3b",
-	0,
-	'',
-	'Type',
-	'name',
-	'R407');
-INSERT INTO O_RTIDA_PROXY
-	VALUES ("864744e7-2f4c-4f9f-b744-73335f8defd3",
-	"b5de937b-55ee-48e4-8e91-d9d73c3f0fab",
-	0,
-	"e5dad769-3068-4d6b-bdca-63c34edafaf5",
-	"556adddf-6013-43d6-bee0-5b682a812874",
-	'../../type/type.xtuml');
 INSERT INTO O_RATTR
 	VALUES ("ae4de985-deee-4396-a035-f8874abd3c23",
 	"82cf3088-71ed-48c3-850e-afe53bfc0fe5",
@@ -475,7 +419,7 @@ INSERT INTO O_BATTR
 INSERT INTO O_ATTR
 	VALUES ("c9564b5b-70c8-4271-b1a9-915035b947cb",
 	"82cf3088-71ed-48c3-850e-afe53bfc0fe5",
-	"a97bc160-b446-4fde-8058-02e0b97739dc",
+	"cbb93527-a951-4d52-b6c5-13d33521339c",
 	'comparator',
 	'',
 	'',
@@ -484,6 +428,66 @@ INSERT INTO O_ATTR
 	"ba5eda7a-def5-0000-0000-000000000004",
 	'',
 	'');
+INSERT INTO O_DBATTR
+	VALUES ("5f30f676-d26a-44e2-81ef-ce9ccbb41325",
+	"82cf3088-71ed-48c3-850e-afe53bfc0fe5",
+	'fields = self.name;
+
+// instance state machine
+select one sm related by self->StateMachine[R4750];
+if not_empty sm and sm.is_instance;
+  fields = fields + "currentState";
+end if;
+
+// serializable attributes
+select many attrs related by self->Attribute[R410] where not selected.transient and SORT::ascending(attr:"name");
+for each attr in attrs
+  fields = fields + attr.name + attr.type_reference;
+end for;
+
+// relationships
+select many selects related by self->Selector[R442] where SORT::ascending(attr:"name");
+for each selector in selects
+  if (selector.multiplicity == Mult::MANY)
+    select one element_type_ref related by selector->TypeReference[R446]->StreamTypeReference[R3801]->TypeReference[R3812];
+    type_ref = ::getSetReference(element_type:element_type_ref);
+    fields = fields + selector.name + type_ref.type_reference;
+  else
+    select one rel related by selector->Relationship[R4512];
+    // check if this is a supertype selecting to a subtype
+    if rel.rel_type == RelationshipType::SuperSubtype and selector.class_name == rel.part_name and selector.class_package == rel.part_package
+      // only render one declaration
+      select many rels related by rel->Class[R434]->Relationship[R434] where selected.num == rel.num;
+      select any first_sel related by rels->Selector[R4512] where SORT::ascending(attr:"name") and
+        selected.class_name == selector.class_name and selected.class_package == selector.class_package;
+      if not_empty first_sel and first_sel.name == selector.name
+        fields = fields + STRING::itoa(i:rel.num);
+      end if;
+    else
+      select one type_ref related by selector->TypeReference[R446];
+      fields = fields + selector.name + type_ref.type_reference;
+    end if;
+  end if;
+end for;
+
+self.serial_version_id = C_UTIL::hashCode(s:fields);',
+	1,
+	0);
+INSERT INTO O_BATTR
+	VALUES ("5f30f676-d26a-44e2-81ef-ce9ccbb41325",
+	"82cf3088-71ed-48c3-850e-afe53bfc0fe5");
+INSERT INTO O_ATTR
+	VALUES ("5f30f676-d26a-44e2-81ef-ce9ccbb41325",
+	"82cf3088-71ed-48c3-850e-afe53bfc0fe5",
+	"c9564b5b-70c8-4271-b1a9-915035b947cb",
+	'serial_version_id',
+	'',
+	'',
+	'serial_version_id',
+	0,
+	"ba5eda7a-def5-0000-0000-000000000002",
+	'',
+	'1');
 INSERT INTO O_ID
 	VALUES (2,
 	"82cf3088-71ed-48c3-850e-afe53bfc0fe5");

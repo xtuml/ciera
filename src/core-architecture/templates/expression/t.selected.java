@@ -1,1 +1,1 @@
-((${self.cast})selected)\
+((${type_name}) selected)\

@@ -1,4 +1,4 @@
-.if ( "" != actions )
-${indent}/* ${actions} */
+.if (self.label != "")
+${self.label}:
 .end if
-${prefix}${indent}for ( Iterator<${iterator_type}> _${self.iterator_name}_iter = ${iterable_expr}.elements().iterator(); _${self.iterator_name}_iter.hasNext(); ) ${control_block}\
+for (final ${iterator_type} ${iterator_name} : ${iterable_expr}) ${control_block}

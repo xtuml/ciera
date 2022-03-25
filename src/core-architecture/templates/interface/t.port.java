@@ -2,33 +2,46 @@ package ${self.package};
 
 ${imports}
 
-public class ${self.name} extends ${self.base_class}<${self.comp_name}> implements ${self.iface_name} {
+public class ${self.name} extends \
+.if (self.supertype_name != "")
+${self.supertype_name} \
+.else
+AbstractPort \
+.end if
+implements ${self.iface_name} {
 
-    public ${self.name}( ${self.comp_name} context, IPort<?> peer ) {
-        super( context, peer );
+    public ${self.name}(${self.comp_name} domain) {
+        super("${self.name}", domain);
+    }
+
+    public ${self.name}(String name, ${self.comp_name} domain) {
+        super(name, domain);
     }
 
     // inbound messages
-${inbound_message_block}
+    ${inbound_message_block}\
 
     // outbound messages
-${outbound_message_block}
+    ${outbound_message_block}\
 
+.if (message_switch_block != "")
     @Override
-    public void deliver( IMessage message ) throws XtumlException {
-        if ( null == message ) throw new BadArgumentException( "Cannot deliver null message." );
-        switch ( message.getId() ) {
-${message_switch_block}\
-        default:
-            throw new BadArgumentException( "Message not implemented by this port." );
+    public void deliver(Message message) {
+        if (message != null) {
+            switch (message.getId()) {
+            ${message_switch_block}\
+            default:
+                throw new PortMessageException("Message not implemented by this port", getDomain(), this, message);
+            }
+        } else {
+            throw new PortMessageException("Cannot deliver null message", getDomain(), this, message);
         }
     }
 
-${extra_parameters}
-
+.end if
     @Override
-    public String getName() {
-        return "${self.port_name}";
+    public ${self.comp_name} getDomain() {
+        return (${self.comp_name}) super.getDomain();
     }
 
 }

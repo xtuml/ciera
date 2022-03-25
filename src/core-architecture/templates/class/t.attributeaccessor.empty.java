@@ -1,9 +1,11 @@
-.if ( is_getter )
-    public ${type_name} ${name}() throws XtumlException {
-        throw new EmptyInstanceException( "Cannot get attribute of empty instance." );
-    }
+.if (is_getter)
+@Override
+public ${type_name} ${name}() {
+    throw new EmptyInstanceException("Cannot get attribute '${self.attribute_name}' of empty instance", null, this);
+}
 .else
-    public void ${name}( ${type_name} ${self.attribute_name} ) throws XtumlException {
-        throw new EmptyInstanceException( "Cannot set attribute of empty instance." );
-    }
+@Override
+public void ${name}(${type_name} ${self.attribute_name}) {
+    throw new EmptyInstanceException("Cannot set attribute '${self.attribute_name}' of empty instance", null, this);
+}
 .end if

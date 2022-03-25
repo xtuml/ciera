@@ -1,4 +1,5 @@
-.if ( "" != actions )
-${indent}/* ${actions} */
+.if (self.label == "")
+break;
+.else
+break ${self.label};
 .end if
-${prefix}${indent}break;

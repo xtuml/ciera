@@ -1,1 +1,1 @@
-context().${self.selector_name}()\
+getDomain().getAllInstances(${self.class_name}.class)\
