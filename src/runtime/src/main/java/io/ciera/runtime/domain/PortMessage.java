@@ -43,10 +43,7 @@ public class PortMessage implements Message {
     }
 
     /**
-     * Access the parameter datum at the specified index.
-     * 
-     * @param index The index at which to access the datum.
-     * @return The parameter datum.
+     * {@inheritDoc}
      */
     @Override
     public Object get(String key) {
