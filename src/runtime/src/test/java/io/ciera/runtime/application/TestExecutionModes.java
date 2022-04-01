@@ -44,6 +44,7 @@ public class TestExecutionModes {
                     @Override
                     public void initialize() {
                     }
+
                     @Override
                     public Port getPort(String portName) {
                         return null;
@@ -74,6 +75,7 @@ public class TestExecutionModes {
                     @Override
                     public void initialize() {
                     }
+
                     @Override
                     public Port getPort(String portName) {
                         return null;
@@ -100,6 +102,7 @@ public class TestExecutionModes {
             @Override
             public void initialize() {
             }
+
             @Override
             public Port getPort(String portName) {
                 return null;
@@ -143,7 +146,7 @@ public class TestExecutionModes {
             @Override
             public void consumeEvent(Event event) {
                 String key = (String) event.getData(0);
-                app.getLogger().trace("Handling event: %s", key);
+                app.getLogger().trace("Handling event: " + key);
                 output.add(key);
                 if (key.startsWith("A") && Aiter.hasNext()) {
                     // generate the next event

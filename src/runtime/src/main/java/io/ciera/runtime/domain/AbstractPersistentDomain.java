@@ -48,9 +48,12 @@ public abstract class AbstractPersistentDomain extends AbstractDomain implements
         out.writeObject(instances);
 
         /*
-        getApplication().getLogger().trace("%d pending timers persisted for: %s", timers.length, this);
-        getApplication().getLogger().trace("%d waiting tasks persisted for: %s", tasks.length, this);
-        getApplication().getLogger().trace("%d object instances persisted for: %s", instances.length, this);
+         * getApplication().getLogger().trace("{} pending timers persisted for: {}",
+         * timers.length, this);
+         * getApplication().getLogger().trace("{} waiting tasks persisted for: {}",
+         * tasks.length, this);
+         * getApplication().getLogger().trace("{} object instances persisted for: {}",
+         * instances.length, this);
          */
     }
 
@@ -73,9 +76,12 @@ public abstract class AbstractPersistentDomain extends AbstractDomain implements
         Stream.of(instances).forEach(this::addInstance);
 
         /*
-        getApplication().getLogger().trace("%d pending timers loaded for: %s", timers.length, this);
-        getApplication().getLogger().trace("%d waiting tasks loaded for: %s", tasks.length, this);
-        getApplication().getLogger().trace("%d object instances loaded for: %s", instances.length, this);
+         * getApplication().getLogger().trace("{} pending timers loaded for: {}",
+         * timers.length, this);
+         * getApplication().getLogger().trace("{} waiting tasks loaded for: {}",
+         * tasks.length, this);
+         * getApplication().getLogger().trace("{} object instances loaded for: {}",
+         * instances.length, this);
          */
     }
 

@@ -9,10 +9,12 @@ import java.util.Optional;
 import java.util.ServiceLoader;
 import java.util.stream.Stream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.ciera.runtime.api.application.Application;
 import io.ciera.runtime.api.application.ExceptionHandler;
 import io.ciera.runtime.api.application.ExecutionContext;
-import io.ciera.runtime.api.application.Logger;
 import io.ciera.runtime.api.domain.Domain;
 import io.ciera.runtime.api.time.SystemClock;
 import io.ciera.runtime.application.task.DomainInitialization;
@@ -35,7 +37,7 @@ public class BaseApplication implements Application {
         this.contexts = new HashMap<>();
         this.domains = new HashMap<>();
         this.clock = new WallClock();
-        this.logger = new DefaultLogger(name + "Logger", this);
+        this.logger = LoggerFactory.getLogger(name + "Logger");
         this.exceptionHandler = new DefaultExceptionHandler();
     }
 

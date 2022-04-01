@@ -15,11 +15,12 @@ import java.util.concurrent.PriorityBlockingQueue;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.slf4j.Logger;
+
 import io.ciera.runtime.api.application.Application;
 import io.ciera.runtime.api.application.Event;
 import io.ciera.runtime.api.application.EventTarget;
 import io.ciera.runtime.api.application.ExecutionContext;
-import io.ciera.runtime.api.application.Logger;
 import io.ciera.runtime.api.domain.Domain;
 import io.ciera.runtime.api.domain.PersistentDomain;
 import io.ciera.runtime.api.exceptions.EventTargetException;
@@ -173,7 +174,7 @@ public class ThreadExecutionContext implements ExecutionContext, Runnable {
     @Override
     @Deprecated
     public void delay(Duration delay) {
-        getLogger().trace("DEL: delaying for %s", delay);
+        getLogger().trace("DEL: delaying for {}", delay);
         try {
             Thread.sleep(delay.getValue() / 1000000l, (int) delay.getValue() % 1000000);
         } catch (InterruptedException e) {

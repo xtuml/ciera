@@ -24,15 +24,15 @@ public class LOG {
     }
 
     public void LogInteger(final int message) {
-        app.getLogger().info("%d", message);
+        app.getLogger().info("{}", message);
     }
 
     public void LogReal(final String message, final double r) {
-        app.getLogger().info("%s %f", message, r);
+        app.getLogger().info("{} {}", message, r);
     }
 
     public void LogTime(final String message, final long t) {
-        app.getLogger().info("%s %d", message, t);
+        app.getLogger().info("{} {}", message, t);
     }
 
 }

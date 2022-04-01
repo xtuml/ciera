@@ -58,7 +58,7 @@ public abstract class AbstractDomain implements Domain {
 
     @Override
     public void initialize() {
-        getApplication().getLogger().trace("%s initialized", this);
+        getApplication().getLogger().trace("{} initialized", this);
     }
 
     @Override

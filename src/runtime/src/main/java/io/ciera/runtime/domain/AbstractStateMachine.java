@@ -4,7 +4,6 @@ import java.util.function.Consumer;
 
 import io.ciera.runtime.api.application.Event;
 import io.ciera.runtime.api.application.ExecutionContext;
-import io.ciera.runtime.api.application.Logger;
 import io.ciera.runtime.api.domain.Domain;
 import io.ciera.runtime.api.domain.StateMachine;
 import io.ciera.runtime.api.domain.TransitionRule;
@@ -22,10 +21,10 @@ public abstract class AbstractStateMachine implements StateMachine {
 
     protected void executeTransition(Event event, Consumer<Enum<?>> updateCurrentState) {
         TransitionRule transition = getTransition(getCurrentState(), event);
-        traceTxn("TXN START:", name, getCurrentState().name(), event.toString(), "...", Logger.ANSI_RESET);
+        traceTxn("TXN START:", name, getCurrentState().name(), event.toString(), "...", "\u001b[0m");
         Enum<?> newState = transition.execute();
         if (newState != null) {
-            traceTxn("TXN END:", name, getCurrentState().name(), event.toString(), newState.name(), Logger.ANSI_GREEN);
+            traceTxn("TXN END:", name, getCurrentState().name(), event.toString(), newState.name(), "\u001b[32m");
             updateCurrentState.accept(newState);
         }
     }

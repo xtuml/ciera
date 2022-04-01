@@ -1,8 +1,9 @@
 package io.ciera.runtime.time;
 
+import org.slf4j.Logger;
+
 import io.ciera.runtime.api.application.Application;
 import io.ciera.runtime.api.application.ExecutionContext;
-import io.ciera.runtime.api.application.Logger;
 import io.ciera.runtime.api.time.Timer;
 import io.ciera.runtime.api.types.Date;
 import io.ciera.runtime.api.types.Duration;
@@ -44,10 +45,10 @@ public abstract class AbstractTimer implements Timer {
 
     @Override
     public boolean schedule(long delay) {
-        getLogger().trace("TMR: Scheduling timer: %s at %s", this, new Date(getContext().getClock().getTime() + delay));
+        getLogger().trace("TMR: Scheduling timer: {} at {}", this, new Date(getContext().getClock().getTime() + delay));
         synchronized (getContext()) {
             if (delay < 0 && System.getProperty("io.ciera.runtime.dropNegativeDelays") != null) {
-                getLogger().trace("Dropping timer with negative delay: %s, %s", new Duration(delay), this);
+                getLogger().trace("Dropping timer with negative delay: {}, {}", new Duration(delay), this);
                 cancel();
             } else {
                 expiration = expired ? expiration + delay : getContext().getClock().getTime() + delay;
@@ -60,7 +61,7 @@ public abstract class AbstractTimer implements Timer {
 
     @Override
     public void fire() {
-        getLogger().trace("TMR: Firing timer: %s", this);
+        getLogger().trace("TMR: Firing timer: {}", this);
         expired = true;
         Task action = getAction();
         if (action != null) {
@@ -83,7 +84,7 @@ public abstract class AbstractTimer implements Timer {
 
     @Override
     public boolean cancel() {
-        getLogger().trace("TMR: Cancelling timer: %s", this);
+        getLogger().trace("TMR: Cancelling timer: {}", this);
         scheduled = false;
         expired = false;
         return getContext().getClock().unregisterTimer(this);
