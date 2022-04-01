@@ -17,9 +17,9 @@ import io.ciera.runtime.api.types.UniqueId;
 public interface Message extends Comparable<Message>, Serializable {
 
     /**
-     * Access the parameter datum at the specified index.
+     * Access the parameter datum identified by the specified key.
      * 
-     * @param index The index at which to access the datum.
+     * @param key The string key which identifies the datum.
      * @return The parameter datum.
      */
     public Object get(String key);
