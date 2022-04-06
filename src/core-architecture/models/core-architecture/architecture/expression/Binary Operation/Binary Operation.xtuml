@@ -35,6 +35,14 @@ if self.operator == "="
     select one left_operand related by attr_access->Expression[R785];
   end if;
 
+  // for structure member references on the left hand side, the operator is the name of the setter
+  select one member_reference related by left_operand->StructureMemberReference[R776];
+  if not_empty member_reference
+    operator = "set" + T::sub(format:"c", s:member_reference.member_name);
+    self.invocation = true;
+    select one left_operand related by member_reference->Expression[R3929];
+  end if;
+
   // for by ref param accesses on the left hand side, the operator is the name of the setter
   select one param_ref related by left_operand->ParameterReference[R776];
   select one form_param related by param_ref->FormalParameter[R781];
