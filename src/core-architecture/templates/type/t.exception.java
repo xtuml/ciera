@@ -1,8 +1,4 @@
-package ${self.package};
-
-${imports}
-
-public class ${self.name} extends ActionException {
+class ${self.name} extends ActionException {
 
     private static final long serialVersionUID = 1l;
 

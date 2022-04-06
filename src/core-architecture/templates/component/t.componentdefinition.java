@@ -35,7 +35,7 @@ AbstractPersistentDomain implements PersistentDomain {
         super(name\
 .if (population_class != "")
 , ${population_class}::new\
-.end if;
+.end if
 );
         ${utility_initializers}
         ${port_initializers}

@@ -16,20 +16,42 @@ INSERT INTO O_TFR
 	1,
 	'
 select one file related by self->File[R401];
-select one base_type_ref related by self->NamedTypeReference[R3803]->TypeReference[R3804];
-if base_type_ref.type_reference == "ActionException"
 
-  ::resolveImportsForTypeReference(type_ref:base_type_ref);
+T::push_buffer();
 
-  imports = file.get_imports();
+select one sdt related by self->Type[R3803]->StructureType[R407];
+if not_empty sdt
+  sdt.render();
+end if;
 
-  T::include(file:"type/t.exception.java");
+select one edt related by self->Type[R3803]->EnumeratedType[R407];
+if not empty edt
+  edt.render();
+end if;
 
-else
-  // TODO
+select one base_type_ref related by self->Type[R3803]->NamedTypeReference[R407]->TypeReference[R3804];
+if not_empty base_type_ref
+
+	if base_type_ref.type_reference == "ActionException"
+
+		::resolveImportsForTypeReference(type_ref:base_type_ref);
+
+
+		T::include(file:"type/t.exception.java");
+
+	else
+		// TODO
+
+	end if;
 
 end if;
 
+type_body = T::body();
+T::pop_buffer();
+
+imports = file.get_imports();
+
+T::include(file:"type/t.userdefinedtype.java");
 
 // emit the file
 T::emit(file:file.path + "/" + self.name + file.extension);
@@ -69,18 +91,18 @@ INSERT INTO O_RTIDA_PROXY
 	'../../file/file.xtuml');
 INSERT INTO O_REF
 	VALUES ("81944c8e-af0c-44c4-803a-b190e0a57feb",
-	"5e54f44c-80ca-4822-8f50-67534acaa27c",
+	"b5de937b-55ee-48e4-8e91-d9d73c3f0fab",
 	0,
-	"1e83c15e-c9a4-404e-b240-d4e7cd2a9e39",
+	"864744e7-2f4c-4f9f-b744-73335f8defd3",
 	"5229fc94-9f45-4c14-b66e-ae598cdf6db8",
 	"0c11812f-691d-4a2b-9813-86271c46a0f5",
 	"69a72c6c-0a18-49a4-8ff4-51e62eb80056",
 	"0db5d22f-7611-40e6-b503-fbc50fa75380",
-	"f2d931e3-fcfb-42b2-bc55-f7348ddb6c24",
+	"9a670138-210d-4803-abf5-fc6ea8b56e8a",
 	"dc5400cf-cb66-403f-b8e4-dbf8bb5d906f",
 	0,
 	'',
-	'Named Type Reference',
+	'Type',
 	'name',
 	'R3803.''defines''');
 INSERT INTO R_RGO_PROXY
@@ -89,8 +111,8 @@ INSERT INTO R_RGO_PROXY
 	"0c11812f-691d-4a2b-9813-86271c46a0f5",
 	'../type.xtuml');
 INSERT INTO O_RTIDA_PROXY
-	VALUES ("1e83c15e-c9a4-404e-b240-d4e7cd2a9e39",
-	"5e54f44c-80ca-4822-8f50-67534acaa27c",
+	VALUES ("864744e7-2f4c-4f9f-b744-73335f8defd3",
+	"b5de937b-55ee-48e4-8e91-d9d73c3f0fab",
 	0,
 	"5229fc94-9f45-4c14-b66e-ae598cdf6db8",
 	"69a72c6c-0a18-49a4-8ff4-51e62eb80056",
@@ -112,6 +134,8 @@ INSERT INTO O_ATTR
 	"00000000-0000-0000-0000-000000000000",
 	'name',
 	'
+
+
 
 
 
