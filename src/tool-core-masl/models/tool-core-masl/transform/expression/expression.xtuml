@@ -58,6 +58,10 @@ select one selected_attribute_expression related by masl_expression->SelectedAtt
 if (not_empty selected_attribute_expression)
   ::transformSelectedAttributeExpression(selected_attribute_expression:selected_attribute_expression, smt:smt, expr_number:expr_number);
 else
+select one selected_component_expression related by masl_expression->SelectedComponentExpression[R5517];
+if (not_empty selected_component_expression)
+  ::transformSelectedComponentExpression(selected_component_expression:selected_component_expression, smt:smt, expr_number:expr_number);
+else
 select one unary_expression related by masl_expression->UnaryExpression[R5517];
 if (not_empty unary_expression)
   ::transformUnaryExpression(unary_expression:unary_expression, smt:smt, expr_number:expr_number);
@@ -99,7 +103,7 @@ if (not_empty ordering_expression)
   ::transformOrderingExpression(ordering_expression:ordering_expression, smt:smt, expr_number:expr_number);
 else
   LOG::LogInfo( message:"expression type not yet supported" );
-end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if;',
+end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -2179,6 +2183,78 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("f13df76c-4e75-486d-a0de-f6e5676e3a20",
+	1,
+	"6b1296bb-978b-44fd-b197-7cada155e1c8",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("41a2ed9d-1c9b-4381-89ce-66b6b0deafc3",
+	"00000000-0000-0000-0000-000000000000",
+	'transformSelectedComponentExpression',
+	'',
+	'selected_component_expression = param.selected_component_expression;
+smt = param.smt;
+expr_number = param.expr_number;
+
+// create expression
+create object instance expr of Expression;
+relate expr to smt across R775;
+expr.expression_number = expr_number;
+
+// link type
+select one basic_type related by selected_component_expression->StructureElement[R5543]->BasicType[R6230];
+type = ::getTypeReferenceForMASLType(basic_type:basic_type);
+relate type to expr across R795;
+
+create object instance member_reference of StructureMemberReference;
+relate member_reference to expr across R776;
+select one root_expression related by selected_component_expression->MaslExpression[R5544];
+::transformMaslExpression(masl_expression:root_expression, expr_number:expr.expression_number + ".1", smt:smt);
+select any root_expr related by smt->Expression[R775] where (selected.expression_number == expr.expression_number + ".1");
+relate root_expr to member_reference across R3929;
+select one structure_member related by selected_component_expression->StructureElement[R5543]->StructureMember[R8315];
+relate structure_member to member_reference across R3928;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	1);
+INSERT INTO S_SPARM
+	VALUES ("47acea96-c76c-4af8-a6b0-d77b77f4f1ad",
+	"41a2ed9d-1c9b-4381-89ce-66b6b0deafc3",
+	'selected_component_expression',
+	"c30818fa-28ab-411b-93b8-bc166dde84bf",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("c30818fa-28ab-411b-93b8-bc166dde84bf",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<SelectedComponentExpression>',
+	'',
+	'',
+	'../../../../../ooamasl/models/ooamasl/ooamasl/expression/expression.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("bd9a3c41-1d61-410c-9463-af08f9641da0",
+	"41a2ed9d-1c9b-4381-89ce-66b6b0deafc3",
+	'smt',
+	"b586ec7e-41fe-4d50-9cf3-27b173e9848a",
+	0,
+	'',
+	"47acea96-c76c-4af8-a6b0-d77b77f4f1ad",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("cfe1d5c3-0a07-4669-98c3-4f675a41515c",
+	"41a2ed9d-1c9b-4381-89ce-66b6b0deafc3",
+	'expr_number',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"bd9a3c41-1d61-410c-9463-af08f9641da0",
+	'');
+INSERT INTO PE_PE
+	VALUES ("41a2ed9d-1c9b-4381-89ce-66b6b0deafc3",
 	1,
 	"6b1296bb-978b-44fd-b197-7cada155e1c8",
 	"00000000-0000-0000-0000-000000000000",
