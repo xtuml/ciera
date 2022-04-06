@@ -1018,7 +1018,7 @@ else
 end if;
 attr.base_name = maslattr.name;
 attr.order = param.index;
-attr.default_value = "";
+attr.default_value = "";  // TODO
 relate attr to obj across R410;
 
 // set part of identifier
@@ -2274,9 +2274,16 @@ INSERT INTO S_SYNC
 	'',
 	'type_declaration = param.type_declaration;
 
+// Enumerate types
 select one enumerate_type related by type_declaration->TypeDeclaration[R6241]->TypeDefinition[R6234]->FullTypeDefinition[R6236]->EnumerateType[R6219];
 if not_empty enumerate_type
   ::transformEnumerateType(enumerate_type:enumerate_type, type_declaration:type_declaration, comp_def:param.comp_def, exclude:param.exclude);
+end if;
+
+// Structure types
+select one structure_type related by type_declaration->TypeDeclaration[R6241]->TypeDefinition[R6234]->FullTypeDefinition[R6236]->MaslStructureType[R6219];
+if not_empty structure_type
+  ::transformStructureType(structure_type:structure_type, type_declaration:type_declaration, comp_def:param.comp_def, exclude:param.exclude);
 end if;
 
 // TODO transform other types
@@ -2444,6 +2451,126 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("1a74d339-a16d-4cad-9c0c-e8737babf5be",
+	1,
+	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("aa55c36a-3c1a-455f-8097-a04ba0607f4e",
+	"00000000-0000-0000-0000-000000000000",
+	'transformStructureType',
+	'',
+	'structure_type = param.structure_type;
+type_declaration = param.type_declaration;
+select one domain related by type_declaration->Domain[R6235];
+comp_def = param.comp_def;
+
+select one component_file related by comp_def->File[R401];
+path = component_file.path + "/internal/types";  // put all types in one package called ''exceptions''
+if type_declaration.visibility == MaslVisibility::public
+  path = component_file.path + "/types";  // put all public types in a separate package
+end if;
+
+// create the file
+create object instance file of File;
+file.name = ::camelCaseName(name:type_declaration.name, start_lower:false);
+file.path = path;
+file.package = ::pathToPackage( path:file.path );
+file.extension = ".java";
+file.exclude = param.exclude;
+
+// create the user defined type
+create object instance udt of UserDefinedType;
+relate udt to file across R401;
+
+// create the type
+create object instance type of Type;
+type.name = file.name;
+type.package = file.package;
+type.default_value = "new " + file.name + "()";
+relate type to udt across R3803;
+relate type to type_declaration across R8314;
+
+// create the structure type
+create object instance sdt of StructureType;
+relate type to sdt across R407;
+
+// transform members
+select one component related by structure_type->StructureElement[R6244];
+select any prev_structure_member from instances of StructureMember where false;
+while not_empty component
+  // create new structure member
+  create object instance structure_member of StructureMember;
+  relate structure_member to sdt across R3809;
+  structure_member.name = component.name;
+  
+  // link the type
+  select one basic_type related by component->BasicType[R6230];
+  type_ref = ::getTypeReferenceForMASLType(basic_type:basic_type);
+  relate type_ref to structure_member across R3810;
+
+  // configure structure member
+  structure_member.transient = not type_ref.serializable;
+  structure_member.default_value = ""; // TODO
+  
+  // link to the previous member
+  if not_empty prev_structure_member
+    relate prev_structure_member to structure_member across R3811.''precedes'';
+  end if;
+  
+  prev_structure_member = structure_member;
+  select one component related by component->StructureElement[R6243.''precedes''];
+end while;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	15);
+INSERT INTO S_SPARM
+	VALUES ("5141ce2e-536e-4242-8838-abad452a13f2",
+	"aa55c36a-3c1a-455f-8097-a04ba0607f4e",
+	'structure_type',
+	"869024cf-debc-45f1-b1ef-6fcbfbf4152f",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("869024cf-debc-45f1-b1ef-6fcbfbf4152f",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<StructureType>',
+	'',
+	'',
+	'../../../../ooamasl/models/ooamasl/ooamasl/type/type.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("09b45831-2e4b-41c4-8dcd-7f6ae39256d4",
+	"aa55c36a-3c1a-455f-8097-a04ba0607f4e",
+	'comp_def',
+	"109e90cb-1d66-46ee-88db-a568044879d0",
+	0,
+	'',
+	"cab861a3-4d6d-4b58-9288-f583b618a5e1",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("4306bb32-b3b6-41d0-baad-49c1ffe13f76",
+	"aa55c36a-3c1a-455f-8097-a04ba0607f4e",
+	'exclude',
+	"ba5eda7a-def5-0000-0000-000000000001",
+	0,
+	'',
+	"09b45831-2e4b-41c4-8dcd-7f6ae39256d4",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("cab861a3-4d6d-4b58-9288-f583b618a5e1",
+	"aa55c36a-3c1a-455f-8097-a04ba0607f4e",
+	'type_declaration',
+	"5f5b21a5-3fd7-4b46-970e-812947d7a192",
+	0,
+	'',
+	"5141ce2e-536e-4242-8838-abad452a13f2",
+	'');
+INSERT INTO PE_PE
+	VALUES ("aa55c36a-3c1a-455f-8097-a04ba0607f4e",
 	1,
 	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
 	"00000000-0000-0000-0000-000000000000",
