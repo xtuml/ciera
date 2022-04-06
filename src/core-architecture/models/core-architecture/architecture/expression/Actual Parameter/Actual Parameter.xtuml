@@ -23,6 +23,7 @@ select one expr related by self->Expression[R794];
 // - attribute references must be wrapped
 select one form_param related by self->FormalParameter[R3904];
 select one attr_ref related by expr->AttributeAccess[R776];
+select one member_ref related by expr->StructureMemberReference[R776];
 if not_empty form_param and form_param.by_ref and not_empty attr_ref;
   select any getter related by attr_ref->Attribute[R788]->AttributeAccessor[R4510] where selected.accessor_type == AttributeAccessorType::GETTER;
   select any setter related by attr_ref->Attribute[R788]->AttributeAccessor[R4510] where selected.accessor_type == AttributeAccessorType::SETTER;
@@ -32,8 +33,18 @@ if not_empty form_param and form_param.by_ref and not_empty attr_ref;
   type_name = base_expr.type_reference;
   base_expr.render();
   expression_body = T::body();
-  ::addStringImport(package:"io.ciera.runtime.domain", class_name:"AttributeParameter");
-  T::include(file:"expression/t.attributeparameter.byref.java");
+  ::addStringImport(package:"io.ciera.runtime.domain", class_name:"MemberParameter");
+  T::include(file:"expression/t.memberparameter.byref.java");
+elif not_empty form_param and form_param.by_ref and not_empty member_ref;
+  select one structure_member related by member_ref->StructureMember[R3928];
+  getter_name = "get" + T::sub(format:"c", s:structure_member.name);
+  setter_name = "set" + T::sub(format:"c", s:structure_member.name);
+  select one base_expr related by member_ref->Expression[R3929];
+  type_name = base_expr.type_reference;
+  base_expr.render();
+  expression_body = T::body();
+  ::addStringImport(package:"io.ciera.runtime.domain", class_name:"MemberParameter");
+  T::include(file:"expression/t.memberparameter.byref.java");
 else
   // simply render the expression as is
   expr.render();
