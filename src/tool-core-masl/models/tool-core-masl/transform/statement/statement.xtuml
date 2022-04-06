@@ -633,50 +633,54 @@ relate expr to smt across R775;
 expr.expression_number = "1";
 relate expr to eas across R476;
 
+// create binary operation and assignment expression
+create object instance binop of BinaryOperation;
+relate binop to expr across R776;
+binop.operator = "=";
+binop.invocation = false;
+
 // create new variable
 ::transformVariableDeclaration(variable_declaration:variable_declaration, smt:smt, link_in_scope:true);
 var = ::getVariableInScope(smt:smt, name:variable_declaration.name);
-select one type related by var->TypeReference[R461];
-relate type to expr across R795;
 
+// create variable reference for left operand
+create object instance l_op of Expression;
+relate l_op to smt across R775;
+l_op.expression_number = "1.1";
+relate l_op to binop across R779;
+
+// link type
+select one type related by var->TypeReference[R461];
+relate type to l_op across R795;
+
+// create variable reference
+create object instance var_ref of VariableReference;
+relate var to var_ref across R782;
+relate var_ref to l_op across R776;
+var_ref.declaration = true;
+
+// create right operand
 select one init_expr related by variable_declaration->MaslExpression[R5138];
 if not_empty init_expr
-
-  // create binary operation and assignment expression
-  create object instance binop of BinaryOperation;
-  relate binop to expr across R776;
-  binop.operator = "=";
-  binop.invocation = false;
-  
-  // create variable reference for left operand
-  create object instance l_op of Expression;
-  relate l_op to smt across R775;
-  l_op.expression_number = "1.1";
-  relate l_op to binop across R779;
-  
-  // link type
-  relate type to l_op across R795;
-  
-  // create variable reference
-  create object instance var_ref of VariableReference;
-  relate var_ref to l_op across R776;
-  relate var to var_ref across R782;
-  var_ref.declaration = true;
-
-  // create right operand
   ::transformMaslExpression(masl_expression:init_expr, expr_number:"1.2", smt:smt);
-  select any r_op related by smt->Expression[R775] where (selected.expression_number == "1.2");
-  relate r_op to binop across R778;
-
 else
+  // if no initializer exists, simply use the default value for the type
+  create object instance r_op of Expression;
+  relate r_op to smt across R775;
+  r_op.expression_number = "1.2";
+  // link type
+  relate type to r_op across R795;
+  // create a named expression
+  select one expr_type related by var->TypeReference[R461]->Type[R3800];
+  create object instance named_expr of NamedReference;
+  named_expr.name = expr_type.default_value;
+  relate named_expr to r_op across R776;
+end if;
+select any r_op related by smt->Expression[R775] where (selected.expression_number == "1.2");
+relate r_op to binop across R778;
 
-  // create variable reference
-  create object instance var_ref of VariableReference;
-  relate var_ref to expr across R776;
-  relate var to var_ref across R782;
-  var_ref.declaration = true;
-
-end if;',
+// link l_op type to the main expression
+relate type to expr across R795;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
