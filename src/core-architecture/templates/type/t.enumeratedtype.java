@@ -1,6 +1,4 @@
-package ${self.package};
-
-public enum ${self.name} {
+enum ${self.name} {
 
     ${enumerators}\
 

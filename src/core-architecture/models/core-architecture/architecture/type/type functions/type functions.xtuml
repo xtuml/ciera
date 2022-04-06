@@ -448,15 +448,6 @@ INSERT INTO S_SYNC
 	'',
 	'type = param.type;
 
-// TODO structured type
-
-// enumerated type
-select one edt related by type->EnumeratedType[R407];
-if not_empty edt
-  select one edt_file related by edt->File[R401];
-  ::addFileImport(file:edt_file);
-end if;
-
 // built in types
 select one builtin related by type->BuiltInType[R407];
 if not_empty builtin
@@ -465,15 +456,15 @@ if not_empty builtin
   end if;
 end if;
 
-select one named related by type->NamedTypeReference[R407];
-if not_empty named
-  select one udt_file related by named->UserDefinedType[R3803]->File[R401];
-  if not_empty udt_file
-    ::addFileImport(file:udt_file);
-  elif type.package != ""
-    ::addStringImport(package:type.package, class_name:type.name);
-  end if;
-end if;',
+// check if this type is defined in its own file
+select one udt_file related by type->UserDefinedType[R3803]->File[R401];
+if not_empty udt_file
+  ::addFileImport(file:udt_file);
+elif type.package != ""
+  ::addStringImport(package:type.package, class_name:type.name);  // TODO why is this needed?
+end if;
+  
+// TODO check if type is defined within a utility',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',

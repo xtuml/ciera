@@ -7,6 +7,53 @@ INSERT INTO O_OBJ
 	'StructureType',
 	'',
 	"00000000-0000-0000-0000-000000000000");
+INSERT INTO O_TFR
+	VALUES ("37488a88-2593-44e2-9400-5fbf7bcc7c57",
+	"ebc3110c-f599-4325-bc93-03181382b0d0",
+	'render',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'T::push_buffer();
+
+// component declarations
+select many structure_components related by self->StructureMember[R3809] where SORT::ascending(attr:"order");
+for each component in structure_components
+  component.render();
+end for;
+component_decls = T::body();
+
+// constructors
+for each component in structure_components
+  component.render_initializer();
+end for;
+component_initializers = T::body();
+
+// component accessros
+for each component in structure_components
+  component.render_accessors();
+end for;
+component_accessors = T::body();
+
+// components for "toString" method
+sep = "";
+for each component in structure_components
+  component_name = component.name;
+  T::include(file:"type/t.component_to_string.java");
+  sep = ", ";
+end for;
+component_to_strings = T::body();
+
+T::pop_buffer();
+
+::addStringImport(package:"java.io", class_name:"Serializable");
+
+T::include(file:"type/t.structure.java");',
+	1,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	0,
+	1);
 INSERT INTO O_REF
 	VALUES ("ebc3110c-f599-4325-bc93-03181382b0d0",
 	"b5de937b-55ee-48e4-8e91-d9d73c3f0fab",
@@ -58,22 +105,33 @@ INSERT INTO O_ATTR
 	"ba5eda7a-def5-0000-0000-000000000007",
 	'',
 	'');
-INSERT INTO O_NBATTR
-	VALUES ("79291d0c-2887-4853-a2f1-af0758f3a1a6",
-	"ebc3110c-f599-4325-bc93-03181382b0d0");
+INSERT INTO O_DBATTR
+	VALUES ("f3edcf32-7e16-4518-9f65-5d139792da68",
+	"ebc3110c-f599-4325-bc93-03181382b0d0",
+	'fields = self.name;
+
+// serializable attributes
+select many comps related by self->StructureMember[R3809] where not selected.transient and SORT::ascending(attr:"name");
+for each comp in comps
+  fields = fields + comp.name + comp.type_reference;
+end for;
+
+self.serial_version_id = C_UTIL::hashCode(s:fields);',
+	1,
+	0);
 INSERT INTO O_BATTR
-	VALUES ("79291d0c-2887-4853-a2f1-af0758f3a1a6",
+	VALUES ("f3edcf32-7e16-4518-9f65-5d139792da68",
 	"ebc3110c-f599-4325-bc93-03181382b0d0");
 INSERT INTO O_ATTR
-	VALUES ("79291d0c-2887-4853-a2f1-af0758f3a1a6",
+	VALUES ("f3edcf32-7e16-4518-9f65-5d139792da68",
 	"ebc3110c-f599-4325-bc93-03181382b0d0",
 	"0c52bbd2-794f-4fd9-9652-27ff4c31515a",
-	'package',
+	'serial_version_id',
 	'',
 	'',
-	'package',
+	'serial_version_id',
 	0,
-	"ba5eda7a-def5-0000-0000-000000000004",
+	"ba5eda7a-def5-0000-0000-000000000002",
 	'',
 	'');
 INSERT INTO O_ID
