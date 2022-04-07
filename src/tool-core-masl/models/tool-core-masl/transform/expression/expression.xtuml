@@ -1035,11 +1035,11 @@ else
 select one characteristic_expression related by call_expression->CharacteristicExpression[R5500];
 if (not_empty characteristic_expression)
 
-  // translate the root expression
+  // get the type of the base expression
   select one base_masl_expression related by characteristic_expression->MaslExpression[R5504];
-  ::transformMaslExpression(masl_expression:base_masl_expression, expr_number:expr_number + ".1", smt:smt);
-  select any base_expr related by smt->Expression[R775] where (selected.expression_number == expr_number + ".1");
-  select one base_type related by base_expr->TypeReference[R795]->Type[R3800];
+  select one base_expr_type related by base_masl_expression->BasicType[R5570];
+  base_type_ref = ::getTypeReferenceForMASLType(basic_type:base_expr_type);
+  select one base_type related by base_type_ref->Type[R3800];
   type_based = false;
   select one type_name_expression related by base_masl_expression->TypeNameExpression[R5517];
   if not_empty type_name_expression
@@ -1048,50 +1048,120 @@ if (not_empty characteristic_expression)
     base_type_ref = ::getTypeReferenceForMASLType(basic_type:basic_type);
     select one base_type related by base_type_ref->Type[R3800];
   end if;
+  
+  // Sepcial handling for ''first and ''last characteristics for sequences, arrays, and strings
+  if characteristic_expression.characteristic == "first" and not type_based and
+    (base_type.name == "List" or base_type.name == "Array" or base_type.name == "String")
+    
+    // "first" just maps to the literal integer value 0
+    create object instance lit of Literal;
+    relate lit to expr across R776;
+    lit.value = "0";
+    
+  elif characteristic_expression.characteristic == "last" and not type_based and
+    (base_type.name == "List" or base_type.name == "Array" or base_type.name == "String")
 
-  // map the MASL name to the Ciera name
-  characteristic_name = characteristic_expression.characteristic;
-  if characteristic_expression.characteristic == "delta"
-    characteristic_name = "getPeriod";
-  elif characteristic_expression.characteristic == "scheduled_at"
-    characteristic_name = "getScheduledExpirationTime";
-  elif characteristic_expression.characteristic == "expired_at"
-    characteristic_name = "getLastExpirationTime";
-  elif characteristic_expression.characteristic == "scheduled"
-    characteristic_name = "isScheduled";
-  elif characteristic_expression.characteristic == "expired"
-    characteristic_name = "isExpired";
-  elif characteristic_expression.characteristic == "length"
-    characteristic_name = "size";
-  elif characteristic_expression.characteristic == "seconds"
-    characteristic_name = "getSeconds";
-  elif characteristic_expression.characteristic == "image"
-    characteristic_name = "toString";
-  elif characteristic_expression.characteristic == "parse"
-    characteristic_name = "fromString";
-    if base_type.primitive
-      characteristic_name = "parse" + T::sub(format:"c", s:base_type.name);
-    end if;
-  end if;
+    // "last" is the "size()" characteristic - 1
 
-  // find the characteristic
-  select any characteristic related by base_type->Characteristic[R3820] where selected.name == characteristic_name and selected.type_based == type_based;
-  if empty characteristic
-    LOG::LogFailure(message:"Unsupported type characterstic ''" + characteristic_expression.characteristic + "'' (''" + characteristic_name + "'') for type: " + base_type.name);
-    // TODO bad
-  end if;
-  select one invocable related by characteristic->InvocableObject[R427];
+    // create binary operation
+    create object instance binop of BinaryOperation;
+    relate binop to expr across R776;
+    binop.operator = "-";
+    
+    // create left hand side
+    create object instance lhs of Expression;
+    relate lhs to smt across R775;
+    lhs.expression_number = expr.expression_number + ".1";
+    relate type to lhs across R795;
+    relate lhs to binop across R779;
 
-  // create an invocation
-  create object instance invoc of Invocation;
-  relate invoc to expr across R776;
-  relate invoc to invocable across R792;
-  relate base_expr to invoc across R798;
+    // translate the root expression
+    ::transformMaslExpression(masl_expression:base_masl_expression, expr_number:lhs.expression_number + ".1", smt:smt);
+    select any base_expr related by smt->Expression[R775] where (selected.expression_number == lhs.expression_number + ".1");
+    
+		// find the "size" characteristic
+		characteristic_name = "size";
+		if base_type.name == "String";
+		  characteristic_name = "length";
+	  end if;
+		select any characteristic related by base_type->Characteristic[R3820] where selected.name == characteristic_name and selected.type_based == type_based;
+		if empty characteristic
+			LOG::LogFailure(message:"Unsupported type characterstic ''" + characteristic_expression.characteristic + "'' (''" + characteristic_name + "'') for type: " + base_type.name);
+			// TODO bad
+		end if;
+		select one invocable related by characteristic->InvocableObject[R427];
 
-  // transform actual parameters
-  select one first_argument related by call_expression->Argument[R5575];
-  if (not_empty first_argument)
-    ::transformArguments(invocation:invoc, first_argument:first_argument, expr_number:expr.expression_number, base_num:2);
+		// create an invocation
+		create object instance invoc of Invocation;
+		relate invoc to lhs across R776;
+		relate invoc to invocable across R792;
+		relate base_expr to invoc across R798;
+		
+		// create right hand side
+    create object instance rhs of Expression;
+    relate rhs to smt across R775;
+    rhs.expression_number = expr.expression_number + ".2";
+    relate type to rhs across R795;
+    relate rhs to binop across R778;
+    
+    // create literal integer
+    create object instance lit of Literal;
+    relate lit to rhs across R776;
+    lit.value = "1";
+
+  else
+
+    // translate the root expression
+    ::transformMaslExpression(masl_expression:base_masl_expression, expr_number:expr_number + ".1", smt:smt);
+    select any base_expr related by smt->Expression[R775] where (selected.expression_number == expr_number + ".1");
+
+		// map the MASL name to the Ciera name
+		characteristic_name = characteristic_expression.characteristic;
+		if characteristic_expression.characteristic == "delta"
+			characteristic_name = "getPeriod";
+		elif characteristic_expression.characteristic == "scheduled_at"
+			characteristic_name = "getScheduledExpirationTime";
+		elif characteristic_expression.characteristic == "expired_at"
+			characteristic_name = "getLastExpirationTime";
+		elif characteristic_expression.characteristic == "scheduled"
+			characteristic_name = "isScheduled";
+		elif characteristic_expression.characteristic == "expired"
+			characteristic_name = "isExpired";
+		elif characteristic_expression.characteristic == "length"
+		  if base_type.name != "String"
+			  characteristic_name = "size";
+			end if;
+		elif characteristic_expression.characteristic == "seconds"
+			characteristic_name = "getSeconds";
+		elif characteristic_expression.characteristic == "image"
+			characteristic_name = "toString";
+		elif characteristic_expression.characteristic == "parse"
+			characteristic_name = "fromString";
+			if base_type.primitive
+				characteristic_name = "parse" + T::sub(format:"c", s:base_type.name);
+			end if;
+		end if;
+
+		// find the characteristic
+		select any characteristic related by base_type->Characteristic[R3820] where selected.name == characteristic_name and selected.type_based == type_based;
+		if empty characteristic
+			LOG::LogFailure(message:"Unsupported type characterstic ''" + characteristic_expression.characteristic + "'' (''" + characteristic_name + "'') for type: " + base_type.name);
+			// TODO bad
+		end if;
+		select one invocable related by characteristic->InvocableObject[R427];
+
+		// create an invocation
+		create object instance invoc of Invocation;
+		relate invoc to expr across R776;
+		relate invoc to invocable across R792;
+		relate base_expr to invoc across R798;
+
+		// transform actual parameters
+		select one first_argument related by call_expression->Argument[R5575];
+		if (not_empty first_argument)
+			::transformArguments(invocation:invoc, first_argument:first_argument, expr_number:expr.expression_number, base_num:2);
+		end if;
+
   end if;
 
 else
