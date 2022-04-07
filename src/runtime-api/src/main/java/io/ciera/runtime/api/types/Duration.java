@@ -2,7 +2,6 @@ package io.ciera.runtime.api.types;
 
 import java.io.Serializable;
 import java.time.format.DateTimeParseException;
-import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalUnit;
 
 import io.ciera.runtime.api.exceptions.DeserializationException;
@@ -20,26 +19,34 @@ public class Duration implements Serializable {
      */
     public static final Duration ZERO = new Duration();
 
-    private final long value;
+    private final java.time.Duration value;
 
     public Duration() {
         this(0l);
     }
 
     public Duration(long value) {
-        this.value = value;
+        this(java.time.Duration.ofNanos(value));
     }
 
     public Duration(long value, TemporalUnit unit) {
-        this(java.time.Duration.of(value, unit).toNanos());
+        this(java.time.Duration.of(value, unit));
     }
 
     public Duration(Duration o) {
-        this(o.getValue());
+        this(o.value);
+    }
+    
+    public Duration(java.time.Duration value) {
+        this.value = value;
     }
 
     public long getValue() {
-        return value;
+        return value.toNanos();
+    }
+    
+    public int getSeconds() {
+        return (int) value.getSeconds();
     }
 
     /**
@@ -49,7 +56,7 @@ public class Duration implements Serializable {
     @Override
     public String toString() {
         // Create ISO 8601 compliant duration string
-        return java.time.Duration.of(getValue(), ChronoUnit.NANOS).toString();
+        return value.toString();
     }
 
     /**
@@ -61,7 +68,7 @@ public class Duration implements Serializable {
     public static Duration fromString(String s) {
         // Parse ISO 8601 compliant duration string
         try {
-            return new Duration(java.time.Duration.parse(s).toNanos());
+            return new Duration(java.time.Duration.parse(s));
         } catch (NullPointerException | DateTimeParseException e) {
             throw new DeserializationException("Could not parse duration", e);
         }
@@ -69,27 +76,27 @@ public class Duration implements Serializable {
 
     // Arithmetic operations
     public TimeStamp add(TimeStamp t) {
-        return new TimeStamp(value + t.getValue());
+        return new TimeStamp(value.toNanos() + t.getValue());
     }
 
     public Duration add(Duration d) {
-        return new Duration(value + d.getValue());
+        return new Duration(value.toNanos() + d.getValue());
     }
 
     public Duration subtract(Duration d) {
-        return new Duration(value - d.getValue());
+        return new Duration(value.toNanos() - d.getValue());
     }
 
     public Duration multiply(Number n) {
-        return new Duration(value * n.longValue());
+        return new Duration(value.toNanos() * n.longValue());
     }
 
     public Duration divide(Number n) {
-        return new Duration(value / n.longValue());
+        return new Duration(value.toNanos() / n.longValue());
     }
 
     public long divide(Duration n) {
-        return value / n.value;
+        return value.toNanos() / n.getValue();
     }
 
     // TODO mod, remainder, others?
