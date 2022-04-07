@@ -156,9 +156,18 @@ else
     // transform data types
     select many type_declarations related by domain->MaslUserDefinedType[R6235]
       where selected.visibility == MaslVisibility::public or not domain.interface;
-    for each type_declaration in type_declarations
-      ::transformTypeDeclaration(type_declaration:type_declaration, comp_def:comp_def, exclude:domain.interface);
-    end for;
+    while not_empty type_declarations
+      select many retry_declarations from instances of MaslUserDefinedType where false;
+      // attempt to translate each type declaration
+      for each type_declaration in type_declarations
+        success = ::transformTypeDeclaration(type_declaration:type_declaration, comp_def:comp_def, exclude:domain.interface);
+        if not success
+          // add the failed declaration to the retry list
+          retry_declarations = retry_declarations | type_declaration;
+        end if;
+      end for;
+      type_declarations = retry_declarations;
+    end while;
   
   elif (param.pass == 2)
   
@@ -2274,20 +2283,6 @@ INSERT INTO S_SYNC
 	'',
 	'type_declaration = param.type_declaration;
 
-// Enumerate types
-select one enumerate_type related by type_declaration->TypeDeclaration[R6241]->TypeDefinition[R6234]->FullTypeDefinition[R6236]->EnumerateType[R6219];
-if not_empty enumerate_type
-  ::transformEnumerateType(enumerate_type:enumerate_type, type_declaration:type_declaration, comp_def:param.comp_def, exclude:param.exclude);
-end if;
-
-// Structure types
-select one structure_type related by type_declaration->TypeDeclaration[R6241]->TypeDefinition[R6234]->FullTypeDefinition[R6236]->MaslStructureType[R6219];
-if not_empty structure_type
-  ::transformStructureType(structure_type:structure_type, type_declaration:type_declaration, comp_def:param.comp_def, exclude:param.exclude);
-end if;
-
-// TODO transform other types
-
 // add to export package
 if type_declaration.visibility == MaslVisibility::public
   select one type related by type_declaration->Type[R8314];
@@ -2300,8 +2295,31 @@ if type_declaration.visibility == MaslVisibility::public
       relate export_package to mod across R5750;
     end if;
   end if;
-end if;',
-	"ba5eda7a-def5-0000-0000-000000000000",
+end if;
+
+// Enumerate types
+select one enumerate_type related by type_declaration->TypeDeclaration[R6241]->TypeDefinition[R6234]->FullTypeDefinition[R6236]->EnumerateType[R6219];
+if not_empty enumerate_type
+  ::transformEnumerateType(enumerate_type:enumerate_type, type_declaration:type_declaration, comp_def:param.comp_def, exclude:param.exclude);
+  return true;
+end if;
+
+// Structure types
+select one structure_type related by type_declaration->TypeDeclaration[R6241]->TypeDefinition[R6234]->FullTypeDefinition[R6236]->MaslStructureType[R6219];
+if not_empty structure_type
+  ::transformStructureType(structure_type:structure_type, type_declaration:type_declaration, comp_def:param.comp_def, exclude:param.exclude);
+  return true;
+end if;
+
+// Named type reference
+select one basic_type related by type_declaration->TypeDeclaration[R6241]->TypeDefinition[R6234]->BasicType[R6236];
+if not_empty basic_type
+  return ::transformNamedTypeReference(basic_type:basic_type, type_declaration:type_declaration, comp_def:param.comp_def, exclude:param.exclude);
+end if;
+
+// TODO transform other types
+return true;',
+	"ba5eda7a-def5-0000-0000-000000000001",
 	1,
 	'',
 	0,
@@ -2574,6 +2592,114 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("aa55c36a-3c1a-455f-8097-a04ba0607f4e",
+	1,
+	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("834c7b47-d092-4f63-b651-e6d286ad3122",
+	"00000000-0000-0000-0000-000000000000",
+	'transformNamedTypeReference',
+	'',
+	'basic_type = param.basic_type;
+type_declaration = param.type_declaration;
+select one domain related by type_declaration->Domain[R6235];
+comp_def = param.comp_def;
+base_type_ref = ::getTypeReferenceForMASLType(basic_type:basic_type);
+
+if empty base_type_ref
+  // if the base type has not yet translated, bail early
+  return false;
+
+else
+
+  select one component_file related by comp_def->File[R401];
+  path = component_file.path + "/internal/types";  // put all types in one package called ''exceptions''
+  if type_declaration.visibility == MaslVisibility::public
+    path = component_file.path + "/types";  // put all public types in a separate package
+  end if;
+  
+  // create the file
+  create object instance file of File;
+  file.name = ::camelCaseName(name:type_declaration.name, start_lower:false);
+  file.path = path;
+  file.package = ::pathToPackage( path:file.path );
+  file.extension = ".java";
+  file.exclude = param.exclude;
+  
+  // create the user defined type
+  create object instance udt of UserDefinedType;
+  relate udt to file across R401;
+  
+  // create the type
+  create object instance type of Type;
+  type.name = file.name;
+  type.package = file.package;
+  type.default_value = "new " + file.name + "()";
+  relate type to udt across R3803;
+  relate type to type_declaration across R8314;
+  
+  // create the named type reference
+  create object instance named_type_ref of NamedTypeReference;
+  relate type to named_type_ref across R407;
+  
+  // link to the root type reference
+  base_type_ref = ::getTypeReferenceForMASLType(basic_type:basic_type);
+  relate base_type_ref to named_type_ref across R3804;
+  
+  return true;
+
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000001",
+	1,
+	'',
+	0,
+	15);
+INSERT INTO S_SPARM
+	VALUES ("1a2c7268-01a9-4cd8-8884-6256b4ce2394",
+	"834c7b47-d092-4f63-b651-e6d286ad3122",
+	'basic_type',
+	"f2470f88-fc4a-406d-ba1c-54179e448ed4",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("f2470f88-fc4a-406d-ba1c-54179e448ed4",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<BasicType>',
+	'',
+	'',
+	'../../../../ooamasl/models/ooamasl/ooamasl/type/type.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("c42c997d-c2f4-4087-bd86-8c373f3a46c1",
+	"834c7b47-d092-4f63-b651-e6d286ad3122",
+	'comp_def',
+	"109e90cb-1d66-46ee-88db-a568044879d0",
+	0,
+	'',
+	"c0a5c27a-bf55-46d6-bd2a-ee47b7764410",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("276cf815-5481-415e-83af-9f122d8bfea6",
+	"834c7b47-d092-4f63-b651-e6d286ad3122",
+	'exclude',
+	"ba5eda7a-def5-0000-0000-000000000001",
+	0,
+	'',
+	"c42c997d-c2f4-4087-bd86-8c373f3a46c1",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("c0a5c27a-bf55-46d6-bd2a-ee47b7764410",
+	"834c7b47-d092-4f63-b651-e6d286ad3122",
+	'type_declaration',
+	"5f5b21a5-3fd7-4b46-970e-812947d7a192",
+	0,
+	'',
+	"1a2c7268-01a9-4cd8-8884-6256b4ce2394",
+	'');
+INSERT INTO PE_PE
+	VALUES ("834c7b47-d092-4f63-b651-e6d286ad3122",
 	1,
 	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
 	"00000000-0000-0000-0000-000000000000",
