@@ -1,5 +1,13 @@
 package io.ciera.runtime.api.action;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import io.ciera.runtime.api.application.Application;
 import io.ciera.runtime.api.application.Event;
 import io.ciera.runtime.api.application.EventTarget;
@@ -94,5 +102,29 @@ public interface ActionHome {
     public default void delay(Duration delay) {
         getContext().delay(delay);
     }
-
+    
+    public default <E> List<E> newList() {
+        return new ArrayList<>();
+    }
+    
+    public default <E> List<E> newList(Collection<? extends E> c) {
+        return new ArrayList<>(c);
+    }
+    
+    public default <E> Set<E> newSet() {
+        return new LinkedHashSet<>();
+    }
+    
+    public default <E> Set<E> newSet(Collection<? extends E> c) {
+        return new LinkedHashSet<>(c);
+    }
+    
+    public default <K, V> Map<K, V> newMap() {
+        return new HashMap<>();
+    }
+    
+    public default <K, V> Map<K, V> newMap(Map<? extends K, ? extends V> m) {
+        return new HashMap<>(m);
+    }
+    
 }
