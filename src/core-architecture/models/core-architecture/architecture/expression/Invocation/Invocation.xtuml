@@ -16,13 +16,26 @@ INSERT INTO O_TFR
 	1,
 	'T::push_buffer();
 select one base_expr related by self->Expression[R798];
+select one base_builtin related by base_expr->TypeReference[R795]->BasicTypeReference[R3801]->TypeReference[R3801]->Type[R3800]->BuiltInType[R407];
 if not_empty base_expr
-  base_expr.render();
+  if not_empty base_builtin and base_builtin.primitive
+    T::append(s:base_builtin.object_name);
+  else
+    base_expr.render();
+  end if;
 end if;
 base_name = T::body();
 
 parameter_list = "";
 sep = "";
+
+// if the base expression is a primitive type, add it to the parameter list
+if not_empty base_builtin and base_builtin.primitive
+  base_expr.render();
+  parameter_list = parameter_list + sep + T::body();
+  sep = ", ";
+end if;
+
 // get first parameter
 select any parm related by self->ActualParameter[R793];
 select one prev_parm related by parm->ActualParameter[R3905.''follows''];
