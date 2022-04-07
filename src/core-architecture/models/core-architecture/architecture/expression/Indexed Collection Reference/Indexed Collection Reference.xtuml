@@ -2,9 +2,9 @@
 
 INSERT INTO O_OBJ
 	VALUES ("dd211025-afcf-4251-8de1-527c7e1cb8ec",
-	'Array Element Reference',
+	'Indexed Collection Reference',
 	492,
-	'ArrayElementReference',
+	'IndexedCollectionReference',
 	'',
 	"00000000-0000-0000-0000-000000000000");
 INSERT INTO O_TFR
@@ -22,7 +22,14 @@ select one index_expression related by self->Expression[R3901];
 index_expression.render();
 index_expression_body = T::body();
 T::pop_buffer();
-T::include(file:"expression/t.arrayelementreference.java");',
+select one root_type related by root_expression->TypeReference[R795]->Type[R3800];
+if root_type.name == "Array"  // TODO
+  T::include(file:"expression/t.arrayelementreference.java");
+elif root_type.name == "List"
+  T::include(file:"expression/t.listelementreference.java");
+else
+  // TODO bad
+end if;',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",
