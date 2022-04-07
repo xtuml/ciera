@@ -8,7 +8,8 @@ import io.ciera.runtime.api.exceptions.DeserializationException;
  */
 public abstract class Device {
 
-    private static Device console = null;
+    public static final Device CONSOLE = new ReadWriteDevice("CONSOLE", System.in, System.out);
+    public static final Device NULL = new DevNull();
 
     private String name;
 
@@ -55,19 +56,6 @@ public abstract class Device {
      */
     public abstract void flush();
 
-    /**
-     * Get a reference to the built in console device.
-     * 
-     * @return A Device instance that represents input and output from standard
-     *         input and output.
-     */
-    public static Device console() {
-        if (console == null) {
-            console = new ReadWriteDevice("CONSOLE", System.in, System.out);
-        }
-        return console;
-    }
-
     @Override
     public String toString() {
         return name;
@@ -75,6 +63,36 @@ public abstract class Device {
 
     public static Device fromString(String s) {
         throw new DeserializationException("'Device' type is not serializable");
+    }
+    
+    private static final class DevNull extends Device {
+
+        private DevNull() {
+            super("NULL");
+        }
+
+        @Override
+        public <T> T read(Class<T> cls) {
+            throw new UnsupportedOperationException("Cannot read from null device");
+        }
+
+        @Override
+        public String readLine() {
+            throw new UnsupportedOperationException("Cannot read from null device");
+        }
+
+        @Override
+        public void write(Object o) {
+        }
+
+        @Override
+        public void writeLine(Object o) {
+        }
+
+        @Override
+        public void flush() {
+        }
+        
     }
 
 }
