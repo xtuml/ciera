@@ -4,7 +4,6 @@ import io.ciera.runtime.api.application.Application;
 import io.ciera.runtime.api.application.ExecutionContext;
 import io.ciera.runtime.api.application.Logger;
 import io.ciera.runtime.api.time.Timer;
-import io.ciera.runtime.api.types.Date;
 import io.ciera.runtime.api.types.Duration;
 import io.ciera.runtime.api.types.TimeStamp;
 import io.ciera.runtime.api.types.UniqueId;
@@ -44,7 +43,7 @@ public abstract class AbstractTimer implements Timer {
 
     @Override
     public boolean schedule(long delay) {
-        getLogger().trace("TMR: Scheduling timer: %s at %s", this, new Date(getContext().getClock().getTime() + delay));
+        getLogger().trace("TMR: Scheduling timer: %s at %s", this, new TimeStamp(getContext().getClock().getTime() + delay));
         synchronized (getContext()) {
             if (delay < 0 && System.getProperty("io.ciera.runtime.dropNegativeDelays") != null) {
                 getLogger().trace("Dropping timer with negative delay: %s, %s", new Duration(delay), this);

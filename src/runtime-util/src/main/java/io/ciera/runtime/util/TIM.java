@@ -11,7 +11,6 @@ import java.util.TimeZone;
 import io.ciera.runtime.api.application.Application;
 import io.ciera.runtime.api.application.Event;
 import io.ciera.runtime.api.time.Timer;
-import io.ciera.runtime.api.types.Date;
 import io.ciera.runtime.api.types.TimeStamp;
 
 public class TIM {
@@ -27,7 +26,7 @@ public class TIM {
         return new TimeStamp(app.getClock().getTime());
     }
 
-    public Date create_date(final int day, final int hour, final int minute, final int month, final int second,
+    public TimeStamp create_date(final int day, final int hour, final int minute, final int month, final int second,
             final int year) {
         Calendar cal = Calendar.getInstance();
         cal.set(year, month - 1, day, hour, minute, second);
@@ -38,8 +37,8 @@ public class TIM {
         return new TimeStamp(app.getClock().getTime());
     }
 
-    public Date current_date() {
-        return Date.now(app.getClock());
+    public TimeStamp current_date() {
+        return TimeStamp.now(app.getClock());
     }
 
     public int current_seconds() {
@@ -47,27 +46,27 @@ public class TIM {
         return 0; // TODO
     }
 
-    public int get_day(final Date date) {
+    public int get_day(final TimeStamp date) {
         return date.getDay();
     }
 
-    public int get_month(final Date date) {
+    public int get_month(final TimeStamp date) {
         return date.getMonth();
     }
 
-    public int get_year(final Date date) {
+    public int get_year(final TimeStamp date) {
         return date.getYear();
     }
 
-    public int get_hour(final Date date) {
+    public int get_hour(final TimeStamp date) {
         return date.getHour();
     }
 
-    public int get_minute(final Date date) {
+    public int get_minute(final TimeStamp date) {
         return date.getMinute();
     }
 
-    public int get_second(final Date date) {
+    public int get_second(final TimeStamp date) {
         return date.getSecond();
     }
 
