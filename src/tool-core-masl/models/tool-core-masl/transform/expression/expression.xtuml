@@ -106,8 +106,12 @@ select one indexed_name_expression related by masl_expression->IndexedNameExpres
 if (not_empty indexed_name_expression)
   ::transformIndexedNameExpression(indexed_name_expression:indexed_name_expression, smt:smt, expr_number:expr_number);
 else
+select one type_name_expression related by masl_expression->TypeNameExpression[R5517];
+if (not_empty type_name_expression)
+  ::transformTypeNameExpression(type_name_expression:type_name_expression, smt:smt, expr_number:expr_number);
+else
   LOG::LogInfo( message:"expression type not yet supported" );
-end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if;',
+end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -1031,16 +1035,22 @@ else
 select one characteristic_expression related by call_expression->CharacteristicExpression[R5500];
 if (not_empty characteristic_expression)
 
-  // TODO make sure this works for "class based" type characterstics
-
   // translate the root expression
   select one base_masl_expression related by characteristic_expression->MaslExpression[R5504];
   ::transformMaslExpression(masl_expression:base_masl_expression, expr_number:expr_number + ".1", smt:smt);
   select any base_expr related by smt->Expression[R775] where (selected.expression_number == expr_number + ".1");
   select one base_type related by base_expr->TypeReference[R795]->Type[R3800];
+  type_based = false;
+  select one type_name_expression related by base_masl_expression->TypeNameExpression[R5517];
+  if not_empty type_name_expression
+    type_based = true;
+    select one basic_type related by type_name_expression->BasicType[R5578];
+    base_type_ref = ::getTypeReferenceForMASLType(basic_type:basic_type);
+    select one base_type related by base_type_ref->Type[R3800];
+  end if;
 
-  // find the characteristic
-  characteristic_name = "";
+  // map the MASL name to the Ciera name
+  characteristic_name = characteristic_expression.characteristic;
   if characteristic_expression.characteristic == "delta"
     characteristic_name = "getPeriod";
   elif characteristic_expression.characteristic == "scheduled_at"
@@ -1053,10 +1063,14 @@ if (not_empty characteristic_expression)
     characteristic_name = "isExpired";
   elif characteristic_expression.characteristic == "length"
     characteristic_name = "size";
-  else
-    LOG::LogFailure(message:"Unsupported type characterstic ''" + characteristic_expression.characteristic + "'' for type: " + base_type.name);
   end if;
-  select any characteristic related by base_type->Characteristic[R3820] where selected.name == characteristic_name;
+
+  // find the characteristic
+  select any characteristic related by base_type->Characteristic[R3820] where selected.name == characteristic_name and selected.type_based == type_based;
+  if empty characteristic
+    LOG::LogFailure(message:"Unsupported type characterstic ''" + characteristic_expression.characteristic + "'' for type: " + base_type.name);
+    // TODO bad
+  end if;
   select one invocable related by characteristic->InvocableObject[R427];
 
   // create an invocation
@@ -2333,6 +2347,74 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("c09d4484-3f31-46db-8ad5-e35086501925",
+	1,
+	"6b1296bb-978b-44fd-b197-7cada155e1c8",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("b0eab8ce-9a1e-41fa-83f8-483abd236b06",
+	"00000000-0000-0000-0000-000000000000",
+	'transformTypeNameExpression',
+	'',
+	'type_name_expression = param.type_name_expression;
+smt = param.smt;
+expr_number = param.expr_number;
+
+// create expression
+create object instance expr of Expression;
+relate expr to smt across R775;
+expr.expression_number = expr_number;
+
+// link type
+type = ::getBasicTypeReferenceByName(name:"Object");  // TODO maybe a "Class" or "Type" type is needed...
+relate type to expr across R795;
+
+create object instance type_ref_expr of TypeReferenceAsExpression;
+relate type_ref_expr to expr across R776;
+select one basic_type related by type_name_expression->BasicType[R5578];
+base_type_ref = ::getTypeReferenceForMASLType(basic_type:basic_type);
+relate base_type_ref to type_ref_expr across R3921;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	1);
+INSERT INTO S_SPARM
+	VALUES ("2544b5dd-1c6e-4b41-88fb-10c97c2efaf9",
+	"b0eab8ce-9a1e-41fa-83f8-483abd236b06",
+	'type_name_expression',
+	"71647ea1-758f-477e-9797-6fa7ad1d0ced",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("71647ea1-758f-477e-9797-6fa7ad1d0ced",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<TypeNameExpression>',
+	'',
+	'',
+	'../../../../../ooamasl/models/ooamasl/ooamasl/expression/expression.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("ddbad307-9991-4344-a909-d7f25840e85a",
+	"b0eab8ce-9a1e-41fa-83f8-483abd236b06",
+	'smt',
+	"b586ec7e-41fe-4d50-9cf3-27b173e9848a",
+	0,
+	'',
+	"2544b5dd-1c6e-4b41-88fb-10c97c2efaf9",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("ec6f9e22-3d7e-4b91-ba98-9d02183dbdaf",
+	"b0eab8ce-9a1e-41fa-83f8-483abd236b06",
+	'expr_number',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"ddbad307-9991-4344-a909-d7f25840e85a",
+	'');
+INSERT INTO PE_PE
+	VALUES ("b0eab8ce-9a1e-41fa-83f8-483abd236b06",
 	1,
 	"6b1296bb-978b-44fd-b197-7cada155e1c8",
 	"00000000-0000-0000-0000-000000000000",

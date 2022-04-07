@@ -85,14 +85,16 @@ INSERT INTO S_SYNC
 	'// TODO need to complete this for other types
 
 // timer characteristics
-::createCharacteristic(type:"Timer", name:"getPeriod", return_type:"Duration");
-::createCharacteristic(type:"Timer", name:"getScheduledExpirationTime", return_type:"TimeStamp");
-::createCharacteristic(type:"Timer", name:"getLastExpirationTime", return_type:"TimeStamp");
-::createCharacteristic(type:"Timer", name:"isScheduled", return_type:"boolean");
-::createCharacteristic(type:"Timer", name:"isExpired", return_type:"boolean");
+::createCharacteristic(type:"Timer", name:"getPeriod", type_based:false, return_type:"Duration");
+::createCharacteristic(type:"Timer", name:"getScheduledExpirationTime", type_based:false, return_type:"TimeStamp");
+::createCharacteristic(type:"Timer", name:"getLastExpirationTime", type_based:false, return_type:"TimeStamp");
+::createCharacteristic(type:"Timer", name:"isScheduled", type_based:false, return_type:"boolean");
+::createCharacteristic(type:"Timer", name:"isExpired", type_based:false, return_type:"boolean");
 
 // set characteristics TODO move this to the main arch project
-::createCharacteristic(type:"Set", name:"size", return_type:"int");',
+::createCharacteristic(type:"Set", name:"size", type_based:false, return_type:"int");
+
+::createCharacteristic(type:"TimeStamp", name:"now", type_based:true, return_type:"TimeStamp");',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -117,6 +119,7 @@ invocable.parent_package = type.package;
 invocable.name = param.name;
 relate return_type to invocable across R428;
 create object instance characteristic of Characteristic;
+characteristic.type_based = param.type_based;
 relate characteristic to invocable across R427;
 relate characteristic to type across R3820;',
 	"ba5eda7a-def5-0000-0000-000000000000",
@@ -147,6 +150,15 @@ INSERT INTO S_SPARM
 	"1a0b792f-f254-4ac0-96c3-42a338848779",
 	'return_type',
 	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"edca9857-7605-43c8-b282-d90e075de06d",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("edca9857-7605-43c8-b282-d90e075de06d",
+	"1a0b792f-f254-4ac0-96c3-42a338848779",
+	'type_based',
+	"ba5eda7a-def5-0000-0000-000000000001",
 	0,
 	'',
 	"12fab36b-4797-4dae-a48a-4b9d38a322dd",
