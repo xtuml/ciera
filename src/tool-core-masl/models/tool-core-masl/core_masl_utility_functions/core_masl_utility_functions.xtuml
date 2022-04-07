@@ -94,7 +94,19 @@ INSERT INTO S_SYNC
 // set characteristics TODO move this to the main arch project
 ::createCharacteristic(type:"Set", name:"size", type_based:false, return_type:"int");
 
-::createCharacteristic(type:"TimeStamp", name:"now", type_based:true, return_type:"TimeStamp");',
+::createCharacteristic(type:"TimeStamp", name:"now", type_based:true, return_type:"same");
+
+::createCharacteristic(type:"any", name:"toString", type_based:false, return_type:"String");
+::createCharacteristic(type:"any", name:"fromString", type_based:true, return_type:"same");
+
+::createCharacteristic(type:"Duration", name:"fromString", type_based:true, return_type:"same");
+::createCharacteristic(type:"TimeStamp", name:"fromString", type_based:true, return_type:"same");
+::createCharacteristic(type:"boolean", name:"parseBoolean", type_based:true, return_type:"same");
+::createCharacteristic(type:"byte", name:"parseByte", type_based:true, return_type:"same");
+::createCharacteristic(type:"double", name:"parseDouble", type_based:true, return_type:"same");
+::createCharacteristic(type:"int", name:"parseInt", type_based:true, return_type:"same");
+::createCharacteristic(type:"long", name:"parseLong", type_based:true, return_type:"same");
+::createCharacteristic(type:"short", name:"parseShort", type_based:true, return_type:"same");',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -111,17 +123,25 @@ INSERT INTO S_SYNC
 	"00000000-0000-0000-0000-000000000000",
 	'createCharacteristic',
 	'',
-	'select any type from instances of Type where selected.name == param.type;
-return_type = ::getBasicTypeReferenceByName(name:param.return_type);
-create object instance invocable of InvocableObject;
-invocable.parent_name = type.name;
-invocable.parent_package = type.package;
-invocable.name = param.name;
-relate return_type to invocable across R428;
-create object instance characteristic of Characteristic;
-characteristic.type_based = param.type_based;
-relate characteristic to invocable across R427;
-relate characteristic to type across R3820;',
+	'// select all types if given type name is ''any'' or select the one type named
+select many types from instances of Type where param.type == "any" or selected.name == param.type;
+for each type in types
+  select any return_type from instances of TypeReference where false;
+  if param.return_type == "same"
+    return_type = ::getBasicTypeReference(type:type);
+  else
+    return_type = ::getBasicTypeReferenceByName(name:param.return_type);
+  end if;
+  create object instance invocable of InvocableObject;
+  invocable.parent_name = type.name;
+  invocable.parent_package = type.package;
+  invocable.name = param.name;
+  relate return_type to invocable across R428;
+  create object instance characteristic of Characteristic;
+  characteristic.type_based = param.type_based;
+  relate characteristic to invocable across R427;
+  relate characteristic to type across R3820;
+end for;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',

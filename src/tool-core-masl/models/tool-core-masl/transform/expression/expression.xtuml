@@ -1063,12 +1063,19 @@ if (not_empty characteristic_expression)
     characteristic_name = "isExpired";
   elif characteristic_expression.characteristic == "length"
     characteristic_name = "size";
+  elif characteristic_expression.characteristic == "image"
+    characteristic_name = "toString";
+  elif characteristic_expression.characteristic == "parse"
+    characteristic_name = "fromString";
+    if base_type.primitive
+      characteristic_name = "parse" + T::sub(format:"c", s:base_type.name);
+    end if;
   end if;
 
   // find the characteristic
   select any characteristic related by base_type->Characteristic[R3820] where selected.name == characteristic_name and selected.type_based == type_based;
   if empty characteristic
-    LOG::LogFailure(message:"Unsupported type characterstic ''" + characteristic_expression.characteristic + "'' for type: " + base_type.name);
+    LOG::LogFailure(message:"Unsupported type characterstic ''" + characteristic_expression.characteristic + "'' (''" + characteristic_name + "'') for type: " + base_type.name);
     // TODO bad
   end if;
   select one invocable related by characteristic->InvocableObject[R427];
@@ -1155,6 +1162,7 @@ create object instance act_parm of ActualParameter;
 relate act_parm to expr across R794;
 relate invocation to act_parm across R793;
 if (not_empty parm)
+  // TODO check types are compatible
   relate act_parm to parm across R3904;
 end if;
 if (not_empty prev_act_parm)
@@ -1254,7 +1262,7 @@ first_argument = param.first_argument;
 expr_number = param.expr_number;
 base_num = param.base_num;
 
-// get first formal parameter
+// get first formal parameter (if it exists)
 select any parm related by invocation->InvocableObject[R792]->FormalParameter[R429];
 select one prev_parm related by parm->FormalParameter[R404.''follows''];
 while (not_empty prev_parm)
@@ -1262,11 +1270,16 @@ while (not_empty prev_parm)
   select one prev_parm related by parm->FormalParameter[R404.''follows''];
 end while;
 
-// transform each parameter
+// Transform each parameter
+// Each argument is associated with the next formal parameter in order. If there
+// are more arguments than formal parameters, the arguments continue to get
+// added but are not associated with an instance of formal parameter. This is
+// useful if there is a variable lenght arg list or if the invocable is not
+// defined explicitly with formal parameters.
 num = base_num;
 select any prev_act_parm from instances of ActualParameter where false;
 current_argument = first_argument;
-while (not_empty parm)
+while (not_empty current_argument)
   ::transformArgument(invocation:invocation, parm:parm, expression_num:expr_number + "." + STRING::itoa(i:num), argument:current_argument, prev_act_parm:prev_act_parm);
   select any prev_act_parm related by invocation->ActualParameter[R793] where (selected.expression_number == expr_number + "." + STRING::itoa(i:num));
   select one parm related by parm->FormalParameter[R404.''precedes''];
