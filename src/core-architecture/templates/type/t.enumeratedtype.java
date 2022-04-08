@@ -1,5 +1,3 @@
 enum ${self.name} {
-
     ${enumerators}\
-
 }

@@ -98,7 +98,7 @@ new_builtin.java_builtin = true;
 create object instance new_type of Type;
 new_type.name = "List";
 new_type.package = "java.util";
-new_type.default_value = "newList()";
+new_type.default_value = "List.of()";
 create object instance new_builtin of BuiltInType;
 relate new_builtin to new_type across R407;
 new_builtin.object_name = new_type.name;
@@ -117,7 +117,7 @@ new_builtin.java_builtin = true;
 create object instance new_type of Type;
 new_type.name = "Map";
 new_type.package = "java.util";
-new_type.default_value = "newMap()";
+new_type.default_value = "Map.of()";
 create object instance new_builtin of BuiltInType;
 relate new_builtin to new_type across R407;
 new_builtin.object_name = new_type.name;
@@ -151,7 +151,7 @@ new_builtin.object_name = new_type.name;
 create object instance new_type of Type;
 new_type.name = "Set";
 new_type.package = "java.util";
-new_type.default_value = "newSet()";
+new_type.default_value = "Set.of()";
 create object instance new_builtin of BuiltInType;
 relate new_builtin to new_type across R407;
 new_builtin.object_name = new_type.name;
@@ -475,8 +475,11 @@ end if;
 
 // check if this type is defined in its own file
 select one udt_file related by type->UserDefinedType[R3803]->File[R401];
+select one utility_file related by type->Utility[R3813]->File[R401];
 if not_empty udt_file
   ::addFileImport(file:udt_file);
+elif not_empty utility_file
+  ::addStringImport(package:utility_file.package, class_name:utility_file.name + "." + type.name);
 elif type.package != ""
   ::addStringImport(package:type.package, class_name:type.name);  // TODO why is this needed?
 end if;
