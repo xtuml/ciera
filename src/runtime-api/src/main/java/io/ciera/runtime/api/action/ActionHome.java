@@ -103,28 +103,4 @@ public interface ActionHome {
         getContext().delay(delay);
     }
     
-    public default <E> List<E> newList() {
-        return new ArrayList<>();
-    }
-    
-    public default <E> List<E> newList(Collection<? extends E> c) {
-        return new ArrayList<>(c);
-    }
-    
-    public default <E> Set<E> newSet() {
-        return new LinkedHashSet<>();
-    }
-    
-    public default <E> Set<E> newSet(Collection<? extends E> c) {
-        return new LinkedHashSet<>(c);
-    }
-    
-    public default <K, V> Map<K, V> newMap() {
-        return new HashMap<>();
-    }
-    
-    public default <K, V> Map<K, V> newMap(Map<? extends K, ? extends V> m) {
-        return new HashMap<>(m);
-    }
-    
 }

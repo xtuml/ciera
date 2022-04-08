@@ -154,20 +154,12 @@ else
     end for;
   
     // transform data types
+    select any empty_util from instances of Utility where false;
     select many type_declarations related by domain->MaslUserDefinedType[R6235]
       where selected.visibility == MaslVisibility::public or not domain.interface;
-    while not_empty type_declarations
-      select many retry_declarations from instances of MaslUserDefinedType where false;
-      // attempt to translate each type declaration
-      for each type_declaration in type_declarations
-        success = ::transformTypeDeclaration(type_declaration:type_declaration, comp_def:comp_def, exclude:domain.interface);
-        if not success
-          // add the failed declaration to the retry list
-          retry_declarations = retry_declarations | type_declaration;
-        end if;
-      end for;
-      type_declarations = retry_declarations;
-    end while;
+		for each type_declaration in type_declarations
+			::transformTypeDeclaration(type_declaration:type_declaration, comp_def:comp_def, exclude:domain.interface, utility:empty_util);
+    end for;
   
   elif (param.pass == 2)
   
@@ -1788,6 +1780,14 @@ if not_empty native_util_mark
   utility.native_library = native_util_mark.value;
 end if;
 
+// transform each utility type
+select any empty_comp_def from instances of ComponentDefinition where false;
+select many type_declarations related by domain->MaslUserDefinedType[R6235]
+  where selected.visibility == MaslVisibility::public or not domain.interface;
+for each type_declaration in type_declarations
+  ::transformTypeDeclaration(type_declaration:type_declaration, comp_def:empty_comp_def, exclude:file.exclude, utility:utility);
+end for;
+
 // transform each utility function
 select many domain_services related by domain->DomainService[R5303];
 for each domain_service in domain_services
@@ -2283,8 +2283,30 @@ INSERT INTO S_SYNC
 	'',
 	'type_declaration = param.type_declaration;
 
+// Enumerate types
+select one enumerate_type related by type_declaration->TypeDeclaration[R6241]->TypeDefinition[R6234]->FullTypeDefinition[R6236]->EnumerateType[R6219];
+if not_empty enumerate_type
+  ::transformEnumerateType(enumerate_type:enumerate_type, type_declaration:type_declaration, comp_def:param.comp_def, exclude:param.exclude, utility:param.utility);
+end if;
+
+// Structure types
+select one structure_type related by type_declaration->TypeDeclaration[R6241]->TypeDefinition[R6234]->FullTypeDefinition[R6236]->MaslStructureType[R6219];
+if not_empty structure_type
+  ::transformStructureType(structure_type:structure_type, type_declaration:type_declaration, comp_def:param.comp_def, exclude:param.exclude, utility:param.utility);
+end if;
+
+// Named type reference
+// TODO temporarily ignore named reference types
+//select one basic_type related by type_declaration->TypeDeclaration[R6241]->TypeDefinition[R6234]->BasicType[R6236];
+//if not_empty basic_type
+//  ::transformNamedTypeReference(basic_type:basic_type, type_declaration:type_declaration, comp_def:param.comp_def, exclude:param.exclude);
+//end if;
+
+// TODO transform other types
+
 // add to export package
-if type_declaration.visibility == MaslVisibility::public
+comp_def = param.comp_def;
+if not_empty comp_def and type_declaration.visibility == MaslVisibility::public
   select one type related by type_declaration->Type[R8314];
   if not param.exclude and not_empty type
     select one mod related by type_declaration->Domain[R6235]->Module[R8309];
@@ -2295,32 +2317,8 @@ if type_declaration.visibility == MaslVisibility::public
       relate export_package to mod across R5750;
     end if;
   end if;
-end if;
-
-// Enumerate types
-select one enumerate_type related by type_declaration->TypeDeclaration[R6241]->TypeDefinition[R6234]->FullTypeDefinition[R6236]->EnumerateType[R6219];
-if not_empty enumerate_type
-  ::transformEnumerateType(enumerate_type:enumerate_type, type_declaration:type_declaration, comp_def:param.comp_def, exclude:param.exclude);
-  return true;
-end if;
-
-// Structure types
-select one structure_type related by type_declaration->TypeDeclaration[R6241]->TypeDefinition[R6234]->FullTypeDefinition[R6236]->MaslStructureType[R6219];
-if not_empty structure_type
-  ::transformStructureType(structure_type:structure_type, type_declaration:type_declaration, comp_def:param.comp_def, exclude:param.exclude);
-  return true;
-end if;
-
-// Named type reference
-// TODO temporarily ignore named reference types
-//select one basic_type related by type_declaration->TypeDeclaration[R6241]->TypeDefinition[R6234]->BasicType[R6236];
-//if not_empty basic_type
-//  return ::transformNamedTypeReference(basic_type:basic_type, type_declaration:type_declaration, comp_def:param.comp_def, exclude:param.exclude);
-//end if;
-
-// TODO transform other types
-return true;',
-	"ba5eda7a-def5-0000-0000-000000000001",
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
 	0,
@@ -2359,6 +2357,15 @@ INSERT INTO S_SPARM
 	'',
 	"7bbc36a7-dc27-45d6-9249-0d9545cda411",
 	'');
+INSERT INTO S_SPARM
+	VALUES ("11ceed0b-4436-496a-9792-15a802fb1ebd",
+	"1b3c4251-8761-4fa9-864f-03078d1b2420",
+	'utility',
+	"05845c9d-7216-4905-8b60-6bf9f95f42e7",
+	0,
+	'',
+	"cf72297b-6f6e-4404-aaf1-7b086c06cea8",
+	'');
 INSERT INTO PE_PE
 	VALUES ("1b3c4251-8761-4fa9-864f-03078d1b2420",
 	1,
@@ -2374,34 +2381,53 @@ INSERT INTO S_SYNC
 type_declaration = param.type_declaration;
 select one domain related by type_declaration->Domain[R6235];
 comp_def = param.comp_def;
+utility = param.utility;
 
-select one component_file related by comp_def->File[R401];
-path = component_file.path + "/internal/types";  // put all types in one package called ''exceptions''
-if type_declaration.visibility == MaslVisibility::public
-  path = component_file.path + "/types";  // put all public types in a separate package
+type_name = ::camelCaseName(name:type_declaration.name, start_lower:false);
+
+select any file from instances of File where false;
+select any udt from instances of UserDefinedType where false;
+if not_empty comp_def
+
+  select one component_file related by comp_def->File[R401];
+  path = component_file.path + "/internal/types";  // put all types in one package called ''exceptions''
+  if type_declaration.visibility == MaslVisibility::public
+    path = component_file.path + "/types";  // put all public types in a separate package
+  end if;
+  
+  // create the file
+  create object instance file of File;
+  file.name = type_name;
+  file.path = path;
+  file.package = ::pathToPackage( path:file.path );
+  file.extension = ".java";
+  file.exclude = param.exclude;
+  
+  // create the user defined type
+  create object instance udt of UserDefinedType;
+  relate udt to file across R401;
+  
 end if;
-
-// create the file
-create object instance file of File;
-file.name = ::camelCaseName(name:type_declaration.name, start_lower:false);
-file.path = path;
-file.package = ::pathToPackage( path:file.path );
-file.extension = ".java";
-file.exclude = param.exclude;
-
-// create the user defined type
-create object instance udt of UserDefinedType;
-relate udt to file across R401;
 
 // create the type
 create object instance type of Type;
-type.name = file.name;
-type.package = file.package;
+type.name = type_name;
+if not_empty file
+  type.package = file.package;
+elif not_empty utility
+  type.package = utility.package;
+end if;
 type.default_value = "null";
 create object instance edt of EnumeratedType;
 relate type to edt across R407;
-relate type to udt across R3803;
 relate type to type_declaration across R8314;
+
+if not_empty udt
+  relate type to udt across R3803;
+elif not_empty utility
+  create object instance type_in_util of TypeInUtility;
+  relate type to utility across R3813 using type_in_util;
+end if;
 
 // transform enumerators
 select any enumer related by enumerate_type->EnumerateItem[R6245];
@@ -2468,6 +2494,15 @@ INSERT INTO S_SPARM
 	'',
 	"a48ab08f-bfa4-486c-b9de-a0a27762ff02",
 	'');
+INSERT INTO S_SPARM
+	VALUES ("94ad04cc-1941-4d9c-ac31-52d152d8f8bd",
+	"1a74d339-a16d-4cad-9c0c-e8737babf5be",
+	'utility',
+	"05845c9d-7216-4905-8b60-6bf9f95f42e7",
+	0,
+	'',
+	"3fbd8eb0-48dc-48d1-8e55-66d4ccc48d92",
+	'');
 INSERT INTO PE_PE
 	VALUES ("1a74d339-a16d-4cad-9c0c-e8737babf5be",
 	1,
@@ -2483,32 +2518,51 @@ INSERT INTO S_SYNC
 type_declaration = param.type_declaration;
 select one domain related by type_declaration->Domain[R6235];
 comp_def = param.comp_def;
+utility = param.utility;
 
-select one component_file related by comp_def->File[R401];
-path = component_file.path + "/internal/types";  // put all types in one package called ''exceptions''
-if type_declaration.visibility == MaslVisibility::public
-  path = component_file.path + "/types";  // put all public types in a separate package
+type_name = ::camelCaseName(name:type_declaration.name, start_lower:false);
+
+select any file from instances of File where false;
+select any udt from instances of UserDefinedType where false;
+if not_empty comp_def
+
+  select one component_file related by comp_def->File[R401];
+  path = component_file.path + "/internal/types";  // put all types in one package called ''exceptions''
+  if type_declaration.visibility == MaslVisibility::public
+    path = component_file.path + "/types";  // put all public types in a separate package
+  end if;
+  
+  // create the file
+  create object instance file of File;
+  file.name = ::camelCaseName(name:type_declaration.name, start_lower:false);
+  file.path = path;
+  file.package = ::pathToPackage( path:file.path );
+  file.extension = ".java";
+  file.exclude = param.exclude;
+  
+  // create the user defined type
+  create object instance udt of UserDefinedType;
+  relate udt to file across R401;
+
 end if;
-
-// create the file
-create object instance file of File;
-file.name = ::camelCaseName(name:type_declaration.name, start_lower:false);
-file.path = path;
-file.package = ::pathToPackage( path:file.path );
-file.extension = ".java";
-file.exclude = param.exclude;
-
-// create the user defined type
-create object instance udt of UserDefinedType;
-relate udt to file across R401;
 
 // create the type
 create object instance type of Type;
-type.name = file.name;
-type.package = file.package;
-type.default_value = "new " + file.name + "()";
-relate type to udt across R3803;
+type.name = type_name;
+if not_empty file
+  type.package = file.package;
+elif not_empty utility
+  type.package = utility.package;
+end if;
+type.default_value = "new " + type.name + "()";
 relate type to type_declaration across R8314;
+
+if not_empty udt
+  relate type to udt across R3803;
+elif not_empty utility
+  create object instance type_in_util of TypeInUtility;
+  relate type to utility across R3813 using type_in_util;
+end if;
 
 // create the structure type
 create object instance sdt of StructureType;
@@ -2590,6 +2644,15 @@ INSERT INTO S_SPARM
 	0,
 	'',
 	"5141ce2e-536e-4242-8838-abad452a13f2",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("e5acd2b5-2493-4d36-9fca-71f411cbb234",
+	"aa55c36a-3c1a-455f-8097-a04ba0607f4e",
+	'utility',
+	"05845c9d-7216-4905-8b60-6bf9f95f42e7",
+	0,
+	'',
+	"4306bb32-b3b6-41d0-baad-49c1ffe13f76",
 	'');
 INSERT INTO PE_PE
 	VALUES ("aa55c36a-3c1a-455f-8097-a04ba0607f4e",

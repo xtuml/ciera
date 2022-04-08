@@ -1,1 +1,1 @@
-${self.enum_type_name}.${self.enum_name}\
+${enum_type_ref}.${self.enum_name}\
