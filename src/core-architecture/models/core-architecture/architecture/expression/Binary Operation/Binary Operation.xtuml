@@ -83,6 +83,17 @@ if right_operand_body == ""
 	right_operand_body = T::body();
 end if;
 
+// check if a utility class is needed
+use_util = false;
+if self.invocation
+  select one lhs_builtin related by left_operand->TypeReference[R795]->Type[R3800]->BuiltInType[R407];
+  if not_empty lhs_builtin and lhs_builtin.java_builtin
+    use_util = true;
+    operator = lhs_builtin.object_name + "Util." + operator;
+    ::addStringImport(package:"io.ciera.runtime.api.types", class_name:lhs_builtin.object_name + "Util");
+  end if;
+end if;
+
 T::pop_buffer();
 T::include(file:"expression/t.binaryoperation.java");',
 	1,
@@ -760,33 +771,15 @@ INSERT INTO O_ATTR
 	'',
 	'');
 INSERT INTO O_NBATTR
-	VALUES ("4a6d172a-175e-48e4-bfd9-4e4d376d12a2",
+	VALUES ("35ef9d7a-0685-4101-bef6-671c11b0579f",
 	"32951277-da87-46fd-9b6b-59c3a950cf15");
 INSERT INTO O_BATTR
-	VALUES ("4a6d172a-175e-48e4-bfd9-4e4d376d12a2",
+	VALUES ("35ef9d7a-0685-4101-bef6-671c11b0579f",
 	"32951277-da87-46fd-9b6b-59c3a950cf15");
 INSERT INTO O_ATTR
-	VALUES ("4a6d172a-175e-48e4-bfd9-4e4d376d12a2",
+	VALUES ("35ef9d7a-0685-4101-bef6-671c11b0579f",
 	"32951277-da87-46fd-9b6b-59c3a950cf15",
 	"d87cc1ac-6780-44e6-9b27-b48ea27105fb",
-	'util',
-	'',
-	'',
-	'util',
-	0,
-	"ba5eda7a-def5-0000-0000-000000000001",
-	'',
-	'');
-INSERT INTO O_NBATTR
-	VALUES ("35ef9d7a-0685-4101-bef6-671c11b0579f",
-	"32951277-da87-46fd-9b6b-59c3a950cf15");
-INSERT INTO O_BATTR
-	VALUES ("35ef9d7a-0685-4101-bef6-671c11b0579f",
-	"32951277-da87-46fd-9b6b-59c3a950cf15");
-INSERT INTO O_ATTR
-	VALUES ("35ef9d7a-0685-4101-bef6-671c11b0579f",
-	"32951277-da87-46fd-9b6b-59c3a950cf15",
-	"4a6d172a-175e-48e4-bfd9-4e4d376d12a2",
 	'comparison_operator',
 	'',
 	'',
