@@ -649,10 +649,9 @@ else
   // get lhs type
   select one l_masl_type related by lhs->BasicType[R5570];
   l_type = ::getTypeReferenceForMASLType(basic_type:l_masl_type);
+  select one l_collection related by l_type->CollectionTypeReference[R3801];
 
   // translate the operator
-  binary.invocation = false;
-  binary.util = false;
   if (binary_expression.operator == Operator::and_)
     if (l_type.primitive)
       binary.operator = "&&";
@@ -678,53 +677,29 @@ else
     if (l_type.primitive)
       binary.operator = "<";
     else
-      if ("String" == l_type.type_reference)
-        binary.operator = "StringUtil.lessThan";
-        binary.invocation = true;
-        binary.util = true;
-      else
-        binary.operator = "lessThan";
-        binary.invocation = true;
-      end if;
+      binary.operator = "lessThan";
+      binary.invocation = true;
     end if;
   elif (binary_expression.operator == Operator::lessthanequal)
     if (l_type.primitive)
       binary.operator = "<=";
     else
-      if ("String" == l_type.type_reference)
-        binary.operator = "StringUtil.lessThanOrEqual";
-        binary.invocation = true;
-        binary.util = true;
-      else
-        binary.operator = "lessThanOrEqual";
-        binary.invocation = true;
-      end if;
+      binary.operator = "lessThanOrEqual";
+      binary.invocation = true;
     end if;
   elif (binary_expression.operator == Operator::greaterthan)
     if (l_type.primitive)
       binary.operator = ">";
     else
-      if ("String" == l_type.type_reference)
-        binary.operator = "StringUtil.greaterThan";
-        binary.invocation = true;
-        binary.util = true;
-      else
-        binary.operator = "greaterThan";
-        binary.invocation = true;
-      end if;
+      binary.operator = "greaterThan";
+      binary.invocation = true;
     end if;
   elif (binary_expression.operator == Operator::greaterthanequal)
     if (l_type.primitive)
       binary.operator = ">=";
     else
-      if ("String" == l_type.type_reference)
-        binary.operator = "StringUtil.greaterThanOrEqual";
-        binary.invocation = true;
-        binary.util = true;
-      else
-        binary.operator = "greaterThanOrEqual";
-        binary.invocation = true;
-      end if;
+      binary.operator = "greaterThanOrEqual";
+      binary.invocation = true;
     end if;
   elif (binary_expression.operator == Operator::plus)
     if (l_type.primitive)
@@ -776,7 +751,12 @@ else
     binary.cast = l_type.name;
   */
   elif (binary_expression.operator == Operator::concatenate)
-    binary.operator = "+";
+    if not_empty l_collection
+      binary.operator = "concat";
+      binary.invocation = true;
+    else
+      binary.operator = "+";
+    end if;
   end if;
 
   // translate the left operand
