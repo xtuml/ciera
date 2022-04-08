@@ -10,7 +10,7 @@ import io.ciera.runtime.api.exceptions.DeviceReadException;
 
 public class ReadableDevice extends Device {
 
-    private Scanner sc;
+    private final Scanner sc;
 
     public ReadableDevice(String name, InputStream in) {
         super(name);
@@ -58,6 +58,11 @@ public class ReadableDevice extends Device {
     @Override
     public void flush() {
         throw new UnsupportedOperationException("Cannot flush read-only device");
+    }
+
+    @Override
+    public void close() {
+        sc.close();
     }
 
 }

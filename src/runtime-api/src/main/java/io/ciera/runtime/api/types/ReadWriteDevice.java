@@ -6,7 +6,7 @@ import java.io.PrintStream;
 
 public class ReadWriteDevice extends ReadableDevice {
 
-    private PrintStream out;
+    private final PrintStream out;
 
     public ReadWriteDevice(String name, InputStream in, OutputStream out) {
         super(name, in);
@@ -27,6 +27,12 @@ public class ReadWriteDevice extends ReadableDevice {
     @Override
     public void flush() {
         out.flush();
+    }
+
+    @Override
+    public void close() {
+        super.close();
+        out.close();
     }
 
 }

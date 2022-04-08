@@ -1,12 +1,15 @@
 package io.ciera.runtime.api.types;
 
+import java.io.Closeable;
+import java.io.Flushable;
+
 import io.ciera.runtime.api.exceptions.DeserializationException;
 
 /**
  * A device represents a readable or read-writable object. Streams can be read
  * from devices or directed as output to devices.
  */
-public abstract class Device {
+public abstract class Device implements Closeable, AutoCloseable, Flushable {
 
     public static final Device CONSOLE = new ReadWriteDevice("CONSOLE", System.in, System.out);
     public static final Device NULL = new DevNull();
@@ -54,6 +57,7 @@ public abstract class Device {
     /**
      * Flush the output stream.
      */
+    @Override
     public abstract void flush();
 
     @Override
@@ -91,6 +95,10 @@ public abstract class Device {
 
         @Override
         public void flush() {
+        }
+
+        @Override
+        public void close() {
         }
         
     }
