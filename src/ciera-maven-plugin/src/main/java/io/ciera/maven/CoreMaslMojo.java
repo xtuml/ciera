@@ -1,6 +1,7 @@
 package io.ciera.maven;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -70,7 +71,11 @@ public class CoreMaslMojo extends AbstractCieraMojo {
             args.add("--mod");
             args.add(modFile);
         } else {
-            throw new MojoFailureException("Must supply a model file to translate.");
+            try {
+                args.addAll(findModelPath());
+            } catch (IOException | IllegalStateException e) {
+                throw new MojoFailureException("Could not find model file to translate.", e);
+            }
         }
         List<String> domainPaths = new ArrayList<>(List.of(this.domainPaths == null ? new String[0] : this.domainPaths));
         domainPaths.addAll(getInterfaceJars());
@@ -94,6 +99,24 @@ public class CoreMaslMojo extends AbstractCieraMojo {
         addSrcGen();
         refreshFiles();
 
+    }
+
+    /**
+     * Look in a well known location for exactly one .mod or .prj file
+     * 
+     * @return the --mod or --prj argument and the path to the file
+     * @throws MojoFailureException if exactly one model file is not found
+     */
+    private List<String> findModelPath() throws IOException {
+        return Files.walk(Path.of(project.getBasedir().toString(), "src", "main", "masl"))
+                .filter(p -> p.toString().endsWith(".mod") || p.toString().endsWith(".prj"))
+                .collect(Collectors.collectingAndThen(Collectors.toList(), list -> {
+                    if (list.size() != 1) {
+                        throw new IllegalStateException();
+                    }
+                    final String modelPath = list.get(0).toString();
+                    return List.of(modelPath.endsWith(".mod") ? "--mod" : "--prj", modelPath);
+                }));
     }
 
     private Set<String> getInterfaceJars() {
