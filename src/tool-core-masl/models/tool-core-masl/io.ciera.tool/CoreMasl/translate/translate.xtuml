@@ -21,11 +21,35 @@ INSERT INTO GD_MD
 	1,
 	0,
 	0,
-	0,
-	0,
+	200,
+	150,
 	0,
 	'',
 	'tool-core-masl::io.ciera.tool::CoreMasl::translate');
+INSERT INTO GD_GE
+	VALUES ("72b4c0fc-74f9-4bf8-b97a-d4d32d2a573e",
+	"96995aa5-01ea-4ed8-b4ec-89d24fe875a6",
+	"2c229bf8-f376-472d-9c54-4c049ab61827",
+	109,
+	0,
+	'tool-core-masl::io.ciera.tool::CoreMasl::translate::TranslationConstants');
+INSERT INTO GD_SHP
+	VALUES ("72b4c0fc-74f9-4bf8-b97a-d4d32d2a573e");
+INSERT INTO GD_NCS
+	VALUES ("72b4c0fc-74f9-4bf8-b97a-d4d32d2a573e");
+INSERT INTO DIM_ND
+	VALUES (200.000000,
+	150.000000,
+	"72b4c0fc-74f9-4bf8-b97a-d4d32d2a573e");
+INSERT INTO DIM_GE
+	VALUES (0.000000,
+	0.000000,
+	"72b4c0fc-74f9-4bf8-b97a-d4d32d2a573e",
+	"00000000-0000-0000-0000-000000000000");
+INSERT INTO DIM_ELE
+	VALUES ("72b4c0fc-74f9-4bf8-b97a-d4d32d2a573e",
+	0,
+	"00000000-0000-0000-0000-000000000000");
 INSERT INTO DIM_DIA
 	VALUES ("96995aa5-01ea-4ed8-b4ec-89d24fe875a6",
 	'',
@@ -33,6 +57,31 @@ INSERT INTO DIM_DIA
 	0.000000,
 	0.000000,
 	"00000000-0000-0000-0000-000000000000");
+INSERT INTO CNST_CSP
+	VALUES ("2c229bf8-f376-472d-9c54-4c049ab61827",
+	'TranslationConstants',
+	'');
+INSERT INTO CNST_SYC
+	VALUES ("e99c06c1-1cd2-49a1-b072-cee014107b8e",
+	'NUM_PASSES',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000002",
+	"2c229bf8-f376-472d-9c54-4c049ab61827",
+	"00000000-0000-0000-0000-000000000000",
+	"00000000-0000-0000-0000-000000000000");
+INSERT INTO CNST_LFSC
+	VALUES ("e99c06c1-1cd2-49a1-b072-cee014107b8e",
+	"00000000-0000-0000-0000-000000000000");
+INSERT INTO CNST_LSC
+	VALUES ("e99c06c1-1cd2-49a1-b072-cee014107b8e",
+	"00000000-0000-0000-0000-000000000000",
+	'6');
+INSERT INTO PE_PE
+	VALUES ("2c229bf8-f376-472d-9c54-4c049ab61827",
+	1,
+	"71959823-0e17-46fb-8e33-a2062e470c4c",
+	"00000000-0000-0000-0000-000000000000",
+	10);
 INSERT INTO S_SYNC
 	VALUES ("c7526c7f-0b4d-4cf5-850f-9fc2a19d5676",
 	"00000000-0000-0000-0000-000000000000",
@@ -117,7 +166,7 @@ LOG::LogTime( message:"Elapsed time:", t:elapsed_time );
 LOG::LogInfo( message:"Translating interface domains..." );
 select many interface_domains from instances of Domain where selected.interface;
 pass = 1;
-while pass <= 5
+while (pass <= NUM_PASSES)
   for each interface_domain in interface_domains
     ::transformDomain(domain:interface_domain, path:T::sub(format:"l", s:interface_domain.name), pass:pass);
   end for;
@@ -138,7 +187,7 @@ else
   LOG::LogInfo( message:"Translating domain..." );
   select any domain from instances of Domain where not selected.interface;
   pass = 1;
-  while pass <= 5
+  while (pass <= NUM_PASSES)
     ::transformDomain(domain:domain, path:T::sub(format:"l", s:domain.name), pass:pass);
     pass = pass + 1;
   end while;
