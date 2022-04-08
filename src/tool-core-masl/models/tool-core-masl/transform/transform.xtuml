@@ -152,6 +152,12 @@ else
     for each exception_declaration in exception_declarations
       ::transformMaslException(exception_declaration: exception_declaration, comp_def:comp_def, exclude:domain.interface);
     end for;
+
+    // predeclare objects
+    select many object_declarations related by domain->ObjectDeclaration[R5805];
+    for each object_declaration in object_declarations
+      ::transformObjectForwardDeclaration(object_declaration:object_declaration, comp_def:comp_def);
+    end for;
   
     // predeclare data types
     select any empty_util from instances of Utility where false;
@@ -188,7 +194,7 @@ else
       // transform objects
       select many object_declarations related by domain->ObjectDeclaration[R5805];
       for each object_declaration in object_declarations
-        ::transformObject(object_declaration:object_declaration, comp_def:comp_def);
+        ::transformObject(object_declaration:object_declaration);
       end for;
   
     end if;
@@ -388,44 +394,7 @@ INSERT INTO S_SYNC
 	'transformObject',
 	'',
 	'object_declaration = param.object_declaration;
-select one domain related by object_declaration->Domain[R5805];
-comp_def = param.comp_def;
-select one component_file related by comp_def->File[R401];
-path = component_file.path + "/" + "classes";  // put all classes in one package called ''classes''
-
-// if there is a key letter mark, use it as the object name
-select any key_letter_mark from instances of Mark where selected.markable_name == "Object" and selected.feature_name == "key_letter"
-  and selected.path == "" + domain.name + "::" + object_declaration.name;
-
-// create the object file
-create object instance file of File;
-if not_empty key_letter_mark
-  file.name = key_letter_mark.value;
-else
-  file.name = ::camelCaseName(name:object_declaration.name, start_lower:false );
-end if;
-file.path = path;
-file.package = ::pathToPackage(path:file.path);
-file.extension = ".java";
-
-// create the object
-create object instance obj of Class;
-relate obj to file across R401;
-
-// add the class to the component
-relate obj to comp_def across R408;
-
-// connect to the arch model
-relate obj to object_declaration across R8300;
-
-// open the class package
-select one mod related by object_declaration->Domain[R5805]->Module[R8309];
-select any opened_package related by mod->OpenedPackage[R5754] where selected.name == obj.package;
-if empty opened_package
-  create object instance opened_package of OpenedPackage;
-  opened_package.name = obj.package;
-  relate opened_package to mod across R5754;
-end if;
+select one obj related by object_declaration->Class[R8300];
 
 // transform attributes
 select any maslattr related by object_declaration->AttributeDeclaration[R5802];
@@ -506,15 +475,6 @@ INSERT INTO S_DT_PROXY
 	'',
 	'',
 	'../../../../ooamasl/models/ooamasl/ooamasl/object/object.xtuml');
-INSERT INTO S_SPARM
-	VALUES ("192d3817-53e8-46de-a490-3b0072f3eafc",
-	"a167f7d5-3c79-4ff5-8b40-a091b9b1a31e",
-	'comp_def',
-	"109e90cb-1d66-46ee-88db-a568044879d0",
-	0,
-	'',
-	"de3adfbb-18df-4417-8e71-9157b189c106",
-	'');
 INSERT INTO PE_PE
 	VALUES ("a167f7d5-3c79-4ff5-8b40-a091b9b1a31e",
 	1,
@@ -2753,6 +2713,79 @@ INSERT INTO S_SPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("6b131ce9-7d2d-46dc-a59a-77a60122e566",
+	1,
+	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("fc0a8ada-afd5-4fef-b8a8-510817ce2972",
+	"00000000-0000-0000-0000-000000000000",
+	'transformObjectForwardDeclaration',
+	'',
+	'object_declaration = param.object_declaration;
+select one domain related by object_declaration->Domain[R5805];
+comp_def = param.comp_def;
+select one component_file related by comp_def->File[R401];
+path = component_file.path + "/" + "classes";  // put all classes in one package called ''classes''
+
+// if there is a key letter mark, use it as the object name
+select any key_letter_mark from instances of Mark where selected.markable_name == "Object" and selected.feature_name == "key_letter"
+  and selected.path == "" + domain.name + "::" + object_declaration.name;
+
+// create the object file
+create object instance file of File;
+if not_empty key_letter_mark
+  file.name = key_letter_mark.value;
+else
+  file.name = ::camelCaseName(name:object_declaration.name, start_lower:false );
+end if;
+file.path = path;
+file.package = ::pathToPackage(path:file.path);
+file.extension = ".java";
+
+// create the object
+create object instance obj of Class;
+relate obj to file across R401;
+
+// add the class to the component
+relate obj to comp_def across R408;
+
+// connect to the arch model
+relate obj to object_declaration across R8300;
+
+// open the class package
+select one mod related by object_declaration->Domain[R5805]->Module[R8309];
+select any opened_package related by mod->OpenedPackage[R5754] where selected.name == obj.package;
+if empty opened_package
+  create object instance opened_package of OpenedPackage;
+  opened_package.name = obj.package;
+  relate opened_package to mod across R5754;
+end if;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	4);
+INSERT INTO S_SPARM
+	VALUES ("0beee0ce-bd20-47fe-9eeb-41124ba5f5f8",
+	"fc0a8ada-afd5-4fef-b8a8-510817ce2972",
+	'object_declaration',
+	"ccbbc697-c60c-4034-8e31-7a46032151eb",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("b831d8d2-00d6-41f1-9efa-9ffe6f9fff65",
+	"fc0a8ada-afd5-4fef-b8a8-510817ce2972",
+	'comp_def',
+	"109e90cb-1d66-46ee-88db-a568044879d0",
+	0,
+	'',
+	"0beee0ce-bd20-47fe-9eeb-41124ba5f5f8",
+	'');
+INSERT INTO PE_PE
+	VALUES ("fc0a8ada-afd5-4fef-b8a8-510817ce2972",
 	1,
 	"e57bc9b3-2b76-471e-8c8a-d7282e2c4fc0",
 	"00000000-0000-0000-0000-000000000000",
