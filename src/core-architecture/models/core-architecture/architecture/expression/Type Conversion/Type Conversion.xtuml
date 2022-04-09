@@ -135,6 +135,15 @@ if input_type_ref.type_reference != output_type_ref.type_reference
       T::include(file:"expression/t.streamtolist.java");
     end if;
   end if;
+  
+  // check to see if it succeeded
+  b = T::body();
+  if b == ""
+    select one smt related by self->Expression[R776]->Statement[R775];
+    select one invoc related by smt->CodeBlock[R450]->InvocableObject[R4000];
+    ::semanticError(invocable:invoc, line_number:smt.line_number, message:"Unsupported type conversion: ''" + input_type_ref.type_reference + "'' -> ''" + output_type_ref.type_reference);
+  end if;
+  T::append(s:b);
 
 // simple pass through if the types are the same
 else
