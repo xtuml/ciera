@@ -989,7 +989,23 @@ relate r_op to binop across R778;
 
 // link l_op type to the main expression
 select one type related by l_op->TypeReference[R795];
-relate type to expr across R795;',
+relate type to expr across R795;
+
+// if the right hand side of an assignment is literal ''null'', change its type to
+// the LHS type and modify the literal value
+select one rhs_prom related by r_op->TypeConversion[R776];
+select one rhs_expr2 related by rhs_prom->Expression[R3907];
+select one rhs_literal related by rhs_expr2->Literal[R776];
+select one lhs_class related by type->InstanceTypeReference[R3801]->Class[R3808];
+if not_empty lhs_class and not_empty rhs_literal and rhs_literal.value == "null"
+  select one r_type related by r_op->TypeReference[R795];
+  unrelate r_type from r_op across R795;
+  relate type to r_op across R795;
+  select one r_type related by rhs_expr2->TypeReference[R795];
+  unrelate r_type from rhs_expr2 across R795;
+  relate type to rhs_expr2 across R795;
+  rhs_literal.value = type.type_reference + ".EMPTY";
+end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
