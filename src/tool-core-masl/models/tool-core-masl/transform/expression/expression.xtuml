@@ -1640,13 +1640,40 @@ if not_empty where_cond
 
 end if;
 
-// transform root expression
+// create type conversion if the left hand side is a collection
 select one root_expression related by find_expression->MaslExpression[R5519];
+select one root_collection related by root_expression->BasicType[R5570]->CollectionType[R6205];
+select any type_conversion from instances of TypeConversion where false;
+if not_empty root_collection
+
+  // create expression
+  create object instance expr of Expression;
+  relate expr to smt across R775;
+  expr.expression_number = expr_number;
+  stream_type = ::getObjectStreamReference(obj:find_class);
+  relate stream_type to expr across R795;
+	if not_empty where_clause
+		relate expr to where_clause across R790;
+	elif not_empty any_expr
+		relate expr to any_expr across R783;
+	end if;
+  
+  // create type conversion
+  create object instance type_conversion of TypeConversion;
+  relate type_conversion to expr across R776;
+  
+  expr_number = expr_number + ".1";
+  
+end if;
+
+// transform root expression
 ::transformMaslExpression(masl_expression:root_expression, expr_number:expr_number, smt:smt);
 select any root_expr related by smt->Expression[R775] where selected.expression_number == expr_number;
 
 // link to where clause or any expression if applicable
-if not_empty where_clause
+if not_empty type_conversion
+  relate root_expr to type_conversion across R3907;
+elif not_empty where_clause
   relate root_expr to where_clause across R790;
 elif not_empty any_expr
   relate root_expr to any_expr across R783;
