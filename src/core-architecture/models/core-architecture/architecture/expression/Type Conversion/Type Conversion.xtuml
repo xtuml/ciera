@@ -136,6 +136,22 @@ if input_type_ref.type_reference != output_type_ref.type_reference
     end if;
   end if;
   
+  // convert from a single element to a collection of the same type
+  select one output_collection_type related by output_type_ref->CollectionTypeReference[R3801];
+  select one output_element_type related by output_collection_type->TypeReference[R3805];
+  if not_empty output_collection_type and output_element_type.type_reference == input_type_ref.type_reference
+    // TODO handle other collection types
+    select one output_set_type related by output_collection_type->SetTypeReference[R3806];
+    select one output_list_type related by output_collection_type->ListTypeReference[R3806];
+    if not_empty output_set_type
+      ::addStringImport(package:"java.util", class_name:"Set");
+      T::include(file:"expression/t.elementtoset.java");
+    elif not_empty output_list_type
+      ::addStringImport(package:"java.util", class_name:"List");
+      T::include(file:"expression/t.elementtolist.java");
+    end if;
+  end if;
+  
   // check to see if it succeeded
   b = T::body();
   if b == ""
