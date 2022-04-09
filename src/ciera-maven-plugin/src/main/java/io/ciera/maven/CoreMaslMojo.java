@@ -125,7 +125,7 @@ public class CoreMaslMojo extends AbstractCieraMojo {
                 .filter(artifactPath -> {
                     try (ZipFile zipfile = new ZipFile(artifactPath.toFile())) {
                         return zipfile.stream().map(ZipEntry::getName)
-                                .anyMatch(name -> name.startsWith("masl") && name.endsWith(".int"));
+                                .anyMatch(name -> name.endsWith(".int"));
                     } catch (IOException e) {
                         return false;
                     }
