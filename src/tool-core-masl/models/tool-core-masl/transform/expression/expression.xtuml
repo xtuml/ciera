@@ -574,12 +574,14 @@ if ((not_empty lhs_null_literal or not_empty rhs_null_literal) and
   type = ::getBasicTypeReferenceByName(name:"boolean");
   relate type to expr across R795;
 
-  // create the unary expression
-  create object instance unary of UnaryOperation;
-  relate unary to expr across R776;
   if (binary_expression.operator == Operator::notequal)  // create an additional ''not'' expression before transforming an ''empty'' expression
+
+		// create the unary expression
+		create object instance unary of UnaryOperation;
+		relate unary to expr across R776;
     unary.operator = "!";
     unary.invocation = false;
+
     // create ''empty'' expression
     create object instance expr2 of Expression;
     relate expr2 to smt across R775;
@@ -591,26 +593,61 @@ if ((not_empty lhs_null_literal or not_empty rhs_null_literal) and
     relate unary2 to expr2 across R776;
     unary2.operator = "isEmpty";
     unary2.invocation = true;
+
+		// do type conversion for all characteristics (this will be a no-op if the types match)
+		create object instance prom_expr of Expression;
+		relate prom_expr to smt across R775;
+		prom_expr.expression_number = expr2.expression_number + ".1";
+    select one basic_type related by lhs->BasicType[R5570];
+    if (not_empty lhs_null_literal)
+      select one basic_type related by rhs->BasicType[R5570];
+    end if;
+    base_type_ref = ::getTypeReferenceForMASLType(basic_type:basic_type);
+		relate base_type_ref to prom_expr across R795;
+		create object instance prom of TypeConversion;
+    relate prom to prom_expr across R776;
+    relate prom_expr to unary2 across R777;
+
     // transform the operand expression
     if (empty lhs_null_literal)
-      ::transformMaslExpression(masl_expression:lhs, expr_number:expr2.expression_number + ".1", smt:smt);
+      ::transformMaslExpression(masl_expression:lhs, expr_number:prom_expr.expression_number + ".1", smt:smt);
     else
-      ::transformMaslExpression(masl_expression:rhs, expr_number:expr2.expression_number + ".1", smt:smt);
+      ::transformMaslExpression(masl_expression:rhs, expr_number:prom_expr.expression_number + ".1", smt:smt);
     end if;
-    select any op_expr related by smt->Expression[R775] where (selected.expression_number == expr2.expression_number + ".1");
-    relate op_expr to unary2 across R777;
+    select any op_expr related by smt->Expression[R775] where (selected.expression_number == prom_expr.expression_number + ".1");
+    relate op_expr to prom across R3907;
+
   else
-    // set operator
+
+		// create the unary expression
+		create object instance unary of UnaryOperation;
+		relate unary to expr across R776;
     unary.operator = "isEmpty";
     unary.invocation = true;
+
+		// do type conversion for all characteristics (this will be a no-op if the types match)
+		create object instance prom_expr of Expression;
+		relate prom_expr to smt across R775;
+		prom_expr.expression_number = expr.expression_number + ".1";
+    select one basic_type related by lhs->BasicType[R5570];
+    if (not_empty lhs_null_literal)
+      select one basic_type related by rhs->BasicType[R5570];
+    end if;
+    base_type_ref = ::getTypeReferenceForMASLType(basic_type:basic_type);
+		relate base_type_ref to prom_expr across R795;
+		create object instance prom of TypeConversion;
+    relate prom to prom_expr across R776;
+    relate prom_expr to unary across R777;
+
     // transform the operand expression
     if (empty lhs_null_literal)
-      ::transformMaslExpression(masl_expression:lhs, expr_number:expr.expression_number + ".1", smt:smt);
+      ::transformMaslExpression(masl_expression:lhs, expr_number:prom_expr.expression_number + ".1", smt:smt);
     else
-      ::transformMaslExpression(masl_expression:rhs, expr_number:expr.expression_number + ".1", smt:smt);
+      ::transformMaslExpression(masl_expression:rhs, expr_number:prom_expr.expression_number + ".1", smt:smt);
     end if;
-    select any op_expr related by smt->Expression[R775] where (selected.expression_number == expr.expression_number + ".1");
-    relate op_expr to unary across R777;
+    select any op_expr related by smt->Expression[R775] where (selected.expression_number == prom_expr.expression_number + ".1");
+    relate op_expr to prom across R3907;
+
   end if;
 
 else
@@ -1093,9 +1130,18 @@ if (not_empty characteristic_expression)
 
   else
 
+    // do type conversion for all characteristics (this will be a no-op if the types match)
+    create object instance prom_expr of Expression;
+    relate prom_expr to smt across R775;
+    prom_expr.expression_number = expr_number + ".1";
+    relate base_type_ref to prom_expr across R795;
+    create object instance prom of TypeConversion;
+    relate prom to prom_expr across R776;
+
     // translate the root expression
-    ::transformMaslExpression(masl_expression:base_masl_expression, expr_number:expr_number + ".1", smt:smt);
-    select any base_expr related by smt->Expression[R775] where (selected.expression_number == expr_number + ".1");
+    ::transformMaslExpression(masl_expression:base_masl_expression, expr_number:prom_expr.expression_number + ".1", smt:smt);
+    select any base_expr related by smt->Expression[R775] where (selected.expression_number == prom_expr.expression_number + ".1");
+    relate base_expr to prom across R3907;
 
 		// map the MASL name to the Ciera name
 		characteristic_name = characteristic_expression.characteristic;
@@ -1136,7 +1182,7 @@ if (not_empty characteristic_expression)
 		create object instance invoc of Invocation;
 		relate invoc to expr across R776;
 		relate invoc to invocable across R792;
-		relate base_expr to invoc across R798;
+		relate prom_expr to invoc across R798;
 
 		// transform actual parameters
 		select one first_argument related by call_expression->Argument[R5575];
@@ -2433,12 +2479,15 @@ relate expr to smt across R775;
 expr.expression_number = expr_number;
 
 // link type
-type = ::getBasicTypeReferenceByName(name:"Object");  // TODO maybe a "Class" or "Type" type is needed...
+select one basic_type related by type_name_expression->BasicType[R5578];
+type = ::getTypeReferenceForMASLType(basic_type:basic_type);
+if empty type
+  type = ::getBasicTypeReferenceByName(name:"Object");  // TODO maybe a "Class" or "Type" type is needed...
+end if;
 relate type to expr across R795;
 
 create object instance type_ref_expr of TypeReferenceAsExpression;
 relate type_ref_expr to expr across R776;
-select one basic_type related by type_name_expression->BasicType[R5578];
 base_type_ref = ::getTypeReferenceForMASLType(basic_type:basic_type);
 relate base_type_ref to type_ref_expr across R3921;',
 	"ba5eda7a-def5-0000-0000-000000000000",
