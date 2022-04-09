@@ -334,6 +334,10 @@ public class Strings {
         throw new UnsupportedOperationException();
     }
 
+    public List<String> tokenize(final String input, final char dropped_separator) {
+        return List.of(input.split(Character.toString(dropped_separator)));
+    }
+
     public List<String> tokenize(final String input, final Set<Character> dropped_separators,
             final Set<Character> retained_separators) {
         // TODO Insert your implementation here
