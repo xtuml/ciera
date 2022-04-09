@@ -21,7 +21,7 @@ import io.ciera.runtime.api.time.SystemClock;
  * from, but will be interpreted by the runtime based on the current settings of
  * the {@link SystemClock}.
  */
-public class TimeStamp implements Serializable {
+public class TimeStamp implements Serializable, Comparable<TimeStamp> {
 
     private static final long serialVersionUID = 1L;
 
@@ -65,7 +65,7 @@ public class TimeStamp implements Serializable {
     public long getValue() {
         return nanosecondsValue;
     }
-
+    
     /**
      * Get the year AD of this TimeStamp.
      * 
@@ -167,6 +167,11 @@ public class TimeStamp implements Serializable {
     @Override
     public String toString() {
         return SERIALIZE_FORMAT.format(cal.toInstant());
+    }
+    
+    @Override
+    public int compareTo(TimeStamp o) {
+        return Long.compare(nanosecondsValue, o.nanosecondsValue);
     }
 
     // Arithmetic operations

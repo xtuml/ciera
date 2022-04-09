@@ -10,7 +10,7 @@ import io.ciera.runtime.api.exceptions.DeserializationException;
  * The Duration class represents a period of time. It is represented as a
  * quantity of nanoseconds. Durations can be represented as ISO-8601 strings.
  */
-public class Duration implements Serializable {
+public class Duration implements Serializable, Comparable<Duration> {
 
     private static final long serialVersionUID = 1L;
 
@@ -72,6 +72,11 @@ public class Duration implements Serializable {
         } catch (NullPointerException | DateTimeParseException e) {
             throw new DeserializationException("Could not parse duration", e);
         }
+    }
+
+    @Override
+    public int compareTo(Duration o) {
+        return value.compareTo(o.value);
     }
 
     // Arithmetic operations
