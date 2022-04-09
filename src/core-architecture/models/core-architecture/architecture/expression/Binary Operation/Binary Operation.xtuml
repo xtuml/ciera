@@ -20,6 +20,17 @@ select one left_operand related by self->Expression[R779];
 select one right_operand related by self->Expression[R778];
 operator = self.operator;
 
+// check if a utility class is needed
+use_util = false;
+if self.invocation
+  select one lhs_builtin related by left_operand->TypeReference[R795]->Type[R3800]->BuiltInType[R407];
+  if not_empty lhs_builtin and lhs_builtin.java_builtin and lhs_builtin.name != "String"
+    use_util = true;
+    operator = lhs_builtin.object_name + "Util." + operator;
+    ::addStringImport(package:"io.ciera.runtime.api.types", class_name:lhs_builtin.object_name + "Util");
+  end if;
+end if;
+
 right_operand_body = "";
 
 // special rules for assignments
@@ -32,6 +43,7 @@ if self.operator == "="
       where selected.accessor_type == AttributeAccessorType::SETTER;
     operator = accessor.getName();
     self.invocation = true;
+    use_util = false;
     select one left_operand related by attr_access->Expression[R785];
   end if;
 
@@ -40,6 +52,7 @@ if self.operator == "="
   if not_empty member_reference
     operator = "set" + T::sub(format:"c", s:member_reference.member_name);
     self.invocation = true;
+    use_util = false;
     select one left_operand related by member_reference->Expression[R3929];
   end if;
 
@@ -49,6 +62,7 @@ if self.operator == "="
   if not_empty param_ref and form_param.by_ref
     operator = "set";
     self.invocation = true;
+    use_util = false;
   end if;
 
   // for by variable references on the left hand side (where the variable is
@@ -60,6 +74,7 @@ if self.operator == "="
   if not_empty var_ref and not_empty by_ref_param and not var_ref.declaration
     operator = "set";
     self.invocation = true;
+    use_util = false;
 
   // properly set the initial value for local variables which will be eventually
   // passed by reference
@@ -81,17 +96,6 @@ left_operand_body = T::body();
 if right_operand_body == ""
 	right_operand.render();
 	right_operand_body = T::body();
-end if;
-
-// check if a utility class is needed
-use_util = false;
-if self.invocation
-  select one lhs_builtin related by left_operand->TypeReference[R795]->Type[R3800]->BuiltInType[R407];
-  if not_empty lhs_builtin and lhs_builtin.java_builtin and lhs_builtin.name != "String"
-    use_util = true;
-    operator = lhs_builtin.object_name + "Util." + operator;
-    ::addStringImport(package:"io.ciera.runtime.api.types", class_name:lhs_builtin.object_name + "Util");
-  end if;
 end if;
 
 T::pop_buffer();
