@@ -16,9 +16,14 @@ INSERT INTO O_TFR
 	1,
 	'T::push_buffer();
 select one base_expr related by self->Expression[R798];
+select one type_ref_expr related by base_expr->TypeReferenceAsExpression[R776];
+if empty type_ref_expr
+  // select through a type conversion just in case
+  select one type_ref_expr related by base_expr->TypeConversion[R776]->Expression[R3907]->TypeReferenceAsExpression[R776];
+end if;
 select one base_builtin related by base_expr->TypeReference[R795]->BasicTypeReference[R3801]->TypeReference[R3801]->Type[R3800]->BuiltInType[R407];
 if not_empty base_expr
-  if not_empty base_builtin and base_builtin.primitive
+  if empty type_ref_expr and not_empty base_builtin and base_builtin.primitive
     T::append(s:base_builtin.object_name);
   else
     base_expr.render();
@@ -30,7 +35,8 @@ parameter_list = "";
 sep = "";
 
 // if the base expression is a primitive type, add it to the parameter list
-if not_empty base_builtin and base_builtin.primitive
+// the exception is type reference expressions
+if empty type_ref_expr and not_empty base_builtin and base_builtin.primitive
   base_expr.render();
   parameter_list = parameter_list + sep + T::body();
   sep = ", ";
