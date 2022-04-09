@@ -75,28 +75,24 @@ public class Duration implements Serializable {
     }
 
     // Arithmetic operations
-    public TimeStamp add(TimeStamp t) {
+    public TimeStamp plus(TimeStamp t) {
         return new TimeStamp(value.toNanos() + t.getValue());
     }
 
-    public Duration add(Duration d) {
+    public Duration plus(Duration d) {
         return new Duration(value.toNanos() + d.getValue());
     }
 
-    public Duration subtract(Duration d) {
+    public Duration minus(Duration d) {
         return new Duration(value.toNanos() - d.getValue());
     }
 
-    public Duration multiply(Number n) {
+    public Duration times(Number n) {
         return new Duration(value.toNanos() * n.longValue());
     }
 
-    public Duration divide(Number n) {
+    public Duration dividedBy(Number n) {
         return new Duration(value.toNanos() / n.longValue());
-    }
-
-    public long divide(Duration n) {
-        return value.toNanos() / n.getValue();
     }
 
     // TODO mod, remainder, others?

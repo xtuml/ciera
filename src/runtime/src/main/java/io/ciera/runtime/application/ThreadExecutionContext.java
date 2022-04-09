@@ -112,7 +112,7 @@ public class ThreadExecutionContext implements ExecutionContext, Runnable {
     @Override
     public <E extends Event> Timer scheduleEvent(Class<E> eventType, EventTarget target, TimeStamp expiration,
             Object... eventData) {
-        Duration delay = expiration.subtract(TimeStamp.now(getClock()));
+        Duration delay = expiration.minus(TimeStamp.now(getClock()));
         return scheduleEvent(eventType, target, delay, eventData);
     }
 
@@ -125,7 +125,7 @@ public class ThreadExecutionContext implements ExecutionContext, Runnable {
 
     @Override
     public Timer scheduleAction(TimeStamp expiration, Runnable action) {
-        Duration delay = expiration.subtract(TimeStamp.now(getClock()));
+        Duration delay = expiration.minus(TimeStamp.now(getClock()));
         return scheduleAction(delay, action);
     }
 
@@ -148,7 +148,7 @@ public class ThreadExecutionContext implements ExecutionContext, Runnable {
     @Override
     public <E extends Event> Timer scheduleRecurringEvent(Class<E> eventType, EventTarget target, TimeStamp expiration,
             Duration period, Object... eventData) {
-        Duration delay = expiration.subtract(TimeStamp.now(getClock()));
+        Duration delay = expiration.minus(TimeStamp.now(getClock()));
         return scheduleRecurringEvent(eventType, target, delay, period, eventData);
     }
 
@@ -161,7 +161,7 @@ public class ThreadExecutionContext implements ExecutionContext, Runnable {
 
     @Override
     public Timer scheduleRecurringAction(TimeStamp expiration, Duration period, Runnable action) {
-        Duration delay = expiration.subtract(TimeStamp.now(getClock()));
+        Duration delay = expiration.minus(TimeStamp.now(getClock()));
         return scheduleRecurringAction(delay, period, action);
     }
 

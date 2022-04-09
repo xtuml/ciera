@@ -170,15 +170,15 @@ public class TimeStamp implements Serializable {
     }
 
     // Arithmetic operations
-    public TimeStamp add(Duration d) {
+    public TimeStamp plus(Duration d) {
         return new TimeStamp(nanosecondsValue + d.getValue());
     }
 
-    public TimeStamp subtract(Duration d) {
+    public TimeStamp minus(Duration d) {
         return new TimeStamp(nanosecondsValue - d.getValue());
     }
 
-    public Duration subtract(TimeStamp t) {
+    public Duration minus(TimeStamp t) {
         return new Duration(nanosecondsValue - t.getValue());
     }
 
