@@ -1,8 +1,13 @@
 package org.xtuml.masl.util;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Set;
 
 import io.ciera.runtime.api.domain.Variable;
@@ -24,58 +29,58 @@ public class Filesystem {
     }
 
     public static class Rwx implements Serializable {
-    
+
         private static final long serialVersionUID = 30835445L;
-    
+
         // structure components
         private boolean read;
         private boolean write;
         private boolean execute;
-    
+
         // constructors
         public Rwx() {
             this.read = false;
             this.write = false;
             this.execute = false;
         }
-    
+
         // component accessors
         public boolean getRead() {
             return read;
         }
-    
+
         public void setRead(boolean read) {
             this.read = read;
         }
-    
+
         public boolean getWrite() {
             return write;
         }
-    
+
         public void setWrite(boolean write) {
             this.write = write;
         }
-    
+
         public boolean getExecute() {
             return execute;
         }
-    
+
         public void setExecute(boolean execute) {
             this.execute = execute;
         }
-    
+
         @Override
         public String toString() {
             return super.toString() + " (" + "read=" + getRead() + ", write=" + getWrite() + ", execute=" + getExecute()
                     + ")";
         }
-    
+
     }
 
     public static class Permissions implements Serializable {
-    
+
         private static final long serialVersionUID = -2114628010L;
-    
+
         // structure components
         private boolean sticky;
         private boolean setuid;
@@ -83,7 +88,7 @@ public class Filesystem {
         private Rwx user;
         private Rwx group;
         private Rwx other;
-    
+
         // constructors
         public Permissions() {
             this.sticky = false;
@@ -93,68 +98,68 @@ public class Filesystem {
             this.group = new Rwx();
             this.other = new Rwx();
         }
-    
+
         // component accessors
         public boolean getSticky() {
             return sticky;
         }
-    
+
         public void setSticky(boolean sticky) {
             this.sticky = sticky;
         }
-    
+
         public boolean getSetuid() {
             return setuid;
         }
-    
+
         public void setSetuid(boolean setuid) {
             this.setuid = setuid;
         }
-    
+
         public boolean getSetgid() {
             return setgid;
         }
-    
+
         public void setSetgid(boolean setgid) {
             this.setgid = setgid;
         }
-    
+
         public Rwx getUser() {
             return user;
         }
-    
+
         public void setUser(Rwx user) {
             this.user = user;
         }
-    
+
         public Rwx getGroup() {
             return group;
         }
-    
+
         public void setGroup(Rwx group) {
             this.group = group;
         }
-    
+
         public Rwx getOther() {
             return other;
         }
-    
+
         public void setOther(Rwx other) {
             this.other = other;
         }
-    
+
         @Override
         public String toString() {
             return super.toString() + " (" + "sticky=" + getSticky() + ", setuid=" + getSetuid() + ", setgid="
                     + getSetgid() + ", user=" + getUser() + ", group=" + getGroup() + ", other=" + getOther() + ")";
         }
-    
+
     }
 
     public static class File_Status implements Serializable {
-    
+
         private static final long serialVersionUID = 989023419L;
-    
+
         // structure components
         private File_Types file_type;
         private Permissions permissions;
@@ -164,7 +169,7 @@ public class Filesystem {
         private TimeStamp access_time;
         private TimeStamp modification_time;
         private TimeStamp status_change_time;
-    
+
         // constructors
         public File_Status() {
             this.file_type = null;
@@ -176,72 +181,72 @@ public class Filesystem {
             this.modification_time = TimeStamp.ZERO;
             this.status_change_time = TimeStamp.ZERO;
         }
-    
+
         // component accessors
         public File_Types getFile_type() {
             return file_type;
         }
-    
+
         public void setFile_type(File_Types file_type) {
             this.file_type = file_type;
         }
-    
+
         public Permissions getPermissions() {
             return permissions;
         }
-    
+
         public void setPermissions(Permissions permissions) {
             this.permissions = permissions;
         }
-    
+
         public int getUid() {
             return uid;
         }
-    
+
         public void setUid(int uid) {
             this.uid = uid;
         }
-    
+
         public int getGid() {
             return gid;
         }
-    
+
         public void setGid(int gid) {
             this.gid = gid;
         }
-    
+
         public int getSize() {
             return size;
         }
-    
+
         public void setSize(int size) {
             this.size = size;
         }
-    
+
         public TimeStamp getAccess_time() {
             return access_time;
         }
-    
+
         public void setAccess_time(TimeStamp access_time) {
             this.access_time = access_time;
         }
-    
+
         public TimeStamp getModification_time() {
             return modification_time;
         }
-    
+
         public void setModification_time(TimeStamp modification_time) {
             this.modification_time = modification_time;
         }
-    
+
         public TimeStamp getStatus_change_time() {
             return status_change_time;
         }
-    
+
         public void setStatus_change_time(TimeStamp status_change_time) {
             this.status_change_time = status_change_time;
         }
-    
+
         @Override
         public String toString() {
             return super.toString() + " (" + "file_type=" + getFile_type() + ", permissions=" + getPermissions()
@@ -249,7 +254,7 @@ public class Filesystem {
                     + getAccess_time() + ", modification_time=" + getModification_time() + ", status_change_time="
                     + getStatus_change_time() + ")";
         }
-    
+
     }
 
     public static class Filesystem_Status implements Serializable {
@@ -352,14 +357,14 @@ public class Filesystem {
         }
 
     }
-    
+
     // TODO
     public static class FileAdapter extends ReadWriteDevice {
 
         public FileAdapter(String name, InputStream in, OutputStream out) {
             super(name, in, out);
         }
-        
+
     }
 
     public void open_read(final String file_name, final Variable<Device> dev) {
@@ -413,8 +418,11 @@ public class Filesystem {
     }
 
     public String read_file(final String file_name) {
-        // TODO Insert your implementation here
-        throw new UnsupportedOperationException();
+        try {
+            return Files.readString(Path.of(file_name));
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     public void write_file(final String file_name, final String contents) {
@@ -433,8 +441,7 @@ public class Filesystem {
     }
 
     public boolean file_exists(final String file_name) {
-        // TODO Insert your implementation here
-        throw new UnsupportedOperationException();
+        return new File(file_name).exists();
     }
 
     public void touch_file(final String file_name) {
@@ -443,8 +450,11 @@ public class Filesystem {
     }
 
     public void move_file(final String source, final String destination) {
-        // TODO Insert your implementation here
-        throw new UnsupportedOperationException();
+        try {
+            Files.move(Path.of(source), Path.of(destination));
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     public void copy_file(final String source, final String destination) {
@@ -473,8 +483,11 @@ public class Filesystem {
     }
 
     public Set<String> list_directory(final String directory_name) {
-        // TODO Insert your implementation here
-        throw new UnsupportedOperationException();
+        if (file_exists(directory_name) && get_file_status(directory_name).getFile_type() == File_Types.Directory) {
+            return Set.of(new File(directory_name).list());
+        } else {
+            throw new IllegalArgumentException("Argument does not name an existing directory: " + directory_name);
+        }
     }
 
     public String get_current_directory() {
@@ -538,8 +551,16 @@ public class Filesystem {
     }
 
     public File_Status get_file_status(final String file_name) {
-        // TODO Insert your implementation here
-        throw new UnsupportedOperationException();
+        if (file_exists(file_name)) {
+            final File file = new File(file_name);
+            final File_Status status = new File_Status();
+            status.file_type = file.isDirectory() ? File_Types.Directory : File_Types.File; // TODO
+            status.modification_time = new TimeStamp(file.lastModified() * 1000000l);
+            // TODO finish implementing this status
+            return status;
+        } else {
+            throw new IllegalArgumentException("File does not exist: " + file_name);
+        }
     }
 
     public File_Status get_file_link_status(final String file_name) {
