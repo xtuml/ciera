@@ -1,12 +1,14 @@
 package org.xtuml.masl.util;
 
+import io.ciera.runtime.api.domain.Domain;
+import io.ciera.runtime.api.types.TimeStamp;
+
 public class Logger {
+    
+    private final Domain domain;
 
-    public Logger() {
-    }
-
-    public Logger(Object domain) {
-        this();
+    public Logger(Domain domain) {
+        this.domain = domain;
     }
 
     public static enum Priority {
@@ -14,107 +16,86 @@ public class Logger {
     }
 
     public void log(final Priority priority, final String logger, final String message) {
-        // TODO Insert your implementation here
-        throw new UnsupportedOperationException();
+        System.out.printf("%s %s : %s : %s\n", TimeStamp.now(), priority, logger, message);
     }
 
     public void log(final Priority priority, final String message) {
-        // TODO Insert your implementation here
-        throw new UnsupportedOperationException();
+        log(priority, domain.getName(), message);
     }
 
     public void trace(final String logger, final String message) {
-        // TODO Insert your implementation here
-        throw new UnsupportedOperationException();
+        log(Priority.Trace, logger, message);
     }
 
     public void trace(final String message) {
-        // TODO Insert your implementation here
-        throw new UnsupportedOperationException();
+        log(Priority.Trace, message);
     }
 
     public void debug(final String logger, final String message) {
-        // TODO Insert your implementation here
-        throw new UnsupportedOperationException();
+        log(Priority.Debug, logger, message);
     }
 
     public void debug(final String message) {
-        // TODO Insert your implementation here
-        throw new UnsupportedOperationException();
+        log(Priority.Debug, message);
     }
 
     public void information(final String logger, final String message) {
-        // TODO Insert your implementation here
-        throw new UnsupportedOperationException();
+        log(Priority.Information, logger, message);
     }
 
     public void information(final String message) {
-        // TODO Insert your implementation here
-        throw new UnsupportedOperationException();
+        log(Priority.Information, message);
     }
 
     public void notice(final String logger, final String message) {
-        // TODO Insert your implementation here
-        throw new UnsupportedOperationException();
+        log(Priority.Notice, logger, message);
     }
 
     public void notice(final String message) {
-        // TODO Insert your implementation here
-        throw new UnsupportedOperationException();
+        log(Priority.Notice, message);
     }
 
     public void warning(final String logger, final String message) {
-        // TODO Insert your implementation here
-        throw new UnsupportedOperationException();
+        log(Priority.Warning, logger, message);
     }
 
     public void warning(final String message) {
-        // TODO Insert your implementation here
-        throw new UnsupportedOperationException();
+        log(Priority.Warning, message);
     }
 
     public void error(final String logger, final String message) {
-        // TODO Insert your implementation here
-        throw new UnsupportedOperationException();
+        log(Priority.Error, logger, message);
     }
 
     public void error(final String message) {
-        // TODO Insert your implementation here
-        throw new UnsupportedOperationException();
+        log(Priority.Error, message);
     }
 
     public void critical(final String logger, final String message) {
-        // TODO Insert your implementation here
-        throw new UnsupportedOperationException();
+        log(Priority.Critical, logger, message);
     }
 
     public void critical(final String message) {
-        // TODO Insert your implementation here
-        throw new UnsupportedOperationException();
+        log(Priority.Critical, message);
     }
 
     public void fatal(final String logger, final String message) {
-        // TODO Insert your implementation here
-        throw new UnsupportedOperationException();
+        log(Priority.Fatal, logger, message);
     }
 
     public void fatal(final String message) {
-        // TODO Insert your implementation here
-        throw new UnsupportedOperationException();
+        log(Priority.Fatal, message);
     }
 
     public void printLoggers() {
-        // TODO Insert your implementation here
         throw new UnsupportedOperationException();
     }
 
     public void setLogLevel(final String logger, final Priority priority) {
-        // TODO Insert your implementation here
         throw new UnsupportedOperationException();
     }
 
     public void setLogLevel(final Priority priority) {
-        // TODO Insert your implementation here
         throw new UnsupportedOperationException();
     }
 
