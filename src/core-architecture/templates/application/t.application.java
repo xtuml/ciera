@@ -40,7 +40,7 @@ public class ${self.name} extends BaseApplication implements Application {
     }
 
     public static void main(String[] args) {
-        CommandLine.setArgs(args);
+        CommandLine.initialize(args);
         Application app = Application.getInstance();
         app.initialize();
         app.start();

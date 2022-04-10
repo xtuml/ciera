@@ -16,6 +16,7 @@ import io.ciera.runtime.api.application.Logger;
 import io.ciera.runtime.api.domain.Domain;
 import io.ciera.runtime.api.time.SystemClock;
 import io.ciera.runtime.application.task.DomainInitialization;
+import io.ciera.runtime.application.task.GenericInitialization;
 import io.ciera.runtime.time.WallClock;
 
 public class BaseApplication implements Application {
@@ -65,6 +66,7 @@ public class BaseApplication implements Application {
         for (Domain domain : getDomains()) {
             domain.getContext().execute(new DomainInitialization(domain));
         }
+        defaultContext().execute(new GenericInitialization(() -> CommandLine.getInstance().validate()));
     }
 
     @Override

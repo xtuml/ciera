@@ -1,189 +1,271 @@
 package io.ciera.runtime.application;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiConsumer;
+import java.util.function.BinaryOperator;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import io.ciera.runtime.api.application.Application;
 
 public class CommandLine {
 
-    private static volatile String[] args;
+    private static CommandLine instance = null;
 
-    private final Map<String, Option> options;
-    private final PrintStream console;
-    private Set<String> flags;
-    private Map<String, String> values;
+    private static final Pattern OPTION_PATTERN = Pattern.compile("-[A-Za-z0-9]+");
 
-    public CommandLine() {
-        this(null);
+    public static enum Conditionality {
+        Optional, Required
     }
 
-    public CommandLine(OutputStream out) {
+    public static enum Multiplicity {
+        Single, Multiple
+    }
+
+    private static class Flag {
+
+        private Flag(String option, String usageText) {
+            this.option = option;
+            this.usageText = usageText;
+        }
+
+        String option;
+        String usageText;
+
+        String getUsage1() {
+            return String.format("[%s]", option);
+        }
+
+        String getUsage2() {
+            return String.format("%s\t: %s", option, usageText);
+        }
+
+    }
+
+    private static class Value extends Flag {
+
+        private Value(String option, String usageText, Conditionality optionType, String valueName,
+                Conditionality valueType, Multiplicity multiplicity) {
+            super(option, usageText);
+            this.optionType = optionType;
+            this.valueName = valueName;
+            this.valueType = valueType;
+            this.multiplicity = multiplicity;
+        }
+
+        Conditionality optionType;
+        String valueName;
+        Conditionality valueType;
+        Multiplicity multiplicity;
+
+        String getUsage1() {
+            final boolean optOptional = optionType == Conditionality.Optional;
+            final boolean valOptional = valueType == Conditionality.Optional;
+            final boolean valMultiple = multiplicity == Multiplicity.Multiple;
+            return String.format("%s%s %s<%s>%s%s", optOptional ? "[" : "", option, valOptional ? "[" : "", valueName,
+                    valOptional ? "]" : "", valMultiple ? "..." : "");
+        }
+
+        String getUsage2() {
+            return String.format("%s <%s>\t: %s", option, valueName, usageText);
+        }
+
+    }
+
+    public static class CommandLineException extends RuntimeException {
+
+        private static final long serialVersionUID = 1L;
+
+        public CommandLineException(String message) {
+            super(message);
+        }
+
+        public String getUsageText() {
+            return CommandLine.getInstance().getUsageText();
+        }
+
+    }
+
+    private final String[] args;
+    private final Map<String, List<String>> parsedArgs;
+
+    private final Map<String, Flag> options;
+
+    private CommandLine(String args[]) {
+        this.args = args;
+        this.parsedArgs = Stream.of(args)
+                .collect(new Collector<String, Map<String, List<String>>, Map<String, List<String>>>() {
+
+                    private String currentOption = null;
+                    private boolean parsingOption = true;
+
+                    @Override
+                    public Supplier<Map<String, List<String>>> supplier() {
+                        return () -> new HashMap<>();
+                    }
+
+                    @Override
+                    public BiConsumer<Map<String, List<String>>, String> accumulator() {
+                        return (parsedArgs, arg) -> {
+                            if (OPTION_PATTERN.matcher(arg).matches()) {
+                                currentOption = arg;
+                                if (!parsedArgs.containsKey(currentOption)) {
+                                    parsedArgs.put(currentOption, new ArrayList<>());
+                                }
+                                parsingOption = false;
+                            } else {
+                                if (!parsingOption) {
+                                    parsedArgs.get(currentOption).add(arg);
+                                    parsingOption = true;
+                                } else {
+                                    throw new IllegalStateException(
+                                            "Expected flag or value identifier but found: " + arg);
+                                }
+                            }
+                        };
+                    }
+
+                    @Override
+                    public BinaryOperator<Map<String, List<String>>> combiner() {
+                        return (parsedArgs1, parsedArgs2) -> {
+                            for (String key : parsedArgs2.keySet()) {
+                                if (!parsedArgs1.containsKey(key)) {
+                                    parsedArgs1.put(key, new ArrayList<>());
+                                }
+                                parsedArgs1.get(key).addAll(parsedArgs2.get(key));
+                            }
+                            return parsedArgs1;
+                        };
+                    }
+
+                    @Override
+                    public Function<Map<String, List<String>>, Map<String, List<String>>> finisher() {
+                        return parsedArgs -> Collections.unmodifiableMap(parsedArgs);
+                    }
+
+                    @Override
+                    public Set<Characteristics> characteristics() {
+                        return Set.of();
+                    }
+
+                });
         this.options = new HashMap<>();
-        this.flags = null;
-        this.values = null;
-        if (out != null) {
-            this.console = new PrintStream(out);
-        } else {
-            this.console = new PrintStream(new OutputStream() {
-                @Override
-                public void write(int b) throws IOException {
-                }
-            });
-        }
     }
 
-    // class used for registering options
-    private static class Option {
-
-        static final int FLAG = 0;
-        static final int VALUE = 1;
-
-        int type;
-        String name;
-        String value_name;
-        String usage;
-        String defaultValue;
-        boolean required;
-
-    }
-
-    public boolean get_flag(String name) {
-        if (null == flags || null == values)
-            throw new IllegalStateException("Commandline has not been loaded");
-        if (!options.containsKey(name))
-            throw new IllegalArgumentException("Option '" + name + "' has not been registered");
-        if (options.get(name).type != Option.FLAG)
-            throw new IllegalArgumentException("Option '" + name + "' requires a value");
-        return flags.contains(name);
-    }
-
-    public String get_value(String name) {
-        if (null == flags || null == values)
-            throw new IllegalStateException("Commandline has not been loaded");
-        if (!options.containsKey(name))
-            throw new IllegalArgumentException("Option '" + name + "' has not been registered");
-        if (options.get(name).type != Option.VALUE)
-            throw new IllegalArgumentException("Option '" + name + "' does not carry a value");
-        if (values.containsKey(name))
-            return values.get(name);
-        else
-            return options.get(name).defaultValue;
-    }
-
-    public void read_command_line() {
-        if (null != flags && null != values)
-            throw new IllegalStateException("Commandline is already loaded");
-        validateCommandLine();
-    }
-
-    public void register_flag(String name, String usage) {
-        if (null != flags && null != values)
-            throw new IllegalStateException("Commandline is already loaded");
-        validateName(name);
-        Option flag = new Option();
-        flag.type = Option.FLAG;
-        flag.name = name;
-        flag.usage = null != usage ? usage : "";
-        if (options.containsKey(name))
-            throw new IllegalArgumentException("Option '" + name + "' already registered");
-        options.put(name, flag);
-    }
-
-    public void register_value(String name, String value_name, String usage, String default_value, boolean required) {
-        if (null != flags && null != values)
-            throw new IllegalStateException("Commandline is already loaded");
-        validateName(name);
-        Option value = new Option();
-        value.type = Option.VALUE;
-        value.name = name;
-        value.value_name = null != value_name ? value_name : "";
-        value.usage = null != usage ? usage : "";
-        value.defaultValue = null != default_value ? default_value : "";
-        value.required = required;
-        if (options.containsKey(name))
-            throw new IllegalArgumentException("Option '" + name + "' already registered");
-        options.put(name, value);
-    }
-
-    // check whether a string is a valid option name
-    private void validateName(String name) {
-        if (null == name || !Pattern.compile("[a-zA-Z][a-zA-Z0-9_\\-]*").matcher(name).matches())
-            throw new IllegalArgumentException(
-                    "Option name must be one or more alphanumeric characters, hyphens, or underscores");
-        else if ("h".equals(name) || "help".equals(name)) {
-            throw new IllegalArgumentException(String.format("Cannot register reserved flag '%s'", name));
-        }
-    }
-
-    // assure that no unregistered options are present and that all required options
-    // are present
-    private void validateCommandLine() {
-        boolean errors = false;
-        if (null == flags || null == values)
-            errors = parseCommandLine();
-        for (String flag : flags)
-            if (!options.containsKey(flag) || Option.FLAG != options.get(flag).type)
-                errors = true;
-        for (String value : values.keySet())
-            if (!options.containsKey(value) || Option.VALUE != options.get(value).type)
-                errors = true;
-        for (Option opt : options.values())
-            if (Option.VALUE == opt.type && opt.required && !values.containsKey(opt.name))
-                errors = true;
-        if (errors || flags.contains("h") || flags.contains("help")) {
-            printUsage();
-            throw new RuntimeException();
-        }
-    }
-
-    // read the command line args and parse into flags and values
-    private boolean parseCommandLine() {
-        flags = new HashSet<>();
-        values = new HashMap<>();
-        Set<String> possibleFlags = new HashSet<>();
-        for (String arg : args) {
-            if (arg.startsWith("--")) {
-                if (!possibleFlags.isEmpty())
-                    flags.addAll(possibleFlags); // if another option is hit before a value, the previous options were
-                                                 // flags
-                possibleFlags.add(arg.substring(2));
-            } else if (arg.startsWith("-")) {
-                if (!possibleFlags.isEmpty())
-                    flags.addAll(possibleFlags); // if another option is hit before a value, the previous options were
-                                                 // flags
-                for (int i = 1; i < arg.length(); i++)
-                    possibleFlags.add(arg.substring(i, i + 1));
+    public void registerFlag(String option, String usageText) {
+        if (OPTION_PATTERN.matcher(option).matches()) {
+            if (!options.containsKey(option)) {
+                options.put(option, new Flag(option, usageText));
             } else {
-                if (1 != possibleFlags.size())
-                    return true;
-                values.put(possibleFlags.iterator().next(), arg);
-                possibleFlags.clear();
+                throw new IllegalStateException("Flag has already been registered: " + option);
             }
+        } else {
+            throw new IllegalArgumentException("Flag must be a hypen followed by one or more alphanumeric characters");
         }
-        flags.addAll(possibleFlags);
-        return false;
     }
 
-    // print usage of all registered options
-    private void printUsage() {
-        console.println("Usage:");
-        for (Option opt : options.values()) {
-            String name = opt.name.length() > 1 ? "--" + opt.name : "-" + opt.name;
-            if (Option.FLAG == opt.type)
-                console.printf("  %-20s : %s\n", name, opt.usage);
-            else
-                console.printf("  %-20s : %s\n", name + " <" + opt.value_name + ">", opt.usage);
+    public void registerValue(String option, String usageText, Conditionality optionType, String valueName,
+            Conditionality valueType, Multiplicity multiplicity) {
+        if (OPTION_PATTERN.matcher(option).matches()) {
+            if (!options.containsKey(option)) {
+                options.put(option, new Value(option, usageText, optionType, valueName, valueType, multiplicity));
+            } else {
+                throw new IllegalStateException("Value has already been registered: " + option);
+            }
+        } else {
+            throw new IllegalArgumentException("Value must be a hypen followed by one or more alphanumeric characters");
         }
-        console.printf("  %-20s : Print usage information.\n", "-h, --help");
     }
 
-    public static void setArgs(String[] args) {
-        CommandLine.args = args;
+    public boolean optionPresent(String option) {
+        if (options.containsKey(option)) {
+            return parsedArgs.containsKey(option);
+        } else {
+            throw new IllegalStateException("Option is not registered: " + option);
+        }
+    }
+
+    public String getOptionValue(String option) {
+        return getOptionValue(option, "");
+    }
+
+    public String getOptionValue(String option, String defaultValue) {
+        if (options.containsKey(option)) {
+            Flag opt = options.get(option);
+            if (opt instanceof Value && ((Value) opt).multiplicity == Multiplicity.Single) {
+                return parsedArgs.get(option).stream().findAny().orElse(defaultValue);
+            } else {
+                throw new IllegalStateException("Option is not registered as a singleton value: " + option);
+            }
+        } else {
+            throw new IllegalStateException("Option is not registered: " + option);
+        }
+    }
+
+    public List<String> getOptionValues(String option) {
+        if (options.containsKey(option)) {
+            Flag opt = options.get(option);
+            if (opt instanceof Value) {
+                return Collections.unmodifiableList(parsedArgs.get(option));
+            } else {
+                throw new IllegalStateException("Option is not registered as a value: " + option);
+            }
+        } else {
+            throw new IllegalStateException("Option is not registered: " + option);
+        }
+    }
+
+    public String getUsageText() {
+        return String.format("Usage: %s %s\n %s\n", Application.getInstance().getName(),
+                options.keySet().stream().sorted().map(options::get).map(Flag::getUsage1)
+                        .collect(Collectors.joining(" ")),
+                options.keySet().stream().sorted().map(options::get).map(Flag::getUsage2)
+                        .collect(Collectors.joining("\n ")));
+    }
+
+    public void validate() {
+        options.keySet().stream().map(options::get).filter(Value.class::isInstance).map(Value.class::cast)
+                .forEach(value -> {
+                    if (value.optionType == Conditionality.Required && !parsedArgs.containsKey(value.option)) {
+                        throw new CommandLineException(
+                                "Command line does not contain required option: " + value.option);
+                    }
+                    if (value.valueType == Conditionality.Required && parsedArgs.containsKey(value.option)
+                            && parsedArgs.get(value.option).isEmpty()) {
+                        throw new CommandLineException(
+                                "Command line does not provide required value for option: " + value.option);
+                    }
+                    if (value.multiplicity == Multiplicity.Single && parsedArgs.containsKey(value.option)
+                            && parsedArgs.get(value.option).size() > 1) {
+                        throw new CommandLineException(
+                                "Command line provides multiple values for singleton option: " + value.option);
+                    }
+                });
+    }
+
+    public String[] getArgs() {
+        return Arrays.copyOf(args, args.length);
+    }
+
+    public static void initialize(String[] args) {
+        instance = new CommandLine(args);
+    }
+
+    public static CommandLine getInstance() {
+        if (instance == null) {
+            initialize(new String[0]);
+        }
+        return instance;
     }
 
 }
