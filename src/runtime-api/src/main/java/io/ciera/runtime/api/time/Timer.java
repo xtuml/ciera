@@ -8,6 +8,8 @@ import io.ciera.runtime.api.types.Duration;
 import io.ciera.runtime.api.types.TimeStamp;
 
 public interface Timer extends Comparable<Timer>, Serializable {
+    
+    public static final Timer DEFAULT = new DefaultTimer();
 
     public boolean schedule(long delay);
 
@@ -40,5 +42,76 @@ public interface Timer extends Comparable<Timer>, Serializable {
     public Domain getDomain();
 
     public ExecutionContext getContext();
+    
+    static class DefaultTimer implements Timer {
+
+        private static final long serialVersionUID = 1L;
+
+        @Override
+        public int compareTo(Timer o) {
+            return 0;
+        }
+
+        @Override
+        public boolean schedule(long delay) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void fire() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public long getExpiration() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void setExpiration(long expiration) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean cancel() {
+            return false;
+        }
+
+        @Override
+        public boolean isScheduled() {
+            return false;
+        }
+
+        @Override
+        public boolean isExpired() {
+            return false;
+        }
+
+        @Override
+        public Duration remainingTime() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public TimeStamp getScheduledExpirationTime() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public TimeStamp getLastExpirationTime() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Domain getDomain() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public ExecutionContext getContext() {
+            throw new UnsupportedOperationException();
+        }
+        
+    }
 
 }
