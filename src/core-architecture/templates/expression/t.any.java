@@ -2,9 +2,9 @@ ${root_expression_body}.\
 .if (not is_stream)
 stream().\
 .end if
-findAny()\
 .if (self.strict)
-..orElseThrow()\
+collect(StreamUtil.findOnly())\
 .else
-..orElse(${default_value})\
+findAny()\
 .end if
+..orElse(${default_value})\
