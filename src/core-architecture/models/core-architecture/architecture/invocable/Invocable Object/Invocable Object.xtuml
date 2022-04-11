@@ -70,7 +70,6 @@ if (not_empty statement)
   else
     
     // render the body
-    T::push_buffer();
     original_parent_name = self.original_parent_name;
     if (STRING::indexof(haystack:original_parent_name, needle:" ") != -1)
       original_parent_name = "''" + self.original_parent_name + "''";
@@ -79,7 +78,9 @@ if (not_empty statement)
     if (STRING::indexof(haystack:original_body_name, needle:" ") != -1)
       original_body_name = "''" + self.original_body_name + "''";
     end if;
-    ::addStringImport(package:"io.ciera.runtime.api.exceptions", class_name:"ActionException");
+    upgrade_exception = self.upgrade_exception(exception_name:"_e", convert:true);
+
+    T::push_buffer();
     T::include(file:"invocable/t.invocable.trace.java");
     body = T::body();
     T::pop_buffer();
@@ -131,6 +132,61 @@ return signature;',
 	"dff37204-9330-40a9-8bab-d9af715aba36",
 	0,
 	0);
+INSERT INTO O_TFR
+	VALUES ("7630f427-e13e-414e-a93d-c1563877c62c",
+	"88a618cf-f271-4cd5-a6d4-64be4106d78d",
+	'upgrade_exception',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	1,
+	'exception_name = param.exception_name;
+convert = param.convert;
+T::push_buffer();
+disable_tracing = PROP::getFlag(key:"io.ciera.DisableCodeTracing");
+if (not disable_tracing)
+
+  original_parent_name = self.original_parent_name;
+  if (STRING::indexof(haystack:original_parent_name, needle:" ") != -1)
+    original_parent_name = "''" + self.original_parent_name + "''";
+  end if;
+  original_body_name = self.original_body_name;
+  if (STRING::indexof(haystack:original_body_name, needle:" ") != -1)
+    original_body_name = "''" + self.original_body_name + "''";
+  end if;
+
+  if (convert)
+    ::addStringImport(package:"io.ciera.runtime.api.exceptions", class_name:"ActionException");
+  end if;
+
+  T::include(file:"invocable/t.invocable.trace.upgradeexception.java");
+
+end if;
+upgrade_exception = T::body();
+T::pop_buffer();
+return upgrade_exception;',
+	1,
+	'',
+	"b3c8267c-6e1f-4f02-ba16-05770552de77",
+	0,
+	1);
+INSERT INTO O_TPARM
+	VALUES ("bd6a8777-0567-4572-ac8d-20f7b2fb33cc",
+	"7630f427-e13e-414e-a93d-c1563877c62c",
+	'exception_name',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO O_TPARM
+	VALUES ("6cdb2d84-1d1e-4f43-a208-4e9c7b2bd348",
+	"7630f427-e13e-414e-a93d-c1563877c62c",
+	'convert',
+	"ba5eda7a-def5-0000-0000-000000000001",
+	0,
+	'',
+	"bd6a8777-0567-4572-ac8d-20f7b2fb33cc",
+	'');
 INSERT INTO O_NBATTR
 	VALUES ("d30a895c-0c5d-447c-b544-108e3c2030cd",
 	"88a618cf-f271-4cd5-a6d4-64be4106d78d");

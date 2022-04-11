@@ -13,29 +13,39 @@ public class ActionException extends RuntimeException {
     private final List<StackTraceElement> stack;
 
     public ActionException() {
-        this(null, null);
+        this(null, null, null);
     }
 
     public ActionException(String message) {
-        this(message, null);
+        this(message, null, null);
     }
 
     public ActionException(Throwable cause) {
-        this(null, null);
-        final List<StackTraceElement> trace = List.of(getStackTrace());
-        cause.setStackTrace(
-                Stream.of(cause.getStackTrace()).filter(ste -> !trace.contains(ste)).toArray(StackTraceElement[]::new));
-        initCause(cause);
+        this(null, null, cause);
     }
 
     public ActionException(Object data) {
-        this(null, data);
+        this(null, data, null);
     }
 
-    private ActionException(String message, Object data) {
+    public ActionException(String message, Throwable cause) {
+        this(message, null, cause);
+    }
+
+    public ActionException(Object data, Throwable cause) {
+        this(null, data, cause);
+    }
+
+    private ActionException(String message, Object data, Throwable cause) {
         super(message);
         this.data = data;
         stack = new LinkedList<>();
+        if (cause != null) {
+            final List<StackTraceElement> trace = List.of(getStackTrace());
+            cause.setStackTrace(
+                    Stream.of(cause.getStackTrace()).filter(ste -> !trace.contains(ste)).toArray(StackTraceElement[]::new));
+            initCause(cause);
+        }
     }
 
     public void updateStack(String parentName, String bodyName, String fileName, int lineNumber) {
