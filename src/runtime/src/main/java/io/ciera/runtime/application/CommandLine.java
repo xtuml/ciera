@@ -203,7 +203,7 @@ public class CommandLine {
         if (options.containsKey(option)) {
             Flag opt = options.get(option);
             if (opt instanceof Value && ((Value) opt).multiplicity == Multiplicity.Single) {
-                return parsedArgs.get(option).stream().findAny().orElse(defaultValue);
+                return parsedArgs.get(option) != null ? parsedArgs.get(option).stream().findAny().orElseThrow() : defaultValue;
             } else {
                 throw new IllegalStateException("Option is not registered as a singleton value: " + option);
             }
