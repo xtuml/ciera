@@ -1,6 +1,6 @@
 package io.ciera.runtime.api.exceptions;
 
-public class ProgramError extends RuntimeException {
+public class ProgramError extends ActionException {
 
     private static final long serialVersionUID = 1l;
 

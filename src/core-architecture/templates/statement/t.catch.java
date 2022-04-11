@@ -2,10 +2,15 @@
 
 /* ${self.actions} */
 .end if
-catch (final \
+catch (\
 .if (exception_name == "")
 RuntimeException\
 .else
 ${exception_name}\
 .end if
- ${var_name}) ${catch_block}
+ ${var_name}) {
+.if (upgrade_exception != "")
+    ${upgrade_exception}\
+.end if
+    ${catch_block}
+}

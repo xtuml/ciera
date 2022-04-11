@@ -21,6 +21,9 @@ select one exp_type related by exp_var->TypeReference[R461];
 exception_name = exp_type.root_type_name;
 var_name = exp_var.scope_unique_name;
 
+select one invoc related by self->TrySmt[R492]->Statement[R451]->CodeBlock[R450]->InvocableObject[R4000];
+upgrade_exception = invoc.upgrade_exception(exception_name:var_name, convert:(exception_name == "RuntimeException"));
+
 T::push_buffer();
 select one catch_blk related by self->CodeBlock[R492];
 catch_blk.render();
