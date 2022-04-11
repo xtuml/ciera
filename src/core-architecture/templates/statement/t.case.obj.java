@@ -15,8 +15,12 @@ _switch_expr == ${expr}\
 _switch_expr.equals(${expr})\
   .end if
   .if (not self.duplicate)
-) ${then_block}
+) {
+    ${then_block}\
+}
   .end if
 .else
-else ${then_block}
+else {
+    ${then_block}\
+}
 .end if

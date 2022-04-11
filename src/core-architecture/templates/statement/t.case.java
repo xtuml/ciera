@@ -8,7 +8,7 @@ default:
 .end if
 .if (not self.duplicate)
   .if (then_block != "")
-    ${then_block}
+    ${then_block}\
   .end if
   .if (empty exiting_statement)
     break;

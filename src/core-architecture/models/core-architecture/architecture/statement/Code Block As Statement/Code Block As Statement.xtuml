@@ -15,16 +15,11 @@ INSERT INTO O_TFR
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'select one block related by self->CodeBlock[R497];
-select many block_smts related by block->Statement[R450];
-select any try_smt related by block_smts->TrySmt[R451];
-if (cardinality block_smts == 1 and not_empty try_smt)
-  // if the block only contains one statement and it is try, don''t bother
-  // rendering an outer block
-  try_smt.render();
-else
-  block.render();
-  T::append(s:"\n");
-end if;',
+T::push_buffer();
+block.render();
+code_block = T::body();
+T::pop_buffer();
+T::include(file:"statement/t.codeblockasstatement.java");',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",
