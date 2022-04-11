@@ -1,1 +1,4 @@
-try ${try_block} ${catches}\
+try {
+    ${try_block}\
+}
+${catches}\

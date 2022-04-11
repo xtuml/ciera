@@ -1,5 +1,1 @@
-{
-.if (statements != "")
-    ${statements}\
-.end if
-}\
+${statements}\
