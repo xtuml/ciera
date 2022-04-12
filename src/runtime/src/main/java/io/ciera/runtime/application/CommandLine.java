@@ -72,8 +72,8 @@ public class CommandLine {
             final boolean optOptional = optionType == Conditionality.Optional;
             final boolean valOptional = valueType == Conditionality.Optional;
             final boolean valMultiple = multiplicity == Multiplicity.Multiple;
-            return String.format("%s%s %s<%s>%s%s", optOptional ? "[" : "", option, valOptional ? "[" : "", valueName,
-                    valOptional ? "]" : "", valMultiple ? "..." : "");
+            return String.format("%s%s %s<%s>%s%s%s", optOptional ? "[" : "", option, valOptional ? "[" : "", valueName,
+                    valOptional ? "]" : "", valMultiple ? "..." : "", optOptional ? "]" : "");
         }
 
         String getUsage2() {
@@ -167,10 +167,10 @@ public class CommandLine {
             if (!options.containsKey(option)) {
                 options.put(option, new Flag(option, usageText));
             } else {
-                throw new IllegalStateException("Flag has already been registered: " + option);
+                throw new IllegalStateException("Option has already been registered: " + option);
             }
         } else {
-            throw new IllegalArgumentException("Flag must be a hypen followed by one or more alphanumeric characters");
+            throw new IllegalArgumentException("Option name must be a hypen followed by one or more alphanumeric characters");
         }
     }
 
@@ -180,10 +180,10 @@ public class CommandLine {
             if (!options.containsKey(option)) {
                 options.put(option, new Value(option, usageText, optionType, valueName, valueType, multiplicity));
             } else {
-                throw new IllegalStateException("Value has already been registered: " + option);
+                throw new IllegalStateException("Option has already been registered: " + option);
             }
         } else {
-            throw new IllegalArgumentException("Value must be a hypen followed by one or more alphanumeric characters");
+            throw new IllegalArgumentException("Option name must be a hypen followed by one or more alphanumeric characters");
         }
     }
 
