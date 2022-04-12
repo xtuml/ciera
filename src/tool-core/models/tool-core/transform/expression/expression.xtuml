@@ -1439,7 +1439,6 @@ select one l_set related by l_type->CollectionTypeReference[R3801]->SetTypeRefer
 
 // translate the operator
 binary.invocation = false;
-binary.util = false;
 if ("and" == operator)
   if (l_type.primitive)
     binary.operator = "&&";
@@ -1461,7 +1460,6 @@ elif ("==" == operator)
     if (not_empty array_type)
       binary.operator = "Arrays.equals";
       binary.invocation = true;
-      binary.util = true;
     else
       binary.operator = "equals";
       binary.invocation = true;
@@ -1485,7 +1483,6 @@ elif ("!=" == operator)
     if (not_empty array_type)
       binary.operator = "Arrays.equals";
       binary.invocation = true;
-      binary.util = true;
     else
       binary.operator = "equals";
       binary.invocation = true;
@@ -1497,7 +1494,6 @@ elif ("<" == operator)
     if (not_empty array_type)
       binary.comparison_operator = "Arrays.compare";
       binary.invocation = true;
-      binary.util = true;
     else
       binary.comparison_operator = "compareTo";
       binary.invocation = true;
@@ -1509,7 +1505,6 @@ elif ("<=" == operator)
     if (not_empty array_type)
       binary.comparison_operator = "Arrays.compare";
       binary.invocation = true;
-      binary.util = true;
     else
       binary.comparison_operator = "compareTo";
       binary.invocation = true;
@@ -1521,7 +1516,6 @@ elif (">" == operator)
     if (not_empty array_type)
       binary.comparison_operator = "Arrays.compare";
       binary.invocation = true;
-      binary.util = true;
     else
       binary.comparison_operator = "compareTo";
       binary.invocation = true;
@@ -1533,7 +1527,6 @@ elif (">=" == operator)
     if (not_empty array_type)
       binary.comparison_operator = "Arrays.compare";
       binary.invocation = true;
-      binary.util = true;
     else
       binary.comparison_operator = "compareTo";
       binary.invocation = true;
@@ -1710,7 +1703,7 @@ select one index_val related by v_aer->V_VAL[R839];
 ::transformExpression( v_val:index_val, expr_number:expr.expression_number + ".2", smt:smt );
 select any index_expr related by smt->Expression[R775] where ( selected.expression_number == expr.expression_number + ".2" );
 // create array element reference
-create object instance array_ref of ArrayElementReference;
+create object instance array_ref of IndexedCollectionReference;
 relate array_ref to expr across R776;
 relate array_ref to root_expr across R3900;
 relate array_ref to index_expr across R3901;',
