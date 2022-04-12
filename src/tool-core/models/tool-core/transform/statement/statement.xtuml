@@ -3715,12 +3715,12 @@ for each declared_var in declared_vars
   end if;
 end for;
 
-select many array_vars related by smt->Expression[R775]->ArrayElementReference[R776]->Expression[R3900]->VariableReference[R776]->Variable[R782];
+select many array_vars related by smt->Expression[R775]->IndexedCollectionReference[R776]->Expression[R3900]->VariableReference[R776]->Variable[R782];
 for each array_var in array_vars
   select one declaring_smt related by array_var->Statement[R457];
   if ( smt.block_number == declaring_smt.block_number and smt.statement_number == declaring_smt.statement_number ) // variable was declared in this statement
-    select many array_refs related by array_var->VariableReference[R782]->Expression[R776]->ArrayElementReference[R3900] where ( selected.block_number == smt.block_number and selected.statement_number == smt.statement_number );
-    select any earliest_array_ref from instances of ArrayElementReference where false;
+    select many array_refs related by array_var->VariableReference[R782]->Expression[R776]->IndexedCollectionReference[R3900] where ( selected.block_number == smt.block_number and selected.statement_number == smt.statement_number );
+    select any earliest_array_ref from instances of IndexedCollectionReference where false;
     for each array_ref in array_refs
       if ( empty earliest_array_ref or array_ref.expression_number < earliest_array_ref.expression_number )
         earliest_array_ref = array_ref;
