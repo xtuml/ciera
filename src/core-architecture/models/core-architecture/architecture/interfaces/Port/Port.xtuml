@@ -16,8 +16,8 @@ INSERT INTO O_TFR
 	1,
 	'// render inbound messages
 select many inbound_msgs related by self->Message[R420]
-  where SORT::ascending(attr:"id") and ((not selected.to_provider and not self.provider) or (selected.to_provider and self.provider));
-select many inbound_port_msgs related by inbound_msgs->PortMessage[R420] where selected.port_name == self.name;
+  where ((not selected.to_provider and not self.provider) or (selected.to_provider and self.provider));
+select many inbound_port_msgs related by inbound_msgs->PortMessage[R420] where selected.port_name == self.name and SORT::ascending(attr:"msg_id");
 for each port_msg in inbound_port_msgs
   port_msg.render();
 end for;
@@ -25,8 +25,8 @@ inbound_message_block = T::body();
 
 // render outbound messages
 select many outbound_msgs related by self->Message[R420]
-  where SORT::ascending(attr:"id") and ((selected.to_provider and not self.provider) or (not selected.to_provider and self.provider));
-select many outbound_port_msgs related by outbound_msgs->PortMessage[R420] where selected.port_name == self.name;
+  where ((selected.to_provider and not self.provider) or (not selected.to_provider and self.provider));
+select many outbound_port_msgs related by outbound_msgs->PortMessage[R420] where selected.port_name == self.name and SORT::ascending(attr:"msg_id");
 for each port_msg in outbound_port_msgs
   port_msg.render();
 end for;
@@ -35,8 +35,8 @@ outbound_message_block = T::body();
 // render switch block
 // only handle messages defined in the port''s interface and not in any superinterfaces
 select many local_inbound_msgs related by self->Interface[R418]->Message[R419]
-  where selected.async and SORT::ascending(attr:"id") and ((not selected.to_provider and not self.provider) or (selected.to_provider and self.provider));
-select many inbound_port_msgs related by local_inbound_msgs->PortMessage[R420] where selected.port_name == self.name;
+  where selected.async and ((not selected.to_provider and not self.provider) or (selected.to_provider and self.provider));
+select many inbound_port_msgs related by local_inbound_msgs->PortMessage[R420] where selected.port_name == self.name and SORT::ascending(attr:"msg_id");
 if not_empty inbound_port_msgs
   for each msg in inbound_port_msgs
     msg.render_deliver();

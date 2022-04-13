@@ -2246,10 +2246,12 @@ if (sm.is_instance)
 end if;
 
 // transform events
-select many sm_levts related by sm_sm->SM_EVT[R502]->SM_SEVT[R525]->SM_LEVT[R526]->SM_SEVT[R526]->SM_EVT[R525];
-select many sm_pevts related by sm_sm->SM_EVT[R502]->SM_PEVT[R525]->SM_EVT[R525];
-sm_evts = sm_levts + sm_pevts;
-for each sm_evt in sm_evts
+select many sm_levts related by sm_sm->SM_EVT[R502]->SM_SEVT[R525]->SM_LEVT[R526]->SM_SEVT[R526]->SM_EVT[R525] where SORT::ascending(attr:"Numb");
+for each sm_evt in sm_levts
+  ::transformEvent(sm_evt:sm_evt, obj:obj);
+end for;
+select many sm_pevts related by sm_sm->SM_EVT[R502]->SM_PEVT[R525]->SM_EVT[R525] where SORT::ascending(attr:"Numb");
+for each sm_evt in sm_pevts
   ::transformEvent(sm_evt:sm_evt, obj:obj);
 end for;
 
@@ -2607,7 +2609,7 @@ if (state.number == 0)
 
     // create invocable
     create object instance invocable of InvocableObject;
-    invocable.name = state.name + "TxnTo" + dest_state.name;
+    invocable.name = state.name + evt.name + "TxnTo" + dest_state.name;
     invocable.parent_name = sm.name;
     invocable.parent_package = sm.package;
     relate txn to invocable across R427;
@@ -2672,7 +2674,7 @@ else
 
         // create invocable
         create object instance invocable of InvocableObject;
-        invocable.name = state.name + "TxnTo" + dest_state.name;
+        invocable.name = state.name + evt.name + "TxnTo" + dest_state.name;
         invocable.parent_name = sm.name;
         invocable.parent_package = sm.package;
         relate txn to invocable across R427;

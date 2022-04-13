@@ -276,7 +276,7 @@ INSERT INTO S_SYNC
 actions = act_smt.Label;
 
 // if this is a statement that containts inner blocks, we only want part of the actions
-// NOTE: this could fail if you have two statements that start on the same line
+// TODO: this could fail if you have two statements that start on the same line
 // since sorting on multiple attributes is not currently supported. This case is
 // so rare that I''m not really worried about it. The failure would only be in
 // appearance of the generated code anyway...
@@ -284,7 +284,13 @@ actions = act_smt.Label;
 // if statements
 select one if_smt related by act_smt->ACT_IF[R603];
 if not_empty if_smt
-  select any first_smt related by if_smt->ACT_BLK[R607]->ACT_SMT[R602] where SORT::ascending(attr:"LineNumber"); //and SORT::ascending(attr:"StartPosition");
+  select many first_smts related by if_smt->ACT_BLK[R607]->ACT_SMT[R602] where SORT::ascending(attr:"LineNumber"); //and SORT::ascending(attr:"StartPosition");
+  line_number = 0;
+  for each first_smt in first_smts
+    line_number = first_smt.LineNumber;
+    break;
+  end for;
+  select any first_smt related by first_smts->ACT_BLK[R602]->ACT_SMT[R602] where selected.LineNumber == line_number and SORT::ascending(attr:"StartPosition");
   if not_empty first_smt
     actions = STRING::substr(s:actions, begin:0, end: STRING::indexof(haystack:actions, needle:first_smt.Label));
   else
@@ -302,7 +308,13 @@ else
 // elif statements
 select one elif_smt related by act_smt->ACT_EL[R603];
 if not_empty elif_smt
-  select any first_smt related by elif_smt->ACT_BLK[R658]->ACT_SMT[R602] where SORT::ascending(attr:"LineNumber"); //and SORT::ascending(attr:"StartPosition");
+  select many first_smts related by elif_smt->ACT_BLK[R658]->ACT_SMT[R602] where SORT::ascending(attr:"LineNumber"); //and SORT::ascending(attr:"StartPosition");
+  line_number = 0;
+  for each first_smt in first_smts
+    line_number = first_smt.LineNumber;
+    break;
+  end for;
+  select any first_smt related by first_smts->ACT_BLK[R602]->ACT_SMT[R602] where selected.LineNumber == line_number and SORT::ascending(attr:"StartPosition");
   if not_empty first_smt
     actions = "elif " + STRING::substr(s:actions, begin:0, end: STRING::indexof(haystack:actions, needle:first_smt.Label));
   else
@@ -318,7 +330,13 @@ else
 // for statements
 select one for_smt related by act_smt->ACT_FOR[R603];
 if not_empty for_smt
-  select any first_smt related by for_smt->ACT_BLK[R605]->ACT_SMT[R602] where SORT::ascending(attr:"LineNumber"); //and SORT::ascending(attr:"StartPosition");
+  select many first_smts related by for_smt->ACT_BLK[R605]->ACT_SMT[R602] where SORT::ascending(attr:"LineNumber"); //and SORT::ascending(attr:"StartPosition");
+  line_number = 0;
+  for each first_smt in first_smts
+    line_number = first_smt.LineNumber;
+    break;
+  end for;
+  select any first_smt related by first_smts->ACT_BLK[R602]->ACT_SMT[R602] where selected.LineNumber == line_number and SORT::ascending(attr:"StartPosition");
   if not_empty first_smt
     actions = STRING::substr(s:actions, begin:0, end: STRING::indexof(haystack:actions, needle:first_smt.Label));
   else
@@ -329,7 +347,13 @@ else
 // while statements
 select one while_smt related by act_smt->ACT_WHL[R603];
 if not_empty while_smt
-  select any first_smt related by while_smt->ACT_BLK[R608]->ACT_SMT[R602] where SORT::ascending(attr:"LineNumber"); //and SORT::ascending(attr:"StartPosition");
+  select many first_smts related by while_smt->ACT_BLK[R608]->ACT_SMT[R602] where SORT::ascending(attr:"LineNumber"); //and SORT::ascending(attr:"StartPosition");
+  line_number = 0;
+  for each first_smt in first_smts
+    line_number = first_smt.LineNumber;
+    break;
+  end for;
+  select any first_smt related by first_smts->ACT_BLK[R602]->ACT_SMT[R602] where selected.LineNumber == line_number and SORT::ascending(attr:"StartPosition");
   if not_empty first_smt
     actions = STRING::substr(s:actions, begin:0, end: STRING::indexof(haystack:actions, needle:first_smt.Label));
   else

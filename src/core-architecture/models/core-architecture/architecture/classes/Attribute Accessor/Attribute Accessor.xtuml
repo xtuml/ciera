@@ -32,16 +32,13 @@ primitive = type_ref.primitive;
 is_getter = self.accessor_type == AttributeAccessorType::GETTER;
 
 if (not is_getter)
-  select many refs related by self->Attribute[R4510]->AttributeReference[R4506.''has value provided by''];
+  select many refs related by self->Attribute[R4510]->AttributeReference[R4506.''has value provided by''] where SORT::ascending(attr:"referred_selector_name");
   for each ref in refs
     select any accessor related by ref->Attribute[R4506.''has value provided by'']->AttributeAccessor[R4510]
       where (selected.accessor_type == AttributeAccessorType::GETTER);
     accessor_name = accessor.getName();
     select one rel related by ref->Relationship[R4511];
-    select any selector related by ref->Relationship[R4511]->Selector[R4512]
-      where selected.class_name == self.class_name and selected.class_package == self.class_package and
-            selected.name == "R" + STRING::itoa(i:rel.num) + "_" + T::sub(format:"_", s:ref.part_phrase) + "_" + ref.referred_to_attribute_class_name;
-    selector_name = selector.name;
+    selector_name = ref.referred_selector_name;
     select one ref_type_ref related by ref->Attribute[R4506.''has value provided by'']->TypeReference[R424];
     ref_primitive = ref_type_ref.primitive;
     ::addStringImport(package:"io.ciera.runtime.api.exceptions", class_name:"ReferentialAttributeException");
@@ -51,8 +48,9 @@ end if;
 ref_attr_checks = T::body();
 
 if (not is_getter)
-  select many refs related by self->Attribute[R4510]->AttributeReference[R4506.''provides value for''];
+  select many refs related by self->Attribute[R4510]->AttributeReference[R4506.''provides value for''] where SORT::ascending(attr:"referring_selector_name");
   for each ref in refs
+    class_name = ref.referred_to_attribute_class_name;
     attribute_name = ref.referred_to_attribute_name;
     select any accessor related by ref->Attribute[R4506.''provides value for'']->AttributeAccessor[R4510]
       where (selected.accessor_type == AttributeAccessorType::SETTER);
@@ -61,7 +59,7 @@ if (not is_getter)
     select any selector related by ref->Relationship[R4511]->Selector[R4512]
       where selected.class_name == self.class_name and selected.class_package == self.class_package and
             selected.name == "R" + STRING::itoa(i:rel.num) + "_" + T::sub(format:"_", s:ref.form_phrase) + "_" + ref.referring_attribute_class_name;
-    selector_name = selector.name;
+    selector_name = ref.referring_selector_name;
     multiplicity_many = selector.multiplicity == Mult::MANY;
     T::include(file:"class/t.attributepropagation.java");
   end for;

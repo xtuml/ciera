@@ -138,7 +138,8 @@ active_relationship_checks = T::body();
 identifier_attribute_getters = "";
 sep = "";
 select many preferred_id_attrs related by self->Attribute[R410] where selected.identifier == 1;
-select many preferred_id_getters related by preferred_id_attrs->AttributeAccessor[R4510] where selected.accessor_type == AttributeAccessorType::GETTER;
+select many preferred_id_getters related by preferred_id_attrs->AttributeAccessor[R4510]
+  where selected.accessor_type == AttributeAccessorType::GETTER and SORT::ascending(attr:"attribute_name");
 if not_empty preferred_id_getters
   for each preferred_id_getter in preferred_id_getters
     identifier_attribute_getters = identifier_attribute_getters + sep + preferred_id_getter.getName() + "()";

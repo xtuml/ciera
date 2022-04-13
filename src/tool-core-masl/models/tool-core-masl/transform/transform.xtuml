@@ -525,9 +525,10 @@ relate port to iface across R418;
 relate iface to domain_terminator across R8312;
 
 // transform terminator services
-select many terminator_services related by domain_terminator->DomainTerminatorService[R5306];
+select many terminator_services related by domain_terminator->DomainTerminatorService[R5306]->Service[R5203] where SORT::ascending(attr:"name");
 index = 1;
-for each terminator_service in terminator_services
+for each service in terminator_services
+  select one terminator_service related by service->DomainTerminatorService[R5203];
   ::transformDomainTerminatorService(terminator_service:terminator_service, iface:iface, port:port, index:index);
   index = index + 1;
 end for;
