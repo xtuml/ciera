@@ -1,30 +1,24 @@
 package io.ciera.maven;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Enumeration;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.apache.maven.project.DefaultDependencyResolutionRequest;
-import org.apache.maven.project.DefaultProjectDependenciesResolver;
-import org.apache.maven.project.DependencyResolutionException;
 import org.xtuml.stratus.parser.MaslImportParser;
 
 import io.ciera.runtime.summit.application.IApplication;
@@ -73,11 +67,12 @@ public class CoreMaslMojo extends AbstractCieraMojo {
         } else {
             try {
                 args.addAll(findModelPath());
-            } catch (IOException | IllegalStateException e) {
+            } catch (UncheckedIOException | IllegalStateException e) {
                 throw new MojoFailureException("Could not find model file to translate.", e);
             }
         }
-        List<String> domainPaths = new ArrayList<>(List.of(this.domainPaths == null ? new String[0] : this.domainPaths));
+        List<String> domainPaths = new ArrayList<>(
+                List.of(this.domainPaths == null ? new String[0] : this.domainPaths));
         domainPaths.addAll(getInterfaceJars());
         if (!domainPaths.isEmpty()) {
             args.add("--domainpath");
@@ -98,7 +93,6 @@ public class CoreMaslMojo extends AbstractCieraMojo {
         copyCustomCode();
         addSrcGen();
         refreshFiles();
-
     }
 
     /**
@@ -107,9 +101,17 @@ public class CoreMaslMojo extends AbstractCieraMojo {
      * @return the --mod or --prj argument and the path to the file
      * @throws MojoFailureException if exactly one model file is not found
      */
-    private List<String> findModelPath() throws IOException {
-        return Files.walk(Path.of(project.getBasedir().toString(), "src", "main", "masl"))
-                .filter(p -> p.toString().endsWith(".mod") || p.toString().endsWith(".prj"))
+    private List<String> findModelPath() {
+        return Stream
+                .of(Path.of(project.getBasedir().toString(), "src", "main", "masl"),
+                        Path.of(project.getBuild().getDirectory(), "generated-sources", "masl"))
+                .filter(p -> p.toFile().exists()).flatMap(p -> {
+                    try {
+                        return Files.walk(p);
+                    } catch (IOException e) {
+                        throw new UncheckedIOException(e);
+                    }
+                }).filter(p -> p.toString().endsWith(".mod") || p.toString().endsWith(".prj"))
                 .collect(Collectors.collectingAndThen(Collectors.toList(), list -> {
                     if (list.size() != 1) {
                         throw new IllegalStateException();
@@ -124,8 +126,7 @@ public class CoreMaslMojo extends AbstractCieraMojo {
                 .map(dependency -> Paths.get(localRepository.getBasedir(), localRepository.pathOf(dependency)))
                 .filter(artifactPath -> {
                     try (ZipFile zipfile = new ZipFile(artifactPath.toFile())) {
-                        return zipfile.stream().map(ZipEntry::getName)
-                                .anyMatch(name -> name.endsWith(".int"));
+                        return zipfile.stream().map(ZipEntry::getName).anyMatch(name -> name.endsWith(".int"));
                     } catch (IOException e) {
                         return false;
                     }
