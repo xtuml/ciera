@@ -3,15 +3,14 @@ package io.ciera.runtime.api.domain;
 import io.ciera.runtime.api.application.MessageTarget;
 
 public interface Port extends MessageTarget {
-    
-    public String getName();
 
-    public void send(Message message);
+  public String getName();
 
-    public void setPeer(MessageTarget peer);
+  public void send(Message message);
 
-    public MessageTarget getPeer();
+  public void setPeer(MessageTarget peer);
 
-    public boolean satisfied();
+  public MessageTarget getPeer();
 
+  public boolean satisfied();
 }

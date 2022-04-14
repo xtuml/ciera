@@ -6,31 +6,29 @@ import io.ciera.runtime.api.application.MessageTarget;
 import io.ciera.runtime.api.types.UniqueId;
 
 /**
- * A domain is a composite of translated model elements including classes,
- * relationships, types, functions, etc. The component provides access to
- * out-bound (required) interface messages and the instance population for every
- * action within it.
+ * A domain is a composite of translated model elements including classes, relationships, types,
+ * functions, etc. The component provides access to out-bound (required) interface messages and the
+ * instance population for every action within it.
  */
 public interface Domain extends ActionHome, InstancePopulation, EventTarget {
-    
-    public String getName();
 
-    public void initialize();
+  public String getName();
 
-    public EventTarget getEventTarget(UniqueId targetId);
+  public void initialize();
 
-    public MessageTarget getMessageTarget(Class<? extends MessageTarget> targetClass);
+  public EventTarget getEventTarget(UniqueId targetId);
 
-    public Port getPort(String portName);
+  public MessageTarget getMessageTarget(Class<? extends MessageTarget> targetClass);
 
-    @Override
-    default public Domain getDomain() {
-        return this;
-    }
+  public Port getPort(String portName);
 
-    @Override
-    public default UniqueId getTargetId() {
-        return null;
-    }
+  @Override
+  public default Domain getDomain() {
+    return this;
+  }
 
+  @Override
+  public default UniqueId getTargetId() {
+    return null;
+  }
 }

@@ -9,52 +9,55 @@ import io.ciera.runtime.api.time.SystemClock;
 
 public interface Application {
 
-    public String getName();
+  public String getName();
 
-    public SystemClock getClock();
+  public SystemClock getClock();
 
-    public void setClock(SystemClock clock);
+  public void setClock(SystemClock clock);
 
-    public void setup();
+  public void setup();
 
-    public void initialize();
+  public void initialize();
 
-    public void start();
+  public void start();
 
-    public void stop();
+  public void stop();
 
-    public Collection<? extends ExecutionContext> getContexts();
+  public Collection<? extends ExecutionContext> getContexts();
 
-    public <T extends ExecutionContext> T getContext(String name);
+  public <T extends ExecutionContext> T getContext(String name);
 
-    public ExecutionContext defaultContext();
+  public ExecutionContext defaultContext();
 
-    public void addContext(ExecutionContext context);
+  public void addContext(ExecutionContext context);
 
-    public Collection<Domain> getDomains();
+  public Collection<Domain> getDomains();
 
-    public Domain getDomain(String domainName);
+  public Domain getDomain(String domainName);
 
-    public void addDomain(Domain domain);
+  public void addDomain(Domain domain);
 
-    public Stream<Domain> findDomains(String... domainNames);
+  public Stream<Domain> findDomains(String... domainNames);
 
-    public Logger getLogger();
+  public Logger getLogger();
 
-    public void setLogger(Logger logger);
+  public void setLogger(Logger logger);
 
-    public ExceptionHandler getExceptionHandler();
+  public ExceptionHandler getExceptionHandler();
 
-    public void setExceptionHandler(ExceptionHandler exceptionHandler);
+  public void setExceptionHandler(ExceptionHandler exceptionHandler);
 
-    public boolean isRunning();
+  public boolean isRunning();
 
-    public static Application getInstance(String name) {
-        return ServiceLoader.load(Application.class).stream().map(ServiceLoader.Provider::get)
-                .filter(app -> app.getName().equals(name)).findAny().orElseThrow();
-    }
+  public static Application getInstance(String name) {
+    return ServiceLoader.load(Application.class).stream()
+        .map(ServiceLoader.Provider::get)
+        .filter(app -> app.getName().equals(name))
+        .findAny()
+        .orElseThrow();
+  }
 
-    public static Application getInstance() {
-        return ServiceLoader.load(Application.class).findFirst().orElseThrow();
-    }
+  public static Application getInstance() {
+    return ServiceLoader.load(Application.class).findFirst().orElseThrow();
+  }
 }

@@ -10,50 +10,50 @@ import io.ciera.runtime.api.types.UniqueId;
 
 public class GeneratedEvent extends Task implements DomainTask {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    private final String domainName;
-    private final Event event;
-    private final UniqueId targetId;
-    private final ExecutionContext.ExecutionMode executionMode;
-    private transient EventTarget target;
+  private final String domainName;
+  private final Event event;
+  private final UniqueId targetId;
+  private final ExecutionContext.ExecutionMode executionMode;
+  private transient EventTarget target;
 
-    public GeneratedEvent(Event event, EventTarget target) {
-        this(event, target, null);
+  public GeneratedEvent(Event event, EventTarget target) {
+    this(event, target, null);
+  }
+
+  public GeneratedEvent(
+      Event event, EventTarget target, ExecutionContext.ExecutionMode executionMode) {
+    this.domainName = target.getDomain().getName();
+    this.event = event;
+    this.target = target;
+    this.targetId = target.getTargetId();
+    this.executionMode = executionMode;
+  }
+
+  @Override
+  public void run() {
+    getTarget().consumeEvent(event);
+  }
+
+  @Override
+  public int getPriority() {
+    if (executionMode == ExecutionMode.SEQUENTIAL) {
+      return Task.SEQUENTIAL_EVENT_PRIORITY;
+    } else {
+      return super.getPriority();
     }
+  }
 
-    public GeneratedEvent(Event event, EventTarget target, ExecutionContext.ExecutionMode executionMode) {
-        this.domainName = target.getDomain().getName();
-        this.event = event;
-        this.target = target;
-        this.targetId = target.getTargetId();
-        this.executionMode = executionMode;
+  private EventTarget getTarget() {
+    if (target == null) {
+      target = Application.getInstance().getDomain(domainName).getEventTarget(targetId);
     }
+    return target;
+  }
 
-    @Override
-    public void run() {
-        getTarget().consumeEvent(event);
-    }
-
-    @Override
-    public int getPriority() {
-        if (executionMode == ExecutionMode.SEQUENTIAL) {
-            return Task.SEQUENTIAL_EVENT_PRIORITY;
-        } else {
-            return super.getPriority();
-        }
-    }
-
-    private EventTarget getTarget() {
-        if (target == null) {
-            target = Application.getInstance().getDomain(domainName).getEventTarget(targetId);
-        }
-        return target;
-    }
-
-    @Override
-    public Domain getDomain() {
-        return getTarget().getDomain();
-    }
-
+  @Override
+  public Domain getDomain() {
+    return getTarget().getDomain();
+  }
 }

@@ -2,8 +2,7 @@ package io.ciera.runtime.api.domain;
 
 public interface DynamicObjectInstance extends ObjectInstance {
 
-    public Enum<?> getCurrentState();
+  public Enum<?> getCurrentState();
 
-    public void setCurrentState(Enum<?> newState);
-
+  public void setCurrentState(Enum<?> newState);
 }

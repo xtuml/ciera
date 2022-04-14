@@ -5,10 +5,9 @@ import io.ciera.runtime.api.application.EventTarget;
 
 public class TimerExpiration extends GeneratedEvent {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    public TimerExpiration(Event event, EventTarget target) {
-        super(event, target);
-    }
-
+  public TimerExpiration(Event event, EventTarget target) {
+    super(event, target);
+  }
 }

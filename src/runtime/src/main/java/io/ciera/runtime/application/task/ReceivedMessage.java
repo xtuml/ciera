@@ -7,35 +7,34 @@ import io.ciera.runtime.api.domain.Message;
 
 public class ReceivedMessage extends Task implements DomainTask {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    private final String domainName;
-    private final Message message;
-    private final Class<? extends MessageTarget> targetClass;
-    private transient MessageTarget target;
+  private final String domainName;
+  private final Message message;
+  private final Class<? extends MessageTarget> targetClass;
+  private transient MessageTarget target;
 
-    public ReceivedMessage(Message message, MessageTarget target) {
-        this.domainName = target.getDomain().getName();
-        this.message = message;
-        this.target = target;
-        this.targetClass = target.getClass();
+  public ReceivedMessage(Message message, MessageTarget target) {
+    this.domainName = target.getDomain().getName();
+    this.message = message;
+    this.target = target;
+    this.targetClass = target.getClass();
+  }
+
+  @Override
+  public void run() {
+    getTarget().deliver(message);
+  }
+
+  private MessageTarget getTarget() {
+    if (target == null) {
+      target = Application.getInstance().getDomain(domainName).getMessageTarget(targetClass);
     }
+    return target;
+  }
 
-    @Override
-    public void run() {
-        getTarget().deliver(message);
-    }
-
-    private MessageTarget getTarget() {
-        if (target == null) {
-            target = Application.getInstance().getDomain(domainName).getMessageTarget(targetClass);
-        }
-        return target;
-    }
-
-    @Override
-    public Domain getDomain() {
-        return getTarget().getDomain();
-    }
-
+  @Override
+  public Domain getDomain() {
+    return getTarget().getDomain();
+  }
 }

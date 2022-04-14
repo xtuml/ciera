@@ -6,8 +6,7 @@ import java.io.ObjectOutputStream;
 
 public interface PersistentDomain extends Domain {
 
-    public void persist(ObjectOutputStream out) throws IOException;
+  public void persist(ObjectOutputStream out) throws IOException;
 
-    public void load(ObjectInputStream in) throws IOException, ClassNotFoundException;
-
+  public void load(ObjectInputStream in) throws IOException, ClassNotFoundException;
 }

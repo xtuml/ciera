@@ -6,33 +6,32 @@ import java.io.PrintStream;
 
 public class ReadWriteDevice extends ReadableDevice {
 
-    private final PrintStream out;
+  private final PrintStream out;
 
-    public ReadWriteDevice(String name, InputStream in, OutputStream out) {
-        super(name, in);
-        this.out = new PrintStream(out);
-    }
+  public ReadWriteDevice(String name, InputStream in, OutputStream out) {
+    super(name, in);
+    this.out = new PrintStream(out);
+  }
 
-    @Override
-    public void write(Object o) {
-        out.print(o);
-    }
+  @Override
+  public void write(Object o) {
+    out.print(o);
+  }
 
-    @Override
-    public void writeLine(Object o) {
-        write(o);
-        out.println();
-    }
-    
-    @Override
-    public void flush() {
-        out.flush();
-    }
+  @Override
+  public void writeLine(Object o) {
+    write(o);
+    out.println();
+  }
 
-    @Override
-    public void close() {
-        super.close();
-        out.close();
-    }
+  @Override
+  public void flush() {
+    out.flush();
+  }
 
+  @Override
+  public void close() {
+    super.close();
+    out.close();
+  }
 }

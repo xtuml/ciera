@@ -8,25 +8,24 @@ import io.ciera.runtime.api.types.UniqueId;
 
 public interface ObjectInstance extends InstanceActionHome, EventTarget, Serializable {
 
-    public UniqueId getInstanceId();
+  public UniqueId getInstanceId();
 
-    public void delete();
+  public void delete();
 
-    public boolean isEmpty();
+  public boolean isEmpty();
 
-    default public boolean notEmpty() {
-        return !isEmpty();
-    }
+  public default boolean notEmpty() {
+    return !isEmpty();
+  }
 
-    public boolean isActive();
-    
-    public Object getIdentifier();
+  public boolean isActive();
 
-    public Object getIdentifier(int index);
+  public Object getIdentifier();
 
-    @Override
-    default public UniqueId getTargetId() {
-        return getInstanceId();
-    }
+  public Object getIdentifier(int index);
 
+  @Override
+  public default UniqueId getTargetId() {
+    return getInstanceId();
+  }
 }

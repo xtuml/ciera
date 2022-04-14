@@ -17,94 +17,95 @@ import io.ciera.runtime.domain.AbstractDomain;
 @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
 public class TestNotify {
 
-    private static final class TestEvent extends AbstractEvent {
+  private static final class TestEvent extends AbstractEvent {
 
-        private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-        public TestEvent(Object... data) {
-            super(0);
-        }
+    public TestEvent(Object... data) {
+      super(0);
     }
+  }
 
-    @Test
-    public void testTaskNotify() {
-        try {
+  @Test
+  public void testTaskNotify() {
+    try {
 
-            // create a test app
-            final BaseApplication app = new BaseApplication("TestNotify");
-            app.setup();
+      // create a test app
+      final BaseApplication app = new BaseApplication("TestNotify");
+      app.setup();
 
-            // run the app in a new thread to protect timeouts
-            Thread t = new Thread(() -> app.start());
-            t.start();
+      // run the app in a new thread to protect timeouts
+      Thread t = new Thread(() -> app.start());
+      t.start();
 
-            // delay
-            Thread.sleep(100);
+      // delay
+      Thread.sleep(100);
 
-            // add a task after it's started and it should wake up and run it
-            app.defaultContext().halt();
+      // add a task after it's started and it should wake up and run it
+      app.defaultContext().halt();
 
-            t.join();
-        } catch (InterruptedException e) {
-        }
+      t.join();
+    } catch (InterruptedException e) {
     }
+  }
 
-    @Test
-    public void testTimerNotify() {
-        try {
+  @Test
+  public void testTimerNotify() {
+    try {
 
-            // create a test app
-            final BaseApplication app = new BaseApplication("TestNotify");
-            app.addDomain(new AbstractDomain("TestDomain") {
-                @Override
-                public void initialize() {
-                }
-                @Override
-                public Port getPort(String portName) {
-                    return null;
-                }
-            });
-            app.setup();
+      // create a test app
+      final BaseApplication app = new BaseApplication("TestNotify");
+      app.addDomain(
+          new AbstractDomain("TestDomain") {
+            @Override
+            public void initialize() {}
 
-            // run the app in a new thread to protect timeouts
-            Thread t = new Thread(() -> app.start());
-            t.start();
+            @Override
+            public Port getPort(String portName) {
+              return null;
+            }
+          });
+      app.setup();
 
-            // delay
-            Thread.sleep(100);
+      // run the app in a new thread to protect timeouts
+      Thread t = new Thread(() -> app.start());
+      t.start();
 
-            // Schedule a timer after it's started. It should wake up and handle the timer.
-            EventTarget target = new EventTarget() {
-                @Override
-                public ExecutionContext getContext() {
-                    return app.defaultContext();
-                }
+      // delay
+      Thread.sleep(100);
 
-                @Override
-                public void consumeEvent(Event event) {
-                    app.defaultContext().halt();
-                }
+      // Schedule a timer after it's started. It should wake up and handle the timer.
+      EventTarget target =
+          new EventTarget() {
+            @Override
+            public ExecutionContext getContext() {
+              return app.defaultContext();
+            }
 
-                @Override
-                public String toString() {
-                    return "TestTarget";
-                }
+            @Override
+            public void consumeEvent(Event event) {
+              app.defaultContext().halt();
+            }
 
-                @Override
-                public UniqueId getTargetId() {
-                    return null;
-                }
+            @Override
+            public String toString() {
+              return "TestTarget";
+            }
 
-                @Override
-                public Domain getDomain() {
-                    return app.getDomains().stream().findAny().orElseThrow();
-                }
-            };
-            app.defaultContext().scheduleEvent(TestEvent.class, target, Duration.ZERO);
+            @Override
+            public UniqueId getTargetId() {
+              return null;
+            }
 
-            t.join();
-        } catch (InterruptedException e) {
-        }
+            @Override
+            public Domain getDomain() {
+              return app.getDomains().stream().findAny().orElseThrow();
+            }
+          };
+      app.defaultContext().scheduleEvent(TestEvent.class, target, Duration.ZERO);
+
+      t.join();
+    } catch (InterruptedException e) {
     }
-
+  }
 }

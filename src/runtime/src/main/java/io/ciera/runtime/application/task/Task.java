@@ -5,44 +5,44 @@ import java.util.Arrays;
 
 public abstract class Task implements Runnable, Comparable<Task>, Serializable {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    public static final int INITIALIZATION_PRIORITY = 0x40;
-    public static final int SELF_EVENT_PRIORITY = 0x30;
-    public static final int SEQUENTIAL_EVENT_PRIORITY = 0x20;
-    public static final int DEFAULT_PRIORITY = 0x10;
-    
-    private static volatile int sequenceNumber = 0;
+  public static final int INITIALIZATION_PRIORITY = 0x40;
+  public static final int SELF_EVENT_PRIORITY = 0x30;
+  public static final int SEQUENTIAL_EVENT_PRIORITY = 0x20;
+  public static final int DEFAULT_PRIORITY = 0x10;
 
-    private long taskId;
-    private Task parentTask;
+  private static volatile int sequenceNumber = 0;
 
-    public Task() {
-        taskId = (++sequenceNumber) + System.currentTimeMillis();
-        parentTask = null;
-    }
+  private long taskId;
+  private Task parentTask;
 
-    public Task getParent() {
-        return parentTask;
-    }
+  public Task() {
+    taskId = (++sequenceNumber) + System.currentTimeMillis();
+    parentTask = null;
+  }
 
-    public void setParent(Task task) {
-        parentTask = task;
-    }
+  public Task getParent() {
+    return parentTask;
+  }
 
-    public int getPriority() {
-        return DEFAULT_PRIORITY;
-    }
+  public void setParent(Task task) {
+    parentTask = task;
+  }
 
-    @Override
-    public int compareTo(Task other) {
-        return Arrays.compare(new long[] { 0xFF - getPriority(), taskId },
-                new long[] { 0xFF - other.getPriority(), other.taskId });
-    }
+  public int getPriority() {
+    return DEFAULT_PRIORITY;
+  }
 
-    @Override
-    public String toString() {
-        return String.format("%s[0x%X, %d]", getClass().getSimpleName(), getPriority(), taskId);
-    }
+  @Override
+  public int compareTo(Task other) {
+    return Arrays.compare(
+        new long[] {0xFF - getPriority(), taskId},
+        new long[] {0xFF - other.getPriority(), other.taskId});
+  }
 
+  @Override
+  public String toString() {
+    return String.format("%s[0x%X, %d]", getClass().getSimpleName(), getPriority(), taskId);
+  }
 }

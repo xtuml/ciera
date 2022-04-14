@@ -4,11 +4,9 @@ import io.ciera.runtime.api.domain.Domain;
 
 public class MATH {
 
-    public MATH(Domain domain) {
-    }
+  public MATH(Domain domain) {}
 
-    public double sqrt(final double x) {
-        return Math.sqrt(x);
-    }
-
+  public double sqrt(final double x) {
+    return Math.sqrt(x);
+  }
 }

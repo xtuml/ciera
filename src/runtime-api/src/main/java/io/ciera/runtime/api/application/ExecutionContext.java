@@ -9,55 +9,59 @@ import io.ciera.runtime.api.types.TimeStamp;
 
 public interface ExecutionContext extends Executor {
 
-    public String getName();
+  public String getName();
 
-    public Application getApplication();
+  public Application getApplication();
 
-    public <E extends Event> void generateEvent(Class<E> eventType, EventTarget target, Object... data);
+  public <E extends Event> void generateEvent(
+      Class<E> eventType, EventTarget target, Object... data);
 
-    public <E extends Event> void generateEventToSelf(Class<E> eventType, EventTarget target, Object... data);
+  public <E extends Event> void generateEventToSelf(
+      Class<E> eventType, EventTarget target, Object... data);
 
-    public <E extends Event> Timer scheduleEvent(Class<E> eventType, EventTarget target, Duration delay,
-            Object... eventData);
+  public <E extends Event> Timer scheduleEvent(
+      Class<E> eventType, EventTarget target, Duration delay, Object... eventData);
 
-    public <E extends Event> Timer scheduleEvent(Class<E> eventType, EventTarget target, TimeStamp expiration,
-            Object... eventData);
+  public <E extends Event> Timer scheduleEvent(
+      Class<E> eventType, EventTarget target, TimeStamp expiration, Object... eventData);
 
-    public Timer scheduleAction(Duration delay, Runnable action);
+  public Timer scheduleAction(Duration delay, Runnable action);
 
-    public Timer scheduleAction(TimeStamp expiration, Runnable action);
+  public Timer scheduleAction(TimeStamp expiration, Runnable action);
 
-    public <E extends Event> Timer scheduleRecurringEvent(Class<E> eventType, EventTarget target, Duration delay,
-            Duration period, Object... eventData);
+  public <E extends Event> Timer scheduleRecurringEvent(
+      Class<E> eventType, EventTarget target, Duration delay, Duration period, Object... eventData);
 
-    public <E extends Event> Timer scheduleRecurringEvent(Class<E> eventType, EventTarget target, TimeStamp expiration,
-            Duration period, Object... eventData);
+  public <E extends Event> Timer scheduleRecurringEvent(
+      Class<E> eventType,
+      EventTarget target,
+      TimeStamp expiration,
+      Duration period,
+      Object... eventData);
 
-    public Timer scheduleRecurringAction(Duration delay, Duration period, Runnable action);
+  public Timer scheduleRecurringAction(Duration delay, Duration period, Runnable action);
 
-    public Timer scheduleRecurringAction(TimeStamp expiration, Duration period, Runnable action);
+  public Timer scheduleRecurringAction(TimeStamp expiration, Duration period, Runnable action);
 
-    public void halt();
+  public void halt();
 
-    @Deprecated
-    public void delay(Duration delay);
+  @Deprecated
+  public void delay(Duration delay);
 
-    public ExecutionMode getExecutionMode();
+  public ExecutionMode getExecutionMode();
 
-    public ModelIntegrityMode getModelIntegrityMode();
+  public ModelIntegrityMode getModelIntegrityMode();
 
-    public SystemClock getClock();
+  public SystemClock getClock();
 
-    public enum ExecutionMode {
+  public enum ExecutionMode {
+    INTERLEAVED,
+    SEQUENTIAL;
+  }
 
-        INTERLEAVED, SEQUENTIAL;
-
-    }
-
-    public enum ModelIntegrityMode {
-
-        STRICT, RELAXED, OFF;
-
-    }
-
+  public enum ModelIntegrityMode {
+    STRICT,
+    RELAXED,
+    OFF;
+  }
 }

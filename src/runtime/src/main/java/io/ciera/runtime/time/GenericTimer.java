@@ -10,35 +10,35 @@ import io.ciera.runtime.application.task.Task;
 
 public class GenericTimer extends AbstractTimer implements Timer {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    private transient final Runnable command;
+  private final transient Runnable command;
 
-    public GenericTimer(ExecutionContext context, Runnable command) {
-        this(UniqueId.random(), context, command, Duration.ZERO);
+  public GenericTimer(ExecutionContext context, Runnable command) {
+    this(UniqueId.random(), context, command, Duration.ZERO);
+  }
+
+  public GenericTimer(ExecutionContext context, Runnable command, Duration period) {
+    this(UniqueId.random(), context, command, period);
+  }
+
+  public GenericTimer(
+      UniqueId timerHandle, ExecutionContext context, Runnable command, Duration period) {
+    super(timerHandle, context, period);
+    this.command = command;
+  }
+
+  @Override
+  protected Task getAction() {
+    if (command != null) {
+      return new GenericTask(command);
+    } else {
+      return null;
     }
+  }
 
-    public GenericTimer(ExecutionContext context, Runnable command, Duration period) {
-        this(UniqueId.random(), context, command, period);
-    }
-
-    public GenericTimer(UniqueId timerHandle, ExecutionContext context, Runnable command, Duration period) {
-        super(timerHandle, context, period);
-        this.command = command;
-    }
-
-    @Override
-    protected Task getAction() {
-        if (command != null) {
-            return new GenericTask(command);
-        } else {
-            return null;
-        }
-    }
-
-    @Override
-    public Domain getDomain() {
-        return null;
-    }
-
+  @Override
+  public Domain getDomain() {
+    return null;
+  }
 }

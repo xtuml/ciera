@@ -2,22 +2,21 @@ package io.ciera.runtime.api.exceptions;
 
 public class ProgramError extends ActionException {
 
-    private static final long serialVersionUID = 1l;
+  private static final long serialVersionUID = 1l;
 
-    public ProgramError() {
-        super();
-    }
+  public ProgramError() {
+    super();
+  }
 
-    public ProgramError(String message, Throwable cause) {
-        super(message, cause);
-    }
+  public ProgramError(String message, Throwable cause) {
+    super(message, cause);
+  }
 
-    public ProgramError(String message) {
-        super(message);
-    }
+  public ProgramError(String message) {
+    super(message);
+  }
 
-    public ProgramError(Throwable cause) {
-        super(cause);
-    }
-
+  public ProgramError(Throwable cause) {
+    super(cause);
+  }
 }
