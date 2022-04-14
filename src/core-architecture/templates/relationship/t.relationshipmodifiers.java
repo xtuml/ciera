@@ -30,4 +30,3 @@ public void unrelate_${rel_name}(${self.form_name} form, ${self.part_name} part)
 .end if
     ${relationship_unsetters}\
 }
-

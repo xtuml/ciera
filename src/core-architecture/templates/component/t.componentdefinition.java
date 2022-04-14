@@ -1,7 +1,10 @@
 package ${self.package};
 
-${imports}
+.if (imports != "")
+${imports}\
 
+
+.end if
 public class ${self.name} extends \
 .if (self.supertype_name != "")
 ${self.supertype_name} {
@@ -14,13 +17,11 @@ AbstractPersistentDomain implements PersistentDomain {
 .end if
 
 .if (utilities != "")
-    // utilities
-    ${utilities}
+    ${utilities}\
 
 .end if
 .if (ports != "")
-    // ports
-    ${ports}
+    ${ports}\
 
 .end if
     public ${self.name}() {
@@ -37,32 +38,31 @@ AbstractPersistentDomain implements PersistentDomain {
 , ${population_class}::new\
 .end if
 );
-        ${utility_initializers}
-        ${port_initializers}
+.if (utility_initializers != "")
+        ${utility_initializers}\
+.end if
+.if (port_initializers != "")
+        ${port_initializers}\
+.end if
     }
 
 .if (functions != "")
-    // domain functions
-    ${functions}
+    ${functions}\
 
 .end if
 .if (class_operations != "")
-    // static class operations
-    ${class_operations}
+    ${class_operations}\
 
 .end if
 .if (relationship_modifiers != "")
-    // relates and unrelates
-    ${relationship_modifiers}
+    ${relationship_modifiers}\
 
 .end if
 .if (port_accessors != "")
-    // port accessors
-    ${port_accessors}
+    ${port_accessors}\
 
 .end if
 .if (init != "")
-    // component initialization function
     @Override
     public void initialize() {
         ${init}\
@@ -128,6 +128,4 @@ AbstractPersistentDomain implements PersistentDomain {
             return new ${self.name}();
         }
     }
-
-
 }

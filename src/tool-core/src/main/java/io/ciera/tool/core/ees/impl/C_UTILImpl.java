@@ -1,9 +1,9 @@
 package io.ciera.tool.core.ees.impl;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.function.Predicate;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.json.JSONObject;
 
@@ -13,53 +13,30 @@ import io.ciera.tool.core.ees.C_UTIL;
 
 public class C_UTILImpl<C extends IComponent<C>> extends Utility<C> implements C_UTIL {
 
+    private static final Pattern IMPORT_PATTERN = Pattern.compile("^import (([A-Za-z][A-Za-z_]+\\.)+[A-Za-z][A-Za-z_]+);$");
+
     public C_UTILImpl(C context) {
         super(context);
     }
 
     public String organizeImports(final String p_s) {
-        // split into lines and sort them into a set
-        Set<String> lines = new ImportSet(p_s.split("\\r?\\n"));
-        // build return string
-        String returnString = "";
-        String prevBase = "";
-        for (String line : lines) {
-            if (line.trim().isEmpty())
-                break;
-            int dotIndex = line.indexOf('.');
-            if (-1 == dotIndex)
-                dotIndex = line.indexOf(';');
-            if (!prevBase.equals(line.substring(0, dotIndex)) && !prevBase.isEmpty()) {
-                returnString += "\n";
-            }
-            returnString += line + "\n";
-            prevBase = line.substring(0, dotIndex);
-        }
-        return returnString;
+        // filter and sort imports
+        return p_s.lines()
+                .map(String::trim)
+                .filter(Predicate.not(String::isEmpty))
+                .sorted((a, b) -> {
+                    Matcher m1 = IMPORT_PATTERN.matcher(a);
+                    Matcher m2 = IMPORT_PATTERN.matcher(b);
+                    if (m1.matches() && m2.matches()) {
+                        return m1.group(1).compareTo(m2.group(1));
+                    }
+                    return 0;
+                })
+                .collect(Collectors.joining("\n"));
     }
 
     public String stripTics(final String p_s) {
         return p_s.replaceAll("'", "");
-    }
-
-    @SuppressWarnings("serial")
-    private class ImportSet extends TreeSet<String> {
-
-        public ImportSet(String[] elems) {
-            this(Arrays.asList(elems));
-        }
-
-        public ImportSet(Collection<String> c) {
-            super(c);
-        }
-
-        @Override
-        public boolean add(String e) {
-            if (null != e && !"".equals(e.trim()))
-                return super.add(e);
-            else
-                return false;
-        }
     }
 
     public boolean isLong(final String p_int_string) {

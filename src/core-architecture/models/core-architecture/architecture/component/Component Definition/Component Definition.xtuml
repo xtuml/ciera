@@ -16,15 +16,16 @@ INSERT INTO O_TFR
 	1,
 	'population_class = PROP::getProperty(key:"io.ciera.ObjectPopulationClass");
 
-utility_initializers = "";
-separator = "";
 select many util_refs related by self->UtilityInComponent[R4558] where SORT::ascending(attr:"utility_name");
 for each util_ref in util_refs
   util_ref.render();
-  utility_initializers = utility_initializers + separator + "this." + util_ref.utility_name + " = new " + util_ref.utility_name + "(this);";
-  separator = "\n";
 end for;
 utilities = T::body();
+
+for each util_ref in util_refs
+  util_ref.render_init();
+end for;
+utility_initializers = T::body();
 
 select many comp_ports related by self->Port[R417];
 for each port in comp_ports
@@ -37,29 +38,41 @@ for each port in comp_ports
 end for;
 port_initializers = T::body();
 
+sep = "";
 select many funcs related by self->Function[R405];
 for each function in funcs
   function.render();
+  T::append(s:sep);
+  sep = "\n";
 end for;
 functions = T::body();
 
+sep = "";
 select many objs related by self->Class[R408];
 for each obj in objs
   select many class_ops related by obj->Operation[R416] where (selected.is_class_based);
   for each operation in class_ops
     operation.render();
+    T::append(s:sep);
+    sep = "\n";
   end for;
 end for;
 class_operations = T::body();
 
+sep = "";
 select many relationships related by self->Relationship[R448];
 for each rel in relationships
   rel.render_modifiers();
+  T::append(s:sep);
+  sep = "\n";
 end for;
 relationship_modifiers = T::body();
 
+sep = "";
 for each port in comp_ports
   port.render_accessor();
+  T::append(s:sep);
+  sep = "\n";
 end for;
 port_accessors = T::body();
 

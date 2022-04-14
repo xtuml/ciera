@@ -87,14 +87,16 @@ if form_uncond_one
   form_selector_name = selector.name;
 end if;
 
+rel_name = self.getGenName();
+is_subsuper = self.rel_type == RelationshipType::SuperSubtype;
+
 // resolve imports
 select one part_class_file related by self->Class[R434]->File[R401];
 ::addFileImport(file:part_class_file);
-select one form_class_file related by self->Class[R435]->File[R401];
-::addFileImport(file:form_class_file);
-
-rel_name = self.getGenName();
-is_subsuper = self.rel_type == RelationshipType::SuperSubtype;
+if not is_subsuper
+  select one form_class_file related by self->Class[R435]->File[R401];
+  ::addFileImport(file:form_class_file);
+end if;
 
 T::include(file:"relationship/t.relationshipmodifiers.java");',
 	1,
