@@ -1,20 +1,18 @@
 package io.ciera.tool.coremasl.test;
 
+import io.ciera.runtime.instanceloading.generic.util.LOAD;
 import java.io.IOException;
 import java.util.stream.Stream;
-
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.xtuml.stratus.parser.MaslImportParser;
 import org.xtuml.stratus.parser.MaslLexer;
 import org.xtuml.stratus.parser.MaslParser;
 import org.xtuml.stratus.parser.MaslPopulator;
 
-import io.ciera.runtime.instanceloading.generic.IGenericLoader;
-import io.ciera.runtime.instanceloading.generic.util.LOAD;
-
-public class TestImportParser implements IGenericLoader {
+public class TestImportParser extends MaslImportParser {
 
   // private fields
   private LOAD loader; // OOA API
