@@ -594,28 +594,14 @@ if ((not_empty lhs_null_literal or not_empty rhs_null_literal) and
     unary2.operator = "isEmpty";
     unary2.invocation = true;
 
-		// do type conversion for all characteristics (this will be a no-op if the types match)
-		create object instance prom_expr of Expression;
-		relate prom_expr to smt across R775;
-		prom_expr.expression_number = expr2.expression_number + ".1";
-    select one basic_type related by lhs->BasicType[R5570];
-    if (not_empty lhs_null_literal)
-      select one basic_type related by rhs->BasicType[R5570];
-    end if;
-    base_type_ref = ::getTypeReferenceForMASLType(basic_type:basic_type);
-		relate base_type_ref to prom_expr across R795;
-		create object instance prom of TypeConversion;
-    relate prom to prom_expr across R776;
-    relate prom_expr to unary2 across R777;
-
     // transform the operand expression
     if (empty lhs_null_literal)
-      ::transformMaslExpression(masl_expression:lhs, expr_number:prom_expr.expression_number + ".1", smt:smt);
+      ::transformMaslExpression(masl_expression:lhs, expr_number:expr2.expression_number + ".1", smt:smt);
     else
-      ::transformMaslExpression(masl_expression:rhs, expr_number:prom_expr.expression_number + ".1", smt:smt);
+      ::transformMaslExpression(masl_expression:rhs, expr_number:expr2.expression_number + ".1", smt:smt);
     end if;
-    select any op_expr related by smt->Expression[R775] where (selected.expression_number == prom_expr.expression_number + ".1");
-    relate op_expr to prom across R3907;
+    select any op_expr related by smt->Expression[R775] where (selected.expression_number == expr2.expression_number + ".1");
+    relate op_expr to unary2 across R777;
 
   else
 
@@ -625,28 +611,14 @@ if ((not_empty lhs_null_literal or not_empty rhs_null_literal) and
     unary.operator = "isEmpty";
     unary.invocation = true;
 
-		// do type conversion for all characteristics (this will be a no-op if the types match)
-		create object instance prom_expr of Expression;
-		relate prom_expr to smt across R775;
-		prom_expr.expression_number = expr.expression_number + ".1";
-    select one basic_type related by lhs->BasicType[R5570];
-    if (not_empty lhs_null_literal)
-      select one basic_type related by rhs->BasicType[R5570];
-    end if;
-    base_type_ref = ::getTypeReferenceForMASLType(basic_type:basic_type);
-		relate base_type_ref to prom_expr across R795;
-		create object instance prom of TypeConversion;
-    relate prom to prom_expr across R776;
-    relate prom_expr to unary across R777;
-
     // transform the operand expression
     if (empty lhs_null_literal)
-      ::transformMaslExpression(masl_expression:lhs, expr_number:prom_expr.expression_number + ".1", smt:smt);
+      ::transformMaslExpression(masl_expression:lhs, expr_number:expr.expression_number + ".1", smt:smt);
     else
-      ::transformMaslExpression(masl_expression:rhs, expr_number:prom_expr.expression_number + ".1", smt:smt);
+      ::transformMaslExpression(masl_expression:rhs, expr_number:expr.expression_number + ".1", smt:smt);
     end if;
-    select any op_expr related by smt->Expression[R775] where (selected.expression_number == prom_expr.expression_number + ".1");
-    relate op_expr to prom across R3907;
+    select any op_expr related by smt->Expression[R775] where (selected.expression_number == expr.expression_number + ".1");
+    relate op_expr to unary across R777;
 
   end if;
 
@@ -1039,7 +1011,6 @@ if (not_empty cast_expression)
   // create type promotion
   create object instance cast_expr of TypeConversion;
   relate cast_expr to expr across R776;
-  // TODO for now only support simple casting
   select one first_argument related by call_expression->Argument[R5575]->MaslExpression[R5577];
   ::transformMaslExpression(masl_expression:first_argument, expr_number:expr_number + ".1", smt:smt);
   select any prom_val related by smt->Expression[R775] where (selected.expression_number == expr_number + ".1");
@@ -1126,18 +1097,9 @@ if (not_empty characteristic_expression)
 
   else
 
-    // do type conversion for all characteristics (this will be a no-op if the types match)
-    create object instance prom_expr of Expression;
-    relate prom_expr to smt across R775;
-    prom_expr.expression_number = expr_number + ".1";
-    relate base_type_ref to prom_expr across R795;
-    create object instance prom of TypeConversion;
-    relate prom to prom_expr across R776;
-
     // translate the root expression
-    ::transformMaslExpression(masl_expression:base_masl_expression, expr_number:prom_expr.expression_number + ".1", smt:smt);
-    select any base_expr related by smt->Expression[R775] where (selected.expression_number == prom_expr.expression_number + ".1");
-    relate base_expr to prom across R3907;
+    ::transformMaslExpression(masl_expression:base_masl_expression, expr_number:expr.expression_number + ".1", smt:smt);
+    select any base_expr related by smt->Expression[R775] where (selected.expression_number == expr.expression_number + ".1");
 
 		// map the MASL name to the Ciera name
 		characteristic_name = characteristic_expression.characteristic;
@@ -1178,7 +1140,7 @@ if (not_empty characteristic_expression)
 		create object instance invoc of Invocation;
 		relate invoc to expr across R776;
 		relate invoc to invocable across R792;
-		relate prom_expr to invoc across R798;
+		relate base_expr to invoc across R798;
 
 		// transform actual parameters
 		select one first_argument related by call_expression->Argument[R5575];
@@ -1640,40 +1602,13 @@ if not_empty where_cond
 
 end if;
 
-// create type conversion if the left hand side is a collection
-select one root_expression related by find_expression->MaslExpression[R5519];
-select one root_collection related by root_expression->BasicType[R5570]->CollectionType[R6205];
-select any type_conversion from instances of TypeConversion where false;
-if not_empty root_collection
-
-  // create expression
-  create object instance expr of Expression;
-  relate expr to smt across R775;
-  expr.expression_number = expr_number;
-  stream_type = ::getObjectStreamReference(obj:find_class);
-  relate stream_type to expr across R795;
-	if not_empty where_clause
-		relate expr to where_clause across R790;
-	elif not_empty any_expr
-		relate expr to any_expr across R783;
-	end if;
-  
-  // create type conversion
-  create object instance type_conversion of TypeConversion;
-  relate type_conversion to expr across R776;
-  
-  expr_number = expr_number + ".1";
-  
-end if;
-
 // transform root expression
+select one root_expression related by find_expression->MaslExpression[R5519];
 ::transformMaslExpression(masl_expression:root_expression, expr_number:expr_number, smt:smt);
 select any root_expr related by smt->Expression[R775] where selected.expression_number == expr_number;
 
 // link to where clause or any expression if applicable
-if not_empty type_conversion
-  relate root_expr to type_conversion across R3907;
-elif not_empty where_clause
+if not_empty where_clause
   relate root_expr to where_clause across R790;
 elif not_empty any_expr
   relate root_expr to any_expr across R783;
@@ -1883,34 +1818,10 @@ if (not_empty using_class and using_class.name != base_class.name and using_clas
 
 end if;
 
-// create type conversion if the left hand side is a collection
-select any type_conversion from instances of TypeConversion where false;
-if not_empty lhs_collection
-
-  // create expression
-  create object instance expr of Expression;
-  relate expr to smt across R775;
-  expr.expression_number = expr_number;
-  stream_type = ::getObjectStreamReference(obj:base_class);
-  relate stream_type to expr across R795;
-  relate expr to sel_rel across R791;
-  
-  // create type conversion
-  create object instance type_conversion of TypeConversion;
-  relate type_conversion to expr across R776;
-  
-  expr_number = expr_number + ".1";
-  
-end if;
-
 // transform the root value
 ::transformMaslExpression(masl_expression:lhs, expr_number:expr_number, smt:smt);
 select any lhs_expr related by smt->Expression[R775] where (selected.expression_number == expr_number);
-if not_empty type_conversion
-  relate lhs_expr to type_conversion across R3907;
-else
-  relate lhs_expr to sel_rel across R791;
-end if;',
+relate lhs_expr to sel_rel across R791;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -2178,34 +2089,10 @@ relate selector to sel_rel across R797;
 
 expr_number = expr_number + ".1";
 
-// create type conversion if the left hand side is a collection
-select any type_conversion from instances of TypeConversion where false;
-if not_empty lhs_collection
-
-  // create expression
-  create object instance expr of Expression;
-  relate expr to smt across R775;
-  expr.expression_number = expr_number;
-  stream_type = ::getObjectStreamReference(obj:base_class);
-  relate stream_type to expr across R795;
-  relate expr to sel_rel across R791;
-  
-  // create type conversion
-  create object instance type_conversion of TypeConversion;
-  relate type_conversion to expr across R776;
-  
-  expr_number = expr_number + ".1";
-  
-end if;
-
 // transform the root value
 ::transformMaslExpression(masl_expression:lhs, expr_number:expr_number, smt:smt);
 select any lhs_expr related by smt->Expression[R775] where (selected.expression_number == expr_number);
-if not_empty type_conversion
-  relate lhs_expr to type_conversion across R3907;
-else
-  relate lhs_expr to sel_rel across R791;
-end if;
+relate lhs_expr to sel_rel across R791;
 
 // transform the correlating value
 ::transformMaslExpression(masl_expression:rhs, expr_number:sel_rel.expression_number + ".2", smt:smt);

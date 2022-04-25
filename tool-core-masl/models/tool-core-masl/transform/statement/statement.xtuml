@@ -970,20 +970,9 @@ select any l_op related by smt->Expression[R775] where (selected.expression_numb
 relate l_op to binop across R779;
 select one ltype related by l_op->TypeReference[R795];
 
-// do type conversion for all assignments (this will be a no-op if the types match)
-create object instance prom_expr of Expression;
-relate prom_expr to smt across R775;
-prom_expr.expression_number = "1.2";
-relate ltype to prom_expr across R795;
-create object instance prom of TypeConversion;
-relate prom to prom_expr across R776;
-
 // transform right hand side
 select one right_expr related by assign_statement->MaslExpression[R5100];
-::transformMaslExpression(masl_expression:right_expr, expr_number:"1.2.1", smt:smt);
-select any prom_val related by smt->Expression[R775] where (selected.expression_number == "1.2.1");
-relate prom_val to prom across R3907;
-
+::transformMaslExpression(masl_expression:right_expr, expr_number:"1.2", smt:smt);
 select any r_op related by smt->Expression[R775] where (selected.expression_number == "1.2");
 relate r_op to binop across R778;
 
