@@ -982,17 +982,15 @@ relate type to expr across R795;
 
 // if the right hand side of an assignment is literal ''null'', change its type to
 // the LHS type and modify the literal value
-select one rhs_prom related by r_op->TypeConversion[R776];
-select one rhs_expr2 related by rhs_prom->Expression[R3907];
-select one rhs_literal related by rhs_expr2->Literal[R776];
+select one rhs_literal related by r_op->Literal[R776];
 select one lhs_class related by type->InstanceTypeReference[R3801]->Class[R3808];
 if not_empty lhs_class and not_empty rhs_literal and rhs_literal.value == "null"
   select one r_type related by r_op->TypeReference[R795];
   unrelate r_type from r_op across R795;
   relate type to r_op across R795;
-  select one r_type related by rhs_expr2->TypeReference[R795];
-  unrelate r_type from rhs_expr2 across R795;
-  relate type to rhs_expr2 across R795;
+  select one r_type related by r_op->TypeReference[R795];
+  unrelate r_type from r_op across R795;
+  relate type to r_op across R795;
   rhs_literal.value = type.type_reference + ".EMPTY";
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
@@ -1700,6 +1698,14 @@ select one generate_smt related by smt->Generate[R451];
 select one schedule_expr related by expr->Schedule[R776];
 order = 1;
 
+// get the first formal parameter
+select any formal_param related by evt->InvocableObject[R427]->FormalParameter[R429];
+select one prev_formal_param related by formal_param->FormalParameter[R404.''follows''];
+while not_empty prev_formal_param
+  formal_param = prev_formal_param;
+  select one prev_formal_param related by formal_param->FormalParameter[R404.''follows''];
+end while;
+
 // loop through and transform each argument 
 while not_empty argument
   
@@ -1721,6 +1727,11 @@ while not_empty argument
     create object instance evt_arg of ScheduleEventArgument;
     evt_arg.order = order;
     relate expr to schedule_expr across R3913 using evt_arg;
+    if not_empty formal_param
+      relate formal_param to evt_arg across R3930;
+    else
+      // TODO bad
+    end if;
   else
     LOG::LogFailure(message:"cannot transform event parameter");
   end if;
@@ -1728,6 +1739,7 @@ while not_empty argument
   order = order + 1;
   base_num = base_num + 1;
   select one argument related by argument->Argument[R5576.''precedes''];
+  select one formal_param related by formal_param->FormalParameter[R404.''precedes''];
 end while;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -1835,6 +1847,7 @@ relate expr_as_smt to smt across R451;
 
 // create binary operation for assignment of the timer
 create object instance expr of Expression;
+relate expr to smt across R775;
 expr.expression_number = "1";
 relate expr to expr_as_smt across R476;
 timer_type = ::getBasicTypeReferenceByName(name:"Timer");
@@ -1851,6 +1864,7 @@ relate timer_expr to binop across R779;
 
 // create schedule expression
 create object instance sched_expr of Expression;
+relate sched_expr to smt across R775;
 sched_expr.expression_number = "1.2";
 relate timer_type to sched_expr across R795;
 relate sched_expr to binop across R778;
@@ -1912,7 +1926,7 @@ end if;
 // transform actual parameters
 select one first_argument related by generate_statement->Argument[R5114];
 if (not_empty first_argument)
-  ::transformEventArguments(smt:smt, expr:sched_expr, evt:evt, first_argument:first_argument, base_num:4);
+  ::transformEventArguments(smt:smt, expr:sched_expr, evt:evt, first_argument:first_argument, base_num:5);
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,

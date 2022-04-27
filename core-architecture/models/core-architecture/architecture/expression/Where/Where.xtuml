@@ -21,11 +21,28 @@ select one base_expression related by self->Expression[R790];
 base_expression.render();
 root_expression_body = T::body();
 
+// check if the base type is a collection. If so, convert to a stream.
+select one base_type_ref related by base_expression->TypeReference[R795];
+select one base_collection related by base_type_ref->CollectionTypeReference[R3801];
+if not_empty base_collection
+  stream_type = ::getBasicTypeReferenceByName(name:"Stream");
+  select one expr related by self->Expression[R776];
+  TypeConversion::render_from_type(expr:expr, base_expr:root_expression_body, input_type_ref:base_type_ref, output_type_ref:stream_type);
+  root_expression_body = T::body();
+end if;
+
 // render where expression
 select one where_expression related by self->Expression[R796];
 where_expression.render();
 where_expression_body = T::body();
 T::pop_buffer();
+
+// check if the condition type needs to be converted
+select one where_type_ref related by where_expression->TypeReference[R795];
+bool_type = ::getBasicTypeReferenceByName(name:"boolean");
+select one expr related by self->Expression[R776];
+TypeConversion::render_from_type(expr:expr, base_expr:where_expression_body, input_type_ref:where_type_ref, output_type_ref:bool_type);
+where_expression_body = T::body();
 
 // add import
 if self.multiplicity == "one"

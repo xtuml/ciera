@@ -16,9 +16,23 @@ INSERT INTO O_TFR
 	1,
 	'T::push_buffer();
 
+// render the operand
 select one operand related by self->Expression[R777];
 operand.render();
 operand_body = T::body();
+
+// check if the operand needs a type conversion
+if self.operator == "isEmpty"
+  // for the ''isEmpty'' operator, convert streams to lists
+  select one operand_type_ref related by operand->TypeReference[R795];
+  select one operand_stream_type related by operand_type_ref->StreamTypeReference[R3801];
+  if not_empty operand_stream_type
+    select one expr related by self->Expression[R776];
+    list_type = ::getBasicTypeReferenceByName(name:"List");
+    TypeConversion::render_from_type(expr:expr, base_expr:operand_body, input_type_ref:operand_type_ref, output_type_ref:list_type);
+    operand_body = T::body();
+  end if;
+end if;
 
 // if the operand is a binary operation not impelemented as an invocation, wrap in parentheses
 select one binop related by operand->BinaryOperation[R776];

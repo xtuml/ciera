@@ -21,6 +21,16 @@ select one base_expression related by self->Expression[R3917];
 base_expression.render();
 base_expr = T::body();
 
+// check if the base type is a collection. If so, convert to a stream.
+select one base_type_ref related by base_expression->TypeReference[R795];
+select one base_collection related by base_type_ref->CollectionTypeReference[R3801];
+if not_empty base_collection
+  stream_type = ::getBasicTypeReferenceByName(name:"Stream");
+  select one expr related by self->Expression[R776];
+  TypeConversion::render_from_type(expr:expr, base_expr:base_expr, input_type_ref:base_type_ref, output_type_ref:stream_type);
+  base_expr = T::body();
+end if;
+
 // render all sort key
 select any sort_key related by self->SortKey[R3906];
 select one prev_sort_key related by sort_key->SortKey[R3920.''follows''];

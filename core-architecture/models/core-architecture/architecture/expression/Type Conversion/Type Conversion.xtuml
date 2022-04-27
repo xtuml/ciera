@@ -14,9 +14,10 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'select one base_expression related by self->Expression[R3907];
-select one output_type_ref related by self->Expression[R776]->TypeReference[R795];
-select one input_type_ref related by self->Expression[R3907]->TypeReference[R795];
+	'select one expr related by self->Expression[R776];
+select one base_expression related by self->Expression[R3907];
+select one input_type_ref related by base_expression->TypeReference[R795];
+select one output_type_ref related by expr->TypeReference[R795];
 
 // render the base expression
 T::push_buffer();
@@ -24,7 +25,7 @@ base_expression.render();
 base_expr = T::body();
 T::pop_buffer();
 
-self.render_from_type(base_expr:base_expr, input_type_ref:input_type_ref);',
+TypeConversion::render_from_type(expr:expr, base_expr:base_expr, input_type_ref:input_type_ref, output_type_ref:output_type_ref);',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",
@@ -51,20 +52,43 @@ INSERT INTO O_TFR
 	'render_from_type',
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
-	1,
-	'base_expr = param.base_expr;
+	0,
+	'expr = param.expr;
+base_expr = param.base_expr;
 input_type_ref = param.input_type_ref;
-select one output_type_ref related by self->Expression[R776]->TypeReference[R795];
+output_type_ref = param.output_type_ref;
 
 // TODO this could be made recursive for complex conversions
 
 if input_type_ref.type_reference != output_type_ref.type_reference
+  // if the output type reference is a basic reference of an incomplete type
+  // (e.g. stream or collection), convert it to the complete version of the type
+  // using the input type as the element type
+  select one input_element_type related by input_type_ref->CollectionTypeReference[R3801]->TypeReference[R3805];
+  if empty input_element_type
+    select one input_element_type related by input_type_ref->StreamTypeReference[R3801]->TypeReference[R3812];
+    if empty input_element_type
+      input_element_type = input_type_ref;
+    end if;
+  end if;
+  select one output_basic_type related by output_type_ref->BasicTypeReference[R3801];
+  if not_empty output_basic_type
+    if output_basic_type.type_reference == "Set"
+      output_type_ref = ::getSetReference(element_type:input_element_type);
+    elif output_basic_type.type_reference == "List"
+      output_type_ref = ::getListReference(element_type:input_element_type);
+    elif output_basic_type.type_reference == "Stream"
+      output_type_ref = ::getStreamReference(element_type:input_element_type);
+    end if;
+  end if;
+end if;
 
+if input_type_ref.type_reference != output_type_ref.type_reference
+  
   // simple cast for numeic to numeric conversion
   if input_type_ref.numeric and output_type_ref.numeric
     // warn possible loss of precision
     if input_type_ref.type_reference == "double" or output_type_ref.type_reference == "double"
-      select one expr related by self->Expression[R776];
       ::semanticWarningInExpression(expr:expr, message:"Possible loss of precision converting between real and integer types");
     elif (input_type_ref.type_reference == "long" and
            (output_type_ref.type_reference == "int" or
@@ -75,7 +99,6 @@ if input_type_ref.type_reference != output_type_ref.type_reference
             output_type_ref.type_reference == "byte")) or
          (input_type_ref.type_reference == "short" and
             output_type_ref.type_reference == "byte")
-      select one expr related by self->Expression[R776];
       ::semanticWarningInExpression(expr:expr, message:"Possible loss of precision converting between integer types");
     end if;
     T::include(file:"expression/t.simplecast.java");
@@ -122,8 +145,8 @@ if input_type_ref.type_reference != output_type_ref.type_reference
     select one output_list_type related by output_collection_type->ListTypeReference[R3806];
     if not_empty output_set_type
       // find a parent sort expression
-      select any sort_expr related by self->Expression[R776]->Statement[R775]->Expression[R775]->SortExpr[R776]
-        where STRING::indexof(haystack:selected.expression_number, needle:self.expression_number) == 0;
+      select any sort_expr related by expr->Statement[R775]->Expression[R775]->SortExpr[R776]
+        where STRING::indexof(haystack:selected.expression_number, needle:expr.expression_number) == 0;
       ordered_set = not_empty sort_expr;
       if (ordered_set)
         ::addStringImport(package:"java.util", class_name:"LinkedHashSet");
@@ -155,9 +178,9 @@ if input_type_ref.type_reference != output_type_ref.type_reference
   // check to see if it succeeded
   b = T::body();
   if b == ""
-    select one smt related by self->Expression[R776]->Statement[R775];
+    select one smt related by expr->Statement[R775];
     select one invoc related by smt->CodeBlock[R450]->InvocableObject[R4000];
-    ::semanticError(invocable:invoc, line_number:smt.line_number, message:"Unsupported type conversion: ''" + input_type_ref.type_reference + "'' -> ''" + output_type_ref.type_reference);
+    ::semanticError(invocable:invoc, line_number:smt.line_number, message:"Unsupported type conversion: ''" + input_type_ref.type_reference + "'' -> ''" + output_type_ref.type_reference + "''");
   end if;
   T::append(s:b);
 
@@ -179,10 +202,26 @@ INSERT INTO O_TPARM
 	"ba5eda7a-def5-0000-0000-000000000004",
 	0,
 	'',
-	"00000000-0000-0000-0000-000000000000",
+	"451d15f2-bbaa-412d-b9d6-7bce02f7a447",
 	'');
 INSERT INTO O_TPARM
-	VALUES ("203f97ab-bacc-49a5-9fb2-1a651400549a",
+	VALUES ("451d15f2-bbaa-412d-b9d6-7bce02f7a447",
+	"62c25bea-39c4-4753-9cb0-b2b6e2476104",
+	'expr',
+	"c732060c-653b-48f6-8ce5-99439b2a9c63",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("c732060c-653b-48f6-8ce5-99439b2a9c63",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Expression>',
+	'',
+	'',
+	'../expression.xtuml');
+INSERT INTO O_TPARM
+	VALUES ("cc56faa8-bdd0-4260-829c-d55b2aa71aff",
 	"62c25bea-39c4-4753-9cb0-b2b6e2476104",
 	'input_type_ref',
 	"096d9dad-f227-4793-bb43-a1915881b825",
@@ -197,6 +236,15 @@ INSERT INTO S_DT_PROXY
 	'',
 	'',
 	'../../type/type.xtuml');
+INSERT INTO O_TPARM
+	VALUES ("32c5ffc2-a455-4673-9aed-7be80a163e76",
+	"62c25bea-39c4-4753-9cb0-b2b6e2476104",
+	'output_type_ref',
+	"096d9dad-f227-4793-bb43-a1915881b825",
+	0,
+	'',
+	"cc56faa8-bdd0-4260-829c-d55b2aa71aff",
+	'');
 INSERT INTO O_REF
 	VALUES ("6aa34b8a-5c7f-441c-b95d-5061f977b97b",
 	"18b2e941-9111-4db8-bc15-79e9be5abfd7",

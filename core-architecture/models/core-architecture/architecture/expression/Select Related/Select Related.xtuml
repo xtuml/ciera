@@ -15,10 +15,24 @@ INSERT INTO O_TFR
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'T::push_buffer();
+
+// render the base expression
 select one base_expression related by self->Expression[R791];
 base_expression.render();
 root_expression_body = T::body();
+
+// Check if the base type is a collection. If so, convert to a stream.
+select one base_type_ref related by base_expression->TypeReference[R795];
+select one base_collection related by base_type_ref->CollectionTypeReference[R3801];
+if not_empty base_collection
+  stream_type = ::getBasicTypeReferenceByName(name:"Stream");
+  select one expr related by self->SelectExpr[R789]->Expression[R776];
+  TypeConversion::render_from_type(expr:expr, base_expr:root_expression_body, input_type_ref:base_type_ref, output_type_ref:stream_type);
+  root_expression_body = T::body();
+end if;
+
 T::pop_buffer();
+
 select one selector related by self->Selector[R797];
 multiplicity_many = selector.multiplicity == Mult::MANY;
 select one base_stream_type related by base_expression->TypeReference[R795]->StreamTypeReference[R3801];
@@ -29,8 +43,21 @@ end if;
 select one correlated_expression related by self->Expression[R3926];
 if not_empty correlated_expression
   T::push_buffer();
+
+  // render the correlated expression
   correlated_expression.render();
   correlated_expression_body = T::body();
+
+	// Check if the type is a collection. If so, convert to a stream.
+	select one correlated_type_ref related by correlated_expression->TypeReference[R795];
+	select one correlated_collection related by correlated_type_ref->CollectionTypeReference[R3801];
+	if not_empty correlated_collection
+		stream_type = ::getBasicTypeReferenceByName(name:"Stream");
+		select one expr related by self->SelectExpr[R789]->Expression[R776];
+		TypeConversion::render_from_type(expr:expr, base_expr:correlated_expression_body, input_type_ref:correlated_type_ref, output_type_ref:stream_type);
+		correlated_expression_body = T::body();
+	end if;
+
   T::pop_buffer();
   select one stream_typeref related by correlated_expression->TypeReference[R795]->StreamTypeReference[R3801];
   select one collection_typeref related by correlated_expression->TypeReference[R795]->CollectionTypeReference[R3801];

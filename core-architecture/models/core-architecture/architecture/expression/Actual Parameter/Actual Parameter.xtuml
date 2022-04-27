@@ -17,6 +17,8 @@ INSERT INTO O_TFR
 	'T::push_buffer();
 select one expr related by self->Expression[R794];
 
+expression_body = "";
+
 // if this is a parameter by reference, it may need to be wrapped in a parameter instance
 // - local variable references do not need to be wrapped since they are already implemented as an object
 // - parameter references do not need to be wrapped because they are already wrapped
@@ -25,31 +27,53 @@ select one form_param related by self->FormalParameter[R3904];
 select one attr_ref related by expr->AttributeAccess[R776];
 select one member_ref related by expr->StructureMemberReference[R776];
 if not_empty form_param and form_param.by_ref and not_empty attr_ref;
+  
+  // render the base expression
+  select one base_expr related by attr_ref->Expression[R785];
+  base_expr.render();
+  expression_body = T::body();
+  
+  // render the by ref initializer
   select any getter related by attr_ref->Attribute[R788]->AttributeAccessor[R4510] where selected.accessor_type == AttributeAccessorType::GETTER;
   select any setter related by attr_ref->Attribute[R788]->AttributeAccessor[R4510] where selected.accessor_type == AttributeAccessorType::SETTER;
   getter_name = getter.getName();
   setter_name = setter.getName();
-  select one base_expr related by attr_ref->Expression[R785];
   type_name = base_expr.type_reference;
-  base_expr.render();
-  expression_body = T::body();
   ::addStringImport(package:"io.ciera.runtime.domain", class_name:"MemberParameter");
   T::include(file:"expression/t.memberparameter.byref.java");
+  expression_body = T::body();
+
 elif not_empty form_param and form_param.by_ref and not_empty member_ref;
+  
+  // render the base expression
+  select one base_expr related by member_ref->Expression[R3929];
+  base_expr.render();
+  expression_body = T::body();
+  
+  // render the by ref initializer
   select one structure_member related by member_ref->StructureMember[R3928];
   getter_name = "get" + T::sub(format:"c", s:structure_member.name);
   setter_name = "set" + T::sub(format:"c", s:structure_member.name);
-  select one base_expr related by member_ref->Expression[R3929];
   type_name = base_expr.type_reference;
-  base_expr.render();
-  expression_body = T::body();
   ::addStringImport(package:"io.ciera.runtime.domain", class_name:"MemberParameter");
   T::include(file:"expression/t.memberparameter.byref.java");
+  expression_body = T::body();
+
 else
+
   // simply render the expression as is
   expr.render();
+  expression_body = T::body();
+  
+  // check for a type conversion
+  select one invoc_expr related by self->Invocation[R793]->Expression[R776];
+  select one expr_type related by expr->TypeReference[R795];
+  select one param_type related by form_param->TypeReference[R431];
+  if not_empty param_type
+    TypeConversion::render_from_type(expr:invoc_expr, base_expr:expression_body, input_type_ref:expr_type, output_type_ref:param_type);
+  end if;
+
 end if;
-expression_body = T::body();
 
 T::pop_buffer();
 T::include(file:"expression/t.actualparameter.java");',

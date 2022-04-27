@@ -15,17 +15,40 @@ INSERT INTO O_TFR
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'T::push_buffer();
+
+// render root expression
 select one root_expression related by self->Expression[R3900];
 root_expression.render();
 root_expression_body = T::body();
+
+// if the root expression is a stream, convert to a list
+select one root_type_ref related by root_expression->TypeReference[R795];
+select one root_stream_type_ref related by root_type_ref->StreamTypeReference[R3801];
+if not_empty root_stream_type_ref
+	list_type = ::getBasicTypeReferenceByName(name:"List");
+	select one expr related by self->Expression[R776];
+	TypeConversion::render_from_type(expr:expr, base_expr:root_expression_body, input_type_ref:root_type_ref, output_type_ref:list_type);
+	root_expression_body = T::body();
+end if;
+
+// render index expression
 select one index_expression related by self->Expression[R3901];
 index_expression.render();
 index_expression_body = T::body();
+
+// make sure index expression is integer type
+select one index_type_ref related by index_expression->TypeReference[R795];
+int_type = ::getBasicTypeReferenceByName(name:"int");
+select one expr related by self->Expression[R776];
+TypeConversion::render_from_type(expr:expr, base_expr:index_expression_body, input_type_ref:index_type_ref, output_type_ref:int_type);
+index_expression_body = T::body();
+
 T::pop_buffer();
+
 select one root_type related by root_expression->TypeReference[R795]->Type[R3800];
 if root_type.name == "Array"  // TODO
   T::include(file:"expression/t.arrayelementreference.java");
-elif root_type.name == "List"
+elif root_type.name == "List" or root_type.name == "Stream"
   T::include(file:"expression/t.listelementreference.java");
 elif root_type.name == "String"
   T::include(file:"expression/t.stringcharacterreference.java");

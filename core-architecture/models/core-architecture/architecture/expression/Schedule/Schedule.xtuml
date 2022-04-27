@@ -43,16 +43,24 @@ end if;
 time_expr = T::body();
 T::pop_buffer();
 
-if not_empty delay
-  // TODO
-  ::addStringImport(package:"io.ciera.runtime.api.types", class_name:"Duration");
-  ::addStringImport(package:"java.time.temporal", class_name:"ChronoUnit");
+// check type conversion for time expression
+select one expr related by self->Expression[R776];
+if not_empty expiration
+  select one expiration_type_ref related by expiration->TypeReference[R795];
+  timestamp_type = ::getBasicTypeReferenceByName(name:"TimeStamp");
+  TypeConversion::render_from_type(expr:expr, base_expr:time_expr, input_type_ref:expiration_type_ref, output_type_ref:timestamp_type);
+  time_expr = T::body();
+elif not_empty delay
+  select one delay_type_ref related by delay->TypeReference[R795];
+  duration_type = ::getBasicTypeReferenceByName(name:"Duration");
+  TypeConversion::render_from_type(expr:expr, base_expr:time_expr, input_type_ref:delay_type_ref, output_type_ref:duration_type);
+  time_expr = T::body();
 end if;
 
 // render the period if recurring
 T::push_buffer();
+select one period related by self->Expression[R3912];
 if self.is_recurring
-  select one period related by self->Expression[R3912];
   if not_empty period
     period.render();
   else
@@ -62,13 +70,20 @@ end if;
 period_expr = T::body();
 T::pop_buffer();
 
+// check type conversion for period expression
+if self.is_recurring and not_empty period
+  select one period_type_ref related by period->TypeReference[R795];
+  duration_type = ::getBasicTypeReferenceByName(name:"Duration");
+  TypeConversion::render_from_type(expr:expr, base_expr:time_expr, input_type_ref:period_type_ref, output_type_ref:duration_type);
+  time_expr = T::body();
+end if;
+
 // render data items
 T::push_buffer();
 parameter_list = "";
 select many event_args related by self->ScheduleEventArgument[R3913] where SORT::ascending(attr:"order");
 for each event_arg in event_args
-  select one arg_expr related by event_arg->Expression[R3913];
-  arg_expr.render();
+  event_arg.render();
   parameter_list = parameter_list + ", " + T::body();
 end for;
 T::pop_buffer();

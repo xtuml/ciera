@@ -14,13 +14,26 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'select any setter related by self->Attribute[R3924]->AttributeAccessor[R4510] where selected.accessor_type == AttributeAccessorType::SETTER;
+	'select one attr related by self->Attribute[R3924];
+select any setter related by attr->AttributeAccessor[R4510] where selected.accessor_type == AttributeAccessorType::SETTER;
 accessor_name = setter.getName();
-select one expr related by self->Expression[R3924];
+
 T::push_buffer();
+
+// render the initializer
+select one expr related by self->Expression[R3924];
 expr.render();
 init_expr = T::body();
+
+// check if a type conversion is needed
+select one input_type_ref related by expr->TypeReference[R795];
+select one output_type_ref related by attr->TypeReference[R424];
+select one create_expr related by self->Creation[R3925]->Expression[R776];
+TypeConversion::render_from_type(expr:create_expr, base_expr:init_expr, input_type_ref:input_type_ref, output_type_ref:output_type_ref);
+init_expr = T::body();
+
 T::pop_buffer();
+
 T::include(file:"expression/t.instanceidentifierattributeinitialization.java");',
 	1,
 	'',

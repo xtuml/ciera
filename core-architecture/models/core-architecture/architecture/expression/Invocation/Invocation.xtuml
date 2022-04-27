@@ -16,12 +16,9 @@ INSERT INTO O_TFR
 	1,
 	'T::push_buffer();
 select one base_expr related by self->Expression[R798];
+select one base_expr_type_ref related by base_expr->TypeReference[R795];
 select one type_ref_expr related by base_expr->TypeReferenceAsExpression[R776];
-if empty type_ref_expr
-  // select through a type conversion just in case
-  select one type_ref_expr related by base_expr->TypeConversion[R776]->Expression[R3907]->TypeReferenceAsExpression[R776];
-end if;
-select one base_builtin related by base_expr->TypeReference[R795]->BasicTypeReference[R3801]->TypeReference[R3801]->Type[R3800]->BuiltInType[R407];
+select one base_builtin related by base_expr_type_ref->BasicTypeReference[R3801]->TypeReference[R3801]->Type[R3800]->BuiltInType[R407];
 if not_empty base_expr
   if empty type_ref_expr and not_empty base_builtin and base_builtin.primitive
     T::append(s:base_builtin.object_name);
@@ -30,6 +27,16 @@ if not_empty base_expr
   end if;
 end if;
 base_name = T::body();
+
+// check if the base expression needs a type conversion
+select one inst_characteristic related by self->InvocableObject[R792]->Characteristic[R427] where not selected.type_based;
+if not_empty inst_characteristic
+  select one char_type related by inst_characteristic->Type[R3820];
+  output_type_ref = ::getBasicTypeReference(type:char_type);
+  select one expr related by self->Expression[R776];
+  TypeConversion::render_from_type(expr:expr, base_expr:base_name, input_type_ref:base_expr_type_ref, output_type_ref:output_type_ref);
+  base_name = T::body();
+end if;
 
 parameter_list = "";
 sep = "";
