@@ -15,9 +15,27 @@ INSERT INTO O_TFR
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'T::push_buffer();
+
+// render the expression
 select one expression related by self->Expression[R462];
 expression.render();
 inst_expr = T::body();
+
+// convert collections to streams if necessary
+select one base_type_ref related by expression->TypeReference[R795];
+select one base_stream related by base_type_ref->StreamTypeReference[R3801];
+select one base_collection related by base_type_ref->CollectionTypeReference[R3801];
+if not_empty base_collection
+  stream_type = ::getBasicTypeReferenceByName(name:"Stream");
+  TypeConversion::render_from_type(expr:expression, base_expr:inst_expr, input_type_ref:base_type_ref, output_type_ref:stream_type);
+  inst_expr = T::body();
+end if;
+
+is_many = not_empty base_stream or not_empty base_collection;
+if (is_many)
+  ::addStringImport(package:"io.ciera.runtime.api.domain", class_name:"ObjectInstance");
+end if;
+
 T::pop_buffer();
 T::include(file:"statement/t.delete.java");',
 	1,

@@ -16,36 +16,56 @@ INSERT INTO O_TFR
 	1,
 	'T::push_buffer();
 
+// get the iterator variable
 select one iterator_var related by self->Variable[R459];
 select one iter_type related by iterator_var->TypeReference[R461];
 iterator_type = iter_type.type_reference;
 iterator_name = iterator_var.scope_unique_name;
 ::resolveImportsForTypeReference(type_ref:iter_type);
 
+// render the iterable expression
 select one iterable_expression related by self->Expression[R478];
 iterable_expression.render();
 iterable_expr = T::body();
-select one iterable_collection related by iterable_expression->TypeReference[R795]->CollectionTypeReference[R3801];
-iterable_is_collection = not_empty iterable_collection;
-T::include(file:"statement/t.for.iterable.java");
-iterable_expr = T::body();
 
+// render the reversal if needed
+if (self.reversed)
+  // convert to a stream
+  select one iterable_type_ref related by iterable_expression->TypeReference[R795];
+  select one iterable_collection related by iterable_type_ref->CollectionTypeReference[R3801];
+  if not_empty iterable_collection
+    stream_type = ::getBasicTypeReferenceByName(name:"Stream");
+    TypeConversion::render_from_type(expr:iterable_expression, base_expr:iterable_expr, input_type_ref:iterable_type_ref, output_type_ref:stream_type);
+    iterable_expr = T::body();
+  end if;
+
+  // add import
+  ::addStringImport(package:"java.util", class_name:"ArrayDeque");
+
+  // reverse the stream and collect
+  T::include(file:"statement/t.for.reversed.java");
+  iterable_expr = T::body();
+  
+else
+
+  // convert to a list if it is a stream
+  select one iterable_type_ref related by iterable_expression->TypeReference[R795];
+  select one iterable_stream related by iterable_type_ref->StreamTypeReference[R3801];
+  if not_empty iterable_stream
+    list_type = ::getBasicTypeReferenceByName(name:"List");
+    TypeConversion::render_from_type(expr:iterable_expression, base_expr:iterable_expr, input_type_ref:iterable_type_ref, output_type_ref:list_type);
+    iterable_expr = T::body();
+  end if;
+
+end if;
+
+// render the control block
 select one control_blk related by self->CodeBlock[R455];
 control_blk.render();
 control_block = T::body();
 T::pop_buffer();
 
-if (self.reversed)
-  ::addStringImport(package:"java.util", class_name:"ArrayDeque");
-elif (not iterable_is_collection)
-  ::addStringImport(package:"java.util.stream", class_name:"Collectors");
-end if;
-
-if self.external_loop_variable
-  T::include(file:"statement/t.for.ext.java");
-else
-  T::include(file:"statement/t.for.java");
-end if;',
+T::include(file:"statement/t.for.java");',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",

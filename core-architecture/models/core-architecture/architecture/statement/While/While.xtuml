@@ -20,6 +20,12 @@ select one cond_expression related by self->Expression[R472];
 cond_expression.render();
 cond_expr = T::body();
 
+// check if the condition type needs to be converted
+select one cond_type_ref related by cond_expression->TypeReference[R795];
+bool_type = ::getBasicTypeReferenceByName(name:"boolean");
+TypeConversion::render_from_type(expr:cond_expression, base_expr:cond_expr, input_type_ref:cond_type_ref, output_type_ref:bool_type);
+cond_expr = T::body();
+
 select one control_blk related by self->CodeBlock[R456];
 control_blk.render();
 control_block = T::body();
