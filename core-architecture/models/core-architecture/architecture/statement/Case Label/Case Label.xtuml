@@ -15,12 +15,18 @@ INSERT INTO O_TFR
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'// render the expression
+expr = "";
 T::push_buffer();
 select one cmp_expr related by self->Expression[R500];
 if not_empty cmp_expr
   cmp_expr.render();
+  expr = T::body();
+  // convert the type to the type of the switch expression
+  select one expr_type related by cmp_expr->TypeReference[R795];
+  select one switch_type related by self->SwitchSmt[R499]->Expression[R521]->TypeReference[R795];
+  TypeConversion::render_from_type(expr:cmp_expr, base_expr:expr, input_type_ref:expr_type, output_type_ref:switch_type);
+  expr = T::body();
 end if;
-expr = T::body();
 T::pop_buffer();
 
 // render the then block (if not a duplicate label)

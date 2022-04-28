@@ -15,21 +15,46 @@ INSERT INTO O_TFR
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'T::push_buffer();
+
+// render the form expression
 select one form_expression related by self->Expression[R483];
 if not_empty form_expression
   form_expression.render();
 end if;
 form_expr = T::body();
+
+// check if the form type is a stream. If so, convert to a stream.
+select one form_type_ref related by form_expression->TypeReference[R795];
+select one form_stream related by form_type_ref->StreamTypeReference[R3801];
+if not_empty form_stream
+  list_type = ::getBasicTypeReferenceByName(name:"List");
+  TypeConversion::render_from_type(expr:form_expression, base_expr:form_expr, input_type_ref:form_type_ref, output_type_ref:list_type);
+  form_expr = T::body();
+end if;
+
+// render the part expression
 select one part_expression related by self->Expression[R482];
 if not_empty part_expression
   part_expression.render();
 end if;
 part_expr = T::body();
+
+// check if the part type is a stream. If so, convert to a stream.
+select one part_type_ref related by part_expression->TypeReference[R795];
+select one part_stream related by part_type_ref->StreamTypeReference[R3801];
+if not_empty part_stream
+  list_type = ::getBasicTypeReferenceByName(name:"List");
+  TypeConversion::render_from_type(expr:part_expression, base_expr:part_expr, input_type_ref:part_type_ref, output_type_ref:list_type);
+  part_expr = T::body();
+end if;
+
 T::pop_buffer();
+
 select one next_coupled_unrelate related by self->UnrelateSmt[R452.''couples with''];
 select one prev_coupled_unrelate related by self->UnrelateSmt[R452.''is coupled with''];
 select one rel related by self->Relationship[R484];
 rel_name = rel.getGenName();
+
 T::include(file:"statement/t.unrelate.java");',
 	1,
 	'',
