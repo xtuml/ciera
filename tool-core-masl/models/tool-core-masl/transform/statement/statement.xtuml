@@ -1410,9 +1410,8 @@ select one uses related by link_unlink_statement->MaslExpression[R5121];
 select one uses_class related by uses->BasicType[R5570]->InstanceType[R6205]->ObjectDeclaration[R6220]->Class[R8300];
 if (empty rhs)
   // Right hand expression is allowed to be left out for unlink statements if
-  // the relationship is subtype/supertype or simple binary and is unconditional
-  // one. Reflexive associations are not allowed
-  if (link_unlink_statement.isLink or not_empty uses or rel_spec.conditional or rel_spec.multiplicity != MaslMultiplicity::one or lhs_class.name == rhs_class.name)
+  // the relationship is non-reflexive binary or sup/super association
+  if (link_unlink_statement.isLink or not_empty uses or lhs_class.name == rhs_class.name)
     select one invocable related by smt->CodeBlock[R450]->InvocableObject[R4000];
     ::semanticError(invocable:invocable, line_number:smt.line_number, message:"Invalid implicit unlink statement");
     ARCH::exit(code:1);

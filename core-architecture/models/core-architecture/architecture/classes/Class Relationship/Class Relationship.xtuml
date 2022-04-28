@@ -22,6 +22,10 @@ if self.rel_type == RelationshipType::SuperSubtype
   end if;
 end if;
 
+is_subsuper = self.rel_type == RelationshipType::SuperSubtype;
+rel_name = self.getGenName();
+
+// render referential attribute setters
 T::push_buffer();
 select many refs related by self->Class[R434]->Attribute[R410]->AttributeReference[R4506.''provides value for'']
   where (selected.rel_num == self.num and selected.form_phrase == self.form_phrase and selected.form_name == self.form_name and
@@ -36,7 +40,9 @@ for each ref in refs
   T::include(file:"relationship/t.referentialattributeinitialization.java");
 end for;
 attribute_propagations = T::body();
+T::pop_buffer();
 
+// render relationship creator/detructor invocations
 relationship_setters = "";
 relationship_unsetters = "";
 select one form related by self->Class[R434];
@@ -53,42 +59,27 @@ end if;
 part_name = part_name + form.name;
 select any form_selector related by form->Selector[R442] where (selected.name == form_name);
 select any part_selector related by part->Selector[R442] where (selected.name == part_name);
-if (form_selector.multiplicity == Mult::MANY)
-  relationship_setters = relationship_setters + "part.add" + form_selector.name + "(form);\n";
-  relationship_unsetters = relationship_unsetters + "part.remove" + form_selector.name + "(form);\n";
-else
-  if self.rel_type == RelationshipType::SuperSubtype
-    relationship_setters = relationship_setters + "part.setR" + STRING::itoa(i:self.num) + "_Subtype(form);\n";
-    relationship_unsetters = relationship_unsetters + "part.clearR" + STRING::itoa(i:self.num) + "_Subtype(form);\n";
-  else
-    relationship_setters = relationship_setters + "part.set" + form_selector.name + "(form);\n";
-    relationship_unsetters = relationship_unsetters + "part.clear" + form_selector.name + "(form);\n";
-  end if;
-end if;
-if (part_selector.multiplicity == Mult::MANY)
-  relationship_setters = relationship_setters + "form.add" + part_selector.name + "(part);\n";
-  relationship_unsetters = relationship_unsetters + "form.remove" + part_selector.name + "(part);\n";
-else
-  relationship_setters = relationship_setters + "form.set" + part_selector.name + "(part);\n";
-  relationship_unsetters = relationship_unsetters + "form.clear" + part_selector.name + "(part);\n";
-end if;
-T::pop_buffer();
+form_is_many = form_selector.multiplicity == Mult::MANY;
+part_is_many = part_selector.multiplicity == Mult::MANY;
 
-part_selector_name = "";
-part_uncond_one = self.part_cond == Cond::UNCONDITIONAL and self.part_mult == Mult::ONE and self.part_name != self.form_name;
-if part_uncond_one
-  select any selector related by self->Selector[R4512] where selected.class_name == self.form_name;
-  part_selector_name = selector.name;
-end if;
-form_selector_name = "";
-form_uncond_one = (self.form_cond == Cond::UNCONDITIONAL and self.form_mult == Mult::ONE and self.part_name != self.form_name) or self.rel_type == RelationshipType::SuperSubtype;
-if form_uncond_one
-  select any selector related by self->Selector[R4512] where selected.class_name == self.part_name;
-  form_selector_name = selector.name;
-end if;
+T::include(file:"relationship/t.relationshipmodifiers.java");
 
-rel_name = self.getGenName();
-is_subsuper = self.rel_type == RelationshipType::SuperSubtype;
+// render collection relates/unrelates
+T::append(s:"\n");
+T::include(file:"relationship/t.relationshipmodifiers.collections.java");
+
+// render implicit unlinks
+// implicit unlink is not allowed when the form and part class are the same (i.e. reflexive binary associations)
+if self.form_name != self.part_name
+  select any part_selector related by self->Selector[R4512] where selected.class_name == self.form_name;
+  part_selector_name = part_selector.name;
+  part_selector_is_many = part_selector.multiplicity == Mult::MANY;
+  select any form_selector related by self->Selector[R4512] where selected.class_name == self.part_name;
+  form_selector_name = form_selector.name;
+  form_selector_is_many = form_selector.multiplicity == Mult::MANY;
+  T::append(s:"\n");
+  T::include(file:"relationship/t.implicitunlinks.java");
+end if;
 
 // resolve imports
 select one part_class_file related by self->Class[R434]->File[R401];
@@ -97,8 +88,7 @@ if not is_subsuper
   select one form_class_file related by self->Class[R435]->File[R401];
   ::addFileImport(file:form_class_file);
 end if;
-
-T::include(file:"relationship/t.relationshipmodifiers.java");',
+',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",
