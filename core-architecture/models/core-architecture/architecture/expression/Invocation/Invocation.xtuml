@@ -64,6 +64,12 @@ while ( not_empty parm )
   select one parm related by parm->ActualParameter[R3905.''precedes''];
 end while;
 
+// Check additional import
+select one generic_invoc related by self->InvocableObject[R792]->GenericInvocable[R427];
+if not_empty generic_invoc and generic_invoc.additional_import != ""
+  ::addQualifiedStringImport(qualified_class_name:generic_invoc.additional_import);
+end if;
+
 T::pop_buffer();
 T::include(file:"expression/t.invocation.java");',
 	1,

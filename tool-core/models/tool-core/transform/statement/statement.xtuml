@@ -960,16 +960,7 @@ else
   select any l_op related by smt->Expression[R775] where ( selected.expression_number == "1.1" );
   relate l_op to binop across R779;
   select one ltype related by l_op->TypeReference[R795];
-  // do a type conversion
-  create object instance prom_expr of Expression;
-  relate prom_expr to smt across R775;
-  prom_expr.expression_number = "1.2";
-  relate ltype to prom_expr across R795;
-  create object instance prom of TypeConversion;
-  relate prom to prom_expr across R776;
-  ::transformExpression(v_val:r_val, expr_number:"1.2.1", smt:smt);
-  select any prom_val related by smt->Expression[R775] where (selected.expression_number == "1.2.1");
-  relate prom_val to prom across R3907;
+  ::transformExpression(v_val:r_val, expr_number:"1.2", smt:smt);
   select any r_op related by smt->Expression[R775] where ( selected.expression_number == "1.2" );
   relate r_op to binop across R778;
   // link l_op type to the main expression
@@ -1185,14 +1176,6 @@ if ( "any" == act_fio.cardinality ) // create another expression for the ''any''
   r_op.expression_number = "1.2.1";
   relate fio_type to r_op across R795;
   relate r_op to any_expr across R783;
-else  // create a type conversion expression
-  create object instance cast_expr of TypeConversion;
-  relate cast_expr to r_op across R776;
-  create object instance r_op of Expression;
-  relate r_op to smt across R775;
-  r_op.expression_number = "1.2.1";
-  relate fio_type to r_op across R795;
-  relate r_op to cast_expr across R3907;
 end if;
 create object instance sel of SelectExpr;
 relate sel to r_op across R776;
@@ -1298,7 +1281,8 @@ relate l_op to binop across R779;
 // create right operand
 select one where_clause_val related by act_fiw->V_VAL[R610];
 select one where_clause_lbo related by where_clause_val->V_LBO[R801];
-if ( not_empty where_clause_lbo and ( "false" == T::sub( format:"l", s:where_clause_lbo.Value ) ) ) // special case where the where clause is ''false''
+// special case where the where clause is ''false''
+if ( not_empty where_clause_lbo and ( "false" == T::sub( format:"l", s:where_clause_lbo.Value ) ) )
   create object instance r_op of Expression;
   relate r_op to smt across R775;
   r_op.expression_number = "1.2";
@@ -1311,25 +1295,10 @@ if ( not_empty where_clause_lbo and ( "false" == T::sub( format:"l", s:where_cla
 else
   select one obj related by act_fiw->O_OBJ[R676]->Class[R409];
   fiw_type = ::getObjectStreamReference(obj:obj);
-  // if this is a select many, create a type conversion first
-  if act_fiw.cardinality == "many"
-		create object instance r_op of Expression;
-		relate r_op to smt across R775;
-		r_op.expression_number = "1.2";
-		relate select_type to r_op across R795;
-		relate r_op to binop across R778;
-    create object instance cast_expr of TypeConversion;
-    relate cast_expr to r_op across R776;
-    // create where clause
-    ::transformWhereClause(v_val:where_clause_val, smt:smt, expr_number:"1.2.1", where_type:fiw_type, multiplicity:act_fiw.cardinality);
-    select any where_expr related by smt->Expression[R775] where selected.expression_number == "1.2.1";
-    relate where_expr to cast_expr across R3907;
-  else
-    // create where clause
-    ::transformWhereClause(v_val:where_clause_val, smt:smt, expr_number:"1.2", where_type:select_type, multiplicity:act_fiw.cardinality);
-    select any where_expr related by smt->Expression[R775] where selected.expression_number == "1.2";
-    relate where_expr to binop across R778;
-  end if;
+  // create where clause
+  ::transformWhereClause(v_val:where_clause_val, smt:smt, expr_number:"1.2", where_type:select_type, multiplicity:act_fiw.cardinality);
+  select any r_op related by smt->Expression[R775] where selected.expression_number == "1.2";
+  relate r_op to binop across R778;
   // create selection expr
   // this selection assumes only 1 where clause per statement which is always true in OAL
   select any where_expr related by smt->Expression[R775]->WhereExpr[R776];
@@ -1469,27 +1438,10 @@ else
   end while;
 
   if not_empty where_clause_val
-    // create a type conversion for select many expression
-    if act_sel.cardinality == "many"
-      select one target_class related by lnk->O_OBJ[R678]->Class[R409];
-      sel_type = ::getObjectStreamReference(obj:target_class);
-      create object instance r_op of Expression;
-      relate r_op to smt across R775;
-      r_op.expression_number = "1.2";
-      relate r_op to binop across R778;
-      relate select_type to r_op across R795;
-      create object instance cast_expr of TypeConversion;
-      relate cast_expr to r_op across R776;
-      // create where clause
-      ::transformWhereClause(v_val:where_clause_val, smt:smt, expr_number:"1.2.1", where_type:sel_type, multiplicity:act_sel.cardinality);
-      select any where_expr related by smt->Expression[R775] where selected.expression_number == "1.2.1";
-      relate where_expr to cast_expr across R3907;
-    else
-      // create where clause
-      ::transformWhereClause(v_val:where_clause_val, smt:smt, expr_number:"1.2", where_type:select_type, multiplicity:act_sel.cardinality);
-      select any where_expr related by smt->Expression[R775] where selected.expression_number == "1.2";
-      relate where_expr to binop across R778;
-    end if;
+    // create where clause
+    ::transformWhereClause(v_val:where_clause_val, smt:smt, expr_number:"1.2", where_type:select_type, multiplicity:act_sel.cardinality);
+    select any r_op related by smt->Expression[R775] where selected.expression_number == "1.2";
+    relate r_op to binop across R778;
     // create expression for last chain link
     // this selection assumes only 1 where clause per statement which is always true in OAL
     select any where_expr related by smt->Expression[R775]->WhereExpr[R776];
@@ -1518,17 +1470,9 @@ else
     relate select_expr to any_expr across R783;
 
   else
-    // create a type conversion for select many expression
-    create object instance r_op of Expression;
-    relate r_op to smt across R775;
-    r_op.expression_number = "1.2";
+    ::transformSelectionLink( act_lnk:lnk, expr_number:"1.2", smt:smt );
+    select any r_op related by smt->Expression[R775] where ( selected.expression_number == "1.2" );
     relate r_op to binop across R778;
-    relate select_type to r_op across R795;
-    create object instance cast_expr of TypeConversion;
-    relate cast_expr to r_op across R776;
-    ::transformSelectionLink( act_lnk:lnk, expr_number:"1.2.1", smt:smt );
-    select any select_expr related by smt->Expression[R775] where ( selected.expression_number == "1.2.1" );
-    relate select_expr to cast_expr across R3907;
   end if;
 end if;
 // link select type to the main expression
@@ -1976,17 +1920,7 @@ select one ret_val related by act_ret->V_VAL[R668];
 if ( not_empty ret_val )
   select one act_act related by body->ACT_ACT[R432];
   select one val_dt related by ret_val->S_DT[R820];
-  // must do type promotion
-  create object instance prom_expr of Expression;
-  relate prom_expr to smt across R775;
-  prom_expr.expression_number = "1";
-  type = ::getTypeReferenceForS_DT(s_dt:val_dt);
-  relate type to prom_expr across R795;
-  create object instance prom of TypeConversion;
-  relate prom to prom_expr across R776;
-  ::transformExpression( v_val:ret_val, expr_number:"1.1", smt:smt );
-  select any prom_val related by smt->Expression[R775] where (selected.expression_number == "1.1");
-  relate prom_val to prom across R3907;
+  ::transformExpression( v_val:ret_val, expr_number:"1", smt:smt );
   select any ret_expr related by smt->Expression[R775] where ( selected.expression_number == "1" );
   relate ret_expr to ret across R473;
 end if;',
@@ -2845,18 +2779,7 @@ select any expr from instances of Expression where false;
 
 select one v_val related by v_par->V_VAL[R800];
 if ( not_empty v_val )
-  // do a type conversion
-  select one s_dt related by v_val->S_DT[R820];
-  create object instance prom_expr of Expression;
-  relate prom_expr to smt across R775;
-  prom_expr.expression_number = expr_number;
-  type = ::getTypeReferenceForS_DT(s_dt:s_dt);
-  relate type to prom_expr across R795;
-  create object instance prom of TypeConversion;
-  relate prom to prom_expr across R776;
-  ::transformExpression(v_val:v_val, expr_number:expr_number + ".1", smt:smt);
-  select any prom_val related by smt->Expression[R775] where (selected.expression_number == expr_number + ".1");
-  relate prom_val to prom across R3907;
+  ::transformExpression(v_val:v_val, expr_number:expr_number, smt:smt);
   select any expr related by smt->Expression[R775] where (selected.expression_number == expr_number);
 else
   // TODO bad
@@ -3588,25 +3511,9 @@ if ( not_empty prev_lnk )
 else
   select one base_val related by act_lnk->ACT_SEL[R637]->V_VAL[R613];
   select one base_class related by base_val->V_IRF[R801]->V_VAR[R808]->V_INT[R814]->O_OBJ[R818]->Class[R409];
-  if (empty base_class)
-    select one base_class related by base_val->V_ISR[R801]->V_VAR[R809]->V_INS[R814]->O_OBJ[R819]->Class[R409];
-    // if the base expression is a set reference, use a type conversion
-    create object instance base_expr of Expression;
-    relate base_expr to smt across R775;
-    base_expr.expression_number = expr_number + ".1";
-    base_type = ::getObjectStreamReference(obj:base_class);
-    relate base_type to base_expr across R795;
-    relate base_expr to sel_rel across R791;
-    create object instance cast_expr of TypeConversion;
-    relate cast_expr to base_expr across R776;
-    ::transformExpression( v_val:base_val, expr_number:base_expr.expression_number + ".1", smt:smt );
-    select any base_expr2 related by smt->Expression[R775] where ( selected.expression_number == base_expr.expression_number + ".1" );
-    relate base_expr2 to cast_expr across R3907;
-  else
-    ::transformExpression( v_val:base_val, expr_number:expr_number + ".1", smt:smt );
-    select any base_expr related by smt->Expression[R775] where ( selected.expression_number == expr_number + ".1" );
-    relate base_expr to sel_rel across R791;
-  end if;
+  ::transformExpression( v_val:base_val, expr_number:expr_number + ".1", smt:smt );
+  select any base_expr related by smt->Expression[R775] where ( selected.expression_number == expr_number + ".1" );
+  relate base_expr to sel_rel across R791;
 end if;
 
 // link type
@@ -4251,10 +4158,12 @@ while not_empty formal_param
   if not_empty generate_smt
 		create object instance evt_arg of GenerateEventArgument;
 		evt_arg.order = order;
+		relate evt_arg to formal_param across R553;
 		relate expr to generate_smt across R488 using evt_arg;
 	elif not_empty schedule_expr
 		create object instance evt_arg of ScheduleEventArgument;
 		evt_arg.order = order;
+		relate evt_arg to formal_param across R3930;
 		relate expr to schedule_expr across R3913 using evt_arg;
 	else
 	  LOG::LogFailure(message:"cannot transform event parameter");

@@ -1212,7 +1212,10 @@ expr.expression_number = expr_number;
 select any select_expr related by smt->Expression[R775]->WhereExpr[R776]->Expression[R776];
 select one where_type related by select_expr->TypeReference[R795]->StreamTypeReference[R3801]->TypeReference[R3812]->InstanceTypeReference[R3801]->TypeReference[R3801];
 if empty where_type
-  select one where_type related by select_expr->TypeReference[R795]->InstanceTypeReference[R3801]->TypeReference[R3801];
+  select one where_type related by select_expr->TypeReference[R795]->CollectionTypeReference[R3801]->TypeReference[R3805]->InstanceTypeReference[R3801]->TypeReference[R3801];
+	if empty where_type
+		select one where_type related by select_expr->TypeReference[R795]->InstanceTypeReference[R3801]->TypeReference[R3801];
+	end if;
 end if;
 if not_empty where_type
   relate where_type to expr across R795;
@@ -2103,7 +2106,6 @@ else
     smt.actions = ::getOalStatement(act_smt:prev_act_smt) + "\n" + smt.actions;
     smt.line_number = prev_act_smt.LineNumber;
 
-    
     // create the schedule expression
     create object instance schedule of Schedule;
     relate schedule to expr across R776;
@@ -2177,6 +2179,7 @@ else
       duration_constructor.name = "Duration";
       create object instance generic_invocable of GenericInvocable;
       relate generic_invocable to duration_constructor across R427;
+      generic_invocable.additional_import = "io.ciera.runtime.api.types.Duration";
     end if;
 
     // Create an invocation
@@ -2204,6 +2207,7 @@ else
     create object instance named_ref of NamedReference;
     relate named_ref to unit_expr across R776;
     named_ref.name = "ChronoUnit.MICROS";
+    named_ref.additional_import = "java.time.temporal.ChronoUnit";
     create object instance unit_param of ActualParameter;
     relate unit_expr to unit_param across R794;
     relate unit_param to delay_param across R3905.''follows'';
@@ -2304,7 +2308,13 @@ if multiplicity == "one" or multiplicity == "any"
   
   expr_number = expr_number + ".1";
   where_type = ::getStreamReference(element_type:where_type);
-
+  
+else
+  // if the where type is a collection, get the stream type
+  select one element_type related by where_type->CollectionTypeReference[R3801]->TypeReference[R3805];
+  if not_empty element_type
+    where_type = ::getStreamReference(element_type:element_type);
+  end if;
 end if;
 
 // transform all sort keys before creating the where clause
