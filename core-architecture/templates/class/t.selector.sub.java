@@ -1,4 +1,4 @@
-public R${rel_num}Subtype R${rel_num}_Subtype() {
+R${rel_num}Subtype R${rel_num}_Subtype() {
     if (isActive()) {
         if (R${rel_num}_subtype != null) {
             return R${rel_num}_subtype;

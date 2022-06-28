@@ -1,5 +1,5 @@
 .if (multiplicity_many)
-public void add${self.name}(${inst_type_name} inst) {
+void add${self.name}(${inst_type_name} inst) {
     if (isActive()) {
         if (!${self.name}_set.add(inst)) {
             throw new InvalidRelationshipException("Relationship R${rel_num} already exists for instance", getDomain(), this, inst);
@@ -9,7 +9,7 @@ public void add${self.name}(${inst_type_name} inst) {
     }
 }
 
-public void remove${self.name}(${inst_type_name} inst) {
+void remove${self.name}(${inst_type_name} inst) {
     if (isActive()) {
         if (!${self.name}_set.remove(inst)) {
             throw new InvalidRelationshipException("Relationship R${rel_num} does not exist between instances", getDomain(), this, inst);
@@ -20,7 +20,7 @@ public void remove${self.name}(${inst_type_name} inst) {
 }
 
 .elif (is_super)
-public void setR${rel_num}_Subtype(R${rel_num}Subtype inst) {
+void setR${rel_num}_Subtype(R${rel_num}Subtype inst) {
     if (isActive()) {
         if (R${rel_num}_subtype == null) {
             R${rel_num}_subtype = inst;
@@ -32,7 +32,7 @@ public void setR${rel_num}_Subtype(R${rel_num}Subtype inst) {
     }
 }
 
-public void clearR${rel_num}_Subtype(R${rel_num}Subtype inst) {
+void clearR${rel_num}_Subtype(R${rel_num}Subtype inst) {
     if (isActive()) {
         if (inst.equals(R${rel_num}_subtype)) {
             R${rel_num}_subtype = null;
@@ -45,7 +45,7 @@ public void clearR${rel_num}_Subtype(R${rel_num}Subtype inst) {
 }
 
 .else
-public void set${self.name}(${inst_type_name} inst) {
+void set${self.name}(${inst_type_name} inst) {
     if (isActive()) {
         if (${self.name}_inst.isEmpty()) {
             ${self.name}_inst = inst;
@@ -57,7 +57,7 @@ public void set${self.name}(${inst_type_name} inst) {
     }
 }
 
-public void clear${self.name}(${inst_type_name} inst) {
+void clear${self.name}(${inst_type_name} inst) {
     if (isActive()) {
         if (${self.name}_inst.equals(inst)) {
             ${self.name}_inst = ${inst_type_name}.EMPTY;

@@ -102,7 +102,7 @@ public class TestNotify {
               return app.getDomains().stream().findAny().orElseThrow();
             }
           };
-      app.defaultContext().scheduleEvent(TestEvent.class, target, Duration.ZERO);
+      app.defaultContext().scheduleEvent((data) -> new TestEvent(data), target, Duration.ZERO);
 
       t.join();
     } catch (InterruptedException e) {

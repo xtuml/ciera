@@ -1,4 +1,4 @@
-public ${inst_type} ${self.name}(${other_class_name} $l{other_class_name}) {
+${inst_type} ${self.name}(${other_class_name} $l{other_class_name}) {
 .if (other_many)
     return $l{other_class_name}.${other_selector_name}()\
 .else
@@ -15,7 +15,7 @@ public ${inst_type} ${self.name}(${other_class_name} $l{other_class_name}) {
 ..orElse(${inst_type}.EMPTY);
 }
 
-public Stream<${inst_type}> ${self.name}(Stream<${other_class_name}> $l{other_class_name}s) {
+Stream<${inst_type}> ${self.name}(Stream<${other_class_name}> $l{other_class_name}s) {
     return $l{other_class_name}s\
 .if (other_many)
 ..flatMap(${other_class_name}::${other_selector_name})\
@@ -29,7 +29,7 @@ public Stream<${inst_type}> ${self.name}(Stream<${other_class_name}> $l{other_cl
 .end if
 }
 
-public Stream<${inst_type}> ${self.name}(Collection<${other_class_name}> $l{other_class_name}s) {
+Stream<${inst_type}> ${self.name}(Collection<${other_class_name}> $l{other_class_name}s) {
     return ${self.name}($l{other_class_name}s.stream());
 }
 

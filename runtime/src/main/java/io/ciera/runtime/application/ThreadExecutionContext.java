@@ -7,11 +7,10 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.UncheckedIOException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Comparator;
 import java.util.Queue;
 import java.util.concurrent.PriorityBlockingQueue;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -22,7 +21,6 @@ import io.ciera.runtime.api.application.ExecutionContext;
 import io.ciera.runtime.api.application.Logger;
 import io.ciera.runtime.api.domain.Domain;
 import io.ciera.runtime.api.domain.PersistentDomain;
-import io.ciera.runtime.api.exceptions.EventTargetException;
 import io.ciera.runtime.api.time.SystemClock;
 import io.ciera.runtime.api.time.Timer;
 import io.ciera.runtime.api.types.Duration;
@@ -67,68 +65,43 @@ public class ThreadExecutionContext implements ExecutionContext, Runnable {
 
   @Override
   public <E extends Event> void generateEvent(
-      Class<E> eventType, EventTarget target, Object... data) {
-    generateEvent(eventType, target, false, data);
+      Function<Object[], E> eventBuilder, EventTarget target, Object... data) {
+    generateEvent(eventBuilder, target, false, data);
   }
 
   @Override
   public <E extends Event> void generateEventToSelf(
-      Class<E> eventType, EventTarget target, Object... data) {
-    generateEvent(eventType, target, true, data);
+      Function<Object[], E> eventBuilder, EventTarget target, Object... data) {
+    generateEvent(eventBuilder, target, true, data);
   }
 
   private <E extends Event> void generateEvent(
-      Class<E> eventType, EventTarget target, boolean toSelf, Object... data) {
-    try {
-      Constructor<E> eventBuilder = eventType.getConstructor(Object[].class);
-      Event event = eventBuilder.newInstance((Object) data);
-      if (toSelf) {
-        target.getContext().execute(new GeneratedEventToSelf(event, target));
-      } else {
-        target.getContext().execute(new GeneratedEvent(event, target, getExecutionMode()));
-      }
-    } catch (NoSuchMethodException
-        | SecurityException
-        | InstantiationException
-        | IllegalAccessException
-        | IllegalArgumentException
-        | InvocationTargetException e) {
-      throw new EventTargetException(
-          String.format("Could not generate event '%s'", eventType.getSimpleName()),
-          e,
-          target,
-          null);
+      Function<Object[], E> eventBuilder, EventTarget target, boolean toSelf, Object... data) {
+    Event event = eventBuilder.apply(data);
+    if (toSelf) {
+      target.getContext().execute(new GeneratedEventToSelf(event, target));
+    } else {
+      target.getContext().execute(new GeneratedEvent(event, target, getExecutionMode()));
     }
   }
 
   @Override
   public <E extends Event> Timer scheduleEvent(
-      Class<E> eventType, EventTarget target, Duration delay, Object... eventData) {
-    try {
-      Constructor<E> eventBuilder = eventType.getConstructor(Object[].class);
-      Event event = eventBuilder.newInstance((Object) eventData);
-      Timer timer = new EventTimer(this, event, target);
-      timer.schedule(delay.getValue());
-      return timer;
-    } catch (NoSuchMethodException
-        | SecurityException
-        | InstantiationException
-        | IllegalAccessException
-        | IllegalArgumentException
-        | InvocationTargetException e) {
-      throw new EventTargetException(
-          String.format("Could not schedule event '%s'", eventType.getSimpleName()),
-          e,
-          target,
-          null);
-    }
+      Function<Object[], E> eventBuilder, EventTarget target, Duration delay, Object... eventData) {
+    Event event = eventBuilder.apply(eventData);
+    Timer timer = new EventTimer(this, event, target);
+    timer.schedule(delay.getValue());
+    return timer;
   }
 
   @Override
   public <E extends Event> Timer scheduleEvent(
-      Class<E> eventType, EventTarget target, TimeStamp expiration, Object... eventData) {
+      Function<Object[], E> eventBuilder,
+      EventTarget target,
+      TimeStamp expiration,
+      Object... eventData) {
     Duration delay = expiration.minus(TimeStamp.now(getClock()));
-    return scheduleEvent(eventType, target, delay, eventData);
+    return scheduleEvent(eventBuilder, target, delay, eventData);
   }
 
   @Override
@@ -146,40 +119,26 @@ public class ThreadExecutionContext implements ExecutionContext, Runnable {
 
   @Override
   public <E extends Event> Timer scheduleRecurringEvent(
-      Class<E> eventType,
+      Function<Object[], E> eventBuilder,
       EventTarget target,
       Duration delay,
       Duration period,
       Object... eventData) {
-    try {
-      Constructor<E> eventBuilder = eventType.getConstructor(Object[].class);
-      Event event = eventBuilder.newInstance((Object) eventData);
-      AbstractTimer timer = new EventTimer(this, event, target, period != null ? period : delay);
-      timer.schedule(delay.getValue());
-      return timer;
-    } catch (NoSuchMethodException
-        | SecurityException
-        | InstantiationException
-        | IllegalAccessException
-        | IllegalArgumentException
-        | InvocationTargetException e) {
-      throw new EventTargetException(
-          String.format("Could not schedule event '%s'", eventType.getSimpleName()),
-          e,
-          target,
-          null);
-    }
+    Event event = eventBuilder.apply(eventData);
+    AbstractTimer timer = new EventTimer(this, event, target, period != null ? period : delay);
+    timer.schedule(delay.getValue());
+    return timer;
   }
 
   @Override
   public <E extends Event> Timer scheduleRecurringEvent(
-      Class<E> eventType,
+      Function<Object[], E> eventBuilder,
       EventTarget target,
       TimeStamp expiration,
       Duration period,
       Object... eventData) {
     Duration delay = expiration.minus(TimeStamp.now(getClock()));
-    return scheduleRecurringEvent(eventType, target, delay, period, eventData);
+    return scheduleRecurringEvent(eventBuilder, target, delay, period, eventData);
   }
 
   @Override

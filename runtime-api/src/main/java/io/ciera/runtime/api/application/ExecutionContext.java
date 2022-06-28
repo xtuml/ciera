@@ -1,6 +1,7 @@
 package io.ciera.runtime.api.application;
 
 import java.util.concurrent.Executor;
+import java.util.function.Function;
 
 import io.ciera.runtime.api.time.SystemClock;
 import io.ciera.runtime.api.time.Timer;
@@ -14,26 +15,33 @@ public interface ExecutionContext extends Executor {
   public Application getApplication();
 
   public <E extends Event> void generateEvent(
-      Class<E> eventType, EventTarget target, Object... data);
+      Function<Object[], E> eventBuilder, EventTarget target, Object... data);
 
   public <E extends Event> void generateEventToSelf(
-      Class<E> eventType, EventTarget target, Object... data);
+      Function<Object[], E> eventBuilder, EventTarget target, Object... data);
 
   public <E extends Event> Timer scheduleEvent(
-      Class<E> eventType, EventTarget target, Duration delay, Object... eventData);
+      Function<Object[], E> eventBuilder, EventTarget target, Duration delay, Object... eventData);
 
   public <E extends Event> Timer scheduleEvent(
-      Class<E> eventType, EventTarget target, TimeStamp expiration, Object... eventData);
+      Function<Object[], E> eventBuilder,
+      EventTarget target,
+      TimeStamp expiration,
+      Object... eventData);
 
   public Timer scheduleAction(Duration delay, Runnable action);
 
   public Timer scheduleAction(TimeStamp expiration, Runnable action);
 
   public <E extends Event> Timer scheduleRecurringEvent(
-      Class<E> eventType, EventTarget target, Duration delay, Duration period, Object... eventData);
+      Function<Object[], E> eventBuilder,
+      EventTarget target,
+      Duration delay,
+      Duration period,
+      Object... eventData);
 
   public <E extends Event> Timer scheduleRecurringEvent(
-      Class<E> eventType,
+      Function<Object[], E> eventBuilder,
       EventTarget target,
       TimeStamp expiration,
       Duration period,

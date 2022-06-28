@@ -20,10 +20,10 @@ ${supertypes}\
 
     private static final long serialVersionUID = ${self.serial_version_id}L;
 
-    protected static final ${self.name} EMPTY = new Empty${self.name}();
+    static final ${self.name} EMPTY = new Empty${self.name}();
 .if (has_csm)
 
-    protected static Enum<?> currentState = ${self.name}StateMachine.States.${init_state_name};
+    static Enum<?> currentState = ${self.name}StateMachine.States.${init_state_name};
 .end if
 
     // event ID declarations

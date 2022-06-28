@@ -855,15 +855,6 @@ if (empty class_exclude_mark)
   // relate to the OOA class
   relate obj to o_obj across R409;
 
-  // add to open package
-  select one mod related by containing_comp_def->Module[R5752];
-  select any open_package related by mod->OpenedPackage[R5754] where selected.name == obj.package;
-  if empty open_package
-    create object instance open_package of OpenedPackage;
-    open_package.name = obj.package;
-    relate open_package to mod across R5754;
-  end if;
-
   // transform attributes
   select any o_attr related by o_obj->O_ATTR[R102];
   select one prev_attr related by o_attr->O_ATTR[R103.''succeeds''];

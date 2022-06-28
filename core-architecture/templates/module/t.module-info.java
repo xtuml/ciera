@@ -6,10 +6,6 @@ module ${self.name} {
     ${exports}\
 
 .end if
-.if (opens != "")
-    ${opens}\
-
-.end if
 .if (domains != "")
     ${domains}\
 

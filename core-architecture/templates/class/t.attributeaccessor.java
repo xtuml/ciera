@@ -1,5 +1,5 @@
 .if (is_getter)
-public ${type_name} ${name}() {
+${type_name} ${name}() {
     if (isActive()) {
   .if (attribute_derivation != "")
         ${attribute_derivation}
@@ -11,7 +11,7 @@ public ${type_name} ${name}() {
 }
 
 .else
-public void ${name}(${type_name} ${self.attribute_name}) {
+void ${name}(${type_name} ${self.attribute_name}) {
     if (isActive()) {
   .if (primitive)
         if (${self.attribute_name} != this.${self.attribute_name}) {

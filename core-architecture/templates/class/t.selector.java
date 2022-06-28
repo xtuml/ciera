@@ -1,4 +1,4 @@
-public ${type_name} ${self.name}() {
+${type_name} ${self.name}() {
     if (isActive()) {
 .if (multiplicity_many)
         return ${self.name}_set.stream();

@@ -1,5 +1,7 @@
 package io.ciera.runtime.api.action;
 
+import java.util.function.Function;
+
 import io.ciera.runtime.api.application.Application;
 import io.ciera.runtime.api.application.Event;
 import io.ciera.runtime.api.application.EventTarget;
@@ -40,23 +42,26 @@ public interface ActionHome {
   }
 
   public default <E extends Event> void generateEvent(
-      Class<E> eventType, EventTarget target, Object... data) {
-    getContext().generateEvent(eventType, target, data);
+      Function<Object[], E> eventBuilder, EventTarget target, Object... data) {
+    getContext().generateEvent(eventBuilder, target, data);
   }
 
   public default <E extends Event> void generateEventToSelf(
-      Class<E> eventType, EventTarget target, Object... data) {
-    getContext().generateEventToSelf(eventType, target, data);
+      Function<Object[], E> eventBuilder, EventTarget target, Object... data) {
+    getContext().generateEventToSelf(eventBuilder, target, data);
   }
 
   public default <E extends Event> Timer scheduleEvent(
-      Class<E> eventType, EventTarget target, Duration delay, Object... eventData) {
-    return getContext().scheduleEvent(eventType, target, delay, eventData);
+      Function<Object[], E> eventBuilder, EventTarget target, Duration delay, Object... eventData) {
+    return getContext().scheduleEvent(eventBuilder, target, delay, eventData);
   }
 
   public default <E extends Event> Timer scheduleEvent(
-      Class<E> eventType, EventTarget target, TimeStamp expiration, Object... eventData) {
-    return getContext().scheduleEvent(eventType, target, expiration, eventData);
+      Function<Object[], E> eventBuilder,
+      EventTarget target,
+      TimeStamp expiration,
+      Object... eventData) {
+    return getContext().scheduleEvent(eventBuilder, target, expiration, eventData);
   }
 
   public default Timer scheduleAction(Duration delay, Runnable action) {
@@ -68,21 +73,21 @@ public interface ActionHome {
   }
 
   public default <E extends Event> Timer scheduleRecurringEvent(
-      Class<E> eventType,
+      Function<Object[], E> eventBuilder,
       EventTarget target,
       Duration delay,
       Duration period,
       Object... eventData) {
-    return getContext().scheduleRecurringEvent(eventType, target, delay, period, eventData);
+    return getContext().scheduleRecurringEvent(eventBuilder, target, delay, period, eventData);
   }
 
   public default <E extends Event> Timer scheduleRecurringEvent(
-      Class<E> eventType,
+      Function<Object[], E> eventBuilder,
       EventTarget target,
       TimeStamp expiration,
       Duration period,
       Object... eventData) {
-    return getContext().scheduleRecurringEvent(eventType, target, expiration, period, eventData);
+    return getContext().scheduleRecurringEvent(eventBuilder, target, expiration, period, eventData);
   }
 
   public default Timer scheduleRecurringAction(Duration delay, Duration period, Runnable action) {
