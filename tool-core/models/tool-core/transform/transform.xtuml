@@ -1067,12 +1067,12 @@ INSERT INTO S_SYNC
 	'transformEnumeratedType',
 	'',
 	's_dt = param.s_dt;
-select one ep_pkg related by s_dt->PE_PE[R8001]->EP_PKG[R8000];
+path = param.path;
 
 // create the file
 create object instance file of File;
 file.name = ::camelCaseName( name:s_dt.Name, start_lower:false );
-file.path = ::ep_pkgToPath( ep_pkg:ep_pkg );
+file.path = path;
 file.package = ::pathToPackage( path:file.path );
 file.extension = ".java";
 file.exclude = param.exclude;
@@ -1134,6 +1134,15 @@ INSERT INTO S_SPARM
 	"a114d22b-91d1-4024-bd80-b10fccabec0f",
 	'exclude',
 	"ba5eda7a-def5-0000-0000-000000000001",
+	0,
+	'',
+	"10ca3a35-0737-4baf-8d09-7052f84936d5",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("10ca3a35-0737-4baf-8d09-7052f84936d5",
+	"a114d22b-91d1-4024-bd80-b10fccabec0f",
+	'path',
+	"ba5eda7a-def5-0000-0000-000000000004",
 	0,
 	'',
 	"52ce9b0d-3a5e-4b00-a118-31e4fea357d2",
@@ -1675,7 +1684,10 @@ sub_path = T::sub(format:"rl", s:ep_pkg.Name);
 if path != ""
   sub_path = path + "/" + sub_path;
 end if;
-pkg_name = ::pathToPackage(path:sub_path);
+select one comp_file related by containing_comp_def->File[R401];
+if not_empty comp_file
+  sub_path = comp_file.path;
+end if;
 
 // get all packageable elements
 select one referred_ep_pkg related by ep_pkg->EP_PKG[R1402.''refers to''];
@@ -1690,7 +1702,7 @@ if (param.pass == 1)
   // transform datatypes
   select many s_dts related by pe_pes->S_DT[R8001]->S_EDT[R17]->S_DT[R17];
   for each s_dt in s_dts
-    ::transformDataType(s_dt:s_dt, exclude:pkg_mod != mod, containing_comp_def:containing_comp_def);
+    ::transformDataType(s_dt:s_dt, path:sub_path, exclude:pkg_mod != mod, containing_comp_def:containing_comp_def);
   end for;
 
 elif (param.pass == 2)
@@ -2379,6 +2391,15 @@ INSERT INTO S_SPARM
 	"ba5eda7a-def5-0000-0000-000000000001",
 	0,
 	'',
+	"bc0b9c41-5eef-4597-8a87-c05f4fcffbcc",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("bc0b9c41-5eef-4597-8a87-c05f4fcffbcc",
+	"d02e7000-869b-4743-9418-85576a503800",
+	'path',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
 	"78c72c79-4b9b-423f-926e-db02292501ed",
 	'');
 INSERT INTO PE_PE
@@ -2758,11 +2779,11 @@ containing_comp_def = param.containing_comp_def;
 
 select one s_edt related by s_dt->S_EDT[R17];
 if not_empty s_edt
-  ::transformEnumeratedType(s_dt:s_dt, exclude:param.exclude);
+  ::transformEnumeratedType(s_dt:s_dt, path:param.path, exclude:param.exclude);
 else
   select one s_udt related by s_dt->S_UDT[R17];
   if not_empty s_udt
-    ::transformUserDefinedType(s_dt:s_dt, exclude:param.exclude);
+    ::transformUserDefinedType(s_dt:s_dt, path:param.path, exclude:param.exclude);
   end if;
 end if;
 
@@ -2800,7 +2821,7 @@ INSERT INTO S_SPARM
 	"ba5eda7a-def5-0000-0000-000000000001",
 	0,
 	'',
-	"e07e1f55-b86f-4df3-ac9e-6c366c5dd5db",
+	"09f13307-96eb-4ec4-95cb-fb4e0700f72c",
 	'');
 INSERT INTO S_SPARM
 	VALUES ("c2facdb5-456c-443e-8deb-938b8246ccf7",
@@ -2810,6 +2831,15 @@ INSERT INTO S_SPARM
 	0,
 	'',
 	"5f4ecdf8-8e48-447c-b430-73691e06ab39",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("09f13307-96eb-4ec4-95cb-fb4e0700f72c",
+	"1cfd3671-5013-4535-986f-f3f6ff283140",
+	'path',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"e07e1f55-b86f-4df3-ac9e-6c366c5dd5db",
 	'');
 INSERT INTO PE_PE
 	VALUES ("1cfd3671-5013-4535-986f-f3f6ff283140",

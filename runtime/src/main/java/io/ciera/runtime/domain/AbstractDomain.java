@@ -1,7 +1,5 @@
 package io.ciera.runtime.domain;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -66,39 +64,19 @@ public abstract class AbstractDomain implements Domain {
   }
 
   @Override
-  public <T extends ObjectInstance> T createInstance(Class<T> type) {
-    return createInstance(type, null);
+  public <T extends ObjectInstance> T createInstance(Supplier<T> constructor) {
+    return createInstance(constructor, null);
   }
 
   @Override
   public <T extends ObjectInstance> T createInstance(
-      Class<T> type, Consumer<T> instanceInitializer) {
-    try {
-      @SuppressWarnings("unchecked")
-      Constructor<T> constructor =
-          (Constructor<T>)
-              Stream.of(type.getConstructors())
-                  .filter(
-                      c ->
-                          c.getParameterTypes().length == 1
-                              && c.getParameterTypes()[0].isAssignableFrom(getClass()))
-                  .findAny()
-                  .orElseThrow(NoSuchMethodException::new);
-      T instance = constructor.newInstance(this);
-      if (instanceInitializer != null) {
-        instanceInitializer.accept(instance);
-      }
-      addInstance(instance);
-      return instance;
-    } catch (NoSuchMethodException
-        | SecurityException
-        | InstantiationException
-        | IllegalAccessException
-        | IllegalArgumentException
-        | InvocationTargetException e) {
-      throw new InstancePopulationException(
-          "Could not create instance of type '" + type.getSimpleName() + "'", e, this);
+      Supplier<T> constructor, Consumer<T> instanceInitializer) {
+    T instance = constructor.get();
+    if (instanceInitializer != null) {
+      instanceInitializer.accept(instance);
     }
+    addInstance(instance);
+    return instance;
   }
 
   @Override

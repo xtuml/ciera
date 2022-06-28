@@ -2,7 +2,7 @@ package ${self.package};
 
 ${imports}
 
-public class ${self.name} extends \
+class ${self.name} extends \
 .if (not has_ism)
 AbstractObjectInstance\
 .else
@@ -20,10 +20,10 @@ ${supertypes}\
 
     private static final long serialVersionUID = ${self.serial_version_id}L;
 
-    public static final ${self.name} EMPTY = new Empty${self.name}();
+    protected static final ${self.name} EMPTY = new Empty${self.name}();
 .if (has_csm)
 
-    public static Enum<?> currentState = ${self.name}StateMachine.States.${init_state_name};
+    protected static Enum<?> currentState = ${self.name}StateMachine.States.${init_state_name};
 .end if
 
     // event ID declarations

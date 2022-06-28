@@ -1147,7 +1147,9 @@ if not_empty edt
   if empty type
     // make sure the type gets translated for referred to types
     select any empty_comp_def from instances of ComponentDefinition where false;
-    ::transformDataType(s_dt:s_dt, exclude:true, containing_comp_def:empty_comp_def);
+    select one ep_pkg related by s_dt->PE_PE[R8001]->EP_PKG[R8000];
+    path = ::ep_pkgToPath(ep_pkg:ep_pkg);
+    ::transformDataType(s_dt:s_dt, path:path, exclude:true, containing_comp_def:empty_comp_def);
     select one type related by s_dt->Type[R423];
   end if;
   if not_empty type

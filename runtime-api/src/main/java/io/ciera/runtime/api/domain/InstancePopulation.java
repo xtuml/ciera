@@ -3,16 +3,17 @@ package io.ciera.runtime.api.domain;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import io.ciera.runtime.api.types.UniqueId;
 
 public interface InstancePopulation {
 
-  public <T extends ObjectInstance> T createInstance(Class<T> object);
+  public <T extends ObjectInstance> T createInstance(Supplier<T> constructor);
 
   public <T extends ObjectInstance> T createInstance(
-      Class<T> object, Consumer<T> instanceInitializer);
+      Supplier<T> constructor, Consumer<T> instanceInitializer);
 
   public void addInstance(ObjectInstance instance);
 

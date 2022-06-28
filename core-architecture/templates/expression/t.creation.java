@@ -1,4 +1,4 @@
-getDomain().createInstance(${self.class_name}.class\
+getDomain().createInstance(() -> new ${self.class_name}(getDomain())\
 .if ((not_empty init_state) or (attr_initializers != ""))
 , inst -> {
   .if (not_empty init_state)

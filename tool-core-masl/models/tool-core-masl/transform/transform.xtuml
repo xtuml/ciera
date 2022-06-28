@@ -1594,10 +1594,7 @@ select one domain related by exception_declaration->Domain[R5400];
 comp_def = param.comp_def;
 
 select one component_file related by comp_def->File[R401];
-path = component_file.path + "/internal/exceptions";  // put all exceptions in one package called ''exceptions''
-if exception_declaration.visibility == MaslVisibility::public
-  path = component_file.path + "/exceptions";  // put all public exceptions in a separate package
-end if;
+path = component_file.path;
 
 // create the object file
 create object instance file of File;
@@ -1704,7 +1701,7 @@ if (param.pass == 1)
 	file.name = domain.name;
 	if utility_package == ""
 		// if no pacakge is passed in, this is a private utility within this domain
-		file.path = param.path + "/util";
+		file.path = param.path;
 		file.package = ::pathToPackage(path:file.path);
 		file.extension = ".java";
 	else
@@ -2505,10 +2502,7 @@ if empty base_type_ref
 else
 
   select one component_file related by comp_def->File[R401];
-  path = component_file.path + "/internal/types";  // put all types in one package called ''exceptions''
-  if type_declaration.visibility == MaslVisibility::public
-    path = component_file.path + "/types";  // put all public types in a separate package
-  end if;
+  path = component_file.path;
   
   // create the file
   create object instance file of File;
@@ -2616,10 +2610,7 @@ if empty named_ref
 	if not_empty comp_def
 
 		select one component_file related by comp_def->File[R401];
-		path = component_file.path + "/internal/types";  // put all types in one package called ''exceptions''
-		if type_declaration.visibility == MaslVisibility::public
-			path = component_file.path + "/types";  // put all public types in a separate package
-		end if;
+		path = component_file.path;
 		
 		// create the file
 		create object instance file of File;
@@ -2727,7 +2718,7 @@ INSERT INTO S_SYNC
 select one domain related by object_declaration->Domain[R5805];
 comp_def = param.comp_def;
 select one component_file related by comp_def->File[R401];
-path = component_file.path + "/" + "classes";  // put all classes in one package called ''classes''
+path = component_file.path;
 
 // if there is a key letter mark, use it as the object name
 select any key_letter_mark from instances of Mark where selected.markable_name == "Object" and selected.feature_name == "key_letter"
