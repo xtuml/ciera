@@ -2,4 +2,7 @@ package ${self.package};
 
 ${imports}
 
-public ${type_body}\
+.if (self.public)
+public \
+.end if
+${type_body}\

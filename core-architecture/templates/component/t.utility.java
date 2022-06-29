@@ -2,9 +2,9 @@ package ${self.package};
 
 ${imports}
 
-public class ${self.name} {
+class ${self.name} {
 
-    public ${self.name}(Domain domain) {
+    ${self.name}(Domain domain) {
 .if (self.native_library != "")
         System.loadLibrary("${self.native_library}");
 .end if

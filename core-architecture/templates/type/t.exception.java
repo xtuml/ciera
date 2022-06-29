@@ -2,18 +2,34 @@ class ${self.name} extends ActionException {
 
     private static final long serialVersionUID = 1l;
 
-    public ${self.name}() {
+    \
+.if (public_type)
+public \
+.end if
+${self.name}() {
     }
 
-    public ${self.name}(String message) {
+    \
+.if (public_type)
+public \
+.end if
+${self.name}(String message) {
         super(message);
     }
 
-    public ${self.name}(Throwable cause) {
+    \
+.if (public_type)
+public \
+.end if
+${self.name}(Throwable cause) {
         super(cause);
     }
 
-    public ${self.name}(Object data) {
+    \
+.if (public_type)
+public \
+.end if
+${self.name}(Object data) {
         super(data);
     }
 

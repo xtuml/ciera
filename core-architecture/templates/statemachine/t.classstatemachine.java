@@ -2,15 +2,15 @@ package ${self.package};
 
 ${imports}
 
-public class ${self.name} extends AbstractStateMachine implements StateMachine {
+class ${self.name} extends AbstractStateMachine implements StateMachine {
 
     private static volatile ${self.name} instance;
 
-    public static enum States {
+    static enum States {
         ${state_declarations}\
     }
 
-    public ${self.name}(${self.comp_name} domain) {
+    ${self.name}(${self.comp_name} domain) {
         super("${self.class_name} [CSM]", domain);
     }
 
@@ -48,7 +48,7 @@ public class ${self.name} extends AbstractStateMachine implements StateMachine {
         return (${self.comp_name}) super.getDomain();
     }
 
-    public static StateMachine getInstance(${self.comp_name} domain) {
+    static StateMachine getInstance(${self.comp_name} domain) {
         if (instance == null || !instance.getDomain().equals(domain)) {
             instance = new ${self.name}(domain);
         }

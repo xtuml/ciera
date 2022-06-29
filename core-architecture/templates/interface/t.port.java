@@ -8,7 +8,10 @@ ${self.supertype_name} \
 .else
 AbstractPort \
 .end if
-implements ${self.iface_name} {
+.if (implements_interface)
+implements ${self.iface_name} \
+.end if
+{
 
     public ${self.name}(${self.comp_name} domain) {
         super("${self.name}", domain);

@@ -14,7 +14,11 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'// render inbound messages
+	'// check to see if the interface needs to be implemented
+select any message related by self->Interface[R418]->Message[R419];
+implements_interface = not_empty message;
+
+// render inbound messages
 select many inbound_msgs related by self->Message[R420]
   where ((not selected.to_provider and not self.provider) or (selected.to_provider and self.provider));
 select many inbound_port_msgs related by inbound_msgs->PortMessage[R420] where selected.port_name == self.name and SORT::ascending(attr:"msg_id");

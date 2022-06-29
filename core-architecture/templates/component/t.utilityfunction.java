@@ -1,7 +1,7 @@
 .if (self.native)
-public native ${type_name} ${self.name}(${parameter_list});
+native ${type_name} ${self.name}(${parameter_list});
 .else
-public ${type_name} ${self.name}(${parameter_list})\
+${type_name} ${self.name}(${parameter_list})\
   .if (body == "")
  {
     // TODO Insert your implementation here

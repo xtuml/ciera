@@ -229,7 +229,7 @@ else
     // transform terminators
     select many terms related by domain->DomainTerminator[R5304];
     for each term in terms
-      ::transformDomainTerminator(domain_terminator:term, comp_def:comp_def, path:file.path + "/" + T::sub(format:"l", s:term.name));
+      ::transformDomainTerminator(domain_terminator:term, comp_def:comp_def, path:file.path);
     end for;
   
   elif (param.pass == 6)
@@ -312,6 +312,7 @@ select one service related by domain_service->Service[R5203];
 // create function object
 create object instance func of Function;
 relate func to comp_def across R405;
+func.public = service.visibility == MaslVisibility::public;
 
 // create invocable
 create object instance invocable of InvocableObject;
@@ -535,9 +536,12 @@ end for;
 
 // add as an export package
 select one mod related by comp_def->Module[R5752];
-create object instance export_package of ExportedPackage;
-export_package.name = port.package;
-relate export_package to mod across R5750;',
+select any export_package related by mod->ExportedPackage[R5750] where selected.name == port.package;
+if empty export_package
+  create object instance export_package of ExportedPackage;
+  export_package.name = port.package;
+ relate export_package to mod across R5750;
+end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -1616,6 +1620,7 @@ relate exp_type to exp across R3804;
 create object instance udt of UserDefinedType;
 relate udt to type across R3803;
 relate udt to file across R401;
+udt.public = exception_declaration.visibility == MaslVisibility::public;
 
 // link to arch model
 relate exception_declaration to udt across R8307;
@@ -2010,7 +2015,7 @@ relate comp_def to ref_comp_def across R4562.''extends'';
 // transform terminators
 select many terms related by project_domain->ProjectTerminator[R5902];
 for each term in terms
-  ::transformProjectTerminator(project_terminator:term, comp_def:comp_def, path:file.path + "/" + T::sub(format:"l", s:term.name));
+  ::transformProjectTerminator(project_terminator:term, comp_def:comp_def, path:file.path);
 end for;
 
 // add a module dependency
@@ -2515,6 +2520,7 @@ else
   // create the user defined type
   create object instance udt of UserDefinedType;
   relate udt to file across R401;
+  udt.public = type_declaration.visibility == MaslVisibility::public;
   
   // create the type
   create object instance type of Type;
@@ -2623,6 +2629,7 @@ if empty named_ref
 		// create the user defined type
 		create object instance udt of UserDefinedType;
 		relate udt to file across R401;
+    udt.public = type_declaration.visibility == MaslVisibility::public;
 		
 	end if;
 

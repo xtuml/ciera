@@ -20,6 +20,13 @@ INSERT INTO O_TFR
 select one message related by self->Message[R420];
 is_async = message.async;
 
+select one msg_iface related by self->Message[R420]->Interface[R419];
+public_iface = msg_iface.public;
+
+// if the port and message interface do not match, add override annotation
+select one port_iface related by self->Port[R420]->Interface[R418];
+override_message = port_iface != msg_iface;
+
 select one type related by self->InvocableObject[R427]->TypeReference[R428];
 type_name = type.type_reference;
 ::resolveImportsForTypeReference(type_ref:type);
@@ -48,7 +55,7 @@ T::pop_buffer();
 
 inbound = ( port.provider and message.to_provider ) or ( not port.provider and not message.to_provider );
 
-if not inbound
+if not inbound and public_iface
   select one iface_file related by self->Message[R420]->Interface[R419]->File[R401];
   ::addFileImport(file:iface_file);
 end if;

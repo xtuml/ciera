@@ -4,15 +4,27 @@ class ${self.name} implements Serializable {
 
     private final ${self.type_reference} value;
 
-    public ${self.name}() {
+    \
+.if (public_type)
+public \
+.end if
+${self.name}() {
         value = ${default_value};
     }
 
-    public ${self.name}(${self.type_reference} value) {
+    \
+.if (public_type)
+public \
+.end if
+${self.name}(${self.type_reference} value) {
         this.value = value;
     }
 
-    public ${self.type_reference} getValue() {
+    \
+.if (public_type)
+public \
+.end if
+${self.type_reference} getValue() {
         return value;
     }
 

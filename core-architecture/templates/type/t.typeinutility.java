@@ -1,1 +1,1 @@
-public static ${type_body}
+static ${type_body}

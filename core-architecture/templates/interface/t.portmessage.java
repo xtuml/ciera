@@ -1,5 +1,8 @@
+.if (override_message)
+@Override
+.end if
 public ${type_name} ${self.msg_name}(${parameter_list}) \
-.if ( inbound )
+.if ( ( inbound ) or ( not public_iface ) )
 ${body}
 .else
 {

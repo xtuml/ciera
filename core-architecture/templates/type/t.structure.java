@@ -6,7 +6,11 @@ class ${self.name} implements Serializable {
     ${component_decls}
 
     // constructors
-    public ${self.name}() {
+    \
+.if (public_type)
+public \
+.end if
+${self.name}() {
 .if (component_initializers != "")
         ${component_initializers}\
 .end if

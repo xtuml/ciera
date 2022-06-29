@@ -1,1 +1,1 @@
-private ${self.iface_name} ${self.name};
+private ${self.name} ${self.name};

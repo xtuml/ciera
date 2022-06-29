@@ -36,10 +36,10 @@ ${supertypes}\
     ${relationship_decls}
 
     // constructors
-    public ${self.name}() {
+    ${self.name}() {
     }
 
-    public ${self.name}(${self.comp_name} domain) {
+    ${self.name}(${self.comp_name} domain) {
         super(UniqueId.random(), domain);
 .if (attribute_initializers1 != "")
         ${attribute_initializers1}\
@@ -49,7 +49,7 @@ ${supertypes}\
 .end if
     }
 
-    public ${self.name}(UniqueId instanceId, ${self.comp_name} domain\
+    ${self.name}(UniqueId instanceId, ${self.comp_name} domain\
 .if (has_ism)
 , Enum<?> initialState\
 .end if

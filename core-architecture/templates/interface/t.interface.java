@@ -2,11 +2,10 @@ package ${self.package};
 
 ${imports}
 
-public interface ${self.name} extends \
-.if (self.supertype_name != "")
-${self.supertype_name}, \
+.if (self.public)
+public \
 .end if
-Port {
+interface ${self.name} extends Port {
 
     // messages IDs
     ${message_id_declarations}\
