@@ -10,57 +10,57 @@ import io.ciera.runtime.api.types.TimeStamp;
 
 public interface ExecutionContext extends Executor {
 
-  public String getName();
+  String getName();
 
-  public Application getApplication();
+  Application getApplication();
 
-  public <E extends Event> void generateEvent(
+  <E extends Event> void generateEvent(
       Function<Object[], E> eventBuilder, EventTarget target, Object... data);
 
-  public <E extends Event> void generateEventToSelf(
+  <E extends Event> void generateEventToSelf(
       Function<Object[], E> eventBuilder, EventTarget target, Object... data);
 
-  public <E extends Event> Timer scheduleEvent(
+  <E extends Event> Timer scheduleEvent(
       Function<Object[], E> eventBuilder, EventTarget target, Duration delay, Object... eventData);
 
-  public <E extends Event> Timer scheduleEvent(
+  <E extends Event> Timer scheduleEvent(
       Function<Object[], E> eventBuilder,
       EventTarget target,
       TimeStamp expiration,
       Object... eventData);
 
-  public Timer scheduleAction(Duration delay, Runnable action);
+  Timer scheduleAction(Duration delay, Runnable action);
 
-  public Timer scheduleAction(TimeStamp expiration, Runnable action);
+  Timer scheduleAction(TimeStamp expiration, Runnable action);
 
-  public <E extends Event> Timer scheduleRecurringEvent(
+  <E extends Event> Timer scheduleRecurringEvent(
       Function<Object[], E> eventBuilder,
       EventTarget target,
       Duration delay,
       Duration period,
       Object... eventData);
 
-  public <E extends Event> Timer scheduleRecurringEvent(
+  <E extends Event> Timer scheduleRecurringEvent(
       Function<Object[], E> eventBuilder,
       EventTarget target,
       TimeStamp expiration,
       Duration period,
       Object... eventData);
 
-  public Timer scheduleRecurringAction(Duration delay, Duration period, Runnable action);
+  Timer scheduleRecurringAction(Duration delay, Duration period, Runnable action);
 
-  public Timer scheduleRecurringAction(TimeStamp expiration, Duration period, Runnable action);
+  Timer scheduleRecurringAction(TimeStamp expiration, Duration period, Runnable action);
 
-  public void halt();
+  void halt();
 
   @Deprecated
-  public void delay(Duration delay);
+  void delay(Duration delay);
 
-  public ExecutionMode getExecutionMode();
+  ExecutionMode getExecutionMode();
 
-  public ModelIntegrityMode getModelIntegrityMode();
+  ModelIntegrityMode getModelIntegrityMode();
 
-  public SystemClock getClock();
+  SystemClock getClock();
 
   public enum ExecutionMode {
     INTERLEAVED,

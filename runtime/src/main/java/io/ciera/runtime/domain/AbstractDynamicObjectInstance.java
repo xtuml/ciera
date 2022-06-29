@@ -20,11 +20,11 @@ public abstract class AbstractDynamicObjectInstance extends AbstractObjectInstan
     super();
   }
 
-  public AbstractDynamicObjectInstance(Domain domain) {
+  public AbstractDynamicObjectInstance(final Domain domain) {
     super(domain);
   }
 
-  public AbstractDynamicObjectInstance(UniqueId instanceId, Domain domain) {
+  public AbstractDynamicObjectInstance(final UniqueId instanceId, final Domain domain) {
     super(instanceId, domain);
   }
 
@@ -36,12 +36,12 @@ public abstract class AbstractDynamicObjectInstance extends AbstractObjectInstan
   }
 
   @Override
-  public void setCurrentState(Enum<?> newState) {
+  public void setCurrentState(final Enum<?> newState) {
     currentState = newState;
   }
 
   @Override
-  public void consumeEvent(Event event) {
+  public void consumeEvent(final Event event) {
     if (isActive()) {
       if (notEmpty()) {
         if (getStateMachine() != null) {

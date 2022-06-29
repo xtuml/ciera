@@ -6,11 +6,11 @@ import io.ciera.runtime.api.types.UniqueId;
 
 public interface Event extends Serializable {
 
-  public int getEventId();
+  int getEventId();
 
-  public String getName();
+  String getName();
 
-  public UniqueId getEventHandle();
+  UniqueId getEventHandle();
 
-  public Object getData(int index);
+  Object getData(int index);
 }

@@ -14,9 +14,9 @@ public abstract class Device implements Closeable, AutoCloseable, Flushable {
   public static final Device CONSOLE = new ReadWriteDevice("CONSOLE", System.in, System.out);
   public static final Device NULL = new DevNull();
 
-  private String name;
+  private final String name;
 
-  public Device(String name) {
+  public Device(final String name) {
     this.name = name;
   }
 
@@ -62,7 +62,7 @@ public abstract class Device implements Closeable, AutoCloseable, Flushable {
     return name;
   }
 
-  public static Device fromString(String s) {
+  public static Device fromString(final String s) {
     throw new DeserializationException("'Device' type is not serializable");
   }
 
@@ -73,7 +73,7 @@ public abstract class Device implements Closeable, AutoCloseable, Flushable {
     }
 
     @Override
-    public <T> T read(Class<T> cls) {
+    public <T> T read(final Class<T> cls) {
       throw new UnsupportedOperationException("Cannot read from null device");
     }
 
@@ -83,10 +83,10 @@ public abstract class Device implements Closeable, AutoCloseable, Flushable {
     }
 
     @Override
-    public void write(Object o) {}
+    public void write(final Object o) {}
 
     @Override
-    public void writeLine(Object o) {}
+    public void writeLine(final Object o) {}
 
     @Override
     public void flush() {}

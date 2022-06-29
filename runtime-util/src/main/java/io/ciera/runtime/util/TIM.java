@@ -18,7 +18,7 @@ public class TIM {
   private final Application app;
 
   public TIM(io.ciera.runtime.api.domain.Domain domain) {
-    app = domain.getApplication();
+    app = domain.getContext().getApplication();
   }
 
   public TimeStamp advance_time(final long microseconds) {

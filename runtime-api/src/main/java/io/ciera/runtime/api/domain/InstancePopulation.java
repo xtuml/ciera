@@ -10,25 +10,24 @@ import io.ciera.runtime.api.types.UniqueId;
 
 public interface InstancePopulation {
 
-  public <T extends ObjectInstance> T createInstance(Supplier<T> constructor);
+  <T extends ObjectInstance> T createInstance(Supplier<T> constructor);
 
-  public <T extends ObjectInstance> T createInstance(
+  <T extends ObjectInstance> T createInstance(
       Supplier<T> constructor, Consumer<T> instanceInitializer);
 
-  public void addInstance(ObjectInstance instance);
+  void addInstance(ObjectInstance instance);
 
-  public <T extends ObjectInstance> T getInstance(Class<T> object, Predicate<T> where);
+  <T extends ObjectInstance> T getInstance(Class<T> object, Predicate<T> where);
 
-  public <T extends ObjectInstance> T getInstance(Class<T> object, UniqueId instanceId);
+  <T extends ObjectInstance> T getInstance(Class<T> object, UniqueId instanceId);
 
-  public <T extends ObjectInstance> T getInstance(Class<T> object);
+  <T extends ObjectInstance> T getInstance(Class<T> object);
 
-  public <T extends ObjectInstance> Stream<T> getAllInstances(Class<T> object);
+  <T extends ObjectInstance> Stream<T> getAllInstances(Class<T> object);
 
-  public Stream<ObjectInstance> getAllInstances();
+  Stream<ObjectInstance> getAllInstances();
 
-  public void deleteInstance(ObjectInstance instance);
+  void deleteInstance(ObjectInstance instance);
 
-  public <T extends ObjectInstance> int getUniqueInteger(
-      Class<T> object, Function<T, Integer> keyMapper);
+  <T extends ObjectInstance> int getUniqueInteger(Class<T> object, Function<T, Integer> keyMapper);
 }

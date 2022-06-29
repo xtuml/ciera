@@ -1,6 +1,5 @@
 package io.ciera.runtime.domain;
 
-import io.ciera.runtime.api.action.ActionHome;
 import io.ciera.runtime.api.application.ExecutionContext;
 import io.ciera.runtime.api.application.MessageTarget;
 import io.ciera.runtime.api.domain.Domain;
@@ -9,16 +8,16 @@ import io.ciera.runtime.api.domain.Port;
 import io.ciera.runtime.api.exceptions.PortMessageException;
 import io.ciera.runtime.application.task.ReceivedMessage;
 
-public abstract class AbstractPort implements Port, ActionHome {
+public abstract class AbstractPort implements Port {
 
   private final String name;
   private final Domain domain;
   private MessageTarget peer;
 
-  public AbstractPort(String name, Domain domain) {
+  public AbstractPort(final String name, final Domain domain) {
     this.name = name;
     this.domain = domain;
-    this.peer = null;
+    peer = null;
   }
 
   @Override
@@ -27,29 +26,29 @@ public abstract class AbstractPort implements Port, ActionHome {
   }
 
   @Override
-  public void send(Message message) {
+  public void send(final Message message) {
     if (peer != null) {
       peer.getContext().execute(new ReceivedMessage(message, peer));
     }
   }
 
-  public void runMessageHandler(Message receivedMessage, Runnable messageHandler) {
+  public void runMessageHandler(final Message receivedMessage, final Runnable messageHandler) {
     try {
       messageHandler.run();
-    } catch (RuntimeException e) {
+    } catch (final RuntimeException e) {
       throw new PortMessageException(
           "Exception in state machine action", e, getDomain(), this, receivedMessage);
     }
   }
 
   @Override
-  public void deliver(Message message) {
+  public void deliver(final Message message) {
     throw new PortMessageException(
         "Port does not implement any incoming message types", getDomain(), this, null);
   }
 
   @Override
-  public void setPeer(MessageTarget peer) {
+  public void setPeer(final MessageTarget peer) {
     this.peer = peer;
   }
 
@@ -66,6 +65,10 @@ public abstract class AbstractPort implements Port, ActionHome {
   @Override
   public Domain getDomain() {
     return domain;
+  }
+
+  public Domain getDomain(final String domainName) {
+    return getContext().getApplication().getDomain(domainName);
   }
 
   @Override

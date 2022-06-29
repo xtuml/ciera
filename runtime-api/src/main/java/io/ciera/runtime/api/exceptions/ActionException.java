@@ -6,7 +6,7 @@ import java.util.stream.Stream;
 
 public class ActionException extends RuntimeException {
 
-  private static final long serialVersionUID = 1l;
+  private static final long serialVersionUID = 1L;
 
   private final Object data;
 
@@ -16,27 +16,27 @@ public class ActionException extends RuntimeException {
     this(null, null, null);
   }
 
-  public ActionException(String message) {
+  public ActionException(final String message) {
     this(message, null, null);
   }
 
-  public ActionException(Throwable cause) {
+  public ActionException(final Throwable cause) {
     this(null, null, cause);
   }
 
-  public ActionException(Object data) {
+  public ActionException(final Object data) {
     this(null, data, null);
   }
 
-  public ActionException(String message, Throwable cause) {
+  public ActionException(final String message, final Throwable cause) {
     this(message, null, cause);
   }
 
-  public ActionException(Object data, Throwable cause) {
+  public ActionException(final Object data, final Throwable cause) {
     this(null, data, cause);
   }
 
-  private ActionException(String message, Object data, Throwable cause) {
+  private ActionException(final String message, final Object data, final Throwable cause) {
     super(message);
     this.data = data;
     stack = new LinkedList<>();
@@ -50,7 +50,8 @@ public class ActionException extends RuntimeException {
     }
   }
 
-  public void updateStack(String parentName, String bodyName, String fileName, int lineNumber) {
+  public void updateStack(
+      final String parentName, final String bodyName, final String fileName, final int lineNumber) {
     stack.add(new StackTraceElement(parentName, bodyName, fileName, lineNumber));
     setStackTrace(stack.toArray(new StackTraceElement[0]));
   }

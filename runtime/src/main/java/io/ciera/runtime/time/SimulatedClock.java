@@ -15,7 +15,7 @@ public class SimulatedClock extends AbstractClock {
     this(true);
   }
 
-  public SimulatedClock(boolean setTime) {
+  public SimulatedClock(final boolean setTime) {
     systemTime = 0;
     if (setTime) {
       systemTime = getEpoch().until(Instant.now(), ChronoUnit.NANOS);
@@ -28,15 +28,15 @@ public class SimulatedClock extends AbstractClock {
   }
 
   @Override
-  public void setTime(long time) {
-    this.systemTime = time;
+  public void setTime(final long time) {
+    systemTime = time;
   }
 
   @Override
-  public void waitForNextTimer(ExecutionContext context) {
-    Queue<Timer> timers = scheduledTimersMap.get(context);
+  public void waitForNextTimer(final ExecutionContext context) {
+    final Queue<Timer> timers = scheduledTimersMap.get(context);
     if (!timers.isEmpty()) {
-      long nextExpiration = timers.peek().getExpiration();
+      final long nextExpiration = timers.peek().getExpiration();
       setTime(nextExpiration);
     }
   }

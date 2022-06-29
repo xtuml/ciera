@@ -8,7 +8,7 @@ public class DomainInitialization extends Task {
 
   private final Domain domain;
 
-  public DomainInitialization(Domain domain) {
+  public DomainInitialization(final Domain domain) {
     this.domain = domain;
   }
 

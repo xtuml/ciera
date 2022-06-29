@@ -12,18 +12,18 @@ public class ReadableDevice extends Device {
 
   private final Scanner sc;
 
-  public ReadableDevice(String name, InputStream in) {
+  public ReadableDevice(final String name, final InputStream in) {
     super(name);
-    this.sc = new Scanner(in);
+    sc = new Scanner(in);
   }
 
   @Override
   @SuppressWarnings("unchecked")
   public <T extends Object> T read(final Class<T> cls) {
     if (sc.hasNext()) {
-      String token = sc.next();
+      final String token = sc.next();
       try {
-        Method deserialize = cls.getMethod("fromString", String.class);
+        final Method deserialize = cls.getMethod("fromString", String.class);
         return (T) deserialize.invoke(null, token);
       } catch (NoSuchMethodException
           | SecurityException
@@ -53,12 +53,12 @@ public class ReadableDevice extends Device {
   }
 
   @Override
-  public void write(Object o) {
+  public void write(final Object o) {
     throw new UnsupportedOperationException("Cannot write to read-only device");
   }
 
   @Override
-  public void writeLine(Object o) {
+  public void writeLine(final Object o) {
     throw new UnsupportedOperationException("Cannot write to read-only device");
   }
 

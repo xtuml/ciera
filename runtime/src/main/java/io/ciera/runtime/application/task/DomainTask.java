@@ -4,5 +4,5 @@ import io.ciera.runtime.api.domain.Domain;
 
 public interface DomainTask {
 
-  public Domain getDomain();
+  Domain getDomain();
 }

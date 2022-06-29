@@ -5,17 +5,21 @@ import io.ciera.runtime.api.application.EventTarget;
 
 public class EventTargetException extends RuntimeException {
 
-  private static final long serialVersionUID = 1l;
+  private static final long serialVersionUID = 1L;
 
   private final EventTarget target;
   private final Event receivedEvent;
 
-  public EventTargetException(String message, EventTarget target, Event receivedEvent) {
+  public EventTargetException(
+      final String message, final EventTarget target, final Event receivedEvent) {
     this(message, null, target, receivedEvent);
   }
 
   public EventTargetException(
-      String message, Throwable cause, EventTarget target, Event receivedEvent) {
+      final String message,
+      final Throwable cause,
+      final EventTarget target,
+      final Event receivedEvent) {
     super(message, cause);
     this.target = target;
     this.receivedEvent = receivedEvent;

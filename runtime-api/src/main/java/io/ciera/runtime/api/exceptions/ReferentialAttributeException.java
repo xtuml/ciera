@@ -5,10 +5,12 @@ import io.ciera.runtime.api.domain.ObjectInstance;
 
 public class ReferentialAttributeException extends InstancePopulationException {
 
-  private static final long serialVersionUID = 1l;
+  private static final long serialVersionUID = 1L;
 
   public ReferentialAttributeException(
-      String message, InstancePopulation population, ObjectInstance... instances) {
+      final String message,
+      final InstancePopulation population,
+      final ObjectInstance... instances) {
     super(message, population, instances);
   }
 }

@@ -8,7 +8,7 @@ public class LocalVariable<T> implements Variable<T> {
 
   public LocalVariable() {}
 
-  public LocalVariable(T initialValue) {
+  public LocalVariable(final T initialValue) {
     value = initialValue;
   }
 
@@ -18,7 +18,7 @@ public class LocalVariable<T> implements Variable<T> {
   }
 
   @Override
-  public void set(T newValue) {
+  public void set(final T newValue) {
     value = newValue;
   }
 }

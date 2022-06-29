@@ -23,21 +23,21 @@ public abstract class AbstractObjectInstance implements ObjectInstance {
   private boolean active;
 
   public AbstractObjectInstance() {
-    this.instanceId = null;
-    this.domainName = null;
-    this.domain = null;
-    this.active = false;
+    instanceId = null;
+    domainName = null;
+    domain = null;
+    active = false;
   }
 
-  public AbstractObjectInstance(Domain domain) {
+  public AbstractObjectInstance(final Domain domain) {
     this(UniqueId.random(), domain);
   }
 
-  public AbstractObjectInstance(UniqueId instanceId, Domain domain) {
+  public AbstractObjectInstance(final UniqueId instanceId, final Domain domain) {
     this.instanceId = instanceId;
-    this.domainName = domain.getName();
+    domainName = domain.getName();
     this.domain = domain;
-    this.active = true;
+    active = true;
   }
 
   public Set<ObjectInstance> getSubtypeInstances() {
@@ -76,7 +76,7 @@ public abstract class AbstractObjectInstance implements ObjectInstance {
   }
 
   @Override
-  public Object getIdentifier(int index) {
+  public Object getIdentifier(final int index) {
     throw new IndexOutOfBoundsException(index);
   }
 
@@ -94,19 +94,17 @@ public abstract class AbstractObjectInstance implements ObjectInstance {
   }
 
   @Override
-  public ObjectInstance self() {
-    return this;
-  }
-
-  @Override
   public String toString() {
     return String.format("%s[%.8s]", getClass().getSimpleName(), instanceId);
   }
 
   @Override
-  public void consumeEvent(Event event) {
+  public void consumeEvent(final Event event) {
     if (isDynamic()) {
-      getApplication().getLogger().trace("Passing event through non-dynamic supertype: " + this);
+      getContext()
+          .getApplication()
+          .getLogger()
+          .trace("Passing event through non-dynamic supertype: " + this);
       getSubtypeInstances().stream()
           .filter(AbstractObjectInstance.class::isInstance)
           .map(AbstractObjectInstance.class::cast)

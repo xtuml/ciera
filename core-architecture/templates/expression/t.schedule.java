@@ -1,4 +1,4 @@
-schedule\
+getDomain().schedule\
 .if (self.is_recurring)
 Recurring\
 .end if

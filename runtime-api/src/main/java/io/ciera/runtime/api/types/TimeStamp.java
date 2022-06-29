@@ -41,22 +41,22 @@ public class TimeStamp implements Serializable, Comparable<TimeStamp> {
   private final Calendar cal;
 
   public TimeStamp() {
-    this(0l);
+    this(0L);
   }
 
-  public TimeStamp(long nanosecondsValue) {
+  public TimeStamp(final long nanosecondsValue) {
     this(nanosecondsValue, Instant.EPOCH);
   }
 
-  public TimeStamp(long nanosecondsValue, Instant epoch) {
+  public TimeStamp(final long nanosecondsValue, final Instant epoch) {
     this.nanosecondsValue = nanosecondsValue;
-    this.cal = Calendar.getInstance();
-    this.cal.setTimeZone(TimeZone.getTimeZone("UTC"));
-    this.cal.setTimeInMillis(
-        (nanosecondsValue / 1000000l) - epoch.until(Instant.EPOCH, ChronoUnit.MILLIS));
+    cal = Calendar.getInstance();
+    cal.setTimeZone(TimeZone.getTimeZone("UTC"));
+    cal.setTimeInMillis(
+        nanosecondsValue / 1000000L - epoch.until(Instant.EPOCH, ChronoUnit.MILLIS));
   }
 
-  public TimeStamp(TimeStamp o) {
+  public TimeStamp(final TimeStamp o) {
     this(o.getValue());
   }
 
@@ -124,7 +124,7 @@ public class TimeStamp implements Serializable, Comparable<TimeStamp> {
    * @param clock The clock to reference.
    * @return A constructed TimeStamp instance.
    */
-  public static TimeStamp now(SystemClock clock) {
+  public static TimeStamp now(final SystemClock clock) {
     return new TimeStamp(clock.getTime());
   }
 
@@ -138,16 +138,16 @@ public class TimeStamp implements Serializable, Comparable<TimeStamp> {
    * @param s The input string
    * @return an instance of TimeStamp representative of the input string.
    */
-  public static TimeStamp fromString(String s) {
+  public static TimeStamp fromString(final String s) {
     try {
       return new TimeStamp(Long.parseLong(s));
-    } catch (NumberFormatException e) {
+    } catch (final NumberFormatException e) {
       RuntimeException err = null;
-      for (DateTimeFormatter format : PARSE_FORMATS) {
+      for (final DateTimeFormatter format : PARSE_FORMATS) {
         try {
-          TemporalAccessor t = format.parse(s);
+          final TemporalAccessor t = format.parse(s);
           return new TimeStamp(
-              (t.getLong(ChronoField.INSTANT_SECONDS) * 1000000000l)
+              t.getLong(ChronoField.INSTANT_SECONDS) * 1000000000L
                   + t.getLong(ChronoField.NANO_OF_SECOND));
         } catch (NullPointerException | DateTimeParseException e2) {
           err = new DeserializationException("Could not parse timestamp", e2);
@@ -164,20 +164,20 @@ public class TimeStamp implements Serializable, Comparable<TimeStamp> {
   }
 
   @Override
-  public int compareTo(TimeStamp o) {
+  public int compareTo(final TimeStamp o) {
     return Long.compare(nanosecondsValue, o.nanosecondsValue);
   }
 
   // Arithmetic operations
-  public TimeStamp plus(Duration d) {
+  public TimeStamp plus(final Duration d) {
     return new TimeStamp(nanosecondsValue + d.getValue());
   }
 
-  public TimeStamp minus(Duration d) {
+  public TimeStamp minus(final Duration d) {
     return new TimeStamp(nanosecondsValue - d.getValue());
   }
 
-  public Duration minus(TimeStamp t) {
+  public Duration minus(final TimeStamp t) {
     return new Duration(nanosecondsValue - t.getValue());
   }
 }

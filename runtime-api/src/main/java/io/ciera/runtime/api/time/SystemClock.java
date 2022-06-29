@@ -7,23 +7,23 @@ import io.ciera.runtime.api.application.ExecutionContext;
 
 public interface SystemClock {
 
-  public long getTime();
+  long getTime();
 
-  public void setTime(long time);
+  void setTime(long time);
 
-  public Instant getEpoch();
+  Instant getEpoch();
 
-  public void setEpoch(Instant epoch);
+  void setEpoch(Instant epoch);
 
-  public void checkTimers(ExecutionContext context);
+  void checkTimers(ExecutionContext context);
 
-  public boolean hasScheduledTimers(ExecutionContext context);
+  boolean hasScheduledTimers(ExecutionContext context);
 
-  public Stream<Timer> getScheduledTimers(ExecutionContext context);
+  Stream<Timer> getScheduledTimers(ExecutionContext context);
 
-  public boolean registerTimer(Timer timer);
+  boolean registerTimer(Timer timer);
 
-  public boolean unregisterTimer(Timer timer);
+  boolean unregisterTimer(Timer timer);
 
-  public void waitForNextTimer(ExecutionContext context) throws InterruptedException;
+  void waitForNextTimer(ExecutionContext context) throws InterruptedException;
 }

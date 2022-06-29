@@ -6,7 +6,7 @@ public class GenericTask extends Task {
 
   private final transient Runnable command;
 
-  public GenericTask(Runnable command) {
+  public GenericTask(final Runnable command) {
     this.command = command;
   }
 

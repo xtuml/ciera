@@ -6,11 +6,11 @@ import java.util.stream.Stream;
 
 public final class ListUtil {
 
-  public static <E> List<E> concat(List<E> a, List<E> b) {
+  public static <E> List<E> concat(final List<E> a, final List<E> b) {
     return Stream.concat(a.stream(), b.stream()).collect(Collectors.toList());
   }
 
-  public static <E> List<E> concat(List<E> a, E b) {
+  public static <E> List<E> concat(final List<E> a, final E b) {
     return Stream.concat(a.stream(), Stream.of(b)).collect(Collectors.toList());
   }
 }

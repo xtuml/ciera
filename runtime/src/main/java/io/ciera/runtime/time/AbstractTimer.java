@@ -21,28 +21,29 @@ public abstract class AbstractTimer implements Timer {
   private boolean scheduled;
   private boolean expired;
 
-  public AbstractTimer(ExecutionContext context) {
+  public AbstractTimer(final ExecutionContext context) {
     this(UniqueId.random(), context, Duration.ZERO);
   }
 
-  public AbstractTimer(ExecutionContext context, Duration period) {
+  public AbstractTimer(final ExecutionContext context, final Duration period) {
     this(UniqueId.random(), context, period);
   }
 
-  public AbstractTimer(UniqueId timerHandle, ExecutionContext context, Duration period) {
+  public AbstractTimer(
+      final UniqueId timerHandle, final ExecutionContext context, final Duration period) {
     this.timerHandle = timerHandle;
     this.context = context;
-    this.contextId = context.getName();
+    contextId = context.getName();
     this.period = period.getValue();
-    this.expiration = 0;
-    this.scheduled = false;
-    this.expired = false;
+    expiration = 0;
+    scheduled = false;
+    expired = false;
   }
 
   protected abstract Task getAction();
 
   @Override
-  public boolean schedule(long delay) {
+  public boolean schedule(final long delay) {
     getLogger()
         .trace(
             "TMR: Scheduling timer: %s at %s",
@@ -64,10 +65,10 @@ public abstract class AbstractTimer implements Timer {
   public void fire() {
     getLogger().trace("TMR: Firing timer: %s", this);
     expired = true;
-    Task action = getAction();
+    final Task action = getAction();
     if (action != null) {
       getContext().execute(action);
-      if (period > 0l) {
+      if (period > 0L) {
         long delay = period;
         if (System.getProperty("io.ciera.runtime.skipMissedRecurringTimers") != null) {
           while (expiration + delay < getContext().getClock().getTime()) {
@@ -151,12 +152,12 @@ public abstract class AbstractTimer implements Timer {
   }
 
   @Override
-  public void setExpiration(long expiration) {
+  public void setExpiration(final long expiration) {
     this.expiration = expiration;
   }
 
   @Override
-  public int compareTo(Timer o) {
+  public int compareTo(final Timer o) {
     return Long.compare(expiration, o.getExpiration());
   }
 

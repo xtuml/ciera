@@ -7,7 +7,7 @@ public class GeneratedEventToSelf extends GeneratedEvent {
 
   private static final long serialVersionUID = 1L;
 
-  public GeneratedEventToSelf(Event event, EventTarget target) {
+  public GeneratedEventToSelf(final Event event, final EventTarget target) {
     super(event, target, null);
   }
 

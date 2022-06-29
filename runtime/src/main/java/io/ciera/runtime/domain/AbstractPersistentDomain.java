@@ -18,39 +18,39 @@ import io.ciera.runtime.time.EventTimer;
 
 public abstract class AbstractPersistentDomain extends AbstractDomain implements PersistentDomain {
 
-  public AbstractPersistentDomain(String name) {
+  public AbstractPersistentDomain(final String name) {
     super(name);
   }
 
   public AbstractPersistentDomain(
-      String name, Supplier<Set<ObjectInstance>> objectPopulationSupplier) {
+      final String name, final Supplier<Set<ObjectInstance>> objectPopulationSupplier) {
     super(name, objectPopulationSupplier);
   }
 
   @Override
-  public void persist(ObjectOutputStream out) throws IOException {
+  public void persist(final ObjectOutputStream out) throws IOException {
     // get active timers
-    Timer[] timers =
+    final Timer[] timers =
         getContext()
             .getClock()
             .getScheduledTimers(getContext())
             .filter(EventTimer.class::isInstance)
-            .filter(t -> this.equals(t.getDomain()))
+            .filter(t -> equals(t.getDomain()))
             .toArray(Timer[]::new);
 
     // get task queue
-    DomainTask[] tasks =
+    final DomainTask[] tasks =
         Stream.of(getContext())
             .filter(ThreadExecutionContext.class::isInstance)
             .map(ThreadExecutionContext.class::cast)
             .flatMap(ThreadExecutionContext::getTasks)
             .filter(DomainTask.class::isInstance)
             .map(DomainTask.class::cast)
-            .filter(t -> this.equals(t.getDomain()))
+            .filter(t -> equals(t.getDomain()))
             .toArray(DomainTask[]::new);
 
     // get object populations
-    ObjectInstance[] instances =
+    final ObjectInstance[] instances =
         getAllInstances()
             .sorted(Comparator.comparing(inst -> inst.getClass().getName()))
             .toArray(ObjectInstance[]::new);
@@ -68,11 +68,11 @@ public abstract class AbstractPersistentDomain extends AbstractDomain implements
   }
 
   @Override
-  public void load(ObjectInputStream in) throws IOException, ClassNotFoundException {
+  public void load(final ObjectInputStream in) throws IOException, ClassNotFoundException {
     // read all objects
-    Timer[] timers = (Timer[]) in.readObject();
-    DomainTask[] tasks = (DomainTask[]) in.readObject();
-    ObjectInstance[] instances = (ObjectInstance[]) in.readObject();
+    final Timer[] timers = (Timer[]) in.readObject();
+    final DomainTask[] tasks = (DomainTask[]) in.readObject();
+    final ObjectInstance[] instances = (ObjectInstance[]) in.readObject();
 
     // register timers
     Stream.of(timers).forEach(getContext().getClock()::registerTimer);

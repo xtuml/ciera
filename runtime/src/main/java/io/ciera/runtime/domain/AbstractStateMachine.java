@@ -15,16 +15,16 @@ public abstract class AbstractStateMachine implements StateMachine {
   private final String name;
   private final Domain domain;
 
-  public AbstractStateMachine(String name, Domain domain) {
+  public AbstractStateMachine(final String name, final Domain domain) {
     this.name = name;
     this.domain = domain;
   }
 
-  protected void executeTransition(Event event, Consumer<Enum<?>> updateCurrentState) {
-    TransitionRule transition = getTransition(getCurrentState(), event);
+  protected void executeTransition(final Event event, final Consumer<Enum<?>> updateCurrentState) {
+    final TransitionRule transition = getTransition(getCurrentState(), event);
     traceTxn(
         "TXN START:", name, getCurrentState().name(), event.toString(), "...", Logger.ANSI_RESET);
-    Enum<?> newState = transition.execute();
+    final Enum<?> newState = transition.execute();
     if (newState != null) {
       traceTxn(
           "TXN END:",
@@ -55,5 +55,24 @@ public abstract class AbstractStateMachine implements StateMachine {
   @Override
   public String toString() {
     return name;
+  }
+
+  private void traceTxn(
+      final String txnType,
+      final String targetName,
+      final String currentState,
+      final String eventName,
+      final String nextState,
+      final String nextStateColor) {
+    getContext()
+        .getApplication()
+        .getLogger()
+        .trace(
+            "%-15s %-35s: %-50s %-50s => %-40s",
+            txnType,
+            targetName,
+            Logger.ANSI_CYAN + currentState + Logger.ANSI_RESET,
+            "[ " + eventName + " ]",
+            nextStateColor + nextState + Logger.ANSI_RESET);
   }
 }

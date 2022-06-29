@@ -31,13 +31,13 @@ public class BaseApplication implements Application {
 
   private boolean running;
 
-  public BaseApplication(String name) {
+  public BaseApplication(final String name) {
     this.name = name;
-    this.contexts = new HashMap<>();
-    this.domains = new HashMap<>();
-    this.clock = new WallClock();
-    this.logger = new DefaultLogger(name + "Logger", this);
-    this.exceptionHandler = new DefaultExceptionHandler();
+    contexts = new HashMap<>();
+    domains = new HashMap<>();
+    clock = new WallClock();
+    logger = new DefaultLogger(name + "Logger", this);
+    exceptionHandler = new DefaultExceptionHandler();
   }
 
   @Override
@@ -51,7 +51,7 @@ public class BaseApplication implements Application {
   }
 
   @Override
-  public void setClock(SystemClock clock) {
+  public void setClock(final SystemClock clock) {
     this.clock = clock;
   }
 
@@ -63,7 +63,7 @@ public class BaseApplication implements Application {
 
   @Override
   public void initialize() {
-    for (Domain domain : getDomains()) {
+    for (final Domain domain : getDomains()) {
       domain.getContext().execute(new DomainInitialization(domain));
     }
     defaultContext().execute(new GenericInitialization(() -> CommandLine.getInstance().validate()));
@@ -78,12 +78,12 @@ public class BaseApplication implements Application {
     } else if (contexts.size() > 1) {
       // run each context in its own thread and wait for them all to complete
       contexts.values().stream()
-          .map(context -> context.start())
+          .map(ThreadExecutionContext::start)
           .forEach(
               thread -> {
                 try {
                   thread.join();
-                } catch (InterruptedException e) {
+                } catch (final InterruptedException e) {
                   logger.error("Main thread interrupted while waiting", e);
                   System.exit(1);
                 }
@@ -105,7 +105,7 @@ public class BaseApplication implements Application {
 
   @SuppressWarnings("unchecked")
   @Override
-  public ThreadExecutionContext getContext(String name) {
+  public ThreadExecutionContext getContext(final String name) {
     return contexts.get(name);
   }
 
@@ -115,8 +115,8 @@ public class BaseApplication implements Application {
   }
 
   @Override
-  public void addContext(ExecutionContext context) {
-    this.contexts.put(context.getName(), (ThreadExecutionContext) context);
+  public void addContext(final ExecutionContext context) {
+    contexts.put(context.getName(), (ThreadExecutionContext) context);
   }
 
   @Override
@@ -125,18 +125,18 @@ public class BaseApplication implements Application {
   }
 
   @Override
-  public Domain getDomain(String domainName) {
+  public Domain getDomain(final String domainName) {
     return Optional.ofNullable(domains.get(domainName)).orElseThrow();
   }
 
   @Override
-  public void addDomain(Domain domain) {
+  public void addDomain(final Domain domain) {
     domains.put(domain.getName(), domain);
   }
 
   @Override
-  public Stream<Domain> findDomains(String... domainNames) {
-    List<String> domains = Arrays.asList(domainNames);
+  public Stream<Domain> findDomains(final String... domainNames) {
+    final List<String> domains = Arrays.asList(domainNames);
     return ServiceLoader.load(Domain.class).stream()
         .map(ServiceLoader.Provider::get)
         .filter(p -> domains.stream().anyMatch(d -> p.getClass().getSimpleName().endsWith(d)));
@@ -148,7 +148,7 @@ public class BaseApplication implements Application {
   }
 
   @Override
-  public void setLogger(Logger logger) {
+  public void setLogger(final Logger logger) {
     this.logger = logger;
   }
 
@@ -158,7 +158,7 @@ public class BaseApplication implements Application {
   }
 
   @Override
-  public void setExceptionHandler(ExceptionHandler exceptionHandler) {
+  public void setExceptionHandler(final ExceptionHandler exceptionHandler) {
     this.exceptionHandler = exceptionHandler;
   }
 

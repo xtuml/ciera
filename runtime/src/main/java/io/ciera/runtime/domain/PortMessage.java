@@ -27,30 +27,33 @@ public class PortMessage implements Message {
     this(new UniqueId(), NULL_SIGNAL, null, Map.<String, Object>of());
   }
 
-  public PortMessage(int id) {
+  public PortMessage(final int id) {
     this(id, Map.<String, Object>of());
   }
 
-  public PortMessage(int id, Map<String, Object> parameterData) {
+  public PortMessage(final int id, final Map<String, Object> parameterData) {
     this(UniqueId.random(), id, null, new HashMap<>(parameterData));
   }
 
   public PortMessage(
-      UniqueId messageHandle, int id, String name, Map<String, Object> parameterData) {
+      final UniqueId messageHandle,
+      final int id,
+      final String name,
+      final Map<String, Object> parameterData) {
     this.messageHandle = messageHandle;
-    this.messageId = id;
+    messageId = id;
     this.name = name;
     this.parameterData = parameterData;
   }
 
   /** {@inheritDoc} */
   @Override
-  public Object get(String key) {
+  public Object get(final String key) {
     return Optional.of(parameterData.get(key)).orElseThrow();
   }
 
   @Override
-  public void put(String key, Object value) {
+  public void put(final String key, final Object value) {
     parameterData.put(key, value);
   }
 
@@ -89,12 +92,12 @@ public class PortMessage implements Message {
   }
 
   @Override
-  public int compareTo(Message m) {
+  public int compareTo(final Message m) {
     return messageHandle.compareTo(m.getMessageHandle());
   }
 
   @Override
-  public boolean equals(Object o) {
+  public boolean equals(final Object o) {
     return o instanceof Message && messageHandle.equals(((Message) o).getMessageHandle());
   }
 
@@ -103,7 +106,7 @@ public class PortMessage implements Message {
     return messageHandle.hashCode();
   }
 
-  public static Message fromString(Object s) {
+  public static Message fromString(final Object s) {
     throw new UnsupportedOperationException("Base 'Message' is not JSON serializable");
   }
 

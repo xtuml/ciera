@@ -5,17 +5,21 @@ import io.ciera.runtime.api.domain.Message;
 
 public class MessageTargetException extends RuntimeException {
 
-  private static final long serialVersionUID = 1l;
+  private static final long serialVersionUID = 1L;
 
   private final MessageTarget target;
   private final Message receivedMessage;
 
-  public MessageTargetException(String message, MessageTarget target, Message receivedMessage) {
+  public MessageTargetException(
+      final String message, final MessageTarget target, final Message receivedMessage) {
     this(message, null, target, receivedMessage);
   }
 
   public MessageTargetException(
-      String message, Throwable cause, MessageTarget target, Message receivedMessage) {
+      final String message,
+      final Throwable cause,
+      final MessageTarget target,
+      final Message receivedMessage) {
     super(message, cause);
     this.target = target;
     this.receivedMessage = receivedMessage;

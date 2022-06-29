@@ -9,51 +9,51 @@ import io.ciera.runtime.api.types.TimeStamp;
 
 public interface Timer extends Comparable<Timer>, Serializable {
 
-  public static final Timer DEFAULT = new DefaultTimer();
+  Timer DEFAULT = new DefaultTimer();
 
-  public boolean schedule(long delay);
+  boolean schedule(long delay);
 
-  public void fire();
+  void fire();
 
-  public long getExpiration();
+  long getExpiration();
 
-  public void setExpiration(long expiration);
+  void setExpiration(long expiration);
 
-  public boolean cancel();
+  boolean cancel();
 
   // a timer is "scheduled" from the point at which it is first scheduled
   // until it either expires and is not rescheduled (non-recurring) or is
   // cancelled
-  public boolean isScheduled();
+  boolean isScheduled();
 
   // a timer is expired from the point where it fires the first time until it
   // is cancelled. after the first expiration, a recurring timer is both expired
   // and cancelled.
-  public boolean isExpired();
+  boolean isExpired();
 
-  public Duration remainingTime();
+  Duration remainingTime();
 
-  public TimeStamp getScheduledExpirationTime();
+  TimeStamp getScheduledExpirationTime();
 
   // return the last expiration time (scheduled expiration, not real time at
   // expiration)
-  public TimeStamp getLastExpirationTime();
+  TimeStamp getLastExpirationTime();
 
-  public Domain getDomain();
+  Domain getDomain();
 
-  public ExecutionContext getContext();
+  ExecutionContext getContext();
 
   static class DefaultTimer implements Timer {
 
     private static final long serialVersionUID = 1L;
 
     @Override
-    public int compareTo(Timer o) {
+    public int compareTo(final Timer o) {
       return 0;
     }
 
     @Override
-    public boolean schedule(long delay) {
+    public boolean schedule(final long delay) {
       throw new UnsupportedOperationException();
     }
 
@@ -68,7 +68,7 @@ public interface Timer extends Comparable<Timer>, Serializable {
     }
 
     @Override
-    public void setExpiration(long expiration) {
+    public void setExpiration(final long expiration) {
       throw new UnsupportedOperationException();
     }
 

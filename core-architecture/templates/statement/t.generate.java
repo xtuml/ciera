@@ -1,4 +1,4 @@
-generateEvent\
+getDomain().generateEvent\
 .if (self.to_self)
 ToSelf\
 .end if

@@ -4,7 +4,7 @@ public class GenericInitialization extends GenericTask {
 
   private static final long serialVersionUID = 1L;
 
-  public GenericInitialization(Runnable command) {
+  public GenericInitialization(final Runnable command) {
     super(command);
   }
 

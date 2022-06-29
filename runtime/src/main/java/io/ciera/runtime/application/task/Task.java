@@ -14,7 +14,7 @@ public abstract class Task implements Runnable, Comparable<Task>, Serializable {
 
   private static volatile int sequenceNumber = 0;
 
-  private long taskId;
+  private final long taskId;
   private Task parentTask;
 
   public Task() {
@@ -26,7 +26,7 @@ public abstract class Task implements Runnable, Comparable<Task>, Serializable {
     return parentTask;
   }
 
-  public void setParent(Task task) {
+  public void setParent(final Task task) {
     parentTask = task;
   }
 
@@ -35,7 +35,7 @@ public abstract class Task implements Runnable, Comparable<Task>, Serializable {
   }
 
   @Override
-  public int compareTo(Task other) {
+  public int compareTo(final Task other) {
     return Arrays.compare(
         new long[] {0xFF - getPriority(), taskId},
         new long[] {0xFF - other.getPriority(), other.taskId});

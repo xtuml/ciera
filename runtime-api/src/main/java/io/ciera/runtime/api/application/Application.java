@@ -9,47 +9,47 @@ import io.ciera.runtime.api.time.SystemClock;
 
 public interface Application {
 
-  public String getName();
+  String getName();
 
-  public SystemClock getClock();
+  SystemClock getClock();
 
-  public void setClock(SystemClock clock);
+  void setClock(SystemClock clock);
 
-  public void setup();
+  void setup();
 
-  public void initialize();
+  void initialize();
 
-  public void start();
+  void start();
 
-  public void stop();
+  void stop();
 
-  public Collection<? extends ExecutionContext> getContexts();
+  Collection<? extends ExecutionContext> getContexts();
 
-  public <T extends ExecutionContext> T getContext(String name);
+  <T extends ExecutionContext> T getContext(String name);
 
-  public ExecutionContext defaultContext();
+  ExecutionContext defaultContext();
 
-  public void addContext(ExecutionContext context);
+  void addContext(ExecutionContext context);
 
-  public Collection<Domain> getDomains();
+  Collection<Domain> getDomains();
 
-  public Domain getDomain(String domainName);
+  Domain getDomain(String domainName);
 
-  public void addDomain(Domain domain);
+  void addDomain(Domain domain);
 
-  public Stream<Domain> findDomains(String... domainNames);
+  Stream<Domain> findDomains(String... domainNames);
 
-  public Logger getLogger();
+  Logger getLogger();
 
-  public void setLogger(Logger logger);
+  void setLogger(Logger logger);
 
-  public ExceptionHandler getExceptionHandler();
+  ExceptionHandler getExceptionHandler();
 
-  public void setExceptionHandler(ExceptionHandler exceptionHandler);
+  void setExceptionHandler(ExceptionHandler exceptionHandler);
 
-  public boolean isRunning();
+  boolean isRunning();
 
-  public static Application getInstance(String name) {
+  static Application getInstance(final String name) {
     return ServiceLoader.load(Application.class).stream()
         .map(ServiceLoader.Provider::get)
         .filter(app -> app.getName().equals(name))
@@ -57,7 +57,7 @@ public interface Application {
         .orElseThrow();
   }
 
-  public static Application getInstance() {
+  static Application getInstance() {
     return ServiceLoader.load(Application.class).findFirst().orElseThrow();
   }
 }

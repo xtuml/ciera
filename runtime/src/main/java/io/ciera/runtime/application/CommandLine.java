@@ -24,19 +24,19 @@ public class CommandLine {
 
   private static final Pattern OPTION_PATTERN = Pattern.compile("-[A-Za-z0-9]+");
 
-  public static enum Conditionality {
+  public enum Conditionality {
     Optional,
     Required
   }
 
-  public static enum Multiplicity {
+  public enum Multiplicity {
     Single,
     Multiple
   }
 
   private static class Flag {
 
-    private Flag(String option, String usageText) {
+    private Flag(final String option, final String usageText) {
       this.option = option;
       this.usageText = usageText;
     }
@@ -56,12 +56,12 @@ public class CommandLine {
   private static class Value extends Flag {
 
     private Value(
-        String option,
-        String usageText,
-        Conditionality optionType,
-        String valueName,
-        Conditionality valueType,
-        Multiplicity multiplicity) {
+        final String option,
+        final String usageText,
+        final Conditionality optionType,
+        final String valueName,
+        final Conditionality valueType,
+        final Multiplicity multiplicity) {
       super(option, usageText);
       this.optionType = optionType;
       this.valueName = valueName;
@@ -74,6 +74,7 @@ public class CommandLine {
     Conditionality valueType;
     Multiplicity multiplicity;
 
+    @Override
     String getUsage1() {
       final boolean optOptional = optionType == Conditionality.Optional;
       final boolean valOptional = valueType == Conditionality.Optional;
@@ -89,6 +90,7 @@ public class CommandLine {
           optOptional ? "]" : "");
     }
 
+    @Override
     String getUsage2() {
       return String.format("%s <%s>\t: %s", option, valueName, usageText);
     }
@@ -98,7 +100,7 @@ public class CommandLine {
 
     private static final long serialVersionUID = 1L;
 
-    public CommandLineException(String message) {
+    public CommandLineException(final String message) {
       super(message);
     }
 
@@ -112,9 +114,9 @@ public class CommandLine {
 
   private final Map<String, Flag> options;
 
-  private CommandLine(String args[]) {
+  private CommandLine(final String args[]) {
     this.args = args;
-    this.parsedArgs =
+    parsedArgs =
         Stream.of(args)
             .collect(
                 new Collector<String, Map<String, List<String>>, Map<String, List<String>>>() {
@@ -124,7 +126,7 @@ public class CommandLine {
 
                   @Override
                   public Supplier<Map<String, List<String>>> supplier() {
-                    return () -> new HashMap<>();
+                    return HashMap::new;
                   }
 
                   @Override
@@ -151,7 +153,7 @@ public class CommandLine {
                   @Override
                   public BinaryOperator<Map<String, List<String>>> combiner() {
                     return (parsedArgs1, parsedArgs2) -> {
-                      for (String key : parsedArgs2.keySet()) {
+                      for (final String key : parsedArgs2.keySet()) {
                         if (!parsedArgs1.containsKey(key)) {
                           parsedArgs1.put(key, new ArrayList<>());
                         }
@@ -163,7 +165,7 @@ public class CommandLine {
 
                   @Override
                   public Function<Map<String, List<String>>, Map<String, List<String>>> finisher() {
-                    return parsedArgs -> Collections.unmodifiableMap(parsedArgs);
+                    return Collections::unmodifiableMap;
                   }
 
                   @Override
@@ -171,10 +173,10 @@ public class CommandLine {
                     return Set.of();
                   }
                 });
-    this.options = new HashMap<>();
+    options = new HashMap<>();
   }
 
-  public void registerFlag(String option, String usageText) {
+  public void registerFlag(final String option, final String usageText) {
     if (OPTION_PATTERN.matcher(option).matches()) {
       if (!options.containsKey(option)) {
         options.put(option, new Flag(option, usageText));
@@ -188,12 +190,12 @@ public class CommandLine {
   }
 
   public void registerValue(
-      String option,
-      String usageText,
-      Conditionality optionType,
-      String valueName,
-      Conditionality valueType,
-      Multiplicity multiplicity) {
+      final String option,
+      final String usageText,
+      final Conditionality optionType,
+      final String valueName,
+      final Conditionality valueType,
+      final Multiplicity multiplicity) {
     if (OPTION_PATTERN.matcher(option).matches()) {
       if (!options.containsKey(option)) {
         options.put(
@@ -207,7 +209,7 @@ public class CommandLine {
     }
   }
 
-  public boolean optionPresent(String option) {
+  public boolean optionPresent(final String option) {
     if (options.containsKey(option)) {
       return parsedArgs.containsKey(option);
     } else {
@@ -215,13 +217,13 @@ public class CommandLine {
     }
   }
 
-  public String getOptionValue(String option) {
+  public String getOptionValue(final String option) {
     return getOptionValue(option, "");
   }
 
-  public String getOptionValue(String option, String defaultValue) {
+  public String getOptionValue(final String option, final String defaultValue) {
     if (options.containsKey(option)) {
-      Flag opt = options.get(option);
+      final Flag opt = options.get(option);
       if (opt instanceof Value && ((Value) opt).multiplicity == Multiplicity.Single) {
         return parsedArgs.get(option) != null
             ? parsedArgs.get(option).stream().findAny().orElseThrow()
@@ -234,9 +236,9 @@ public class CommandLine {
     }
   }
 
-  public List<String> getOptionValues(String option) {
+  public List<String> getOptionValues(final String option) {
     if (options.containsKey(option)) {
-      Flag opt = options.get(option);
+      final Flag opt = options.get(option);
       if (opt instanceof Value) {
         return Collections.unmodifiableList(parsedArgs.get(option));
       } else {
@@ -294,7 +296,7 @@ public class CommandLine {
     return Arrays.copyOf(args, args.length);
   }
 
-  public static void initialize(String[] args) {
+  public static void initialize(final String[] args) {
     instance = new CommandLine(args);
   }
 

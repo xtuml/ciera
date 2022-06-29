@@ -20,22 +20,22 @@ public class Duration implements Serializable, Comparable<Duration> {
   private final java.time.Duration value;
 
   public Duration() {
-    this(0l);
+    this(0L);
   }
 
-  public Duration(long value) {
+  public Duration(final long value) {
     this(java.time.Duration.ofNanos(value));
   }
 
-  public Duration(long value, TemporalUnit unit) {
+  public Duration(final long value, final TemporalUnit unit) {
     this(java.time.Duration.of(value, unit));
   }
 
-  public Duration(Duration o) {
+  public Duration(final Duration o) {
     this(o.value);
   }
 
-  public Duration(java.time.Duration value) {
+  public Duration(final java.time.Duration value) {
     this.value = value;
   }
 
@@ -60,7 +60,7 @@ public class Duration implements Serializable, Comparable<Duration> {
    * @param s The input string
    * @return an instance of Duration representative of the input string.
    */
-  public static Duration fromString(String s) {
+  public static Duration fromString(final String s) {
     // Parse ISO 8601 compliant duration string
     try {
       return new Duration(java.time.Duration.parse(s));
@@ -70,28 +70,28 @@ public class Duration implements Serializable, Comparable<Duration> {
   }
 
   @Override
-  public int compareTo(Duration o) {
+  public int compareTo(final Duration o) {
     return value.compareTo(o.value);
   }
 
   // Arithmetic operations
-  public TimeStamp plus(TimeStamp t) {
+  public TimeStamp plus(final TimeStamp t) {
     return new TimeStamp(value.toNanos() + t.getValue());
   }
 
-  public Duration plus(Duration d) {
+  public Duration plus(final Duration d) {
     return new Duration(value.toNanos() + d.getValue());
   }
 
-  public Duration minus(Duration d) {
+  public Duration minus(final Duration d) {
     return new Duration(value.toNanos() - d.getValue());
   }
 
-  public Duration times(Number n) {
+  public Duration times(final Number n) {
     return new Duration(value.toNanos() * n.longValue());
   }
 
-  public Duration dividedBy(Number n) {
+  public Duration dividedBy(final Number n) {
     return new Duration(value.toNanos() / n.longValue());
   }
 

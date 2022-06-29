@@ -8,18 +8,18 @@ public class ReadWriteDevice extends ReadableDevice {
 
   private final PrintStream out;
 
-  public ReadWriteDevice(String name, InputStream in, OutputStream out) {
+  public ReadWriteDevice(final String name, final InputStream in, final OutputStream out) {
     super(name, in);
     this.out = new PrintStream(out);
   }
 
   @Override
-  public void write(Object o) {
+  public void write(final Object o) {
     out.print(o);
   }
 
   @Override
-  public void writeLine(Object o) {
+  public void writeLine(final Object o) {
     write(o);
     out.println();
   }

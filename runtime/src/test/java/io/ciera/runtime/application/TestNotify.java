@@ -21,7 +21,7 @@ public class TestNotify {
 
     private static final long serialVersionUID = 1L;
 
-    public TestEvent(Object... data) {
+    public TestEvent(final Object... data) {
       super(0);
     }
   }
@@ -35,7 +35,7 @@ public class TestNotify {
       app.setup();
 
       // run the app in a new thread to protect timeouts
-      Thread t = new Thread(() -> app.start());
+      final Thread t = new Thread(() -> app.start());
       t.start();
 
       // delay
@@ -45,7 +45,7 @@ public class TestNotify {
       app.defaultContext().halt();
 
       t.join();
-    } catch (InterruptedException e) {
+    } catch (final InterruptedException e) {
     }
   }
 
@@ -61,21 +61,21 @@ public class TestNotify {
             public void initialize() {}
 
             @Override
-            public Port getPort(String portName) {
+            public Port getPort(final String portName) {
               return null;
             }
           });
       app.setup();
 
       // run the app in a new thread to protect timeouts
-      Thread t = new Thread(() -> app.start());
+      final Thread t = new Thread(() -> app.start());
       t.start();
 
       // delay
       Thread.sleep(100);
 
       // Schedule a timer after it's started. It should wake up and handle the timer.
-      EventTarget target =
+      final EventTarget target =
           new EventTarget() {
             @Override
             public ExecutionContext getContext() {
@@ -83,7 +83,7 @@ public class TestNotify {
             }
 
             @Override
-            public void consumeEvent(Event event) {
+            public void consumeEvent(final Event event) {
               app.defaultContext().halt();
             }
 
@@ -102,10 +102,10 @@ public class TestNotify {
               return app.getDomains().stream().findAny().orElseThrow();
             }
           };
-      app.defaultContext().scheduleEvent((data) -> new TestEvent(data), target, Duration.ZERO);
+      app.defaultContext().scheduleEvent(TestEvent::new, target, Duration.ZERO);
 
       t.join();
-    } catch (InterruptedException e) {
+    } catch (final InterruptedException e) {
     }
   }
 }

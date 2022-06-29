@@ -16,23 +16,23 @@ public class UniqueId implements Comparable<UniqueId>, Serializable {
   /** Default value */
   public static final UniqueId ZERO = new UniqueId();
 
-  private static long lastId = 0l;
+  private static long lastId = 0L;
 
-  private UUID id;
+  private final UUID id;
 
   public UniqueId() {
     id = new UUID(0, 0);
   }
 
-  public UniqueId(UUID id) {
+  public UniqueId(final UUID id) {
     this.id = id;
   }
 
-  public UniqueId(long id) {
+  public UniqueId(final long id) {
     this.id = new UUID(0, id);
   }
 
-  public UniqueId(UniqueId id) {
+  public UniqueId(final UniqueId id) {
     this.id = id.id;
   }
 
@@ -45,12 +45,12 @@ public class UniqueId implements Comparable<UniqueId>, Serializable {
   }
 
   @Override
-  public int compareTo(UniqueId o) {
+  public int compareTo(final UniqueId o) {
     return id.compareTo(o.id);
   }
 
   @Override
-  public boolean equals(Object o) {
+  public boolean equals(final Object o) {
     return o instanceof UniqueId && id.equals(((UniqueId) o).id);
   }
 
@@ -68,10 +68,10 @@ public class UniqueId implements Comparable<UniqueId>, Serializable {
     }
   }
 
-  public static UniqueId fromString(String s) {
+  public static UniqueId fromString(final String s) {
     try {
       return new UniqueId(UUID.fromString(s));
-    } catch (IllegalArgumentException e) {
+    } catch (final IllegalArgumentException e) {
       throw new DeserializationException("Could not parse UniqueId", e);
     }
   }

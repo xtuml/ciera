@@ -17,24 +17,24 @@ public class TestTypeSerialization {
 
   @Test
   public void testTimeStamp() {
-    TimeStamp t1 = new TimeStamp(1234l);
-    String s1 = t1.toString();
+    final TimeStamp t1 = new TimeStamp(1234L);
+    final String s1 = t1.toString();
     assertEquals("1234", s1);
 
-    String s2 = "5678";
-    TimeStamp t2 = TimeStamp.fromString(s2);
-    assertEquals(5678l, t2.getValue());
+    final String s2 = "5678";
+    final TimeStamp t2 = TimeStamp.fromString(s2);
+    assertEquals(5678L, t2.getValue());
   }
 
   @Test
   public void testDuration() {
-    Duration d1 = new Duration(123456789000000l);
-    String s1 = d1.toString();
+    final Duration d1 = new Duration(123456789000000L);
+    final String s1 = d1.toString();
     assertEquals("PT34H17M36.789S", s1);
 
-    String s2 = "PT274H20M54.321S";
-    Duration d2 = Duration.fromString(s2);
-    assertEquals(987654321000000l, d2.getValue());
+    final String s2 = "PT274H20M54.321S";
+    final Duration d2 = Duration.fromString(s2);
+    assertEquals(987654321000000L, d2.getValue());
   }
 
   /* TODO
@@ -56,11 +56,11 @@ public class TestTypeSerialization {
 
   @Test
   public void testDevice() {
-    Device c = Device.CONSOLE;
-    String s1 = c.toString();
+    final Device c = Device.CONSOLE;
+    final String s1 = c.toString();
     assertEquals("CONSOLE", s1);
 
-    Exception e =
+    final Exception e =
         assertThrows(
             DeserializationException.class,
             () -> {
@@ -71,12 +71,12 @@ public class TestTypeSerialization {
 
   @Test
   public void testUniqueId() {
-    UniqueId id1 = new UniqueId(UUID.fromString("a3080669-a8d4-4588-986c-7d7a7c676005"));
-    String s1 = id1.toString();
+    final UniqueId id1 = new UniqueId(UUID.fromString("a3080669-a8d4-4588-986c-7d7a7c676005"));
+    final String s1 = id1.toString();
     assertEquals("a3080669-a8d4-4588-986c-7d7a7c676005", s1);
 
-    String s2 = "7fdc406f-2939-49c0-8fab-99de27b70193";
-    UniqueId id2 = UniqueId.fromString(s2);
+    final String s2 = "7fdc406f-2939-49c0-8fab-99de27b70193";
+    final UniqueId id2 = UniqueId.fromString(s2);
     assertEquals(new UniqueId(UUID.fromString("7fdc406f-2939-49c0-8fab-99de27b70193")), id2);
   }
 }

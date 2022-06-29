@@ -25,7 +25,7 @@ public class TestExecutionModes {
 
     private static final long serialVersionUID = 1L;
 
-    public TestEvent(Object... data) {
+    public TestEvent(final Object... data) {
       super(0, data);
     }
   }
@@ -48,7 +48,7 @@ public class TestExecutionModes {
                   public void initialize() {}
 
                   @Override
-                  public Port getPort(String portName) {
+                  public Port getPort(final String portName) {
                     return null;
                   }
                 });
@@ -59,7 +59,7 @@ public class TestExecutionModes {
     app.getLogger().trace("Testing interleaved mode");
 
     // run test
-    String[] output = runEventSequence(app);
+    final String[] output = runEventSequence(app);
 
     // check output
     assertArrayEquals(new String[] {"A1", "B1", "A2", "B2", "A3", "B3"}, output);
@@ -81,7 +81,7 @@ public class TestExecutionModes {
                   public void initialize() {}
 
                   @Override
-                  public Port getPort(String portName) {
+                  public Port getPort(final String portName) {
                     return null;
                   }
                 });
@@ -92,7 +92,7 @@ public class TestExecutionModes {
     app.getLogger().trace("Testing sequential mode");
 
     // run test
-    String[] output = runEventSequence(app);
+    final String[] output = runEventSequence(app);
 
     // check output
     assertArrayEquals(new String[] {"A1", "A2", "A3", "B1", "B2", "B3"}, output);
@@ -101,14 +101,14 @@ public class TestExecutionModes {
   @Test
   public void testDefaultMode() {
     // create fake application
-    BaseApplication app = new BaseApplication("testDefaultMode");
+    final BaseApplication app = new BaseApplication("testDefaultMode");
     app.addDomain(
         new AbstractDomain("TestDomain") {
           @Override
           public void initialize() {}
 
           @Override
-          public Port getPort(String portName) {
+          public Port getPort(final String portName) {
             return null;
           }
         });
@@ -117,27 +117,27 @@ public class TestExecutionModes {
     app.getLogger().trace("Testing default (interleaved) mode");
 
     // run test
-    String[] output = runEventSequence(app);
+    final String[] output = runEventSequence(app);
 
     // check output
     assertArrayEquals(new String[] {"A1", "B1", "A2", "B2", "A3", "B3"}, output);
   }
 
-  private String[] runEventSequence(BaseApplication app) {
-    List<String> output = new ArrayList<>();
+  private String[] runEventSequence(final BaseApplication app) {
+    final List<String> output = new ArrayList<>();
 
     // create fake events
-    List<Event> Aevts = new ArrayList<>();
-    for (String eventKey : new String[] {"A1", "A2", "A3"}) {
+    final List<Event> Aevts = new ArrayList<>();
+    for (final String eventKey : new String[] {"A1", "A2", "A3"}) {
       Aevts.add(new TestEvent(eventKey));
     }
-    List<Event> Bevts = new ArrayList<>();
-    for (String eventKey : new String[] {"B1", "B2", "B3"}) {
+    final List<Event> Bevts = new ArrayList<>();
+    for (final String eventKey : new String[] {"B1", "B2", "B3"}) {
       Bevts.add(new TestEvent(eventKey));
     }
 
-    Iterator<Event> Aiter = Aevts.iterator();
-    Iterator<Event> Biter = Bevts.iterator();
+    final Iterator<Event> Aiter = Aevts.iterator();
+    final Iterator<Event> Biter = Bevts.iterator();
 
     // create fake event target
     target =
@@ -149,8 +149,8 @@ public class TestExecutionModes {
           }
 
           @Override
-          public void consumeEvent(Event event) {
-            String key = (String) event.getData(0);
+          public void consumeEvent(final Event event) {
+            final String key = (String) event.getData(0);
             app.getLogger().trace("Handling event: %s", key);
             output.add(key);
             if (key.startsWith("A") && Aiter.hasNext()) {

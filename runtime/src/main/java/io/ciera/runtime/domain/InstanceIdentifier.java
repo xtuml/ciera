@@ -8,12 +8,12 @@ public class InstanceIdentifier {
 
   private final Object[] elements;
 
-  public InstanceIdentifier(Object... elements) {
+  public InstanceIdentifier(final Object... elements) {
     this.elements = elements;
   }
 
   @Override
-  public boolean equals(Object obj) {
+  public boolean equals(final Object obj) {
     if (obj instanceof InstanceIdentifier && elements.length > 0) {
       return Arrays.equals(elements, ((InstanceIdentifier) obj).elements);
     }

@@ -14,11 +14,11 @@ public class ReceivedMessage extends Task implements DomainTask {
   private final Class<? extends MessageTarget> targetClass;
   private transient MessageTarget target;
 
-  public ReceivedMessage(Message message, MessageTarget target) {
-    this.domainName = target.getDomain().getName();
+  public ReceivedMessage(final Message message, final MessageTarget target) {
+    domainName = target.getDomain().getName();
     this.message = message;
     this.target = target;
-    this.targetClass = target.getClass();
+    targetClass = target.getClass();
   }
 
   @Override

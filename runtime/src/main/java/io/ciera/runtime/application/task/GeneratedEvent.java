@@ -18,16 +18,18 @@ public class GeneratedEvent extends Task implements DomainTask {
   private final ExecutionContext.ExecutionMode executionMode;
   private transient EventTarget target;
 
-  public GeneratedEvent(Event event, EventTarget target) {
+  public GeneratedEvent(final Event event, final EventTarget target) {
     this(event, target, null);
   }
 
   public GeneratedEvent(
-      Event event, EventTarget target, ExecutionContext.ExecutionMode executionMode) {
-    this.domainName = target.getDomain().getName();
+      final Event event,
+      final EventTarget target,
+      final ExecutionContext.ExecutionMode executionMode) {
+    domainName = target.getDomain().getName();
     this.event = event;
     this.target = target;
-    this.targetId = target.getTargetId();
+    targetId = target.getTargetId();
     this.executionMode = executionMode;
   }
 

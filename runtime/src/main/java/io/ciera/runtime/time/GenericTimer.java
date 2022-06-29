@@ -14,16 +14,20 @@ public class GenericTimer extends AbstractTimer implements Timer {
 
   private final transient Runnable command;
 
-  public GenericTimer(ExecutionContext context, Runnable command) {
+  public GenericTimer(final ExecutionContext context, final Runnable command) {
     this(UniqueId.random(), context, command, Duration.ZERO);
   }
 
-  public GenericTimer(ExecutionContext context, Runnable command, Duration period) {
+  public GenericTimer(
+      final ExecutionContext context, final Runnable command, final Duration period) {
     this(UniqueId.random(), context, command, period);
   }
 
   public GenericTimer(
-      UniqueId timerHandle, ExecutionContext context, Runnable command, Duration period) {
+      final UniqueId timerHandle,
+      final ExecutionContext context,
+      final Runnable command,
+      final Duration period) {
     super(timerHandle, context, period);
     this.command = command;
   }

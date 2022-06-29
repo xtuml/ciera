@@ -5,11 +5,11 @@ import io.ciera.runtime.api.types.UniqueId;
 
 public interface EventTarget {
 
-  public UniqueId getTargetId();
+  UniqueId getTargetId();
 
-  public void consumeEvent(Event event);
+  void consumeEvent(Event event);
 
-  public ExecutionContext getContext();
+  ExecutionContext getContext();
 
-  public Domain getDomain();
+  Domain getDomain();
 }

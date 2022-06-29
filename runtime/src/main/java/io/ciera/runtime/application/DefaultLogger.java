@@ -22,38 +22,39 @@ public class DefaultLogger implements Logger {
 
   private final java.util.logging.Logger internalLogger;
 
-  public DefaultLogger(String name) {
+  public DefaultLogger(final String name) {
     this(name, null, Level.INFO, System.out);
   }
 
-  public DefaultLogger(String name, Application application) {
+  public DefaultLogger(final String name, final Application application) {
     this(name, application, Level.INFO, System.out);
   }
 
-  public DefaultLogger(String name, Application application, Level level, OutputStream out) {
+  public DefaultLogger(
+      final String name, final Application application, Level level, final OutputStream out) {
     // attempt to get the log level from a system property
-    String systemLogLevel = System.getProperty(LOG_LEVEL_PROP);
+    final String systemLogLevel = System.getProperty(LOG_LEVEL_PROP);
     if (systemLogLevel != null) {
       try {
         level = Level.parse(systemLogLevel);
-      } catch (IllegalArgumentException e) {
+      } catch (final IllegalArgumentException e) {
         /* fall back on passed in level */ }
     }
     internalLogger = java.util.logging.Logger.getLogger(name);
     internalLogger.setUseParentHandlers(false);
     internalLogger.setLevel(level);
-    ConsoleHandler handler = new ConsoleHandler();
+    final ConsoleHandler handler = new ConsoleHandler();
     handler.setLevel(level);
     handler.setFormatter(
         new SimpleFormatter() {
           private static final String format = "[%1$tF %1$tT] [%2$-7s] %3$s %n";
 
           @Override
-          public synchronized String format(LogRecord lr) {
+          public synchronized String format(final LogRecord lr) {
             return String.format(
                 format,
                 application != null
-                    ? new Date(application.getClock().getTime() / 1000000l)
+                    ? new Date(application.getClock().getTime() / 1000000L)
                     : new Date(),
                 getLevelString(lr.getLevel()),
                 lr.getMessage());
@@ -62,7 +63,7 @@ public class DefaultLogger implements Logger {
     internalLogger.addHandler(handler);
   }
 
-  private static String getLevelString(Level level) {
+  private static String getLevelString(final Level level) {
     if (level.intValue() > Level.WARNING.intValue()) {
       return ANSI_RED + "ERROR" + ANSI_RESET;
     } else if (level.intValue() > Level.INFO.intValue()) {
@@ -85,27 +86,27 @@ public class DefaultLogger implements Logger {
   }
 
   @Override
-  public void trace(String msg) {
+  public void trace(final String msg) {
     internalLogger.log(Level.FINEST, msg);
   }
 
   @Override
-  public void trace(String format, Object arg) {
+  public void trace(final String format, final Object arg) {
     trace(format, new Object[] {arg});
   }
 
   @Override
-  public void trace(String format, Object arg1, Object arg2) {
+  public void trace(final String format, final Object arg1, final Object arg2) {
     trace(format, new Object[] {arg1, arg2});
   }
 
   @Override
-  public void trace(String format, Object... arguments) {
+  public void trace(final String format, final Object... arguments) {
     trace(String.format(format, arguments));
   }
 
   @Override
-  public void trace(String msg, Throwable t) {
+  public void trace(final String msg, final Throwable t) {
     internalLogger.log(Level.FINEST, msg, t);
   }
 
@@ -115,27 +116,27 @@ public class DefaultLogger implements Logger {
   }
 
   @Override
-  public void debug(String msg) {
+  public void debug(final String msg) {
     internalLogger.log(Level.FINE, msg);
   }
 
   @Override
-  public void debug(String format, Object arg) {
+  public void debug(final String format, final Object arg) {
     debug(format, new Object[] {arg});
   }
 
   @Override
-  public void debug(String format, Object arg1, Object arg2) {
+  public void debug(final String format, final Object arg1, final Object arg2) {
     debug(format, new Object[] {arg1, arg2});
   }
 
   @Override
-  public void debug(String format, Object... arguments) {
+  public void debug(final String format, final Object... arguments) {
     debug(String.format(format, arguments));
   }
 
   @Override
-  public void debug(String msg, Throwable t) {
+  public void debug(final String msg, final Throwable t) {
     internalLogger.log(Level.FINE, msg, t);
   }
 
@@ -145,27 +146,27 @@ public class DefaultLogger implements Logger {
   }
 
   @Override
-  public void info(String msg) {
+  public void info(final String msg) {
     internalLogger.log(Level.INFO, msg);
   }
 
   @Override
-  public void info(String format, Object arg) {
+  public void info(final String format, final Object arg) {
     info(format, new Object[] {arg});
   }
 
   @Override
-  public void info(String format, Object arg1, Object arg2) {
+  public void info(final String format, final Object arg1, final Object arg2) {
     info(format, new Object[] {arg1, arg2});
   }
 
   @Override
-  public void info(String format, Object... arguments) {
+  public void info(final String format, final Object... arguments) {
     info(String.format(format, arguments));
   }
 
   @Override
-  public void info(String msg, Throwable t) {
+  public void info(final String msg, final Throwable t) {
     internalLogger.log(Level.INFO, msg, t);
   }
 
@@ -175,27 +176,27 @@ public class DefaultLogger implements Logger {
   }
 
   @Override
-  public void warn(String msg) {
+  public void warn(final String msg) {
     internalLogger.log(Level.WARNING, msg);
   }
 
   @Override
-  public void warn(String format, Object arg) {
+  public void warn(final String format, final Object arg) {
     warn(format, new Object[] {arg});
   }
 
   @Override
-  public void warn(String format, Object arg1, Object arg2) {
+  public void warn(final String format, final Object arg1, final Object arg2) {
     warn(format, new Object[] {arg1, arg2});
   }
 
   @Override
-  public void warn(String format, Object... arguments) {
+  public void warn(final String format, final Object... arguments) {
     warn(String.format(format, arguments));
   }
 
   @Override
-  public void warn(String msg, Throwable t) {
+  public void warn(final String msg, final Throwable t) {
     internalLogger.log(Level.WARNING, msg, t);
   }
 
@@ -205,27 +206,27 @@ public class DefaultLogger implements Logger {
   }
 
   @Override
-  public void error(String msg) {
+  public void error(final String msg) {
     internalLogger.log(Level.SEVERE, msg);
   }
 
   @Override
-  public void error(String format, Object arg) {
+  public void error(final String format, final Object arg) {
     error(format, new Object[] {arg});
   }
 
   @Override
-  public void error(String format, Object arg1, Object arg2) {
+  public void error(final String format, final Object arg1, final Object arg2) {
     error(format, new Object[] {arg1, arg2});
   }
 
   @Override
-  public void error(String format, Object... arguments) {
+  public void error(final String format, final Object... arguments) {
     error(String.format(format, arguments));
   }
 
   @Override
-  public void error(String msg, Throwable t) {
+  public void error(final String msg, final Throwable t) {
     internalLogger.log(Level.SEVERE, msg, t);
   }
 }

@@ -12,12 +12,12 @@ public class StateMachineActionException extends EventTargetException {
   private final Enum<?> currentState;
 
   public StateMachineActionException(
-      String message,
-      Throwable cause,
-      StateMachine stateMachine,
-      Enum<?> currentState,
-      EventTarget target,
-      Event receivedEvent) {
+      final String message,
+      final Throwable cause,
+      final StateMachine stateMachine,
+      final Enum<?> currentState,
+      final EventTarget target,
+      final Event receivedEvent) {
     super(message, cause, target, receivedEvent);
     this.stateMachine = stateMachine;
     this.currentState = currentState;

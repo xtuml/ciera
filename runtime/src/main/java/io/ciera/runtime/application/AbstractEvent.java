@@ -11,14 +11,14 @@ public abstract class AbstractEvent implements Event {
   private final int eventId;
   private final Object[] parameterData;
 
-  public AbstractEvent(int eventId, Object... data) {
+  public AbstractEvent(final int eventId, final Object... data) {
     this(UniqueId.random(), eventId, data);
   }
 
-  public AbstractEvent(UniqueId eventHandle, int eventId, Object... data) {
+  public AbstractEvent(final UniqueId eventHandle, final int eventId, final Object... data) {
     this.eventHandle = eventHandle;
     this.eventId = eventId;
-    this.parameterData = data;
+    parameterData = data;
   }
 
   @Override
@@ -37,7 +37,7 @@ public abstract class AbstractEvent implements Event {
   }
 
   @Override
-  public Object getData(int index) {
+  public Object getData(final int index) {
     if (index >= 0 && index < parameterData.length) {
       return parameterData[index];
     } else {
@@ -46,7 +46,7 @@ public abstract class AbstractEvent implements Event {
   }
 
   @Override
-  public boolean equals(Object o) {
+  public boolean equals(final Object o) {
     return o instanceof Event && eventHandle.equals(((Event) o).getEventHandle());
   }
 

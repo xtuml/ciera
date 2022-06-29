@@ -20,25 +20,29 @@ public class EventTimer extends AbstractTimer implements Timer {
   private final UniqueId targetId;
   private transient EventTarget target;
 
-  public EventTimer(ExecutionContext context, Event event, EventTarget target) {
+  public EventTimer(final ExecutionContext context, final Event event, final EventTarget target) {
     this(UniqueId.random(), context, event, target, Duration.ZERO);
   }
 
-  public EventTimer(ExecutionContext context, Event event, EventTarget target, Duration period) {
+  public EventTimer(
+      final ExecutionContext context,
+      final Event event,
+      final EventTarget target,
+      final Duration period) {
     this(UniqueId.random(), context, event, target, period);
   }
 
   public EventTimer(
-      UniqueId timerHandle,
-      ExecutionContext context,
-      Event event,
-      EventTarget target,
-      Duration period) {
+      final UniqueId timerHandle,
+      final ExecutionContext context,
+      final Event event,
+      final EventTarget target,
+      final Duration period) {
     super(timerHandle, context, period);
-    this.domainName = target.getDomain().getName();
+    domainName = target.getDomain().getName();
     this.event = event;
     this.target = target;
-    this.targetId = target.getTargetId();
+    targetId = target.getTargetId();
   }
 
   @Override

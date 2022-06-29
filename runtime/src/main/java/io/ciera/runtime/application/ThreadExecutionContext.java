@@ -41,17 +41,19 @@ public class ThreadExecutionContext implements ExecutionContext, Runnable {
   private final Queue<Task> tasks;
   private Task currentTask;
 
-  public ThreadExecutionContext(String name) {
+  public ThreadExecutionContext(final String name) {
     this(name, ExecutionMode.INTERLEAVED, ModelIntegrityMode.STRICT);
   }
 
   public ThreadExecutionContext(
-      String name, ExecutionMode executionMode, ModelIntegrityMode modelIntegrityMode) {
+      final String name,
+      final ExecutionMode executionMode,
+      final ModelIntegrityMode modelIntegrityMode) {
     this.name = name;
     this.executionMode = executionMode;
     this.modelIntegrityMode = modelIntegrityMode;
-    this.tasks = new PriorityBlockingQueue<>();
-    this.currentTask = null;
+    tasks = new PriorityBlockingQueue<>();
+    currentTask = null;
   }
 
   @Override
@@ -65,19 +67,22 @@ public class ThreadExecutionContext implements ExecutionContext, Runnable {
 
   @Override
   public <E extends Event> void generateEvent(
-      Function<Object[], E> eventBuilder, EventTarget target, Object... data) {
+      final Function<Object[], E> eventBuilder, final EventTarget target, final Object... data) {
     generateEvent(eventBuilder, target, false, data);
   }
 
   @Override
   public <E extends Event> void generateEventToSelf(
-      Function<Object[], E> eventBuilder, EventTarget target, Object... data) {
+      final Function<Object[], E> eventBuilder, final EventTarget target, final Object... data) {
     generateEvent(eventBuilder, target, true, data);
   }
 
   private <E extends Event> void generateEvent(
-      Function<Object[], E> eventBuilder, EventTarget target, boolean toSelf, Object... data) {
-    Event event = eventBuilder.apply(data);
+      final Function<Object[], E> eventBuilder,
+      final EventTarget target,
+      final boolean toSelf,
+      final Object... data) {
+    final Event event = eventBuilder.apply(data);
     if (toSelf) {
       target.getContext().execute(new GeneratedEventToSelf(event, target));
     } else {
@@ -87,70 +92,76 @@ public class ThreadExecutionContext implements ExecutionContext, Runnable {
 
   @Override
   public <E extends Event> Timer scheduleEvent(
-      Function<Object[], E> eventBuilder, EventTarget target, Duration delay, Object... eventData) {
-    Event event = eventBuilder.apply(eventData);
-    Timer timer = new EventTimer(this, event, target);
+      final Function<Object[], E> eventBuilder,
+      final EventTarget target,
+      final Duration delay,
+      final Object... eventData) {
+    final Event event = eventBuilder.apply(eventData);
+    final Timer timer = new EventTimer(this, event, target);
     timer.schedule(delay.getValue());
     return timer;
   }
 
   @Override
   public <E extends Event> Timer scheduleEvent(
-      Function<Object[], E> eventBuilder,
-      EventTarget target,
-      TimeStamp expiration,
-      Object... eventData) {
-    Duration delay = expiration.minus(TimeStamp.now(getClock()));
+      final Function<Object[], E> eventBuilder,
+      final EventTarget target,
+      final TimeStamp expiration,
+      final Object... eventData) {
+    final Duration delay = expiration.minus(TimeStamp.now(getClock()));
     return scheduleEvent(eventBuilder, target, delay, eventData);
   }
 
   @Override
-  public Timer scheduleAction(Duration delay, Runnable action) {
-    Timer timer = new GenericTimer(this, action);
+  public Timer scheduleAction(final Duration delay, final Runnable action) {
+    final Timer timer = new GenericTimer(this, action);
     timer.schedule(delay.getValue());
     return timer;
   }
 
   @Override
-  public Timer scheduleAction(TimeStamp expiration, Runnable action) {
-    Duration delay = expiration.minus(TimeStamp.now(getClock()));
+  public Timer scheduleAction(final TimeStamp expiration, final Runnable action) {
+    final Duration delay = expiration.minus(TimeStamp.now(getClock()));
     return scheduleAction(delay, action);
   }
 
   @Override
   public <E extends Event> Timer scheduleRecurringEvent(
-      Function<Object[], E> eventBuilder,
-      EventTarget target,
-      Duration delay,
-      Duration period,
-      Object... eventData) {
-    Event event = eventBuilder.apply(eventData);
-    AbstractTimer timer = new EventTimer(this, event, target, period != null ? period : delay);
+      final Function<Object[], E> eventBuilder,
+      final EventTarget target,
+      final Duration delay,
+      final Duration period,
+      final Object... eventData) {
+    final Event event = eventBuilder.apply(eventData);
+    final AbstractTimer timer =
+        new EventTimer(this, event, target, period != null ? period : delay);
     timer.schedule(delay.getValue());
     return timer;
   }
 
   @Override
   public <E extends Event> Timer scheduleRecurringEvent(
-      Function<Object[], E> eventBuilder,
-      EventTarget target,
-      TimeStamp expiration,
-      Duration period,
-      Object... eventData) {
-    Duration delay = expiration.minus(TimeStamp.now(getClock()));
+      final Function<Object[], E> eventBuilder,
+      final EventTarget target,
+      final TimeStamp expiration,
+      final Duration period,
+      final Object... eventData) {
+    final Duration delay = expiration.minus(TimeStamp.now(getClock()));
     return scheduleRecurringEvent(eventBuilder, target, delay, period, eventData);
   }
 
   @Override
-  public Timer scheduleRecurringAction(Duration delay, Duration period, Runnable action) {
-    Timer timer = new GenericTimer(this, action, period);
+  public Timer scheduleRecurringAction(
+      final Duration delay, final Duration period, final Runnable action) {
+    final Timer timer = new GenericTimer(this, action, period);
     timer.schedule(delay.getValue());
     return timer;
   }
 
   @Override
-  public Timer scheduleRecurringAction(TimeStamp expiration, Duration period, Runnable action) {
-    Duration delay = expiration.minus(TimeStamp.now(getClock()));
+  public Timer scheduleRecurringAction(
+      final TimeStamp expiration, final Duration period, final Runnable action) {
+    final Duration delay = expiration.minus(TimeStamp.now(getClock()));
     return scheduleRecurringAction(delay, period, action);
   }
 
@@ -161,16 +172,16 @@ public class ThreadExecutionContext implements ExecutionContext, Runnable {
 
   @Override
   @Deprecated
-  public void delay(Duration delay) {
+  public void delay(final Duration delay) {
     getLogger().trace("DEL: delaying for %s", delay);
     try {
-      Thread.sleep(delay.getValue() / 1000000l, (int) delay.getValue() % 1000000);
-    } catch (InterruptedException e) {
+      Thread.sleep(delay.getValue() / 1000000L, (int) delay.getValue() % 1000000);
+    } catch (final InterruptedException e) {
       throw new RuntimeException(e);
     }
   }
 
-  private synchronized void addTask(Task newTask) {
+  private synchronized void addTask(final Task newTask) {
     newTask.setParent(currentTask);
     if (tasks.offer(newTask)) {
       notify();
@@ -180,9 +191,9 @@ public class ThreadExecutionContext implements ExecutionContext, Runnable {
   }
 
   @Override
-  public void execute(Runnable command) {
+  public void execute(final Runnable command) {
     if (command != null) {
-      Task t = command instanceof Task ? (Task) command : new GenericTask(command);
+      final Task t = command instanceof Task ? (Task) command : new GenericTask(command);
       addTask(t);
     }
   }
@@ -204,16 +215,16 @@ public class ThreadExecutionContext implements ExecutionContext, Runnable {
   private void loadPopulation(final String storeName) {
     try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(storeName))) {
       getLogger().trace("Loading instance population...");
-      for (PersistentDomain domain :
+      for (final PersistentDomain domain :
           getApplication().getDomains().stream()
-              .filter(d -> this.equals(d.getContext()))
+              .filter(d -> equals(d.getContext()))
               .filter(PersistentDomain.class::isInstance)
               .map(PersistentDomain.class::cast)
               .sorted(Comparator.comparing(Domain::getName))
               .collect(Collectors.toList())) {
         domain.load(in);
       }
-    } catch (FileNotFoundException e) {
+    } catch (final FileNotFoundException e) {
       // ignore if the file doesn't exist
     } catch (IOException | ClassNotFoundException e) {
       getLogger().error("Failed to load instance population", e);
@@ -225,16 +236,16 @@ public class ThreadExecutionContext implements ExecutionContext, Runnable {
     // persist instance population
     try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(storeName))) {
       getLogger().trace("Dumping instance population...");
-      for (PersistentDomain domain :
+      for (final PersistentDomain domain :
           getApplication().getDomains().stream()
-              .filter(d -> this.equals(d.getContext()))
+              .filter(d -> equals(d.getContext()))
               .filter(PersistentDomain.class::isInstance)
               .map(PersistentDomain.class::cast)
               .sorted(Comparator.comparing(Domain::getName))
               .collect(Collectors.toList())) {
         domain.persist(out);
       }
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new UncheckedIOException(e);
     }
   }
@@ -266,12 +277,12 @@ public class ThreadExecutionContext implements ExecutionContext, Runnable {
           // interleaved mode.
           // In sequential mode, the transaction is complete when the queue is empty or
           // the next task is a primary task.
-          if ((executionMode == ExecutionMode.INTERLEAVED
+          if (executionMode == ExecutionMode.INTERLEAVED
                   && !(currentTask instanceof GenericTask)
-                  && storeName != null)
-              || (executionMode == ExecutionMode.SEQUENTIAL
+                  && storeName != null
+              || executionMode == ExecutionMode.SEQUENTIAL
                   && (tasks.isEmpty() || tasks.peek().getParent() == null)
-                  && storeName != null)) {
+                  && storeName != null) {
             commitTransaction(storeName);
           }
 
@@ -280,7 +291,7 @@ public class ThreadExecutionContext implements ExecutionContext, Runnable {
           if (modelIntegrityMode == ModelIntegrityMode.RELAXED && tasks.isEmpty()) {
             checkIntegrity();
           }
-        } catch (RuntimeException e) {
+        } catch (final RuntimeException e) {
           getApplication().getExceptionHandler().handleError(e);
         } finally {
           currentTask = null;
@@ -302,7 +313,7 @@ public class ThreadExecutionContext implements ExecutionContext, Runnable {
               }
             }
           }
-        } catch (InterruptedException e) {
+        } catch (final InterruptedException e) {
           // woken up by external signal or new timer
         }
       }
@@ -310,7 +321,7 @@ public class ThreadExecutionContext implements ExecutionContext, Runnable {
   }
 
   public Thread start() {
-    Thread t = new Thread(this, name);
+    final Thread t = new Thread(this, name);
     t.start();
     return t;
   }

@@ -8,75 +8,75 @@ package io.ciera.runtime.api.application;
  */
 public interface Logger {
 
-  public static final String ANSI_RESET = "\u001B[0m";
-  public static final String ANSI_BLACK = "\u001B[30m";
-  public static final String ANSI_RED = "\u001B[31m";
-  public static final String ANSI_GREEN = "\u001B[32m";
-  public static final String ANSI_YELLOW = "\u001B[33m";
-  public static final String ANSI_BLUE = "\u001B[34m";
-  public static final String ANSI_PURPLE = "\u001B[35m";
-  public static final String ANSI_CYAN = "\u001B[36m";
-  public static final String ANSI_WHITE = "\u001B[37m";
+  String ANSI_RESET = "\u001B[0m";
+  String ANSI_BLACK = "\u001B[30m";
+  String ANSI_RED = "\u001B[31m";
+  String ANSI_GREEN = "\u001B[32m";
+  String ANSI_YELLOW = "\u001B[33m";
+  String ANSI_BLUE = "\u001B[34m";
+  String ANSI_PURPLE = "\u001B[35m";
+  String ANSI_CYAN = "\u001B[36m";
+  String ANSI_WHITE = "\u001B[37m";
 
-  public String getName();
+  String getName();
 
-  public boolean isTraceEnabled();
+  boolean isTraceEnabled();
 
-  public void trace(String msg);
+  void trace(String msg);
 
-  public void trace(String format, Object arg);
+  void trace(String format, Object arg);
 
-  public void trace(String format, Object arg1, Object arg2);
+  void trace(String format, Object arg1, Object arg2);
 
-  public void trace(String format, Object... arguments);
+  void trace(String format, Object... arguments);
 
-  public void trace(String msg, Throwable t);
+  void trace(String msg, Throwable t);
 
-  public boolean isDebugEnabled();
+  boolean isDebugEnabled();
 
-  public void debug(String msg);
+  void debug(String msg);
 
-  public void debug(String format, Object arg);
+  void debug(String format, Object arg);
 
-  public void debug(String format, Object arg1, Object arg2);
+  void debug(String format, Object arg1, Object arg2);
 
-  public void debug(String format, Object... arguments);
+  void debug(String format, Object... arguments);
 
-  public void debug(String msg, Throwable t);
+  void debug(String msg, Throwable t);
 
-  public boolean isInfoEnabled();
+  boolean isInfoEnabled();
 
-  public void info(String msg);
+  void info(String msg);
 
-  public void info(String format, Object arg);
+  void info(String format, Object arg);
 
-  public void info(String format, Object arg1, Object arg2);
+  void info(String format, Object arg1, Object arg2);
 
-  public void info(String format, Object... arguments);
+  void info(String format, Object... arguments);
 
-  public void info(String msg, Throwable t);
+  void info(String msg, Throwable t);
 
-  public boolean isWarnEnabled();
+  boolean isWarnEnabled();
 
-  public void warn(String msg);
+  void warn(String msg);
 
-  public void warn(String format, Object arg);
+  void warn(String format, Object arg);
 
-  public void warn(String format, Object... arguments);
+  void warn(String format, Object... arguments);
 
-  public void warn(String format, Object arg1, Object arg2);
+  void warn(String format, Object arg1, Object arg2);
 
-  public void warn(String msg, Throwable t);
+  void warn(String msg, Throwable t);
 
-  public boolean isErrorEnabled();
+  boolean isErrorEnabled();
 
-  public void error(String msg);
+  void error(String msg);
 
-  public void error(String format, Object arg);
+  void error(String format, Object arg);
 
-  public void error(String format, Object arg1, Object arg2);
+  void error(String format, Object arg1, Object arg2);
 
-  public void error(String format, Object... arguments);
+  void error(String format, Object... arguments);
 
-  public void error(String msg, Throwable t);
+  void error(String msg, Throwable t);
 }

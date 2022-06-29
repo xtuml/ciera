@@ -2,17 +2,18 @@ package io.ciera.runtime.api.exceptions;
 
 public class TypeConversionException extends RuntimeException {
 
-  private static final long serialVersionUID = 1l;
+  private static final long serialVersionUID = 1L;
 
   private final Class<?> source;
   private final Class<?> target;
 
-  public TypeConversionException(String message, Class<?> source, Class<?> target) {
+  public TypeConversionException(
+      final String message, final Class<?> source, final Class<?> target) {
     this(message, null, source, target);
   }
 
   public TypeConversionException(
-      String message, Throwable cause, Class<?> source, Class<?> target) {
+      final String message, final Throwable cause, final Class<?> source, final Class<?> target) {
     super(message, cause);
     this.source = source;
     this.target = target;

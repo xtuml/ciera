@@ -5,9 +5,9 @@ import io.ciera.runtime.api.domain.Message;
 
 public interface MessageTarget {
 
-  public void deliver(Message message);
+  void deliver(Message message);
 
-  public ExecutionContext getContext();
+  ExecutionContext getContext();
 
-  public Domain getDomain();
+  Domain getDomain();
 }

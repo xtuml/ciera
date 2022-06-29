@@ -22,33 +22,33 @@ public interface Message extends Comparable<Message>, Serializable {
    * @param key The string key which identifies the datum.
    * @return The parameter datum.
    */
-  public Object get(String key);
+  Object get(String key);
 
-  public void put(String key, Object value);
+  void put(String key, Object value);
 
-  public Map<String, Object> getParameterData();
+  Map<String, Object> getParameterData();
 
   /**
    * Get the unique ID of this message instance.
    *
    * @return the message's unique ID.
    */
-  public UniqueId getMessageHandle();
+  UniqueId getMessageHandle();
 
   /**
    * Get the informal name of this message instance.
    *
    * @return The name of the message.
    */
-  public String getName();
+  String getName();
 
   /**
    * Get the message number for this message. This number uniquely identifies an abstract message in
    * an interface.
    */
-  public int getId();
+  int getId();
 
-  public static Message fromString(Object s) {
+  static Message fromString(final Object s) {
     throw new UnsupportedOperationException("Base 'Message' is not JSON serializable");
   }
 

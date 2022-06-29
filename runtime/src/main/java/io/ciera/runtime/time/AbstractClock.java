@@ -22,9 +22,9 @@ public abstract class AbstractClock implements SystemClock {
   private Instant epoch;
 
   public AbstractClock() {
-    this.scheduledTimersMap = new ConcurrentHashMap<>();
-    this.allScheduledTimers = Collections.synchronizedSet(new HashSet<>());
-    this.epoch = Instant.EPOCH;
+    scheduledTimersMap = new ConcurrentHashMap<>();
+    allScheduledTimers = Collections.synchronizedSet(new HashSet<>());
+    epoch = Instant.EPOCH;
   }
 
   @Override
@@ -39,15 +39,15 @@ public abstract class AbstractClock implements SystemClock {
   }
 
   @Override
-  public void setEpoch(Instant epoch) {
+  public void setEpoch(final Instant epoch) {
     this.epoch = epoch;
   }
 
   @Override
-  public void checkTimers(ExecutionContext context) {
-    Queue<Timer> timers = scheduledTimersMap.get(context);
-    while (timers != null && !timers.isEmpty() && (getTime() >= timers.peek().getExpiration())) {
-      Timer timer = timers.poll();
+  public void checkTimers(final ExecutionContext context) {
+    final Queue<Timer> timers = scheduledTimersMap.get(context);
+    while (timers != null && !timers.isEmpty() && getTime() >= timers.peek().getExpiration()) {
+      final Timer timer = timers.poll();
       // long clockError = getTime() - timer.expiration; TODO report if greater than
       // some threshhold
       allScheduledTimers.remove(timer);
@@ -56,8 +56,8 @@ public abstract class AbstractClock implements SystemClock {
   }
 
   @Override
-  public Stream<Timer> getScheduledTimers(ExecutionContext context) {
-    Queue<Timer> timers = scheduledTimersMap.get(context);
+  public Stream<Timer> getScheduledTimers(final ExecutionContext context) {
+    final Queue<Timer> timers = scheduledTimersMap.get(context);
     if (timers != null) {
       return timers.stream();
     } else {
@@ -66,13 +66,13 @@ public abstract class AbstractClock implements SystemClock {
   }
 
   @Override
-  public boolean hasScheduledTimers(ExecutionContext context) {
-    Queue<Timer> timers = scheduledTimersMap.get(context);
+  public boolean hasScheduledTimers(final ExecutionContext context) {
+    final Queue<Timer> timers = scheduledTimersMap.get(context);
     return timers != null && !timers.isEmpty();
   }
 
   @Override
-  public boolean registerTimer(Timer timer) {
+  public boolean registerTimer(final Timer timer) {
     if (allScheduledTimers.add(timer)) {
       Queue<Timer> timers = scheduledTimersMap.get(timer.getContext());
       if (timers == null) {
@@ -87,9 +87,9 @@ public abstract class AbstractClock implements SystemClock {
   }
 
   @Override
-  public boolean unregisterTimer(Timer timer) {
+  public boolean unregisterTimer(final Timer timer) {
     if (allScheduledTimers.remove(timer)) {
-      Queue<Timer> timers = scheduledTimersMap.get(timer.getContext());
+      final Queue<Timer> timers = scheduledTimersMap.get(timer.getContext());
       if (timers != null) {
         timers.remove(timer);
       }

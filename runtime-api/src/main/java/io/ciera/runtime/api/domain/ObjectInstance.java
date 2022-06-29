@@ -2,30 +2,31 @@ package io.ciera.runtime.api.domain;
 
 import java.io.Serializable;
 
-import io.ciera.runtime.api.action.InstanceActionHome;
 import io.ciera.runtime.api.application.EventTarget;
 import io.ciera.runtime.api.types.UniqueId;
 
 public interface ObjectInstance extends InstanceActionHome, EventTarget, Serializable {
 
-  public UniqueId getInstanceId();
+  UniqueId getInstanceId();
 
-  public void delete();
+  void delete();
 
-  public boolean isEmpty();
+  default boolean isEmpty() {
+    return this instanceof EmptyInstance;
+  }
 
-  public default boolean notEmpty() {
+  default boolean notEmpty() {
     return !isEmpty();
   }
 
-  public boolean isActive();
+  boolean isActive();
 
-  public Object getIdentifier();
+  Object getIdentifier();
 
-  public Object getIdentifier(int index);
+  Object getIdentifier(int index);
 
   @Override
-  public default UniqueId getTargetId() {
+  default UniqueId getTargetId() {
     return getInstanceId();
   }
 }

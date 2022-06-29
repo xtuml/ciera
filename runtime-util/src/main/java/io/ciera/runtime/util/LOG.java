@@ -8,7 +8,7 @@ public class LOG {
   private final Application app;
 
   public LOG(Domain domain) {
-    app = domain.getApplication();
+    app = domain.getContext().getApplication();
   }
 
   public void LogFailure(final String message) {

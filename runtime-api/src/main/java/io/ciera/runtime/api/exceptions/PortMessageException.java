@@ -6,16 +6,21 @@ import io.ciera.runtime.api.domain.Port;
 
 public class PortMessageException extends MessageTargetException {
 
-  private static final long serialVersionUID = 1l;
+  private static final long serialVersionUID = 1L;
 
   private final Domain domain;
 
-  public PortMessageException(String message, Domain domain, Port port, Message receivedMessage) {
+  public PortMessageException(
+      final String message, final Domain domain, final Port port, final Message receivedMessage) {
     this(message, null, domain, port, receivedMessage);
   }
 
   public PortMessageException(
-      String message, Throwable cause, Domain domain, Port port, Message receivedMessage) {
+      final String message,
+      final Throwable cause,
+      final Domain domain,
+      final Port port,
+      final Message receivedMessage) {
     super(message, cause, port, receivedMessage);
     this.domain = domain;
   }

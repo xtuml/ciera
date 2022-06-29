@@ -38,13 +38,14 @@ public abstract class AbstractDomain implements Domain {
   private final String name;
   private final Map<Class<?>, Set<ObjectInstance>> instancePopulation;
 
-  public AbstractDomain(String name) {
+  public AbstractDomain(final String name) {
     this(name, ObjectPopulation::new);
   }
 
-  public AbstractDomain(String name, Supplier<Set<ObjectInstance>> objectPopulationSupplier) {
+  public AbstractDomain(
+      final String name, final Supplier<Set<ObjectInstance>> objectPopulationSupplier) {
     this.name = name;
-    this.instancePopulation = new HashMap<>();
+    instancePopulation = new HashMap<>();
     this.objectPopulationSupplier = objectPopulationSupplier;
   }
 
@@ -55,7 +56,7 @@ public abstract class AbstractDomain implements Domain {
 
   @Override
   public void initialize() {
-    getApplication().getLogger().trace("%s initialized", this);
+    getContext().getApplication().getLogger().trace("%s initialized", this);
   }
 
   @Override
@@ -64,14 +65,14 @@ public abstract class AbstractDomain implements Domain {
   }
 
   @Override
-  public <T extends ObjectInstance> T createInstance(Supplier<T> constructor) {
+  public <T extends ObjectInstance> T createInstance(final Supplier<T> constructor) {
     return createInstance(constructor, null);
   }
 
   @Override
   public <T extends ObjectInstance> T createInstance(
-      Supplier<T> constructor, Consumer<T> instanceInitializer) {
-    T instance = constructor.get();
+      final Supplier<T> constructor, final Consumer<T> instanceInitializer) {
+    final T instance = constructor.get();
     if (instanceInitializer != null) {
       instanceInitializer.accept(instance);
     }
@@ -80,14 +81,14 @@ public abstract class AbstractDomain implements Domain {
   }
 
   @Override
-  public void addInstance(ObjectInstance instance) {
-    Class<?> object = instance.getClass();
+  public void addInstance(final ObjectInstance instance) {
+    final Class<?> object = instance.getClass();
     Set<ObjectInstance> objectPopulation = instancePopulation.get(object);
     if (objectPopulation == null) {
       objectPopulation = objectPopulationSupplier.get();
       instancePopulation.put(object, objectPopulation);
     }
-    boolean success = objectPopulation.add(instance);
+    final boolean success = objectPopulation.add(instance);
     if (!success) {
       throw new InstancePopulationException(
           "Instance is not unique within the population", this, instance);
@@ -96,25 +97,26 @@ public abstract class AbstractDomain implements Domain {
 
   @Override
   @SuppressWarnings("unchecked")
-  public <T extends ObjectInstance> T getInstance(Class<T> object, Predicate<T> where) {
-    Set<T> objectPopulation = (Set<T>) instancePopulation.get(object);
+  public <T extends ObjectInstance> T getInstance(final Class<T> object, final Predicate<T> where) {
+    final Set<T> objectPopulation = (Set<T>) instancePopulation.get(object);
     return objectPopulation != null
         ? objectPopulation.stream().filter(where).findAny().orElse(null)
         : null;
   }
 
   @Override
-  public <T extends ObjectInstance> T getInstance(Class<T> object, UniqueId instanceId) {
+  public <T extends ObjectInstance> T getInstance(
+      final Class<T> object, final UniqueId instanceId) {
     return getInstance(object, o -> o.getInstanceId().equals(instanceId));
   }
 
   @Override
-  public <T extends ObjectInstance> T getInstance(Class<T> object) {
+  public <T extends ObjectInstance> T getInstance(final Class<T> object) {
     return getInstance(object, o -> true);
   }
 
   @Override
-  public <T extends ObjectInstance> Stream<T> getAllInstances(Class<T> object) {
+  public <T extends ObjectInstance> Stream<T> getAllInstances(final Class<T> object) {
     return Optional.ofNullable(instancePopulation.get(object)).orElse(Set.of()).stream()
         .map(object::cast);
   }
@@ -125,9 +127,9 @@ public abstract class AbstractDomain implements Domain {
   }
 
   @Override
-  public void deleteInstance(ObjectInstance instance) {
-    Class<?> object = instance.getClass();
-    Set<ObjectInstance> objectPopulation = instancePopulation.get(object);
+  public void deleteInstance(final ObjectInstance instance) {
+    final Class<?> object = instance.getClass();
+    final Set<ObjectInstance> objectPopulation = instancePopulation.get(object);
     if (!(objectPopulation != null ? objectPopulation.remove(instance) : false)) {
       throw new InstancePopulationException(
           "Instance does not exist within the population", this, instance);
@@ -136,7 +138,7 @@ public abstract class AbstractDomain implements Domain {
 
   @Override
   public <T extends ObjectInstance> int getUniqueInteger(
-      Class<T> object, Function<T, Integer> keyMapper) {
+      final Class<T> object, final Function<T, Integer> keyMapper) {
     final Set<Integer> existingKeys =
         getAllInstances(object).map(keyMapper).collect(Collectors.toSet());
     return IntStream.iterate(1, x -> x + 1)
@@ -146,7 +148,7 @@ public abstract class AbstractDomain implements Domain {
   }
 
   @Override
-  public EventTarget getEventTarget(UniqueId targetId) {
+  public EventTarget getEventTarget(final UniqueId targetId) {
     if (targetId == null) {
       return this;
     } else {
@@ -159,13 +161,13 @@ public abstract class AbstractDomain implements Domain {
   }
 
   @Override
-  public MessageTarget getMessageTarget(Class<? extends MessageTarget> targetClass) {
+  public MessageTarget getMessageTarget(final Class<? extends MessageTarget> targetClass) {
     throw new MessageTargetException(
         "Could not find target to deliver message: " + targetClass, null, null);
   }
 
   @Override
-  public void consumeEvent(Event event) {
+  public void consumeEvent(final Event event) {
     throw new EventTargetException("Could not find state machine to handle event", this, event);
   }
 
@@ -192,7 +194,7 @@ public abstract class AbstractDomain implements Domain {
     }
 
     @Override
-    public boolean add(ObjectInstance e) {
+    public boolean add(final ObjectInstance e) {
       final Object identifier = e.getIdentifier();
       return (InstanceIdentifier.EMPTY_IDENTIFIER.equals(identifier)
               || primaryIdentifierSet.add(identifier))
@@ -200,7 +202,7 @@ public abstract class AbstractDomain implements Domain {
     }
 
     @Override
-    public boolean remove(Object o) {
+    public boolean remove(final Object o) {
       if (o instanceof ObjectInstance) {
         primaryIdentifierSet.remove(((ObjectInstance) o).getIdentifier());
       }
