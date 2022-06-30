@@ -46,7 +46,7 @@ select one act_smt related by act_brg->ACT_SMT[R603];
 // create a statement
 create object instance smt of Statement;
 relate smt to block across R450;
-if ( not_empty prev_smt )
+if ( not_empty prev_smt ) then
   smt.statement_number = STRING::itoa( i:STRING::atoi( s:prev_smt.statement_number ) + 1 );
   relate smt to prev_smt across R477.''executes after'';
 else
@@ -57,7 +57,7 @@ smt.actions = ::getOalStatement(act_smt:act_smt);
 smt.line_number = act_smt.LineNumber;
 
 select one util_func related by act_brg->S_BRG[R674]->UtilityFunction[R4570];
-if ( empty util_func )
+if ( empty util_func ) then
   select one s_ee related by act_brg->S_BRG[R674]->S_EE[R19];
   select one s_ee_pkg related by s_ee->PE_PE[R8001]->EP_PKG[R8000];
   select any empty_comp_def from instances of ComponentDefinition where false;
@@ -67,9 +67,9 @@ if ( empty util_func )
   // add module dependency if necessary
   select any main_mod from instances of Module where selected.main_module;
   select one mod related by s_ee->PE_PE[R8001]->EP_PKG[R8000]->S_SYS[R1405]->Module[R4760];
-  if mod != main_mod
+  if mod != main_mod then
     select any dependency related by main_mod->Dependency[R5753.''requires''] where selected.required_module_name == mod.name;
-    if empty dependency
+    if empty dependency then
       create object instance dependency of Dependency;
       relate mod to main_mod across R5753.''required by'' using dependency;
     end if;
@@ -80,14 +80,14 @@ select one invocable related by util_func->InvocableObject[R427];
 select one utility related by util_func->Utility[R4559];
 select one utility_file related by utility->File[R401];
 containing_comp_def = ::getCompDefForStatement( smt:smt );
-if ( not_empty containing_comp_def )
+if ( not_empty containing_comp_def ) then
   select any util_ref related by utility->UtilityInComponent[R4558] where ( selected.comp_name == containing_comp_def.name and selected.comp_package == containing_comp_def.package );
-  if ( empty util_ref )
+  if ( empty util_ref ) then
     create object instance util_ref of UtilityInComponent;
     relate utility to containing_comp_def across R4558 using util_ref;
   end if;
 end if;
-if ( not_empty invocable )
+if ( not_empty invocable ) then
   // create expression as statement
   create object instance eas of ExpressionAsStatement;
   relate eas to smt across R451;
@@ -192,7 +192,7 @@ select one act_smt related by act_fnc->ACT_SMT[R603];
 // create a statement
 create object instance smt of Statement;
 relate smt to block across R450;
-if ( not_empty prev_smt )
+if ( not_empty prev_smt ) then
   smt.statement_number = STRING::itoa( i:STRING::atoi( s:prev_smt.statement_number ) + 1 );
   relate smt to prev_smt across R477.''executes after'';
 else
@@ -205,7 +205,7 @@ smt.line_number = act_smt.LineNumber;
 select one s_sync related by act_fnc->S_SYNC[R675];
 containing_comp_def = ::getCompDefForStatement( smt:smt );
 select any invocable related by containing_comp_def->Function[R405]->InvocableObject[R427] where ( selected.name == s_sync.Name );
-if ( not_empty invocable )
+if ( not_empty invocable ) then
   // create expression as statement
   create object instance eas of ExpressionAsStatement;
   relate eas to smt across R451;
@@ -295,7 +295,7 @@ select one act_smt related by act_tfm->ACT_SMT[R603];
 // create a statement
 create object instance smt of Statement;
 relate smt to block across R450;
-if ( not_empty prev_smt )
+if ( not_empty prev_smt ) then
   smt.statement_number = STRING::itoa( i:STRING::atoi( s:prev_smt.statement_number ) + 1 );
   relate smt to prev_smt across R477.''executes after'';
 else
@@ -309,7 +309,7 @@ select one o_tfr related by act_tfm->O_TFR[R673];
 select one obj related by o_tfr->O_OBJ[R115]->Class[R409];
 select any invocable related by obj->Operation[R416]->InvocableObject[R427]
   where ( selected.name == o_tfr.Name or selected.name == "_" + obj.name + "_" + o_tfr.Name );
-if ( not_empty invocable )
+if ( not_empty invocable ) then
   // create expression as statement
   create object instance eas of ExpressionAsStatement;
   relate eas to smt across R451;
@@ -326,7 +326,7 @@ if ( not_empty invocable )
   relate invoc to invocable across R792;
   // relate expression to expression as statement
   select one op_v_var related by act_tfm->V_VAR[R667];
-  if ( empty op_v_var ) // class based operation
+  if ( empty op_v_var ) then // class based operation
     // for class based operations, add domain as first parameter
     create object instance expr3 of Expression;
     relate expr3 to smt across R775;
@@ -350,11 +350,11 @@ if ( not_empty invocable )
     op_var = ::getVariableInScope(smt:smt, name:op_v_var.Name);
     op_type = ::getObjectReference(obj:obj);
     relate op_type to expr2 across R795;
-    if ( not_empty op_var ) // cannot declare two variables of the same name in the same scope
+    if ( not_empty op_var ) then // cannot declare two variables of the same name in the same scope
       create object instance var_ref of VariableReference;
       relate op_var to var_ref across R782;
       relate var_ref to expr2 across R776;
-    elif ( "self" == op_v_var.Name )
+    elif ( "self" == op_v_var.Name ) then
       // create named reference
       create object instance self_ref of NamedReference;
       relate self_ref to expr2 across R776;
@@ -427,7 +427,7 @@ select one act_smt related by act_sgn->ACT_SMT[R603];
 // create a statement
 create object instance smt of Statement;
 relate smt to block across R450;
-if ( not_empty prev_smt )
+if ( not_empty prev_smt ) then
   smt.statement_number = STRING::itoa( i:STRING::atoi( s:prev_smt.statement_number ) + 1 );
   relate smt to prev_smt across R477.''executes after'';
 else
@@ -440,16 +440,16 @@ smt.line_number = act_smt.LineNumber;
 select one spr_rs related by act_sgn->SPR_RS[R660];
 select one spr_ps related by act_sgn->SPR_PS[R663];
 select one c_ep related by spr_rs->SPR_REP[R4502]->C_EP[R4500];
-if ( empty c_ep )
+if ( empty c_ep ) then
   select one c_ep related by spr_ps->SPR_PEP[R4503]->C_EP[R4501];
 end if;
 select one c_po related by spr_rs->SPR_REP[R4502]->C_R[R4500]->C_IR[R4009]->C_PO[R4016];
-if ( empty c_po )
+if ( empty c_po ) then
   select one c_po related by spr_ps->SPR_PEP[R4503]->C_P[R4501]->C_IR[R4009]->C_PO[R4016];
 end if;
 select one target_port related by c_po->Port[R422];
 select any invocable related by target_port->PortMessage[R420]->InvocableObject[R427] where ( selected.name == c_ep.Name );
-if ( not_empty invocable )
+if ( not_empty invocable ) then
   // create expression as statement
   create object instance eas of ExpressionAsStatement;
   relate eas to smt across R451;
@@ -539,7 +539,7 @@ select one act_smt related by act_if->ACT_SMT[R603];
 // create a statement
 create object instance smt of Statement;
 relate smt to block across R450;
-if ( not_empty prev_smt )
+if ( not_empty prev_smt ) then
   smt.statement_number = STRING::itoa( i:STRING::atoi( s:prev_smt.statement_number ) + 1 );
   relate smt to prev_smt across R477.''executes after'';
 else
@@ -569,17 +569,17 @@ relate then_block to if_smt across R453;
 select many act_els related by act_if->ACT_EL[R682];
 select many translated_act_els from instances of ACT_EL where false;
 remaining_act_els = act_els - translated_act_els;
-while ( not_empty remaining_act_els )
+while ( not_empty remaining_act_els ) loop
   // get the next elif
   select any act_el from instances of ACT_EL where false;
-  for each remaining_act_el in remaining_act_els
-    if ( empty act_el )
+  for each remaining_act_el in remaining_act_els loop
+    if ( empty act_el ) then
       act_el = remaining_act_el;
     else
       select one act_el_smt related by act_el->ACT_SMT[R603];
       select one remaining_act_el_smt related by remaining_act_el->ACT_SMT[R603];
       if ( remaining_act_el_smt.LineNumber < act_el_smt.LineNumber or
-           remaining_act_el_smt.LineNumber == act_el_smt.LineNumber and remaining_act_el_smt.StartPosition == act_el_smt.StartPosition )
+           remaining_act_el_smt.LineNumber == act_el_smt.LineNumber and remaining_act_el_smt.StartPosition == act_el_smt.StartPosition ) then
         act_el = remaining_act_el;
       end if;
     end if;
@@ -599,7 +599,7 @@ end while;
 // create else block
 else_block_number = ::getNextBlockNumber( upper_block:block );
 select one else_blk related by act_if->ACT_E[R683]->ACT_BLK[R606];
-if ( not_empty else_blk )
+if ( not_empty else_blk ) then
   ::transformBlock( upper_block:block, act_blk:else_blk, block_number:else_block_number, invocable:empty_invocable );
   select any else_block related by block->InvocableObject[R4000]->CodeBlock[R4000] where ( selected.block_number == else_block_number );
   relate else_block to if_smt across R454;
@@ -662,7 +662,7 @@ select one act_smt related by act_whl->ACT_SMT[R603];
 // create a statement
 create object instance smt of Statement;
 relate smt to block across R450;
-if ( not_empty prev_smt )
+if ( not_empty prev_smt ) then
   smt.statement_number = STRING::itoa( i:STRING::atoi( s:prev_smt.statement_number ) + 1 );
   relate smt to prev_smt across R477.''executes after'';
 else
@@ -745,17 +745,17 @@ select one act_smt related by act_brk->ACT_SMT[R603];
 // find a for or while statement in a block that is a direct ancestor of the current block
 select any loop_smt related by block->InvocableObject[R4000]->CodeBlock[R4000]->Statement[R450]->ForSmt[R451]->Statement[R451]
   where (selected.block_number != block.block_number and STRING::indexof(haystack:block.block_number, needle:selected.block_number) == 0);
-if empty loop_smt
+if empty loop_smt then
   select any loop_smt related by block->InvocableObject[R4000]->CodeBlock[R4000]->Statement[R450]->WhileSmt[R451]->Statement[R451]
     where (selected.block_number != block.block_number and STRING::indexof(haystack:block.block_number, needle:selected.block_number) == 0);
 end if;
 
-if not_empty loop_smt
+if not_empty loop_smt then
 
   // create a statement
   create object instance smt of Statement;
   relate smt to block across R450;
-  if ( not_empty prev_smt )
+  if ( not_empty prev_smt ) then
     smt.statement_number = STRING::itoa( i:STRING::atoi( s:prev_smt.statement_number ) + 1 );
     relate smt to prev_smt across R477.''executes after'';
   else
@@ -831,7 +831,7 @@ select one act_smt related by act_con->ACT_SMT[R603];
 // create a statement
 create object instance smt of Statement;
 relate smt to block across R450;
-if ( not_empty prev_smt )
+if ( not_empty prev_smt ) then
   smt.statement_number = STRING::itoa( i:STRING::atoi( s:prev_smt.statement_number ) + 1 );
   relate smt to prev_smt across R477.''executes after'';
 else
@@ -902,7 +902,7 @@ select one act_smt related by act_ai->ACT_SMT[R603];
 // create a statement
 create object instance smt of Statement;
 relate smt to block across R450;
-if ( not_empty prev_smt )
+if ( not_empty prev_smt ) then
   smt.statement_number = STRING::itoa( i:STRING::atoi( s:prev_smt.statement_number ) + 1 );
   relate smt to prev_smt across R477.''executes after'';
 else
@@ -926,9 +926,9 @@ select one l_val_dt related by l_val->S_DT[R820];
 select one r_val related by act_ai->V_VAL[R609];
 select one r_val_dt related by r_val->S_DT[R820];
 select one v_var related by l_val->V_TVL[R801]->V_VAR[R805];
-if ( empty v_var )
+if ( empty v_var ) then
   select one v_var related by l_val->V_IRF[R801]->V_VAR[R808];
-  if ( empty v_var )
+  if ( empty v_var ) then
     select one v_var related by l_val->V_ISR[R801]->V_VAR[R809];
   end if;
 end if;
@@ -939,7 +939,7 @@ select one r_trv related by r_val->V_TRV[R801];
 rhs_is_invocation = not_empty r_brv or not_empty r_fnv or not_empty r_trv;
 select many s_brgs related by act_ai->ACT_SMT[R603]->ACT_BLK[R602]->ACT_ACT[R601]->ACT_BLK[R601]->ACT_SMT[R602]->ACT_BRG[R603]->S_BRG[R674] where ( selected.Name == "include" );
 select any s_ee related by s_brgs->S_EE[R19] where ( selected.Key_Lett == "T" );
-if ( empty s_ee and rhs_is_invocation and num_references == 1 )
+if ( empty s_ee and rhs_is_invocation and num_references == 1 ) then
   // create right operand
   ::transformExpression( v_val:r_val, expr_number:"1", smt:smt );
   select any r_op related by smt->Expression[R775] where ( selected.expression_number == "1" );
@@ -1025,7 +1025,7 @@ select one act_smt related by act_for->ACT_SMT[R603];
 // create a statement
 create object instance smt of Statement;
 relate smt to block across R450;
-if ( not_empty prev_smt )
+if ( not_empty prev_smt ) then
   smt.statement_number = STRING::itoa( i:STRING::atoi( s:prev_smt.statement_number ) + 1 );
   relate smt to prev_smt across R477.''executes after'';
 else
@@ -1124,7 +1124,7 @@ select one act_smt related by act_fio->ACT_SMT[R603];
 // create a statement
 create object instance smt of Statement;
 relate smt to block across R450;
-if ( not_empty prev_smt )
+if ( not_empty prev_smt ) then
   smt.statement_number = STRING::itoa( i:STRING::atoi( s:prev_smt.statement_number ) + 1 );
   relate smt to prev_smt across R477.''executes after'';
 else
@@ -1168,7 +1168,7 @@ r_op.expression_number = "1.2";
 relate r_op to binop across R778;
 relate select_type to r_op across R795;
 fio_type = ::getObjectStreamReference(obj:obj);
-if ( "any" == act_fio.cardinality ) // create another expression for the ''any''. Note that this is a little tricky because the local var ''r_op'' is being reused
+if ( "any" == act_fio.cardinality ) then // create another expression for the ''any''. Note that this is a little tricky because the local var ''r_op'' is being reused
   create object instance any_expr of AnyExpr;
   relate any_expr to r_op across R776;
   create object instance r_op of Expression;
@@ -1242,7 +1242,7 @@ select one act_smt related by act_fiw->ACT_SMT[R603];
 // create a statement
 create object instance smt of Statement;
 relate smt to block across R450;
-if ( not_empty prev_smt )
+if ( not_empty prev_smt ) then
   smt.statement_number = STRING::itoa( i:STRING::atoi( s:prev_smt.statement_number ) + 1 );
   relate smt to prev_smt across R477.''executes after'';
 else
@@ -1282,7 +1282,7 @@ relate l_op to binop across R779;
 select one where_clause_val related by act_fiw->V_VAL[R610];
 select one where_clause_lbo related by where_clause_val->V_LBO[R801];
 // special case where the where clause is ''false''
-if ( not_empty where_clause_lbo and ( "false" == T::sub( format:"l", s:where_clause_lbo.Value ) ) )
+if ( not_empty where_clause_lbo and ( "false" == T::sub( format:"l", s:where_clause_lbo.Value ) ) ) then
   create object instance r_op of Expression;
   relate r_op to smt across R775;
   r_op.expression_number = "1.2";
@@ -1373,7 +1373,7 @@ select one act_smt related by act_sel->ACT_SMT[R603];
 // create a statement
 create object instance smt of Statement;
 relate smt to block across R450;
-if ( not_empty prev_smt )
+if ( not_empty prev_smt ) then
   smt.statement_number = STRING::itoa( i:STRING::atoi( s:prev_smt.statement_number ) + 1 );
   relate smt to prev_smt across R477.''executes after'';
 else
@@ -1404,7 +1404,7 @@ relate l_op to smt across R775;
 l_op.expression_number = "1.1";
 select one last_lnk related by act_sel->ACT_LNK[R637];
 select one next_lnk related by last_lnk->ACT_LNK[R604.''precedes''];
-while ( not_empty next_lnk )
+while ( not_empty next_lnk ) loop
   last_lnk = next_lnk;
   select one next_lnk related by last_lnk->ACT_LNK[R604.''precedes''];
 end while;
@@ -1418,7 +1418,7 @@ relate l_op to binop across R779;
 // create right operand
 select one where_clause_val related by act_sel->ACT_SRW[R664]->V_VAL[R611];
 select one where_clause_lbo related by where_clause_val->V_LBO[R801];
-if ( not_empty where_clause_lbo and ( "false" == T::sub( format:"l", s:where_clause_lbo.Value ) ) ) // special case where the where clause is ''false''
+if ( not_empty where_clause_lbo and ( "false" == T::sub( format:"l", s:where_clause_lbo.Value ) ) ) then // special case where the where clause is ''false''
   create object instance r_op of Expression;
   relate r_op to smt across R775;
   r_op.expression_number = "1.2";
@@ -1432,12 +1432,12 @@ else
   // get the final selection chain link
   select one lnk related by act_sel->ACT_LNK[R637];
   select one next_lnk related by lnk->ACT_LNK[R604.''precedes''];
-  while ( not_empty next_lnk )
+  while ( not_empty next_lnk ) loop
     lnk = next_lnk;
     select one next_lnk related by lnk->ACT_LNK[R604.''precedes''];
   end while;
 
-  if not_empty where_clause_val
+  if not_empty where_clause_val then
     // create where clause
     ::transformWhereClause(v_val:where_clause_val, smt:smt, expr_number:"1.2", where_type:select_type, multiplicity:act_sel.cardinality);
     select any r_op related by smt->Expression[R775] where selected.expression_number == "1.2";
@@ -1449,13 +1449,13 @@ else
     select any sel_expr related by smt->Expression[R775] where selected.expression_number == where_expr.expression_number + ".1";
     relate sel_expr to where_expr across R790;
 
-  elif act_sel.cardinality == "one"
+  elif act_sel.cardinality == "one" then
     // link the selection directly
     ::transformSelectionLink( act_lnk:lnk, expr_number:"1.2", smt:smt );
     select any select_expr related by smt->Expression[R775] where ( selected.expression_number == "1.2" );
     relate select_expr to binop across R778;
 
-  elif act_sel.cardinality == "any"
+  elif act_sel.cardinality == "any" then
     // create an any expression
     create object instance r_op of Expression;
     relate r_op to smt across R775;
@@ -1535,7 +1535,7 @@ select one act_smt related by act_cr->ACT_SMT[R603];
 // create a statement
 create object instance smt of Statement;
 relate smt to block across R450;
-if ( not_empty prev_smt )
+if ( not_empty prev_smt ) then
   smt.statement_number = STRING::itoa( i:STRING::atoi( s:prev_smt.statement_number ) + 1 );
   relate smt to prev_smt across R477.''executes after'';
 else
@@ -1586,7 +1586,7 @@ relate cr_type to expr across R795;
 // link the initial state (lowest numbered state)
 select one ism related by obj->StateMachine[R4750] where selected.is_instance;
 select any init_state related by ism->State[R4751] where SORT::ascending(attr:"number") and selected.number > 0;
-if not_empty init_state
+if not_empty init_state then
   relate init_state to cr across R3923;
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
@@ -1647,7 +1647,7 @@ select one act_smt related by act_cnv->ACT_SMT[R603];
 // create a statement
 create object instance smt of Statement;
 relate smt to block across R450;
-if ( not_empty prev_smt )
+if ( not_empty prev_smt ) then
   smt.statement_number = STRING::itoa( i:STRING::atoi( s:prev_smt.statement_number ) + 1 );
   relate smt to prev_smt across R477.''executes after'';
 else
@@ -1678,7 +1678,7 @@ select one class_file related by obj->File[R401];
 // link the initial state (lowest numbered state)
 select one ism related by obj->StateMachine[R4750] where selected.is_instance;
 select any init_state related by ism->State[R4751] where SORT::ascending(attr:"number") and selected.number > 0;
-if not_empty init_state
+if not_empty init_state then
   relate init_state to cr across R3923;
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
@@ -1739,7 +1739,7 @@ select one act_smt related by act_ctl->ACT_SMT[R603];
 // create a statement
 create object instance smt of Statement;
 relate smt to block across R450;
-if ( not_empty prev_smt )
+if ( not_empty prev_smt ) then
   smt.statement_number = STRING::itoa( i:STRING::atoi( s:prev_smt.statement_number ) + 1 );
   relate smt to prev_smt across R477.''executes after'';
 else
@@ -1810,7 +1810,7 @@ select one act_smt related by act_del->ACT_SMT[R603];
 // create a statement
 create object instance smt of Statement;
 relate smt to block across R450;
-if ( not_empty prev_smt )
+if ( not_empty prev_smt ) then
   smt.statement_number = STRING::itoa( i:STRING::atoi( s:prev_smt.statement_number ) + 1 );
   relate smt to prev_smt across R477.''executes after'';
 else
@@ -1832,11 +1832,11 @@ select one del_v_var related by act_del->V_VAR[R634];
 del_var = ::getVariableInScope(smt:smt, name:del_v_var.Name);
 del_type = ::getTypeReferenceForV_VAR(v_var:del_v_var);
 relate del_type to expr across R795;
-if ( not_empty del_var ) // cannot declare two variables of the same name in the same scope
+if ( not_empty del_var ) then // cannot declare two variables of the same name in the same scope
   create object instance var_ref of VariableReference;
   relate del_var to var_ref across R782;
   relate var_ref to expr across R776;
-elif ( "self" == del_v_var.Name )
+elif ( "self" == del_v_var.Name ) then
   // create named reference
   create object instance self_ref of NamedReference;
   relate self_ref to expr across R776;
@@ -1902,7 +1902,7 @@ select one act_smt related by act_ret->ACT_SMT[R603];
 // create a statement
 create object instance smt of Statement;
 relate smt to block across R450;
-if ( not_empty prev_smt )
+if ( not_empty prev_smt ) then
   smt.statement_number = STRING::itoa( i:STRING::atoi( s:prev_smt.statement_number ) + 1 );
   relate smt to prev_smt across R477.''executes after'';
 else
@@ -1917,7 +1917,7 @@ create object instance ret of ReturnSmt;
 relate ret to smt across R451;
 // create return expression
 select one ret_val related by act_ret->V_VAL[R668];
-if ( not_empty ret_val )
+if ( not_empty ret_val ) then
   select one act_act related by body->ACT_ACT[R432];
   select one val_dt related by ret_val->S_DT[R820];
   ::transformExpression( v_val:ret_val, expr_number:"1", smt:smt );
@@ -1982,7 +1982,7 @@ select one act_smt related by act_rel->ACT_SMT[R603];
 // create a statement
 create object instance smt of Statement;
 relate smt to block across R450;
-if ( not_empty prev_smt )
+if ( not_empty prev_smt ) then
   smt.statement_number = STRING::itoa( i:STRING::atoi( s:prev_smt.statement_number ) + 1 );
   relate smt to prev_smt across R477.''executes after'';
 else
@@ -2006,11 +2006,11 @@ select one other_o_obj related by other_v_var->V_INT[R814]->O_OBJ[R818];
 select one other_class related by other_o_obj->Class[R409];
 other_phrase = "";
 select one simp related by r_rel->R_SIMP[R206];
-if ( not_empty simp )
-  if ( one_o_obj.Obj_ID == other_o_obj.Obj_ID ) // reflexive simple association
+if ( not_empty simp ) then
+  if ( one_o_obj.Obj_ID == other_o_obj.Obj_ID ) then // reflexive simple association
     other_phrase = C_UTIL::stripTics( s:act_rel.relationship_phrase );
     select any oir related by r_rel->R_OIR[R201] where ( C_UTIL::stripTics( s:act_rel.relationship_phrase ) != ::oirGetPhrase( r_oir_id:selected.OIR_ID ) );
-    if ( not_empty oir )
+    if ( not_empty oir ) then
       one_phrase = ::oirGetPhrase( r_oir_id:oir.OIR_ID );
     else
       // TODO bad
@@ -2018,7 +2018,7 @@ if ( not_empty simp )
   else // non-reflexive simple association
     select any one_oir related by r_rel->R_OIR[R201] where ( selected.Obj_ID == one_o_obj.Obj_ID );
     select any other_oir related by r_rel->R_OIR[R201] where ( selected.Obj_ID == other_o_obj.Obj_ID );
-    if ( not_empty one_oir and not_empty other_oir )
+    if ( not_empty one_oir and not_empty other_oir ) then
       one_phrase = ::oirGetPhrase( r_oir_id:one_oir.OIR_ID );
       other_phrase = ::oirGetPhrase( r_oir_id:other_oir.OIR_ID );
     else
@@ -2027,7 +2027,7 @@ if ( not_empty simp )
   end if;
 else
   select one subsup related by r_rel->R_SUBSUP[R206];
-  if ( not_empty subsup )
+  if ( not_empty subsup ) then
     one_phrase = "is_a";
     other_phrase = "is_a";
   end if;
@@ -2037,11 +2037,11 @@ select any part_v_var from instances of V_VAR where false;
 select any form_obj from instances of O_OBJ where false;
 select any part_obj from instances of O_OBJ where false;
 containing_comp_def = ::getCompDefForStatement( smt:smt );
-if ( not_empty containing_comp_def and not_empty one_class and not_empty other_class )
+if ( not_empty containing_comp_def and not_empty one_class and not_empty other_class ) then
   select any rel related by containing_comp_def->Relationship[R448]
     where ( selected.num == r_rel.Numb and
       ( selected.form_name == one_class.name and selected.form_phrase == one_phrase and selected.part_name == other_class.name and selected.part_phrase == other_phrase ) );
-  if ( not_empty rel )
+  if ( not_empty rel ) then
     form_v_var = one_v_var;
     form_obj = one_o_obj;
     part_v_var = other_v_var;
@@ -2055,7 +2055,7 @@ if ( not_empty containing_comp_def and not_empty one_class and not_empty other_c
     part_v_var = one_v_var;
     part_obj = one_o_obj;
   end if;
-  if ( not_empty rel )
+  if ( not_empty rel ) then
     relate rel to relsmt across R481;
   else
     // TODO bad
@@ -2072,11 +2072,11 @@ form_var = ::getVariableInScope(smt:smt, name:form_v_var.Name);
 select one form_s_dt related by form_v_var->S_DT[R848];
 form_type = ::getTypeReferenceForV_VAR(v_var:form_v_var);
 relate form_type to form_expr across R795;
-if ( not_empty form_var ) // cannot declare two variables of the same name in the same scope
+if ( not_empty form_var ) then // cannot declare two variables of the same name in the same scope
   create object instance var_ref of VariableReference;
   relate form_var to var_ref across R782;
   relate var_ref to form_expr across R776;
-elif ( "self" == form_v_var.Name )
+elif ( "self" == form_v_var.Name ) then
   // create named reference
   create object instance self_ref of NamedReference;
   relate self_ref to form_expr across R776;
@@ -2092,11 +2092,11 @@ relate relsmt to part_expr across R480;
 part_var = ::getVariableInScope(smt:smt, name:part_v_var.Name);
 part_type = ::getTypeReferenceForV_VAR(v_var:part_v_var);
 relate part_type to part_expr across R795;
-if ( not_empty part_var ) // cannot declare two variables of the same name in the same scope
+if ( not_empty part_var ) then // cannot declare two variables of the same name in the same scope
   create object instance var_ref of VariableReference;
   relate part_var to var_ref across R782;
   relate var_ref to part_expr across R776;
-elif ( "self" == part_v_var.Name )
+elif ( "self" == part_v_var.Name ) then
   // create named reference
   create object instance self_ref of NamedReference;
   relate self_ref to part_expr across R776;
@@ -2162,7 +2162,7 @@ select one act_smt related by act_ru->ACT_SMT[R603];
 // create a statement
 create object instance smt of Statement;
 relate smt to block across R450;
-if ( not_empty prev_smt )
+if ( not_empty prev_smt ) then
   smt.statement_number = STRING::itoa( i:STRING::atoi( s:prev_smt.statement_number ) + 1 );
   relate smt to prev_smt across R477.''executes after'';
 else
@@ -2185,25 +2185,25 @@ other_phrase = "";
 select one link_v_var related by act_ru->V_VAR[R619];
 select one link_o_obj related by link_v_var->V_INT[R814]->O_OBJ[R818];
 select one link_class related by link_o_obj->Class[R409];
-if ( one_o_obj.Obj_ID == other_o_obj.Obj_ID ) // reflexive linked association
+if ( one_o_obj.Obj_ID == other_o_obj.Obj_ID ) then // reflexive linked association
   other_phrase = C_UTIL::stripTics( s:act_ru.relationship_phrase );
   select many oirs related by r_rel->R_OIR[R201] where ( C_UTIL::stripTics( s:act_ru.relationship_phrase ) != ::oirGetPhrase( r_oir_id:selected.OIR_ID ) );
   select any link related by oirs->R_RGO[R203]->R_ASSR[R205];
   select any one_oir from instances of R_OIR where false;
-  for each oir in oirs
-    if ( not_empty link and oir.OIR_ID != link.OIR_ID )
+  for each oir in oirs loop
+    if ( not_empty link and oir.OIR_ID != link.OIR_ID ) then
       one_oir = oir;
       one_phrase = ::oirGetPhrase( r_oir_id:oir.OIR_ID );
       break;
     end if;
   end for;
-  if ( empty one_oir )
+  if ( empty one_oir ) then
     // TODO bad
   end if;
 else // non-reflexive linked association
   select any one_oir related by r_rel->R_OIR[R201] where ( selected.Obj_ID == one_o_obj.Obj_ID );
   select any other_oir related by r_rel->R_OIR[R201] where ( selected.Obj_ID == other_o_obj.Obj_ID );
-  if ( not_empty one_oir and not_empty other_oir )
+  if ( not_empty one_oir and not_empty other_oir ) then
     one_phrase = ::oirGetPhrase( r_oir_id:one_oir.OIR_ID );
     other_phrase = ::oirGetPhrase( r_oir_id:other_oir.OIR_ID );
   else
@@ -2213,7 +2213,7 @@ end if;
 select any rel1 from instances of Relationship where false;
 select any rel2 from instances of Relationship where false;
 containing_comp_def = ::getCompDefForStatement( smt:smt );
-if ( not_empty containing_comp_def and not_empty one_class and not_empty other_class and not_empty link_class )
+if ( not_empty containing_comp_def and not_empty one_class and not_empty other_class and not_empty link_class ) then
   select any rel1 related by containing_comp_def->Relationship[R448]
     where ( selected.num == r_rel.Numb and
       ( selected.form_name == link_class.name and selected.form_phrase == other_phrase and selected.part_name == one_class.name and selected.part_phrase == one_phrase ) );
@@ -2223,7 +2223,7 @@ if ( not_empty containing_comp_def and not_empty one_class and not_empty other_c
 else
   // TODO bad
 end if;
-if ( not_empty rel1 and not_empty rel2 )
+if ( not_empty rel1 and not_empty rel2 ) then
   // create first relate statement (one to link)
   create object instance relsmt1 of RelateSmt;
   relate relsmt1 to smt across R451;
@@ -2236,11 +2236,11 @@ if ( not_empty rel1 and not_empty rel2 )
   form_var = ::getVariableInScope(smt:smt, name:link_v_var.Name);
   form_type = ::getTypeReferenceForV_VAR(v_var:link_v_var);
   relate form_type to form_expr1 across R795;
-  if ( not_empty form_var ) // cannot declare two variables of the same name in the same scope
+  if ( not_empty form_var ) then // cannot declare two variables of the same name in the same scope
     create object instance var_ref of VariableReference;
     relate form_var to var_ref across R782;
     relate var_ref to form_expr1 across R776;
-  elif ( "self" == link_v_var.Name )
+  elif ( "self" == link_v_var.Name ) then
     // create named reference
     create object instance self_ref of NamedReference;
     relate self_ref to form_expr1 across R776;
@@ -2256,11 +2256,11 @@ if ( not_empty rel1 and not_empty rel2 )
   part_var = ::getVariableInScope(smt:smt, name:one_v_var.Name);
   part_type = ::getTypeReferenceForV_VAR(v_var:one_v_var);
   relate part_type to part_expr1 across R795;
-  if ( not_empty part_var ) // cannot declare two variables of the same name in the same scope
+  if ( not_empty part_var ) then // cannot declare two variables of the same name in the same scope
     create object instance var_ref of VariableReference;
     relate part_var to var_ref across R782;
     relate var_ref to part_expr1 across R776;
-  elif ( "self" == one_v_var.Name )
+  elif ( "self" == one_v_var.Name ) then
     // create named reference
     create object instance self_ref of NamedReference;
     relate self_ref to part_expr1 across R776;
@@ -2284,11 +2284,11 @@ if ( not_empty rel1 and not_empty rel2 )
   relate relsmt2 to form_expr2 across R479;
   relate form_type to form_expr2 across R795;
   form_var = ::getVariableInScope(smt:smt, name:link_v_var.Name);
-  if ( not_empty form_var ) // cannot declare two variables of the same name in the same scope
+  if ( not_empty form_var ) then // cannot declare two variables of the same name in the same scope
     create object instance var_ref of VariableReference;
     relate form_var to var_ref across R782;
     relate var_ref to form_expr2 across R776;
-  elif ( "self" == link_v_var.Name )
+  elif ( "self" == link_v_var.Name ) then
     // create named reference
     create object instance self_ref of NamedReference;
     relate self_ref to form_expr2 across R776;
@@ -2304,11 +2304,11 @@ if ( not_empty rel1 and not_empty rel2 )
   part_var = ::getVariableInScope(smt:smt, name:other_v_var.Name);
   part_type = ::getTypeReferenceForV_VAR(v_var:other_v_var);
   relate part_type to part_expr2 across R795;
-  if ( not_empty part_var ) // cannot declare two variables of the same name in the same scope
+  if ( not_empty part_var ) then // cannot declare two variables of the same name in the same scope
     create object instance var_ref of VariableReference;
     relate part_var to var_ref across R782;
     relate var_ref to part_expr2 across R776;
-  elif ( "self" == other_v_var.Name )
+  elif ( "self" == other_v_var.Name ) then
     // create named reference
     create object instance self_ref of NamedReference;
     relate self_ref to part_expr2 across R776;
@@ -2379,7 +2379,7 @@ select one act_smt related by act_unr->ACT_SMT[R603];
 // create a statement
 create object instance smt of Statement;
 relate smt to block across R450;
-if ( not_empty prev_smt )
+if ( not_empty prev_smt ) then
   smt.statement_number = STRING::itoa( i:STRING::atoi( s:prev_smt.statement_number ) + 1 );
   relate smt to prev_smt across R477.''executes after'';
 else
@@ -2403,11 +2403,11 @@ select one other_o_obj related by other_v_var->V_INT[R814]->O_OBJ[R818];
 select one other_class related by other_o_obj->Class[R409];
 other_phrase = "";
 select one simp related by r_rel->R_SIMP[R206];
-if ( not_empty simp )
-  if ( one_o_obj.Obj_ID == other_o_obj.Obj_ID ) // reflexive simple association
+if ( not_empty simp ) then
+  if ( one_o_obj.Obj_ID == other_o_obj.Obj_ID ) then // reflexive simple association
     other_phrase = C_UTIL::stripTics( s:act_unr.relationship_phrase );
     select any oir related by r_rel->R_OIR[R201] where ( C_UTIL::stripTics( s:act_unr.relationship_phrase ) != ::oirGetPhrase( r_oir_id:selected.OIR_ID ) );
-    if ( not_empty oir )
+    if ( not_empty oir ) then
       one_phrase = ::oirGetPhrase( r_oir_id:oir.OIR_ID );
     else
       // TODO bad
@@ -2415,7 +2415,7 @@ if ( not_empty simp )
   else // non-reflexive simple association
     select any one_oir related by r_rel->R_OIR[R201] where ( selected.Obj_ID == one_o_obj.Obj_ID );
     select any other_oir related by r_rel->R_OIR[R201] where ( selected.Obj_ID == other_o_obj.Obj_ID );
-    if ( not_empty one_oir and not_empty other_oir )
+    if ( not_empty one_oir and not_empty other_oir ) then
       one_phrase = ::oirGetPhrase( r_oir_id:one_oir.OIR_ID );
       other_phrase = ::oirGetPhrase( r_oir_id:other_oir.OIR_ID );
     else
@@ -2424,7 +2424,7 @@ if ( not_empty simp )
   end if;
 else
   select one subsup related by r_rel->R_SUBSUP[R206];
-  if ( not_empty subsup )
+  if ( not_empty subsup ) then
     one_phrase = "is_a";
     other_phrase = "is_a";
   end if;
@@ -2434,11 +2434,11 @@ select any part_v_var from instances of V_VAR where false;
 select any form_obj from instances of O_OBJ where false;
 select any part_obj from instances of O_OBJ where false;
 containing_comp_def = ::getCompDefForStatement( smt:smt );
-if ( not_empty containing_comp_def and not_empty one_class and not_empty other_class )
+if ( not_empty containing_comp_def and not_empty one_class and not_empty other_class ) then
   select any rel related by containing_comp_def->Relationship[R448]
     where ( selected.num == r_rel.Numb and
       ( selected.form_name == one_class.name and selected.form_phrase == one_phrase and selected.part_name == other_class.name and selected.part_phrase == other_phrase ) );
-  if ( not_empty rel )
+  if ( not_empty rel ) then
     form_v_var = one_v_var;
     form_obj = one_o_obj;
     part_v_var = other_v_var;
@@ -2452,7 +2452,7 @@ if ( not_empty containing_comp_def and not_empty one_class and not_empty other_c
     part_v_var = one_v_var;
     part_obj = one_o_obj;
   end if;
-  if ( not_empty rel )
+  if ( not_empty rel ) then
     relate rel to unrelsmt across R484;
   else
     // TODO bad
@@ -2468,11 +2468,11 @@ relate unrelsmt to form_expr across R483;
 form_var = ::getVariableInScope(smt:smt, name:form_v_var.Name);
 form_type = ::getTypeReferenceForV_VAR(v_var:form_v_var);
 relate form_type to form_expr across R795;
-if ( not_empty form_var ) // cannot declare two variables of the same name in the same scope
+if ( not_empty form_var ) then // cannot declare two variables of the same name in the same scope
   create object instance var_ref of VariableReference;
   relate form_var to var_ref across R782;
   relate var_ref to form_expr across R776;
-elif ( "self" == form_v_var.Name )
+elif ( "self" == form_v_var.Name ) then
   // create named reference
   create object instance self_ref of NamedReference;
   relate self_ref to form_expr across R776;
@@ -2488,11 +2488,11 @@ relate unrelsmt to part_expr across R482;
 part_var = ::getVariableInScope(smt:smt, name:part_v_var.Name);
 part_type = ::getTypeReferenceForV_VAR(v_var:part_v_var);
 relate part_type to part_expr across R795;
-if ( not_empty part_var ) // cannot declare two variables of the same name in the same scope
+if ( not_empty part_var ) then // cannot declare two variables of the same name in the same scope
   create object instance var_ref of VariableReference;
   relate part_var to var_ref across R782;
   relate var_ref to part_expr across R776;
-elif ( "self" == part_v_var.Name )
+elif ( "self" == part_v_var.Name ) then
   // create named reference
   create object instance self_ref of NamedReference;
   relate self_ref to part_expr across R776;
@@ -2558,7 +2558,7 @@ select one act_smt related by act_uru->ACT_SMT[R603];
 // create a statement
 create object instance smt of Statement;
 relate smt to block across R450;
-if ( not_empty prev_smt )
+if ( not_empty prev_smt ) then
   smt.statement_number = STRING::itoa( i:STRING::atoi( s:prev_smt.statement_number ) + 1 );
   relate smt to prev_smt across R477.''executes after'';
 else
@@ -2581,25 +2581,25 @@ other_phrase = "";
 select one link_v_var related by act_uru->V_VAR[R624];
 select one link_o_obj related by link_v_var->V_INT[R814]->O_OBJ[R818];
 select one link_class related by link_o_obj->Class[R409];
-if ( one_o_obj.Obj_ID == other_o_obj.Obj_ID ) // reflexive linked association
+if ( one_o_obj.Obj_ID == other_o_obj.Obj_ID ) then // reflexive linked association
   other_phrase = C_UTIL::stripTics( s:act_uru.relationship_phrase );
   select many oirs related by r_rel->R_OIR[R201] where ( C_UTIL::stripTics( s:act_uru.relationship_phrase ) != ::oirGetPhrase( r_oir_id:selected.OIR_ID ) );
   select any link related by oirs->R_RGO[R203]->R_ASSR[R205];
   select any one_oir from instances of R_OIR where false;
-  for each oir in oirs
-    if ( not_empty link and oir.OIR_ID != link.OIR_ID )
+  for each oir in oirs loop
+    if ( not_empty link and oir.OIR_ID != link.OIR_ID ) then
       one_oir = oir;
       one_phrase = ::oirGetPhrase( r_oir_id:oir.OIR_ID );
       break;
     end if;
   end for;
-  if ( empty one_oir )
+  if ( empty one_oir ) then
     // TODO bad
   end if;
 else // non-reflexive linked association
   select any one_oir related by r_rel->R_OIR[R201] where ( selected.Obj_ID == one_o_obj.Obj_ID );
   select any other_oir related by r_rel->R_OIR[R201] where ( selected.Obj_ID == other_o_obj.Obj_ID );
-  if ( not_empty one_oir and not_empty other_oir )
+  if ( not_empty one_oir and not_empty other_oir ) then
     one_phrase = ::oirGetPhrase( r_oir_id:one_oir.OIR_ID );
     other_phrase = ::oirGetPhrase( r_oir_id:other_oir.OIR_ID );
   else
@@ -2609,7 +2609,7 @@ end if;
 select any rel1 from instances of Relationship where false;
 select any rel2 from instances of Relationship where false;
 containing_comp_def = ::getCompDefForStatement( smt:smt );
-if ( not_empty containing_comp_def and not_empty one_class and not_empty other_class and not_empty link_class )
+if ( not_empty containing_comp_def and not_empty one_class and not_empty other_class and not_empty link_class ) then
   select any rel1 related by containing_comp_def->Relationship[R448]
     where ( selected.num == r_rel.Numb and
       ( selected.form_name == link_class.name and selected.form_phrase == other_phrase and selected.part_name == one_class.name and selected.part_phrase == one_phrase ) );
@@ -2619,7 +2619,7 @@ if ( not_empty containing_comp_def and not_empty one_class and not_empty other_c
 else
   // TODO bad
 end if;
-if ( not_empty rel1 and not_empty rel2 )
+if ( not_empty rel1 and not_empty rel2 ) then
   // create first unrelate statement (one to link)
   create object instance unrelsmt1 of UnrelateSmt;
   relate unrelsmt1 to smt across R451;
@@ -2632,11 +2632,11 @@ if ( not_empty rel1 and not_empty rel2 )
   form_var = ::getVariableInScope(smt:smt, name:link_v_var.Name);
   form_type = ::getTypeReferenceForV_VAR(v_var:link_v_var);
   relate form_type to form_expr1 across R795;
-  if ( not_empty form_var ) // cannot declare two variables of the same name in the same scope
+  if ( not_empty form_var ) then // cannot declare two variables of the same name in the same scope
     create object instance var_ref of VariableReference;
     relate form_var to var_ref across R782;
     relate var_ref to form_expr1 across R776;
-  elif ( "self" == link_v_var.Name )
+  elif ( "self" == link_v_var.Name ) then
     // create named reference
     create object instance self_ref of NamedReference;
     relate self_ref to form_expr1 across R776;
@@ -2652,11 +2652,11 @@ if ( not_empty rel1 and not_empty rel2 )
   part_var = ::getVariableInScope(smt:smt, name:one_v_var.Name);
   part_type = ::getTypeReferenceForV_VAR(v_var:one_v_var);
   relate part_type to part_expr1 across R795;
-  if ( not_empty part_var ) // cannot declare two variables of the same name in the same scope
+  if ( not_empty part_var ) then // cannot declare two variables of the same name in the same scope
     create object instance var_ref of VariableReference;
     relate part_var to var_ref across R782;
     relate var_ref to part_expr1 across R776;
-  elif ( "self" == one_v_var.Name )
+  elif ( "self" == one_v_var.Name ) then
     // create named reference
     create object instance self_ref of NamedReference;
     relate self_ref to part_expr1 across R776;
@@ -2680,11 +2680,11 @@ if ( not_empty rel1 and not_empty rel2 )
   relate unrelsmt2 to form_expr2 across R483;
   relate form_type to form_expr2 across R795;
   form_var = ::getVariableInScope(smt:smt, name:link_v_var.Name);
-  if ( not_empty form_var ) // cannot declare two variables of the same name in the same scope
+  if ( not_empty form_var ) then // cannot declare two variables of the same name in the same scope
     create object instance var_ref of VariableReference;
     relate form_var to var_ref across R782;
     relate var_ref to form_expr2 across R776;
-  elif ( "self" == link_v_var.Name )
+  elif ( "self" == link_v_var.Name ) then
     // create named reference
     create object instance self_ref of NamedReference;
     relate self_ref to form_expr2 across R776;
@@ -2700,11 +2700,11 @@ if ( not_empty rel1 and not_empty rel2 )
   part_var = ::getVariableInScope(smt:smt, name:other_v_var.Name);
   part_type = ::getTypeReferenceForV_VAR(v_var:other_v_var);
   relate part_type to part_expr2 across R795;
-  if ( not_empty part_var ) // cannot declare two variables of the same name in the same scope
+  if ( not_empty part_var ) then // cannot declare two variables of the same name in the same scope
     create object instance var_ref of VariableReference;
     relate part_var to var_ref across R782;
     relate var_ref to part_expr2 across R776;
-  elif ( "self" == other_v_var.Name )
+  elif ( "self" == other_v_var.Name ) then
     // create named reference
     create object instance self_ref of NamedReference;
     relate self_ref to part_expr2 across R776;
@@ -2778,23 +2778,23 @@ select one smt related by invocation->Expression[R776]->Statement[R775];
 select any expr from instances of Expression where false;
 
 select one v_val related by v_par->V_VAL[R800];
-if ( not_empty v_val )
+if ( not_empty v_val ) then
   ::transformExpression(v_val:v_val, expr_number:expr_number, smt:smt);
   select any expr related by smt->Expression[R775] where (selected.expression_number == expr_number);
 else
   // TODO bad
 end if;
 
-if ( not_empty expr )
+if ( not_empty expr ) then
 
   // create the actual parameter
   create object instance act_parm of ActualParameter;
   relate act_parm to expr across R794;
   relate invocation to act_parm across R793;
-  if (not_empty parm)
+  if (not_empty parm) then
     relate act_parm to parm across R3904;
   end if;
-  if (not_empty prev_act_parm)
+  if (not_empty prev_act_parm) then
     relate prev_act_parm to act_parm across R3905.''precedes'';
   end if;
 
@@ -2898,7 +2898,7 @@ base_num = param.base_num;
 // get first formal parameter
 select any parm related by invocation->InvocableObject[R792]->FormalParameter[R429];
 select one prev_parm related by parm->FormalParameter[R404.''follows''];
-while ( not_empty prev_parm )
+while ( not_empty prev_parm ) loop
   parm = prev_parm;
   select one prev_parm related by parm->FormalParameter[R404.''follows''];
 end while;
@@ -2906,7 +2906,7 @@ end while;
 // get the last parameter in the current list
 select any prev_act_parm related by invocation->ActualParameter[R793];
 select one prev_prev_act_parm related by prev_act_parm->ActualParameter[R3905.''follows''];
-while not_empty prev_prev_act_parm
+while not_empty prev_prev_act_parm loop
   prev_act_parm = prev_prev_act_parm;
   select one prev_prev_act_parm related by prev_act_parm->ActualParameter[R3905.''follows''];
 end while;
@@ -2914,9 +2914,9 @@ end while;
 // transform each parameter
 num = base_num;
 select any v_par from instances of V_PAR where false;
-while ( not_empty parm )
-  for each par in v_pars
-    if ( "p_" + par.Name == parm.name )
+while ( not_empty parm ) loop
+  for each par in v_pars loop
+    if ( "p_" + par.Name == parm.name ) then
       v_par = par;
       break;
     end if;
@@ -2987,13 +2987,13 @@ INSERT INTO S_SYNC
 	'',
 	'upper_block = param.upper_block;
 act_blk = param.act_blk;
-if (not_empty act_blk)
+if (not_empty act_blk) then
 
   invocable = param.invocable;
 
   // create code block
   create object instance block of CodeBlock;
-  if ( empty upper_block )
+  if ( empty upper_block ) then
     block.top_level = true;
   else
     select one invocable related by upper_block->InvocableObject[R4000];
@@ -3005,7 +3005,7 @@ if (not_empty act_blk)
 
   // copy visibile variables from upper block
   select many vars related by upper_block->VariableInScope[R458];
-  for each var in vars
+  for each var in vars loop
 		create object instance var_in_scope of VariableInScope;
 		var_in_scope.distance = var.distance + 1;
 		select one var_decl related by var->Variable[R458];
@@ -3099,7 +3099,7 @@ relate block to upper_block across R498.''contained by'';
 
 // copy visibile variables from upper block
 select many vars related by upper_block->VariableInScope[R458];
-for each var in vars
+for each var in vars loop
 	create object instance var_in_scope of VariableInScope;
 	var_in_scope.distance = var.distance + 1;
 	select one var_decl related by var->Variable[R458];
@@ -3185,11 +3185,11 @@ INSERT INTO S_SYNC
 	'',
 	'invocable = param.invocable;
 select one act_act related by invocable->ACT_ACT[R432];
-if ( not_empty act_act and not_empty invocable )
+if ( not_empty act_act and not_empty invocable ) then
     
   // check if deferred operation
   select one deferral related by act_act->ACT_OPB[R698]->O_TFR[R696]->O_DEF[R126];
-  if (not_empty deferral and STRING::indexof(haystack:invocable.name, needle:"_supertype_") != 0)
+  if (not_empty deferral and STRING::indexof(haystack:invocable.name, needle:"_supertype_") != 0) then
     ::transformDeferral(invocable:invocable, deferral:deferral);
   else
     select any upper_block from instances of CodeBlock where false;
@@ -3231,127 +3231,127 @@ INSERT INTO S_SYNC
 	'act_smt = param.act_smt;
 block = param.block;
 prev_smt = param.prev_smt;
-if ( empty act_smt or empty block )
+if ( empty act_smt or empty block ) then
   // TODO bad
 end if;
 
 select one act_brg related by act_smt->ACT_BRG[R603];
-if ( not_empty act_brg )
+if ( not_empty act_brg ) then
   ::transformBridgeInvocation( act_brg:act_brg, block:block, prev_smt:prev_smt );
   
 else
 select one act_fnc related by act_smt->ACT_FNC[R603];
-if ( not_empty act_fnc )
+if ( not_empty act_fnc ) then
   ::transformFunctionInvocation( act_fnc:act_fnc, block:block, prev_smt:prev_smt );
   
 else
 select one act_tfm related by act_smt->ACT_TFM[R603];
-if ( not_empty act_tfm )
+if ( not_empty act_tfm ) then
   ::transformOperationInvocation( act_tfm:act_tfm, block:block, prev_smt:prev_smt );
   
 else
 select one act_sgn related by act_smt->ACT_SGN[R603];
-if ( not_empty act_sgn )
+if ( not_empty act_sgn ) then
   ::transformSignalInvocation( act_sgn:act_sgn, block:block, prev_smt:prev_smt );
   
 else
 select one act_if related by act_smt->ACT_IF[R603];
-if ( not_empty act_if )
+if ( not_empty act_if ) then
   ::transformIfStatement( act_if:act_if, block:block, prev_smt:prev_smt );
   
 else
 select one act_whl related by act_smt->ACT_WHL[R603];
-if ( not_empty act_whl )
+if ( not_empty act_whl ) then
   ::transformWhileStatement( act_whl:act_whl, block:block, prev_smt:prev_smt );
   
 else
 select one act_brk related by act_smt->ACT_BRK[R603];
-if ( not_empty act_brk )
+if ( not_empty act_brk ) then
   ::transformBreakStatement( act_brk:act_brk, block:block, prev_smt:prev_smt );
 
 else
 select one act_con related by act_smt->ACT_CON[R603];
-if ( not_empty act_con )
+if ( not_empty act_con ) then
   ::transformContinueStatement( act_con:act_con, block:block, prev_smt:prev_smt );
 
 else
 select one act_ai related by act_smt->ACT_AI[R603];
-if ( not_empty act_ai )
+if ( not_empty act_ai ) then
   ::transformAssignToMember( act_ai:act_ai, block:block, prev_smt:prev_smt );
 
 else
 select one act_for related by act_smt->ACT_FOR[R603];
-if ( not_empty act_for )
+if ( not_empty act_for ) then
   ::transformForStatement( act_for:act_for, block:block, prev_smt:prev_smt );
 
 else
 select one act_fio related by act_smt->ACT_FIO[R603];
-if ( not_empty act_fio )
+if ( not_empty act_fio ) then
   ::transformSelectFromInstances( act_fio:act_fio, block:block, prev_smt:prev_smt );
 
 else
 select one act_fiw related by act_smt->ACT_FIW[R603];
-if ( not_empty act_fiw )
+if ( not_empty act_fiw ) then
   ::transformSelectFromInstancesWhere( act_fiw:act_fiw, block:block, prev_smt:prev_smt );
 
 else
 select one act_sel related by act_smt->ACT_SEL[R603];
-if ( not_empty act_sel )
+if ( not_empty act_sel ) then
   ::transformSelect( act_sel:act_sel, block:block, prev_smt:prev_smt );
 
 else 
 select one act_cr related by act_smt->ACT_CR[R603];
-if ( not_empty act_cr )
+if ( not_empty act_cr ) then
   ::transformCreate( act_cr:act_cr, block:block, prev_smt:prev_smt );
 
 else
 select one act_cnv related by act_smt->ACT_CNV[R603];
-if ( not_empty act_cnv )
+if ( not_empty act_cnv ) then
   ::transformCreateNoVariable( act_cnv:act_cnv, block:block, prev_smt:prev_smt );
  
 else
 select one act_ctl related by act_smt->ACT_CTL[R603];
-if ( not_empty act_ctl )
+if ( not_empty act_ctl ) then
   ::transformControl( act_ctl:act_ctl, block:block, prev_smt:prev_smt );
 
 else
 select one act_del related by act_smt->ACT_DEL[R603];
-if ( not_empty act_del )
+if ( not_empty act_del ) then
   ::transformDelete( act_del:act_del, block:block, prev_smt:prev_smt );
 
 else
 select one act_ret related by act_smt->ACT_RET[R603];
-if ( not_empty act_ret )
+if ( not_empty act_ret ) then
   ::transformReturnStatement( act_ret:act_ret, block:block, prev_smt:prev_smt );
 
 else
 select one act_rel related by act_smt->ACT_REL[R603];
-if ( not_empty act_rel )
+if ( not_empty act_rel ) then
   ::transformRelate( act_rel:act_rel, block:block, prev_smt:prev_smt );
 
 else
 select one act_ru related by act_smt->ACT_RU[R603];
-if ( not_empty act_ru )
+if ( not_empty act_ru ) then
   ::transformRelateUsing( act_ru:act_ru, block:block, prev_smt:prev_smt );
 
 else
 select one act_unr related by act_smt->ACT_UNR[R603];
-if ( not_empty act_unr )
+if ( not_empty act_unr ) then
   ::transformUnrelate( act_unr:act_unr, block:block, prev_smt:prev_smt );
 
 else
 select one act_uru related by act_smt->ACT_URU[R603];
-if ( not_empty act_uru )
+if ( not_empty act_uru ) then
   ::transformUnrelateUsing( act_uru:act_uru, block:block, prev_smt:prev_smt );
   
 else
 select one e_ess related by act_smt->E_ESS[R603];
-if ( not_empty e_ess )
+if ( not_empty e_ess ) then
   ::transformEventSpecificationStatement( e_ess:e_ess, block:block, prev_smt:prev_smt );
 
 else
 select one e_gpr related by act_smt->E_GPR[R603];
-if ( not_empty e_gpr )
+if ( not_empty e_gpr ) then
   LOG::LogFailure(message:"Generate pre-existing event is not supported");
 
 else
@@ -3417,18 +3417,18 @@ block = param.block;
 // forwards (gah).
 select any act_smt from instances of ACT_SMT where false;
 select many act_smts related by act_blk->ACT_SMT[R602];
-for each smt in act_smts
-  if ( empty act_smt )
+for each smt in act_smts loop
+  if ( empty act_smt ) then
     act_smt = smt;
   else
-    if ( smt.LineNumber < act_smt.LineNumber or smt.LineNumber == act_smt.LineNumber and smt.StartPosition < act_smt.StartPosition )
+    if ( smt.LineNumber < act_smt.LineNumber or smt.LineNumber == act_smt.LineNumber and smt.StartPosition < act_smt.StartPosition ) then
       act_smt = smt;
     end if;
   end if;
 end for;
 
 prev_smt = ::lastStatementInBlock(block:block);
-while ( not_empty act_smt )
+while ( not_empty act_smt ) loop
   // transform the statement
   ::transformStatement( act_smt:act_smt, block:block, prev_smt:prev_smt );
   
@@ -3443,7 +3443,7 @@ while ( not_empty act_smt )
   
   // skip remaining statements if previous statement causes exit
   exiting_statement = ::getExitingStatement(block:block);
-  if not_empty act_smt and not_empty exiting_statement
+  if not_empty act_smt and not_empty exiting_statement then
     select one invocable related by block->InvocableObject[R4000];
     ::semanticWarning(invocable:invocable, line_number:prev_smt.line_number, message:"Warning! Skipping unreachable statements after block exiting statement");
     return;
@@ -3503,7 +3503,7 @@ relate sel_rel to sel across R789;
 select any base_expr from instances of Expression where false;
 select one prev_lnk related by act_lnk->ACT_LNK[R604.''succeeds''];
 select any base_class from instances of Class where false;
-if ( not_empty prev_lnk )
+if ( not_empty prev_lnk ) then
   ::transformSelectionLink( act_lnk:prev_lnk, expr_number:expr_number + ".1", smt:smt );
   select any base_expr related by smt->Expression[R775] where ( selected.expression_number == expr_number + ".1" );
   relate base_expr to sel_rel across R791;
@@ -3520,7 +3520,7 @@ end if;
 select one base_expr_stream_type related by base_expr->TypeReference[R795]->StreamTypeReference[R3801];
 select one target_class related by act_lnk->O_OBJ[R678]->Class[R409];
 select any type from instances of TypeReference where false;
-if not_empty base_expr_stream_type or ::act_lnkGetMult( act_lnk:act_lnk ) == Mult::MANY
+if not_empty base_expr_stream_type or ::act_lnkGetMult( act_lnk:act_lnk ) == Mult::MANY then
   type = ::getObjectStreamReference(obj:target_class);
 else
   type = ::getObjectReference(obj:target_class);
@@ -3530,28 +3530,28 @@ relate type to expr across R795;
 // get the selector
 select one r_rel related by act_lnk->R_REL[R681];
 phrase = C_UTIL::stripTics( s:act_lnk.Rel_Phrase );
-if ( "" == phrase ) // if the phrase is not included, may need to get the phrase for getting the selector
+if ( "" == phrase ) then // if the phrase is not included, may need to get the phrase for getting the selector
   select any relationship from instances of Relationship where ( selected.num == r_rel.Numb and
                                                                  selected.form_name == target_class.name and
                                                                  selected.part_name == base_class.name ); // if no phrase was included, the target and base class must be different
-  if ( not_empty relationship )
+  if ( not_empty relationship ) then
     phrase = relationship.form_phrase;
   else
     select any relationship from instances of Relationship where ( selected.num == r_rel.Numb and
                                                                    selected.form_name == base_class.name and
                                                                    selected.part_name == target_class.name );
-    if ( not_empty relationship )
+    if ( not_empty relationship ) then
       phrase = relationship.part_phrase;
     end if;
   end if;
 end if;
 selector_name = "R" + STRING::itoa( i:r_rel.Numb ) + "_";
-if ( "" != phrase )
+if ( "" != phrase ) then
   selector_name = selector_name + T::sub( format:"_", s:phrase ) + "_";
 end if;
 selector_name = selector_name + target_class.name;
 select any selector related by base_class->Selector[R442] where ( selected.name == selector_name );
-if ( not_empty selector )
+if ( not_empty selector ) then
   relate selector to sel_rel across R797;
 else
   // TODO bad
@@ -3609,27 +3609,27 @@ INSERT INTO S_SYNC
 	'smt = param.smt;
 
 select many declared_vars related by smt->Variable[R457];
-for each declared_var in declared_vars
+for each declared_var in declared_vars loop
   select many var_refs related by declared_var->VariableReference[R782] where ( selected.block_number == smt.block_number and selected.statement_number == smt.statement_number );
   select any earliest_var_ref from instances of VariableReference where false;
-  for each var_ref in var_refs
-    if ( empty earliest_var_ref or var_ref.expression_number < earliest_var_ref.expression_number )
+  for each var_ref in var_refs loop
+    if ( empty earliest_var_ref or var_ref.expression_number < earliest_var_ref.expression_number ) then
       earliest_var_ref = var_ref;
     end if;
   end for;
-  if ( not_empty earliest_var_ref )
+  if ( not_empty earliest_var_ref ) then
     earliest_var_ref.declaration = true;
   end if;
 end for;
 
 select many array_vars related by smt->Expression[R775]->IndexedCollectionReference[R776]->Expression[R3900]->VariableReference[R776]->Variable[R782];
-for each array_var in array_vars
+for each array_var in array_vars loop
   select one declaring_smt related by array_var->Statement[R457];
-  if ( smt.block_number == declaring_smt.block_number and smt.statement_number == declaring_smt.statement_number ) // variable was declared in this statement
+  if ( smt.block_number == declaring_smt.block_number and smt.statement_number == declaring_smt.statement_number ) then // variable was declared in this statement
     select many array_refs related by array_var->VariableReference[R782]->Expression[R776]->IndexedCollectionReference[R3900] where ( selected.block_number == smt.block_number and selected.statement_number == smt.statement_number );
     select any earliest_array_ref from instances of IndexedCollectionReference where false;
-    for each array_ref in array_refs
-      if ( empty earliest_array_ref or array_ref.expression_number < earliest_array_ref.expression_number )
+    for each array_ref in array_refs loop
+      if ( empty earliest_array_ref or array_ref.expression_number < earliest_array_ref.expression_number ) then
         earliest_array_ref = array_ref;
       end if;
     end for;
@@ -3642,7 +3642,7 @@ for each array_var in array_vars
     T::pop_buffer();
     // no longer need to mark the first reference as a declaration
     select many var_refs related by array_var->VariableReference[R782] where ( selected.block_number == smt.block_number and selected.statement_number == smt.statement_number );
-    for each var_ref in var_refs
+    for each var_ref in var_refs loop
       var_ref.declaration = false;
     end for;
   end if;
@@ -3678,12 +3678,12 @@ prev_smt = param.prev_smt;
 select one act_smt related by e_ess->ACT_SMT[R603];
 
 select one e_ges related by e_ess->E_GES[R701];
-if (not_empty e_ges)
+if (not_empty e_ges) then
 
   // create a statement
   create object instance smt of Statement;
   relate smt to block across R450;
-  if (not_empty prev_smt)
+  if (not_empty prev_smt) then
     smt.statement_number = STRING::itoa(i:STRING::atoi(s:prev_smt.statement_number) + 1);
     relate smt to prev_smt across R477.''executes after'';
   else
@@ -3718,16 +3718,16 @@ if (not_empty e_ges)
   relate target_expr to smt across R775;
   target_expr.expression_number = "2";
   relate target_expr to gen_smt across R487;
-  if (not_empty target_v_var)
+  if (not_empty target_v_var) then
     select one target_obj related by target_v_var->V_INT[R814]->O_OBJ[R818]->Class[R409];
     target_type = ::getObjectReference(obj:target_obj);
     relate target_type to target_expr across R795;
     target_var = ::getVariableInScope(smt:smt, name:target_v_var.Name);
-    if (not_empty target_var)
+    if (not_empty target_var) then
       create object instance var_ref of VariableReference;
       relate target_var to var_ref across R782;
       relate var_ref to target_expr across R776;
-    elif (target_v_var.Name == "self")
+    elif (target_v_var.Name == "self") then
       // create named reference
       create object instance self_ref of NamedReference;
       relate self_ref to target_expr across R776;
@@ -3821,7 +3821,7 @@ relate block to invocable across R4000;
 block.block_number = "1";
 
 // create an invocation for each subtype
-for each subtype in subtypes
+for each subtype in subtypes loop
 
   // create a select statement
   create object instance smt of Statement;
@@ -3848,9 +3848,9 @@ for each subtype in subtypes
   l_op.expression_number = "1.1";
   select any subtype_invocable related by subtype->O_TFR[R115]->ACT_OPB[R696]->ACT_ACT[R698]->InvocableObject[R432] where (selected.name == invocable.name);
   target_invocable = subtype_invocable;
-  if (empty subtype_invocable and deferral.required == 1)  // deferral is optional
+  if (empty subtype_invocable and deferral.required == 1) then  // deferral is optional
     select any target_invocable related by invocable->Operation[R427]->Class[R416]->Operation[R416]->InvocableObject[R427] where (selected.name == "_supertype_" + invocable.name);
-  elif (empty subtype_invocable and deferral.required != 1)
+  elif (empty subtype_invocable and deferral.required != 1) then
     LOG::LogFailure(message:"Could not find matching operation: " + invocable.name + " for subtype: " + subtype.Name);
   end if;
   select one select_class related by subtype->Class[R409];
@@ -3902,7 +3902,7 @@ for each subtype in subtypes
                                                                  selected.part_name == self_class.name ); // if no phrase was included, the target and base class must be different
   selector_name = "R" + STRING::itoa( i:r_rel.Numb ) + "_is_a_" + select_class.name;
   select any selector related by self_class->Selector[R442] where ( selected.name == selector_name );
-  if ( not_empty selector )
+  if ( not_empty selector ) then
     relate selector to sel_rel across R797;
   else
     // TODO bad
@@ -3977,7 +3977,7 @@ for each subtype in subtypes
   create object instance invoc of Invocation;
   relate invoc to invoc_expr across R776;
   relate invoc to target_invocable across R792;
-  if (empty subtype_invocable and deferral.required == 1)  // deferral is optional
+  if (empty subtype_invocable and deferral.required == 1) then  // deferral is optional
     // create named reference
     create object instance self_expr of Expression;
     relate self_expr to smt3 across R775;
@@ -4003,11 +4003,11 @@ for each subtype in subtypes
   select any prev_actual_parameter from instances of ActualParameter where false;
   select any formal_parameter related by target_invocable->FormalParameter[R429];
   select one prev_formal_parameter related by formal_parameter->FormalParameter[R404.''follows''];
-  while (not_empty prev_formal_parameter)
+  while (not_empty prev_formal_parameter) loop
     formal_parameter = prev_formal_parameter;
     select one prev_formal_parameter related by formal_parameter->FormalParameter[R404.''follows''];
   end while;
-  while (not_empty formal_parameter)
+  while (not_empty formal_parameter) loop
     // create parameter reference
     select any referenced_formal_parameter related by invocable->FormalParameter[R429] where (selected.name == formal_parameter.name);
     create object instance param_ref_expr of Expression;
@@ -4023,14 +4023,14 @@ for each subtype in subtypes
     relate act_parm to param_ref_expr across R794;
     relate invoc to act_parm across R793;
     relate formal_parameter to act_parm across R3904;
-    if (not_empty prev_actual_parameter)
+    if (not_empty prev_actual_parameter) then
       relate prev_actual_parameter to act_parm across R3905.''precedes'';
     end if;
     base_num = base_num + 1;
     prev_actual_parameter = act_parm;
     select one formal_parameter related by formal_parameter->FormalParameter[R404.''precedes''];
   end while;
-  if (returns_value)
+  if (returns_value) then
     // create return statement
     create object instance ret_smt of ReturnSmt;
     relate ret_smt to smt3 across R451;
@@ -4120,7 +4120,7 @@ v_pars = param.v_pars;
 base_num = param.base_num;
 
 expr_number = "";
-if not_empty expr
+if not_empty expr then
   expr_number = expr.expression_number;
 end if;
 
@@ -4131,23 +4131,23 @@ order = 1;
 // loop through event formal parameters in order and find a matching actual parameter
 select any formal_param related by evt->InvocableObject[R427]->FormalParameter[R429];
 select one prev_formal_param related by formal_param->FormalParameter[R404.''follows''];
-while not_empty prev_formal_param
+while not_empty prev_formal_param loop
   formal_param = prev_formal_param;
   select one prev_formal_param related by formal_param->FormalParameter[R404.''follows''];
 end while;
-while not_empty formal_param
+while not_empty formal_param loop
   
   // wish there was a better way in OAL...
   select any v_par from instances of V_PAR where false;
-  for each v_par in v_pars
-    if "p_" + v_par.Name == formal_param.name;
+  for each v_par in v_pars loop
+    if "p_" + v_par.Name == formal_param.name then;
       break;
     end if;
   end for;
   
   // transform the expression
   select one v_val related by v_par->V_VAL[R800];
-  if (expr_number != "")
+  if (expr_number != "") then
     expr_number = expr_number + ".";
   end if;
   expr_number = expr_number + STRING::itoa(i:base_num);
@@ -4155,12 +4155,12 @@ while not_empty formal_param
   select any expr related by smt->Expression[R775] where selected.expression_number == expr_number;
   
   // relate to the statement
-  if not_empty generate_smt
+  if not_empty generate_smt then
 		create object instance evt_arg of GenerateEventArgument;
 		evt_arg.order = order;
 		relate evt_arg to formal_param across R553;
 		relate expr to generate_smt across R488 using evt_arg;
-	elif not_empty schedule_expr
+	elif not_empty schedule_expr then
 		create object instance evt_arg of ScheduleEventArgument;
 		evt_arg.order = order;
 		relate evt_arg to formal_param across R3930;
@@ -4255,13 +4255,13 @@ block = param.block;
 // ignore the deprecated event type and references to "self"
 select any evt_dt from instances of S_DT where selected.Name == "inst<Event>";
 select many v_vars related by act_blk->V_VAR[R823] where selected.DT_ID != evt_dt.DT_ID and selected.Name != "self";
-for each v_var in v_vars
+for each v_var in v_vars loop
   
   // create a statement
   prev_smt = ::lastStatementInBlock(block:block);
   create object instance smt of Statement;
   relate smt to block across R450;
-  if (not_empty prev_smt)
+  if (not_empty prev_smt) then
     smt.statement_number = STRING::itoa(i:STRING::atoi(s:prev_smt.statement_number) + 1);
     relate smt to prev_smt across R477.''executes after'';
   else

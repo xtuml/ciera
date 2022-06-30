@@ -24,9 +24,9 @@ operator = self.operator;
 
 // check if a utility class is needed
 use_util = false;
-if self.invocation
+if self.invocation then
   select one lhs_builtin related by left_operand->TypeReference[R795]->Type[R3800]->BuiltInType[R407];
-  if not_empty lhs_builtin and lhs_builtin.java_builtin and lhs_builtin.name != "String"
+  if not_empty lhs_builtin and lhs_builtin.java_builtin and lhs_builtin.name != "String" then
     use_util = true;
     operator = lhs_builtin.object_name + "Util." + operator;
     ::addStringImport(package:"io.ciera.runtime.api.types", class_name:lhs_builtin.object_name + "Util");
@@ -36,11 +36,11 @@ end if;
 right_operand_body = "";
 
 // special rules for assignments
-if self.operator == "="
+if self.operator == "=" then
 
   // for attribute accesses on the left hand side, the operator is the name of the setter
   select one attr_access related by left_operand->AttributeAccess[R776];
-  if not_empty attr_access
+  if not_empty attr_access then
     select any accessor related by attr_access->Attribute[R788]->AttributeAccessor[R4510]
       where selected.accessor_type == AttributeAccessorType::SETTER;
     operator = accessor.getName();
@@ -51,7 +51,7 @@ if self.operator == "="
 
   // for structure member references on the left hand side, the operator is the name of the setter
   select one member_reference related by left_operand->StructureMemberReference[R776];
-  if not_empty member_reference
+  if not_empty member_reference then
     operator = "set" + T::sub(format:"c", s:member_reference.member_name);
     self.invocation = true;
     use_util = false;
@@ -61,7 +61,7 @@ if self.operator == "="
   // for by ref param accesses on the left hand side, the operator is the name of the setter
   select one param_ref related by left_operand->ParameterReference[R776];
   select one form_param related by param_ref->FormalParameter[R781];
-  if not_empty param_ref and form_param.by_ref
+  if not_empty param_ref and form_param.by_ref then
     operator = "set";
     self.invocation = true;
     use_util = false;
@@ -73,14 +73,14 @@ if self.operator == "="
   select one var_ref related by left_operand->VariableReference[R776];
   select any by_ref_param related by var_ref->Variable[R782]->VariableReference[R782]->Expression[R776]
     ->ActualParameter[R794]->FormalParameter[R3904] where selected.by_ref;
-  if not_empty var_ref and not_empty by_ref_param and not var_ref.declaration
+  if not_empty var_ref and not_empty by_ref_param and not var_ref.declaration then
     operator = "set";
     self.invocation = true;
     use_util = false;
 
   // properly set the initial value for local variables which will be eventually
   // passed by reference
-  elif not_empty var_ref and not_empty by_ref_param and var_ref.declaration
+  elif not_empty var_ref and not_empty by_ref_param and var_ref.declaration then
     ::addStringImport(package:"io.ciera.runtime.domain", class_name:"LocalVariable");
     right_operand.render();
     base_expr = T::body();
@@ -95,13 +95,13 @@ left_operand.render();
 left_operand_body = T::body();
 
 // render right operand
-if right_operand_body == ""
+if right_operand_body == "" then
 	right_operand.render();
 	right_operand_body = T::body();
 end if;
 
 // for assignments, convert the right hand operand to the left hand operand type
-if self.operator == "="
+if self.operator == "=" then
   select one expr related by self->Expression[R776];
   TypeConversion::render_from_type(expr:expr, base_expr:right_operand_body, input_type_ref:right_type_ref, output_type_ref:left_type_ref);
   right_operand_body = T::body();

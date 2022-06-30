@@ -24,7 +24,7 @@ root_expression_body = T::body();
 // Check if the base type is a collection. If so, convert to a stream.
 select one base_type_ref related by base_expression->TypeReference[R795];
 select one base_collection related by base_type_ref->CollectionTypeReference[R3801];
-if not_empty base_collection
+if not_empty base_collection then
   stream_type = ::getBasicTypeReferenceByName(name:"Stream");
   select one expr related by self->SelectExpr[R789]->Expression[R776];
   TypeConversion::render_from_type(expr:expr, base_expr:root_expression_body, input_type_ref:base_type_ref, output_type_ref:stream_type);
@@ -37,11 +37,11 @@ select one selector related by self->Selector[R797];
 multiplicity_many = selector.multiplicity == Mult::MANY;
 select one base_stream_type related by base_expression->TypeReference[R795]->StreamTypeReference[R3801];
 set_select = not_empty base_stream_type;
-if (set_select)
+if (set_select) then
   ::addStringImport(package:"io.ciera.runtime.api.domain", class_name:"ObjectInstance");
 end if;
 select one correlated_expression related by self->Expression[R3926];
-if not_empty correlated_expression
+if not_empty correlated_expression then
   T::push_buffer();
 
   // render the correlated expression
@@ -51,7 +51,7 @@ if not_empty correlated_expression
 	// Check if the type is a collection. If so, convert to a stream.
 	select one correlated_type_ref related by correlated_expression->TypeReference[R795];
 	select one correlated_collection related by correlated_type_ref->CollectionTypeReference[R3801];
-	if not_empty correlated_collection
+	if not_empty correlated_collection then
 		stream_type = ::getBasicTypeReferenceByName(name:"Stream");
 		select one expr related by self->SelectExpr[R789]->Expression[R776];
 		TypeConversion::render_from_type(expr:expr, base_expr:correlated_expression_body, input_type_ref:correlated_type_ref, output_type_ref:stream_type);

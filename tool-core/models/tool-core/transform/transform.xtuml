@@ -91,7 +91,7 @@ INSERT INTO S_SYNC
 // links.
 
 select many act_lnks from instances of ACT_LNK;
-for each act_lnk in act_lnks
+for each act_lnk in act_lnks loop
   
   select one r_rel related by act_lnk->R_REL[R681];
   select one r_aoth related by r_rel->R_ASSOC[R206]->R_AOTH[R210];
@@ -104,17 +104,17 @@ for each act_lnk in act_lnks
   select any v_ins from instances of V_INS where false;
   select one prev_lnk related by act_lnk->ACT_LNK[R604.''succeeds'']; // previous link
   select one base_obj related by prev_lnk->O_OBJ[R678];
-  if ( empty base_obj )
+  if ( empty base_obj ) then
     select one v_int related by act_lnk->ACT_SEL[R637]->V_VAL[R613]->V_IRF[R801]->V_VAR[R808]->V_INT[R814]; // instance reference
     select one base_obj related by v_int->O_OBJ[R818];
-    if ( empty base_obj )
+    if ( empty base_obj ) then
       select one v_ins related by act_lnk->ACT_SEL[R637]->V_VAL[R613]->V_ISR[R801]->V_VAR[R809]->V_INS[R814]; // instance reference set
       select one base_obj related by v_ins->O_OBJ[R819];
     end if;
   end if;
   
   // if this is an associative selection in which the link class is _not_ involved, it must be split up
-  if ( not_empty r_assr and target_obj.Obj_ID != r_assr.Obj_ID and base_obj.Obj_ID != r_assr.Obj_ID )
+  if ( not_empty r_assr and target_obj.Obj_ID != r_assr.Obj_ID and base_obj.Obj_ID != r_assr.Obj_ID ) then
   
     // create the first intermediate link
     create object instance act_lnk1 of ACT_LNK;
@@ -127,12 +127,12 @@ for each act_lnk in act_lnks
     act_lnk1.Rel_Phrase = act_lnk.Rel_Phrase; // use the same rel phrase
     relate r_rel to act_lnk1 across R681;
     relate act_lnk1 to assr_obj across R678;
-    if ( 1 == r_assr.Mult or ( not_empty prev_lnk and Multiplicity::Many == prev_lnk.Mult ) or not_empty v_ins )
+    if ( 1 == r_assr.Mult or ( not_empty prev_lnk and Multiplicity::Many == prev_lnk.Mult ) or not_empty v_ins ) then
       act_lnk1.Mult = Multiplicity::Many; // always many if the associative object has multiplicity many, or the starting point is multiplicity many
     else
       if ( target_obj.Obj_ID != base_obj.Obj_ID and r_aoth.Obj_ID == target_obj.Obj_ID ) or 
-         ( target_obj.Obj_ID == base_obj.Obj_ID and r_aoth.Txt_Phrs == C_UTIL::stripTics( s:act_lnk.Rel_Phrase ) )  // one to other
-        if ( 1 == r_aoth.Mult )
+         ( target_obj.Obj_ID == base_obj.Obj_ID and r_aoth.Txt_Phrs == C_UTIL::stripTics( s:act_lnk.Rel_Phrase ) ) then  // one to other
+        if ( 1 == r_aoth.Mult ) then
           act_lnk1.Mult = Multiplicity::Many;
         else
           act_lnk1.Mult = Multiplicity::One;
@@ -156,11 +156,11 @@ for each act_lnk in act_lnks
     // link the two together and insert into the order
     relate act_lnk1 to act_lnk2 across R604.''precedes'';
     select one next_lnk related by act_lnk->ACT_LNK[R604.''precedes''];
-    if ( not_empty next_lnk )
+    if ( not_empty next_lnk ) then
       unrelate act_lnk from next_lnk across R604.''precedes'';
       relate act_lnk2 to next_lnk across R604.''precedes'';
     end if;
-    if ( not_empty prev_lnk )
+    if ( not_empty prev_lnk ) then
       unrelate act_lnk from prev_lnk across R604.''succeeds'';
       relate act_lnk1 to prev_lnk across R604.''succeeds'';
     else // this is the starting point
@@ -202,12 +202,12 @@ select any app_pkg_mark from instances of Mark where (selected.markable_name == 
 
 // create the file
 create object instance file of File;
-if (not_empty app_name_mark)
+if (not_empty app_name_mark) then
   file.name = app_name_mark.value;
 else
   file.name = ::camelCaseName(name:s_sys.Name, start_lower:false) + "Application";
 end if;
-if (not_empty app_pkg_mark)
+if (not_empty app_pkg_mark) then
   file.package = app_pkg_mark.value;
   file.path = ::formatPath(path:file.package);
 else
@@ -223,7 +223,7 @@ relate app to file across R401;
 
 // add this application as an export of the module
 select one mod related by root_package->S_SYS[R1405]->Module[R4760];
-if not_empty mod
+if not_empty mod then
   relate app to mod across R5751;
 else
   // TODO bad
@@ -231,7 +231,7 @@ end if;
 
 // check simulated time
 sim_time_mark = PROP::getProperty(key:"io.ciera.EnableSimulatedTime");
-if (sim_time_mark != "")
+if (sim_time_mark != "") then
   LOG::LogInfo(message:"Enabling simulated time");
   app.simulated_time = sim_time_mark;
 end if;
@@ -241,16 +241,16 @@ select many c_cs related by root_package->PE_PE[R8000]->C_C[R8001];
 select many cl_ics related by root_package->PE_PE[R8000]->CL_IC[R8001]->C_C[R4201];
 c_cs = c_cs | cl_ics;
 select any current_comp_inst from instances of ComponentInstantiation where false;
-for each c_c in c_cs
+for each c_c in c_cs loop
   select one comp_def related by c_c->ComponentDefinition[R4573];
-  if empty comp_def
+  if empty comp_def then
     ::transformComponentReference(c_c:c_c);
     select one comp_def related by c_c->ComponentDefinition[R4573];
   end if;
-  if not_empty comp_def
+  if not_empty comp_def then
     create object instance comp_inst of ComponentInstantiation;
     relate  comp_def to app across R426 using comp_inst;
-    if (not_empty current_comp_inst)
+    if (not_empty current_comp_inst) then
       relate comp_inst to current_comp_inst across R4029.''follows'';
       comp_inst.index = current_comp_inst.index + 1;
     else
@@ -264,7 +264,7 @@ end for;
 
 // transform satisfactions
 select many c_sfs related by root_package->PE_PE[R8000]->C_SF[R8001];
-for each c_sf in c_sfs
+for each c_sf in c_sfs loop
   ::transformSatisfaction(c_sf:c_sf);
 end for;',
 	"ba5eda7a-def5-0000-0000-000000000000",
@@ -317,7 +317,7 @@ select one pe related by r_rel->PE_PE[R8001];
 select any assoc_exclude_mark from instances of Mark where ( selected.markable_name == "Association" and
                                                              selected.path == ::containerMarkingPath( pe:pe ) + "::R" + STRING::itoa( i:r_rel.Numb ) and
                                                              selected.feature_name == "Exclude" );
-if ( empty assoc_exclude_mark )
+if ( empty assoc_exclude_mark ) then
   form_phrase = "";
   select any form_class from instances of Class where false;
   form_mult = Mult::ONE;
@@ -329,26 +329,26 @@ if ( empty assoc_exclude_mark )
 
   // determine if this is a simple relationship
   select one r_simp related by r_rel->R_SIMP[R206];
-  if ( not_empty r_simp )
+  if ( not_empty r_simp ) then
 
     select one r_form related by r_simp->R_FORM[R208];
     select one form_class related by r_form->R_RGO[R205]->R_OIR[R203]->O_OBJ[R201]->Class[R409];
-    if ( not_empty form_class )
+    if ( not_empty form_class ) then
       select any r_part related by r_simp->R_PART[R207];
       select one part_class related by r_part->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->Class[R409];
-      if ( not_empty part_class )
+      if ( not_empty part_class ) then
         form_phrase = r_form.Txt_Phrs;
         part_phrase = r_part.Txt_Phrs;
-        if ( 0 != r_form.Mult )
+        if ( 0 != r_form.Mult ) then
           form_mult = Mult::MANY;
         end if;
-        if ( 0 != r_part.Mult )
+        if ( 0 != r_part.Mult ) then
           part_mult = Mult::MANY;
         end if;
-        if ( 0 != r_form.Cond )
+        if ( 0 != r_form.Cond ) then
           form_cond = Cond::CONDITIONAL;
         end if;
-        if ( 0 != r_part.Cond )
+        if ( 0 != r_part.Cond ) then
           part_cond = Cond::CONDITIONAL;
         end if;
       else
@@ -363,8 +363,8 @@ if ( empty assoc_exclude_mark )
       select any r_part2 related by r_simp->R_PART[R207] 
        where ( selected.OIR_ID != r_part1.OIR_ID );
       // assume that r_part2 is a good choice for the ''''form'''' participant
-      if ( r_part1.Mult != 0 )
-      	if ( r_part2.Mult == 0 )	// bad gamble - but reverse will work, so swap sides
+      if ( r_part1.Mult != 0 ) then
+      	if ( r_part2.Mult == 0 ) then	// bad gamble - but reverse will work, so swap sides
 	      	a_part = r_part1;
 	      	r_part1 = r_part2;
 	      	r_part2 = a_part;
@@ -373,9 +373,9 @@ if ( empty assoc_exclude_mark )
       end if;
       select one part_class related by r_part1->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->Class[R409];
       select one form_class related by r_part2->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->Class[R409];
-      if ( not_empty form_class and not_empty part_class )
-      	if ( not decided )
-        	if ( part_class.name > form_class.name )
+      if ( not_empty form_class and not_empty part_class ) then
+      	if ( not decided ) then
+        	if ( part_class.name > form_class.name ) then
 		      	a_part = r_part1;
 		      	r_part1 = r_part2;
 		      	r_part2 = a_part;
@@ -387,16 +387,16 @@ if ( empty assoc_exclude_mark )
         LOG::LogInfo( message:"AM:: xformAssoc - form: " + form_class.name + " part: " + part_class.name );
       	form_phrase = r_part2.Txt_Phrs;
         part_phrase = r_part1.Txt_Phrs;
-        if ( 0 != r_part2.Mult )
+        if ( 0 != r_part2.Mult ) then
           form_mult = Mult::MANY;
         end if;
-        if ( 0 != r_part1.Mult )
+        if ( 0 != r_part1.Mult ) then
           part_mult = Mult::MANY;
         end if;
-        if ( 0 != r_part2.Cond )
+        if ( 0 != r_part2.Cond ) then
           form_cond = Cond::CONDITIONAL;
         end if;
-        if ( 0 != r_part1.Cond )
+        if ( 0 != r_part1.Cond ) then
           part_cond = Cond::CONDITIONAL;
         end if;
       else
@@ -407,7 +407,7 @@ if ( empty assoc_exclude_mark )
     // create the relationship
     create object instance rel of Relationship;
     name = "R" + STRING::itoa( i:r_rel.Numb ) + "_" + form_class.name + "_";
-    if ( "" != part_phrase )
+    if ( "" != part_phrase ) then
       name = name + T::sub( format:"_", s:part_phrase ) + "_";
     end if;
     name = name + part_class.name;
@@ -425,7 +425,7 @@ if ( empty assoc_exclude_mark )
     relate rel to part_class across R434;
 
     select any o_id related by r_simp->R_PART[R207]->R_RTO[R204]->O_ID[R109];
-    if ( not_empty o_id )
+    if ( not_empty o_id ) then
       rel.id_num = o_id.Oid_ID + 1;
     else
       rel.id_num = 0;
@@ -433,13 +433,13 @@ if ( empty assoc_exclude_mark )
 
   else
   select one r_subsup related by r_rel->R_SUBSUP[R206];
-  if ( not_empty r_subsup )
+  if ( not_empty r_subsup ) then
 
     select one part_class related by r_subsup->R_SUPER[R212]->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->Class[R409];
     select many sub_classes related by r_subsup->R_SUB[R213]->R_RGO[R205]->R_OIR[R203]->O_OBJ[R201]->Class[R409];
-    if ( not_empty part_class and not_empty sub_classes )
+    if ( not_empty part_class and not_empty sub_classes ) then
       part_phrase = "is_a";
-      for each form_class in sub_classes
+      for each form_class in sub_classes loop
 
         form_phrase = "is_a";
         form_cond = Cond::CONDITIONAL;
@@ -447,7 +447,7 @@ if ( empty assoc_exclude_mark )
         // create the relationship
         create object instance rel of Relationship;
         name = "R" + STRING::itoa( i:r_rel.Numb ) + "_" + form_class.name + "_";
-        if ( "" != part_phrase )
+        if ( "" != part_phrase ) then
           name = name + part_phrase + "_";
         end if;
         name = name + part_class.name;
@@ -465,14 +465,14 @@ if ( empty assoc_exclude_mark )
         relate rel to part_class across R434;
         
         select one o_id related by r_subsup->R_SUPER[R212]->R_RTO[R204]->O_ID[R109];
-        if ( not_empty o_id )
+        if ( not_empty o_id ) then
           rel.id_num = o_id.Oid_ID + 1;
         else
           rel.id_num = 0;
         end if;
 
         // special case for EP_PKG instances... top level packages do not have a PE_PE instance
-        if ( 8001 == rel.num and "EP_PKG" == rel.form_name )
+        if ( 8001 == rel.num and "EP_PKG" == rel.form_name ) then
           LOG::LogInfo( message:"  Special casing R8001 EP_PKG to PackageableElement" );
           rel.part_cond = Cond::CONDITIONAL;
         end if;
@@ -484,7 +484,7 @@ if ( empty assoc_exclude_mark )
 
   else
   select one r_assoc related by r_rel->R_ASSOC[R206];
-  if ( not_empty r_assoc )
+  if ( not_empty r_assoc ) then
 
     select one r_assr related by r_assoc->R_ASSR[R211];
     select one r_aone related by r_assoc->R_AONE[R209];
@@ -492,13 +492,13 @@ if ( empty assoc_exclude_mark )
 
     select one form_class related by r_assr->R_RGO[R205]->R_OIR[R203]->O_OBJ[R201]->Class[R409];
     select one part_class related by r_aone->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->Class[R409];
-    if ( not_empty form_class and not_empty part_class and not_empty r_aoth )
+    if ( not_empty form_class and not_empty part_class and not_empty r_aoth ) then
       form_phrase = r_aoth.Txt_Phrs;
       part_phrase = r_aone.Txt_Phrs;
-      if ( 0 != r_assr.Mult or 0 != r_aoth.Mult )
+      if ( 0 != r_assr.Mult or 0 != r_aoth.Mult ) then
         form_mult = Mult::MANY;
       end if;
-      if ( 0 != r_aoth.Cond )
+      if ( 0 != r_aoth.Cond ) then
         form_cond = Cond::CONDITIONAL;
       end if;
     else
@@ -508,7 +508,7 @@ if ( empty assoc_exclude_mark )
     // create the first relationship
     create object instance rel1 of Relationship;
     name1 = "R" + STRING::itoa( i:r_rel.Numb ) + "_" + form_class.name + "_";
-    if ( "" != part_phrase )
+    if ( "" != part_phrase ) then
       name1 = name1 + T::sub( format:"_", s:part_phrase ) + "_";
     end if;
     name1 = name1 + part_class.name;
@@ -526,7 +526,7 @@ if ( empty assoc_exclude_mark )
     relate rel1 to part_class across R434;
 
     select one o_id1 related by r_assoc->R_AONE[R209]->R_RTO[R204]->O_ID[R109];
-    if ( not_empty o_id1 )
+    if ( not_empty o_id1 ) then
       rel1.id_num = o_id1.Oid_ID + 1;
     else
       rel1.id_num = 0;
@@ -539,13 +539,13 @@ if ( empty assoc_exclude_mark )
     part_cond = Cond::UNCONDITIONAL;
 
     select one part_class related by r_aoth->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->Class[R409];
-    if ( not_empty form_class and not_empty part_class and not_empty r_aone )
+    if ( not_empty form_class and not_empty part_class and not_empty r_aone ) then
       form_phrase = r_aone.Txt_Phrs;
       part_phrase = r_aoth.Txt_Phrs;
-      if ( 0 != r_assr.Mult or 0 != r_aone.Mult )
+      if ( 0 != r_assr.Mult or 0 != r_aone.Mult ) then
         form_mult = Mult::MANY;
       end if;
-      if ( 0 != r_aone.Cond )
+      if ( 0 != r_aone.Cond ) then
         form_cond = Cond::CONDITIONAL;
       end if;
     else
@@ -555,7 +555,7 @@ if ( empty assoc_exclude_mark )
     // create the second relationship
     create object instance rel2 of Relationship;
     name2 = "R" + STRING::itoa( i:r_rel.Numb ) + "_" + form_class.name + "_";
-    if ( "" != part_phrase )
+    if ( "" != part_phrase ) then
       name2 = name2 + T::sub( format:"_", s:part_phrase ) + "_";
     end if;
     name2 = name2 + part_class.name;
@@ -573,7 +573,7 @@ if ( empty assoc_exclude_mark )
     relate rel2 to part_class across R434;
 
     select one o_id2 related by r_assoc->R_AOTH[R210]->R_RTO[R204]->O_ID[R109];
-    if ( not_empty o_id2 )
+    if ( not_empty o_id2 ) then
       rel2.id_num = o_id2.Oid_ID + 1;
     else
       rel2.id_num = 0;
@@ -638,7 +638,7 @@ obj = param.obj;
 // create the attribute
 create object instance attr of Attribute;
 select one rattr related by o_attr->O_RATTR[R106];
-if (not_empty rattr)
+if (not_empty rattr) then
   attr.name = "ref_" + o_attr.Name;
 else
   attr.name = "m_" + o_attr.Name;
@@ -651,19 +651,19 @@ relate attr to obj across R410;
 // set part of identifier
 attr.identifier = 0;
 select many inst_ids related by o_attr->O_ID[R105];
-for each inst_id in inst_ids
-  if (inst_id.Oid_ID == 0)   attr.identifier = attr.identifier + 1;
-  elif (inst_id.Oid_ID == 1) attr.identifier = attr.identifier + 2;
-  elif (inst_id.Oid_ID == 2) attr.identifier = attr.identifier + 4;
+for each inst_id in inst_ids loop
+  if (inst_id.Oid_ID == 0) then   attr.identifier = attr.identifier + 1;
+  elif (inst_id.Oid_ID == 1) then attr.identifier = attr.identifier + 2;
+  elif (inst_id.Oid_ID == 2) then attr.identifier = attr.identifier + 4;
   end if;
 end for;
 
 // set the type
 select one s_dt related by o_attr->S_DT[R114];
-if ("same_as<Base_Attribute>" == s_dt.Name)
+if ("same_as<Base_Attribute>" == s_dt.Name) then
   select one s_dt related by o_attr->O_RATTR[R106]->O_BATTR[R113]->O_ATTR[R106]->S_DT[R114];
 end if;
-if (empty s_dt)
+if (empty s_dt) then
   // TODO bad
 end if;
 select many s_dims related by o_attr->S_DIM[R120];
@@ -679,7 +679,7 @@ select any transient_mark from instances of Mark where (selected.markable_name =
 attr.transient = not_empty transient_mark or not type.serializable;
 
 // set unique ID attributes to be unique
-if (type.type_reference == "UniqueId")
+if (type.type_reference == "UniqueId") then
   attr.is_unique = true;
 end if;
 
@@ -696,7 +696,7 @@ relate setter to attr across R4510;
 
 // transform derivation
 select one o_dbattr related by o_attr->O_BATTR[R106]->O_DBATTR[R107];
-if (not_empty o_dbattr)
+if (not_empty o_dbattr) then
   create object instance deriv of AttributeDerivation;
   relate deriv to getter across R441;
   // create invocable
@@ -709,7 +709,7 @@ if (not_empty o_dbattr)
   relate type to invocable across R428;
   // relate the body
   select one act_act related by o_dbattr->ACT_DAB[R693]->ACT_ACT[R698];
-  if (not_empty act_act)
+  if (not_empty act_act) then
     relate act_act to invocable across R432;
     ::setOriginalNames(invocable:invocable, label:act_act.Label);
   end if;
@@ -773,9 +773,9 @@ INSERT INTO S_SYNC
 	'',
 	'obj = param.obj;
 select many attrs related by obj->Attribute[R410];
-for each attr in attrs
+for each attr in attrs loop
   select many o_refs related by attr->O_ATTR[R414]->O_RATTR[R106]->O_REF[R108];
-  for each o_ref in o_refs
+  for each o_ref in o_refs loop
     select one r_rel related by o_ref->O_RTIDA[R111]->R_RTO[R110]->R_OIR[R203]->R_REL[R201];
     select one referred_to_attr related by o_ref->O_RTIDA[R111]->O_OIDA[R110]->O_ATTR[R105]->Attribute[R414];
     select one referred_to_obj related by referred_to_attr->Class[R410];
@@ -827,14 +827,14 @@ select one pe related by o_obj->PE_PE[R8001];
 select any class_exclude_mark from instances of Mark where (selected.markable_name == "Model Class" and
                                                             selected.path == ::containerMarkingPath(pe:pe) + "::" + o_obj.Name and
                                                             selected.feature_name == "Exclude");
-if (empty class_exclude_mark)
+if (empty class_exclude_mark) then
   // get mark for naming
   select any class_name_mark from instances of Mark where (selected.markable_name == "Model Class" and
                                                             selected.path == ::containerMarkingPath(pe:pe) + "::" + o_obj.Name and
                                                             selected.feature_name == "UseKeyLettersForName");
   // create the object file
   create object instance file of File;
-  if (empty class_name_mark)
+  if (empty class_name_mark) then
     file.name = ::camelCaseName(name:o_obj.Name, start_lower:false);
   else
     file.name = o_obj.Key_Lett;
@@ -858,13 +858,13 @@ if (empty class_exclude_mark)
   // transform attributes
   select any o_attr related by o_obj->O_ATTR[R102];
   select one prev_attr related by o_attr->O_ATTR[R103.''succeeds''];
-  while (not_empty prev_attr)
+  while (not_empty prev_attr) loop
     o_attr = prev_attr;
     select one prev_attr related by o_attr->O_ATTR[R103.''succeeds''];
   end while;
   index = 0;
-  while (not_empty o_attr)
-    if ("current_state" != o_attr.Name)
+  while (not_empty o_attr) loop
+    if ("current_state" != o_attr.Name) then
       ::transformAttribute(o_attr:o_attr, obj:obj, index:index);
       index = index + 1;
     end if;
@@ -873,10 +873,10 @@ if (empty class_exclude_mark)
 
   // set the comparator
   select any comparator_mark from instances of Mark where (selected.markable_name == "*" and selected.path == "*" and selected.feature_name == "SortComparator");
-  if (not_empty comparator_mark)
+  if (not_empty comparator_mark) then
     select many attr_accessors related by obj->Attribute[R410]->AttributeAccessor[R4510] where (selected.accessor_type == AttributeAccessorType::GETTER);
-    for each attr_accessor in attr_accessors
-      if (attr_accessor.getName() == comparator_mark.value)
+    for each attr_accessor in attr_accessors loop
+      if (attr_accessor.getName() == comparator_mark.value) then
         obj.comparator = comparator_mark.value;
         break;
       end if;
@@ -885,7 +885,7 @@ if (empty class_exclude_mark)
 
   // transform operations
   select many o_tfrs related by o_obj->O_TFR[R115];
-  for each o_tfr in o_tfrs
+  for each o_tfr in o_tfrs loop
     ::transformOperation(o_tfr:o_tfr, obj:obj);
   end for;
 
@@ -947,7 +947,7 @@ select any file from instances of File where
   selected.name == ::camelCaseName(name:c_c.Name, start_lower:false) and selected.package == ::pathToPackage(path:path);
 select one comp_def related by file->ComponentDefinition[R401];
 
-if (param.pass == 1)
+if (param.pass == 1) then
 
   // create the file
   create object instance file of File;
@@ -971,17 +971,17 @@ if (param.pass == 1)
   
   // add this component as an export of the module
   select one mod related by c_c->PE_PE[R8001]->EP_PKG[R8000]->S_SYS[R1405]->Module[R4760];
-  if not_empty mod
+  if not_empty mod then
     relate comp_def to mod across R5752;
   else
     // TODO bad
   end if;
   
-elif (param.pass == 3)
+elif (param.pass == 3) then
 
   // transform ports
   select many c_pos related by c_c->C_PO[R4010];
-  for each c_po in c_pos
+  for each c_po in c_pos loop
     ::transformPort(c_po:c_po, comp_def:comp_def, path:file.path, exclude:false);
   end for;
 
@@ -989,13 +989,13 @@ end if;
 
 // transform inner packages
 select many ep_pkgs related by c_c->PE_PE[R8003]->EP_PKG[R8001];
-for each ep_pkg in ep_pkgs
+for each ep_pkg in ep_pkgs loop
   ::transformPackage(ep_pkg:ep_pkg, containing_comp_def:comp_def, path:file.path, pass:param.pass);
 end for;
 
 // transform inner components
 select many inner_c_cs related by c_c->PE_PE[R8003]->C_C[R8001];
-for each inner_c_c in inner_c_cs
+for each inner_c_c in inner_c_cs loop
   ::transformComponentDefinition(c_c:inner_c_c, containing_comp_def:comp_def, path:file.path, pass:param.pass);
 end for;',
 	"ba5eda7a-def5-0000-0000-000000000000",
@@ -1086,12 +1086,12 @@ udt.public = param.public;
 // transform enumerators
 select any enumer related by s_dt->S_EDT[R17]->S_ENUM[R27];
 select one prev_enumer related by enumer->S_ENUM[R56.''succeeds''];
-while ( not_empty prev_enumer )
+while ( not_empty prev_enumer ) loop
   enumer = prev_enumer;
   select one prev_enumer related by enumer->S_ENUM[R56.''succeeds''];
 end while;
 value = 0;
-while ( not_empty enumer )
+while ( not_empty enumer ) loop
   create object instance e of Enumerator;
   e.name = T::sub( format:"u", s:enumer.Name );
   e.value = value;
@@ -1183,11 +1183,11 @@ relate type to invocable across R428;
 select any sm_evtdi related by sm_evt->SM_EVTDI[R532];
 prev_sm_evtdi = sm_evtdi;
 // select first parameter
-while ( not_empty prev_sm_evtdi )
+while ( not_empty prev_sm_evtdi ) loop
   sm_evtdi = prev_sm_evtdi;
   select one prev_sm_evtdi related by sm_evtdi->SM_EVTDI[R533.''succeeds''];
 end while;
-while ( not_empty sm_evtdi )
+while ( not_empty sm_evtdi ) loop
   // create parameter
   create object instance parm of FormalParameter;
   parm.name = "p_" + sm_evtdi.Name;
@@ -1267,11 +1267,11 @@ relate type to invocable across R428;
 select any s_sparm related by s_sync->S_SPARM[R24];
 prev_s_sparm = s_sparm;
 // select first parameter
-while ( not_empty prev_s_sparm )
+while ( not_empty prev_s_sparm ) loop
   s_sparm = prev_s_sparm;
   select one prev_s_sparm related by s_sparm->S_SPARM[R54.''succeeds''];
 end while;
-while ( not_empty s_sparm )
+while ( not_empty s_sparm ) loop
   // create parameter
   create object instance parm of FormalParameter;
   parm.name = "p_" + s_sparm.Name;
@@ -1290,9 +1290,9 @@ select one c_c_pe related by c_c->PE_PE[R8001];
 select any init_function_mark from instances of Mark where ( selected.markable_name == "Component" and
                                                              selected.path == ::containerMarkingPath( pe:c_c_pe ) + "::" + c_c.Name and
                                                              selected.feature_name == "InitFunction" );
-if ( not_empty init_function_mark and func.name == init_function_mark.value )
+if ( not_empty init_function_mark and func.name == init_function_mark.value ) then
   select any s_sparm related by s_sync->S_SPARM[R24];
-  if ( empty s_sparm )
+  if ( empty s_sparm ) then
     relate func to comp_def across R4561;
   else
     // TODO bad
@@ -1301,7 +1301,7 @@ end if;
 
 // relate the body
 select one act_act related by s_sync->ACT_FNB[R695]->ACT_ACT[R698];
-if ( not_empty act_act )
+if ( not_empty act_act ) then
   relate act_act to invocable across R432;
   ::setOriginalNames(invocable:invocable, label:act_act.Label);
 end if;',
@@ -1349,7 +1349,7 @@ INSERT INTO S_SYNC
 	'c_i = param.c_i;
 containing_comp_def = param.containing_comp_def;
 select one iface related by c_i->Interface[R421];
-if ( empty iface )
+if ( empty iface ) then
 
   // create the file
   create object instance file of File;
@@ -1371,17 +1371,17 @@ if ( empty iface )
   // sort by name to assure consistent translation
   select many c_eps related by c_i->C_EP[R4003];
   index = 1;
-  for each c_ep in c_eps
+  for each c_ep in c_eps loop
     ::transformMessage( c_ep:c_ep, iface:iface, index:index );
     index = index + 1;
   end for;
 
   // add to export package
   select one iface related by c_i->Interface[R421];
-  if not param.exclude and not_empty iface and empty containing_comp_def
+  if not param.exclude and not_empty iface and empty containing_comp_def then
     select one mod related by c_i->PE_PE[R8001]->EP_PKG[R8000]->S_SYS[R1405]->Module[R4760];
     select any export_package related by mod->ExportedPackage[R5750] where selected.name == iface.package;
-    if empty export_package
+    if empty export_package then
       create object instance export_package of ExportedPackage;
       export_package.name = iface.package;
       relate export_package to mod across R5750;
@@ -1460,9 +1460,9 @@ msg.name = c_ep.Name;
 msg.to_provider = true;
 msg.id = index;
 msg.async = not_empty c_as;
-if ( not_empty c_as )
+if ( not_empty c_as ) then
   msg.to_provider = ( c_as.Direction == IFDirectionType::ClientServer );
-elif ( not_empty c_io )
+elif ( not_empty c_io ) then
   msg.to_provider = ( c_io.Direction == IFDirectionType::ClientServer );
 end if;
 relate msg to iface across R419;',
@@ -1534,7 +1534,7 @@ relate op to obj across R416;
 // create invocable
 create object instance invocable of InvocableObject;
 invocable.name = o_tfr.Name;
-if op.is_class_based
+if op.is_class_based then
   invocable.name = "_" + obj.name + "_" + invocable.name;
 end if;
 invocable.parent_name = op.class_name;
@@ -1552,11 +1552,11 @@ relate type to invocable across R428;
 select any o_tparm related by o_tfr->O_TPARM[R117];
 prev_o_tparm = o_tparm;
 // select first parameter
-while (not_empty prev_o_tparm)
+while (not_empty prev_o_tparm) loop
   o_tparm = prev_o_tparm;
   select one prev_o_tparm related by o_tparm->O_TPARM[R124.''succeeds''];
 end while;
-while (not_empty o_tparm)
+while (not_empty o_tparm) loop
   // create parameter
   create object instance parm of FormalParameter;
   parm.name = "p_" + o_tparm.Name;
@@ -1571,14 +1571,14 @@ end while;
 
 // relate the body
 select one act_act related by o_tfr->ACT_OPB[R696]->ACT_ACT[R698];
-if (not_empty act_act)
+if (not_empty act_act) then
   relate act_act to invocable across R432;
   ::setOriginalNames(invocable:invocable, label:act_act.Label);
 end if;
 
 // if this is an optional deferred operation, create a second operation for the supertype implementation
 select one o_def related by o_tfr->O_DEF[R126];
-if (not_empty o_def and o_def.required == 1)
+if (not_empty o_def and o_def.required == 1) then
 
   // create operation object
   create object instance op of Operation;
@@ -1602,11 +1602,11 @@ if (not_empty o_def and o_def.required == 1)
   select any o_tparm related by o_tfr->O_TPARM[R117];
   prev_o_tparm = o_tparm;
   // select first parameter
-  while (not_empty prev_o_tparm)
+  while (not_empty prev_o_tparm) loop
     o_tparm = prev_o_tparm;
     select one prev_o_tparm related by o_tparm->O_TPARM[R124.''succeeds''];
   end while;
-  while (not_empty o_tparm)
+  while (not_empty o_tparm) loop
     // create parameter
     create object instance parm of FormalParameter;
     parm.name = "p_" + o_tparm.Name;
@@ -1621,14 +1621,14 @@ if (not_empty o_def and o_def.required == 1)
   
   // relate the body
   select one act_act related by o_tfr->ACT_OPB[R696]->ACT_ACT[R698];
-  if (not_empty act_act)
+  if (not_empty act_act) then
     relate act_act to invocable across R432;
     ::setOriginalNames(invocable:invocable, label:act_act.Label);
   end if;
   
 // if this is an required deferred operation with no body (unparsed), create an empty body
 // so that the deferral will get created correctly
-elif (not_empty o_def and o_def.required == 0 and empty act_act)
+elif (not_empty o_def and o_def.required == 0 and empty act_act) then
   create object instance act_act of ACT_ACT;
   create object instance act_opb of ACT_OPB;
   relate act_act to act_opb across R698;
@@ -1683,81 +1683,81 @@ containing_comp_def = param.containing_comp_def;
 select one mod related by ep_pkg->S_SYS[R1405]->Module[R4760];
 
 sub_path = T::sub(format:"rl", s:ep_pkg.Name);
-if path != ""
+if path != "" then
   sub_path = path + "/" + sub_path;
 end if;
 select one comp_file related by containing_comp_def->File[R401];
-if not_empty comp_file
+if not_empty comp_file then
   sub_path = comp_file.path;
 end if;
 
 // get all packageable elements
 select one referred_ep_pkg related by ep_pkg->EP_PKG[R1402.''refers to''];
-if (not_empty referred_ep_pkg)
+if (not_empty referred_ep_pkg) then
   ep_pkg = referred_ep_pkg;
 end if;
 select many pe_pes related by ep_pkg->PE_PE[R8000];
 select one pkg_mod related by ep_pkg->S_SYS[R1405]->Module[R4760];
 
-if (param.pass == 1)
+if (param.pass == 1) then
 
   // transform datatypes
   select many s_dts related by pe_pes->S_DT[R8001]->S_EDT[R17]->S_DT[R17];
-  for each s_dt in s_dts
+  for each s_dt in s_dts loop
     ::transformDataType(s_dt:s_dt, path:sub_path, exclude:pkg_mod != mod, containing_comp_def:containing_comp_def);
   end for;
 
-elif (param.pass == 2)
+elif (param.pass == 2) then
   
   // transform interfaces
   select many c_is related by pe_pes->C_I[R8001];
-  for each c_i in c_is
+  for each c_i in c_is loop
     ::transformInterface(c_i:c_i, path:sub_path, exclude:pkg_mod != mod, containing_comp_def:containing_comp_def);
   end for;
 
   // don''t transform these elements unless they appear in the context of a component
-  if not_empty containing_comp_def
+  if not_empty containing_comp_def then
 
     // transform functions
     select many s_syncs related by pe_pes->S_SYNC[R8001];
-    for each s_sync in s_syncs
+    for each s_sync in s_syncs loop
       ::transformFunction(s_sync:s_sync, comp_def:containing_comp_def);
     end for;
 
     // transform EEs
     select many s_ees related by pe_pes->S_EE[R8001];
-    for each s_ee in s_ees
+    for each s_ee in s_ees loop
       ::transformUtility(s_ee:s_ee, ep_pkg:ep_pkg, containing_comp_def:containing_comp_def, exclude:false, path:sub_path);
     end for;
 
     // transform classes
     select many o_objs related by pe_pes->O_OBJ[R8001];
-    for each o_obj in o_objs
+    for each o_obj in o_objs loop
       ::transformClass(o_obj:o_obj, containing_comp_def:containing_comp_def, path:sub_path);
     end for;
   
   end if;
 
-elif (param.pass == 3)
+elif (param.pass == 3) then
 
   // don''t transform these elements unless they appear in the context of a component
-  if not_empty containing_comp_def
+  if not_empty containing_comp_def then
 
     // transform associations
     select many r_rels related by pe_pes->R_REL[R8001];
-    for each r_rel in r_rels
+    for each r_rel in r_rels loop
       ::transformAssociation(r_rel:r_rel, containing_comp_def:containing_comp_def);
     end for;
     
     // transform instance state machines
     select many objs related by pe_pes->O_OBJ[R8001]->Class[R409];
-    for each obj in objs
+    for each obj in objs loop
       select one ism related by obj->O_OBJ[R409]->SM_ISM[R518]->SM_SM[R517];
-      if not_empty ism
+      if not_empty ism then
         ::transformStateMachine(sm_sm:ism, obj:obj, is_instance:true);
       else
         select one asm related by obj->O_OBJ[R409]->SM_ASM[R519]->SM_SM[R517];
-        if not_empty asm
+        if not_empty asm then
           ::transformStateMachine(sm_sm:asm, obj:obj, is_instance:false);
         end if;
       end if;
@@ -1769,7 +1769,7 @@ else
 
   // transform selectors and attribute references
   select many objs related by pe_pes->O_OBJ[R8001]->Class[R409];
-  for each obj in objs
+  for each obj in objs loop
     ::transformSelectors(obj:obj);
     ::transformAttributeReferences(obj:obj);
   end for;
@@ -1778,13 +1778,13 @@ end if;
 
 // transform components
 select many c_cs related by pe_pes->C_C[R8001];
-for each c_c in c_cs
+for each c_c in c_cs loop
   ::transformComponentDefinition(c_c:c_c, containing_comp_def:containing_comp_def, path:sub_path, pass:param.pass);
 end for;
 
 // transform packages
 select many inner_ep_pkgs related by pe_pes->EP_PKG[R8001];
-for each inner_ep_pkg in inner_ep_pkgs
+for each inner_ep_pkg in inner_ep_pkgs loop
   ::transformPackage(ep_pkg:inner_ep_pkg, containing_comp_def:containing_comp_def, path:sub_path, pass:param.pass);
 end for;
 
@@ -1867,21 +1867,21 @@ port.provider = not_empty c_p;
 // relate to other component
 relate port to comp_def across R417;
 
-if not param.exclude
+if not param.exclude then
 
   // relate to iface if the iface is there
   select any c_i related by c_po->C_IR[R4016]->C_I[R4012];
   select one iface related by c_i->Interface[R421];
-  if empty iface
+  if empty iface then
     select one ep_pkg related by c_i->PE_PE[R8001]->EP_PKG[R8000];
     select any empty_comp_def from instances of ComponentDefinition where false;
     ::transformInterface(c_i:c_i, path: ::ep_pkgToPath(ep_pkg:ep_pkg), exclude:true, containing_comp_def:empty_comp_def);
     select one iface related by c_i->Interface[R421];
   end if;
-  if not_empty iface
+  if not_empty iface then
     relate port to iface across R418;
     select many msgs related by iface->Message[R419];
-    for each msg in msgs
+    for each msg in msgs loop
       ::transformPortMessage(port:port, msg:msg);
     end for;
   else
@@ -1891,9 +1891,9 @@ if not param.exclude
   // add module dependency if necessary
   select one main_mod related by c_po->C_C[R4010]->PE_PE[R8001]->EP_PKG[R8000]->S_SYS[R1405]->Module[R4760];
   select one mod related by c_i->PE_PE[R8001]->EP_PKG[R8000]->S_SYS[R1405]->Module[R4760];
-  if mod != main_mod
+  if mod != main_mod then
     select any dependency related by main_mod->Dependency[R5753.''requires''] where selected.required_module_name == mod.name;
-    if empty dependency
+    if empty dependency then
       create object instance dependency of Dependency;
       relate mod to main_mod across R5753.''required by'' using dependency;
     end if;
@@ -1981,20 +1981,20 @@ relate port_msg to invocable across R427;
 select any act_act from instances of ACT_ACT where false;
 select any spr_rep related by c_po->C_IR[R4016]->C_R[R4009]->SPR_REP[R4500] where ( selected.ExecutableProperty_Id == c_ep.Id );
 select one spr_ro related by spr_rep->SPR_RO[R4502];
-if ( not_empty spr_ro )
+if ( not_empty spr_ro ) then
   select one act_act related by spr_ro->ACT_ROB[R685]->ACT_ACT[R698];
 else
   select one spr_rs related by spr_rep->SPR_RS[R4502];
-  if ( not_empty spr_rs )
+  if ( not_empty spr_rs ) then
     select one act_act related by spr_rs->ACT_RSB[R684]->ACT_ACT[R698];
   else
     select any spr_pep related by c_po->C_IR[R4016]->C_P[R4009]->SPR_PEP[R4501] where ( selected.ExecutableProperty_Id == c_ep.Id );
     select one spr_po related by spr_pep->SPR_PO[R4503];
-    if ( not_empty spr_po )
+    if ( not_empty spr_po ) then
       select one act_act related by spr_po->ACT_POB[R687]->ACT_ACT[R698];
     else
       select one spr_ps related by spr_pep->SPR_PS[R4503];
-      if ( not_empty spr_ps )
+      if ( not_empty spr_ps ) then
         select one act_act related by spr_ps->ACT_PSB[R686]->ACT_ACT[R698];
       end if;
     end if;
@@ -2005,7 +2005,7 @@ end if;
 type = ::getBasicTypeReferenceByName(name:"void");
 select one s_dt related by c_ep->C_IO[R4004]->S_DT[R4008];
 select many s_dims related by c_ep->C_IO[R4004]->S_DIM[R4018];
-if not_empty s_dt
+if not_empty s_dt then
   type = ::getTypeReferenceForS_DTWithDims(s_dt:s_dt, s_dims:s_dims);
 end if;
 relate type to invocable across R428;
@@ -2014,11 +2014,11 @@ relate type to invocable across R428;
 select any c_pp related by c_ep->C_PP[R4006];
 prev_c_pp = c_pp;
 // select first parameter
-while ( not_empty prev_c_pp )
+while ( not_empty prev_c_pp ) loop
   c_pp = prev_c_pp;
   select one prev_c_pp related by c_pp->C_PP[R4021.''succeeds''];
 end while;
-while ( not_empty c_pp )
+while ( not_empty c_pp ) loop
   // create parameter
   create object instance parm of FormalParameter;
   parm.name = "p_" + c_pp.Name;
@@ -2032,7 +2032,7 @@ while ( not_empty c_pp )
 end while;
 
 // relate the body
-if ( not_empty act_act )
+if ( not_empty act_act ) then
   relate act_act to invocable across R432;
   ::setOriginalNames(invocable:invocable, label:act_act.Label);
 else
@@ -2142,7 +2142,7 @@ select one sm_act related by sm_state->SM_MOAH[R511]->SM_AH[R513]->SM_ACT[R514];
 
 // relate the body
 select one act_act related by sm_act->ACT_SAB[R691]->ACT_ACT[R698];
-if ( not_empty act_act )
+if ( not_empty act_act ) then
   relate act_act to invocable across R432;
   ::setOriginalNames(invocable:invocable, label:act_act.Label);
 end if;
@@ -2206,16 +2206,16 @@ obj = param.obj;
 
 // return early if the state machine has already been translated
 select one sm related by obj->StateMachine[R4750];
-if not_empty sm
+if not_empty sm then
   return;
 end if;
 
 // assure than any supertype state machines are translated first
 select many supertype_rels related by sm->Class[R4750]->Relationship[R435] where selected.rel_type == RelationshipType::SuperSubtype;
 select many supertype_objs related by supertype_rels->Class[R434];
-for each supertype_obj in supertype_objs
+for each supertype_obj in supertype_objs loop
   select one supertype_sm_sm related by supertype_obj->O_OBJ[R409]->SM_ISM[R518]->SM_SM[R517];
-  if not_empty supertype_sm_sm
+  if not_empty supertype_sm_sm then
     ::transformStateMachine(sm_sm:supertype_sm_sm, obj:supertype_obj, is_instance:true);
   end if;
 end for;
@@ -2236,11 +2236,11 @@ sm.is_instance = param.is_instance;
 
 // transform states
 select many sm_states related by sm_sm->SM_STATE[R501] where SORT::ascending(attr:"Numb");
-for each sm_state in sm_states
+for each sm_state in sm_states loop
   ::transformState(sm_state:sm_state, sm:sm);
 end for;
 
-if (sm.is_instance)
+if (sm.is_instance) then
   // create the default initial state
   create object instance uninitialized of State;
   relate uninitialized to sm across R4751;
@@ -2261,17 +2261,17 @@ end if;
 
 // transform events
 select many sm_levts related by sm_sm->SM_EVT[R502]->SM_SEVT[R525]->SM_LEVT[R526]->SM_SEVT[R526]->SM_EVT[R525] where SORT::ascending(attr:"Numb");
-for each sm_evt in sm_levts
+for each sm_evt in sm_levts loop
   ::transformEvent(sm_evt:sm_evt, obj:obj);
 end for;
 select many sm_pevts related by sm_sm->SM_EVT[R502]->SM_PEVT[R525]->SM_EVT[R525] where SORT::ascending(attr:"Numb");
-for each sm_evt in sm_pevts
+for each sm_evt in sm_pevts loop
   ::transformEvent(sm_evt:sm_evt, obj:obj);
 end for;
 
 // transform transition table
 select many states related by sm->State[R4751];
-for each state in states
+for each state in states loop
 
   // create a row for this start state
   create object instance row of TransitionTableRow;
@@ -2281,7 +2281,7 @@ for each state in states
   
   // transform local events
   select many evts related by obj->Event[R4752];
-  for each evt in evts
+  for each evt in evts loop
     ::transformStateEventMatrixEntry(row:row, evt:evt);
   end for;
   
@@ -2289,13 +2289,13 @@ for each state in states
   select many poly_evts from instances of Event where false;
   select many supertype_rels related by sm->Class[R4750]->Relationship[R435] where selected.rel_type == RelationshipType::SuperSubtype;
   select many supertype_objs related by supertype_rels->Class[R434];
-  while not_empty supertype_objs
+  while not_empty supertype_objs loop
     select many evts related by supertype_objs->Event[R4752]->SM_EVT[R4759]->SM_PEVT[R525]->SM_EVT[R525]->Event[R4759];
     poly_evts = poly_evts + evts;
     select many supertype_rels related by supertype_objs->Relationship[R435] where selected.rel_type == RelationshipType::SuperSubtype;
     select many supertype_objs related by supertype_rels->Class[R434];
   end while;
-  for each evt in poly_evts
+  for each evt in poly_evts loop
     ::transformStateEventMatrixEntry(row:row, evt:evt);
   end for;
   
@@ -2440,14 +2440,14 @@ create object instance utility of Utility;
 relate utility to file across R401;
 
 // relate the containing component
-if (not_empty containing_comp_def)
+if (not_empty containing_comp_def) then
   create object instance util_ref of UtilityInComponent;
   relate utility to containing_comp_def across R4558 using util_ref;
 end if;
 
 // transform each utility function
 select many s_brgs related by s_ee->S_BRG[R19];
-for each s_brg in s_brgs
+for each s_brg in s_brgs loop
   ::transformUtilityFunction(s_brg:s_brg, utility:utility);
 end for;',
 	"ba5eda7a-def5-0000-0000-000000000000",
@@ -2543,11 +2543,11 @@ relate type to invocable across R428;
 select any s_bparm related by s_brg->S_BPARM[R21];
 prev_s_bparm = s_bparm;
 // select first parameter
-while (not_empty prev_s_bparm)
+while (not_empty prev_s_bparm) loop
   s_bparm = prev_s_bparm;
   select one prev_s_bparm related by s_bparm->S_BPARM[R55.''succeeds''];
 end while;
-while (not_empty s_bparm)
+while (not_empty s_bparm) loop
   // create parameter
   create object instance parm of FormalParameter;
   parm.name = "p_" + s_bparm.Name;
@@ -2626,10 +2626,10 @@ select many existing_cells related by row->TransitionTableCell[R4755];
 cell.index = cardinality existing_cells;
 
 // handle non-existent start state
-if (state.number == 0)
+if (state.number == 0) then
 
   select one sm_crtxn related by sm_evt->SM_SEVT[R525]->SM_LEVT[R526]->SM_CRTXN[R509];
-  if (not_empty sm_crtxn)
+  if (not_empty sm_crtxn) then
 
     // create transition
     create object instance txn of Transition;
@@ -2649,7 +2649,7 @@ if (state.number == 0)
     
     // relate the body
     select one act_act related by sm_act->ACT_TAB[R688]->ACT_ACT[R698];
-    if (not_empty act_act)
+    if (not_empty act_act) then
       relate act_act to invocable across R432;
       ::setOriginalNames(invocable:invocable, label:act_act.Label);
     end if;
@@ -2662,7 +2662,7 @@ if (state.number == 0)
     
     // default to ignore for polymorphic events that are passed down to subtype state machines
     select one sm_pevt related by sm_evt->SM_PEVT[R525];
-    if not_empty sm_pevt
+    if not_empty sm_pevt then
       cell.transition_type = TransitionType::IGNORE;
     
     // default to cannot happen for any other event
@@ -2676,21 +2676,21 @@ if (state.number == 0)
 else
 
   select any sm_seme related by sm_evt->SM_SEVT[R525]->SM_SEME[R503] where (selected.SMstt_ID == sm_state.SMstt_ID);
-  if empty sm_seme
+  if empty sm_seme then
     select any sm_nlevt related by sm_evt->SM_PEVT[R525]->SM_NLEVT[R527] where selected.SM_ID == sm_state.SM_ID;
     select any sm_seme related by sm_nlevt->SM_SEVT[R526]->SM_SEME[R503] where (selected.SMstt_ID == sm_state.SMstt_ID);
   end if;
-  if (not_empty sm_seme)
+  if (not_empty sm_seme) then
 
     // handle cannot happen
     select one cant_happen related by sm_seme->SM_CH[R504];
-    if (not_empty cant_happen)
+    if (not_empty cant_happen) then
       cell.transition_type = TransitionType::CANT_HAPPEN;
     else
 
       // handle event ignored
       select one event_ignored related by sm_seme->SM_EIGN[R504];
-      if (not_empty event_ignored)
+      if (not_empty event_ignored) then
         cell.transition_type = TransitionType::IGNORE;
       
       // handle new state transition
@@ -2714,7 +2714,7 @@ else
         
         // relate the body
         select one act_act related by sm_act->ACT_TAB[R688]->ACT_ACT[R698];
-        if (not_empty act_act)
+        if (not_empty act_act) then
           relate act_act to invocable across R432;
           ::setOriginalNames(invocable:invocable, label:act_act.Label);
         end if;
@@ -2728,7 +2728,7 @@ else
   else
     // default to ignore for polymorphic events that are passed down to subtype state machines
     select one sm_pevt related by sm_evt->SM_PEVT[R525];
-    if not_empty sm_pevt
+    if not_empty sm_pevt then
       cell.transition_type = TransitionType::IGNORE;
     
     else
@@ -2789,11 +2789,11 @@ INSERT INTO S_SYNC
 containing_comp_def = param.containing_comp_def;
 
 select one s_edt related by s_dt->S_EDT[R17];
-if not_empty s_edt
+if not_empty s_edt then
   ::transformEnumeratedType(s_dt:s_dt, path:param.path, exclude:param.exclude, public:empty containing_comp_def);
 else
   select one s_udt related by s_dt->S_UDT[R17];
-  if not_empty s_udt
+  if not_empty s_udt then
     ::transformUserDefinedType(s_dt:s_dt, path:param.path, exclude:param.exclude, public:empty containing_comp_def);
   end if;
 end if;
@@ -2802,10 +2802,10 @@ end if;
 
 // add to export package
 select one type related by s_dt->Type[R423];
-if not param.exclude and not_empty type and empty containing_comp_def
+if not param.exclude and not_empty type and empty containing_comp_def then
   select one mod related by s_dt->PE_PE[R8001]->EP_PKG[R8000]->S_SYS[R1405]->Module[R4760];
   select any export_package related by mod->ExportedPackage[R5750] where selected.name == type.package;
-  if empty export_package
+  if empty export_package then
     create object instance export_package of ExportedPackage;
     export_package.name = type.package;
     relate export_package to mod across R5750;
@@ -2881,7 +2881,7 @@ relate comp_def to file across R401;
 relate c_c to comp_def across R4573;
 
 select many c_pos related by c_c->C_PO[R4010];
-for each c_po in c_pos
+for each c_po in c_pos loop
   ::transformPort(c_po:c_po, comp_def:comp_def, path:file.path, exclude:true);
 end for;',
 	"ba5eda7a-def5-0000-0000-000000000000",
@@ -2917,7 +2917,7 @@ file.name = s_sys.Name;
 file.exclude = not param.main_module;
 
 // special cases for built in modules
-if s_sys.Name == "runtime-util"
+if s_sys.Name == "runtime-util" then
   file.name = "io.ciera.runtime.util";
 end if;
 

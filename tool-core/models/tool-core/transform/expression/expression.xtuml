@@ -130,7 +130,7 @@ relate type to expr across R795;
 // create literal
 create object instance lit of Literal;
 relate lit to expr across R776;
-if ( "true" == T::sub( format:"l", s:v_lbo.Value ) )
+if ( "true" == T::sub( format:"l", s:v_lbo.Value ) ) then
   lit.value = "true";
 else
   lit.value = "false";
@@ -343,7 +343,7 @@ create object instance enum_ref of EnumeratorReference;
 relate enum_ref to expr across R776;
 select one s_enum related by v_len->S_ENUM[R824];
 select any enumer related by s_enum->S_EDT[R27]->S_DT[R17]->Type[R423]->EnumeratedType[R407]->Enumerator[R415] where selected.name == T::sub(format:"u", s:s_enum.Name);
-if not_empty enumer
+if not_empty enumer then
   relate enumer to enum_ref across R786;
 else
   // TODO bad
@@ -479,7 +479,7 @@ expr.expression_number = expr_number;
 
 // create the variable reference
 select one v_var related by v_irf->V_VAR[R808];
-if ( "self" == T::sub( format:"l", s:v_var.Name ) ) // reference to self
+if ( "self" == T::sub( format:"l", s:v_var.Name ) ) then // reference to self
   // create named reference
   create object instance self_ref of NamedReference;
   relate self_ref to expr across R776;
@@ -704,19 +704,19 @@ create object instance ref of ParameterReference;
 relate ref to expr across R776;
 param_name = "";
 select one brg_param related by v_pvl->S_BPARM[R831];
-if ( not_empty brg_param ) param_name = brg_param.Name; else
+if ( not_empty brg_param ) then param_name = brg_param.Name; else
 select one fnc_param related by v_pvl->S_SPARM[R832];
-if ( not_empty fnc_param ) param_name = fnc_param.Name; else
+if ( not_empty fnc_param ) then param_name = fnc_param.Name; else
 select one op_param related by v_pvl->O_TPARM[R833];
-if ( not_empty op_param ) param_name = op_param.Name; else
+if ( not_empty op_param ) then param_name = op_param.Name; else
 select one ep_param related by v_pvl->C_PP[R843];
-if ( not_empty ep_param ) param_name = ep_param.Name;
+if ( not_empty ep_param ) then param_name = ep_param.Name;
 else
   // TODO bad
 end if; end if; end if; end if;
 select any formal_param related by smt->CodeBlock[R450]->InvocableObject[R4000]->FormalParameter[R429]
   where ( selected.name == "p_" + param_name );
-if ( not_empty formal_param )
+if ( not_empty formal_param ) then
   relate formal_param to ref across R781;
 else
   // TODO bad
@@ -786,7 +786,7 @@ type = ::getTypeReferenceForS_DT(s_dt:s_dt);
 relate type to expr across R795;
 
 select one util_func related by v_brv->S_BRG[R828]->UtilityFunction[R4570];
-if ( empty util_func )
+if ( empty util_func ) then
   // transform the utility on the fly
   select one s_ee related by v_brv->S_BRG[R828]->S_EE[R19];
   select one s_ee_pkg related by s_ee->PE_PE[R8001]->EP_PKG[R8000];
@@ -797,9 +797,9 @@ if ( empty util_func )
   // add module dependency if necessary
   select any main_mod from instances of Module where selected.main_module;
   select one mod related by s_ee->PE_PE[R8001]->EP_PKG[R8000]->S_SYS[R1405]->Module[R4760];
-  if mod != main_mod
+  if mod != main_mod then
     select any dependency related by main_mod->Dependency[R5753.''requires''] where selected.required_module_name == mod.name;
-    if empty dependency
+    if empty dependency then
       create object instance dependency of Dependency;
       relate mod to main_mod across R5753.''required by'' using dependency;
     end if;
@@ -811,15 +811,15 @@ select one invocable related by util_func->InvocableObject[R427];
 select many v_pars related by v_brv->V_PAR[R810];
 
 // handle deprecated TIM bridges
-if invocable.parent_name == "TIM" and (invocable.name == "timer_start" or invocable.name == "timer_start_recurring")
+if invocable.parent_name == "TIM" and (invocable.name == "timer_start" or invocable.name == "timer_start_recurring") then
   ::transformScheduleExpression(expr:expr, v_brv:v_brv, v_pars:v_pars, recurring: invocable.name == "timer_start_recurring");
   
-elif invocable.parent_name == "TIM" and invocable.name == "timer_cancel"
+elif invocable.parent_name == "TIM" and invocable.name == "timer_cancel" then
   // find or create a generic invocable for the call
   invoc_name = "cancel";
   select any tim_invocable from instances of InvocableObject
     where selected.parent_name == "Timer" and selected.parent_package == "io.ciera.runtime.application" and selected.name == invoc_name;
-  if empty tim_invocable
+  if empty tim_invocable then
     create object instance tim_invocable of InvocableObject;
     tim_invocable.parent_name = "Timer";
     tim_invocable.parent_package = "io.ciera.runtime.application";
@@ -840,12 +840,12 @@ elif invocable.parent_name == "TIM" and invocable.name == "timer_cancel"
   select any timer_expr related by smt->Expression[R775] where selected.expression_number == expr.expression_number + ".1";
   relate timer_expr to tim_invocation across R798;
 
-elif invocable.parent_name == "TIM" and invocable.name == "timer_remaining_time"
+elif invocable.parent_name == "TIM" and invocable.name == "timer_remaining_time" then
   // find or create a generic invocable for the call
   invoc_name = "remainingTime";
   select any tim_invocable from instances of InvocableObject
     where selected.parent_name == "Timer" and selected.parent_package == "io.ciera.runtime.application" and selected.name == invoc_name;
-  if empty tim_invocable
+  if empty tim_invocable then
     create object instance tim_invocable of InvocableObject;
     tim_invocable.parent_name = "Timer";
     tim_invocable.parent_package = "io.ciera.runtime.application";
@@ -886,10 +886,10 @@ elif invocable.parent_name == "TIM" and invocable.name == "timer_remaining_time"
   select any timer_expr related by smt->Expression[R775] where selected.expression_number == invoc_expr.expression_number + ".1";
   relate timer_expr to tim_invocation across R798;
  
-elif invocable.parent_name == "TIM" and invocable.name == "timer_add_time"
+elif invocable.parent_name == "TIM" and invocable.name == "timer_add_time" then
   LOG::LogFailure(message:"Cannot translate unsupported deprecated bridge ''TIM::timer_add_time''");
 
-elif invocable.parent_name == "TIM" and invocable.name == "timer_reset_time"
+elif invocable.parent_name == "TIM" and invocable.name == "timer_reset_time" then
   LOG::LogFailure(message:"Cannot translate unsupported deprecated bridge ''TIM::timer_reset_time''");
 
 // handle regular bridge calls
@@ -898,14 +898,14 @@ else
   select one utility related by util_func->Utility[R4559];
   select one utility_file related by utility->File[R401];
   containing_comp_def = ::getCompDefForStatement( smt:smt );
-  if ( not_empty containing_comp_def )
+  if ( not_empty containing_comp_def ) then
     select any util_ref related by utility->UtilityInComponent[R4558] where ( selected.comp_name == containing_comp_def.name and selected.comp_package == containing_comp_def.package );
-    if ( empty util_ref )
+    if ( empty util_ref ) then
       create object instance util_ref of UtilityInComponent;
       relate utility to containing_comp_def across R4558 using util_ref;
     end if;
   end if;
-  if ( not_empty invocable )
+  if ( not_empty invocable ) then
     // create invocation
     create object instance invoc of Invocation;
     relate invoc to expr across R776;
@@ -995,7 +995,7 @@ relate type to expr across R795;
 select one s_sync related by v_fnv->S_SYNC[R827];
 containing_comp_def = ::getCompDefForStatement( smt:smt );
 select any invocable related by containing_comp_def->Function[R405]->InvocableObject[R427] where ( selected.name == s_sync.Name );
-if ( not_empty invocable )
+if ( not_empty invocable ) then
   // create invocation
   create object instance invoc of Invocation;
   relate invoc to expr across R776;
@@ -1084,15 +1084,15 @@ select one o_tfr related by v_trv->O_TFR[R829];
 select one obj related by o_tfr->O_OBJ[R115]->Class[R409];
 select any invocable related by obj->Operation[R416]->InvocableObject[R427]
   where ( selected.name == o_tfr.Name or selected.name == "_" + obj.name + "_" + o_tfr.Name );
-if ( not_empty invocable )
+if ( not_empty invocable ) then
   // create invocation
   create object instance invoc of Invocation;
   relate invoc to expr across R776;
   relate invoc to invocable across R792;
   // relate expression to expression as statement
-  if ( Scope::Instance == o_tfr.Instance_Based )
+  if ( Scope::Instance == o_tfr.Instance_Based ) then
     select one op_v_var related by v_trv->V_VAR[R830];
-    if ( not_empty op_v_var ) // instance based operation
+    if ( not_empty op_v_var ) then // instance based operation
       // create variable reference expression
       create object instance expr2 of Expression;
       relate expr2 to smt across R775;
@@ -1101,11 +1101,11 @@ if ( not_empty invocable )
       op_var = ::getVariableInScope(smt:smt, name:op_v_var.Name);
       op_type = ::getObjectReference(obj:obj);
       relate op_type to expr2 across R795;
-      if ( not_empty op_var ) // cannot declare two variables of the same name in the same scope
+      if ( not_empty op_var ) then // cannot declare two variables of the same name in the same scope
         create object instance var_ref of VariableReference;
         relate op_var to var_ref across R782;
         relate var_ref to expr2 across R776;
-      elif ( "self" == op_v_var.Name )
+      elif ( "self" == op_v_var.Name ) then
         // create named reference
         create object instance self_ref of NamedReference;
         relate self_ref to expr2 across R776;
@@ -1211,13 +1211,13 @@ expr.expression_number = expr_number;
 // always the case in OAL)
 select any select_expr related by smt->Expression[R775]->WhereExpr[R776]->Expression[R776];
 select one where_type related by select_expr->TypeReference[R795]->StreamTypeReference[R3801]->TypeReference[R3812]->InstanceTypeReference[R3801]->TypeReference[R3801];
-if empty where_type
+if empty where_type then
   select one where_type related by select_expr->TypeReference[R795]->CollectionTypeReference[R3801]->TypeReference[R3805]->InstanceTypeReference[R3801]->TypeReference[R3801];
-	if empty where_type
+	if empty where_type then
 		select one where_type related by select_expr->TypeReference[R795]->InstanceTypeReference[R3801]->TypeReference[R3801];
 	end if;
 end if;
-if not_empty where_type
+if not_empty where_type then
   relate where_type to expr across R795;
 else
   // TODO bad
@@ -1294,7 +1294,7 @@ relate type to expr across R795;
 create object instance unary of UnaryOperation;
 relate unary to expr across R776;
 select one op_val related by v_uny->V_VAL[R804];
-if ( "not_empty" == T::sub( format:"l", s:v_uny.Operator ) ) // create an additional ''not'' expression before transforming an ''empty'' expression
+if ( "not_empty" == T::sub( format:"l", s:v_uny.Operator ) ) then // create an additional ''not'' expression before transforming an ''empty'' expression
   unary.operator = "!";
   unary.invocation = false;
   // create ''empty'' expression
@@ -1313,16 +1313,16 @@ if ( "not_empty" == T::sub( format:"l", s:v_uny.Operator ) ) // create an additi
   select any op_expr related by smt->Expression[R775] where ( selected.expression_number == expr2.expression_number + ".1" );
   relate op_expr to unary2 across R777;
 else
-  if ( "not" == T::sub( format:"l", s:v_uny.Operator ) )
+  if ( "not" == T::sub( format:"l", s:v_uny.Operator ) ) then
     unary.operator = "!";
     unary.invocation = false;
-  elif ( "empty" == T::sub( format:"l", s:v_uny.Operator ) )
+  elif ( "empty" == T::sub( format:"l", s:v_uny.Operator ) ) then
     unary.operator = "isEmpty";
     unary.invocation = true;
-  elif ( "cardinality" == T::sub( format:"l", s:v_uny.Operator ) )
+  elif ( "cardinality" == T::sub( format:"l", s:v_uny.Operator ) ) then
     unary.operator = "size";
     unary.invocation = true;
-  elif ( ( "+" == T::sub( format:"l", s:v_uny.Operator ) ) or ( "-" == T::sub( format:"l", s:v_uny.Operator ) ) )
+  elif ( ( "+" == T::sub( format:"l", s:v_uny.Operator ) ) or ( "-" == T::sub( format:"l", s:v_uny.Operator ) ) ) then
     unary.operator = v_uny.Operator;
     unary.invocation = false;
   else
@@ -1393,10 +1393,10 @@ select one r_val related by v_bin->V_VAL[R803];
 
 // simplify logical expressions containing literal booleans
 select one l_lbo related by l_val->V_LBO[R801];
-if not_empty l_lbo and (operator == "and" or operator == "or")
+if not_empty l_lbo and (operator == "and" or operator == "or") then
   l_is_true = T::sub(format:"l", s:l_lbo.Value) == "true";
   if (l_is_true and operator == "and") or
-     (not l_is_true and operator == "or")
+     (not l_is_true and operator == "or") then
     // simplify to right hand side
     ::transformExpression(v_val:r_val, expr_number:expr_number, smt:smt);
   else
@@ -1406,10 +1406,10 @@ if not_empty l_lbo and (operator == "and" or operator == "or")
   return;  // early return
 end if;
 select one r_lbo related by r_val->V_LBO[R801];
-if not_empty r_lbo and (operator == "and" or operator == "or")
+if not_empty r_lbo and (operator == "and" or operator == "or") then
   r_is_true = T::sub(format:"l", s:r_lbo.Value) == "true";
   if (r_is_true and operator == "and") or
-     (not r_is_true and operator == "or")
+     (not r_is_true and operator == "or") then
     // simplify to left hand side
     ::transformExpression(v_val:l_val, expr_number:expr_number, smt:smt);
   else
@@ -1442,25 +1442,25 @@ select one l_set related by l_type->CollectionTypeReference[R3801]->SetTypeRefer
 
 // translate the operator
 binary.invocation = false;
-if ("and" == operator)
+if ("and" == operator) then
   if (l_type.primitive)
     binary.operator = "&&";
   else
     binary.operator = "and";
     binary.invocation = true;
   end if;
-elif ("or" == operator)
+elif ("or" == operator) then
   if (l_type.primitive)
     binary.operator = "||";
   else
     binary.operator = "or";
     binary.invocation = true;
   end if;
-elif ("==" == operator)
+elif ("==" == operator) then
   if (l_type.primitive)
     binary.operator = "==";
   else
-    if (not_empty array_type)
+    if (not_empty array_type) then
       binary.operator = "Arrays.equals";
       binary.invocation = true;
     else
@@ -1468,7 +1468,7 @@ elif ("==" == operator)
       binary.invocation = true;
     end if;
   end if;
-elif ("!=" == operator)
+elif ("!=" == operator) then
   if (l_type.primitive)
     binary.operator = "!=";
   else
@@ -1483,7 +1483,7 @@ elif ("!=" == operator)
     relate type to sub_expr across R795;
     relate sub_expr to unary across R777;
     relate binary to sub_expr across R776;
-    if (not_empty array_type)
+    if (not_empty array_type) then
       binary.operator = "Arrays.equals";
       binary.invocation = true;
     else
@@ -1491,10 +1491,10 @@ elif ("!=" == operator)
       binary.invocation = true;
     end if;
   end if;
-elif ("<" == operator)
+elif ("<" == operator) then
   binary.operator = "<";
-  if (not l_type.primitive)
-    if (not_empty array_type)
+  if (not l_type.primitive) then
+    if (not_empty array_type) then
       binary.comparison_operator = "Arrays.compare";
       binary.invocation = true;
     else
@@ -1502,10 +1502,10 @@ elif ("<" == operator)
       binary.invocation = true;
     end if;
   end if;
-elif ("<=" == operator)
+elif ("<=" == operator) then
   binary.operator = "<=";
-  if (not l_type.primitive)
-    if (not_empty array_type)
+  if (not l_type.primitive) then
+    if (not_empty array_type) then
       binary.comparison_operator = "Arrays.compare";
       binary.invocation = true;
     else
@@ -1513,10 +1513,10 @@ elif ("<=" == operator)
       binary.invocation = true;
     end if;
   end if;
-elif (">" == operator)
+elif (">" == operator) then
   binary.operator = ">";
-  if (not l_type.primitive)
-    if (not_empty array_type)
+  if (not l_type.primitive) then
+    if (not_empty array_type) then
       binary.comparison_operator = "Arrays.compare";
       binary.invocation = true;
     else
@@ -1524,10 +1524,10 @@ elif (">" == operator)
       binary.invocation = true;
     end if;
   end if;
-elif (">=" == operator)
+elif (">=" == operator) then
   binary.operator = ">=";
-  if (not l_type.primitive)
-    if (not_empty array_type)
+  if (not l_type.primitive) then
+    if (not_empty array_type) then
       binary.comparison_operator = "Arrays.compare";
       binary.invocation = true;
     else
@@ -1535,64 +1535,64 @@ elif (">=" == operator)
       binary.invocation = true;
     end if;
   end if;
-elif ("+" == operator)
+elif ("+" == operator) then
   if (l_type.primitive)
     binary.operator = "+";
   else
-    if (not_empty l_set) // set type
+    if (not_empty l_set) then // set type
       binary.operator = "union";
       binary.invocation = true;
-    elif ("String" == l_type.type_reference)
+    elif ("String" == l_type.type_reference) then
       binary.operator = "+";
     else
       binary.operator = "add";
       binary.invocation = true;
     end if;
   end if;
-elif ("-" == operator)
+elif ("-" == operator) then
   if (l_type.primitive)
     binary.operator = "-";
   else
-    if (not_empty l_set) // set type
+    if (not_empty l_set) then // set type
       binary.operator = "difference";
     else
       binary.operator = "subtract";
     end if;
     binary.invocation = true;
   end if;
-elif ("*" == operator)
+elif ("*" == operator) then
   if (l_type.primitive)
     binary.operator = "*";
   else
     binary.operator = "multiply";
     binary.invocation = true;
   end if;
-elif ("/" == operator)
+elif ("/" == operator) then
   if (l_type.primitive)
     binary.operator = "/";
   else
     binary.operator = "divide";
     binary.invocation = true;
   end if;
-elif ("%" == operator)
+elif ("%" == operator) then
   if (l_type.primitive)
     binary.operator = "%";
   else
     binary.operator = "remainder";
     binary.invocation = true;
   end if;
-elif ("|" == operator)
+elif ("|" == operator) then
   binary.operator = "union";
   binary.invocation = true;
-elif ("&" == operator)
+elif ("&" == operator) then
   binary.operator = "intersection";
   binary.invocation = true;
-elif ("^" == operator)
+elif ("^" == operator) then
   binary.operator = "disunion";
   binary.invocation = true;
 end if;
 // translate the left operand
-if (::precedenceCheck(val1:l_val, val2:v_val) <= 0) // if the left operand is lower precedence than the current operator, force it to be evaluated first with parentheses
+if (::precedenceCheck(val1:l_val, val2:v_val) <= 0) then // if the left operand is lower precedence than the current operator, force it to be evaluated first with parentheses
   // transform the left hand expression
   ::transformExpression(v_val:l_val, expr_number:expr.expression_number + ".1.1", smt:smt);
   select any paren_expr related by smt->Expression[R775] where (selected.expression_number == expr.expression_number + ".1.1");
@@ -1613,7 +1613,7 @@ else
   relate l_expr to binary across R779;
 end if;
 // translate the right operand
-if (::precedenceCheck(val1:r_val, val2:v_val) <= 0) // if the right operand is lower precedence than the current operator, force it to be evaluated first with parentheses
+if (::precedenceCheck(val1:r_val, val2:v_val) <= 0) then // if the right operand is lower precedence than the current operator, force it to be evaluated first with parentheses
   // transform the right hand expression
   ::transformExpression(v_val:r_val, expr_number:expr.expression_number + ".2.1", smt:smt);
   select any paren_expr related by smt->Expression[R775] where (selected.expression_number == expr.expression_number + ".2.1");
@@ -1765,102 +1765,102 @@ smt = param.smt;
 expr_number = param.expr_number;
 
 select one v_lst related by v_val->V_LST[R801];
-if ( not_empty v_lst )
+if ( not_empty v_lst ) then
   ::transformLiteralString( v_lst:v_lst, smt:smt, expr_number:expr_number );
 
 else
 select one v_lbo related by v_val->V_LBO[R801];
-if ( not_empty v_lbo )
+if ( not_empty v_lbo ) then
   ::transformLiteralBoolean( v_lbo:v_lbo, smt:smt, expr_number:expr_number );
 
 else
 select one v_lin related by v_val->V_LIN[R801];
-if ( not_empty v_lin )
+if ( not_empty v_lin ) then
   ::transformLiteralInteger( v_lin:v_lin, smt:smt, expr_number:expr_number );
 
 else
 select one v_lrl related by v_val->V_LRL[R801];
-if ( not_empty v_lrl )
+if ( not_empty v_lrl ) then
   ::transformLiteralReal( v_lrl:v_lrl, smt:smt, expr_number:expr_number );
 
 else
 select one v_len related by v_val->V_LEN[R801];
-if ( not_empty v_len )
+if ( not_empty v_len ) then
   ::transformLiteralEnumerator( v_len:v_len, smt:smt, expr_number:expr_number );
 
 else
 select one v_tvl related by v_val->V_TVL[R801];
-if ( not_empty v_tvl )
+if ( not_empty v_tvl ) then
   ::transformTransientValueReference( v_tvl:v_tvl, smt:smt, expr_number:expr_number );
 
 else
 select one v_irf related by v_val->V_IRF[R801];
-if ( not_empty v_irf )
+if ( not_empty v_irf ) then
   ::transformInstanceReference( v_irf:v_irf, smt:smt, expr_number:expr_number );
 
 else
 select one v_isr related by v_val->V_ISR[R801];
-if ( not_empty v_isr )
+if ( not_empty v_isr ) then
   ::transformInstanceSetReference( v_isr:v_isr, smt:smt, expr_number:expr_number );
  
 else
 select one v_avl related by v_val->V_AVL[R801];
-if ( not_empty v_avl )
+if ( not_empty v_avl ) then
   ::transformAttributeValueReference( v_avl:v_avl, smt:smt, expr_number:expr_number );
  
 else
 select one v_pvl related by v_val->V_PVL[R801];
-if ( not_empty v_pvl )
+if ( not_empty v_pvl ) then
   ::transformParameterValue( v_pvl:v_pvl, smt:smt, expr_number:expr_number );
 
 else
 select one v_edv related by v_val->V_EDV[R801];
-if ( not_empty v_edv )
+if ( not_empty v_edv ) then
   ::transformEventDatumValue( v_edv:v_edv, smt:smt, expr_number:expr_number );
 
 else
 select one v_brv related by v_val->V_BRV[R801];
-if ( not_empty v_brv )
+if ( not_empty v_brv ) then
   ::transformBridgeValue( v_brv:v_brv, smt:smt, expr_number:expr_number );
 
 else
 select one v_fnv related by v_val->V_FNV[R801];
-if ( not_empty v_fnv )
+if ( not_empty v_fnv ) then
   ::transformFunctionValue( v_fnv:v_fnv, smt:smt, expr_number:expr_number );
 
 else
 select one v_trv related by v_val->V_TRV[R801];
-if ( not_empty v_trv )
+if ( not_empty v_trv ) then
   ::transformOperationValue( v_trv:v_trv, smt:smt, expr_number:expr_number );
 
 else
 select one v_slr related by v_val->V_SLR[R801];
-if ( not_empty v_slr )
+if ( not_empty v_slr ) then
   ::transformSelectedReference( v_slr:v_slr, smt:smt, expr_number:expr_number );
 
 else
 select one v_uny related by v_val->V_UNY[R801];
-if ( not_empty v_uny )
+if ( not_empty v_uny ) then
   ::transformUnaryOperation( v_uny:v_uny, smt:smt, expr_number:expr_number );
 
 else
 select one v_bin related by v_val->V_BIN[R801];
-if ( not_empty v_bin )
+if ( not_empty v_bin ) then
   ::transformBinaryOperation( v_bin:v_bin, smt:smt, expr_number:expr_number );
 
 else
 select one v_aer related by v_val->V_AER[R801];
-if ( not_empty v_aer )
+if ( not_empty v_aer ) then
   ::transformArrayElementReference( v_aer:v_aer, smt:smt, expr_number:expr_number );
 
 else
 select one v_scv related by v_val->V_SCV[R801];
-if ( not_empty v_scv )
+if ( not_empty v_scv ) then
   ::transformConstantReference( v_scv:v_scv, smt:smt, expr_number:expr_number );
 
 else
 select one v_msv related by v_val->V_MSV[R801];
-if ( not_empty v_msv )
+if ( not_empty v_msv ) then
   ::transformMessageValue( v_msv:v_msv, smt:smt, expr_number:expr_number );
 
 else
@@ -1937,7 +1937,7 @@ select one cnst_lsc related by v_scv->CNST_SYC[R850]->CNST_LFSC[R1502]->CNST_LSC
 const_ref.value = cnst_lsc.Value;
 
 // check if it is a long constant
-if (type.type_reference == "long")
+if (type.type_reference == "long") then
   const_ref.value = const_ref.value + "L";
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
@@ -2008,7 +2008,7 @@ create object instance ref of ParameterReference;
 relate ref to expr across R776;
 param_name = "";
 select any sm_evtdi related by v_edv->V_EPR[R834]->SM_EVTDI[R846];
-if ( empty sm_evtdi )
+if ( empty sm_evtdi ) then
   // TODO bad
   LOG::LogFailure( message:"No event data item found" );
 else
@@ -2016,7 +2016,7 @@ else
 end if;
 select any formal_param related by sm_evtdi->SM_EVT[R532]->Event[R4759]->InvocableObject[R427]->FormalParameter[R429]
   where ( selected.name == "p_" + param_name );
-if ( not_empty formal_param )
+if ( not_empty formal_param ) then
   relate formal_param to ref across R781;
 else
   // TODO bad
@@ -2087,7 +2087,7 @@ select one v_val related by v_brv->V_VAL[R801];
 
 // If act_smt is empty, it means that the invocation was not the right hand side of an assignment
 select one act_smt related by v_brv->V_VAL[R801]->ACT_AI[R609]->ACT_SMT[R603];
-if empty act_smt
+if empty act_smt then
   LOG::LogFailure(message:"Timer schedule expressions must be the simple right hand side of an assignment: " +
                    invoc.parent_name + "#" + invoc.name + " " + STRING::itoa(i:v_val.LineNumber) + ":" + STRING::itoa(i:v_val.StartPosition));
 else
@@ -2097,7 +2097,7 @@ else
   select any e_ces related by v_pars->V_VAL[R800]->V_TVL[R801]->V_VAR[R805]->E_CES[R710];
   select one prev_act_smt related by e_ces->E_ESS[R701]->ACT_SMT[R603];
   select one act_smt2 related by prev_act_smt->ACT_SMT[R661.''succeeds''] where selected.Statement_ID == act_smt.Statement_ID;
-  if empty act_smt2
+  if empty act_smt2 then
     LOG::LogFailure(message:"The statement immediately preceding a timer start must be an event creation statement which defines the event to be scheduled." +
                       invoc.parent_name + "#" + invoc.name + " " + STRING::itoa(i:v_val.LineNumber) + ":" + STRING::itoa(i:v_val.StartPosition));
   else
@@ -2129,16 +2129,16 @@ else
     target_expr.expression_number = expr.expression_number + ".2";
     relate target_expr to schedule across R3909;
     select one target_v_var related by e_ces->E_CSME[R702]->E_CEI[R704]->V_VAR[R711];
-    if (not_empty target_v_var)
+    if (not_empty target_v_var) then
       select one target_obj related by target_v_var->V_INT[R814]->O_OBJ[R818]->Class[R409];
       target_type = ::getObjectReference(obj:target_obj);
       relate target_type to target_expr across R795;
       target_var = ::getVariableInScope(smt:smt, name:target_v_var.Name);
-      if (not_empty target_var) // cannot declare two variables of the same name in the same scope
+      if (not_empty target_var) then // cannot declare two variables of the same name in the same scope
         create object instance var_ref of VariableReference;
         relate target_var to var_ref across R782;
         relate var_ref to target_expr across R776;
-		  elif (target_v_var.Name == "self")
+		  elif (target_v_var.Name == "self") then
 		  	// create named reference
 		  	create object instance self_ref of NamedReference;
 		  	relate self_ref to target_expr across R776;
@@ -2159,8 +2159,8 @@ else
     // create the delay expression
     // this is an invocation of the "Duration" constructor using microseconds as the unit
     select any v_par from instances of V_PAR;
-    for each v_par in v_pars
-      if v_par.Name == "microseconds"
+    for each v_par in v_pars loop
+      if v_par.Name == "microseconds" then
         break;
       end if;
     end for;
@@ -2172,7 +2172,7 @@ else
     select one duration_type related by duration_type_ref->Type[R3800];
     select any duration_constructor from instances of InvocableObject where
       selected.parent_name == duration_type.name and selected.parent_package == duration_type.package and selected.name == "Duration";
-    if empty duration_constructor
+    if empty duration_constructor then
       create object instance duration_constructor of InvocableObject;
       duration_constructor.parent_name = duration_type.name;
       duration_constructor.parent_package = duration_type.package;
@@ -2294,7 +2294,7 @@ multiplicity = param.multiplicity;
 
 // create any expression if multiplicity is one
 select any any_expr from instances of AnyExpr where false;
-if multiplicity == "one" or multiplicity == "any"
+if multiplicity == "one" or multiplicity == "any" then
 
   // create expression
   create object instance expr of Expression;
@@ -2312,7 +2312,7 @@ if multiplicity == "one" or multiplicity == "any"
 else
   // if the where type is a collection, get the stream type
   select one element_type related by where_type->CollectionTypeReference[R3801]->TypeReference[R3805];
-  if not_empty element_type
+  if not_empty element_type then
     where_type = ::getStreamReference(element_type:element_type);
   end if;
 end if;
@@ -2322,12 +2322,12 @@ select any sort_expr from instances of SortExpr where false;
 select many sort_keys from instances of V_VAL where false;
 select many where_vals from instances of V_VAL where false;
 where_vals = where_vals + v_val;
-while not_empty where_vals
+while not_empty where_vals loop
   // search for invocations to the SORT bridge
   select many v_brvs related by where_vals->V_BRV[R801];
-  for each v_brv in v_brvs
+  for each v_brv in v_brvs loop
     select one s_ee related by v_brv->S_BRG[R828]->S_EE[R19];
-    if s_ee.Key_Lett == "SORT"
+    if s_ee.Key_Lett == "SORT" then
       select one sort_v_val related by v_brv->V_VAL[R801];
       sort_keys = sort_keys + sort_v_val;
     end if;
@@ -2337,11 +2337,11 @@ while not_empty where_vals
   select many rhss related by where_vals->V_BIN[R801]->V_VAL[R803];
   where_vals = lhss + rhss;
 end while;
-if not_empty sort_keys
+if not_empty sort_keys then
   ::transformSort(v_vals:sort_keys, smt:smt, expr_number:expr_number, where_type:where_type);
   select any sort_expr related by smt->Expression[R775]->SortExpr[R776] where selected.expression_number == expr_number;
   expr_number = sort_expr.expression_number + ".1";
-  if not_empty any_expr
+  if not_empty any_expr then
     select one expr related by sort_expr->Expression[R776];
     relate expr to any_expr across R783;
   end if;
@@ -2354,9 +2354,9 @@ expr.expression_number = expr_number;
 relate where_type to expr across R795;
 
 // link to the sort expression if it exists
-if not_empty sort_expr
+if not_empty sort_expr then
   relate expr to sort_expr across R3917;
-elif not_empty any_expr
+elif not_empty any_expr then
   relate expr to any_expr across R783;
 end if;
 
@@ -2454,16 +2454,16 @@ relate sort_expr to expr across R776;
 
 // get the target class
 select one cls related by where_type->InstanceTypeReference[R3801]->Class[R3808];
-if (empty cls)
+if (empty cls) then
   select one cls related by where_type->StreamTypeReference[R3801]->TypeReference[R3812]->InstanceTypeReference[R3801]->Class[R3808];
 end if;
 
 // get the first sort key
 select any current_v_val from instances of V_VAL where false;
-for each v_val in v_vals
+for each v_val in v_vals loop
   if empty current_v_val or v_val.LineNumber < current_v_val.LineNumber
     or (v_val.LineNumber == current_v_val.LineNumber and
-        v_val.StartPosition < current_v_val.StartPosition)
+        v_val.StartPosition < current_v_val.StartPosition) then
     current_v_val = v_val;
   end if;
 end for;
@@ -2471,25 +2471,25 @@ end for;
 // iterate over the sort keys
 select any prev_sort_key from instances of SortKey where false;
 select any prev_v_val from instances of V_VAL where false;
-while not_empty current_v_val
+while not_empty current_v_val loop
   select one s_brg related by current_v_val->V_BRV[R801]->S_BRG[R828];
   // select the sort attribute
   select any attr_parm related by current_v_val->V_BRV[R801]->V_PAR[R810] where selected.Name == "attr";
   select one string_literal related by attr_parm->V_VAL[R800]->V_LST[R801];
-  if not_empty string_literal
+  if not_empty string_literal then
     select any attr related by cls->Attribute[R410] where (selected.name == "m_" + string_literal.Value or selected.name == "ref_" + string_literal.Value);
     select any op related by cls->Operation[R416] where (not selected.is_class_based and selected.name == string_literal.Value);
-    if not_empty attr or not_empty op
+    if not_empty attr or not_empty op then
       // create the sort key
       create object instance sort_key of SortKey;
       sort_key.descending = s_brg.Name == "descending";
-      if not_empty attr
+      if not_empty attr then
         relate attr to sort_key across R3918;
       else
         relate op to sort_key across R3919;
       end if;
       relate sort_key to sort_expr across R3906;
-      if not_empty prev_sort_key
+      if not_empty prev_sort_key then
         relate prev_sort_key to sort_key across R3920.''precedes'';
       end if;
       prev_sort_key = sort_key;
@@ -2510,13 +2510,13 @@ while not_empty current_v_val
   // get the next sort key
   prev_v_val = current_v_val;
   select any current_v_val from instances of V_VAL where false;
-  for each v_val in v_vals
+  for each v_val in v_vals loop
     if (v_val.LineNumber > prev_v_val.LineNumber
         or (v_val.LineNumber == prev_v_val.LineNumber and
             v_val.StartPosition > prev_v_val.StartPosition)) and 
        (empty current_v_val or v_val.LineNumber < current_v_val.LineNumber
         or (v_val.LineNumber == current_v_val.LineNumber and
-            v_val.StartPosition < current_v_val.StartPosition))
+            v_val.StartPosition < current_v_val.StartPosition)) then
       current_v_val = v_val;
     end if;
   end for;
@@ -2598,11 +2598,11 @@ relate type to expr across R795;
 select one spr_rep related by v_msv->SPR_REP[R845];
 select one spr_pep related by v_msv->SPR_PEP[R841];
 select one c_ep related by spr_rep->C_EP[R4500];
-if ( empty c_ep )
+if ( empty c_ep ) then
   select one c_ep related by spr_pep->C_EP[R4501];
 end if;
 select one c_po related by spr_rep->C_R[R4500]->C_IR[R4009]->C_PO[R4016];
-if ( empty c_po )
+if ( empty c_po ) then
   select one c_po related by spr_pep->C_P[R4501]->C_IR[R4009]->C_PO[R4016];
 end if;
 select one target_port related by c_po->Port[R422];

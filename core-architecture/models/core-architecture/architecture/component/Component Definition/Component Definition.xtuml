@@ -17,30 +17,30 @@ INSERT INTO O_TFR
 	'population_class = PROP::getProperty(key:"io.ciera.ObjectPopulationClass");
 
 select many util_refs related by self->UtilityInComponent[R4558] where SORT::ascending(attr:"utility_name");
-for each util_ref in util_refs
+for each util_ref in util_refs loop
   util_ref.render();
 end for;
 utilities = T::body();
 
-for each util_ref in util_refs
+for each util_ref in util_refs loop
   util_ref.render_init();
 end for;
 utility_initializers = T::body();
 
 select many comp_ports related by self->Port[R417];
-for each port in comp_ports
+for each port in comp_ports loop
   port.render_accessor_decl();
 end for;
 ports = T::body();
 
-for each port in comp_ports
+for each port in comp_ports loop
   port.render_accessor_init();
 end for;
 port_initializers = T::body();
 
 sep = "";
 select many funcs related by self->Function[R405];
-for each function in funcs
+for each function in funcs loop
   function.render();
   T::append(s:sep);
   sep = "\n";
@@ -49,9 +49,9 @@ functions = T::body();
 
 sep = "";
 select many objs related by self->Class[R408];
-for each obj in objs
+for each obj in objs loop
   select many class_ops related by obj->Operation[R416] where (selected.is_class_based);
-  for each operation in class_ops
+  for each operation in class_ops loop
     operation.render();
     T::append(s:sep);
     sep = "\n";
@@ -61,7 +61,7 @@ class_operations = T::body();
 
 sep = "";
 select many relationships related by self->Relationship[R448];
-for each rel in relationships
+for each rel in relationships loop
   rel.render_modifiers();
   T::append(s:sep);
   sep = "\n";
@@ -69,7 +69,7 @@ end for;
 relationship_modifiers = T::body();
 
 sep = "";
-for each port in comp_ports
+for each port in comp_ports loop
   port.render_accessor();
   T::append(s:sep);
   sep = "\n";
@@ -78,48 +78,48 @@ port_accessors = T::body();
 
 init = "";
 select many init_functions related by self->Function[R4561];
-for each init_function in init_functions
+for each init_function in init_functions loop
   init = init + init_function.name + "();\n";
 end for;
 
 select many local_comp_ports related by self->Port[R417] where selected.supertype_name == "";
-for each port in local_comp_ports
+for each port in local_comp_ports loop
   port.render_accessor_handler();
 end for;
 port_handlers = T::body();
 
-for each port in local_comp_ports
+for each port in local_comp_ports loop
   port.render_accessor_handler2();
 end for;
 port_handlers2 = T::body();
 
 select many csms related by self->Class[R408]->StateMachine[R4750] where not selected.is_instance and SORT::ascending(attr:"class_name");
-for each csm in csms
+for each csm in csms loop
   csm.render_handler();
 end for;
 csm_handlers = T::body();
 
-for each csm in csms
+for each csm in csms loop
   csm.render_persist();
 end for;
 csm_persists = T::body();
 
-for each csm in csms
+for each csm in csms loop
   csm.render_load();
 end for;
 csm_loads = T::body();
 
 select one supertype_comp_def_file related by self->ComponentDefinition[R4562.''extends'']->File[R401];
-if not_empty supertype_comp_def_file
+if not_empty supertype_comp_def_file then
   ::addFileImport(file:supertype_comp_def_file);
 end if;
 
-if not_empty local_comp_ports
+if not_empty local_comp_ports then
   ::addStringImport(package:"io.ciera.runtime.api.application", class_name:"MessageTarget");
   ::addStringImport(package:"io.ciera.runtime.api.domain", class_name:"Port");
 end if;
 
-if not_empty csms
+if not_empty csms then
   ::addStringImport(package:"io.ciera.runtime.api.application", class_name:"Event");
   ::addStringImport(package:"io.ciera.runtime.api.exceptions", class_name:"EventTargetException");
   ::addStringImport(package:"java.io", class_name:"IOException");
@@ -127,8 +127,8 @@ if not_empty csms
   ::addStringImport(package:"java.io", class_name:"ObjectOutputStream");
 end if;
 
-if empty supertype_comp_def_file
-  if self.transient
+if empty supertype_comp_def_file then
+  if self.transient then
     ::addStringImport(package:"io.ciera.runtime.domain", class_name:"AbstractDomain");
   else
     ::addStringImport(package:"io.ciera.runtime.api.domain", class_name:"PersistentDomain");

@@ -18,7 +18,7 @@ INSERT INTO O_TFR
 select one subsuper_rel related by self->Relationship[R4512] where selected.rel_type == RelationshipType::SuperSubtype and selected.part_name == self.class_name;
 select many sibling_rels related by subsuper_rel->Class[R434]->Relationship[R434] where not_empty subsuper_rel and selected.num == subsuper_rel.num;
 select any first_selector related by sibling_rels->Selector[R4512] where SORT::ascending(attr:"name") and selected.class_name == self.class_name;
-if not_empty first_selector and first_selector.name == self.name
+if not_empty first_selector and first_selector.name == self.name then
   rel_num = subsuper_rel.num;
   ::addStringImport(package:"io.ciera.runtime.api.exceptions", class_name:"InstancePopulationException");
   T::include(file:"class/t.selector.sub.java");
@@ -37,7 +37,7 @@ T::include(file:"class/t.selector.java");
 // generate methods for correlated navigation
 select one rel1 related by self->Relationship[R4512];
 select one assoc_rel related by self->Relationship[R4512] where selected.rel_type == RelationshipType::Associative and selected.part_name == self.class_name;
-if not_empty assoc_rel
+if not_empty assoc_rel then
   select one using_class related by assoc_rel->Class[R435];
   select any other_rel related by assoc_rel->Class[R435]->Relationship[R435] where selected.name != assoc_rel.name and selected.num == assoc_rel.num;
   select one other_class related by other_rel->Class[R434];
@@ -52,7 +52,7 @@ if not_empty assoc_rel
   ::addStringImport(package:"java.util.stream", class_name:"Stream");
   select one other_class_file related by other_class->File[R401];
   ::addFileImport(file:other_class_file);
-  if (not other_many)
+  if (not other_many) then
     ::addStringImport(package:"java.util", class_name:"Optional");
   end if;
   T::include(file:"class/t.selector.correlated.java");
@@ -73,7 +73,7 @@ INSERT INTO O_TFR
 select one rel related by self->Relationship[R4512];
 select many sibling_rels related by self->Class[R442]->Relationship[R434] where selected.num == rel.num and selected.rel_type == RelationshipType::SuperSubtype;
 select any first_selector related by sibling_rels->Selector[R4512] where SORT::ascending(attr:"name");
-if not_empty first_selector and first_selector.name == self.name
+if not_empty first_selector and first_selector.name == self.name then
   ::addStringImport(package:"io.ciera.runtime.api.exceptions", class_name:"EmptyInstanceException");
   rel_num = rel.num;
   T::include(file:"class/t.selector.empty.sub.java");
@@ -85,7 +85,7 @@ type_name = type_ref.type_reference;
 multiplicity_many = self.multiplicity == Mult::MANY;
 T::include(file:"class/t.selector.empty.java");
 
-if (multiplicity_many)
+if (multiplicity_many) then
   ::addStringImport(package:"java.util.stream", class_name:"Stream");
 end if;',
 	1,
@@ -100,7 +100,7 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'if (self.multiplicity == Mult::MANY)
+	'if (self.multiplicity == Mult::MANY) then
   select one element_type_ref related by self->TypeReference[R446]->StreamTypeReference[R3801]->TypeReference[R3812];
   type_ref = ::getSetReference(element_type:element_type_ref);
   type_reference_name = type_ref.type_reference;
@@ -113,12 +113,12 @@ else
   ::resolveImportsForTypeReference(type_ref:type_ref);
   select one rel related by self->Relationship[R4512];
   // check if this is a supertype selecting to a subtype
-  if rel.rel_type == RelationshipType::SuperSubtype and self.class_name == rel.part_name and self.class_package == rel.part_package
+  if rel.rel_type == RelationshipType::SuperSubtype and self.class_name == rel.part_name and self.class_package == rel.part_package then
     // only render one declaration
     select many rels related by rel->Class[R434]->Relationship[R434] where selected.num == rel.num;
     select any first_sel related by rels->Selector[R4512] where SORT::ascending(attr:"name") and
       selected.class_name == self.class_name and selected.class_package == self.class_package;
-    if not_empty first_sel and first_sel.name == self.name
+    if not_empty first_sel and first_sel.name == self.name then
       T::include(file:"class/t.relationshiplink.sub.java");
     end if;
   else
@@ -138,7 +138,7 @@ INSERT INTO O_TFR
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'select one inst_type related by self->TypeReference[R446]->StreamTypeReference[R3801]->TypeReference[R3812]->InstanceTypeReference[R3801]->TypeReference[R3801];
-if empty inst_type
+if empty inst_type then
   select one inst_type related by self->TypeReference[R446];
 end if;
 inst_type_name = inst_type.type_reference;
@@ -163,17 +163,17 @@ INSERT INTO O_TFR
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'::addStringImport(package:"io.ciera.runtime.api.exceptions", class_name:"InvalidRelationshipException");
-if (self.multiplicity == Mult::MANY)
+if (self.multiplicity == Mult::MANY) then
   T::include(file:"class/t.relationshiplink.many.check.java");
 else
   select one rel related by self->Relationship[R4512];
   // check if this is a supertype selecting to a subtype
-  if rel.rel_type == RelationshipType::SuperSubtype and self.class_name == rel.part_name and self.class_package == rel.part_package
+  if rel.rel_type == RelationshipType::SuperSubtype and self.class_name == rel.part_name and self.class_package == rel.part_package then
     // only render one declaration
     select many rels related by rel->Class[R434]->Relationship[R434] where selected.num == rel.num;
     select any first_sel related by rels->Selector[R4512] where SORT::ascending(attr:"name") and
       selected.class_name == self.class_name and selected.class_package == self.class_package;
-    if not_empty first_sel and first_sel.name == self.name
+    if not_empty first_sel and first_sel.name == self.name then
       T::include(file:"class/t.relationshiplink.sub.check.java");
     end if;
   else
@@ -193,7 +193,7 @@ INSERT INTO O_TFR
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'select one inst_type related by self->TypeReference[R446]->StreamTypeReference[R3801]->TypeReference[R3812]->InstanceTypeReference[R3801]->TypeReference[R3801];
-if empty inst_type
+if empty inst_type then
   select one inst_type related by self->TypeReference[R446];
 end if;
 inst_type_name = inst_type.type_reference;

@@ -102,7 +102,7 @@ INSERT INTO O_DBATTR
 	VALUES ("2c6e757f-4f12-45a3-9639-1dadb55dd3ce",
 	"327e89b2-6713-4172-b27c-01d702ab5eed",
 	'select one inst_type related by self->InstanceTypeReference[R3801];
-if not_empty inst_type
+if not_empty inst_type then
   self.default_value = inst_type.class_name + ".EMPTY";
 else
   select one base_type related by self->Type[R3800];
@@ -153,11 +153,11 @@ INSERT INTO O_DBATTR
 	'select one base_type related by self->Type[R3800];
 select one basic_typeref related by self->BasicTypeReference[R3801];
 select one instance_typeref related by self->InstanceTypeReference[R3801];
-if not_empty basic_typeref or not_empty instance_typeref
+if not_empty basic_typeref or not_empty instance_typeref then
   self.serializable = base_type.serializable;
 else
   select one collection_typeref related by self->CollectionTypeReference[R3801];
-  if not_empty collection_typeref
+  if not_empty collection_typeref then
     select one element_typeref related by collection_typeref->TypeReference[R3805];
     self.serializable = base_type.serializable and element_typeref.serializable;
   else

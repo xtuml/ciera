@@ -63,7 +63,7 @@ T::set_output_directory(dir:project_root + "/" + CMD::get_value(name:"gendir"));
 
 // load up instances
 input_file = CMD::get_value( name:"i" );
-if ( "" != input_file )
+if ( "" != input_file ) then
   SQL::load_file( file:project_root + "/" + input_file );
 
   // load application marks
@@ -74,7 +74,7 @@ if ( "" != input_file )
 
   // dump instances
   output_file = CMD::get_value( name:"o" );
-  if ( "" != output_file )
+  if ( "" != output_file ) then
     SQL::serialize_file( file:project_root + "/" + output_file );
   end if;
 else
@@ -121,13 +121,13 @@ LOG::LogTime(message:"  Elapsed time:", t:TIM::current_clock() - start_time);
 LOG::LogInfo(message:"  Creating modules...");
 project_name = CMD::get_value(name:"p");
 select any module_sys from instances of S_SYS where selected.Name == project_name;
-if empty module_sys
+if empty module_sys then
   LOG::LogFailure(message:"Could not find project: ''" + project_name + "''");
   ARCH::exit(code:1);
 end if;
 ::transformModule(s_sys:module_sys, main_module:true);
 select many other_syss from instances of S_SYS where selected.Name != project_name;
-for each other_sys in other_syss
+for each other_sys in other_syss loop
   ::transformModule(s_sys:other_sys, main_module:false);
 end for;
 LOG::LogInfo(message:"  done.");
@@ -137,9 +137,9 @@ LOG::LogTime(message:"  Elapsed time:", t:TIM::current_clock() - start_time);
 LOG::LogInfo(message:"  Translating packages...");
 select any empty_comp_def from instances of ComponentDefinition where false;
 select many root_packages related by module_sys->EP_PKG[R1401];
-for each root_package in root_packages
+for each root_package in root_packages loop
   pass = 0;
-  while pass < 4
+  while pass < 4 loop
     pass = pass + 1;
     ::transformPackage(ep_pkg:root_package, containing_comp_def:empty_comp_def, path:"", pass:pass);
   end while;
@@ -150,7 +150,7 @@ LOG::LogTime(message:"  Elapsed time:", t:TIM::current_clock() - start_time);
 // translate bodies
 LOG::LogInfo(message:"  Translating OAL bodies...");
 select many invocables from instances of InvocableObject;
-for each invocable in invocables
+for each invocable in invocables loop
   LOG::LogInfo(message:"  Translating ''" + invocable.parent_package + "." + invocable.parent_name + "#" + invocable.name + "'' ...");
   ::transformBody(invocable:invocable);
 end for;
@@ -161,17 +161,17 @@ LOG::LogTime(message:"  Elapsed time:", t:TIM::current_clock() - start_time);
 select any root_package_mark from instances of Mark where (selected.markable_name == "*"
                                                             and selected.path == "*"
                                                             and selected.feature_name == "RootPackage");
-if not_empty root_package_mark
+if not_empty root_package_mark then
   LOG::LogInfo(message:"  Translating application package...");
   select any root_package from instances of EP_PKG where false;
   select many s_syss from instances of S_SYS;
-  for each s_sys in s_syss
+  for each s_sys in s_syss loop
     select any root_package related by s_sys->EP_PKG[R1401] where (root_package_mark.value == s_sys.Name + "::" + selected.Name);
-    if (not_empty root_package)
+    if (not_empty root_package) then
       break;
     end if;
   end for;
-  if (not_empty root_package)
+  if (not_empty root_package) then
     ::transformApplication(root_package:root_package, path: ::ep_pkgToPath(ep_pkg:root_package));
   else
     LOG::LogFailure(message:"No root package found");
@@ -184,8 +184,8 @@ end if;
 // render all files
 LOG::LogInfo(message:"  Rendering application...");
 select many files from instances of File;
-for each file in files
-  if (not file.exclude)
+for each file in files loop
+  if (not file.exclude) then
     file.rendering = true;
     file.render();
     file.rendering = false;

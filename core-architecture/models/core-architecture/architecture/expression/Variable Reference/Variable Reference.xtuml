@@ -22,7 +22,7 @@ select any by_ref_param related by var->VariableReference[R782]->Expression[R776
 is_passed_by_ref = not_empty by_ref_param;
 
 // check if this variable reference is the declaration
-if self.declaration
+if self.declaration then
 
   // variables are read only if they are marked readonly
   var_readonly = var.readonly;
@@ -30,15 +30,15 @@ if self.declaration
   // get the type name
   select one var_type related by var->TypeReference[R461];
   type_name = var_type.type_reference;
-  if is_passed_by_ref
+  if is_passed_by_ref then
     select one var_builtin_type related by var_type->BasicTypeReference[R3801]->TypeReference[R3801]->Type[R3800]->BuiltInType[R407];
-    if not_empty var_builtin_type and var_builtin_type.primitive
+    if not_empty var_builtin_type and var_builtin_type.primitive then
       type_name = var_builtin_type.object_name;
     end if;
   end if;
   
   // resolve imports
-  if (is_passed_by_ref)
+  if (is_passed_by_ref) then
     ::addStringImport(package:"io.ciera.runtime.domain", class_name:"LocalVariable");
   end if;
   ::resolveImportsForTypeReference(type_ref:var_type);
@@ -48,9 +48,9 @@ end if;
 
 // check if this reference is referring to a finalization
 finalization_num = 0;
-if not is_passed_by_ref
+if not is_passed_by_ref then
   select any finalization related by self->Variable[R782]->Finalization[R485] where (selected.block_number == self.block_number and selected.statement_number == self.statement_number);
-  if (not_empty finalization)
+  if (not_empty finalization) then
     finalization_num = finalization.finalization_number;
   end if;
 end if;

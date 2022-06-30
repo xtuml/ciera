@@ -41,17 +41,17 @@ INSERT INTO S_SYNC
 	'act_lnk = param.act_lnk;
 mult = Mult::ONE;
 
-if ( Multiplicity::Many == act_lnk.Mult )
+if ( Multiplicity::Many == act_lnk.Mult ) then
   mult = Mult::MANY;
-elif ( Multiplicity::Unknown == act_lnk.Mult )
+elif ( Multiplicity::Unknown == act_lnk.Mult ) then
   select one r_simp related by act_lnk->R_REL[R681]->R_SIMP[R206];
   select one r_assoc related by act_lnk->R_REL[R681]->R_ASSOC[R206];
-  if ( not_empty r_simp or not_empty r_assoc )
+  if ( not_empty r_simp or not_empty r_assoc ) then
     // get base object
     select one base_o_obj related by act_lnk->ACT_LNK[R604.''succeeds'']->O_OBJ[R678];
-    if ( empty base_o_obj )
+    if ( empty base_o_obj ) then
       select one base_o_obj related by act_lnk->ACT_SEL[R637]->V_VAL[R613]->V_IRF[R801]->V_VAR[R808]->V_INT[R814]->O_OBJ[R818];
-      if ( empty base_o_obj )
+      if ( empty base_o_obj ) then
         select one base_o_obj related by act_lnk->ACT_SEL[R637]->V_VAL[R613]->V_ISR[R801]->V_VAR[R809]->V_INS[R814]->O_OBJ[R819];
       end if;
     end if;
@@ -59,14 +59,14 @@ elif ( Multiplicity::Unknown == act_lnk.Mult )
     select one target_o_obj related by act_lnk->O_OBJ[R678];
     not_reflexive = target_o_obj.Obj_ID != base_o_obj.Obj_ID;
     phrase = C_UTIL::stripTics( s:act_lnk.Rel_Phrase );
-    if ( not_empty r_simp )
+    if ( not_empty r_simp ) then
       select one r_form related by r_simp->R_FORM[R208];
-      if ( not_empty r_form and r_form.Mult == 1 and r_form.Obj_ID == target_o_obj.Obj_ID and ( not_reflexive or phrase == r_form.Txt_Phrs ) ) // target is simple formalizer and is many
+      if ( not_empty r_form and r_form.Mult == 1 and r_form.Obj_ID == target_o_obj.Obj_ID and ( not_reflexive or phrase == r_form.Txt_Phrs ) ) then // target is simple formalizer and is many
         mult = Mult::MANY;
       else
         select any r_part related by r_simp->R_PART[R207] where
           ( selected.Mult == 1 and selected.Obj_ID == target_o_obj.Obj_ID and ( not_reflexive or phrase == selected.Txt_Phrs ) ); // target is simple participant and is many
-        if ( not_empty r_part )
+        if ( not_empty r_part ) then
           mult = Mult::MANY;
         end if;
       end if;
@@ -78,7 +78,7 @@ elif ( Multiplicity::Unknown == act_lnk.Mult )
          ( r_aoth.Mult == 1 and r_aoth.Obj_ID == target_o_obj.Obj_ID and ( not_reflexive or phrase == r_aoth.Txt_Phrs ) ) or                                          // target is associative other and is many
          ( r_assr.Mult == 1 and r_assr.Obj_ID == target_o_obj.Obj_ID ) or                                                                                             // target is associative link and is many
          ( r_aoth.Mult == 1 and r_assr.Obj_ID == target_o_obj.Obj_ID and r_aone.Obj_ID == base_o_obj.Obj_ID and ( not_reflexive or phrase == r_aoth.Txt_Phrs ) ) or   // target is associative link in the direction of other and other is many
-         ( r_aone.Mult == 1 and r_assr.Obj_ID == target_o_obj.Obj_ID and r_aoth.Obj_ID == base_o_obj.Obj_ID and ( not_reflexive or phrase == r_aone.Txt_Phrs ) )      // target is associative link in the direction of one and one is many
+         ( r_aone.Mult == 1 and r_assr.Obj_ID == target_o_obj.Obj_ID and r_aoth.Obj_ID == base_o_obj.Obj_ID and ( not_reflexive or phrase == r_aone.Txt_Phrs ) ) then      // target is associative link in the direction of one and one is many
         mult = Mult::MANY;
       end if;
     end if;
@@ -128,11 +128,11 @@ INSERT INTO S_SYNC
 	'c_c = param.c_c;
 path = ::formatPath( path:T::sub( format:"l", s:T::sub( format:"r", s:c_c.Name ) ) );
 select one containing_ep_pkg related by c_c->PE_PE[R8001]->EP_PKG[R8000];
-if ( not_empty containing_ep_pkg )
+if ( not_empty containing_ep_pkg ) then
   path = ::ep_pkgToPath( ep_pkg:containing_ep_pkg ) + "/" + path;
 else
   select one containing_c_c related by c_c->PE_PE[R8001]->C_C[R8003];
-  if ( not_empty containing_c_c )
+  if ( not_empty containing_c_c ) then
     path = ::c_cToPath( c_c:containing_c_c ) + "/" + path;
   end if;
 end if;
@@ -172,21 +172,21 @@ INSERT INTO S_SYNC
 	'pe = param.pe;
 path = "";
 select one ep_pkg related by pe->EP_PKG[R8000];
-if ( not_empty ep_pkg )
+if ( not_empty ep_pkg ) then
   path = ep_pkg.Name;
 else
   select one c_c related by pe->C_C[R8003];
-  if ( not_empty c_c )
+  if ( not_empty c_c ) then
     path = c_c.Name;
   end if;
 end if;
 select one containing_pe related by pe->EP_PKG[R8000]->PE_PE[R8001];
-if ( empty containing_pe )
+if ( empty containing_pe ) then
   select one containing_pe related by pe->C_C[R8003]->PE_PE[R8001];
 end if;
-if ( not_empty containing_pe )
+if ( not_empty containing_pe ) then
   container_path = ::containerMarkingPath( pe:containing_pe );
-  if ("" != container_path)
+  if ("" != container_path) then
     return container_path + "::" + path;
   else
     return path;
@@ -229,11 +229,11 @@ INSERT INTO S_SYNC
 	'ep_pkg = param.ep_pkg;
 path = ::formatPath( path:T::sub( format:"l", s:T::sub( format:"r", s:ep_pkg.Name ) ) );
 select one containing_ep_pkg related by ep_pkg->PE_PE[R8001]->EP_PKG[R8000];
-if ( not_empty containing_ep_pkg )
+if ( not_empty containing_ep_pkg ) then
   path = ::ep_pkgToPath( ep_pkg:containing_ep_pkg ) + "/" + path;
 else
   select one containing_c_c related by ep_pkg->PE_PE[R8001]->C_C[R8003];
-  if ( not_empty containing_c_c )
+  if ( not_empty containing_c_c ) then
     path = ::c_cToPath( c_c:containing_c_c ) + "/" + path;
   end if;
 end if;
@@ -283,21 +283,21 @@ actions = act_smt.Label;
 
 // if statements
 select one if_smt related by act_smt->ACT_IF[R603];
-if not_empty if_smt
+if not_empty if_smt then
   select many first_smts related by if_smt->ACT_BLK[R607]->ACT_SMT[R602] where SORT::ascending(attr:"LineNumber"); //and SORT::ascending(attr:"StartPosition");
   line_number = 0;
-  for each first_smt in first_smts
+  for each first_smt in first_smts loop
     line_number = first_smt.LineNumber;
     break;
   end for;
   select any first_smt related by first_smts->ACT_BLK[R602]->ACT_SMT[R602] where selected.LineNumber == line_number and SORT::ascending(attr:"StartPosition");
-  if not_empty first_smt
+  if not_empty first_smt then
     actions = STRING::substr(s:actions, begin:0, end: STRING::indexof(haystack:actions, needle:first_smt.Label));
   else
     end_index = STRING::indexof(haystack:actions, needle:"elif");
-    if end_index == -1
+    if end_index == -1 then
       end_index = STRING::indexof(haystack:actions, needle:"else");
-      if end_index == -1
+      if end_index == -1 then
         end_index = STRING::indexof(haystack:actions, needle:"end if;");
       end if;
     end if;
@@ -307,19 +307,19 @@ else
   
 // elif statements
 select one elif_smt related by act_smt->ACT_EL[R603];
-if not_empty elif_smt
+if not_empty elif_smt then
   select many first_smts related by elif_smt->ACT_BLK[R658]->ACT_SMT[R602] where SORT::ascending(attr:"LineNumber"); //and SORT::ascending(attr:"StartPosition");
   line_number = 0;
-  for each first_smt in first_smts
+  for each first_smt in first_smts loop
     line_number = first_smt.LineNumber;
     break;
   end for;
   select any first_smt related by first_smts->ACT_BLK[R602]->ACT_SMT[R602] where selected.LineNumber == line_number and SORT::ascending(attr:"StartPosition");
-  if not_empty first_smt
+  if not_empty first_smt then
     actions = "elif " + STRING::substr(s:actions, begin:0, end: STRING::indexof(haystack:actions, needle:first_smt.Label));
   else
     end_index = STRING::indexof(haystack:actions, needle:"else");
-    if end_index == -1
+    if end_index == -1 then
       actions = "elif " + actions;
     else
       actions = "elif " + STRING::substr(s:actions, begin:0, end: end_index);
@@ -329,15 +329,15 @@ else
 
 // for statements
 select one for_smt related by act_smt->ACT_FOR[R603];
-if not_empty for_smt
+if not_empty for_smt then
   select many first_smts related by for_smt->ACT_BLK[R605]->ACT_SMT[R602] where SORT::ascending(attr:"LineNumber"); //and SORT::ascending(attr:"StartPosition");
   line_number = 0;
-  for each first_smt in first_smts
+  for each first_smt in first_smts loop
     line_number = first_smt.LineNumber;
     break;
   end for;
   select any first_smt related by first_smts->ACT_BLK[R602]->ACT_SMT[R602] where selected.LineNumber == line_number and SORT::ascending(attr:"StartPosition");
-  if not_empty first_smt
+  if not_empty first_smt then
     actions = STRING::substr(s:actions, begin:0, end: STRING::indexof(haystack:actions, needle:first_smt.Label));
   else
     actions = STRING::substr(s:actions, begin:0, end: STRING::indexof(haystack:actions, needle:"end for;"));
@@ -346,15 +346,15 @@ else
 
 // while statements
 select one while_smt related by act_smt->ACT_WHL[R603];
-if not_empty while_smt
+if not_empty while_smt then
   select many first_smts related by while_smt->ACT_BLK[R608]->ACT_SMT[R602] where SORT::ascending(attr:"LineNumber"); //and SORT::ascending(attr:"StartPosition");
   line_number = 0;
-  for each first_smt in first_smts
+  for each first_smt in first_smts loop
     line_number = first_smt.LineNumber;
     break;
   end for;
   select any first_smt related by first_smts->ACT_BLK[R602]->ACT_SMT[R602] where selected.LineNumber == line_number and SORT::ascending(attr:"StartPosition");
-  if not_empty first_smt
+  if not_empty first_smt then
     actions = STRING::substr(s:actions, begin:0, end: STRING::indexof(haystack:actions, needle:first_smt.Label));
   else
     actions = STRING::substr(s:actions, begin:0, end: STRING::indexof(haystack:actions, needle:"end while;"));
@@ -398,31 +398,31 @@ INSERT INTO S_SYNC
 	'v_par = param.v_par;
 
 select any o_tparm related by v_par->ACT_TFM[R627]->O_TFR[R673]->O_TPARM[R117] where (selected.Name == v_par.Name);
-if empty o_tparm
+if empty o_tparm then
   select any o_tparm related by v_par->V_TRV[R811]->O_TFR[R829]->O_TPARM[R117] where (selected.Name == v_par.Name);
 end if;
 select one par_s_dt related by o_tparm->S_DT[R118];
 
-if empty par_s_dt
+if empty par_s_dt then
 
   select any s_bparm related by v_par->ACT_BRG[R628]->S_BRG[R674]->S_BPARM[R21] where (selected.Name == v_par.Name);
-  if empty s_bparm
+  if empty s_bparm then
     select any s_bparm related by v_par->V_BRV[R810]->S_BRG[R828]->S_BPARM[R21] where (selected.Name == v_par.Name);
   end if;
   select one par_s_dt related by s_bparm->S_DT[R22];
   
-  if empty par_s_dt
+  if empty par_s_dt then
   
     select any c_pp related by v_par->ACT_SGN[R662]->SPR_RS[R660]->SPR_REP[R4502]->C_EP[R4500]->C_PP[R4006] where (selected.Name == v_par.Name);
-    if empty c_pp
+    if empty c_pp then
       select any c_pp related by v_par->ACT_SGN[R662]->SPR_PS[R663]->SPR_PEP[R4503]->C_EP[R4501]->C_PP[R4006] where (selected.Name == v_par.Name);
-      if empty c_pp
+      if empty c_pp then
         select any c_pp related by v_par->ACT_IOP[R679]->SPR_RO[R657]->SPR_REP[R4502]->C_EP[R4500]->C_PP[R4006] where (selected.Name == v_par.Name);
-        if empty c_pp
+        if empty c_pp then
           select any c_pp related by v_par->ACT_IOP[R679]->SPR_PO[R680]->SPR_PEP[R4503]->C_EP[R4501]->C_PP[R4006] where (selected.Name == v_par.Name);
-          if empty c_pp
+          if empty c_pp then
             select any c_pp related by v_par->V_MSV[R842]->SPR_REP[R845]->C_EP[R4500]->C_PP[R4006] where (selected.Name == v_par.Name);
-            if empty c_pp
+            if empty c_pp then
               select any c_pp related by v_par->V_MSV[R842]->SPR_PEP[R841]->C_EP[R4501]->C_PP[R4006] where (selected.Name == v_par.Name);
             end if;
           end if;
@@ -431,18 +431,18 @@ if empty par_s_dt
     end if;
     select one par_s_dt related by c_pp->S_DT[R4007];
     
-    if empty par_s_dt
+    if empty par_s_dt then
     
       select any s_sparm related by v_par->ACT_FNC[R669]->S_SYNC[R675]->S_SPARM[R24] where (selected.Name == v_par.Name);
-      if empty s_sparm
+      if empty s_sparm then
         select any s_sparm related by v_par->V_FNV[R817]->S_SYNC[R827]->S_SPARM[R24] where (selected.Name == v_par.Name);
       end if;
       select one par_s_dt related by s_sparm->S_DT[R26];
       
-      if empty par_s_dt
+      if empty par_s_dt then
       
         select any sm_evtdi related by v_par->E_ESS[R700]->E_CES[R701]->E_CSME[R702]->SM_EVT[R706]->SM_EVTDI[R532] where (selected.Name == v_par.Name);
-        if empty sm_evtdi
+        if empty sm_evtdi then
           select any sm_evtdi related by v_par->E_ESS[R700]->E_GES[R701]->E_GSME[R703]->SM_EVT[R707]->SM_EVTDI[R532] where (selected.Name == v_par.Name);
         end if;
         select one par_s_dt related by sm_evtdi->S_DT[R524];
@@ -494,10 +494,10 @@ INSERT INTO S_SYNC
 	'',
 	's_udt = param.s_udt;
 select any s_dt from instances of S_DT where false;
-if ( not_empty s_udt )
+if ( not_empty s_udt ) then
   select one s_dt related by s_udt->S_DT[R18];
   select one base_udt related by s_dt->S_UDT[R17];
-  if ( not_empty base_udt )
+  if ( not_empty base_udt ) then
     return ::getUDTCoreType( s_udt:base_udt );
   end if;
 end if;
@@ -620,24 +620,24 @@ INSERT INTO S_SYNC
 	'select any r_oir from instances of R_OIR where ( selected.OIR_ID == param.r_oir_id );
 phrase = "";
 select one r_part related by r_oir->R_RTO[R203]->R_PART[R204];
-if ( not_empty r_part )
+if ( not_empty r_part ) then
   phrase = r_part.Txt_Phrs;
 else
 select one r_form related by r_oir->R_RGO[R203]->R_FORM[R205];
-if ( not_empty r_form )
+if ( not_empty r_form ) then
   phrase = r_form.Txt_Phrs;
 else
 select one r_aone related by r_oir->R_RTO[R203]->R_AONE[R204];
-if ( not_empty r_aone )
+if ( not_empty r_aone ) then
   phrase = r_aone.Txt_Phrs;
 else
 select one r_aoth related by r_oir->R_RTO[R203]->R_AOTH[R204];
-if ( not_empty r_aoth )
+if ( not_empty r_aoth ) then
   phrase = r_aoth.Txt_Phrs;
 else
 select one r_sub related by r_oir->R_RGO[R203]->R_SUB[R205];
 select one r_super related by r_oir->R_RTO[R203]->R_SUPER[R204];
-if ( not_empty r_sub or not_empty r_super )
+if ( not_empty r_sub or not_empty r_super ) then
   phrase = "is_a";
 end if; end if; end if; end if; end if;
 return phrase;',
@@ -690,36 +690,36 @@ prec1 = 7;
 prec2 = 7;
 
 i = 0;
-while i < 2
+while i < 2 loop
   prec = 7;
   val = val1;
-  if ( i != 0 )
+  if ( i != 0 ) then
     val = val2;
   end if;
   select one v_uny related by val->V_UNY[R801];
-  if ( not_empty v_uny )
-    if ( ( "cardinality" == T::sub( format:"l", s:v_uny.Operator ) ) or ( "empty" == T::sub( format:"l", s:v_uny.Operator ) ) or ( "not_empty" == T::sub( format:"l", s:v_uny.Operator ) ) )
+  if ( not_empty v_uny ) then
+    if ( ( "cardinality" == T::sub( format:"l", s:v_uny.Operator ) ) or ( "empty" == T::sub( format:"l", s:v_uny.Operator ) ) or ( "not_empty" == T::sub( format:"l", s:v_uny.Operator ) ) ) then
       prec = 6;
-    elif ( ( "not" == T::sub( format:"l", s:v_uny.Operator ) ) or ( "-" == v_uny.Operator ) or ( "+" == v_uny.Operator ) )
+    elif ( ( "not" == T::sub( format:"l", s:v_uny.Operator ) ) or ( "-" == v_uny.Operator ) or ( "+" == v_uny.Operator ) ) then
       prec = 5;
     end if;
   else
     select one v_bin related by val->V_BIN[R801];
-    if ( not_empty v_bin )
-      if ( ( "*" == v_bin.Operator ) or ( "/" == v_bin.Operator ) or ( "%" == v_bin.Operator ) or ( "&" == v_bin.Operator ) or ( "^" == v_bin.Operator ) )
+    if ( not_empty v_bin ) then
+      if ( ( "*" == v_bin.Operator ) or ( "/" == v_bin.Operator ) or ( "%" == v_bin.Operator ) or ( "&" == v_bin.Operator ) or ( "^" == v_bin.Operator ) ) then
         prec = 4;
-      elif ( ( "+" == v_bin.Operator ) or ( "-" == v_bin.Operator ) or ( "|" == v_bin.Operator ) )
+      elif ( ( "+" == v_bin.Operator ) or ( "-" == v_bin.Operator ) or ( "|" == v_bin.Operator ) ) then
         prec = 3;
-      elif ( ( "==" == v_bin.Operator ) or ( "!=" == v_bin.Operator ) or ( "<" == v_bin.Operator ) or ( ">" == v_bin.Operator ) or ( "<=" == v_bin.Operator ) or ( ">=" == v_bin.Operator ) )
+      elif ( ( "==" == v_bin.Operator ) or ( "!=" == v_bin.Operator ) or ( "<" == v_bin.Operator ) or ( ">" == v_bin.Operator ) or ( "<=" == v_bin.Operator ) or ( ">=" == v_bin.Operator ) ) then
         prec = 2;
-      elif ( "and" == T::sub( format:"l", s:v_bin.Operator ) )
+      elif ( "and" == T::sub( format:"l", s:v_bin.Operator ) ) then
         prec = 1;
-      elif ( "or" == T::sub( format:"l", s:v_bin.Operator ) )
+      elif ( "or" == T::sub( format:"l", s:v_bin.Operator ) ) then
         prec = 0;
       end if;
     end if;
   end if;
-  if ( i == 0 )
+  if ( i == 0 ) then
     prec1 = prec;
   else
     prec2 = prec;
@@ -771,14 +771,14 @@ INSERT INTO S_SYNC
 	'',
 	'r_rel = param.r_rel;
 select one simp related by r_rel->R_SIMP[R206];
-if ( not_empty simp )
+if ( not_empty simp ) then
   select one form related by simp->R_FORM[R208];
-  if ( not_empty form )
+  if ( not_empty form ) then
     return true;
   end if;
 else
   select one assoc related by r_rel->R_ASSOC[R206];
-  if ( not_empty assoc )
+  if ( not_empty assoc ) then
     select one rto1 related by assoc->R_AONE[R209]->R_RTO[R204];
     select any rtida1 related by rto1->O_RTIDA[R110];
     select one rto2 related by assoc->R_AOTH[R210]->R_RTO[R204];
@@ -786,7 +786,7 @@ else
     return not_empty rtida1 and not_empty rtida2;
   else
     select one subsup related by r_rel->R_SUBSUP[R206];
-    if ( not_empty subsup )
+    if ( not_empty subsup ) then
       select one rto related by subsup->R_SUPER[R212]->R_RTO[R204];
       select any rtida related by rto->O_RTIDA[R110];
       return not_empty rtida;
@@ -828,30 +828,30 @@ INSERT INTO S_SYNC
 	'',
 	'r_rel = param.r_rel;
 select one srel related by r_rel->R_SIMP[R206];
-if ( not_empty srel )
+if ( not_empty srel ) then
   select many part_set related by srel->R_PART[R207];
-  if ( cardinality part_set > 1 )
+  if ( cardinality part_set > 1 ) then
     select any part1 related by srel->R_PART[R207];
     select any part2 related by srel->R_PART[R207]
       where selected.OIR_ID != part1.OIR_ID;
-    if ( part1.Obj_ID == part2.Obj_ID )
+    if ( part1.Obj_ID == part2.Obj_ID ) then
       return true;
     end if;
   else
     select any part related by srel->R_PART[R207];
     select one form related by srel->R_FORM[R208];
-    if ( not_empty form )
-      if ( part.Obj_ID == form.Obj_ID )
+    if ( not_empty form ) then
+      if ( part.Obj_ID == form.Obj_ID ) then
         return true;
       end if;
     end if;
   end if;
 else
   select one arel related by r_rel->R_ASSOC[R206];
-  if ( not_empty arel )
+  if ( not_empty arel ) then
     select one aone related by arel->R_AONE[R209];
     select one aoth related by arel->R_AOTH[R210];
-    if ( aone.Obj_ID == aoth.Obj_ID )
+    if ( aone.Obj_ID == aoth.Obj_ID ) then
       return true;
     end if;
   end if;
@@ -914,12 +914,12 @@ INSERT INTO S_SYNC
 	'',
 	's_dt = param.type;
 parentType = param.parentType;
-while not_empty s_dt
-  if (s_dt == parentType)
+while not_empty s_dt loop
+  if (s_dt == parentType) then
     return true;
-  elif (s_dt.Name == "real" and parentType.Name == "integer")
+  elif (s_dt.Name == "real" and parentType.Name == "integer") then
     return true;  // special case: real types can be converted to integer with a simple cast
-  elif (s_dt.Name == "timestamp" and parentType.Name == "integer")
+  elif (s_dt.Name == "timestamp" and parentType.Name == "integer") then
     return true;  // special case: timestamp (long) can be converted to integer with a simple cast
   end if;
   select one s_dt related by s_dt->S_UDT[R17]->S_DT[R18];
@@ -961,15 +961,15 @@ INSERT INTO S_SYNC
 	'',
 	'act_act = param.act_act;
 select one s_dt related by act_act->ACT_FNB[R698]->S_SYNC[R695]->S_DT[R25];
-if (empty s_dt)
+if (empty s_dt) then
   select one s_dt related by act_act->ACT_OPB[R698]->O_TFR[R696]->S_DT[R116];
-  if (empty s_dt)
+  if (empty s_dt) then
     select one s_dt related by act_act->ACT_BRB[R698]->S_BRG[R697]->S_DT[R20];
-    if (empty s_dt)
+    if (empty s_dt) then
       select one s_dt related by act_act->ACT_DAB[R698]->O_DBATTR[R693]->O_BATTR[R107]->O_ATTR[R106]->S_DT[R114];
-      if (empty s_dt)
+      if (empty s_dt) then
         select one s_dt related by act_act->ACT_POB[R698]->SPR_PO[R687]->SPR_PEP[R4503]->C_EP[R4501]->C_IO[R4004]->S_DT[R4008];
-        if (empty s_dt)
+        if (empty s_dt) then
           select one s_dt related by act_act->ACT_ROB[R698]->SPR_RO[R685]->SPR_REP[R4502]->C_EP[R4500]->C_IO[R4004]->S_DT[R4008];
         end if;
       end if;
@@ -1020,12 +1020,12 @@ label = param.label;
 
 dcolon_index = STRING::indexof(haystack:label, needle:"::");
 split_index = -2;
-while dcolon_index != -1;
+while dcolon_index != -1 loop;
   split_index = split_index + 2 + dcolon_index;
   dcolon_index = STRING::indexof(haystack:STRING::substr(s:label, begin:split_index + 2, end:-1), needle:"::");
 end while;
 
-if split_index != -1;
+if split_index != -1 then;
   invocable.original_parent_name = STRING::substr(s:label, begin:0, end:split_index);
   invocable.original_body_name = STRING::substr(s:label, begin:split_index + 2, end:-1);
 else
@@ -1078,9 +1078,9 @@ INSERT INTO S_SYNC
 // add module dependency if necessary
 select any main_mod from instances of Module where selected.main_module;
 select one mod related by s_dt->PE_PE[R8001]->EP_PKG[R8000]->S_SYS[R1405]->Module[R4760];
-if not_empty mod and not_empty main_mod and mod != main_mod
+if not_empty mod and not_empty main_mod and mod != main_mod then
   select any dependency related by main_mod->Dependency[R5753.''requires''] where selected.required_module_name == mod.name;
-  if empty dependency
+  if empty dependency then
     create object instance dependency of Dependency;
     relate mod to main_mod across R5753.''required by'' using dependency;
   end if;
@@ -1090,21 +1090,21 @@ select any empty_type_ref from instances of TypeReference where false;
 
 // xtUML core data types
 select one cdt related by s_dt->S_CDT[R17];
-if not_empty cdt
+if not_empty cdt then
   // map from xtUML builtins to Ciera builtins
-  if s_dt.Name == "void"
+  if s_dt.Name == "void" then
     return ::getBasicTypeReferenceByName(name:"void");
-  elif s_dt.Name == "boolean"
+  elif s_dt.Name == "boolean" then
     return ::getBasicTypeReferenceByName(name:"boolean");
-  elif s_dt.Name == "integer"
+  elif s_dt.Name == "integer" then
     return ::getBasicTypeReferenceByName(name:"int");
-  elif s_dt.Name == "real"
+  elif s_dt.Name == "real" then
     return ::getBasicTypeReferenceByName(name:"double");
-  elif s_dt.Name == "string"
+  elif s_dt.Name == "string" then
     return ::getBasicTypeReferenceByName(name:"String");
-  elif s_dt.Name == "unique_id"
+  elif s_dt.Name == "unique_id" then
     return ::getBasicTypeReferenceByName(name:"UniqueId");
-  elif s_dt.Name == "inst<Event>"
+  elif s_dt.Name == "inst<Event>" then
     // return ''Object'' for deprecated inst<Event> type
     return ::getBasicTypeReferenceByName(name:"Object");
   else
@@ -1114,12 +1114,12 @@ if not_empty cdt
 end if;
 
 select one udt related by s_dt->S_UDT[R17];
-if not_empty udt
+if not_empty udt then
   
   // xtUML built in types defined as UDTs
-  if s_dt.Name == "date" or s_dt.Name == "timestamp"
+  if s_dt.Name == "date" or s_dt.Name == "timestamp" then
     return ::getBasicTypeReferenceByName(name:"TimeStamp");
-  elif s_dt.Name == "inst_ref<Timer>"
+  elif s_dt.Name == "inst_ref<Timer>" then
     return ::getBasicTypeReferenceByName(name:"Timer");
   else
     // User defined types
@@ -1131,9 +1131,9 @@ end if;
 
 // instance reference data types
 select one irdt related by s_dt->S_IRDT[R17];
-if not_empty irdt
+if not_empty irdt then
   select one obj related by irdt->O_OBJ[R123]->Class[R409];
-  if irdt.isSet
+  if irdt.isSet then
     return ::getObjectSetReference(obj:obj);
   else
     return ::getObjectReference(obj:obj);
@@ -1142,9 +1142,9 @@ end if;
 
 // enumerated data types
 select one edt related by s_dt->S_EDT[R17];
-if not_empty edt
+if not_empty edt then
   select one type related by s_dt->Type[R423];
-  if empty type
+  if empty type then
     // make sure the type gets translated for referred to types
     select any empty_comp_def from instances of ComponentDefinition where false;
     select one ep_pkg related by s_dt->PE_PE[R8001]->EP_PKG[R8000];
@@ -1152,7 +1152,7 @@ if not_empty edt
     ::transformDataType(s_dt:s_dt, path:path, exclude:true, containing_comp_def:empty_comp_def);
     select one type related by s_dt->Type[R423];
   end if;
-  if not_empty type
+  if not_empty type then
     return ::getBasicTypeReference(type:type);
   end if;
 end if;
@@ -1241,9 +1241,9 @@ INSERT INTO S_SYNC
 select one var_s_dt related by v_var->S_DT[R848];
 select many s_dims related by v_var->S_DIM[R849];
 var_type = ::getTypeReferenceForS_DTWithDims( s_dt:var_s_dt, s_dims:s_dims );
-if empty var_type
+if empty var_type then
   select one var_obj related by v_var->V_INT[R814]->O_OBJ[R818]->Class[R409];
-  if not_empty var_obj
+  if not_empty var_obj then
     var_type = ::getObjectReference(obj:var_obj);
   else
     select one var_obj related by v_var->V_INS[R814]->O_OBJ[R819]->Class[R409];

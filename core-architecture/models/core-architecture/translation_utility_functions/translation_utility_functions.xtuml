@@ -39,7 +39,7 @@ INSERT INTO S_SYNC
 	'load_marks',
 	'',
 	'select any project_root from instances of Mark where selected.markable_name == "*" and selected.path == "*" and selected.feature_name == "ProjectRoot";
-if ( "" != project_root.value )
+if ( "" != project_root.value ) then
   // Load marks
   LOG::LogInfo( message:"Loading marking data." );
   values[7] = "";
@@ -47,7 +47,7 @@ if ( "" != project_root.value )
   
   // Set system properties for system level marks
   select many system_marks from instances of Mark where selected.markable_name == "*" and selected.path == "*";
-  for each system_mark in system_marks
+  for each system_mark in system_marks loop
     PROP::setProperty(key:"io.ciera." + system_mark.feature_name, value:system_mark.value);
   end for;
 else
@@ -71,7 +71,7 @@ INSERT INTO S_SYNC
 	'',
 	's = param.path;
 slash_index = STRING::indexof( haystack:s, needle:"/" );
-while ( -1 != slash_index )
+while ( -1 != slash_index ) loop
   left = STRING::substr( s:s, begin:0, end:slash_index );
   right = STRING::substr( s:s, begin:slash_index + 1, end:-1 );
   s = left + "." + right;
@@ -105,7 +105,7 @@ INSERT INTO S_SYNC
 	'',
 	'name = param.name;
 underscore_index = STRING::indexof( haystack:name, needle:"_" );
-while ( -1 != underscore_index )
+while ( -1 != underscore_index ) loop
   left = STRING::substr( s:name, begin:0, end:underscore_index );
   right = STRING::substr( s:name, begin:underscore_index + 1, end:-1 );
   name = left + "  " + right;
@@ -113,13 +113,13 @@ while ( -1 != underscore_index )
 end while;
 name = T::sub( format:"c", s:name );
 dblspc_index = STRING::indexof( haystack:name, needle:"  " );
-while ( -1 != dblspc_index )
+while ( -1 != dblspc_index ) loop
   left = STRING::substr( s:name, begin:0, end:dblspc_index );
   right = STRING::substr( s:name, begin:dblspc_index + 1, end:-1 );
   name = left + "_" + right;
   dblspc_index = STRING::indexof( haystack:name, needle:"  " );
 end while;
-if ( param.start_lower )
+if ( param.start_lower ) then
   left = STRING::substr( s:name, begin:0, end:1 );
   right = STRING::substr( s:name, begin:1, end:-1 );
   name = T::sub( format:"l", s:left ) + right;
@@ -162,7 +162,7 @@ INSERT INTO S_SYNC
 	'',
 	's = param.path;
 dot_index = STRING::indexof( haystack:s, needle:"." );
-while ( -1 != dot_index )
+while ( -1 != dot_index ) loop
   left = STRING::substr( s:s, begin:0, end:dot_index );
   right = STRING::substr( s:s, begin:dot_index + 1, end:-1 );
   s = left + "/" + right;
@@ -196,21 +196,21 @@ INSERT INTO S_SYNC
 	'',
 	'invocable = param.invocable;
 select one file related by invocable->Function[R427]->ComponentDefinition[R405]->File[R401];
-if ( empty file )
+if ( empty file ) then
   select one file related by invocable->PortMessage[R427]->Port[R420]->File[R401];
-  if ( empty file )
+  if ( empty file ) then
     select one op related by invocable->Operation[R427] where selected.is_class_based;
     select one file related by op->Class[R416]->ComponentDefinition[R408]->File[R401];
-    if empty file
+    if empty file then
       select one op related by invocable->Operation[R427] where not selected.is_class_based;
       select one file related by op->Class[R416]->File[R401];
-      if ( empty file )
+      if ( empty file ) then
         select one file related by invocable->AttributeDerivation[R427]->AttributeAccessor[R441]->Attribute[R4510]->Class[R410]->File[R401];
-        if ( empty file )
+        if ( empty file ) then
           select one file related by invocable->UtilityFunction[R427]->Utility[R4559]->File[R401];
-          if ( empty file )
+          if ( empty file ) then
             select one file related by invocable->State[R427]->StateMachine[R4751]->File[R401];
-            if ( empty file )
+            if ( empty file ) then
               select one file related by invocable->Transition[R427]->State[R4757]->StateMachine[R4751]->File[R401];
             end if;
           end if;
@@ -300,10 +300,10 @@ INSERT INTO S_SYNC
 select many child_blocks related by upper_block->CodeBlock[R498.''contains''];
 block_number = "0";
 int_block_number = 0;
-if ( not_empty child_blocks )
-  for each child_block in child_blocks
+if ( not_empty child_blocks ) then
+  for each child_block in child_blocks loop
     child_block_number = STRING::atoi( s:STRING::substr( s:child_block.block_number, begin:STRING::strlen( s:upper_block.block_number ) + 1, end:-1 ) );
-    if ( child_block_number > int_block_number )
+    if ( child_block_number > int_block_number ) then
       int_block_number = child_block_number;
     end if;
   end for;
@@ -356,7 +356,7 @@ other_obj = param.other_obj;
 // created.
 
 name = "R" + STRING::itoa( i:rel.num ) + "_";
-if ( "" != param.phrase )
+if ( "" != param.phrase ) then
   name = name + T::sub( format:"_", s:param.phrase ) + "_";
 end if;
 name = name + other_obj.name;
@@ -365,7 +365,7 @@ class_type = ::getObjectReference(obj:other_obj);
 stream_type = ::getObjectStreamReference(obj:other_obj);
 
 // create the instance selectors
-if (Mult::ONE == param.mult)
+if (Mult::ONE == param.mult) then
 
   // create ''one'' selector
   create object instance sel of Selector;
@@ -502,14 +502,14 @@ INSERT INTO S_SYNC
 // transform selectors for associations
 // form to part
 select many form_to_part_rels related by obj->Relationship[R435];
-for each rel in form_to_part_rels
+for each rel in form_to_part_rels loop
   select one part_obj related by rel->Class[R434];
   ::transformSelector( obj:obj, rel:rel, phrase:rel.part_phrase, cond:rel.part_cond,
                        mult:rel.part_mult, formalizer:true, other_obj:part_obj );
 end for;
 // part to form
 select many part_to_form_rels related by obj->Relationship[R434];
-for each rel in part_to_form_rels
+for each rel in part_to_form_rels loop
   select one form_obj related by rel->Class[R435];
   ::transformSelector( obj:obj, rel:rel, phrase:rel.form_phrase, cond:rel.form_cond,
                        mult:rel.form_mult, formalizer:false, other_obj:form_obj );
@@ -544,11 +544,11 @@ parm = param.parameter;
 // link parameter
 select any last_parm related by invocable->FormalParameter[R429];
 select one next_parm related by last_parm->FormalParameter[R404.''precedes''];
-while ( not_empty next_parm )
+while ( not_empty next_parm ) loop
   last_parm = next_parm;
   select one next_parm related by last_parm->FormalParameter[R404.''precedes''];
 end while;
-if ( not_empty last_parm )
+if ( not_empty last_parm ) then
   relate parm to last_parm across R404.''follows'';
 end if;
 relate parm to invocable across R429;',
@@ -618,7 +618,7 @@ select many attr_inits from instances of InstanceIdentifierAttributeInitializati
 select many init_exprs related by attr_inits->Expression[R3924];
 affected_exprs = affected_exprs + init_exprs;
         
-for each affected_expr in affected_exprs
+for each affected_expr in affected_exprs loop
   // select all variable reference expressions which are a sub expression of the
   // expression
   select many var_refs from instances of VariableReference
@@ -628,18 +628,18 @@ for each affected_expr in affected_exprs
            selected.block_number == affected_expr.block_number and
            selected.statement_number == affected_expr.statement_number and
            STRING::indexof(haystack:selected.expression_number, needle:affected_expr.expression_number) == 0);
-  for each var_ref in var_refs
+  for each var_ref in var_refs loop
     // get any re-assignements of the variable later in the block
     select many var_assignments related by var_ref->Variable[R782]->VariableReference[R782]->Expression[R776]->BinaryOperation[R779]
       where (selected.operator == "=");
     select one for_smt related by var_ref->Variable[R782]->ForSmt[R459];
     select any by_ref_param related by var_ref->Variable[R782]->VariableReference[R782]->Expression[R776]->ActualParameter[R794]->FormalParameter[R3904]
       where selected.by_ref;
-    if ((cardinality var_assignments > 1 or not_empty for_smt) and empty by_ref_param)
+    if ((cardinality var_assignments > 1 or not_empty for_smt) and empty by_ref_param) then
       select one smt related by var_ref->Expression[R776]->Statement[R775];
       select one var related by var_ref->Variable[R782];
       select any finalization related by smt->Finalization[R485] where (selected.var_block_number == var.block_number and selected.var_name == var.name);
-      if (empty finalization)
+      if (empty finalization) then
         create object instance finalization of Finalization;
         relate smt to var across R485 using finalization;
       end if;
@@ -674,15 +674,15 @@ INSERT INTO S_SYNC
 	'smt = param.smt;
 select one invocable related by smt->CodeBlock[R450]->InvocableObject[R4000];
 select one comp_def related by invocable->Function[R427]->ComponentDefinition[R405];
-if ( empty comp_def )
+if ( empty comp_def ) then
   select one comp_def related by invocable->PortMessage[R427]->Port[R420]->ComponentDefinition[R417];
-  if ( empty comp_def )
+  if ( empty comp_def ) then
     select one comp_def related by invocable->Operation[R427]->Class[R416]->ComponentDefinition[R408];
-    if ( empty comp_def )
+    if ( empty comp_def ) then
       select one comp_def related by invocable->AttributeDerivation[R427]->AttributeAccessor[R441]->Attribute[R4510]->Class[R410]->ComponentDefinition[R408];
-      if ( empty comp_def )
+      if ( empty comp_def ) then
         select one comp_def related by invocable->State[R427]->StateMachine[R4751]->Class[R4750]->ComponentDefinition[R408];
-        if ( empty comp_def )
+        if ( empty comp_def ) then
           select one comp_def related by invocable->Transition[R427]->State[R4757]->StateMachine[R4751]->Class[R4750]->ComponentDefinition[R408];
           // TODO utility will return empty
         end if;
@@ -726,7 +726,7 @@ INSERT INTO S_SYNC
 	'block = param.block;
 select any last_smt from instances of Statement where false;
 select any smt related by block->Statement[R450];
-while not_empty smt
+while not_empty smt loop
   last_smt = smt;
   select one smt related by smt->Statement[R477.''executes before''];
 end while;
@@ -898,13 +898,13 @@ select any exiting_statement from instances of Statement where false;
 select many blocks from instances of CodeBlock where false;
 blocks = blocks + param.block;
 
-while empty exiting_statement and not_empty blocks
+while empty exiting_statement and not_empty blocks loop
   select any exiting_statement related by blocks->Statement[R450]->BreakSmt[R451]->Statement[R451];
-  if empty exiting_statement
+  if empty exiting_statement then
     select any exiting_statement related by blocks->Statement[R450]->ContinueSmt[R451]->Statement[R451];
-    if empty exiting_statement
+    if empty exiting_statement then
       select any exiting_statement related by blocks->Statement[R450]->ReturnSmt[R451]->Statement[R451];
-      if empty exiting_statement
+      if empty exiting_statement then
         select any exiting_statement related by blocks->Statement[R450]->ThrowSmt[R451]->Statement[R451];
       end if;
     end if;

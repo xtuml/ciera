@@ -24,7 +24,7 @@ root_expression_body = T::body();
 // check if the base type is a collection. If so, convert to a stream.
 select one base_type_ref related by expression->TypeReference[R795];
 select one base_collection related by base_type_ref->CollectionTypeReference[R3801];
-if not_empty base_collection
+if not_empty base_collection then
   stream_type = ::getBasicTypeReferenceByName(name:"Stream");
   select one expr related by self->Expression[R776];
   TypeConversion::render_from_type(expr:expr, base_expr:root_expression_body, input_type_ref:base_type_ref, output_type_ref:stream_type);
@@ -35,13 +35,13 @@ T::pop_buffer();
 
 // get the default value
 select one element_type related by expression->TypeReference[R795]->StreamTypeReference[R3801]->TypeReference[R3812];
-if empty element_type
+if empty element_type then
   select one element_type related by expression->TypeReference[R795]->CollectionTypeReference[R3801]->TypeReference[R3805];
 end if;
 select one smt related by self->Expression[R776]->Statement[R775];
 default_value = element_type.default_value;
 
-if (self.strict)
+if (self.strict) then
   ::addStringImport(package:"io.ciera.runtime.api.types", class_name:"StreamUtil");
 end if;
 T::include(file:"expression/t.any.java");',

@@ -17,7 +17,7 @@ INSERT INTO O_TFR
 	'// render the expression
 T::push_buffer();
 select one cond_expr related by self->Expression[R521];
-if not_empty cond_expr
+if not_empty cond_expr then
   cond_expr.render();
 end if;
 expr = T::body();
@@ -27,18 +27,18 @@ T::pop_buffer();
 T::push_buffer();
 select any case_label related by self->CaseLabel[R499];
 select one prev_case related by case_label->CaseLabel[R522.''follows''];
-while not_empty prev_case
+while not_empty prev_case loop
   case_label = prev_case;
   select one prev_case related by case_label->CaseLabel[R522.''follows''];
 end while;
-while not_empty case_label
+while not_empty case_label loop
   case_label.render();
   select one case_label related by case_label->CaseLabel[R522.''precedes''];
 end while;
 cases = T::body();
 T::pop_buffer();
 
-if self.is_primitive
+if self.is_primitive then
   T::include(file:"statement/t.switch.java");
 else
   // for non-primitive switch statements, get the expression type
@@ -471,9 +471,9 @@ select one basic_type_ref related by type->BasicTypeReference[R3801];
 select one edt related by type->Type[R3800]->EnumeratedType[R407];
 select any non_constant_case from instances of CaseLabel where false;
 select many all_cases related by self->CaseLabel[R499];
-for each case_label in all_cases
+for each case_label in all_cases loop
   select one expr related by case_label->Expression[R500];
-  if not_empty expr and not expr.is_constant()
+  if not_empty expr and not expr.is_constant() then
     non_constant_case = case_label;
     break;
   end if;

@@ -15,9 +15,9 @@ INSERT INTO O_TFR
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'// only render modifiers for the first relationship if this is subsuper
-if self.rel_type == RelationshipType::SuperSubtype
+if self.rel_type == RelationshipType::SuperSubtype then
   select any first_rel related by self->Class[R434]->Relationship[R434] where SORT::ascending(attr:"form_name") and selected.num == self.num;
-  if self.form_name != first_rel.form_name
+  if self.form_name != first_rel.form_name then
     return;
   end if;
 end if;
@@ -30,7 +30,7 @@ T::push_buffer();
 select many refs related by self->Class[R434]->Attribute[R410]->AttributeReference[R4506.''provides value for'']
   where (selected.rel_num == self.num and selected.form_phrase == self.form_phrase and selected.form_name == self.form_name and
           selected.part_phrase == self.part_phrase and selected.part_name == self.part_name) and SORT::ascending(attr:"referred_to_attribute_name");
-for each ref in refs
+for each ref in refs loop
   select any form_accessor related by ref->Attribute[R4506.''provides value for'']->AttributeAccessor[R4510]
     where (selected.accessor_type == AttributeAccessorType::SETTER);
   form_accessor_name = form_accessor.getName();
@@ -48,12 +48,12 @@ relationship_unsetters = "";
 select one form related by self->Class[R434];
 select one part related by self->Class[R435];
 form_name = "R" + STRING::itoa(i:self.num) + "_";
-if ("" != self.form_phrase)
+if ("" != self.form_phrase) then
   form_name = form_name + T::sub(format:"_", s:self.form_phrase) + "_";
 end if;
 form_name = form_name + part.name;
 part_name = "R" + STRING::itoa(i:self.num) + "_";
-if ("" != self.part_phrase)
+if ("" != self.part_phrase) then
   part_name = part_name + T::sub(format:"_", s:self.part_phrase) + "_";
 end if;
 part_name = part_name + form.name;
@@ -70,7 +70,7 @@ T::include(file:"relationship/t.relationshipmodifiers.collections.java");
 
 // render implicit unlinks
 // implicit unlink is not allowed when the form and part class are the same (i.e. reflexive binary associations)
-if self.form_name != self.part_name
+if self.form_name != self.part_name then
   select any part_selector related by self->Selector[R4512] where selected.class_name == self.form_name;
   part_selector_name = part_selector.name;
   part_selector_is_many = part_selector.multiplicity == Mult::MANY;
@@ -84,7 +84,7 @@ end if;
 // resolve imports
 select one part_class_file related by self->Class[R434]->File[R401];
 ::addFileImport(file:part_class_file);
-if not is_subsuper
+if not is_subsuper then
   select one form_class_file related by self->Class[R435]->File[R401];
   ::addFileImport(file:form_class_file);
 end if;
@@ -106,7 +106,7 @@ T::push_buffer();
 select many refs related by self->Class[R434]->Attribute[R410]->AttributeReference[R4506.''provides value for'']
   where (selected.rel_num == self.num and selected.form_phrase == self.form_phrase and selected.form_name == self.form_name and
           selected.part_phrase == self.part_phrase and selected.part_name == self.part_name);
-for each ref in refs
+for each ref in refs loop
   select any form_accessor related by ref->Attribute[R4506.''provides value for'']->AttributeAccessor[R4510]
     where (selected.accessor_type == AttributeAccessorType::SETTER);
   form_accessor.render_decl();
@@ -148,7 +148,7 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000004",
 	1,
-	'if self.rel_type == RelationshipType::SuperSubtype;
+	'if self.rel_type == RelationshipType::SuperSubtype then;
   return "R" + STRING::itoa(i:self.num) + "_subtype_is_a_" + self.part_name;
 else
   return self.name;

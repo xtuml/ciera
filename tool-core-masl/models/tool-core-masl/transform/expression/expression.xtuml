@@ -43,71 +43,71 @@ smt = param.smt;
 expr_number = param.expr_number;
 
 select one literal_expression related by masl_expression->LiteralExpression[R5517];
-if (not_empty literal_expression)
+if (not_empty literal_expression) then
   ::transformLiteral(literal_expression:literal_expression, smt:smt, expr_number:expr_number);
 else
 select one variable_reference related by masl_expression->VariableNameExpression[R5517];
-if (not_empty variable_reference)
+if (not_empty variable_reference) then
   ::transformVariableNameExpression(variable_reference:variable_reference, smt:smt, expr_number:expr_number);
 else
 select one create_expression related by masl_expression->CreateExpression[R5517];
-if (not_empty create_expression)
+if (not_empty create_expression) then
   ::transformCreateExpression(create_expression:create_expression, smt:smt, expr_number:expr_number);
 else
 select one selected_attribute_expression related by masl_expression->SelectedAttributeExpression[R5517];
-if (not_empty selected_attribute_expression)
+if (not_empty selected_attribute_expression) then
   ::transformSelectedAttributeExpression(selected_attribute_expression:selected_attribute_expression, smt:smt, expr_number:expr_number);
 else
 select one selected_component_expression related by masl_expression->SelectedComponentExpression[R5517];
-if (not_empty selected_component_expression)
+if (not_empty selected_component_expression) then
   ::transformSelectedComponentExpression(selected_component_expression:selected_component_expression, smt:smt, expr_number:expr_number);
 else
 select one unary_expression related by masl_expression->UnaryExpression[R5517];
-if (not_empty unary_expression)
+if (not_empty unary_expression) then
   ::transformUnaryExpression(unary_expression:unary_expression, smt:smt, expr_number:expr_number);
 else
 select one binary_expression related by masl_expression->BinaryExpression[R5517];
-if (not_empty binary_expression)
+if (not_empty binary_expression) then
   ::transformBinaryExpression(binary_expression:binary_expression, smt:smt, expr_number:expr_number);
 else
 select one call_expression related by masl_expression->CallExpression[R5517];
-if (not_empty call_expression)
+if (not_empty call_expression) then
   ::transformCallExpression(call_expression:call_expression, smt:smt, expr_number:expr_number);
 else
 select one param_ref related by masl_expression->ParameterNameExpression[R5517];
-if (not_empty param_ref)
+if (not_empty param_ref) then
   ::transformParameterNameExpression(param_ref:param_ref, smt:smt, expr_number:expr_number);
 else
 select one object_ref related by masl_expression->ObjectNameExpression[R5517];
-if (not_empty object_ref)
+if (not_empty object_ref) then
   ::transformObjectNameExpression(object_reference:object_ref, smt:smt, expr_number:expr_number);
 else
 select one find_expression related by masl_expression->FindExpression[R5517];
-if (not_empty find_expression)
+if (not_empty find_expression) then
   ::transformFindExpression(find_expression:find_expression, smt:smt, expr_number:expr_number);
 else
 select one navigation_expression related by masl_expression->NavigationExpression[R5517];
-if (not_empty navigation_expression)
+if (not_empty navigation_expression) then
   ::transformNavigationExpression(navigation_expression:navigation_expression, smt:smt, expr_number:expr_number);
 else
 select one correlated_nav_expression related by masl_expression->CorrelatedNavExpression[R5517];
-if (not_empty correlated_nav_expression)
+if (not_empty correlated_nav_expression) then
   ::transformCorrelatedNavExpression(correlated_nav_expression:correlated_nav_expression, smt:smt, expr_number:expr_number);
 else
 select one find_attribute_name_expression related by masl_expression->FindAttributeNameExpression[R5517];
-if (not_empty find_attribute_name_expression)
+if (not_empty find_attribute_name_expression) then
   ::transformFindAttributeNameExpression(find_attribute_name_expression:find_attribute_name_expression, smt:smt, expr_number:expr_number);
 else
 select one ordering_expression related by masl_expression->OrderingExpression[R5517];
-if (not_empty ordering_expression)
+if (not_empty ordering_expression) then
   ::transformOrderingExpression(ordering_expression:ordering_expression, smt:smt, expr_number:expr_number);
 else
 select one indexed_name_expression related by masl_expression->IndexedNameExpression[R5517];
-if (not_empty indexed_name_expression)
+if (not_empty indexed_name_expression) then
   ::transformIndexedNameExpression(indexed_name_expression:indexed_name_expression, smt:smt, expr_number:expr_number);
 else
 select one type_name_expression related by masl_expression->TypeNameExpression[R5517];
-if (not_empty type_name_expression)
+if (not_empty type_name_expression) then
   ::transformTypeNameExpression(type_name_expression:type_name_expression, smt:smt, expr_number:expr_number);
 else
   LOG::LogInfo( message:"expression type not yet supported" );
@@ -186,84 +186,84 @@ relate type to expr across R795;
 
 // create literal
 select one numeric_literal related by literal_expression->NumericLiteral[R5700];
-if (not_empty numeric_literal)
+if (not_empty numeric_literal) then
   create object instance lit of Literal;
   relate lit to expr across R776;
   lit.value = numeric_literal.text;
 else
 select one character_literal related by literal_expression->CharacterLiteral[R5700];
-if (not_empty character_literal)
+if (not_empty character_literal) then
   create object instance lit of Literal;
   relate lit to expr across R776;
   lit.value = character_literal.noQuotes;
 else
 select one string_literal related by literal_expression->StringLiteral[R5700];
-if (not_empty string_literal)
+if (not_empty string_literal) then
   create object instance lit of Literal;
   relate lit to expr across R776;
   lit.value = string_literal.noQuotes;
 else
 select one timestamp_literal related by literal_expression->TimestampLiteral[R5700];
-if (not_empty timestamp_literal)
+if (not_empty timestamp_literal) then
   create object instance lit of Literal;
   relate lit to expr across R776;
   lit.value = "TimeStamp.fromString(" + STRING::quote() + timestamp_literal.original + STRING::quote() + ")";
 else
 select one duration_literal related by literal_expression->DurationLiteral[R5700];
-if (not_empty duration_literal)
+if (not_empty duration_literal) then
   create object instance lit of Literal;
   relate lit to expr across R776;
   lit.value = "Duration.fromString(" + STRING::quote() + duration_literal.literal + STRING::quote() + ")";
 else
 select one boolean_literal related by literal_expression->BooleanLiteral[R5700];
-if (not_empty boolean_literal)
+if (not_empty boolean_literal) then
   create object instance lit of Literal;
   relate lit to expr across R776;
-  if boolean_literal.value
+  if boolean_literal.value then
     lit.value = "true";
   else
     lit.value = "false";
   end if;
 else
 select one null_literal related by literal_expression->NullLiteral[R5700];
-if (not_empty null_literal)
+if (not_empty null_literal) then
   create object instance lit of Literal;
   relate lit to expr across R776;
   lit.value = "null";
 else
 select one flush_literal related by literal_expression->FlushLiteral[R5700];
-if (not_empty flush_literal)
+if (not_empty flush_literal) then
   create object instance lit of Literal;
   relate lit to expr across R776;
   lit.value = "flush";
 else
 select one endl_literal related by literal_expression->EndlLiteral[R5700];
-if (not_empty endl_literal)
+if (not_empty endl_literal) then
   create object instance named_ref of NamedReference;
   relate named_ref to expr across R776;
   named_ref.name = "System.lineSeparator()";
 else
 select one this_literal related by literal_expression->ThisLiteral[R5700];
-if (not_empty this_literal)
+if (not_empty this_literal) then
   create object instance named_ref of NamedReference;
   relate named_ref to expr across R776;
   named_ref.name = "self()";
 else
 select one console_literal related by literal_expression->ConsoleLiteral[R5700];
-if not_empty console_literal
+if not_empty console_literal then
   create object instance lit of Literal;
   relate lit to expr across R776;
   lit.value = "Device.CONSOLE";
 else
 select one enumerate_literal related by literal_expression->EnumerateLiteral[R5700];
-if not_empty enumerate_literal
+if not_empty enumerate_literal then
   create object instance enum_ref of EnumeratorReference;
   relate enum_ref to expr across R776;
   select one enumerate_item related by enumerate_literal->EnumerateItem[R5701];
   select any enumer related by enumerate_item->EnumerateType[R6245]->FullTypeDefinition[R6219]->TypeDefinition[R6236]
     ->TypeDeclaration[R6234]->MaslUserDefinedType[R6241]->Type[R8314]->EnumeratedType[R407]->Enumerator[R415]
     where selected.name == "" + enumerate_item.name;
-  if not_empty enumer
+  if not_empty enumer then
     relate enumer to enum_ref across R786;
   else
     // TODO bad
@@ -410,16 +410,16 @@ select one class_file related by obj->File[R401];
 
 // link initial state if applicable
 select any init_state related by create_expression->AttributeInitialization[R5566]->MaslState[R5567]->State[R8302];
-if not_empty init_state
+if not_empty init_state then
   relate init_state to cr across R3923;
 end if;
 
 // transform attribute initializers
 select many attr_initizations related by create_expression->AttributeInitialization[R5566];
-for each attr_initialization in attr_initizations
+for each attr_initialization in attr_initizations loop
   select one init_masl_expr related by attr_initialization->MaslExpression[R5568];
   select one attr related by attr_initialization->AttributeDeclaration[R5565]->Attribute[R8301];
-  if not_empty attr and not_empty init_masl_expr
+  if not_empty attr and not_empty init_masl_expr then
     create object instance attr_init of InstanceIdentifierAttributeInitialization;
     relate attr_init to cr across R3925;
     select many existing_inits related by cr->InstanceIdentifierAttributeInitialization[R3925];
@@ -563,7 +563,7 @@ select one rhs related by binary_expression->MaslExpression[R5002];
 select one lhs_null_literal related by lhs->LiteralExpression[R5517]->NullLiteral[R5700];
 select one rhs_null_literal related by rhs->LiteralExpression[R5517]->NullLiteral[R5700];
 if ((not_empty lhs_null_literal or not_empty rhs_null_literal) and
-    (binary_expression.operator == Operator::equal or binary_expression.operator == Operator::notequal))
+    (binary_expression.operator == Operator::equal or binary_expression.operator == Operator::notequal)) then
 
   // create expression
   create object instance expr of Expression;
@@ -574,7 +574,7 @@ if ((not_empty lhs_null_literal or not_empty rhs_null_literal) and
   type = ::getBasicTypeReferenceByName(name:"boolean");
   relate type to expr across R795;
 
-  if (binary_expression.operator == Operator::notequal)  // create an additional ''not'' expression before transforming an ''empty'' expression
+  if (binary_expression.operator == Operator::notequal) then  // create an additional ''not'' expression before transforming an ''empty'' expression
 
 		// create the unary expression
 		create object instance unary of UnaryOperation;
@@ -595,7 +595,7 @@ if ((not_empty lhs_null_literal or not_empty rhs_null_literal) and
     unary2.invocation = true;
 
     // transform the operand expression
-    if (empty lhs_null_literal)
+    if (empty lhs_null_literal) then
       ::transformMaslExpression(masl_expression:lhs, expr_number:expr2.expression_number + ".1", smt:smt);
     else
       ::transformMaslExpression(masl_expression:rhs, expr_number:expr2.expression_number + ".1", smt:smt);
@@ -612,7 +612,7 @@ if ((not_empty lhs_null_literal or not_empty rhs_null_literal) and
     unary.invocation = true;
 
     // transform the operand expression
-    if (empty lhs_null_literal)
+    if (empty lhs_null_literal) then
       ::transformMaslExpression(masl_expression:lhs, expr_number:expr.expression_number + ".1", smt:smt);
     else
       ::transformMaslExpression(masl_expression:rhs, expr_number:expr.expression_number + ".1", smt:smt);
@@ -636,7 +636,7 @@ else
   
   // if this is a not-equals comparison, we create unary not and an equals comparison
   select any unary_not from instances of UnaryOperation where false;
-  if (binary_expression.operator == Operator::notequal)
+  if (binary_expression.operator == Operator::notequal) then
     // create the unary expression
     create object instance unary_not of UnaryOperation;
     relate unary_not to expr across R776;
@@ -663,80 +663,80 @@ else
   select one l_collection related by l_type->CollectionTypeReference[R3801];
 
   // translate the operator
-  if (binary_expression.operator == Operator::and_)
+  if (binary_expression.operator == Operator::and_) then
     if (l_type.primitive)
       binary.operator = "&&";
     else
       binary.operator = "and";
       binary.invocation = true;
     end if;
-  elif (binary_expression.operator == Operator::or_)
+  elif (binary_expression.operator == Operator::or_) then
     if (l_type.primitive)
       binary.operator = "||";
     else
       binary.operator = "or";
       binary.invocation = true;
     end if;
-  elif (binary_expression.operator == Operator::equal) or (not_empty unary_not and binary_expression.operator == Operator::notequal)
+  elif (binary_expression.operator == Operator::equal) or (not_empty unary_not and binary_expression.operator == Operator::notequal) then
     if (l_type.primitive)
       binary.operator = "==";
     else
       binary.operator = "equals";
       binary.invocation = true;
     end if;
-  elif (binary_expression.operator == Operator::lessthan)
+  elif (binary_expression.operator == Operator::lessthan) then
     binary.operator = "<";
-    if (not l_type.primitive)
+    if (not l_type.primitive) then
       binary.comparison_operator = "compareTo";
       binary.invocation = true;
     end if;
-  elif (binary_expression.operator == Operator::lessthanequal)
+  elif (binary_expression.operator == Operator::lessthanequal) then
     binary.operator = "<=";
-    if (not l_type.primitive)
+    if (not l_type.primitive) then
       binary.comparison_operator = "compareTo";
       binary.invocation = true;
     end if;
-  elif (binary_expression.operator == Operator::greaterthan)
+  elif (binary_expression.operator == Operator::greaterthan) then
     binary.operator = ">";
-    if (not l_type.primitive)
+    if (not l_type.primitive) then
       binary.comparison_operator = "compareTo";
       binary.invocation = true;
     end if;
-  elif (binary_expression.operator == Operator::greaterthanequal)
+  elif (binary_expression.operator == Operator::greaterthanequal) then
     binary.operator = ">=";
-    if (not l_type.primitive)
+    if (not l_type.primitive) then
       binary.comparison_operator = "compareTo";
       binary.invocation = true;
     end if;
-  elif (binary_expression.operator == Operator::plus)
+  elif (binary_expression.operator == Operator::plus) then
     if (l_type.primitive)
       binary.operator = "+";
     else
       binary.operator = "plus";
       binary.invocation = true;
     end if;
-  elif (binary_expression.operator == Operator::minus)
+  elif (binary_expression.operator == Operator::minus) then
     if (l_type.primitive)
       binary.operator = "-";
     else
       binary.operator = "minus";
       binary.invocation = true;
     end if;
-  elif (binary_expression.operator == Operator::times)
+  elif (binary_expression.operator == Operator::times) then
     if (l_type.primitive)
       binary.operator = "*";
     else
       binary.operator = "times";
       binary.invocation = true;
     end if;
-  elif (binary_expression.operator == Operator::divide)
+  elif (binary_expression.operator == Operator::divide) then
     if (l_type.primitive)
       binary.operator = "/";
     else
       binary.operator = "dividedBy";
       binary.invocation = true;
     end if;
-  elif (binary_expression.operator == Operator::rem)
+  elif (binary_expression.operator == Operator::rem) then
     if (l_type.primitive)
       binary.operator = "%";
     else
@@ -757,8 +757,8 @@ else
     binary.invocation = true;
     binary.cast = l_type.name;
   */
-  elif (binary_expression.operator == Operator::concatenate)
-    if not_empty l_collection
+  elif (binary_expression.operator == Operator::concatenate) then
+    if not_empty l_collection then
       binary.operator = "concat";
       binary.invocation = true;
     else
@@ -769,7 +769,7 @@ else
   // translate the left operand
   // TODO precedence check
   //if (::precedenceCheck(val1:l_val, val2:v_val) <= 0) // if the left operand is lower precedence than the current operator, force it to be evaluated first with parentheses
-  if (false)
+  if (false) then
     // transform the left hand expression
     ::transformMaslExpression(masl_expression:lhs, expr_number:expr.expression_number + ".1.1", smt:smt);
     select any paren_expr related by smt->Expression[R775] where (selected.expression_number == expr.expression_number + ".1.1");
@@ -792,7 +792,7 @@ else
   // translate the right operand
   // TODO precedence check
   //if (::precedenceCheck(val1:r_val, val2:v_val) <= 0) // if the right operand is lower precedence than the current operator, force it to be evaluated first with parentheses
-  if (false)
+  if (false) then
     // transform the right hand expression
     ::transformMaslExpression(masl_expression:rhs, expr_number:expr.expression_number + ".2.1", smt:smt);
     select any paren_expr related by smt->Expression[R775] where (selected.expression_number == expr.expression_number + ".2.1");
@@ -880,7 +880,7 @@ relate type to expr across R795;
 
 // domain service invocation
 select one domain_service_invocation related by call_expression->ServiceInvocation[R5500]->DomainServiceInvocation[R5610];
-if (not_empty domain_service_invocation)
+if (not_empty domain_service_invocation) then
   select any utility from instances of Utility where false;
   select one service related by domain_service_invocation->DomainService[R5611]->Service[R5203];
   containing_comp_def = ::getCompDefForStatement(smt:smt);
@@ -889,17 +889,17 @@ if (not_empty domain_service_invocation)
   select one domain related by domain_service_invocation->DomainService[R5611]->Domain[R5303];
   select one comp_def related by domain->ComponentDefinition[R8310];
   select any invocable related by comp_def->Function[R405]->InvocableObject[R427] where (selected.name == "" + service.name);
-  if empty invocable
+  if empty invocable then
     // look for utility functions
     select any utility related by containing_comp_def->Utility[R4558] where selected.name == "" + domain.name;
-    if empty utility
+    if empty utility then
       select any utility from instances of Utility where selected.name == "" + domain.name;
       ::importUtility(utility:utility, comp_def:containing_comp_def);
     end if;
     select any invocable related by utility->UtilityFunction[R4559]->InvocableObject[R427] where selected.name == "" + service.name;
   end if;
 
-  if (not_empty invocable)
+  if (not_empty invocable) then
     // create invocation
     create object instance invoc of Invocation;
     relate invoc to expr across R776;
@@ -910,7 +910,7 @@ if (not_empty domain_service_invocation)
     expr2.expression_number = expr.expression_number + ".1";
     void_type = ::getBasicTypeReferenceByName(name:"void");
     relate void_type to expr2 across R795;
-    if not_empty utility
+    if not_empty utility then
       // create utility reference
       create object instance utility_ref of UtilityReference;
       relate utility_ref to utility across R3914;
@@ -920,14 +920,14 @@ if (not_empty domain_service_invocation)
       // create domain reference
       create object instance domain_ref of DomainReference;
       relate domain_ref to expr2 across R776;
-      if comp_def != containing_comp_def
+      if comp_def != containing_comp_def then
         relate comp_def to domain_ref across R3927;
         // add a module dependency
 				select one main_mod related by containing_comp_def->Module[R5752];
 				select one mod related by comp_def->Module[R5752];
-				if not_empty mod and not_empty main_mod and mod != main_mod
+				if not_empty mod and not_empty main_mod and mod != main_mod then
 					select any dependency related by main_mod->Dependency[R5753.''requires''] where selected.required_module_name == mod.name;
-					if empty dependency
+					if empty dependency then
 						create object instance dependency of Dependency;
 						relate mod to main_mod across R5753.''required by'' using dependency;
 					end if;
@@ -937,7 +937,7 @@ if (not_empty domain_service_invocation)
     end if;
     // transform actual parameters
     select one first_argument related by call_expression->Argument[R5575];
-    if (not_empty first_argument)
+    if (not_empty first_argument) then
       ::transformArguments(invocation:invoc, first_argument:first_argument, expr_number:expr.expression_number, base_num:2);
     end if;
   else
@@ -947,11 +947,11 @@ else
 
 // object instance service invocation
 select one instance_service_invocation related by call_expression->ServiceInvocation[R5500]->InstanceServiceInvocation[R5610];
-if (not_empty instance_service_invocation)
+if (not_empty instance_service_invocation) then
   select one object_service related by instance_service_invocation->ObjectService[R5614];
   select one service related by object_service->Service[R5203];
   select any invocable related by object_service->ObjectDeclaration[R5808]->Class[R8300]->Operation[R416]->InvocableObject[R427] where (selected.name == "" + service.name);
-  if (not_empty invocable)
+  if (not_empty invocable) then
     // create invocation
     create object instance invoc of Invocation;
     relate invoc to expr across R776;
@@ -964,7 +964,7 @@ if (not_empty instance_service_invocation)
     relate expr2 to invoc across R798;
     // transform actual parameters
     select one first_argument related by call_expression->ServiceInvocation[R5500]->CallExpression[R5500]->Argument[R5575];
-    if (not_empty first_argument)
+    if (not_empty first_argument) then
       ::transformArguments(invocation:invoc, first_argument:first_argument, expr_number:expr.expression_number, base_num:2);
     end if;
   else
@@ -974,13 +974,13 @@ else
 
 // object instance service invocation
 select one object_service_invocation related by call_expression->ServiceInvocation[R5500]->ObjectServiceInvocation[R5610];
-if (not_empty object_service_invocation)
+if (not_empty object_service_invocation) then
   select one object_service related by object_service_invocation->ObjectService[R5613];
   select one service related by object_service->Service[R5203];
   select one obj related by object_service->ObjectDeclaration[R5808]->Class[R8300];
   select any invocable related by obj->Operation[R416]->InvocableObject[R427]
     where (selected.name == "" + service.name or selected.name == "_" + obj.name + "_" + service.name);
-  if (not_empty invocable)
+  if (not_empty invocable) then
     // create invocation
     create object instance invoc of Invocation;
     relate invoc to expr across R776;
@@ -997,7 +997,7 @@ if (not_empty object_service_invocation)
     relate domain_ref to expr3 across R776;
     // transform actual parameters
     select one first_argument related by call_expression->ServiceInvocation[R5500]->CallExpression[R5500]->Argument[R5575];
-    if (not_empty first_argument)
+    if (not_empty first_argument) then
       ::transformArguments(invocation:invoc, first_argument:first_argument, expr_number:expr.expression_number, base_num:2);
     end if;
   else
@@ -1007,7 +1007,7 @@ else
 
 // cast expression  
 select one cast_expression related by call_expression->CastExpression[R5500];
-if (not_empty cast_expression)
+if (not_empty cast_expression) then
   // create type promotion
   create object instance cast_expr of TypeConversion;
   relate cast_expr to expr across R776;
@@ -1019,7 +1019,7 @@ else
   
 // type characteristic expression
 select one characteristic_expression related by call_expression->CharacteristicExpression[R5500];
-if (not_empty characteristic_expression)
+if (not_empty characteristic_expression) then
 
   // get the type of the base expression
   select one base_masl_expression related by characteristic_expression->MaslExpression[R5504];
@@ -1028,7 +1028,7 @@ if (not_empty characteristic_expression)
   select one base_type related by base_type_ref->Type[R3800];
   type_based = false;
   select one type_name_expression related by base_masl_expression->TypeNameExpression[R5517];
-  if not_empty type_name_expression
+  if not_empty type_name_expression then
     type_based = true;
     select one basic_type related by type_name_expression->BasicType[R5578];
     base_type_ref = ::getTypeReferenceForMASLType(basic_type:basic_type);
@@ -1037,7 +1037,7 @@ if (not_empty characteristic_expression)
   
   // Sepcial handling for ''first and ''last characteristics for sequences, arrays, and strings
   if characteristic_expression.characteristic == "first" and not type_based and
-    (base_type.name == "List" or base_type.name == "Array" or base_type.name == "String")
+    (base_type.name == "List" or base_type.name == "Array" or base_type.name == "String") then
     
     // "first" just maps to the literal integer value 0
     create object instance lit of Literal;
@@ -1045,7 +1045,7 @@ if (not_empty characteristic_expression)
     lit.value = "0";
     
   elif characteristic_expression.characteristic == "last" and not type_based and
-    (base_type.name == "List" or base_type.name == "Array" or base_type.name == "String")
+    (base_type.name == "List" or base_type.name == "Array" or base_type.name == "String") then
 
     // "last" is the "size()" characteristic - 1
 
@@ -1067,11 +1067,11 @@ if (not_empty characteristic_expression)
     
 		// find the "size" characteristic
 		characteristic_name = "size";
-		if base_type.name == "String";
+		if base_type.name == "String" then;
 		  characteristic_name = "length";
 	  end if;
 		select any characteristic related by base_type->Characteristic[R3820] where selected.name == characteristic_name and selected.type_based == type_based;
-		if empty characteristic
+		if empty characteristic then
 			LOG::LogFailure(message:"Unsupported type characterstic ''" + characteristic_expression.characteristic + "'' (''" + characteristic_name + "'') for type: " + base_type.name);
 			// TODO bad
 		end if;
@@ -1103,34 +1103,34 @@ if (not_empty characteristic_expression)
 
 		// map the MASL name to the Ciera name
 		characteristic_name = characteristic_expression.characteristic;
-		if characteristic_expression.characteristic == "delta"
+		if characteristic_expression.characteristic == "delta" then
 			characteristic_name = "getPeriod";
-		elif characteristic_expression.characteristic == "scheduled_at"
+		elif characteristic_expression.characteristic == "scheduled_at" then
 			characteristic_name = "getScheduledExpirationTime";
-		elif characteristic_expression.characteristic == "expired_at"
+		elif characteristic_expression.characteristic == "expired_at" then
 			characteristic_name = "getLastExpirationTime";
-		elif characteristic_expression.characteristic == "scheduled"
+		elif characteristic_expression.characteristic == "scheduled" then
 			characteristic_name = "isScheduled";
-		elif characteristic_expression.characteristic == "expired"
+		elif characteristic_expression.characteristic == "expired" then
 			characteristic_name = "isExpired";
-		elif characteristic_expression.characteristic == "length"
-		  if base_type.name != "String"
+		elif characteristic_expression.characteristic == "length" then
+		  if base_type.name != "String" then
 			  characteristic_name = "size";
 			end if;
-		elif characteristic_expression.characteristic == "seconds"
+		elif characteristic_expression.characteristic == "seconds" then
 			characteristic_name = "getSeconds";
-		elif characteristic_expression.characteristic == "image"
+		elif characteristic_expression.characteristic == "image" then
 			characteristic_name = "toString";
-		elif characteristic_expression.characteristic == "parse"
+		elif characteristic_expression.characteristic == "parse" then
 			characteristic_name = "fromString";
-			if base_type.primitive
+			if base_type.primitive then
 				characteristic_name = "parse" + T::sub(format:"c", s:base_type.name);
 			end if;
 		end if;
 
 		// find the characteristic
 		select any characteristic related by base_type->Characteristic[R3820] where selected.name == characteristic_name and selected.type_based == type_based;
-		if empty characteristic
+		if empty characteristic then
 			LOG::LogFailure(message:"Unsupported type characterstic ''" + characteristic_expression.characteristic + "'' (''" + characteristic_name + "'') for type: " + base_type.name);
 			// TODO bad
 		end if;
@@ -1144,7 +1144,7 @@ if (not_empty characteristic_expression)
 
 		// transform actual parameters
 		select one first_argument related by call_expression->Argument[R5575];
-		if (not_empty first_argument)
+		if (not_empty first_argument) then
 			::transformArguments(invocation:invoc, first_argument:first_argument, expr_number:expr.expression_number, base_num:2);
 		end if;
 
@@ -1219,11 +1219,11 @@ select any expr related by smt->Expression[R775] where (selected.expression_numb
 create object instance act_parm of ActualParameter;
 relate act_parm to expr across R794;
 relate invocation to act_parm across R793;
-if (not_empty parm)
+if (not_empty parm) then
   // TODO check types are compatible
   relate act_parm to parm across R3904;
 end if;
-if (not_empty prev_act_parm)
+if (not_empty prev_act_parm) then
   relate prev_act_parm to act_parm across R3905.''precedes'';
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
@@ -1323,7 +1323,7 @@ base_num = param.base_num;
 // get first formal parameter (if it exists)
 select any parm related by invocation->InvocableObject[R792]->FormalParameter[R429];
 select one prev_parm related by parm->FormalParameter[R404.''follows''];
-while (not_empty prev_parm)
+while (not_empty prev_parm) loop
   parm = prev_parm;
   select one prev_parm related by parm->FormalParameter[R404.''follows''];
 end while;
@@ -1337,7 +1337,7 @@ end while;
 num = base_num;
 select any prev_act_parm from instances of ActualParameter where false;
 current_argument = first_argument;
-while (not_empty current_argument)
+while (not_empty current_argument) loop
   ::transformArgument(invocation:invocation, parm:parm, expression_num:expr_number + "." + STRING::itoa(i:num), argument:current_argument, prev_act_parm:prev_act_parm);
   select any prev_act_parm related by invocation->ActualParameter[R793] where (selected.expression_number == expr_number + "." + STRING::itoa(i:num));
   select one parm related by parm->FormalParameter[R404.''precedes''];
@@ -1415,7 +1415,7 @@ relate ref to expr across R776;
 select one param_def related by param_ref->ParameterDefinition[R5536];
 select any formal_param related by smt->CodeBlock[R450]->InvocableObject[R4000]->FormalParameter[R429]
   where (selected.name == "p_" + param_def.name);
-if (not_empty formal_param)
+if (not_empty formal_param) then
   relate formal_param to ref across R781;
 else
   // TODO bad
@@ -1550,14 +1550,14 @@ select one where_cond related by find_expression->MaslExpression[R5520];
 // get the find class
 select one find_class related by find_expression->MaslExpression[R5517]->BasicType[R5570]
   ->InstanceType[R6205]->ObjectDeclaration[R6220]->Class[R8300];
-if empty find_class
+if empty find_class then
   select one find_class related by find_expression->MaslExpression[R5517]->BasicType[R5570]
     ->CollectionType[R6205]->BasicType[R6208]->InstanceType[R6205]->ObjectDeclaration[R6220]->Class[R8300];
 end if;
 
 // create an any expression
 select any any_expr from instances of AnyExpr where false;
-if (find_expression.flavor == FindType::find_one or find_expression.flavor == FindType::find_only)
+if (find_expression.flavor == FindType::find_one or find_expression.flavor == FindType::find_only) then
 
   // create expression
   create object instance expr of Expression;
@@ -1577,7 +1577,7 @@ end if;
 
 // transform where clause
 select any where_clause from instances of WhereExpr where false;
-if not_empty where_cond
+if not_empty where_cond then
 
   // create where clause
   create object instance expr of Expression;
@@ -1594,7 +1594,7 @@ if not_empty where_cond
   relate cond_expr to where_clause across R796;
   
   // link to any expression if applicable
-  if not_empty any_expr
+  if not_empty any_expr then
     relate expr to any_expr across R783;
   end if;
   
@@ -1608,9 +1608,9 @@ select one root_expression related by find_expression->MaslExpression[R5519];
 select any root_expr related by smt->Expression[R775] where selected.expression_number == expr_number;
 
 // link to where clause or any expression if applicable
-if not_empty where_clause
+if not_empty where_clause then
   relate root_expr to where_clause across R790;
-elif not_empty any_expr
+elif not_empty any_expr then
   relate root_expr to any_expr across R783;
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
@@ -1680,7 +1680,7 @@ multiplicity = "";
 // if the rel spec is a "many" association or the lhs is a collection type,
 // assure that the result type of the expression is an instance set
 select any result_type from instances of TypeReference where false;
-if not_empty lhs_collection or ((empty using_class or using_class != base_class) and (rel_spec.multiplicity == MaslMultiplicity::many))
+if not_empty lhs_collection or ((empty using_class or using_class != base_class) and (rel_spec.multiplicity == MaslMultiplicity::many)) then
   result_type = ::getObjectStreamReference(obj:target_class);
   multiplicity = "many";
 else
@@ -1691,11 +1691,11 @@ end if;
 // create where clause if it exists
 select any where_clause from instances of WhereExpr where false;
 select one where_cond related by navigation_expression->MaslExpression[R5530];
-if not_empty where_cond
+if not_empty where_cond then
   
   // create an any expression for multiplicity one
   select any any_expr from instances of AnyExpr where false;
-  if multiplicity == "one"
+  if multiplicity == "one" then
 
     // create expression
     create object instance expr of Expression;
@@ -1725,7 +1725,7 @@ if not_empty where_cond
   where_clause.multiplicity = multiplicity;
   
   // link to any if it exists
-  if not_empty any_expr
+  if not_empty any_expr then
     relate expr to any_expr across R783;
   end if;
   
@@ -1752,29 +1752,29 @@ relate sel_rel to sel across R789;
 
 // get the selector (or second selector if selecting across an associative)
 selector_name = "" + rel.name + "_";
-if (rel_spec.role != "")
+if (rel_spec.role != "") then
   selector_name = selector_name + T::sub(format:"_", s:rel_spec.role) + "_";
 end if;
 selector_name = selector_name + target_class.name;
 select any selector related by base_class->Selector[R442] where (selected.name == selector_name);
-if (not_empty using_class and using_class.name != base_class.name and using_class.name != target_class.name)
+if (not_empty using_class and using_class.name != base_class.name and using_class.name != target_class.name) then
   select any selector related by using_class->Selector[R442] where (selected.name == selector_name);
 end if;
-if (not_empty selector)
+if (not_empty selector) then
   relate selector to sel_rel across R797;
 else
   // TODO bad
 end if;
 
 // link to where clause if applicable
-if not_empty where_clause
+if not_empty where_clause then
   relate expr to where_clause across R790;
 end if;
 
 expr_number = expr_number + ".1";
 
 // for navigating all the way across an associative, create an intermediate selection
-if (not_empty using_class and using_class.name != base_class.name and using_class.name != target_class.name)
+if (not_empty using_class and using_class.name != base_class.name and using_class.name != target_class.name) then
 
   // create expression
   create object instance expr of Expression;
@@ -1785,7 +1785,7 @@ if (not_empty using_class and using_class.name != base_class.name and using_clas
   // if the rel spec is a "many" association or the lhs is a collection type,
   // assure that the type of the expression is an instance set
   select any intermediate_type from instances of TypeReference where false;
-  if multiplicity == "many"
+  if multiplicity == "many" then
     intermediate_type = ::getObjectStreamReference(obj:using_class);
   else
     intermediate_type = ::getObjectReference(obj:using_class);
@@ -1803,12 +1803,12 @@ if (not_empty using_class and using_class.name != base_class.name and using_clas
 
   // get the first selector name
   selector_name = "" + rel.name + "_";
-  if (rel_spec.role != "")
+  if (rel_spec.role != "") then
     selector_name = selector_name + T::sub(format:"_", s:rel_spec.role) + "_";
   end if;
   selector_name = selector_name + using_class.name;
   select any selector related by base_class->Selector[R442] where (selected.name == selector_name);
-  if (not_empty selector)
+  if (not_empty selector) then
     relate selector to sel_rel across R797;
   else
     // TODO bad
@@ -1979,15 +1979,15 @@ relate root_expr to sort_expr across R3917;
 // transform all sort keys
 select any prev_sort_key from instances of SortKey where false;
 select one instance_ordering_expression related by ordering_expression->InstanceOrderingExpression[R5534];
-if not_empty instance_ordering_expression
+if not_empty instance_ordering_expression then
   select many keys related by instance_ordering_expression->AttributeOrderingKey[R5563] where SORT::ascending(attr:"order");
-  for each key in keys
+  for each key in keys loop
     select one attr related by key->AttributeDeclaration[R5563]->Attribute[R8301];
     create object instance sort_key of SortKey;
     sort_key.descending = key.isreverse;
     relate sort_key to sort_expr across R3906;
     relate attr to sort_key across R3918;
-    if not_empty prev_sort_key
+    if not_empty prev_sort_key then
       relate prev_sort_key to sort_key across R3920.''precedes'';
     end if;
     prev_sort_key = sort_key;
@@ -2060,7 +2060,7 @@ select one rhs_collection related by rhs->BasicType[R5570]->CollectionType[R6205
 
 // get the result type
 select any result_type from instances of TypeReference where false;
-if not_empty lhs_collection or not_empty rhs_collection
+if not_empty lhs_collection or not_empty rhs_collection then
   result_type = ::getObjectStreamReference(obj:using_class);
 else
   result_type = ::getObjectReference(obj:using_class);
@@ -2080,7 +2080,7 @@ relate sel_rel to sel across R789;
 
 // get the selector
 selector_name = "" + rel.name + "_";
-if (rel_spec.role != "")
+if (rel_spec.role != "") then
   selector_name = selector_name + T::sub(format:"_", s:rel_spec.role) + "_";
 end if;
 selector_name = selector_name + using_class.name;
@@ -2168,11 +2168,11 @@ create object instance uny of UnaryOperation;
 relate uny to expr across R776;
 
 // translate the operator
-if (unary_expression.operator == Operator::minus)
+if (unary_expression.operator == Operator::minus) then
   uny.operator = "-";
-elif (unary_expression.operator == Operator::not)
+elif (unary_expression.operator == Operator::not) then
   uny.operator = "!";
-elif (unary_expression.operator == Operator::abs)
+elif (unary_expression.operator == Operator::abs) then
   uny.operator = "Math.abs";
   uny.invocation = true;
   uny.util = true;
@@ -2391,7 +2391,7 @@ expr.expression_number = expr_number;
 // link type
 select one basic_type related by type_name_expression->BasicType[R5578];
 type = ::getTypeReferenceForMASLType(basic_type:basic_type);
-if empty type
+if empty type then
   type = ::getBasicTypeReferenceByName(name:"Object");  // TODO maybe a "Class" or "Type" type is needed...
 end if;
 relate type to expr across R795;

@@ -60,35 +60,35 @@ output_type_ref = param.output_type_ref;
 
 // TODO this could be made recursive for complex conversions
 
-if input_type_ref.type_reference != output_type_ref.type_reference
+if input_type_ref.type_reference != output_type_ref.type_reference then
   // if the output type reference is a basic reference of an incomplete type
   // (e.g. stream or collection), convert it to the complete version of the type
   // using the input type as the element type
   select one input_element_type related by input_type_ref->CollectionTypeReference[R3801]->TypeReference[R3805];
-  if empty input_element_type
+  if empty input_element_type then
     select one input_element_type related by input_type_ref->StreamTypeReference[R3801]->TypeReference[R3812];
-    if empty input_element_type
+    if empty input_element_type then
       input_element_type = input_type_ref;
     end if;
   end if;
   select one output_basic_type related by output_type_ref->BasicTypeReference[R3801];
-  if not_empty output_basic_type
-    if output_basic_type.type_reference == "Set"
+  if not_empty output_basic_type then
+    if output_basic_type.type_reference == "Set" then
       output_type_ref = ::getSetReference(element_type:input_element_type);
-    elif output_basic_type.type_reference == "List"
+    elif output_basic_type.type_reference == "List" then
       output_type_ref = ::getListReference(element_type:input_element_type);
-    elif output_basic_type.type_reference == "Stream"
+    elif output_basic_type.type_reference == "Stream" then
       output_type_ref = ::getStreamReference(element_type:input_element_type);
     end if;
   end if;
 end if;
 
-if input_type_ref.type_reference != output_type_ref.type_reference
+if input_type_ref.type_reference != output_type_ref.type_reference then
   
   // simple cast for numeric to numeric conversion
-  if input_type_ref.numeric and output_type_ref.numeric
+  if input_type_ref.numeric and output_type_ref.numeric then
     // warn possible loss of precision
-    if input_type_ref.type_reference == "double" or output_type_ref.type_reference == "double"
+    if input_type_ref.type_reference == "double" or output_type_ref.type_reference == "double" then
       ::semanticWarningInExpression(expr:expr, message:"Possible loss of precision converting between real and integer types");
     elif (input_type_ref.type_reference == "long" and
            (output_type_ref.type_reference == "int" or
@@ -98,7 +98,7 @@ if input_type_ref.type_reference != output_type_ref.type_reference
            (output_type_ref.type_reference == "short" or
             output_type_ref.type_reference == "byte")) or
          (input_type_ref.type_reference == "short" and
-            output_type_ref.type_reference == "byte")
+            output_type_ref.type_reference == "byte") then
       ::semanticWarningInExpression(expr:expr, message:"Possible loss of precision converting between integer types");
     end if;
     T::include(file:"expression/t.simplecast.java");
@@ -107,17 +107,17 @@ if input_type_ref.type_reference != output_type_ref.type_reference
   // named type conversions
   select one output_basic_type_ref related by output_type_ref->BasicTypeReference[R3801];
   select one input_basic_type_ref related by input_type_ref->BasicTypeReference[R3801];
-  if not_empty output_basic_type_ref and not_empty input_basic_type_ref
+  if not_empty output_basic_type_ref and not_empty input_basic_type_ref then
     select one input_base_type related by input_type_ref->Type[R3800];
     select one output_base_type related by output_type_ref->Type[R3800];
     // supertype to subtpe conversion
-    if (::isSubtypeOf(type1:output_base_type, type2:input_base_type))
+    if (::isSubtypeOf(type1:output_base_type, type2:input_base_type)) then
       ::resolveImportsForTypeReference(type_ref:output_type_ref);
       T::include(file:"expression/t.converttosubtype.java");
     // subtype to supertpe conversion
-    elif (::isSubtypeOf(type1:input_base_type, type2:output_base_type) and output_type_ref.primitive)
+    elif (::isSubtypeOf(type1:input_base_type, type2:output_base_type) and output_type_ref.primitive) then
       T::include(file:"expression/t.converttosupertype.primitive.java");
-    elif (::isSubtypeOf(type1:input_base_type, type2:output_base_type))
+    elif (::isSubtypeOf(type1:input_base_type, type2:output_base_type)) then
       // directly assignable
       T::append(s:base_expr);
     end if;
@@ -130,7 +130,7 @@ if input_type_ref.type_reference != output_type_ref.type_reference
   select one output_element_type related by output_stream_type->TypeReference[R3812];
   select one input_collection_type related by input_type_ref->CollectionTypeReference[R3801];
   select one input_element_type related by input_collection_type->TypeReference[R3805];
-  if not_empty output_stream_type and not_empty input_collection_type and output_element_type.type_reference == input_element_type.type_reference
+  if not_empty output_stream_type and not_empty input_collection_type and output_element_type.type_reference == input_element_type.type_reference then
     T::include(file:"expression/t.collectiontostream.java");
   end if;
   
@@ -139,21 +139,21 @@ if input_type_ref.type_reference != output_type_ref.type_reference
   select one output_element_type related by output_collection_type->TypeReference[R3805];
   select one input_stream_type related by input_type_ref->StreamTypeReference[R3801];
   select one input_element_type related by input_stream_type->TypeReference[R3812];
-  if not_empty input_stream_type and not_empty output_collection_type and output_element_type.type_reference == input_element_type.type_reference
+  if not_empty input_stream_type and not_empty output_collection_type and output_element_type.type_reference == input_element_type.type_reference then
     // TODO handle other collection types
     select one output_set_type related by output_collection_type->SetTypeReference[R3806];
     select one output_list_type related by output_collection_type->ListTypeReference[R3806];
-    if not_empty output_set_type
+    if not_empty output_set_type then
       // find a parent sort expression
       select any sort_expr related by expr->Statement[R775]->Expression[R775]->SortExpr[R776]
         where STRING::indexof(haystack:selected.expression_number, needle:expr.expression_number) == 0;
       ordered_set = not_empty sort_expr;
-      if (ordered_set)
+      if (ordered_set) then
         ::addStringImport(package:"java.util", class_name:"LinkedHashSet");
       end if;
       ::addStringImport(package:"java.util.stream", class_name:"Collectors");
       T::include(file:"expression/t.streamtoset.java");
-    elif not_empty output_list_type
+    elif not_empty output_list_type then
       ::addStringImport(package:"java.util.stream", class_name:"Collectors");
       T::include(file:"expression/t.streamtolist.java");
     end if;
@@ -162,14 +162,14 @@ if input_type_ref.type_reference != output_type_ref.type_reference
   // convert from a single element to a collection of the same type
   select one output_collection_type related by output_type_ref->CollectionTypeReference[R3801];
   select one output_element_type related by output_collection_type->TypeReference[R3805];
-  if not_empty output_collection_type and output_element_type.type_reference == input_type_ref.type_reference
+  if not_empty output_collection_type and output_element_type.type_reference == input_type_ref.type_reference then
     // TODO handle other collection types
     select one output_set_type related by output_collection_type->SetTypeReference[R3806];
     select one output_list_type related by output_collection_type->ListTypeReference[R3806];
-    if not_empty output_set_type
+    if not_empty output_set_type then
       ::addStringImport(package:"java.util", class_name:"Set");
       T::include(file:"expression/t.elementtoset.java");
-    elif not_empty output_list_type
+    elif not_empty output_list_type then
       ::addStringImport(package:"java.util", class_name:"List");
       T::include(file:"expression/t.elementtolist.java");
     end if;
@@ -177,7 +177,7 @@ if input_type_ref.type_reference != output_type_ref.type_reference
   
   // check to see if it succeeded
   b = T::body();
-  if b == ""
+  if b == "" then
     select one smt related by expr->Statement[R775];
     select one invoc related by smt->CodeBlock[R450]->InvocableObject[R4000];
     ::semanticError(invocable:invoc, line_number:smt.line_number, message:"Unsupported type conversion: ''" + input_type_ref.type_reference + "'' -> ''" + output_type_ref.type_reference + "''");

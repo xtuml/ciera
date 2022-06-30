@@ -45,7 +45,7 @@ additional_vars = param.additional_vars;
 
 // create code block
 create object instance block of CodeBlock;
-if (empty upper_block)
+if (empty upper_block) then
   block.top_level = true;
 else
   select one invocable related by upper_block->InvocableObject[R4000];
@@ -57,23 +57,23 @@ block.block_number = param.block_number;
 
 // copy visibile variables from upper block
 select many vars related by upper_block->VariableInScope[R458];
-for each var in vars
+for each var in vars loop
   create object instance var_in_scope of VariableInScope;
   var_in_scope.distance = var.distance + 1;
   select one var_decl related by var->Variable[R458];
   relate var_decl to block across R458 using var_in_scope;
 end for;
-for each additional_var in additional_vars
+for each additional_var in additional_vars loop
   create object instance var_in_scope of VariableInScope;
   relate additional_var to block across R458 using var_in_scope;
 end for;
 
 // create variable declarations for this code block
-if (not_empty code_block)
+if (not_empty code_block) then
   select many variable_declarations related by code_block->VariableDefinition[R5151] where SORT::ascending(attr:"line_number");
-  for each variable_declaration in variable_declarations
+  for each variable_declaration in variable_declarations loop
     select one for_loop_spec related by variable_declaration->LoopSpec[R5154];
-    if empty for_loop_spec  // don''t pre-declare variables that are declared in for loops
+    if empty for_loop_spec then  // don''t pre-declare variables that are declared in for loops
       ::transformVariableInitialization(variable_declaration:variable_declaration, block:block);
     end if;
   end for;
@@ -170,76 +170,76 @@ INSERT INTO S_SYNC
 	'masl_statement = param.masl_statement;
 block = param.block;
 prev_smt = param.prev_smt;
-if (empty masl_statement or empty block)
+if (empty masl_statement or empty block) then
   // TODO bad
 end if;
 
 select one assign_statement related by masl_statement->AssignmentStatement[R5135];
-if (not_empty assign_statement)
+if (not_empty assign_statement) then
   ::transformAssignStatement(assign_statement:assign_statement, block:block, prev_smt:prev_smt);
 else
 select one io_stream_statement related by masl_statement->IOStreamStatement[R5135];
-if (not_empty io_stream_statement)
+if (not_empty io_stream_statement) then
   ::transformIOStreamStatement(io_stream_statement:io_stream_statement, block:block, prev_smt:prev_smt);
 else
 select one if_statement related by masl_statement->IfStatement[R5135];
-if (not_empty if_statement)
+if (not_empty if_statement) then
   ::transformMaslIfStatement(if_statement:if_statement, block:block, prev_smt:prev_smt);
 else
 select one return_statement related by masl_statement->ReturnStatement[R5135];
-if (not_empty return_statement)
+if (not_empty return_statement) then
   ::transformMaslReturnStatement(return_statement:return_statement, block:block, prev_smt:prev_smt);
 else
 select one service_call_statement related by masl_statement->ServiceCall[R5135];
-if (not_empty service_call_statement)
+if (not_empty service_call_statement) then
   ::transformServiceCall(service_call:service_call_statement, block:block, prev_smt:prev_smt);
 else
 select one link_unlink_statement related by masl_statement->LinkUnlinkStatement[R5135];
-if (not_empty link_unlink_statement)
+if (not_empty link_unlink_statement) then
   ::transformLinkUnlinkStatement(link_unlink_statement:link_unlink_statement, block:block, prev_smt:prev_smt);
 else
 select one generate_statement related by masl_statement->GenerateStatement[R5135];
-if (not_empty generate_statement)
+if (not_empty generate_statement) then
   ::transformGenerateStatement(generate_statement:generate_statement, block:block, prev_smt:prev_smt);
 else
 select one schedule_statement related by masl_statement->ScheduleStatement[R5135];
-if (not_empty schedule_statement)
+if (not_empty schedule_statement) then
   ::transformScheduleStatement(schedule_statement:schedule_statement, block:block, prev_smt:prev_smt);
 else
 select one cancel_timer_statement related by masl_statement->CancelTimerStatement[R5135];
-if (not_empty cancel_timer_statement)
+if (not_empty cancel_timer_statement) then
   ::transformCancelTimerStatement(cancel_timer_statement:cancel_timer_statement, block:block, prev_smt:prev_smt);
 else
 select one raise_statement related by masl_statement->RaiseStatement[R5135];
-if (not_empty raise_statement)
+if (not_empty raise_statement) then
   ::transformRaiseStatement(raise_statement:raise_statement, block:block, prev_smt:prev_smt);
 else
 select one while_statement related by masl_statement->WhileStatement[R5135];
-if (not_empty while_statement)
+if (not_empty while_statement) then
   ::transformMaslWhileStatement(while_statement:while_statement, block:block, prev_smt:prev_smt);
 else
 select one exit_statement related by masl_statement->ExitStatement[R5135];
-if (not_empty exit_statement)
+if (not_empty exit_statement) then
   ::transformExitStatement(exit_statement:exit_statement, block:block, prev_smt:prev_smt);
 else
 select one delay_statement related by masl_statement->DelayStatement[R5135];
-if (not_empty delay_statement)
+if (not_empty delay_statement) then
   ::transformDelayStatement(delay_statement:delay_statement, block:block, prev_smt:prev_smt);
 else
 select one delete_statement related by masl_statement->DeleteStatement[R5135];
-if (not_empty delete_statement)
+if (not_empty delete_statement) then
   ::transformDeleteStatement(delete_statement:delete_statement, block:block, prev_smt:prev_smt);
 else
 select one for_statement related by masl_statement->ForStatement[R5135];
-if (not_empty for_statement)
+if (not_empty for_statement) then
   ::transformMaslForStatement(for_statement:for_statement, block:block, prev_smt:prev_smt);
 else
 select one code_block_statement related by masl_statement->CodeBlockStatement[R5135];
-if (not_empty code_block_statement)
+if (not_empty code_block_statement) then
   ::transformCodeBlockStatement(code_block_statement:code_block_statement, block:block, prev_smt:prev_smt);
 else
 select one case_statement related by masl_statement->CaseStatement[R5135];
-if (not_empty case_statement)
+if (not_empty case_statement) then
   ::transformCaseStatement(case_statement:case_statement, block:block, prev_smt:prev_smt);
 else
   LOG::LogFailure(message:"statement type not supported: ''" + masl_statement.actions + "''");
@@ -304,12 +304,12 @@ INSERT INTO S_SYNC
 	'code_block = param.code_block;
 masl_statement = param.first_statement;
 block = param.block;
-if (not_empty code_block)
+if (not_empty code_block) then
   select one masl_statement related by code_block->MaslStatement[R5150];
 end if;
 prev_smt = ::lastStatementInBlock(block:block);
 smt_num = 1;
-while (not_empty masl_statement)
+while (not_empty masl_statement) loop
   // transform the statement
   ::transformMaslStatement(masl_statement:masl_statement, block:block, prev_smt:prev_smt);
 
@@ -322,7 +322,7 @@ while (not_empty masl_statement)
 
   // skip remaining statements if previous statement causes exit
   exiting_statement = ::getExitingStatement(block:block);
-  if not_empty masl_statement and not_empty exiting_statement
+  if not_empty masl_statement and not_empty exiting_statement then
     select one invocable related by block->InvocableObject[R4000];
     ::semanticWarning(invocable:invocable, line_number:prev_smt.line_number, message:"Warning! Skipping unreachable statements after block exiting statement");
     return;
@@ -382,18 +382,18 @@ select any stream_operator related by io_stream_statement->StreamOperator[R5115]
 
 // Create a statement for each stream operation sequentially
 first_statement = true;
-while not_empty stream_operator
+while not_empty stream_operator loop
 
   // create a statement
   create object instance smt of Statement;
   relate smt to block across R450;
-  if ( not_empty prev_smt )
+  if ( not_empty prev_smt ) then
     smt.statement_number = STRING::itoa(i:STRING::atoi(s:prev_smt.statement_number) + 1);
     relate smt to prev_smt across R477.''executes after'';
   else
     smt.statement_number = "1";
   end if;
-  if first_statement
+  if first_statement then
     smt.actions = masl_statement.actions;
     smt.line_number = masl_statement.line_number;
     first_statement = false;
@@ -413,7 +413,7 @@ while not_empty stream_operator
   // if this is a flush, use a unary operation
   select one other_expression related by stream_operator->MaslExpression[R5115];
   select one flush_expr related by other_expression->LiteralExpression[R5517]->FlushLiteral[R5700];
-  if not_empty flush_expr and (stream_operator.operator == IOop::out or stream_operator.operator == IOop::lineout)
+  if not_empty flush_expr and (stream_operator.operator == IOop::out or stream_operator.operator == IOop::lineout) then
 
     // flush if void type
     type = ::getBasicTypeReferenceByName(name:"void");
@@ -435,13 +435,13 @@ while not_empty stream_operator
     // create binary operation and assignment expression
     create object instance binop of BinaryOperation;
     relate binop to expr across R776;
-    if (stream_operator.operator == IOop::in)
+    if (stream_operator.operator == IOop::in) then
       binop.operator = "read";
-    elif (stream_operator.operator == IOop::linein)
+    elif (stream_operator.operator == IOop::linein) then
       binop.operator = "readLine";
-    elif (stream_operator.operator == IOop::out)
+    elif (stream_operator.operator == IOop::out) then
       binop.operator = "write";
-    elif (stream_operator.operator == IOop::lineout)
+    elif (stream_operator.operator == IOop::lineout) then
       binop.operator = "writeLine";
     else
       // TODO bad
@@ -459,7 +459,7 @@ while not_empty stream_operator
     select any r_op related by smt->Expression[R775] where (selected.expression_number == "1.2");
     relate r_op to binop across R778;
 
-    if (stream_operator.operator == IOop::in or stream_operator.operator == IOop::linein)
+    if (stream_operator.operator == IOop::in or stream_operator.operator == IOop::linein) then
       // link r_op type to the main expression for reads
       select one type related by r_op->TypeReference[R795];
       relate type to expr across R795;
@@ -538,11 +538,11 @@ new_var.name = variable_declaration.name;
 new_var.readonly = variable_declaration.isreadonly;
 
 // link in scope
-if param.link_in_scope
+if param.link_in_scope then
   select one scope related by smt->CodeBlock[R450];
   relate new_var to scope across R496;
   select any existing_var_in_scope related by scope->VariableInScope[R458] where (selected.var_name == new_var.name);
-  if ( not_empty existing_var_in_scope )  // shadow variable of same name
+  if ( not_empty existing_var_in_scope ) then  // shadow variable of same name
     LOG::LogInfo(message:"warning: shadowing variable: " + new_var.name + " in block: "+ scope.block_number);
     select one existing_var related by existing_var_in_scope->Variable[R458];
   end if;
@@ -614,7 +614,7 @@ prev_smt = ::lastStatementInBlock(block:block);
 // create a statement
 create object instance smt of Statement;
 relate smt to block across R450;
-if (not_empty prev_smt)
+if (not_empty prev_smt) then
   smt.statement_number = STRING::itoa(i:STRING::atoi(s:prev_smt.statement_number) + 1);
   relate smt to prev_smt across R477.''executes after'';
 else
@@ -661,7 +661,7 @@ var_ref.declaration = true;
 
 // create right operand
 select one init_expr related by variable_declaration->MaslExpression[R5138];
-if not_empty init_expr
+if not_empty init_expr then
   ::transformMaslExpression(masl_expression:init_expr, expr_number:"1.2", smt:smt);
 else
   // if no initializer exists, simply use the default value for the type
@@ -725,7 +725,7 @@ select any empty_code_block from instances of MaslCodeBlock where false;
 // create a statement
 create object instance smt of Statement;
 relate smt to block across R450;
-if (not_empty prev_smt)
+if (not_empty prev_smt) then
   smt.statement_number = STRING::itoa(i:STRING::atoi(s:prev_smt.statement_number) + 1);
   relate smt to prev_smt across R477.''executes after'';
 else
@@ -757,11 +757,11 @@ relate then_block to if_smt across R453;
 // translate elsifs
 select any elsif_alternative related by if_statement->Alternative[R5145] where (not selected.else_otherwise);
 select one prev_elsif_alternative related by elsif_alternative->Alternative[R5158.''succeeds''] where (not selected.else_otherwise);
-while (not_empty prev_elsif_alternative)
+while (not_empty prev_elsif_alternative) loop
   elsif_alternative = prev_elsif_alternative;
   select one prev_elsif_alternative related by elsif_alternative->Alternative[R5158.''succeeds''] where (not selected.else_otherwise);
 end while;
-while (not_empty elsif_alternative)
+while (not_empty elsif_alternative) loop
   // create block for elif
   elif_block_number = ::getNextBlockNumber(upper_block:block);
   ::transformMaslBlockForElsif(upper_block:block, alternative:elsif_alternative, block_number:elif_block_number);
@@ -776,7 +776,7 @@ end while;
 // create else block
 else_block_number = ::getNextBlockNumber(upper_block:block);
 select any else_alternative related by if_statement->Alternative[R5145] where (selected.else_otherwise);
-if (not_empty else_alternative)
+if (not_empty else_alternative) then
   select one else_first_statement related by else_alternative->MaslStatement[R5148];
   select many additional_vars from instances of Variable where false;
   ::transformMaslBlock(upper_block:block, code_block:empty_code_block, block_number:else_block_number, invocable:empty_invocable, additional_vars:additional_vars);
@@ -847,7 +847,7 @@ relate block to upper_block across R498.''contained by'';
 
 // copy visibile variables from upper block
 select many vars related by upper_block->VariableInScope[R458];
-for each var in vars
+for each var in vars loop
   create object instance var_in_scope of VariableInScope;
   var_in_scope.distance = var.distance + 1;
   select one var_decl related by var->Variable[R458];
@@ -938,7 +938,7 @@ select one masl_statement related by assign_statement->MaslStatement[R5135];
 // create a statement
 create object instance smt of Statement;
 relate smt to block across R450;
-if (not_empty prev_smt)
+if (not_empty prev_smt) then
   smt.statement_number = STRING::itoa(i:STRING::atoi(s:prev_smt.statement_number) + 1);
   relate smt to prev_smt across R477.''executes after'';
 else
@@ -984,7 +984,7 @@ relate type to expr across R795;
 // the LHS type and modify the literal value
 select one rhs_literal related by r_op->Literal[R776];
 select one lhs_class related by type->InstanceTypeReference[R3801]->Class[R3808];
-if not_empty lhs_class and not_empty rhs_literal and rhs_literal.value == "null"
+if not_empty lhs_class and not_empty rhs_literal and rhs_literal.value == "null" then
   select one r_type related by r_op->TypeReference[R795];
   unrelate r_type from r_op across R795;
   relate type to r_op across R795;
@@ -1051,7 +1051,7 @@ select one masl_statement related by return_statement->MaslStatement[R5135];
 // create a statement
 create object instance smt of Statement;
 relate smt to block across R450;
-if (not_empty prev_smt)
+if (not_empty prev_smt) then
   smt.statement_number = STRING::itoa(i:STRING::atoi(s:prev_smt.statement_number) + 1);
   relate smt to prev_smt across R477.''executes after'';
 else
@@ -1066,7 +1066,7 @@ relate ret to smt across R451;
 
 // create return expression
 select one ret_val related by return_statement->MaslExpression[R5128];
-if (not_empty ret_val)
+if (not_empty ret_val) then
   // TODO consider type promotion
   ::transformMaslExpression(masl_expression:ret_val, expr_number:"1", smt:smt);
   select any ret_expr related by smt->Expression[R775] where (selected.expression_number == "1");
@@ -1130,7 +1130,7 @@ select one masl_statement related by service_call->MaslStatement[R5135];
 // create a statement
 create object instance smt of Statement;
 relate smt to block across R450;
-if (not_empty prev_smt)
+if (not_empty prev_smt) then
   smt.statement_number = STRING::itoa(i:STRING::atoi(s:prev_smt.statement_number) + 1);
   relate smt to prev_smt across R477.''executes after'';
 else
@@ -1140,7 +1140,7 @@ smt.actions = masl_statement.actions;
 smt.line_number = masl_statement.line_number;
 
 select one domain_service_invocation related by service_call->ServiceInvocation[R5161]->DomainServiceInvocation[R5610];
-if (not_empty domain_service_invocation)
+if (not_empty domain_service_invocation) then
   select any utility from instances of Utility where false;
   select one service related by domain_service_invocation->DomainService[R5611]->Service[R5203];
   containing_comp_def = ::getCompDefForStatement(smt:smt);
@@ -1149,17 +1149,17 @@ if (not_empty domain_service_invocation)
   select one domain related by domain_service_invocation->DomainService[R5611]->Domain[R5303];
   select one comp_def related by domain->ComponentDefinition[R8310];
   select any invocable related by comp_def->Function[R405]->InvocableObject[R427] where (selected.name == "" + service.name);
-  if empty invocable
+  if empty invocable then
     // look for utility functions
     select any utility related by containing_comp_def->Utility[R4558] where selected.name == "" + domain.name;
-    if empty utility
+    if empty utility then
       select any utility from instances of Utility where selected.name == "" + domain.name;
       ::importUtility(utility:utility, comp_def:containing_comp_def);
     end if;
     select any invocable related by utility->UtilityFunction[R4559]->InvocableObject[R427] where selected.name == "" + service.name;
   end if;
 
-  if (not_empty invocable)
+  if (not_empty invocable) then
     // create expression as statement
     create object instance eas of ExpressionAsStatement;
     relate eas to smt across R451;
@@ -1181,7 +1181,7 @@ if (not_empty domain_service_invocation)
     expr2.expression_number = "1.1";
     void_type = ::getBasicTypeReferenceByName(name:"void");
     relate void_type to expr2 across R795;
-    if not_empty utility
+    if not_empty utility then
       // create utility reference
       create object instance utility_ref of UtilityReference;
       relate utility_ref to utility across R3914;
@@ -1191,14 +1191,14 @@ if (not_empty domain_service_invocation)
       // create domain reference
       create object instance domain_ref of DomainReference;
       relate domain_ref to expr2 across R776;
-      if comp_def != containing_comp_def
+      if comp_def != containing_comp_def then
         relate comp_def to domain_ref across R3927;
         // add a module dependency
 				select one main_mod related by containing_comp_def->Module[R5752];
 				select one mod related by comp_def->Module[R5752];
-				if not_empty mod and not_empty main_mod and mod != main_mod
+				if not_empty mod and not_empty main_mod and mod != main_mod then
 					select any dependency related by main_mod->Dependency[R5753.''requires''] where selected.required_module_name == mod.name;
-					if empty dependency
+					if empty dependency then
 						create object instance dependency of Dependency;
 						relate mod to main_mod across R5753.''required by'' using dependency;
 					end if;
@@ -1208,7 +1208,7 @@ if (not_empty domain_service_invocation)
     end if;
     // transform actual parameters
     select one first_argument related by service_call->ServiceInvocation[R5161]->CallExpression[R5500]->Argument[R5575];
-    if (not_empty first_argument)
+    if (not_empty first_argument) then
       ::transformArguments(invocation:invoc, first_argument:first_argument, expr_number:expr.expression_number, base_num:2);
     end if;
   else
@@ -1216,13 +1216,13 @@ if (not_empty domain_service_invocation)
   end if;
 else
 select one terminator_service_invocation related by service_call->ServiceInvocation[R5161]->TerminatorServiceInvocation[R5610];
-if (not_empty terminator_service_invocation)
+if (not_empty terminator_service_invocation) then
   select one domain_terminator related by terminator_service_invocation->DomainTerminatorService[R5612]->DomainTerminator[R5306];
   select one service related by terminator_service_invocation->DomainTerminatorService[R5612]->Service[R5203];
   containing_comp_def = ::getCompDefForStatement(smt:smt);
   select any target_port related by containing_comp_def->Port[R417] where (selected.name == containing_comp_def.name + ::camelCaseName(name:domain_terminator.name, start_lower:false));
   select any invocable related by target_port->PortMessage[R420]->InvocableObject[R427] where (selected.name == "" + service.name);
-  if (not_empty invocable)
+  if (not_empty invocable) then
     // create expression as statement
     create object instance eas of ExpressionAsStatement;
     relate eas to smt across R451;
@@ -1250,7 +1250,7 @@ if (not_empty terminator_service_invocation)
     relate port_ref to expr2 across R776;
     // transform actual parameters
     select one first_argument related by service_call->ServiceInvocation[R5161]->CallExpression[R5500]->Argument[R5575];
-    if (not_empty first_argument)
+    if (not_empty first_argument) then
       ::transformArguments(invocation:invoc, first_argument:first_argument, expr_number:expr.expression_number, base_num:2);
     end if;
   else
@@ -1258,11 +1258,11 @@ if (not_empty terminator_service_invocation)
   end if;
 else
 select one instance_service_invocation related by service_call->ServiceInvocation[R5161]->InstanceServiceInvocation[R5610];
-if (not_empty instance_service_invocation)
+if (not_empty instance_service_invocation) then
   select one object_service related by instance_service_invocation->ObjectService[R5614];
   select one service related by object_service->Service[R5203];
   select any invocable related by object_service->ObjectDeclaration[R5808]->Class[R8300]->Operation[R416]->InvocableObject[R427] where (selected.name == "" + service.name);
-  if (not_empty invocable)
+  if (not_empty invocable) then
     // create expression as statement
     create object instance eas of ExpressionAsStatement;
     relate eas to smt across R451;
@@ -1285,7 +1285,7 @@ if (not_empty instance_service_invocation)
     relate expr2 to invoc across R798;
     // transform actual parameters
     select one first_argument related by service_call->ServiceInvocation[R5161]->CallExpression[R5500]->Argument[R5575];
-    if (not_empty first_argument)
+    if (not_empty first_argument) then
       ::transformArguments(invocation:invoc, first_argument:first_argument, expr_number:expr.expression_number, base_num:2);
     end if;
   else
@@ -1293,13 +1293,13 @@ if (not_empty instance_service_invocation)
   end if;
 else
 select one object_service_invocation related by service_call->ServiceInvocation[R5161]->ObjectServiceInvocation[R5610];
-if (not_empty object_service_invocation)
+if (not_empty object_service_invocation) then
   select one object_service related by object_service_invocation->ObjectService[R5613];
   select one service related by object_service->Service[R5203];
   select one obj related by object_service->ObjectDeclaration[R5808]->Class[R8300];
   select any invocable related by obj->Operation[R416]->InvocableObject[R427]
     where (selected.name == "" + service.name or selected.name == "_" + obj.name + "_" + service.name);
-  if (not_empty invocable)
+  if (not_empty invocable) then
     // create expression as statement
     create object instance eas of ExpressionAsStatement;
     relate eas to smt across R451;
@@ -1325,7 +1325,7 @@ if (not_empty object_service_invocation)
     relate domain_ref to expr3 across R776;
     // transform actual parameters
     select one first_argument related by service_call->ServiceInvocation[R5161]->CallExpression[R5500]->Argument[R5575];
-    if (not_empty first_argument)
+    if (not_empty first_argument) then
       ::transformArguments(invocation:invoc, first_argument:first_argument, expr_number:expr.expression_number, base_num:2);
     end if;
   else
@@ -1390,7 +1390,7 @@ select one masl_statement related by link_unlink_statement->MaslStatement[R5135]
 // create a statement
 create object instance smt of Statement;
 relate smt to block across R450;
-if (not_empty prev_smt)
+if (not_empty prev_smt) then
   smt.statement_number = STRING::itoa(i:STRING::atoi(s:prev_smt.statement_number) + 1);
   relate smt to prev_smt across R477.''executes after'';
 else
@@ -1408,10 +1408,10 @@ select one lhs related by link_unlink_statement->MaslExpression[R5122];
 select one rhs related by link_unlink_statement->MaslExpression[R5119];
 select one uses related by link_unlink_statement->MaslExpression[R5121];
 select one uses_class related by uses->BasicType[R5570]->InstanceType[R6205]->ObjectDeclaration[R6220]->Class[R8300];
-if (empty rhs)
+if (empty rhs) then
   // Right hand expression is allowed to be left out for unlink statements if
   // the relationship is non-reflexive binary or sup/super association
-  if (link_unlink_statement.isLink or not_empty uses or lhs_class.name == rhs_class.name)
+  if (link_unlink_statement.isLink or not_empty uses or lhs_class.name == rhs_class.name) then
     select one invocable related by smt->CodeBlock[R450]->InvocableObject[R4000];
     ::semanticError(invocable:invocable, line_number:smt.line_number, message:"Invalid implicit unlink statement");
     ARCH::exit(code:1);
@@ -1424,7 +1424,7 @@ containing_comp_def = ::getCompDefForStatement(smt:smt);
 select any rel from instances of Relationship where false;
 select any form_expr from instances of Expression where false;
 select any part_expr from instances of Expression where false;
-if (not_empty uses)
+if (not_empty uses) then
   // link/unlink lhs first
   select any rel related by rel_spec->RelationshipDeclaration[R6015]->Relationship[R8304]
     where (selected.form_name == uses_class.name and selected.part_name == lhs_class.name);
@@ -1442,15 +1442,15 @@ else
   // the LHS is the formalizer if:
   // 1. this is a reflexive relationship and the given role phrase matches the role phrase in the direction of the participant
   // 2. this is not a reflexive relationship and there are no attribute references to the LHS class in the RHS class
-  if (lhs_class == rhs_class and rel_spec.role == rel.part_phrase) or (lhs_class != rhs_class and empty rhs_ref)
+  if (lhs_class == rhs_class and rel_spec.role == rel.part_phrase) or (lhs_class != rhs_class and empty rhs_ref) then
     ::transformMaslExpression(masl_expression:lhs, expr_number:"1", smt:smt);
     select any form_expr related by smt->Expression[R775] where (selected.expression_number == "1");
-    if (not_empty rhs)
+    if (not_empty rhs) then
       ::transformMaslExpression(masl_expression:rhs, expr_number:"2", smt:smt);
       select any part_expr related by smt->Expression[R775] where (selected.expression_number == "2");
     end if;
   else
-    if (not_empty rhs)
+    if (not_empty rhs) then
       ::transformMaslExpression(masl_expression:rhs, expr_number:"1", smt:smt);
       select any form_expr related by smt->Expression[R775] where (selected.expression_number == "1");
     end if;
@@ -1470,16 +1470,16 @@ else
   create object instance unrelsmt of UnrelateSmt;
   relate unrelsmt to smt across R451;
   relate rel to unrelsmt across R484;
-  if (not_empty form_expr)
+  if (not_empty form_expr) then
     relate form_expr to unrelsmt across R483;
   end if;
-  if (not_empty part_expr)
+  if (not_empty part_expr) then
     relate part_expr to unrelsmt across R482;
   end if;
 end if;
   
 // if this is an associative relationship, create the second statement
-if (not_empty uses)
+if (not_empty uses) then
   prev_smt = smt;
 
   // create a statement
@@ -1576,7 +1576,7 @@ select one masl_statement related by generate_statement->MaslStatement[R5135];
 // create a statement
 create object instance smt of Statement;
 relate smt to block across R450;
-if (not_empty prev_smt)
+if (not_empty prev_smt) then
   smt.statement_number = STRING::itoa(i:STRING::atoi(s:prev_smt.statement_number) + 1);
   relate smt to prev_smt across R477.''executes after'';
 else
@@ -1605,7 +1605,7 @@ relate evt to evt_ref across R3916;
 relate evt_expr to gen_smt across R486;
 
 // translate the target expression
-if not_empty target
+if not_empty target then
   ::transformMaslExpression(masl_expression:target, expr_number:"2", smt:smt);
   select any target_expr related by smt->Expression[R775] where (selected.expression_number == "2");
   relate target_expr to gen_smt across R487;
@@ -1628,7 +1628,7 @@ end if;
 
 // transform actual parameters
 select one first_argument related by generate_statement->Argument[R5114];
-if (not_empty first_argument)
+if (not_empty first_argument) then
   select any null_expr from Expression where false;
   ::transformEventArguments(smt:smt, expr:null_expr, evt:evt, first_argument:first_argument, base_num:3);
 end if;',
@@ -1689,7 +1689,7 @@ argument = param.first_argument;
 base_num = param.base_num;
 
 expr_number = "";
-if not_empty expr
+if not_empty expr then
   expr_number = expr.expression_number;
 end if;
 
@@ -1700,17 +1700,17 @@ order = 1;
 // get the first formal parameter
 select any formal_param related by evt->InvocableObject[R427]->FormalParameter[R429];
 select one prev_formal_param related by formal_param->FormalParameter[R404.''follows''];
-while not_empty prev_formal_param
+while not_empty prev_formal_param loop
   formal_param = prev_formal_param;
   select one prev_formal_param related by formal_param->FormalParameter[R404.''follows''];
 end while;
 
 // loop through and transform each argument 
-while not_empty argument
+while not_empty argument loop
   
   // transform the expression
   select one masl_expr related by argument->MaslExpression[R5577];
-  if (expr_number != "")
+  if (expr_number != "") then
     expr_number = expr_number + ".";
   end if;
   expr_number = expr_number + STRING::itoa(i:base_num);
@@ -1718,20 +1718,20 @@ while not_empty argument
   select any expr related by smt->Expression[R775] where selected.expression_number == expr_number;
   
   // relate to the statement
-  if not_empty generate_smt
+  if not_empty generate_smt then
     create object instance evt_arg of GenerateEventArgument;
     evt_arg.order = order;
     relate expr to generate_smt across R488 using evt_arg;
-    if not_empty formal_param
+    if not_empty formal_param then
       relate formal_param to evt_arg across R553;
     else
       // TODO bad
     end if;
-  elif not_empty schedule_expr
+  elif not_empty schedule_expr then
     create object instance evt_arg of ScheduleEventArgument;
     evt_arg.order = order;
     relate expr to schedule_expr across R3913 using evt_arg;
-    if not_empty formal_param
+    if not_empty formal_param then
       relate formal_param to evt_arg across R3930;
     else
       // TODO bad
@@ -1836,7 +1836,7 @@ select one generate_statement related by schedule_statement->GenerateStatement[R
 // create a statement
 create object instance smt of Statement;
 relate smt to block across R450;
-if (not_empty prev_smt)
+if (not_empty prev_smt) then
   smt.statement_number = STRING::itoa(i:STRING::atoi(s:prev_smt.statement_number) + 1);
   relate smt to prev_smt across R477.''executes after'';
 else
@@ -1889,7 +1889,7 @@ relate evt_expr to schedule across R3908;
 
 // translate the target expression
 select one target related by generate_statement->MaslExpression[R5113];
-if not_empty target
+if not_empty target then
   ::transformMaslExpression(masl_expression:target, expr_number:sched_expr.expression_number + ".2", smt:smt);
   select any target_expr related by smt->Expression[R775] where (selected.expression_number == sched_expr.expression_number + ".2");
   relate target_expr to schedule across R3909;
@@ -1920,7 +1920,7 @@ end if;
 
 // translate the optional period expression
 select one period_val related by schedule_statement->MaslExpression[R5131];
-if not_empty period_val
+if not_empty period_val then
   schedule.is_recurring = true;
   ::transformMaslExpression(masl_expression:period_val, expr_number:sched_expr.expression_number + ".4", smt:smt);
   select any period_expr related by smt->Expression[R775] where (selected.expression_number == sched_expr.expression_number + ".4");
@@ -1929,7 +1929,7 @@ end if;
 
 // transform actual parameters
 select one first_argument related by generate_statement->Argument[R5114];
-if (not_empty first_argument)
+if (not_empty first_argument) then
   ::transformEventArguments(smt:smt, expr:sched_expr, evt:evt, first_argument:first_argument, base_num:5);
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
@@ -1990,7 +1990,7 @@ select one masl_statement related by cancel_timer_statement->MaslStatement[R5135
 // create a statement
 create object instance smt of Statement;
 relate smt to block across R450;
-if (not_empty prev_smt)
+if (not_empty prev_smt) then
   smt.statement_number = STRING::itoa(i:STRING::atoi(s:prev_smt.statement_number) + 1);
   relate smt to prev_smt across R477.''executes after'';
 else
@@ -2007,7 +2007,7 @@ relate expr_as_smt to smt across R451;
 invoc_name = "cancel";
 select any cancel_invocable from instances of InvocableObject
   where selected.parent_name == "Timer" and selected.parent_package == "io.ciera.runtime.application" and selected.name == invoc_name;
-if empty cancel_invocable
+if empty cancel_invocable then
   create object instance cancel_invocable of InvocableObject;
   cancel_invocable.parent_name = "Timer";
   cancel_invocable.parent_package = "io.ciera.runtime.application";
@@ -2089,7 +2089,7 @@ select one masl_statement related by raise_statement->MaslStatement[R5135];
 // create a statement
 create object instance smt of Statement;
 relate smt to block across R450;
-if (not_empty prev_smt)
+if (not_empty prev_smt) then
   smt.statement_number = STRING::itoa(i:STRING::atoi(s:prev_smt.statement_number) + 1);
   relate smt to prev_smt across R477.''executes after'';
 else
@@ -2106,9 +2106,9 @@ relate throw_smt to smt across R451;
 select any exception_type from instances of Type where false;
 select one exception_reference related by raise_statement->ExceptionReference[R5126];
 select one masl_builtin_exception related by exception_reference->BuiltinException[R5401];
-if not_empty masl_builtin_exception
+if not_empty masl_builtin_exception then
   select any exception_type from instances of Type where selected.name == masl_builtin_exception.flavor;
-  if "" + masl_builtin_exception.flavor == "program_error"
+  if "" + masl_builtin_exception.flavor == "program_error" then
     select any exception_type from instances of Type where selected.name == "ProgramError";
   end if;
 else
@@ -2128,7 +2128,7 @@ relate exp_expr to throw_smt across R489;
 
 // translate the optional additional data
 select one data_val related by raise_statement->MaslExpression[R5125];
-if not_empty data_val
+if not_empty data_val then
   ::transformMaslExpression(masl_expression:data_val, expr_number:"2", smt:smt);
   select any data_expr related by smt->Expression[R775] where selected.expression_number == "2";
   relate data_expr to throw_smt across R490;
@@ -2189,14 +2189,14 @@ block = param.block;
 handlers = param.handlers;
 prev_smt = ::lastStatementInBlock(block:block);
 
-if (not_empty code_block)
+if (not_empty code_block) then
   select one masl_statement related by code_block->MaslStatement[R5150];
 end if;
 
 // create a statement
 create object instance smt of Statement;
 relate smt to block across R450;
-if (not_empty prev_smt)
+if (not_empty prev_smt) then
   smt.statement_number = STRING::itoa(i:STRING::atoi(s:prev_smt.statement_number) + 1);
   relate smt to prev_smt across R477.''executes after'';
 else
@@ -2219,35 +2219,35 @@ relate try_block to try_smt across R491;
 
 // get first exception handler
 select any handler from instances of ExceptionHandler where false;
-for each handler in handlers
+for each handler in handlers loop
   select one prev_handler related by handler->ExceptionHandler[R5162.''follows''];
-  if empty prev_handler
+  if empty prev_handler then
     break;
   end if;
 end for;
 
 // translate each handler
 select any prev_catch from instances of CatchClause where false;
-while not_empty handler
+while not_empty handler loop
   
   // create a catch clause
   create object instance catch_clause of CatchClause;
   catch_clause.actions = handler.actions;
-  if not_empty prev_catch
+  if not_empty prev_catch then
     relate prev_catch to catch_clause across R494.''precedes'';
   end if;
   prev_catch = catch_clause;
   
   // get the exception type
   select any exception_type from instances of Type where false;
-  if handler.isother
+  if handler.isother then
     select any exception_type from instances of Type where selected.name == "RuntimeException";
   else
     select one exception_reference related by handler->ExceptionReference[R5108];
     select one masl_builtin_exception related by exception_reference->BuiltinException[R5401];
-    if not_empty masl_builtin_exception
+    if not_empty masl_builtin_exception then
       select any exception_type from instances of Type where selected.name == masl_builtin_exception.flavor;
-			if "" + masl_builtin_exception.flavor == "program_error"
+			if "" + masl_builtin_exception.flavor == "program_error" then
 				select any exception_type from instances of Type where selected.name == "ProgramError";
 			end if;
     else
@@ -2348,7 +2348,7 @@ select one masl_statement related by while_statement->MaslStatement[R5135];
 // create a statement
 create object instance smt of Statement;
 relate smt to block across R450;
-if (not_empty prev_smt)
+if (not_empty prev_smt) then
   smt.statement_number = STRING::itoa(i:STRING::atoi(s:prev_smt.statement_number) + 1);
   relate smt to prev_smt across R477.''executes after'';
 else
@@ -2436,20 +2436,20 @@ select one invocable related by block->InvocableObject[R4000];
 // get the exit target
 current_block = block;
 select any exit_target from instances of Statement where false;
-while empty exit_target and not_empty current_block
+while empty exit_target and not_empty current_block loop
   select one exit_target related by current_block->ForSmt[R455]->Statement[R451];
-  if empty exit_target
+  if empty exit_target then
     select one exit_target related by current_block->WhileSmt[R456]->Statement[R451];
   end if;
   select one current_block related by current_block->CodeBlock[R498.''contained by''];
 end while;
  
-if not_empty exit_target
+if not_empty exit_target then
 
   // create a statement
   create object instance smt of Statement;
   relate smt to block across R450;
-  if (not_empty prev_smt)
+  if (not_empty prev_smt) then
     smt.statement_number = STRING::itoa(i:STRING::atoi(s:prev_smt.statement_number) + 1);
     relate smt to prev_smt across R477.''executes after'';
   else
@@ -2460,7 +2460,7 @@ if not_empty exit_target
   
   // translate the optional condition
   select one exit_condition related by exit_statement->MaslExpression[R5109];
-  if not_empty exit_condition
+  if not_empty exit_condition then
     
     // create an if statement first with a single break statement inside
     create object instance if_smt of IfSmt;
@@ -2499,11 +2499,11 @@ if not_empty exit_target
   select any interloping_case related by block->InvocableObject[R4000]->CodeBlock[R4000]->Statement[R450]->SwitchSmt[R451]
     where selected.is_primitive and STRING::indexof(haystack:smt.block_number, needle:selected.block_number) == 0 and 
       STRING::indexof(haystack:selected.block_number, needle:exit_target.block_number) == 0;
-  if not_empty interloping_case
+  if not_empty interloping_case then
     //label = "_loop" + STRING::replaceall(s:exit_target.block_number, pattern:"\\.", replacement: "");
     label = "";
     select one for_smt related by exit_target->ForSmt[R451];
-    if not_empty for_smt
+    if not_empty for_smt then
       for_smt.label = label;
     else
       select one while_smt related by exit_target->WhileSmt[R451];
@@ -2575,7 +2575,7 @@ LOG::LogInfo(message:"WARNING: using deprecated ''delay'' statement");
 // create a statement
 create object instance smt of Statement;
 relate smt to block across R450;
-if (not_empty prev_smt)
+if (not_empty prev_smt) then
   smt.statement_number = STRING::itoa(i:STRING::atoi(s:prev_smt.statement_number) + 1);
   relate smt to prev_smt across R477.''executes after'';
 else
@@ -2592,7 +2592,7 @@ relate expr_as_smt to smt across R451;
 invoc_name = "delay";
 select any delay_invocable from instances of InvocableObject
   where selected.parent_name == "ExecutionContext" and selected.parent_package == "io.ciera.runtime.application" and selected.name == invoc_name;
-if empty delay_invocable
+if empty delay_invocable then
   create object instance delay_invocable of InvocableObject;
   delay_invocable.parent_name = "ExecutionContext";
   delay_invocable.parent_package = "io.ciera.runtime.application";
@@ -2677,19 +2677,19 @@ select one masl_statement related by delete_statement->MaslStatement[R5135];
 // "this", it is not within a non-terminal state
 select one del_val related by delete_statement->MaslExpression[R5105];
 select one del_inst_type related by del_val->BasicType[R5570]->InstanceType[R6205];
-if empty del_inst_type
+if empty del_inst_type then
   select one del_col_type related by del_val->BasicType[R5570]->CollectionType[R6205];
   select one del_inst_type related by del_col_type->BasicType[R6208]->InstanceType[R6205];
 end if;
 select one del_this related by del_val->LiteralExpression[R5517]->ThisLiteral[R5700];
 select one state related by block->InvocableObject[R4000]->State[R427];
-if not_empty del_inst_type
-  if empty del_this or empty state or state.final
+if not_empty del_inst_type then
+  if empty del_this or empty state or state.final then
     
     // create a statement
     create object instance smt of Statement;
     relate smt to block across R450;
-    if (not_empty prev_smt)
+    if (not_empty prev_smt) then
       smt.statement_number = STRING::itoa(i:STRING::atoi(s:prev_smt.statement_number) + 1);
       relate smt to prev_smt across R477.''executes after'';
     else
@@ -2773,7 +2773,7 @@ prev_smt = param.prev_smt;
 // create a statement
 create object instance smt of Statement;
 relate smt to block across R450;
-if (not_empty prev_smt)
+if (not_empty prev_smt) then
   smt.statement_number = STRING::itoa(i:STRING::atoi(s:prev_smt.statement_number) + 1);
   relate smt to prev_smt across R477.''executes after'';
 else
@@ -2796,7 +2796,7 @@ relate iter_var to for_smt across R459;
 
 // translate iterable expression
 select one variable_elements related by loop_spec->VariableElements[R5123];
-if not_empty variable_elements
+if not_empty variable_elements then
   
   expr_number = "1";
   select one elements_val related by variable_elements->MaslExpression[R5139]; 
@@ -2880,7 +2880,7 @@ select one masl_statement related by code_block_statement->MaslStatement[R5135];
 // create a statement
 create object instance smt of Statement;
 relate smt to block across R450;
-if (not_empty prev_smt)
+if (not_empty prev_smt) then
   smt.statement_number = STRING::itoa(i:STRING::atoi(s:prev_smt.statement_number) + 1);
   relate smt to prev_smt across R477.''executes after'';
 else
@@ -2960,7 +2960,7 @@ select one masl_statement related by case_statement->MaslStatement[R5135];
 // create a statement
 create object instance smt of Statement;
 relate smt to block across R450;
-if (not_empty prev_smt)
+if (not_empty prev_smt) then
   smt.statement_number = STRING::itoa(i:STRING::atoi(s:prev_smt.statement_number) + 1);
   relate smt to prev_smt across R477.''executes after'';
 else
@@ -2988,11 +2988,11 @@ select any empty_code_block from instances of MaslCodeBlock where false;
 select any empty_invocable from instances of InvocableObject where false;
 select any alternative related by case_statement->Alternative[R5146];
 select one prev_alternative related by alternative->Alternative[R5158.''succeeds''];
-while not_empty prev_alternative
+while not_empty prev_alternative loop
   alternative = prev_alternative;
   select one prev_alternative related by alternative->Alternative[R5158.''succeeds''];
 end while;
-while not_empty alternative
+while not_empty alternative loop
   
   // transform the code block
   then_block_number = ::getNextBlockNumber(upper_block:block);
@@ -3004,14 +3004,14 @@ while not_empty alternative
   
   // create a label for each expression in the alternative
   select many alt_vals related by alternative->AlternativeExpression[R5147] where SORT::ascending(attr:"order");
-  if not_empty alt_vals
-    for each alt_val in alt_vals
+  if not_empty alt_vals then
+    for each alt_val in alt_vals loop
       
       // create a case label
       create object instance case_label of CaseLabel;
       relate case_label to switch_smt across R499;
       relate then_block to case_label across R520;
-      if not_empty prev_case_label
+      if not_empty prev_case_label then
         relate case_label to prev_case_label across R522.''follows'';
       end if;
       prev_case_label = case_label;
@@ -3027,7 +3027,7 @@ while not_empty alternative
       select any other_case related by switch_smt->CaseLabel[R499]
         where selected.then_block_number == case_label.then_block_number and
               selected.cond_expression_number != case_label.cond_expression_number;
-      if empty other_case
+      if empty other_case then
         case_label.actions = alternative.actions;
       end if;
       
@@ -3039,7 +3039,7 @@ while not_empty alternative
     case_label.actions = alternative.actions;
     relate case_label to switch_smt across R499;
     relate then_block to case_label across R520;
-    if not_empty prev_case_label
+    if not_empty prev_case_label then
       relate case_label to prev_case_label across R522.''follows'';
     end if;
 
@@ -3051,7 +3051,7 @@ end while;
 // Translate all the case block statements after all the cases have been
 // created. This is required so that it can be determined by inner statements if
 // the case statement is primitive or not.
-for each then_block in case_blocks
+for each then_block in case_blocks loop
   select one then_first_statement related by then_block->MaslStatement[R8308];
   ::transformMaslBlockStatements(block:then_block, code_block:empty_code_block, first_statement:then_first_statement);
 end for;
@@ -3111,7 +3111,7 @@ code_block = param.code_block;
 first_statement = param.first_statement;
 
 select many handlers related by code_block->ExceptionHandler[R5149];
-if not_empty handlers
+if not_empty handlers then
 
   // if there are exception handlers, wrap the whole statement list in a try/catch
   ::transformTryBlock(code_block:code_block, first_statement:first_statement, block:block, handlers:handlers);

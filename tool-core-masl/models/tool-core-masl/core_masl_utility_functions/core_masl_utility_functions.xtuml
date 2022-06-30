@@ -43,8 +43,8 @@ if attr.isUnique
   return true;
 else
   select many unique_ref_attrs related by attr->AttributeDeclaration[R5800.''refers_to''];
-  for each unique_ref_attr in unique_ref_attrs
-    if ::attrIsUnique(attr:unique_ref_attr)
+  for each unique_ref_attr in unique_ref_attrs loop
+    if ::attrIsUnique(attr:unique_ref_attr) then
       return true;
     end if;
   end for;
@@ -129,9 +129,9 @@ INSERT INTO S_SYNC
 	'',
 	'// select all types if given type name is ''any'' or select the one type named
 select many types from instances of Type where param.type == "any" or selected.name == param.type;
-for each type in types
+for each type in types loop
   select any return_type from instances of TypeReference where false;
-  if param.return_type == "same"
+  if param.return_type == "same" then
     return_type = ::getBasicTypeReference(type:type);
   else
     return_type = ::getBasicTypeReferenceByName(name:param.return_type);
@@ -205,65 +205,65 @@ select any empty_type_ref from instances of TypeReference where false;
 // TODO currently just support builtin types, instance types, enumerated types, and sets
 
 // void type
-if empty basic_type
+if empty basic_type then
   return ::getBasicTypeReferenceByName(name:"void");
 end if;
 
 // builtin types
 select one builtin related by basic_type->BuiltinType[R6205];
-if not_empty builtin
+if not_empty builtin then
   // map from MASL builtins to Ciera builtins
-  if ("" + builtin.name == "boolean")
+  if ("" + builtin.name == "boolean") then
     return ::getBasicTypeReferenceByName(name:"boolean");
-  elif ("" + builtin.name == "event")
+  elif ("" + builtin.name == "event") then
     // return ''Object'' for deprecated inst<Event> type
     return ::getBasicTypeReferenceByName(name:"Object");
-  elif ("" + builtin.name == "timer")
+  elif ("" + builtin.name == "timer") then
     return ::getBasicTypeReferenceByName(name:"Timer");
-  elif ("" + builtin.name == "integer")
+  elif ("" + builtin.name == "integer") then
     return ::getBasicTypeReferenceByName(name:"int");
-  elif ("" + builtin.name == "real")
+  elif ("" + builtin.name == "real") then
     return ::getBasicTypeReferenceByName(name:"double");
-  elif ("" + builtin.name == "string")
+  elif ("" + builtin.name == "string") then
     return ::getBasicTypeReferenceByName(name:"String");
-  elif ("" + builtin.name == "timestamp")
+  elif ("" + builtin.name == "timestamp") then
     return ::getBasicTypeReferenceByName(name:"TimeStamp");
-  elif ("" + builtin.name == "duration")
+  elif ("" + builtin.name == "duration") then
     return ::getBasicTypeReferenceByName(name:"Duration");
-  elif ("" + builtin.name == "instance")
+  elif ("" + builtin.name == "instance") then
     return ::getBasicTypeReferenceByName(name:"ObjectInstance");
-  elif ("" + builtin.name == "device")
+  elif ("" + builtin.name == "device") then
     return ::getBasicTypeReferenceByName(name:"Device");
-  elif ("" + builtin.name == "byte")
+  elif ("" + builtin.name == "byte") then
     return ::getBasicTypeReferenceByName(name:"byte");
-  elif ("" + builtin.name == "character")
+  elif ("" + builtin.name == "character") then
     return ::getBasicTypeReferenceByName(name:"char");
-  elif ("" + builtin.name == "wcharacter")
+  elif ("" + builtin.name == "wcharacter") then
     return ::getBasicTypeReferenceByName(name:"char");
-  elif ("" + builtin.name == "wstring")
+  elif ("" + builtin.name == "wstring") then
     return ::getBasicTypeReferenceByName(name:"String");
-  elif ("" + builtin.name == "long_integer")
+  elif ("" + builtin.name == "long_integer") then
     return ::getBasicTypeReferenceByName(name:"long");
   end if;
 end if;
 
 // instance types
 select one instance_type related by basic_type->InstanceType[R6205];
-if not_empty instance_type
+if not_empty instance_type then
   select one obj related by instance_type->ObjectDeclaration[R6220]->Class[R8300];
   return ::getObjectReference(obj:obj);
 end if;
 
 // collection types
 select one collection_type related by basic_type->CollectionType[R6205];
-if not_empty collection_type
+if not_empty collection_type then
   select one element_type related by collection_type->BasicType[R6208];
   select one set_type related by collection_type->SetType[R6207];
   select one sequence_type related by collection_type->SequenceType[R6207];
-  if not_empty set_type
+  if not_empty set_type then
     element_type_ref = ::getTypeReferenceForMASLType(basic_type:element_type);
     return ::getSetReference(element_type:element_type_ref);
-  elif not_empty sequence_type
+  elif not_empty sequence_type then
     element_type_ref = ::getTypeReferenceForMASLType(basic_type:element_type);
     return ::getListReference(element_type:element_type_ref);
   end if;
@@ -272,13 +272,13 @@ end if;
 
 // user defined types
 select one user_defined_type related by basic_type->MaslUserDefinedType[R6205];
-if not_empty user_defined_type
+if not_empty user_defined_type then
   select one type related by user_defined_type->Type[R8314];
-  if not_empty type
+  if not_empty type then
     return ::getBasicTypeReference(type:type);
   else
     select one root_type related by user_defined_type->TypeDeclaration[R6241]->TypeDefinition[R6234]->BasicType[R6236];
-    if not_empty root_type
+    if not_empty root_type then
       // alias this type as the root type
       return ::getTypeReferenceForMASLType(basic_type:root_type);
     else
@@ -330,7 +330,7 @@ INSERT INTO S_SYNC
 	'utility = param.utility;
 comp_def = param.comp_def;
 
-if not_empty utility and not_empty comp_def
+if not_empty utility and not_empty comp_def then
 
   // link the utility and the component definition
   create object instance uic of UtilityInComponent;
@@ -340,9 +340,9 @@ if not_empty utility and not_empty comp_def
   select any util_package from instances of ExportedPackage where selected.name == utility.package;
   select one util_mod related by util_package->Module[R5750];
   select one comp_mod related by comp_def->Module[R5752];
-  if not_empty util_mod and not_empty comp_mod and util_mod != comp_mod
+  if not_empty util_mod and not_empty comp_mod and util_mod != comp_mod then
     select any dependency related by comp_mod->Dependency[R5753.''requires''] where selected.required_module_name == util_mod.name;
-    if empty dependency
+    if empty dependency then
       create object instance dependency of Dependency;
       relate util_mod to comp_mod across R5753.''required by'' using dependency;
     end if;

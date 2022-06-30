@@ -40,12 +40,12 @@ T::pop_buffer();
 T::push_buffer();
 select any parm related by self->InvocableObject[R427]->FormalParameter[R429];
 select one prev_parm related by parm->FormalParameter[R404.''follows''];
-while ( not_empty prev_parm )
+while ( not_empty prev_parm ) loop
   parm = prev_parm;
   select one prev_parm related by parm->FormalParameter[R404.''follows''];
 end while;
 sep = "";
-while ( not_empty parm )
+while ( not_empty parm ) loop
   T::include(file:"interface/t.portmessage.param.java");
   sep = ", ";
   select one parm related by parm->FormalParameter[R404.''precedes''];
@@ -55,7 +55,7 @@ T::pop_buffer();
 
 inbound = ( port.provider and message.to_provider ) or ( not port.provider and not message.to_provider );
 
-if not inbound and public_iface
+if not inbound and public_iface then
   select one iface_file related by self->Message[R420]->Interface[R419]->File[R401];
   ::addFileImport(file:iface_file);
 end if;
@@ -75,14 +75,14 @@ INSERT INTO O_TFR
 	1,
 	'select any msg_parm related by self->InvocableObject[R427]->FormalParameter[R429];
 select one prev_msg_parm related by msg_parm->FormalParameter[R404.''follows''];
-while ( not_empty prev_msg_parm )
+while ( not_empty prev_msg_parm ) loop
   msg_parm = prev_msg_parm;
   select one prev_msg_parm related by msg_parm->FormalParameter[R404.''follows''];
 end while;
 sep = "";
 T::push_buffer();
 i = 0;
-while ( not_empty msg_parm )
+while ( not_empty msg_parm ) loop
   select one parm_dt related by msg_parm->TypeReference[R431];
   ::resolveImportsForTypeReference(type_ref:parm_dt);
   type_name = parm_dt.type_reference;

@@ -91,9 +91,9 @@ INSERT INTO S_SYNC
   // check if this is a utility domain
 select any utility_mark from instances of Mark where
   selected.markable_name == "Domain" and selected.feature_name == "utility" and selected.path == "" + domain.name;
-if domain.interface and not_empty utility_mark
+if domain.interface and not_empty utility_mark then
 
-  if (param.pass <= 3)
+  if (param.pass <= 3) then
 
     ::transformUtilityDomain(domain:domain, path:param.path, util_package:utility_mark.value, pass:param.pass);
 
@@ -104,7 +104,7 @@ else
   select any file from instances of File where (selected.name == ::camelCaseName(name:domain.name, start_lower:false) and selected.package == ::pathToPackage(path:param.path));
   select one comp_def related by file->ComponentDefinition[R401];
   
-  if (param.pass == 1)
+  if (param.pass == 1) then
   
     // create module file
     create object instance module_file of File;
@@ -132,7 +132,7 @@ else
     relate comp_def to domain across R8310;
   
     // for full domain definitions, do a bit more transformation
-    if not domain.interface
+    if not domain.interface then
   
       // check the transient mark
       select any transient_mark from instances of Mark
@@ -149,13 +149,13 @@ else
     // transform exceptions
     select many exception_declarations related by domain->ExceptionDeclaration[R5400]
       where selected.visibility == MaslVisibility::public or not domain.interface;
-    for each exception_declaration in exception_declarations
+    for each exception_declaration in exception_declarations loop
       ::transformMaslException(exception_declaration: exception_declaration, comp_def:comp_def, exclude:domain.interface);
     end for;
 
     // predeclare objects
     select many object_declarations related by domain->ObjectDeclaration[R5805];
-    for each object_declaration in object_declarations
+    for each object_declaration in object_declarations loop
       ::transformObjectForwardDeclaration(object_declaration:object_declaration, comp_def:comp_def);
     end for;
   
@@ -163,60 +163,60 @@ else
     select any empty_util from instances of Utility where false;
     select many type_declarations related by domain->MaslUserDefinedType[R6235]
       where selected.visibility == MaslVisibility::public or not domain.interface;
-		for each type_declaration in type_declarations
+		for each type_declaration in type_declarations loop
 			::transformTypeForwardDeclaration(type_declaration:type_declaration, comp_def:comp_def, exclude:domain.interface, utility:empty_util);
     end for;
   
-  elif (param.pass == 2)
+  elif (param.pass == 2) then
 
     // transform data types
     select any empty_util from instances of Utility where false;
     select many type_declarations related by domain->MaslUserDefinedType[R6235]
       where selected.visibility == MaslVisibility::public or not domain.interface;
-		for each type_declaration in type_declarations
+		for each type_declaration in type_declarations loop
 			::transformTypeDeclaration(type_declaration:type_declaration);
     end for;
 
-  elif (param.pass == 3)
+  elif (param.pass == 3) then
   
     // transform services
     select many domain_services related by domain->DomainService[R5303]->Service[R5203]
       where selected.visibility == MaslVisibility::public or not domain.interface;
-    for each service in domain_services
+    for each service in domain_services loop
       select one domain_service related by service->DomainService[R5203];
       ::transformDomainService(domain_service:domain_service, comp_def:comp_def);
     end for;
   
-  elif (param.pass == 4)
+  elif (param.pass == 4) then
   
-    if not domain.interface
+    if not domain.interface then
   
       // transform objects
       select many object_declarations related by domain->ObjectDeclaration[R5805];
-      for each object_declaration in object_declarations
+      for each object_declaration in object_declarations loop
         ::transformObject(object_declaration:object_declaration);
       end for;
   
     end if;
   
-  elif (param.pass == 5)
+  elif (param.pass == 5) then
   
-    if not domain.interface
+    if not domain.interface then
   
       // transform relationships
       select many rels related by domain->RelationshipDeclaration[R6003];
-      for each rel in rels
+      for each rel in rels loop
         ::transformRelationship(rel:rel, comp_def:comp_def);
       end for;
   
       // transform transition tables
       select many transition_tables related by domain->ObjectDeclaration[R5805]->TransitionTable[R6113];
-      for each transition_table in transition_tables
+      for each transition_table in transition_tables loop
         // check to assure there are not 2 transition tables
         select many transition_tables related by transition_table->ObjectDeclaration[R6113]->TransitionTable[R6113];
-        if cardinality transition_tables == 1
+        if cardinality transition_tables == 1 then
           select one obj related by transition_table->ObjectDeclaration[R6113]->Class[R8300];
-          if not_empty transition_table
+          if not_empty transition_table then
             ::transformTransitionTable(transition_table:transition_table, obj:obj);
           end if;
         else
@@ -228,23 +228,23 @@ else
   
     // transform terminators
     select many terms related by domain->DomainTerminator[R5304];
-    for each term in terms
+    for each term in terms loop
       ::transformDomainTerminator(domain_terminator:term, comp_def:comp_def, path:file.path);
     end for;
   
-  elif (param.pass == 6)
+  elif (param.pass == 6) then
   
-    if not domain.interface
+    if not domain.interface then
   
       // transform selectors
       select many objs related by comp_def->Class[R408];
-      for each obj in objs
+      for each obj in objs loop
         ::transformSelectors(obj:obj);
       end for;
   
       // transform attribute references
       select many objs related by comp_def->Class[R408];
-      for each obj in objs
+      for each obj in objs loop
         ::transformMaslAttributeReferences(obj:obj);
       end for;
   
@@ -326,7 +326,7 @@ relate func to invocable across R427;
 
 // copy actions
 select one code_block related by service->MaslCodeBlock[R5403];
-if not_empty code_block
+if not_empty code_block then
   relate code_block to invocable across R8306;
 end if;
 
@@ -343,7 +343,7 @@ select one first_parameter related by service->ParameterDefinition[R5204];
 select any init_function_mark from instances of Mark where (selected.markable_name == "DomainService" and
   selected.path == "" + domain.name + "::" + service.name and
   selected.feature_name == "startup");
-if (not_empty init_function_mark)
+if (not_empty init_function_mark) then
   relate func to comp_def across R4561;
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
@@ -400,12 +400,12 @@ select one obj related by object_declaration->Class[R8300];
 // transform attributes
 select any maslattr related by object_declaration->AttributeDeclaration[R5802];
 select one prev_attr related by maslattr->AttributeDeclaration[R5809.''succeeds''];
-while (not_empty prev_attr)
+while (not_empty prev_attr) loop
   maslattr = prev_attr;
   select one prev_attr related by maslattr->AttributeDeclaration[R5809.''succeeds''];
 end while;
 index = 0;
-while (not_empty maslattr)
+while (not_empty maslattr) loop
   ::transformAttributeDeclaration(attr:maslattr, obj:obj, index:index);
   index = index + 1;
   select one maslattr related by maslattr->AttributeDeclaration[R5809.''precedes''];
@@ -413,25 +413,25 @@ end while;
 
 // transform operations
 select many object_services related by object_declaration->ObjectService[R5808];
-for each object_service in object_services
+for each object_service in object_services loop
   ::transformObjectService(object_service:object_service, obj:obj);
 end for;
 
 // check to assure there are not 2 transition tables
 select many transition_tables related by object_declaration->TransitionTable[R6113];
-if cardinality transition_tables > 1
+if cardinality transition_tables > 1 then
   LOG::LogFailure(message:"Objects can have at most one transition table");
   return;
 end if;
 
 // transform states
 select many states related by object_declaration->MaslState[R6105] where ("" + selected.name != "Non_Existent");
-for each state in states
+for each state in states loop
   ::transformMaslState(state:state, obj:obj);
 end for;
 
 select one sm related by obj->StateMachine[R4750];
-if (not_empty sm and sm.is_instance)
+if (not_empty sm and sm.is_instance) then
   // create the default initial state
   create object instance uninitialized of State;
   relate uninitialized to sm across R4751;
@@ -452,7 +452,7 @@ end if;
 
 // transform events
 select many evts related by object_declaration->EventDeclaration[R6101];
-for each evt in evts
+for each evt in evts loop
   ::transformMaslEvent(evt:evt, obj:obj);
 end for;',
 	"ba5eda7a-def5-0000-0000-000000000000",
@@ -528,7 +528,7 @@ relate iface to domain_terminator across R8312;
 // transform terminator services
 select many terminator_services related by domain_terminator->DomainTerminatorService[R5306]->Service[R5203] where SORT::ascending(attr:"name");
 index = 1;
-for each service in terminator_services
+for each service in terminator_services loop
   select one terminator_service related by service->DomainTerminatorService[R5203];
   ::transformDomainTerminatorService(terminator_service:terminator_service, iface:iface, port:port, index:index);
   index = index + 1;
@@ -537,7 +537,7 @@ end for;
 // add as an export package
 select one mod related by comp_def->Module[R5752];
 select any export_package related by mod->ExportedPackage[R5750] where selected.name == port.package;
-if empty export_package
+if empty export_package then
   create object instance export_package of ExportedPackage;
   export_package.name = port.package;
  relate export_package to mod across R5750;
@@ -623,7 +623,7 @@ relate port_msg to invocable across R427;
 
 // copy actions
 select one code_block related by service->MaslCodeBlock[R5403];
-if not_empty code_block
+if not_empty code_block then
   relate code_block to invocable across R8306;
 end if;
 
@@ -727,7 +727,7 @@ part_cond = Cond::UNCONDITIONAL;
 
 // determine if this is a simple relationship
 select one normal related by maslrel->NormalRelationshipDeclaration[R6010];
-if (not_empty normal)
+if (not_empty normal) then
 
   // get the formalizer and participant information
   select one half_rel_1 related by normal->HalfRelationship[R6007];
@@ -736,38 +736,38 @@ if (not_empty normal)
     ->ReferentialAttributeDefinition[R5800.''is_referenced_by'']->RelationshipSpecification[R5811] where (
     selected.role == half_rel_1.role or selected.role == "");
   select any ref_rel related by rel_specs->RelationshipDeclaration[R6015] where (selected.name == maslrel.name);
-  if (not_empty ref_rel)  // the first half "to" class is the participant
+  if (not_empty ref_rel) then  // the first half "to" class is the participant
     select one form_class related by half_rel_2->ObjectDeclaration[R6004]->Class[R8300];
     form_phrase = half_rel_2.role;
-    if (half_rel_2.multiplicity == MaslMultiplicity::many)
+    if (half_rel_2.multiplicity == MaslMultiplicity::many) then
       form_mult = Mult::MANY;
     end if;
-    if (half_rel_2.isconditional)
+    if (half_rel_2.isconditional) then
       form_cond = Cond::CONDITIONAL;
     end if;
     select one part_class related by half_rel_1->ObjectDeclaration[R6004]->Class[R8300];
     part_phrase = half_rel_1.role;
-    if (half_rel_1.multiplicity == MaslMultiplicity::many)
+    if (half_rel_1.multiplicity == MaslMultiplicity::many) then
       part_mult = Mult::MANY;
     end if;
-    if (half_rel_1.isconditional)
+    if (half_rel_1.isconditional) then
       part_cond = Cond::CONDITIONAL;
     end if;
   else
     select one form_class related by half_rel_1->ObjectDeclaration[R6004]->Class[R8300];
     form_phrase = half_rel_1.role;
-    if (half_rel_1.multiplicity == MaslMultiplicity::many)
+    if (half_rel_1.multiplicity == MaslMultiplicity::many) then
       form_mult = Mult::MANY;
     end if;
-    if (half_rel_1.isconditional)
+    if (half_rel_1.isconditional) then
       form_cond = Cond::CONDITIONAL;
     end if;
     select one part_class related by half_rel_2->ObjectDeclaration[R6004]->Class[R8300];
     part_phrase = half_rel_2.role;
-    if (half_rel_2.multiplicity == MaslMultiplicity::many)
+    if (half_rel_2.multiplicity == MaslMultiplicity::many) then
       part_mult = Mult::MANY;
     end if;
-    if (half_rel_2.isconditional)
+    if (half_rel_2.isconditional) then
       part_cond = Cond::CONDITIONAL;
     end if;
   end if;
@@ -775,7 +775,7 @@ if (not_empty normal)
   // create the relationship
   create object instance rel of Relationship;
   name = maslrel.name + "_" + form_class.name + "_";
-  if (part_phrase != "")
+  if (part_phrase != "") then
     name = name + T::sub(format:"_", s:part_phrase) + "_";
   end if;
   name = name + part_class.name;
@@ -804,12 +804,12 @@ if (not_empty normal)
 
 else
 select one subsup related by maslrel->SubtypeRelationshipDeclaration[R6010];
-if ( not_empty subsup )
+if ( not_empty subsup ) then
 
   select one part_class related by subsup->ObjectDeclaration[R6017]->Class[R8300];
   select many sub_classes related by subsup->ObjectDeclaration[R6016]->Class[R8300];
   part_phrase = "is_a";
-  for each form_class in sub_classes
+  for each form_class in sub_classes loop
 
     form_phrase = "is_a";
     form_cond = Cond::CONDITIONAL;
@@ -843,7 +843,7 @@ if ( not_empty subsup )
 
 else
 select one assoc related by maslrel->AssociativeRelationshipDeclaration[R6010];
-if (not_empty assoc)
+if (not_empty assoc) then
   
   select one half_rel_1 related by assoc->HalfRelationship[R6000];
   select one half_rel_2 related by assoc->HalfRelationship[R6002];
@@ -851,10 +851,10 @@ if (not_empty assoc)
   // get the formalizer and participant information for the first relationship
   select one form_class related by assoc->ObjectDeclaration[R6001]->Class[R8300];
   form_phrase = half_rel_2.role;
-  if (half_rel_2.multiplicity == MaslMultiplicity::many)
+  if (half_rel_2.multiplicity == MaslMultiplicity::many) then
     form_mult = Mult::MANY;
   end if;
-  if (half_rel_2.isconditional)
+  if (half_rel_2.isconditional) then
     form_cond = Cond::CONDITIONAL;
   end if;
   select one part_class related by half_rel_1->ObjectDeclaration[R6004]->Class[R8300];
@@ -863,7 +863,7 @@ if (not_empty assoc)
   // create the first relationship
   create object instance rel1 of Relationship;
   name1 = maslrel.name + "_" + form_class.name + "_";
-  if (part_phrase != "")
+  if (part_phrase != "") then
     name1 = name1 + T::sub(format:"_", s:part_phrase) + "_";
   end if;
   name1 = name1 + part_class.name;
@@ -899,10 +899,10 @@ if (not_empty assoc)
 
   select one form_class related by assoc->ObjectDeclaration[R6001]->Class[R8300];
   form_phrase = half_rel_1.role;
-  if (half_rel_1.multiplicity == MaslMultiplicity::many)
+  if (half_rel_1.multiplicity == MaslMultiplicity::many) then
     form_mult = Mult::MANY;
   end if;
-  if (half_rel_1.isconditional)
+  if (half_rel_1.isconditional) then
     form_cond = Cond::CONDITIONAL;
   end if;
   select one part_class related by half_rel_2->ObjectDeclaration[R6004]->Class[R8300];
@@ -911,7 +911,7 @@ if (not_empty assoc)
   // create the second relationship
   create object instance rel2 of Relationship;
   name2 = maslrel.name + "_" + form_class.name + "_";
-  if (part_phrase != "")
+  if (part_phrase != "") then
     name2 = name2 + T::sub(format:"_", s:part_phrase) + "_";
   end if;
   name2 = name2 + part_class.name;
@@ -987,7 +987,7 @@ obj = param.obj;
 // create the attribute
 create object instance attr of Attribute;
 select many referentials related by maslattr->ReferentialAttributeDefinition[R5800.''refers_to''];
-if (not_empty referentials)
+if (not_empty referentials) then
   attr.name = "ref_" + maslattr.name;
 else
   attr.name = "m_" + maslattr.name;
@@ -1020,7 +1020,7 @@ attr.transient = not_empty transient_mark or not type.serializable;
 
 // set unique
 if maslattr.isUnique
-  if type.type_reference == "int"
+  if type.type_reference == "int" then
     attr.is_unique = true;
   else
     LOG::LogFailure(message:"Invalid unique attribute type: " + type.type_reference);
@@ -1105,7 +1105,7 @@ relate op to obj across R416;
 // create invocable
 create object instance invocable of InvocableObject;
 invocable.name = service.name;
-if op.is_class_based
+if op.is_class_based then
   invocable.name = "_" + obj.name + "_" + invocable.name;
 end if;
 invocable.parent_name = op.class_name;
@@ -1117,7 +1117,7 @@ relate op to invocable across R427;
 
 // copy actions
 select one code_block related by service->MaslCodeBlock[R5403];
-if not_empty code_block
+if not_empty code_block then
   relate code_block to invocable across R8306;
 end if;
 
@@ -1178,14 +1178,14 @@ select one masl_object related by maslstate->ObjectDeclaration[R6105];
 select one domain related by masl_object->Domain[R5805];
 obj = param.obj;
 
-if (maslstate.flavor == StateType::creation)
+if (maslstate.flavor == StateType::creation) then
   LOG::LogFailure(message:"State type not supported for state: " + obj.name + "." + maslstate.name);
   return;
 end if;
 
 // create state machine if necessary
 select one sm related by obj->StateMachine[R4750];
-if (empty sm)
+if (empty sm) then
   // create the state machine file
   create object instance file of File;
   file.name = obj.name + "StateMachine";
@@ -1219,7 +1219,7 @@ relate state to invocable across R427;
 
 // copy actions
 select one code_block related by maslstate->MaslCodeBlock[R6115];
-if not_empty code_block
+if not_empty code_block then
   relate code_block to invocable across R8306;
 end if;
 
@@ -1277,7 +1277,7 @@ INSERT INTO S_SYNC
 	'maslevt = param.evt;
 obj = param.obj;
 
-if maslevt.flavor == EventType::creation
+if maslevt.flavor == EventType::creation then
   LOG::LogFailure(message:"Creation events are not supported");
   return;
 end if;
@@ -1352,10 +1352,10 @@ obj = param.obj;
 select one sm related by obj->StateMachine[R4750];
 
 select many transition_rows related by transition_table->TransitionRow[R6114];
-for each transition_row in transition_rows
+for each transition_row in transition_rows loop
   
   select one start_state related by transition_row->MaslState[R6111]->State[R8302];
-  if (not_empty start_state)  // ignore Non_Existent state (creation events not supported)
+  if (not_empty start_state) then  // ignore Non_Existent state (creation events not supported)
 
     // create a row for this start state
     create object instance row of TransitionTableRow;
@@ -1364,7 +1364,7 @@ for each transition_row in transition_rows
     row.index = start_state.number;
     
     select many transition_options related by transition_row->TransitionOption[R6112];
-    for each transition_option in transition_options
+    for each transition_option in transition_options loop
       
       select one evt related by transition_option->EventDeclaration[R6108]->Event[R8303];
       
@@ -1374,9 +1374,9 @@ for each transition_row in transition_rows
       relate cell to evt across R4756;
       cell.index = evt.id;
       
-      if (transition_option.flavor == MaslTransitionType::ignore)
+      if (transition_option.flavor == MaslTransitionType::ignore) then
         cell.transition_type = TransitionType::IGNORE;
-      elif (transition_option.flavor == MaslTransitionType::cannot_happen)
+      elif (transition_option.flavor == MaslTransitionType::cannot_happen) then
         cell.transition_type = TransitionType::CANT_HAPPEN;
       else
         select one dest_state related by transition_option->MaslState[R6109]->State[R8302];
@@ -1445,7 +1445,7 @@ INSERT INTO S_SYNC
 	'',
 	'parameter = param.first_parameter;
 invocable = param.invocable;
-while (not_empty parameter)
+while (not_empty parameter) loop
   // create parameter
   create object instance parm of FormalParameter;
   parm.name = "p_" + parameter.name;
@@ -1507,9 +1507,9 @@ INSERT INTO S_SYNC
 	'',
 	'obj = param.obj;
 select many attrs related by obj->Attribute[R410];
-for each attr in attrs
+for each attr in attrs loop
   select many masl_attr_refs related by attr->AttributeDeclaration[R8301]->ReferentialAttributeDefinition[R5800.''refers_to''];
-  for each masl_attr_ref in masl_attr_refs
+  for each masl_attr_ref in masl_attr_refs loop
     // gather identifying information
     select one referred_to_attr related by masl_attr_ref->AttributeDeclaration[R5800.''refers_to'']->Attribute[R8301];
     select one referred_to_obj related by referred_to_attr->Class[R410];
@@ -1552,7 +1552,7 @@ INSERT INTO S_SYNC
 select one code_block related by invocable->MaslCodeBlock[R8306];
 select one first_statement related by code_block->MaslStatement[R5150];
 select any empty_statement from instances of MaslStatement where false;
-if (not_empty first_statement)
+if (not_empty first_statement) then
     
   // check if deferred operation TODO
 
@@ -1625,13 +1625,13 @@ udt.public = exception_declaration.visibility == MaslVisibility::public;
 // link to arch model
 relate exception_declaration to udt across R8307;
   
-if exception_declaration.visibility == MaslVisibility::public
+if exception_declaration.visibility == MaslVisibility::public then
 
   // add to export package
-  if not param.exclude and not_empty type
+  if not param.exclude and not_empty type then
     select one mod related by exception_declaration->Domain[R5400]->Module[R8309];
     select any export_package related by mod->ExportedPackage[R5750] where selected.name == type.package;
-    if empty export_package
+    if empty export_package then
       create object instance export_package of ExportedPackage;
       export_package.name = type.package;
       relate export_package to mod across R5750;
@@ -1692,19 +1692,19 @@ INSERT INTO S_SYNC
 	'domain = param.domain;
 
 select one utility related by domain->Utility[R8316];
-if (param.pass == 1)
+if (param.pass == 1) then
 
 	// get the parameters
 	utility_module = STRING::substr(s:param.util_package, begin:0, end:STRING::indexof(haystack:param.util_package, needle:","));
 	utility_package = utility_module;
-	if STRING::indexof(haystack:param.util_package, needle:",") != -1
+	if STRING::indexof(haystack:param.util_package, needle:",") != -1 then
 		utility_package = STRING::substr(s:param.util_package, begin:STRING::indexof(haystack:param.util_package, needle:",") + 1, end:-1);
 	end if;
 
 	// create the file
 	create object instance file of File;
 	file.name = domain.name;
-	if utility_package == ""
+	if utility_package == "" then
 		// if no pacakge is passed in, this is a private utility within this domain
 		file.path = param.path;
 		file.package = ::pathToPackage(path:file.path);
@@ -1722,10 +1722,10 @@ if (param.pass == 1)
 	relate utility to domain across R8316;
 
 	// create the module if this is an external module
-	if utility_module != ""
+	if utility_module != "" then
 
 		select any mod from instances of Module where selected.name == utility_module;
-		if empty mod
+		if empty mod then
 	 
 			// create module file
 			create object instance module_file of File;
@@ -1742,7 +1742,7 @@ if (param.pass == 1)
 		
 		// create an export package
 		select any export_package related by mod->ExportedPackage[R5750] where selected.name == utility.package;
-		if empty export_package
+		if empty export_package then
 			create object instance export_package of ExportedPackage;
 			export_package.name = utility.package;
 			relate export_package to mod across R5750;
@@ -1753,7 +1753,7 @@ if (param.pass == 1)
 	// check if this is implemented as native code
 	select any native_util_mark from instances of Mark where
 		selected.markable_name == "Domain" and selected.feature_name == "native" and selected.path == "" + domain.name;
-	if not_empty native_util_mark
+	if not_empty native_util_mark then
 		utility.native_library = native_util_mark.value;
 	end if;
 
@@ -1761,27 +1761,27 @@ if (param.pass == 1)
 	select any empty_comp_def from instances of ComponentDefinition where false;
 	select many type_declarations related by domain->MaslUserDefinedType[R6235]
 		where selected.visibility == MaslVisibility::public or not domain.interface;
-	for each type_declaration in type_declarations
+	for each type_declaration in type_declarations loop
 		::transformTypeForwardDeclaration(type_declaration:type_declaration, comp_def:empty_comp_def, exclude:file.exclude, utility:utility);
 	end for;
 	
-elif (param.pass == 2)
+elif (param.pass == 2) then
 
 	// transform each utility type
 	select any empty_comp_def from instances of ComponentDefinition where false;
 	select many type_declarations related by domain->MaslUserDefinedType[R6235]
 		where selected.visibility == MaslVisibility::public or not domain.interface;
-	for each type_declaration in type_declarations
+	for each type_declaration in type_declarations loop
 		::transformTypeDeclaration(type_declaration:type_declaration);
 	end for;
 
 	// TODO exceptions
 
-elif (param.pass == 3)
+elif (param.pass == 3) then
 
 	// transform each utility function
 	select many domain_services related by domain->DomainService[R5303];
-	for each domain_service in domain_services
+	for each domain_service in domain_services loop
 		::transformUtilityDomainService(domain_service:domain_service, utility:utility);
 	end for;
 
@@ -1931,23 +1931,23 @@ relate app to mod across R5751;
 
 // check simulated time
 sim_time_mark = PROP::getProperty(key:"io.ciera.EnableSimulatedTime");
-if (sim_time_mark != "")
+if (sim_time_mark != "") then
   LOG::LogInfo(message:"Enabling simulated time");
   app.simulated_time = sim_time_mark;
 end if;
 
 // transform project domains
 select many domains related by project->ProjectDomain[R5900];
-for each domain in domains
+for each domain in domains loop
   ::transformProjectDomain(project_domain:domain, path:param.path + "/domains");
 end for;
 
 // link all domains to the application
 select many comp_defs from instances of ComponentDefinition;
-for each comp_def in comp_defs
+for each comp_def in comp_defs loop
   select any sub_domain related by comp_def->ComponentDefinition[R4562.''extended by''];
   // ignore domains that are extended by a sub domain
-  if empty sub_domain
+  if empty sub_domain then
     create object instance comp_inst of ComponentInstantiation;
     relate comp_def to app across R426 using comp_inst;
   end if;
@@ -2014,16 +2014,16 @@ relate comp_def to ref_comp_def across R4562.''extends'';
 
 // transform terminators
 select many terms related by project_domain->ProjectTerminator[R5902];
-for each term in terms
+for each term in terms loop
   ::transformProjectTerminator(project_terminator:term, comp_def:comp_def, path:file.path);
 end for;
 
 // add a module dependency
 select one main_mod related by project->Module[R8311];
 select one mod related by ref_comp_def->Module[R5752];
-if not_empty mod and not_empty main_mod and mod != main_mod
+if not_empty mod and not_empty main_mod and mod != main_mod then
 	select any dependency related by main_mod->Dependency[R5753.''requires''] where selected.required_module_name == mod.name;
-	if empty dependency
+	if empty dependency then
 		create object instance dependency of Dependency;
 		relate mod to main_mod across R5753.''required by'' using dependency;
 	end if;
@@ -2111,14 +2111,14 @@ relate port to iface across R418;
 
 // get the domain interface if it exists
 select one corresponding_iface related by corresponding_terminator->Interface[R8312];
-if not_empty corresponding_iface
+if not_empty corresponding_iface then
   relate iface to corresponding_iface across R4161.''extends'';
 end if;
 
 // transform terminator services
 select many terminator_services related by project_terminator->ProjectTerminatorService[R5903];
 index = 1;
-for each terminator_service in terminator_services
+for each terminator_service in terminator_services loop
   ::transformProjectTerminatorService(terminator_service:terminator_service, iface:iface, port:port, index:index);
   index = index + 1;
 end for;',
@@ -2182,7 +2182,7 @@ index = param.index;
 port = param.port;
 
 select any msg related by iface->Interface[R4161.''extends'']->Message[R419] where selected.name == "" + service.name;
-if empty msg
+if empty msg then
 
   // create message object
   create object instance msg of Message;
@@ -2212,7 +2212,7 @@ relate port_msg to invocable across R427;
 
 // copy actions
 select one code_block related by service->MaslCodeBlock[R5403];
-if not_empty code_block
+if not_empty code_block then
   relate code_block to invocable across R8306;
 end if;
 
@@ -2286,13 +2286,13 @@ INSERT INTO S_SYNC
 
 // Enumerate types
 select one enumerate_type related by type_declaration->TypeDeclaration[R6241]->TypeDefinition[R6234]->FullTypeDefinition[R6236]->EnumerateType[R6219];
-if not_empty enumerate_type
+if not_empty enumerate_type then
   ::transformEnumerateType(enumerate_type:enumerate_type, type_declaration:type_declaration);
 end if;
 
 // Structure types
 select one structure_type related by type_declaration->TypeDeclaration[R6241]->TypeDefinition[R6234]->FullTypeDefinition[R6236]->MaslStructureType[R6219];
-if not_empty structure_type
+if not_empty structure_type then
   ::transformStructureType(structure_type:structure_type, type_declaration:type_declaration);
 end if;
 
@@ -2345,7 +2345,7 @@ type.default_value = "null";
 
 // unlink the forward declaration and create the subtype
 select one forward_decl related by type->TypeForwardDeclaration[R407];
-if not_empty forward_decl
+if not_empty forward_decl then
   unrelate forward_decl from type across R407;
 end if;
 create object instance edt of EnumeratedType;
@@ -2354,12 +2354,12 @@ relate type to edt across R407;
 // transform enumerators
 select any enumer related by enumerate_type->EnumerateItem[R6245];
 select one prev_enumer related by enumer->EnumerateItem[R6242.''succeeds''];
-while ( not_empty prev_enumer )
+while ( not_empty prev_enumer ) loop
   enumer = prev_enumer;
   select one prev_enumer related by enumer->EnumerateItem[R6242.''succeeds''];
 end while;
 value = 0;
-while ( not_empty enumer )
+while ( not_empty enumer ) loop
   create object instance e of Enumerator;
   e.name = enumer.name;
   e.value = value;
@@ -2418,7 +2418,7 @@ type.default_value = "new " + type.name + "()";
 
 // unlink the forward declaration and create the subtype
 select one forward_decl related by type->TypeForwardDeclaration[R407];
-if not_empty forward_decl
+if not_empty forward_decl then
   unrelate forward_decl from type across R407;
 end if;
 create object instance sdt of StructureType;
@@ -2427,7 +2427,7 @@ relate type to sdt across R407;
 // transform members
 select one component related by structure_type->StructureElement[R6244];
 select any prev_structure_member from instances of StructureMember where false;
-while not_empty component
+while not_empty component loop
   // create new structure member
   create object instance structure_member of StructureMember;
   relate structure_member to sdt across R3809;
@@ -2443,7 +2443,7 @@ while not_empty component
   structure_member.default_value = ""; // TODO
   
   // link to the previous member
-  if not_empty prev_structure_member
+  if not_empty prev_structure_member then
     relate prev_structure_member to structure_member across R3811.''precedes'';
   end if;
   
@@ -2500,7 +2500,7 @@ select one domain related by type_declaration->Domain[R6235];
 comp_def = param.comp_def;
 base_type_ref = ::getTypeReferenceForMASLType(basic_type:basic_type);
 
-if empty base_type_ref
+if empty base_type_ref then
   // if the base type has not yet translated, bail early
   return false;
 
@@ -2607,13 +2607,13 @@ utility = param.utility;
 
 // ignore named refs as they are just aliases for the root type
 select one named_ref related by type_declaration->TypeDeclaration[R6241]->TypeDefinition[R6234]->BasicType[R6236];
-if empty named_ref
+if empty named_ref then
 
 	type_name = ::camelCaseName(name:type_declaration.name, start_lower:false);
 
 	select any file from instances of File where false;
 	select any udt from instances of UserDefinedType where false;
-	if not_empty comp_def
+	if not_empty comp_def then
 
 		select one component_file related by comp_def->File[R401];
 		path = component_file.path;
@@ -2636,9 +2636,9 @@ if empty named_ref
 	// create the type
 	create object instance type of Type;
 	type.name = type_name;
-	if not_empty file
+	if not_empty file then
 		type.package = file.package;
-	elif not_empty utility
+	elif not_empty utility then
 		type.package = utility.package;
 	end if;
 
@@ -2648,19 +2648,19 @@ if empty named_ref
 	relate type to type_declaration across R8314;
 
 	// link to the UDT or the utility
-	if not_empty udt
+	if not_empty udt then
 		relate type to udt across R3803;
-	elif not_empty utility
+	elif not_empty utility then
 		create object instance type_in_util of TypeInUtility;
 		relate type to utility across R3813 using type_in_util;
 	end if;
 
 	// add to export package
-	if not_empty comp_def and type_declaration.visibility == MaslVisibility::public
-		if not param.exclude and not_empty type
+	if not_empty comp_def and type_declaration.visibility == MaslVisibility::public then
+		if not param.exclude and not_empty type then
 			select one mod related by type_declaration->Domain[R6235]->Module[R8309];
 			select any export_package related by mod->ExportedPackage[R5750] where selected.name == type.package;
-			if empty export_package
+			if empty export_package then
 				create object instance export_package of ExportedPackage;
 				export_package.name = type.package;
 				relate export_package to mod across R5750;
@@ -2733,7 +2733,7 @@ select any key_letter_mark from instances of Mark where selected.markable_name =
 
 // create the object file
 create object instance file of File;
-if not_empty key_letter_mark
+if not_empty key_letter_mark then
   file.name = key_letter_mark.value;
 else
   file.name = ::camelCaseName(name:object_declaration.name, start_lower:false );

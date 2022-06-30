@@ -17,13 +17,13 @@ INSERT INTO O_TFR
 	'select one class_file related by self->Class[R780]->File[R401];
 ::addFileImport(file:class_file);
 select one init_state related by self->State[R3923];
-if not_empty init_state
+if not_empty init_state then
   select one sm_file related by init_state->StateMachine[R4751]->File[R401];
   ::addFileImport(file:sm_file);
 end if;
 T::push_buffer();
 select many initializers related by self->InstanceIdentifierAttributeInitialization[R3925] where SORT::ascending(attr:"attr_name");
-for each initializer in initializers
+for each initializer in initializers loop
   initializer.render();
 end for;
 attr_initializers = T::body();

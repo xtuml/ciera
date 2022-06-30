@@ -267,7 +267,7 @@ INSERT INTO S_SYNC
 	'obj = param.obj;
 
 select one obj_ref related by obj->InstanceTypeReference[R3808]->TypeReference[R3801];
-if empty obj_ref
+if empty obj_ref then
   select any base_type from instances of Type where selected.name == "ObjectInstance";
   create object instance obj_ref of TypeReference;
   obj_ref.type_reference = obj.name;
@@ -374,7 +374,7 @@ INSERT INTO S_SYNC
 	'',
 	'type = param.type;
 select any type_ref related by type->TypeReference[R3800]->BasicTypeReference[R3801]->TypeReference[R3801];
-if empty type_ref
+if empty type_ref then
   create object instance type_ref of TypeReference;
   type_ref.type_reference = type.name;
   create object instance basic_ref of BasicTypeReference;
@@ -418,21 +418,21 @@ INSERT INTO S_SYNC
 
 // basic type refs
 select one basic_type_ref related by type_ref->BasicTypeReference[R3801];
-if not_empty basic_type_ref
+if not_empty basic_type_ref then
   select one root_type related by type_ref->Type[R3800];
   ::resolveImportsForType(type:root_type);
 end if;
 
 // instance type refs
 select one inst_type_ref related by type_ref->InstanceTypeReference[R3801];
-if not_empty inst_type_ref
+if not_empty inst_type_ref then
   select one class_file related by inst_type_ref->Class[R3808]->File[R401];
   ::addFileImport(file:class_file);
 end if;
 
 // collection type refs
 select one coll_type_ref related by type_ref->CollectionTypeReference[R3801];
-if not_empty coll_type_ref
+if not_empty coll_type_ref then
   // import the root type and the type reference of the elements
   select one root_type related by type_ref->Type[R3800];
   ::resolveImportsForType(type:root_type);
@@ -442,7 +442,7 @@ end if;
 
 // stream type refs
 select one stream_type_ref related by type_ref->StreamTypeReference[R3801];
-if not_empty stream_type_ref
+if not_empty stream_type_ref then
   // import the root type and the type reference of the elements
   select one root_type related by type_ref->Type[R3800];
   ::resolveImportsForType(type:root_type);
@@ -478,8 +478,8 @@ INSERT INTO S_SYNC
 
 // built in types
 select one builtin related by type->BuiltInType[R407];
-if not_empty builtin
-  if type.package != ""
+if not_empty builtin then
+  if type.package != "" then
     ::addStringImport(package:type.package, class_name:type.name);
   end if;
 end if;
@@ -487,11 +487,11 @@ end if;
 // check if this type is defined in its own file
 select one udt_file related by type->UserDefinedType[R3803]->File[R401];
 select one utility_file related by type->Utility[R3813]->File[R401];
-if not_empty udt_file
+if not_empty udt_file then
   ::addFileImport(file:udt_file);
-elif not_empty utility_file
+elif not_empty utility_file then
   ::addStringImport(package:utility_file.package, class_name:utility_file.name + "." + type.name);
-elif type.package != ""
+elif type.package != "" then
   ::addStringImport(package:type.package, class_name:type.name);  // TODO why is this needed?
 end if;
   
@@ -552,13 +552,13 @@ INSERT INTO S_SYNC
 	'element_type = param.element_type;
 
 select any type_ref related by element_type->StreamTypeReference[R3812]->TypeReference[R3801];
-if empty type_ref
+if empty type_ref then
   select any base_type from instances of Type where selected.name == "Stream";
   create object instance type_ref of TypeReference;
   element_type_reference = element_type.type_reference;
   select one primitive_builtin related by element_type->BasicTypeReference[R3801]->TypeReference[R3801]->Type[R3800]->BuiltInType[R407]
     where selected.primitive;
-  if not_empty primitive_builtin
+  if not_empty primitive_builtin then
     element_type_reference = primitive_builtin.object_name;
   end if;
   type_ref.type_reference = base_type.name + "<" + element_type_reference + ">";
@@ -597,13 +597,13 @@ INSERT INTO S_SYNC
 	'element_type = param.element_type;
 
 select any type_ref related by element_type->CollectionTypeReference[R3805]->SetTypeReference[R3806]->CollectionTypeReference[R3806]->TypeReference[R3801];
-if empty type_ref
+if empty type_ref then
   select any base_type from instances of Type where selected.name == "Set";
   create object instance type_ref of TypeReference;
   element_type_reference = element_type.type_reference;
   select one primitive_builtin related by element_type->BasicTypeReference[R3801]->TypeReference[R3801]->Type[R3800]->BuiltInType[R407]
     where selected.primitive;
-  if not_empty primitive_builtin
+  if not_empty primitive_builtin then
     element_type_reference = primitive_builtin.object_name;
   end if;
   type_ref.type_reference = base_type.name + "<" + element_type_reference + ">";
@@ -644,8 +644,8 @@ INSERT INTO S_SYNC
 	'type1 = param.type1;
 type2 = param.type2;
 
-while not_empty type1 and not_empty type2
-  if type1.name == type2.name
+while not_empty type1 and not_empty type2 loop
+  if type1.name == type2.name then
     return true;
   end if;
   select one type1 related by type1->NamedTypeReference[R407]->TypeReference[R3804]->Type[R3800];
@@ -689,13 +689,13 @@ INSERT INTO S_SYNC
 	'element_type = param.element_type;
 
 select any type_ref related by element_type->CollectionTypeReference[R3805]->ListTypeReference[R3806]->CollectionTypeReference[R3806]->TypeReference[R3801];
-if empty type_ref
+if empty type_ref then
   select any base_type from instances of Type where selected.name == "List";
   create object instance type_ref of TypeReference;
   element_type_reference = element_type.type_reference;
   select one primitive_builtin related by element_type->BasicTypeReference[R3801]->TypeReference[R3801]->Type[R3800]->BuiltInType[R407]
     where selected.primitive;
-  if not_empty primitive_builtin
+  if not_empty primitive_builtin then
     element_type_reference = primitive_builtin.object_name;
   end if;
   type_ref.type_reference = base_type.name + "<" + element_type_reference + ">";

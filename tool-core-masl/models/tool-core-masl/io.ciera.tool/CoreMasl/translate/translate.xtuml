@@ -98,7 +98,7 @@ CMD::read_command_line();
 
 // set system properties for all system level marks
 select many system_marks from instances of Mark where selected.markable_name == "*" and selected.path == "*";
-for each system_mark in system_marks
+for each system_mark in system_marks loop
   PROP::setProperty(key:"io.ciera." + system_mark.feature_name, value:system_mark.value);
 end for;
 
@@ -147,7 +147,7 @@ LOG::LogInfo( message:"Loading MASL model..." );
 LOG::LogInfo( message: "stratus loading MASL" );
 args[3] = CMD::get_value(name:"domainpath");
 args[2] = "--domainpath";
-if (CMD::get_value(name:"prj") != "")
+if (CMD::get_value(name:"prj") != "") then
   args[1] = CMD::get_value(name:"prj");
   args[0] = "--prj";
 else
@@ -166,15 +166,15 @@ LOG::LogTime( message:"Elapsed time:", t:elapsed_time );
 LOG::LogInfo( message:"Translating interface domains..." );
 select many interface_domains from instances of Domain where selected.interface;
 pass = 1;
-while (pass <= NUM_PASSES)
-  for each interface_domain in interface_domains
+while (pass <= NUM_PASSES) loop
+  for each interface_domain in interface_domains loop
     ::transformDomain(domain:interface_domain, path:T::sub(format:"l", s:interface_domain.name), pass:pass);
   end for;
   pass = pass + 1;
 end while;
 
 // Translate main model
-if (CMD::get_value(name:"prj") != "")
+if (CMD::get_value(name:"prj") != "") then
 
   // Translate project
   LOG::LogInfo( message:"Translating project..." );
@@ -187,7 +187,7 @@ else
   LOG::LogInfo( message:"Translating domain..." );
   select any domain from instances of Domain where not selected.interface;
   pass = 1;
-  while (pass <= NUM_PASSES)
+  while (pass <= NUM_PASSES) loop
     ::transformDomain(domain:domain, path:T::sub(format:"l", s:domain.name), pass:pass);
     pass = pass + 1;
   end while;
@@ -199,7 +199,7 @@ select many invocables from instances of InvocableObject;
 select many invocables related by invocables->MaslCodeBlock[R8306]->InvocableObject[R8306];  // only translate bodies that have code
 num_bodies = cardinality invocables;
 LOG::LogInfo(message:"  Translating " + STRING::itoa(i:num_bodies) + " MASL bodies...");
-for each invocable in invocables
+for each invocable in invocables loop
   LOG::LogInfo(message:"  Translating ''" + invocable.parent_package + "." + invocable.parent_name + "#" + invocable.name + "'' ...");
   ::transformMaslBody(invocable:invocable);
 end for;
@@ -209,8 +209,8 @@ LOG::LogTime( message:"  Elapsed time:", t:TIM::current_clock() - start_time );
 // render all files
 LOG::LogInfo( message:"  Rendering application..." );
 select many files from instances of File;
-for each file in files
-  if ( not file.exclude )
+for each file in files loop
+  if ( not file.exclude ) then
     file.rendering = true;
     file.render();
     file.rendering = false;

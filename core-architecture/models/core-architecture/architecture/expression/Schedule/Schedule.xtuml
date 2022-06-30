@@ -32,9 +32,9 @@ T::pop_buffer();
 T::push_buffer();
 select one expiration related by self->Expression[R3910];
 select one delay related by self->Expression[R3911];
-if not_empty expiration
+if not_empty expiration then
   expiration.render();
-elif not_empty delay
+elif not_empty delay then
   delay.render();
 else
   // TODO bad
@@ -45,12 +45,12 @@ T::pop_buffer();
 
 // check type conversion for time expression
 select one expr related by self->Expression[R776];
-if not_empty expiration
+if not_empty expiration then
   select one expiration_type_ref related by expiration->TypeReference[R795];
   timestamp_type = ::getBasicTypeReferenceByName(name:"TimeStamp");
   TypeConversion::render_from_type(expr:expr, base_expr:time_expr, input_type_ref:expiration_type_ref, output_type_ref:timestamp_type);
   time_expr = T::body();
-elif not_empty delay
+elif not_empty delay then
   select one delay_type_ref related by delay->TypeReference[R795];
   duration_type = ::getBasicTypeReferenceByName(name:"Duration");
   TypeConversion::render_from_type(expr:expr, base_expr:time_expr, input_type_ref:delay_type_ref, output_type_ref:duration_type);
@@ -60,8 +60,8 @@ end if;
 // render the period if recurring
 T::push_buffer();
 select one period related by self->Expression[R3912];
-if self.is_recurring
-  if not_empty period
+if self.is_recurring then
+  if not_empty period then
     period.render();
   else
     T::append(s:"null");  // delay is used for the period
@@ -71,7 +71,7 @@ period_expr = T::body();
 T::pop_buffer();
 
 // check type conversion for period expression
-if self.is_recurring and not_empty period
+if self.is_recurring and not_empty period then
   select one period_type_ref related by period->TypeReference[R795];
   duration_type = ::getBasicTypeReferenceByName(name:"Duration");
   TypeConversion::render_from_type(expr:expr, base_expr:time_expr, input_type_ref:period_type_ref, output_type_ref:duration_type);
@@ -82,7 +82,7 @@ end if;
 T::push_buffer();
 parameter_list = "";
 select many event_args related by self->ScheduleEventArgument[R3913] where SORT::ascending(attr:"order");
-for each event_arg in event_args
+for each event_arg in event_args loop
   event_arg.render();
   parameter_list = parameter_list + ", " + T::body();
 end for;

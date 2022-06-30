@@ -41,20 +41,20 @@ INSERT INTO S_SYNC
 	'// select all rendering files
 // exclude files which are defined in the same pacakge as the import
 select many files from instances of File where selected.package != param.package and selected.rendering;
-if not_empty files
+if not_empty files then
   
   // select or create an import
   select any type_import from instances of TypeImport where selected.package == param.package and selected.class_name == param.class_name;
-  if empty type_import
+  if empty type_import then
     create object instance type_import of TypeImport;
     type_import.package = param.package;
     type_import.class_name = param.class_name;
   end if;
   
   // apply the type import to each file in active render
-  for each file in files
+  for each file in files loop
     select any existing_import_ref related by file->TypeImportReference[R402] where selected.import_package == type_import.package and selected.import_class_name == type_import.class_name;
-    if empty existing_import_ref
+    if empty existing_import_ref then
       create object instance import_ref of TypeImportReference;
       relate file to type_import across R402 using import_ref;
     end if;
@@ -96,7 +96,7 @@ INSERT INTO S_SYNC
 	'addFileImport',
 	'',
 	'file = param.file;
-if not_empty file
+if not_empty file then
   ::addStringImport(package:file.package, class_name:file.name);
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
@@ -136,7 +136,7 @@ prefix = "";
 suffix = s;
 dot_index = STRING::indexof(haystack:s, needle:".");
 split_index = dot_index;
-while dot_index > -1
+while dot_index > -1 loop
   prefix = STRING::substr(s:s, begin:0, end:split_index);
   suffix = STRING::substr(s:s, begin:split_index + 1, end:-1);
   dot_index = STRING::indexof(haystack:suffix, needle:".");

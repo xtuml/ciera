@@ -18,7 +18,7 @@ INSERT INTO O_TFR
 expr = "";
 T::push_buffer();
 select one cmp_expr related by self->Expression[R500];
-if not_empty cmp_expr
+if not_empty cmp_expr then
   cmp_expr.render();
   expr = T::body();
   // convert the type to the type of the switch expression
@@ -31,7 +31,7 @@ T::pop_buffer();
 
 // render the then block (if not a duplicate label)
 T::push_buffer();
-if not self.duplicate
+if not self.duplicate then
   select one block related by self->CodeBlock[R520];
   block.render();
 end if;
@@ -41,7 +41,7 @@ T::pop_buffer();
 exclude_comments = PROP::getFlag(key:"io.ciera.ExcludeStatementComments");
 
 select one switch_smt related by self->SwitchSmt[R499];
-if switch_smt.is_primitive
+if switch_smt.is_primitive then
   // see if the block contains an uncoditional exiting statement
   select one block related by self->CodeBlock[R520];
   exiting_statement = ::getExitingStatement(block:block);

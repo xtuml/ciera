@@ -17,18 +17,18 @@ INSERT INTO O_TFR
 	'T::push_buffer();
 parameter_list = "";
 select any evt_invocable related by self->TransitionTableCell[R4757]->Event[R4756]->InvocableObject[R427];
-if ( not_empty evt_invocable )
+if ( not_empty evt_invocable ) then
   // check same data rule
   // do not pass event data to state entry actions if same data rule is violated
   same_data_ok = true;
   select many evt_invocables related by self->TransitionTableCell[R4757]->Event[R4756]->InvocableObject[R427];
-  for each other_evt_invocable in evt_invocables
-    if (evt_invocable.get_signature() != other_evt_invocable.get_signature())
+  for each other_evt_invocable in evt_invocables loop
+    if (evt_invocable.get_signature() != other_evt_invocable.get_signature()) then
       same_data_ok = false;
       break;
     end if;
   end for;
-  if (same_data_ok)
+  if (same_data_ok) then
     parameter_list = evt_invocable.parameter_list();
   end if;
 end if;
@@ -51,7 +51,7 @@ INSERT INTO O_TFR
 	1,
 	'select any last_state related by self->StateMachine[R4751]->State[R4751] where SORT::descending(attr:"number");
 line_end = ",";
-if self.name == last_state.name
+if self.name == last_state.name then
   line_end = ";";
 end if;
 T::include(file:"statemachine/t.state.decl.java");',

@@ -26,7 +26,7 @@ expression_body = "";
 select one form_param related by self->FormalParameter[R3904];
 select one attr_ref related by expr->AttributeAccess[R776];
 select one member_ref related by expr->StructureMemberReference[R776];
-if not_empty form_param and form_param.by_ref and not_empty attr_ref;
+if not_empty form_param and form_param.by_ref and not_empty attr_ref then;
   
   // render the base expression
   select one base_expr related by attr_ref->Expression[R785];
@@ -43,7 +43,7 @@ if not_empty form_param and form_param.by_ref and not_empty attr_ref;
   T::include(file:"expression/t.memberparameter.byref.java");
   expression_body = T::body();
 
-elif not_empty form_param and form_param.by_ref and not_empty member_ref;
+elif not_empty form_param and form_param.by_ref and not_empty member_ref then;
   
   // render the base expression
   select one base_expr related by member_ref->Expression[R3929];
@@ -69,7 +69,7 @@ else
   select one invoc_expr related by self->Invocation[R793]->Expression[R776];
   select one expr_type related by expr->TypeReference[R795];
   select one param_type related by form_param->TypeReference[R431];
-  if not_empty param_type
+  if not_empty param_type then
     TypeConversion::render_from_type(expr:invoc_expr, base_expr:expression_body, input_type_ref:expr_type, output_type_ref:param_type);
   end if;
 

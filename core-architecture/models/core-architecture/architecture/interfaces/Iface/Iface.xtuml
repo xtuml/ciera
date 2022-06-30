@@ -17,37 +17,37 @@ INSERT INTO O_TFR
 	'// only render the interface if at least one port implements it and at least one message
 select any port related by self->Port[R418];
 select any message related by self->Message[R419];
-if not_empty port and not_empty message
+if not_empty port and not_empty message then
 
   // render message IDs
   select many messages related by self->Message[R419] where selected.async and SORT::ascending(attr:"id");
-  for each msg in messages
+  for each msg in messages loop
     msg.render_id();
   end for;
   message_id_declarations = T::body();
   
   // render message classes
-  for each msg in messages
+  for each msg in messages loop
     msg.render_decl();
   end for;
   message_declarations = T::body();
   
   // render to provider message methods
   select many to_provider_msgs related by self->Message[R419] where SORT::ascending(attr:"id") and selected.to_provider;
-  for each msg in to_provider_msgs
+  for each msg in to_provider_msgs loop
     msg.render();
   end for;
   to_provider_message_block = T::body();
   
   // render from provider message methods
   select many from_provider_msgs related by self->Message[R419] where SORT::ascending(attr:"id") and not selected.to_provider;
-  for each msg in from_provider_msgs
+  for each msg in from_provider_msgs loop
     msg.render();
   end for;
   from_provider_message_block = T::body();
 
   select one supertype_iface_file related by self->Interface[R4161.''extends'']->File[R401];
-  if not_empty supertype_iface_file
+  if not_empty supertype_iface_file then
     ::addFileImport(file:supertype_iface_file);
   end if;
   

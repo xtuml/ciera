@@ -18,18 +18,18 @@ INSERT INTO O_TFR
 	'parameter_list = "";
 select any parm from instances of FormalParameter where false;
 select any prev_parm related by self->FormalParameter[R429];
-while ( not_empty prev_parm )
+while ( not_empty prev_parm ) loop
   parm = prev_parm;
   select one prev_parm related by parm->FormalParameter[R404.''follows''];
 end while;
 separator = "";
-while ( not_empty parm )
+while ( not_empty parm ) loop
   select one parm_type related by parm->TypeReference[R431];
   ::resolveImportsForTypeReference(type_ref:parm_type);
-  if parm.by_ref
+  if parm.by_ref then
     type_ref = parm_type.type_reference;
     select one builtin related by parm_type->BasicTypeReference[R3801]->TypeReference[R3801]->Type[R3800]->BuiltInType[R407];
-    if not_empty builtin and builtin.primitive
+    if not_empty builtin and builtin.primitive then
       type_ref = builtin.object_name;
     end if;
     parameter_list = parameter_list + separator + "final Variable<" + type_ref + "> "  + parm.name;
@@ -56,7 +56,7 @@ INSERT INTO O_TFR
 	'body = "{\n}";
 select any code_block related by self->CodeBlock[R4000] where (selected.top_level);
 select any statement related by code_block->Statement[R450];
-if (not_empty statement)
+if (not_empty statement) then
   
   // render the top level codeblock
   T::push_buffer();
@@ -65,17 +65,17 @@ if (not_empty statement)
   T::pop_buffer();
 
   disable_tracing = PROP::getFlag(key:"io.ciera.DisableCodeTracing");
-  if disable_tracing
+  if disable_tracing then
     body = code + "\n";
   else
     
     // render the body
     original_parent_name = self.original_parent_name;
-    if (STRING::indexof(haystack:original_parent_name, needle:" ") != -1)
+    if (STRING::indexof(haystack:original_parent_name, needle:" ") != -1) then
       original_parent_name = "''" + self.original_parent_name + "''";
     end if;
     original_body_name = self.original_body_name;
-    if (STRING::indexof(haystack:original_body_name, needle:" ") != -1)
+    if (STRING::indexof(haystack:original_body_name, needle:" ") != -1) then
       original_body_name = "''" + self.original_body_name + "''";
     end if;
     upgrade_exception = self.upgrade_exception(exception_name:"_e", convert:true);
@@ -91,7 +91,7 @@ else
 
   // generate default return
   select one type_ref related by self->TypeReference[R428]->Type[R3800];
-  if type_ref.name != "void"
+  if type_ref.name != "void" then
     body = "{ return " + type_ref.default_value + "; }";
   end if;
 
@@ -114,12 +114,12 @@ INSERT INTO O_TFR
 signature = return_type.type_reference + "(";
 select any parm related by self->FormalParameter[R429];
 select one prev_parm related by parm->FormalParameter[R404.''follows''];
-while (not_empty prev_parm)
+while (not_empty prev_parm) loop
   parm = prev_parm;
   select one prev_parm related by parm->FormalParameter[R404.''follows''];
 end while;
 sep = "";
-while (not_empty parm)
+while (not_empty parm) loop
   select one parm_type related by parm->TypeReference[R431];
   signature = signature + sep + parm_type.type_reference;
   sep = ",";
@@ -143,18 +143,18 @@ INSERT INTO O_TFR
 convert = param.convert;
 T::push_buffer();
 disable_tracing = PROP::getFlag(key:"io.ciera.DisableCodeTracing");
-if (not disable_tracing)
+if (not disable_tracing) then
 
   original_parent_name = self.original_parent_name;
-  if (STRING::indexof(haystack:original_parent_name, needle:" ") != -1)
+  if (STRING::indexof(haystack:original_parent_name, needle:" ") != -1) then
     original_parent_name = "''" + self.original_parent_name + "''";
   end if;
   original_body_name = self.original_body_name;
-  if (STRING::indexof(haystack:original_body_name, needle:" ") != -1)
+  if (STRING::indexof(haystack:original_body_name, needle:" ") != -1) then
     original_body_name = "''" + self.original_body_name + "''";
   end if;
 
-  if (convert)
+  if (convert) then
     ::addStringImport(package:"io.ciera.runtime.api.exceptions", class_name:"ActionException");
   end if;
 

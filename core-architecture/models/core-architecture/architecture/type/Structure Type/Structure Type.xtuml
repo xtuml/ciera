@@ -22,26 +22,26 @@ public_type = not_empty udt and udt.public;
 
 // component declarations
 select many structure_components related by self->StructureMember[R3809] where SORT::ascending(attr:"order");
-for each component in structure_components
+for each component in structure_components loop
   component.render();
 end for;
 component_decls = T::body();
 
 // constructors
-for each component in structure_components
+for each component in structure_components loop
   component.render_initializer();
 end for;
 component_initializers = T::body();
 
 // component accessros
-for each component in structure_components
+for each component in structure_components loop
   component.render_accessors();
 end for;
 component_accessors = T::body();
 
 // components for "toString" method
 sep = "";
-for each component in structure_components
+for each component in structure_components loop
   component_name = component.name;
   T::include(file:"type/t.component_to_string.java");
   sep = ", ";
@@ -116,7 +116,7 @@ INSERT INTO O_DBATTR
 
 // serializable attributes
 select many comps related by self->StructureMember[R3809] where not selected.transient and SORT::ascending(attr:"name");
-for each comp in comps
+for each comp in comps loop
   fields = fields + comp.name + comp.type_reference;
 end for;
 
