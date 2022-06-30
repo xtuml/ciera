@@ -15,13 +15,13 @@ public interface InstancePopulation {
   <T extends ObjectInstance> T createInstance(
       Supplier<T> constructor, Consumer<T> instanceInitializer);
 
-  void addInstance(ObjectInstance instance);
-
   <T extends ObjectInstance> T getInstance(Class<T> object, Predicate<T> where);
 
-  <T extends ObjectInstance> T getInstance(Class<T> object, UniqueId instanceId);
+  default <T extends ObjectInstance> T getInstance(Class<T> object) {
+    return getInstance(object, o -> true);
+  }
 
-  <T extends ObjectInstance> T getInstance(Class<T> object);
+  <T extends ObjectInstance> T getInstance(Class<T> object, UniqueId instanceId);
 
   <T extends ObjectInstance> Stream<T> getAllInstances(Class<T> object);
 

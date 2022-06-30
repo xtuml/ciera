@@ -80,7 +80,6 @@ public abstract class AbstractDomain implements Domain {
     return instance;
   }
 
-  @Override
   public void addInstance(final ObjectInstance instance) {
     final Class<?> object = instance.getClass();
     Set<ObjectInstance> objectPopulation = instancePopulation.get(object);
@@ -108,11 +107,6 @@ public abstract class AbstractDomain implements Domain {
   public <T extends ObjectInstance> T getInstance(
       final Class<T> object, final UniqueId instanceId) {
     return getInstance(object, o -> o.getInstanceId().equals(instanceId));
-  }
-
-  @Override
-  public <T extends ObjectInstance> T getInstance(final Class<T> object) {
-    return getInstance(object, o -> true);
   }
 
   @Override

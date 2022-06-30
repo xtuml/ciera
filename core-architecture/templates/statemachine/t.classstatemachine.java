@@ -21,7 +21,7 @@ class ${self.name} extends AbstractStateMachine implements StateMachine {
     ${txn_actions}
 
     @Override
-    public TransitionRule getTransition(Enum<?> currentState, Event event) {
+    public Supplier<Enum<?>> getTransition(Enum<?> currentState, Event event) {
         switch ((States) currentState) {
         ${transition_table_rows}\
         default:

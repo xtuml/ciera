@@ -1,13 +1,13 @@
 package io.ciera.runtime.domain;
 
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import io.ciera.runtime.api.application.Event;
 import io.ciera.runtime.api.application.ExecutionContext;
 import io.ciera.runtime.api.application.Logger;
 import io.ciera.runtime.api.domain.Domain;
 import io.ciera.runtime.api.domain.StateMachine;
-import io.ciera.runtime.api.domain.TransitionRule;
 import io.ciera.runtime.api.types.UniqueId;
 
 public abstract class AbstractStateMachine implements StateMachine {
@@ -21,10 +21,10 @@ public abstract class AbstractStateMachine implements StateMachine {
   }
 
   protected void executeTransition(final Event event, final Consumer<Enum<?>> updateCurrentState) {
-    final TransitionRule transition = getTransition(getCurrentState(), event);
+    final Supplier<Enum<?>> transition = getTransition(getCurrentState(), event);
     traceTxn(
         "TXN START:", name, getCurrentState().name(), event.toString(), "...", Logger.ANSI_RESET);
-    final Enum<?> newState = transition.execute();
+    final Enum<?> newState = transition.get();
     if (newState != null) {
       traceTxn(
           "TXN END:",
