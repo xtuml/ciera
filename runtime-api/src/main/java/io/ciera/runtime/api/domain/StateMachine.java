@@ -12,13 +12,13 @@ public interface StateMachine extends EventTarget {
 
   Supplier<Enum<?>> getTransition(Enum<?> currentState, Event event);
 
-  default Supplier<Enum<?>> cannotHappen(final Enum<?> currentState, final Event event) {
+  static Supplier<Enum<?>> cannotHappen(final Enum<?> currentState, final Event event) {
     return () -> {
       throw new CannotHappenException();
     };
   }
 
-  default Supplier<Enum<?>> ignore(final Enum<?> currentState, final Event event) {
+  static Supplier<Enum<?>> ignore(final Enum<?> currentState, final Event event) {
     return () -> null;
   }
 }

@@ -1,8 +1,8 @@
 case ${self.event_class_name}.$u_{self.event_name}:
 .if (cant_happen)
-    return cannotHappen(currentState, event);
+    return StateMachine.cannotHappen(currentState, event);
 .elif (event_ignored)
-    return ignore(currentState, event);
+    return StateMachine.ignore(currentState, event);
 .else
 .if ((not has_txn_action) and (not has_entry_action))
     return () -> States.$u_{end_state_name}; 
