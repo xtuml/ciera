@@ -7,8 +7,4 @@ public interface SystemClock {
   Instant getTime();
 
   void setTime(Instant time);
-
-  Instant getEpoch();
-
-  void setEpoch(Instant epoch);
 }

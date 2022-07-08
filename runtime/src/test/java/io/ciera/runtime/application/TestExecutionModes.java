@@ -8,6 +8,8 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+import io.ciera.runtime.AbstractDomain;
+import io.ciera.runtime.AbstractEvent;
 import io.ciera.runtime.api.application.Event;
 import io.ciera.runtime.api.application.EventTarget;
 import io.ciera.runtime.api.application.ExecutionContext;
@@ -17,7 +19,6 @@ import io.ciera.runtime.api.domain.Domain;
 import io.ciera.runtime.api.domain.Port;
 import io.ciera.runtime.api.types.UniqueId;
 import io.ciera.runtime.application.task.GeneratedEvent;
-import io.ciera.runtime.domain.AbstractDomain;
 
 public class TestExecutionModes {
 

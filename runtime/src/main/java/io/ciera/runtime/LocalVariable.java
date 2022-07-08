@@ -1,6 +1,6 @@
-package io.ciera.runtime.domain;
+package io.ciera.runtime;
 
-import io.ciera.runtime.api.domain.Variable;
+import io.ciera.runtime.api.Variable;
 
 public class LocalVariable<T> implements Variable<T> {
 

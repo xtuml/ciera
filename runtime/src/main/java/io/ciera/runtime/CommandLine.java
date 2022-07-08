@@ -1,4 +1,4 @@
-package io.ciera.runtime.application;
+package io.ciera.runtime;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -15,8 +15,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import io.ciera.runtime.api.application.Application;
 
 public class CommandLine {
 
@@ -252,7 +250,7 @@ public class CommandLine {
   public String getUsageText() {
     return String.format(
         "Usage: %s %s\n %s\n",
-        Application.getInstance().getName(),
+        "", // Application.getInstance().getName(),
         options.keySet().stream()
             .sorted()
             .map(options::get)

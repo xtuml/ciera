@@ -1,4 +1,4 @@
-package io.ciera.runtime.domain;
+package io.ciera.runtime;
 
 import java.util.function.BiConsumer;
 import java.util.function.Function;

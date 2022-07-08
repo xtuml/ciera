@@ -8,13 +8,9 @@ public interface Timer extends Comparable<Timer>, Serializable {
 
   Timer DEFAULT = null;
 
-  boolean schedule(long delay);
-
-  void fire();
-
   Instant getExpiration();
 
-  boolean cancel();
+  void cancel();
 
   // a timer is "scheduled" from the point at which it is first scheduled
   // until it either expires and is not rescheduled (non-recurring) or is

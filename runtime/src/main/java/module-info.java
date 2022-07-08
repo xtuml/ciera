@@ -1,9 +1,7 @@
-import io.ciera.runtime.api.domain.Domain;
+import io.ciera.runtime.api.Domain;
 
 module io.ciera.runtime {
-  exports io.ciera.runtime.domain;
-  exports io.ciera.runtime.application;
-  exports io.ciera.runtime.time;
+  exports io.ciera.runtime;
 
   uses Domain;
 

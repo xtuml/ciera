@@ -5,6 +5,8 @@ import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
+import io.ciera.runtime.AbstractDomain;
+import io.ciera.runtime.AbstractEvent;
 import io.ciera.runtime.api.application.Event;
 import io.ciera.runtime.api.application.EventTarget;
 import io.ciera.runtime.api.application.ExecutionContext;
@@ -12,7 +14,6 @@ import io.ciera.runtime.api.domain.Domain;
 import io.ciera.runtime.api.domain.Port;
 import io.ciera.runtime.api.types.Duration;
 import io.ciera.runtime.api.types.UniqueId;
-import io.ciera.runtime.domain.AbstractDomain;
 
 @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
 public class TestNotify {

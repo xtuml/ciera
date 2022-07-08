@@ -1,4 +1,4 @@
-package io.ciera.runtime.domain;
+package io.ciera.runtime;
 
 import java.util.Arrays;
 

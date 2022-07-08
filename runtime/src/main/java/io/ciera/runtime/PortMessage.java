@@ -1,11 +1,11 @@
-package io.ciera.runtime.domain;
+package io.ciera.runtime;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
-import io.ciera.runtime.api.domain.Message;
-import io.ciera.runtime.api.types.UniqueId;
+import io.ciera.runtime.api.Message;
 
 /**
  * A message represents an asynchronous event sent across domain boundaries. A message has a unique
@@ -18,13 +18,13 @@ public class PortMessage implements Message {
 
   public static final int NULL_SIGNAL = 0;
 
-  private final UniqueId messageHandle;
+  private final UUID messageHandle;
   private final int messageId;
   private final String name;
   private final Map<String, Object> parameterData;
 
   public PortMessage() {
-    this(new UniqueId(), NULL_SIGNAL, null, Map.<String, Object>of());
+    this(IdAssigner.NULL_ID, NULL_SIGNAL, null, Map.<String, Object>of());
   }
 
   public PortMessage(final int id) {
@@ -32,11 +32,11 @@ public class PortMessage implements Message {
   }
 
   public PortMessage(final int id, final Map<String, Object> parameterData) {
-    this(UniqueId.random(), id, null, new HashMap<>(parameterData));
+    this(IdAssigner.random(), id, null, new HashMap<>(parameterData));
   }
 
   public PortMessage(
-      final UniqueId messageHandle,
+      final UUID messageHandle,
       final int id,
       final String name,
       final Map<String, Object> parameterData) {
@@ -68,7 +68,7 @@ public class PortMessage implements Message {
    * @return the message's unique ID.
    */
   @Override
-  public UniqueId getMessageHandle() {
+  public UUID getMessageHandle() {
     return messageHandle;
   }
 

@@ -1,42 +1,39 @@
-package io.ciera.runtime.domain;
+package io.ciera.runtime;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.Comparator;
 import java.util.Set;
-import java.util.concurrent.Executor;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
 
-import io.ciera.runtime.api.domain.ObjectInstance;
-import io.ciera.runtime.api.domain.PersistentDomain;
-import io.ciera.runtime.api.time.Timer;
-import io.ciera.runtime.application.ThreadExecutionContext;
-import io.ciera.runtime.application.task.DomainTask;
-import io.ciera.runtime.time.EventTimer;
+import io.ciera.runtime.api.ObjectInstance;
+import io.ciera.runtime.api.PersistentDomain;
+import io.ciera.runtime.api.SystemClock;
 
 public abstract class AbstractPersistentDomain extends AbstractDomain implements PersistentDomain {
 
-  public AbstractPersistentDomain(final String name) {
-    super(name);
+  public AbstractPersistentDomain(final String name, final SystemClock clock) {
+    super(name, clock);
   }
 
   public AbstractPersistentDomain(
-      final String name, final Supplier<Set<ObjectInstance>> objectPopulationSupplier) {
-    super(name, objectPopulationSupplier);
+      final String name,
+      final SystemClock clock,
+      final Supplier<Set<ObjectInstance>> objectPopulationSupplier) {
+    super(name, clock, objectPopulationSupplier);
   }
 
   @Override
   public void persist(final ObjectOutputStream out) throws IOException {
+    /*
     // get active timers
-    final Timer[] timers =
+    final EventTimer[] timers =
         getContext()
             .getClock()
             .getScheduledTimers(getContext())
             .filter(EventTimer.class::isInstance)
             .filter(t -> equals(t.getDomain()))
-            .toArray(Timer[]::new);
+            .toArray(EventTimer[]::new);
 
     // get task queue
     final DomainTask[] tasks =
@@ -69,8 +66,9 @@ public abstract class AbstractPersistentDomain extends AbstractDomain implements
 
   @Override
   public void load(final ObjectInputStream in) throws IOException, ClassNotFoundException {
+    /*
     // read all objects
-    final Timer[] timers = (Timer[]) in.readObject();
+    final EventTimer[] timers = (EventTimer[]) in.readObject();
     final DomainTask[] tasks = (DomainTask[]) in.readObject();
     final ObjectInstance[] instances = (ObjectInstance[]) in.readObject();
 

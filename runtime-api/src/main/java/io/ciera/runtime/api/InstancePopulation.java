@@ -25,5 +25,5 @@ public interface InstancePopulation {
 
   Stream<ObjectInstance> getAllInstances();
 
-  void deleteInstance(ObjectInstance instance);
+  void removeInstance(ObjectInstance instance);
 }

@@ -1,9 +1,9 @@
-package io.ciera.runtime.domain;
+package io.ciera.runtime;
 
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-import io.ciera.runtime.api.domain.Variable;
+import io.ciera.runtime.api.Variable;
 
 public class Parameter<T> implements Variable<T> {
 

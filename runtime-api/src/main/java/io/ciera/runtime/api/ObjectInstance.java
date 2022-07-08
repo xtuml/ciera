@@ -3,7 +3,7 @@ package io.ciera.runtime.api;
 import java.io.Serializable;
 import java.util.UUID;
 
-public interface ObjectInstance extends InstanceActionHome, Serializable {
+public interface ObjectInstance extends InstanceActionHome, EventTarget, Serializable {
 
   UUID getInstanceId();
 
