@@ -1,4 +1,4 @@
-package io.ciera.runtime.api.domain;
+package io.ciera.runtime.api;
 
 import java.io.Serializable;
 import java.lang.annotation.ElementType;
@@ -6,8 +6,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.util.Map;
-
-import io.ciera.runtime.api.types.UniqueId;
+import java.util.UUID;
 
 /**
  * A message represents an asynchronous event sent across domain boundaries. A message has a unique
@@ -33,7 +32,7 @@ public interface Message extends Comparable<Message>, Serializable {
    *
    * @return the message's unique ID.
    */
-  UniqueId getMessageHandle();
+  UUID getMessageHandle();
 
   /**
    * Get the informal name of this message instance.

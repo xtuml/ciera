@@ -1,7 +1,7 @@
 package io.ciera.runtime.api.exceptions;
 
-import io.ciera.runtime.api.application.Event;
-import io.ciera.runtime.api.application.EventTarget;
+import io.ciera.runtime.api.Event;
+import io.ciera.runtime.api.EventTarget;
 
 public class EventTargetException extends RuntimeException {
 

@@ -1,8 +1,8 @@
 package io.ciera.runtime.api.exceptions;
 
-import io.ciera.runtime.api.domain.Domain;
-import io.ciera.runtime.api.domain.Message;
-import io.ciera.runtime.api.domain.Port;
+import io.ciera.runtime.api.Domain;
+import io.ciera.runtime.api.Message;
+import io.ciera.runtime.api.Port;
 
 public class PortMessageException extends MessageTargetException {
 

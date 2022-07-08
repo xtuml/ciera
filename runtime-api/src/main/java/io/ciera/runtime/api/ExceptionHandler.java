@@ -1,4 +1,4 @@
-package io.ciera.runtime.api.application;
+package io.ciera.runtime.api;
 
 public interface ExceptionHandler {
 

@@ -1,7 +1,7 @@
 package io.ciera.runtime.api.exceptions;
 
-import io.ciera.runtime.api.application.MessageTarget;
-import io.ciera.runtime.api.domain.Message;
+import io.ciera.runtime.api.Message;
+import io.ciera.runtime.api.MessageTarget;
 
 public class MessageTargetException extends RuntimeException {
 

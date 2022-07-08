@@ -9,7 +9,7 @@ import io.ciera.runtime.api.exceptions.DeserializationException;
  * A device represents a readable or read-writable object. Streams can be read from devices or
  * directed as output to devices.
  */
-public abstract class Device implements Closeable, AutoCloseable, Flushable {
+public abstract class Device implements Closeable, Flushable {
 
   public static final Device CONSOLE = new ReadWriteDevice("CONSOLE", System.in, System.out);
   public static final Device NULL = new DevNull();

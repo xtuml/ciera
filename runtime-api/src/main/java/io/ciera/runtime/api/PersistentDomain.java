@@ -1,4 +1,4 @@
-package io.ciera.runtime.api.domain;
+package io.ciera.runtime.api;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;

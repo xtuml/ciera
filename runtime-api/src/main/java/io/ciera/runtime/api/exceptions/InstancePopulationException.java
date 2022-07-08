@@ -3,8 +3,8 @@ package io.ciera.runtime.api.exceptions;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import io.ciera.runtime.api.domain.InstancePopulation;
-import io.ciera.runtime.api.domain.ObjectInstance;
+import io.ciera.runtime.api.InstancePopulation;
+import io.ciera.runtime.api.ObjectInstance;
 
 public class InstancePopulationException extends RuntimeException {
 
@@ -44,7 +44,7 @@ public class InstancePopulationException extends RuntimeException {
         + ": [population="
         + population
         + ", instances=["
-        + Stream.of(instances).map(inst -> inst.toString()).collect(Collectors.joining(", "))
+        + Stream.of(instances).map(ObjectInstance::toString).collect(Collectors.joining(", "))
         + "]]";
   }
 }

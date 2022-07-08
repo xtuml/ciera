@@ -1,7 +1,7 @@
 package io.ciera.runtime.api.exceptions;
 
-import io.ciera.runtime.api.domain.InstancePopulation;
-import io.ciera.runtime.api.domain.ObjectInstance;
+import io.ciera.runtime.api.InstancePopulation;
+import io.ciera.runtime.api.ObjectInstance;
 
 public class DeletedInstanceException extends InstancePopulationException {
 

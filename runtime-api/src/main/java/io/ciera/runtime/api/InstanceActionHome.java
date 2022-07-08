@@ -1,4 +1,4 @@
-package io.ciera.runtime.api.domain;
+package io.ciera.runtime.api;
 
 public interface InstanceActionHome extends ActionHome {
 

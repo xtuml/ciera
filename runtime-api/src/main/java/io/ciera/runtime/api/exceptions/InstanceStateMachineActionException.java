@@ -1,8 +1,8 @@
 package io.ciera.runtime.api.exceptions;
 
-import io.ciera.runtime.api.application.Event;
-import io.ciera.runtime.api.domain.DynamicObjectInstance;
-import io.ciera.runtime.api.domain.StateMachine;
+import io.ciera.runtime.api.DynamicObjectInstance;
+import io.ciera.runtime.api.Event;
+import io.ciera.runtime.api.StateMachine;
 
 public class InstanceStateMachineActionException extends StateMachineActionException {
 

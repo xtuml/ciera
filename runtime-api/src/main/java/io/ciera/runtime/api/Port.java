@@ -1,6 +1,4 @@
-package io.ciera.runtime.api.domain;
-
-import io.ciera.runtime.api.application.MessageTarget;
+package io.ciera.runtime.api;
 
 public interface Port extends ActionHome, MessageTarget {
 

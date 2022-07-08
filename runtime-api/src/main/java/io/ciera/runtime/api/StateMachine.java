@@ -1,9 +1,7 @@
-package io.ciera.runtime.api.domain;
+package io.ciera.runtime.api;
 
 import java.util.function.Supplier;
 
-import io.ciera.runtime.api.application.Event;
-import io.ciera.runtime.api.application.EventTarget;
 import io.ciera.runtime.api.exceptions.CannotHappenException;
 
 public interface StateMachine extends EventTarget {
