@@ -7,4 +7,6 @@ public interface SystemClock {
   Instant getTime();
 
   void setTime(Instant time);
+
+  // TODO set epoch
 }

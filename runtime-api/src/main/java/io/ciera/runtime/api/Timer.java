@@ -6,6 +6,7 @@ import java.time.Instant;
 
 public interface Timer extends Comparable<Timer>, Serializable {
 
+  // TODO
   Timer DEFAULT = null;
 
   Instant getExpiration();

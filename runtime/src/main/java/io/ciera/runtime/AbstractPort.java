@@ -8,15 +8,11 @@ import io.ciera.runtime.api.exceptions.PortMessageException;
 
 public abstract class AbstractPort implements Port {
 
-  private final String name;
-  private final Domain domain;
-  private MessageTarget peer;
+  // TODO dependencies
+  private final String name = null;
+  private final Domain domain = null;
 
-  public AbstractPort(final String name, final Domain domain) {
-    this.name = name;
-    this.domain = domain;
-    peer = null;
-  }
+  private MessageTarget peer = null;
 
   @Override
   public String getName() {

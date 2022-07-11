@@ -30,25 +30,13 @@ import io.ciera.runtime.api.exceptions.InstancePopulationException;
  */
 public abstract class AbstractDomain implements Domain {
 
-  private final Supplier<Set<ObjectInstance>> objectPopulationSupplier;
-  private final String name;
+  // TODO dependencies
+  private final String name = null;
+  private final SystemClock clock = null;
+  private final Supplier<Set<ObjectInstance>> objectPopulationSupplier = ObjectInstanceSet::new;
+
   private final Map<Class<?>, Set<ObjectInstance>> instancePopulation = new HashMap<>();
   private final Queue<Timer> timers = new PriorityQueue<>();
-
-  private final SystemClock clock;
-
-  public AbstractDomain(final String name, final SystemClock clock) {
-    this(name, clock, ObjectInstanceSet::new);
-  }
-
-  public AbstractDomain(
-      final String name,
-      final SystemClock clock,
-      final Supplier<Set<ObjectInstance>> objectPopulationSupplier) {
-    this.name = name;
-    this.clock = clock;
-    this.objectPopulationSupplier = objectPopulationSupplier;
-  }
 
   @Override
   public String getName() {
@@ -91,11 +79,15 @@ public abstract class AbstractDomain implements Domain {
   }
 
   @Override
-  @SuppressWarnings("unchecked")
   public <T extends ObjectInstance> T getInstance(final Class<T> object, final Predicate<T> where) {
-    final Set<T> objectPopulation = (Set<T>) instancePopulation.get(object);
+    final Set<ObjectInstance> objectPopulation = instancePopulation.get(object);
     return objectPopulation != null
-        ? objectPopulation.stream().filter(where).findAny().orElse(null)
+        ? objectPopulation.stream()
+            .filter(object::isInstance)
+            .map(object::cast)
+            .filter(where)
+            .findAny()
+            .orElse(null)
         : null;
   }
 
@@ -146,28 +138,28 @@ public abstract class AbstractDomain implements Domain {
 
   @Override
   public Timer schedule(final Runnable action, final Duration delay) {
-    final Timer t = new EventTimer(clock, action).schedule(delay);
+    final Timer t = new EventTimer(action).schedule(delay);
     timers.add(t);
     return t;
   }
 
   @Override
   public Timer schedule(final Runnable action, final Duration delay, final Duration period) {
-    final Timer t = new EventTimer(clock, action, period).schedule(delay);
+    final Timer t = new EventTimer(action, period).schedule(delay);
     timers.add(t);
     return t;
   }
 
   @Override
   public Timer schedule(final Runnable action, final Instant expiration) {
-    final Timer t = new EventTimer(clock, action).schedule(expiration);
+    final Timer t = new EventTimer(action).schedule(expiration);
     timers.add(t);
     return t;
   }
 
   @Override
   public Timer schedule(final Runnable action, final Instant expiration, final Duration period) {
-    final Timer t = new EventTimer(clock, action, period).schedule(expiration);
+    final Timer t = new EventTimer(action, period).schedule(expiration);
     timers.add(t);
     return t;
   }
@@ -179,6 +171,7 @@ public abstract class AbstractDomain implements Domain {
 
   @Override
   public Domain getDomain(final String domainName) {
+    // TODO
     return null;
   }
 

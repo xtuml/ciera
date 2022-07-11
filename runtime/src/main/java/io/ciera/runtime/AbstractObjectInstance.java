@@ -1,6 +1,7 @@
 package io.ciera.runtime;
 
 import java.util.UUID;
+import java.util.function.Supplier;
 
 import io.ciera.runtime.api.Event;
 import io.ciera.runtime.api.ObjectInstance;
@@ -10,16 +11,18 @@ public abstract class AbstractObjectInstance implements ObjectInstance {
 
   private static final long serialVersionUID = 1L;
 
+  // TODO dependencies
+  private final Supplier<UUID> idAssigner = null;
+
   private final UUID instanceId;
-  private boolean active;
+  private boolean active = true;
 
   public AbstractObjectInstance() {
-    this(IdAssigner.random());
+    this.instanceId = idAssigner.get();
   }
 
   public AbstractObjectInstance(final UUID instanceId) {
     this.instanceId = instanceId;
-    active = true;
   }
 
   @Override

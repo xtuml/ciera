@@ -12,9 +12,7 @@ public abstract class AbstractDynamicObjectInstance extends AbstractObjectInstan
 
   private Enum<?> currentState;
 
-  public AbstractDynamicObjectInstance() {
-    super();
-  }
+  public AbstractDynamicObjectInstance() {}
 
   public AbstractDynamicObjectInstance(final UUID instanceId) {
     super(instanceId);

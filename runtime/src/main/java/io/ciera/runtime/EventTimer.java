@@ -11,7 +11,9 @@ public class EventTimer implements Timer {
 
   private static final long serialVersionUID = 1L;
 
-  private final SystemClock clock;
+  // TODO dependencies
+  private final SystemClock clock = null;
+
   private final Duration period;
   private final Runnable action;
 
@@ -19,12 +21,11 @@ public class EventTimer implements Timer {
   private boolean scheduled = false;
   private boolean expired = false;
 
-  public EventTimer(final SystemClock clock, final Runnable action) {
-    this(clock, action, Duration.ZERO);
+  public EventTimer(final Runnable action) {
+    this(action, Duration.ZERO);
   }
 
-  public EventTimer(final SystemClock clock, final Runnable action, final Duration period) {
-    this.clock = clock;
+  public EventTimer(final Runnable action, final Duration period) {
     this.action = action;
     this.period = period;
   }

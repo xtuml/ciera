@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 import io.ciera.runtime.api.Message;
 
@@ -15,6 +16,9 @@ import io.ciera.runtime.api.Message;
 public class PortMessage implements Message {
 
   private static final long serialVersionUID = 1L;
+
+  // TODO dependencies
+  private final Supplier<UUID> idAssigner = IdAssigner.RANDOM;
 
   public static final int NULL_SIGNAL = 0;
 
@@ -32,7 +36,10 @@ public class PortMessage implements Message {
   }
 
   public PortMessage(final int id, final Map<String, Object> parameterData) {
-    this(IdAssigner.random(), id, null, new HashMap<>(parameterData));
+    this.messageHandle = idAssigner.get();
+    messageId = id;
+    this.name = null;
+    this.parameterData = new HashMap<>(parameterData);
   }
 
   public PortMessage(
