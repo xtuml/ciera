@@ -14,9 +14,7 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'population_class = PROP::getProperty(key:"io.ciera.ObjectPopulationClass");
-
-select many util_refs related by self->UtilityInComponent[R4558] where SORT::ascending(attr:"utility_name");
+	'select many util_refs related by self->UtilityInComponent[R4558] where SORT::ascending(attr:"utility_name");
 for each util_ref in util_refs loop
   util_ref.render();
 end for;
@@ -115,12 +113,12 @@ if not_empty supertype_comp_def_file then
 end if;
 
 if not_empty local_comp_ports then
-  ::addStringImport(package:"io.ciera.runtime.api.application", class_name:"MessageTarget");
-  ::addStringImport(package:"io.ciera.runtime.api.domain", class_name:"Port");
+  ::addStringImport(package:"io.ciera.runtime.api", class_name:"MessageTarget");
+  ::addStringImport(package:"io.ciera.runtime.api", class_name:"Port");
 end if;
 
 if not_empty csms then
-  ::addStringImport(package:"io.ciera.runtime.api.application", class_name:"Event");
+  ::addStringImport(package:"io.ciera.runtime.api", class_name:"Event");
   ::addStringImport(package:"io.ciera.runtime.api.exceptions", class_name:"EventTargetException");
   ::addStringImport(package:"java.io", class_name:"IOException");
   ::addStringImport(package:"java.io", class_name:"ObjectInputStream");
@@ -128,16 +126,10 @@ if not_empty csms then
 end if;
 
 if empty supertype_comp_def_file then
-  if self.transient then
-    ::addStringImport(package:"io.ciera.runtime.domain", class_name:"AbstractDomain");
-  else
-    ::addStringImport(package:"io.ciera.runtime.api.domain", class_name:"PersistentDomain");
-    ::addStringImport(package:"io.ciera.runtime.domain", class_name:"AbstractPersistentDomain");
-  end if;
+  ::addStringImport(package:"io.ciera.runtime", class_name:"AbstractDomain");
 end if;
 
-::addStringImport(package:"io.ciera.runtime.api.application", class_name:"Application");
-::addStringImport(package:"io.ciera.runtime.api.domain", class_name:"Domain");
+::addStringImport(package:"io.ciera.runtime.api", class_name:"Domain");
 ::addStringImport(package:"java.util", class_name:"NoSuchElementException");
 
 select one file related by self->File[R401];

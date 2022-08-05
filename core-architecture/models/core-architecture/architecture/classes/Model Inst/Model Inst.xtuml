@@ -20,12 +20,12 @@ has_ism = not_empty sm and sm.is_instance;
 has_csm = not_empty sm and not sm.is_instance;
 init_state_name = "";
 if (has_ism) then
-  ::addStringImport(package:"io.ciera.runtime.api.domain", class_name:"DynamicObjectInstance");
-  ::addStringImport(package:"io.ciera.runtime.api.domain", class_name:"StateMachine");
-  ::addStringImport(package:"io.ciera.runtime.domain", class_name:"AbstractDynamicObjectInstance");
+  ::addStringImport(package:"io.ciera.runtime.api", class_name:"DynamicObjectInstance");
+  ::addStringImport(package:"io.ciera.runtime", class_name:"AbstractDynamicObjectInstance");
+  ::addStringImport(package:"java.util.function", class_name:"Supplier");
 else
-  ::addStringImport(package:"io.ciera.runtime.api.domain", class_name:"ObjectInstance");
-  ::addStringImport(package:"io.ciera.runtime.domain", class_name:"AbstractObjectInstance");
+  ::addStringImport(package:"io.ciera.runtime.api", class_name:"ObjectInstance");
+  ::addStringImport(package:"io.ciera.runtime", class_name:"AbstractObjectInstance");
   select one sm_file related by sm->File[R401];
   ::addFileImport(file:sm_file);
 end if;
@@ -116,7 +116,7 @@ selectors = T::body();
 last_rel_num = 0;
 select many subsuper_rels related by self->Relationship[R434] where SORT::ascending(attr:"num") and selected.rel_type == RelationshipType::SuperSubtype;
 if not_empty subsuper_rels then
-  ::addStringImport(package:"io.ciera.runtime.api.domain", class_name:"ObjectInstance");
+  ::addStringImport(package:"io.ciera.runtime.api", class_name:"ObjectInstance");
   ::addStringImport(package:"java.util", class_name:"Set");
   for each rel in subsuper_rels loop
     if rel.num != last_rel_num then
@@ -145,7 +145,7 @@ if not_empty preferred_id_getters then
     identifier_attribute_getters = identifier_attribute_getters + sep + preferred_id_getter.getName() + "()";
     sep = ", ";
   end for;
-  ::addStringImport(package:"io.ciera.runtime.domain", class_name:"InstanceIdentifier");
+  ::addStringImport(package:"io.ciera.runtime", class_name:"InstanceIdentifier");
 end if;
 
 // attributes for "toString" method
@@ -206,10 +206,9 @@ for each selector in selects loop
 end for;
 empty_selectors = T::body();
 
-::addStringImport(package:"io.ciera.runtime.api.application", class_name:"ExecutionContext");
-::addStringImport(package:"io.ciera.runtime.api.domain", class_name:"EmptyInstance");
+::addStringImport(package:"io.ciera.runtime.api", class_name:"EmptyInstance");
 ::addStringImport(package:"io.ciera.runtime.api.exceptions", class_name:"EmptyInstanceException");
-::addStringImport(package:"io.ciera.runtime.api.types", class_name:"UniqueId");
+::addStringImport(package:"java.util", class_name:"UUID");
 select one comp_file related by self->ComponentDefinition[R408]->File[R401];
 ::addFileImport(file:comp_file);
 

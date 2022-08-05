@@ -11,4 +11,6 @@ public interface Domain extends InstancePopulation, ActionHome {
 
   // Application initialization functions
   void initialize();
+
+  <T> T getUniqueValue(Class<T> type);
 }

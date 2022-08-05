@@ -37,38 +37,21 @@ ${supertypes}\
 
     // constructors
     ${self.name}() {
-    }
-
-    ${self.name}(${self.comp_name} domain) {
-        super(UniqueId.random(), domain);
 .if (attribute_initializers1 != "")
         ${attribute_initializers1}\
 .end if
-.if (has_ism)
-        setCurrentState(${self.name}StateMachine.States.UNINITIALIZED);
-.end if
     }
 
-    ${self.name}(UniqueId instanceId, ${self.comp_name} domain\
+    ${self.name}(UUID instanceId\
 .if (has_ism)
 , Enum<?> initialState\
 .end if
 ${attribute_initializer_params}) {
-        super(instanceId, domain);
+        super(instanceId);
 .if (attribute_initializers2 != "")
         ${attribute_initializers2}\
 .end if
-.if (has_ism)
-        setCurrentState(initialState);
-.end if
     }
-.if (has_ism)
-
-    @Override
-    public StateMachine getStateMachine() {
-        return ${self.name}StateMachine.getInstance(getDomain(), this);
-    }
-.end if
 
     // attribute accessors
     ${attribute_accessors}
@@ -137,6 +120,14 @@ ${attribute_initializer_params}) {
     }
 
 .end if
+.if (has_ism)
+    @Override
+    public Supplier<Enum<?>> getTransition(Enum<?> arg0, Event arg1) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+.end if
     // subtype interfaces
     ${subtype_interfaces}
 
@@ -155,18 +146,13 @@ ${attribute_initializer_params}) {
         ${empty_selectors}
 
         @Override
-        public UniqueId getInstanceId() {
+        public UUID getInstanceId() {
             throw new EmptyInstanceException("Cannot get instance ID of empty instance", null, this);
         }
 
         @Override
         public ${self.comp_name} getDomain() {
             throw new EmptyInstanceException("Cannot get domain of empty instance", null, this);
-        }
-
-        @Override
-        public ExecutionContext getContext() {
-            throw new EmptyInstanceException("Cannot get execution context of empty instance", null, this);
         }
 
         @Override

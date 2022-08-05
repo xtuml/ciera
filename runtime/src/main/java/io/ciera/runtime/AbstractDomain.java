@@ -49,6 +49,12 @@ public abstract class AbstractDomain implements Domain {
   }
 
   @Override
+  public <T> T getUniqueValue(Class<T> type) {
+    // TODO
+    return null;
+  }
+
+  @Override
   public <T extends ObjectInstance> T createInstance(final Supplier<T> constructor) {
     return createInstance(constructor, null);
   }

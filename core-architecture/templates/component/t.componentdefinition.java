@@ -9,12 +9,9 @@ public class ${self.name} extends \
 .if (self.supertype_name != "")
 ${self.supertype_name} {
 .else
-  .if (self.transient)
-AbstractDomain implements Domain {
-  .else
-AbstractPersistentDomain implements PersistentDomain {
-  .end if
+AbstractDomain \
 .end if
+implements Domain {
 
 .if (utilities != "")
     ${utilities}\
@@ -25,19 +22,6 @@ AbstractPersistentDomain implements PersistentDomain {
 
 .end if
     public ${self.name}() {
-.if (self.supertype_name != "")
-        this("${self.supertype_name}");
-.else
-        this("${self.name}");
-.end if
-    }
-
-    public ${self.name}(String name) {
-        super(name\
-.if (population_class != "")
-, ${population_class}::new\
-.end if
-);
 .if (utility_initializers != "")
         ${utility_initializers}\
 .end if
@@ -121,11 +105,4 @@ AbstractPersistentDomain implements PersistentDomain {
         return (${self.name}) super.getDomain();
     }
 
-    public static Domain provider() {
-        try {
-            return Application.getInstance().getDomain("${self.name}");
-        } catch (NoSuchElementException e) {
-            return new ${self.name}();
-        }
-    }
 }
