@@ -19,7 +19,6 @@ import io.ciera.runtime.api.Domain;
 import io.ciera.runtime.api.Event;
 import io.ciera.runtime.api.EventTarget;
 import io.ciera.runtime.api.ObjectInstance;
-import io.ciera.runtime.api.SystemClock;
 import io.ciera.runtime.api.Timer;
 import io.ciera.runtime.api.exceptions.InstancePopulationException;
 
@@ -32,7 +31,7 @@ public abstract class AbstractDomain implements Domain {
 
   // TODO dependencies
   private final String name = null;
-  private final SystemClock clock = null;
+  // private final SystemClock clock = null;
   private final Supplier<Set<ObjectInstance>> objectPopulationSupplier = ObjectInstanceSet::new;
 
   private final Map<Class<?>, Set<ObjectInstance>> instancePopulation = new HashMap<>();
