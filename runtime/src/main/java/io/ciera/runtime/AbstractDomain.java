@@ -9,7 +9,8 @@ import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
-import java.util.function.Consumer;
+import java.util.concurrent.ExecutorService;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -30,12 +31,24 @@ import io.ciera.runtime.api.exceptions.InstancePopulationException;
 public abstract class AbstractDomain implements Domain {
 
   // TODO dependencies
-  private final String name = null;
+  private final String name;
+  private ExecutorService runtime;
+
   // private final SystemClock clock = null;
-  private final Supplier<Set<ObjectInstance>> objectPopulationSupplier = ObjectInstanceSet::new;
+  private static final Supplier<Set<ObjectInstance>> objectPopulationSupplier =
+      ObjectInstanceSet::new;
 
   private final Map<Class<?>, Set<ObjectInstance>> instancePopulation = new HashMap<>();
   private final Queue<Timer> timers = new PriorityQueue<>();
+
+  public AbstractDomain(final String name) {
+    this.name = name;
+  }
+
+  @Override
+  public ExecutorService getRuntime() {
+    return runtime;
+  }
 
   @Override
   public String getName() {
@@ -43,33 +56,22 @@ public abstract class AbstractDomain implements Domain {
   }
 
   @Override
-  public void initialize() {
+  public void initialize(final ExecutorService runtime) {
+    this.runtime = runtime;
     // getContext().getApplication().getLogger().trace("%s initialized", this);
   }
 
   @Override
-  public <T> T getUniqueValue(Class<T> type) {
-    // TODO
-    return null;
-  }
-
-  @Override
-  public <T extends ObjectInstance> T createInstance(final Supplier<T> constructor) {
-    return createInstance(constructor, null);
-  }
-
-  @Override
   public <T extends ObjectInstance> T createInstance(
-      final Supplier<T> constructor, final Consumer<T> instanceInitializer) {
+      Supplier<T> constructor, BiConsumer<T, Domain> instanceInitializer) {
     final T instance = constructor.get();
-    if (instanceInitializer != null) {
-      instanceInitializer.accept(instance);
-    }
+    instanceInitializer.accept(instance, this);
     addInstance(instance);
     return instance;
   }
 
-  void addInstance(final ObjectInstance instance) {
+  @Override
+  public void addInstance(final ObjectInstance instance) {
     final Class<?> object = instance.getClass();
     Set<ObjectInstance> objectPopulation = instancePopulation.get(object);
     if (objectPopulation == null) {
@@ -77,7 +79,9 @@ public abstract class AbstractDomain implements Domain {
       instancePopulation.put(object, objectPopulation);
     }
     final boolean success = objectPopulation.add(instance);
-    if (!success) {
+    if (success && instance instanceof AbstractObjectInstance) {
+      ((AbstractObjectInstance) instance).setDomain(this);
+    } else if (!success) {
       throw new InstancePopulationException(
           "Instance is not unique within the population", this, instance);
     }
@@ -121,20 +125,6 @@ public abstract class AbstractDomain implements Domain {
     }
   }
 
-  /*
-   * TODO
-  @Override
-  public <T extends ObjectInstance> int getUniqueInteger(
-      final Class<T> object, final Function<T, Integer> keyMapper) {
-    final Set<Integer> existingKeys =
-        getAllInstances(object).map(keyMapper).collect(Collectors.toSet());
-    return IntStream.iterate(1, x -> x + 1)
-        .filter(i -> !existingKeys.contains(i))
-        .findAny()
-        .getAsInt();
-  }
-  */
-
   @Override
   public <E extends Event> void generate(
       final Function<Object[], E> eventBuilder, final EventTarget target, final Object... data) {
@@ -142,30 +132,47 @@ public abstract class AbstractDomain implements Domain {
   }
 
   @Override
-  public Timer schedule(final Runnable action, final Duration delay) {
-    final Timer t = new EventTimer(action).schedule(delay);
-    timers.add(t);
+  public <E extends Event> Timer schedule(
+      Function<Object[], E> eventBuilder, EventTarget target, Duration delay, Object... data) {
+    final Timer t =
+        new EventTimer(() -> target.consumeEvent(eventBuilder.apply(data))).schedule(delay);
+    // timers.add(t);
     return t;
   }
 
   @Override
-  public Timer schedule(final Runnable action, final Duration delay, final Duration period) {
-    final Timer t = new EventTimer(action, period).schedule(delay);
-    timers.add(t);
+  public <E extends Event> Timer schedule(
+      Function<Object[], E> eventBuilder, EventTarget target, Instant expiration, Object... data) {
+    final Timer t =
+        new EventTimer(() -> target.consumeEvent(eventBuilder.apply(data))).schedule(expiration);
+    // timers.add(t);
     return t;
   }
 
   @Override
-  public Timer schedule(final Runnable action, final Instant expiration) {
-    final Timer t = new EventTimer(action).schedule(expiration);
-    timers.add(t);
+  public <E extends Event> Timer scheduleRecurring(
+      Function<Object[], E> eventBuilder,
+      EventTarget target,
+      Duration delay,
+      Duration period,
+      Object... data) {
+    final Timer t =
+        new EventTimer(() -> target.consumeEvent(eventBuilder.apply(data)), period).schedule(delay);
+    // timers.add(t);
     return t;
   }
 
   @Override
-  public Timer schedule(final Runnable action, final Instant expiration, final Duration period) {
-    final Timer t = new EventTimer(action, period).schedule(expiration);
-    timers.add(t);
+  public <E extends Event> Timer scheduleRecurring(
+      Function<Object[], E> eventBuilder,
+      EventTarget target,
+      Instant expiration,
+      Duration period,
+      Object... data) {
+    final Timer t =
+        new EventTimer(() -> target.consumeEvent(eventBuilder.apply(data)), period)
+            .schedule(expiration);
+    // timers.add(t);
     return t;
   }
 

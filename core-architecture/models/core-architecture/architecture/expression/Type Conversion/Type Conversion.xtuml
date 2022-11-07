@@ -116,7 +116,13 @@ if input_type_ref.type_reference != output_type_ref.type_reference then
       T::include(file:"expression/t.converttosubtype.java");
     // subtype to supertpe conversion
     elif (::isSubtypeOf(type1:input_base_type, type2:output_base_type) and output_type_ref.primitive) then
-      T::include(file:"expression/t.converttosupertype.primitive.java");
+      if (input_type_ref.type_reference == "Duration") then
+        T::append(s:base_expr);
+        T::append(s:".get(ChronoUnit.MICROS)");
+        ::addStringImport(package:"java.time.temporal", class_name:"ChronoUnit");
+      else
+        T::include(file:"expression/t.converttosupertype.primitive.java");
+      end if;
     elif (::isSubtypeOf(type1:input_base_type, type2:output_base_type)) then
       // directly assignable
       T::append(s:base_expr);

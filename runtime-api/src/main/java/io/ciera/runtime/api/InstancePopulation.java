@@ -1,17 +1,12 @@
 package io.ciera.runtime.api;
 
 import java.util.UUID;
-import java.util.function.Consumer;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public interface InstancePopulation {
 
-  <T extends ObjectInstance> T createInstance(Supplier<T> constructor);
-
-  <T extends ObjectInstance> T createInstance(
-      Supplier<T> constructor, Consumer<T> instanceInitializer);
+  void addInstance(final ObjectInstance instance);
 
   <T extends ObjectInstance> T getInstance(Class<T> object, Predicate<T> where);
 

@@ -36,11 +36,7 @@ ${supertypes}\
     ${relationship_decls}
 
     // constructors
-    ${self.name}() {
-.if (attribute_initializers1 != "")
-        ${attribute_initializers1}\
-.end if
-    }
+    ${self.name}() {}
 
     ${self.name}(UUID instanceId\
 .if (has_ism)
@@ -50,6 +46,23 @@ ${attribute_initializer_params}) {
         super(instanceId);
 .if (attribute_initializers2 != "")
         ${attribute_initializers2}\
+.end if
+    }
+
+    // initialization
+    @Override
+    public void initialize(final Domain domain\
+.if (has_ism)
+, Enum<?> initialState\
+.end if
+) {
+        super.initialize(domain\
+.if (has_ism)
+, initialState\
+.end if
+);
+.if (attribute_initializers1 != "")
+        ${attribute_initializers1}\
 .end if
     }
 
@@ -120,12 +133,8 @@ ${attribute_initializer_params}) {
     }
 
 .end if
-.if (has_ism)
-    @Override
-    public Supplier<Enum<?>> getTransition(Enum<?> arg0, Event arg1) {
-        // TODO Auto-generated method stub
-        return null;
-    }
+.if (state_machine != "")
+    ${state_machine}
 
 .end if
     // subtype interfaces

@@ -17,19 +17,26 @@ public abstract class AbstractObjectInstance implements ObjectInstance {
 
   private static final long serialVersionUID = 1L;
 
-  // TODO dependencies
-  private final Supplier<UUID> idAssigner = null;
-  private final Domain domain = null;
+  protected final Supplier<UUID> idAssigner = IdAssigner::incremental;
+  private Domain domain;
 
   private final UUID instanceId;
-  private boolean active = true;
+  private boolean active;
 
   public AbstractObjectInstance() {
     this.instanceId = idAssigner.get();
+    this.active = false;
   }
 
   public AbstractObjectInstance(final UUID instanceId) {
     this.instanceId = instanceId;
+    this.active = false;
+  }
+
+  @Override
+  public void initialize(final Domain domain) {
+    this.domain = domain;
+    this.active = true;
   }
 
   @Override
@@ -48,8 +55,17 @@ public abstract class AbstractObjectInstance implements ObjectInstance {
     }
   }
 
+  @Override
+  public Object getIdentifier() {
+    return getInstanceId();
+  }
+
   protected boolean isActive() {
     return active;
+  }
+
+  protected void setDomain(final Domain domain) {
+    this.domain = domain;
   }
 
   @Override
@@ -58,18 +74,9 @@ public abstract class AbstractObjectInstance implements ObjectInstance {
   }
 
   @Override
-  public Object getIdentifier() {
-    return InstanceIdentifier.EMPTY_IDENTIFIER;
-  }
-
-  @Override
-  public Object getIdentifier(final int index) {
-    throw new IndexOutOfBoundsException(index);
-  }
-
-  @Override
   public String toString() {
-    return String.format("%s[%.8s]", getClass().getSimpleName(), instanceId);
+    return String.format(
+        "%s[%.8s]", getClass().getSimpleName(), instanceId.getLeastSignificantBits());
   }
 
   @Override
@@ -83,24 +90,32 @@ public abstract class AbstractObjectInstance implements ObjectInstance {
     domain.generate(eventBuilder, target, data);
   }
 
-  @Override
-  public Timer schedule(final Runnable action, final Duration delay) {
-    return domain.schedule(action, delay);
+  public <E extends Event> Timer schedule(
+      Function<Object[], E> eventBuilder, EventTarget target, Duration delay, Object... data) {
+    return domain.schedule(eventBuilder, target, delay, data);
   }
 
-  @Override
-  public Timer schedule(final Runnable action, final Duration delay, final Duration period) {
-    return domain.schedule(action, delay, period);
+  public <E extends Event> Timer schedule(
+      Function<Object[], E> eventBuilder, EventTarget target, Instant expiration, Object... data) {
+    return domain.schedule(eventBuilder, target, expiration, data);
   }
 
-  @Override
-  public Timer schedule(final Runnable action, final Instant expiration) {
-    return domain.schedule(action, expiration);
+  public <E extends Event> Timer scheduleRecurring(
+      Function<Object[], E> eventBuilder,
+      EventTarget target,
+      Duration delay,
+      Duration period,
+      Object... data) {
+    return domain.schedule(eventBuilder, target, delay, period, data);
   }
 
-  @Override
-  public Timer schedule(final Runnable action, final Instant expiration, final Duration period) {
-    return domain.schedule(action, expiration, period);
+  public <E extends Event> Timer scheduleRecurring(
+      Function<Object[], E> eventBuilder,
+      EventTarget target,
+      Instant expiration,
+      Duration period,
+      Object... data) {
+    return domain.schedule(eventBuilder, target, expiration, period, data);
   }
 
   @Override

@@ -10,7 +10,7 @@ public abstract class AbstractEvent implements Event {
   private static final long serialVersionUID = 1L;
 
   // TODO dependencies
-  private final Supplier<UUID> idAssigner = IdAssigner.RANDOM;
+  private final Supplier<UUID> idAssigner = IdAssigner::incremental;
 
   private final UUID eventHandle;
   private final int eventId;

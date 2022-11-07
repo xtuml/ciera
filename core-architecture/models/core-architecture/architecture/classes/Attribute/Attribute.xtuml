@@ -29,9 +29,16 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'init_value = self.default_value;
+	'default_value = self.default_value;
+if default_value == "" then
+  select one type_reference related by self->TypeReference[R424];
+  select one type related by type_reference->Type[R3800];
+  default_value = type.default_value;
+  ::resolveImportsForTypeReference(type_ref:type_reference);
+end if;
+init_value = default_value;
 if self.is_unique and self.type_reference == "UUID" then
-  init_value = "getDomain().getUniqueValue(UUID.class)";
+  init_value = "idAssigner.get()";
   select one type_reference related by self->TypeReference[R424];
   ::resolveImportsForTypeReference(type_ref:type_reference);
 elif self.is_unique and self.type_reference == "int" then
@@ -44,11 +51,6 @@ elif self.is_unique and self.type_reference == "int" then
   T::include(file:"class/t.uniqueintegerinitializer.java");
   init_value = T::body();
   T::pop_buffer();
-elif (init_value == "") then
-  select one type_reference related by self->TypeReference[R424];
-  select one type related by type_reference->Type[R3800];
-  init_value = type.default_value;
-  ::resolveImportsForTypeReference(type_ref:type_reference);
 end if;
 attribute_name = self.name;
 T::include(file:"class/t.attributeinitializer.java");',

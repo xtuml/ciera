@@ -7,6 +7,8 @@ public interface ObjectInstance extends InstanceActionHome, EventTarget, Seriali
 
   UUID getInstanceId();
 
+  void initialize(final Domain domain);
+
   void delete();
 
   default boolean isEmpty() {
@@ -18,6 +20,4 @@ public interface ObjectInstance extends InstanceActionHome, EventTarget, Seriali
   }
 
   Object getIdentifier();
-
-  Object getIdentifier(int index);
 }

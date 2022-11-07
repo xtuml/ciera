@@ -22,6 +22,7 @@ implements Domain {
 
 .end if
     public ${self.name}() {
+        super("${self.name}");
 .if (utility_initializers != "")
         ${utility_initializers}\
 .end if
@@ -48,9 +49,9 @@ implements Domain {
 .end if
 .if (init != "")
     @Override
-    public void initialize() {
+    public void initialize(final ExecutorService runtime) {
+        super.initialize(runtime);
         ${init}\
-        super.initialize();
     }
 
 .end if
