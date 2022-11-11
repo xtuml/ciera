@@ -3,52 +3,45 @@ package io.ciera.runtime;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Date;
-import java.util.TimerTask;
 
+import io.ciera.runtime.api.Event;
+import io.ciera.runtime.api.EventTarget;
 import io.ciera.runtime.api.Timer;
 
-public class EventTimer implements Timer {
+public class DelayedEvent implements Timer {
 
   private static final long serialVersionUID = 1L;
 
-  private static final java.util.Timer internalTimer = new java.util.Timer();
+  private final Event event;
+  private final EventTarget target;
 
-  private final TimerTask action;
   private Instant scheduledExpiration;
   private Instant expiredAt;
 
-  public EventTimer(Runnable action) {
-    this.action =
-        new TimerTask() {
-          @Override
-          public void run() {
-            expiredAt = Instant.now();
-            try {
-              action.run();
-            } catch (RuntimeException e) {
-              e.printStackTrace();
-              System.exit(2);
-            }
-          }
-        };
+  public DelayedEvent(final Event event, final EventTarget target) {
+    this.event = event;
+    this.target = target;
     this.scheduledExpiration = null;
     this.expiredAt = null;
   }
 
-  public EventTimer(Runnable action, Duration period) {
-    this(action);
+  public DelayedEvent(final Event event, final EventTarget target, Duration period) {
+    this(event, target);
+    // TODO period
+  }
+
+  public void expireNow() {
+    target.queueEvent(event);
+    expiredAt = Instant.now();
   }
 
   public Timer schedule(final Duration delay) {
-    scheduledExpiration = Instant.now().plus(delay);
-    internalTimer.schedule(action, delay.toMillis());
-    return this;
+    return schedule(Instant.now().plus(delay));
   }
 
   public Timer schedule(final Instant expiration) {
     scheduledExpiration = expiration;
-    internalTimer.schedule(action, Date.from(expiration));
+    target.queueDelayedEvent(this);
     return this;
   }
 
@@ -57,13 +50,14 @@ public class EventTimer implements Timer {
     if (isExpired()) {
       return expiredAt;
     } else {
-      throw new RuntimeException("Timer has not expired");
+      throw new RuntimeException("Timer has not expired"); // TODO
     }
   }
 
   @Override
   public void cancel() {
-    action.cancel();
+    scheduledExpiration = null;
+    target.cancelDelayedEvent(this);
   }
 
   // a timer is "scheduled" from the point at which it is first scheduled
@@ -85,10 +79,10 @@ public class EventTimer implements Timer {
   @Override
   public Duration remainingTime() {
     if (isScheduled()) {
-      return Duration.of(
-          Instant.now().until(getScheduledExpirationTime(), ChronoUnit.MICROS), ChronoUnit.MICROS);
+      return Duration.ofMillis(
+          Instant.now().until(getScheduledExpirationTime(), ChronoUnit.MILLIS));
     } else {
-      throw new RuntimeException("Timer is not scheduled");
+      throw new RuntimeException("Timer is not scheduled"); // TODO
     }
   }
 
@@ -97,7 +91,7 @@ public class EventTimer implements Timer {
     if (isScheduled()) {
       return scheduledExpiration;
     } else {
-      throw new RuntimeException("Timer has not expired");
+      throw new RuntimeException("Timer is not scheduled"); // TODO
     }
   }
 

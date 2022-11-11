@@ -4,7 +4,7 @@ import java.util.function.Supplier;
 
 import io.ciera.runtime.api.exceptions.CannotHappenException;
 
-public interface StateMachine extends EventTarget {
+public interface StateMachine extends EventTarget, TaskSupplier {
 
   Enum<?> getCurrentState();
 
@@ -17,6 +17,6 @@ public interface StateMachine extends EventTarget {
   }
 
   static Supplier<Enum<?>> ignore(final Enum<?> currentState, final Event event) {
-    return () -> null;
+    return null;
   }
 }

@@ -6,7 +6,9 @@ public interface SystemClock {
 
   Instant getTime();
 
-  void setTime(Instant time);
+  default void setTime(Instant time) {
+    throw new UnsupportedOperationException();
+  }
 
   // TODO set epoch
 }

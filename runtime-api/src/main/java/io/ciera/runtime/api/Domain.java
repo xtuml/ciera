@@ -1,6 +1,5 @@
 package io.ciera.runtime.api;
 
-import java.util.concurrent.ExecutorService;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
@@ -14,10 +13,8 @@ public interface Domain extends InstancePopulation, ActionHome {
   String getName();
 
   // Application initialization functions
-  void initialize(final ExecutorService runtime);
+  void initialize();
 
   <T extends ObjectInstance> T createInstance(
       Supplier<T> constructor, BiConsumer<T, Domain> instanceInitializer);
-
-  ExecutorService getRuntime();
 }

@@ -5,11 +5,8 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.PriorityQueue;
-import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.ExecutorService;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -32,22 +29,14 @@ public abstract class AbstractDomain implements Domain {
 
   // TODO dependencies
   private final String name;
-  private ExecutorService runtime;
 
-  // private final SystemClock clock = null;
   private static final Supplier<Set<ObjectInstance>> objectPopulationSupplier =
       ObjectInstanceSet::new;
 
   private final Map<Class<?>, Set<ObjectInstance>> instancePopulation = new HashMap<>();
-  private final Queue<Timer> timers = new PriorityQueue<>();
 
   public AbstractDomain(final String name) {
     this.name = name;
-  }
-
-  @Override
-  public ExecutorService getRuntime() {
-    return runtime;
   }
 
   @Override
@@ -56,8 +45,7 @@ public abstract class AbstractDomain implements Domain {
   }
 
   @Override
-  public void initialize(final ExecutorService runtime) {
-    this.runtime = runtime;
+  public void initialize() {
     // getContext().getApplication().getLogger().trace("%s initialized", this);
   }
 
@@ -128,25 +116,19 @@ public abstract class AbstractDomain implements Domain {
   @Override
   public <E extends Event> void generate(
       final Function<Object[], E> eventBuilder, final EventTarget target, final Object... data) {
-    target.consumeEvent(eventBuilder.apply(data));
+    target.queueEvent(eventBuilder.apply(data));
   }
 
   @Override
   public <E extends Event> Timer schedule(
       Function<Object[], E> eventBuilder, EventTarget target, Duration delay, Object... data) {
-    final Timer t =
-        new EventTimer(() -> target.consumeEvent(eventBuilder.apply(data))).schedule(delay);
-    // timers.add(t);
-    return t;
+    return new DelayedEvent(eventBuilder.apply(data), target).schedule(delay);
   }
 
   @Override
   public <E extends Event> Timer schedule(
       Function<Object[], E> eventBuilder, EventTarget target, Instant expiration, Object... data) {
-    final Timer t =
-        new EventTimer(() -> target.consumeEvent(eventBuilder.apply(data))).schedule(expiration);
-    // timers.add(t);
-    return t;
+    return new DelayedEvent(eventBuilder.apply(data), target).schedule(expiration);
   }
 
   @Override
@@ -156,10 +138,7 @@ public abstract class AbstractDomain implements Domain {
       Duration delay,
       Duration period,
       Object... data) {
-    final Timer t =
-        new EventTimer(() -> target.consumeEvent(eventBuilder.apply(data)), period).schedule(delay);
-    // timers.add(t);
-    return t;
+    return new DelayedEvent(eventBuilder.apply(data), target, period).schedule(delay);
   }
 
   @Override
@@ -169,11 +148,7 @@ public abstract class AbstractDomain implements Domain {
       Instant expiration,
       Duration period,
       Object... data) {
-    final Timer t =
-        new EventTimer(() -> target.consumeEvent(eventBuilder.apply(data)), period)
-            .schedule(expiration);
-    // timers.add(t);
-    return t;
+    return new DelayedEvent(eventBuilder.apply(data), target, period).schedule(expiration);
   }
 
   @Override

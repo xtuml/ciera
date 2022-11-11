@@ -18,7 +18,7 @@ public class PortMessage implements Message {
   private static final long serialVersionUID = 1L;
 
   // TODO dependencies
-  private final Supplier<UUID> idAssigner = IdAssigner::incremental;
+  private final Supplier<UUID> idAssigner = IdAssigner::random;
 
   public static final int NULL_SIGNAL = 0;
 

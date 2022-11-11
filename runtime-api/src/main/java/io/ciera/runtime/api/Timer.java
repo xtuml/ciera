@@ -13,6 +13,8 @@ public interface Timer extends Comparable<Timer>, Serializable {
 
   void cancel();
 
+  void expireNow();
+
   // a timer is "scheduled" from the point at which it is first scheduled
   // until it either expires and is not rescheduled (non-recurring) or is
   // cancelled

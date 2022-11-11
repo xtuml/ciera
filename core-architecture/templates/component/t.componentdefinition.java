@@ -49,8 +49,8 @@ implements Domain {
 .end if
 .if (init != "")
     @Override
-    public void initialize(final ExecutorService runtime) {
-        super.initialize(runtime);
+    public void initialize() {
+        super.initialize();
         ${init}\
     }
 

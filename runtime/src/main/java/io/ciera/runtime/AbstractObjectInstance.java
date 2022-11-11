@@ -17,7 +17,7 @@ public abstract class AbstractObjectInstance implements ObjectInstance {
 
   private static final long serialVersionUID = 1L;
 
-  protected final Supplier<UUID> idAssigner = IdAssigner::incremental;
+  protected final Supplier<UUID> idAssigner = IdAssigner::random;
   private Domain domain;
 
   private final UUID instanceId;
@@ -75,8 +75,7 @@ public abstract class AbstractObjectInstance implements ObjectInstance {
 
   @Override
   public String toString() {
-    return String.format(
-        "%s[%.8s]", getClass().getSimpleName(), instanceId.getLeastSignificantBits());
+    return String.format("%s[%.8s]", getClass().getSimpleName(), instanceId);
   }
 
   @Override
@@ -119,7 +118,7 @@ public abstract class AbstractObjectInstance implements ObjectInstance {
   }
 
   @Override
-  public void consumeEvent(final Event event) {
+  public void queueEvent(final Event event) {
     // TODO
   }
 }
