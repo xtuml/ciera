@@ -3,7 +3,9 @@ package io.ciera.runtime;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.function.Supplier;
 
+import io.ciera.runtime.api.Architecture;
 import io.ciera.runtime.api.Event;
 import io.ciera.runtime.api.EventTarget;
 import io.ciera.runtime.api.Timer;
@@ -11,6 +13,9 @@ import io.ciera.runtime.api.Timer;
 public class DelayedEvent implements Timer {
 
   private static final long serialVersionUID = 1L;
+
+  private final Architecture arch = Architecture.getInstance();
+  private final Supplier<Instant> clock = arch.getClock();
 
   private final Event event;
   private final EventTarget target;
@@ -32,11 +37,11 @@ public class DelayedEvent implements Timer {
 
   public void expireNow() {
     target.queueEvent(event);
-    expiredAt = Instant.now();
+    expiredAt = clock.get();
   }
 
   public Timer schedule(final Duration delay) {
-    return schedule(Instant.now().plus(delay));
+    return schedule(clock.get().plus(delay));
   }
 
   public Timer schedule(final Instant expiration) {
@@ -79,8 +84,7 @@ public class DelayedEvent implements Timer {
   @Override
   public Duration remainingTime() {
     if (isScheduled()) {
-      return Duration.ofMillis(
-          Instant.now().until(getScheduledExpirationTime(), ChronoUnit.MILLIS));
+      return Duration.ofMillis(clock.get().until(getScheduledExpirationTime(), ChronoUnit.MILLIS));
     } else {
       throw new RuntimeException("Timer is not scheduled"); // TODO
     }

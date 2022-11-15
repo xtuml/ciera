@@ -4,7 +4,7 @@ public interface EventTarget {
 
   void queueEvent(Event event);
 
-  void queueEventToSelf(Event event);
+  void queueAcceleratedEvent(Event event);
 
   void queueDelayedEvent(Timer delayedEvent);
 

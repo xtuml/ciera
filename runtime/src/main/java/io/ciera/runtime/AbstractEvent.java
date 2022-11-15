@@ -1,8 +1,8 @@
 package io.ciera.runtime;
 
 import java.util.UUID;
-import java.util.function.Supplier;
 
+import io.ciera.runtime.api.Architecture;
 import io.ciera.runtime.api.Event;
 
 public abstract class AbstractEvent implements Event {
@@ -10,14 +10,14 @@ public abstract class AbstractEvent implements Event {
   private static final long serialVersionUID = 1L;
 
   // TODO dependencies
-  private final Supplier<UUID> idAssigner = IdAssigner::random;
+  private final Architecture arch = Architecture.getInstance();
 
   private final UUID eventHandle;
   private final int eventId;
   private final Object[] parameterData;
 
   public AbstractEvent(final int eventId, final Object... data) {
-    this.eventHandle = idAssigner.get();
+    this.eventHandle = arch.getIdAssigner().get();
     this.eventId = eventId;
     parameterData = data;
   }

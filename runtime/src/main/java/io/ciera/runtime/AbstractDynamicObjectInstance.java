@@ -17,10 +17,11 @@ public abstract class AbstractDynamicObjectInstance extends AbstractObjectInstan
 
   private static final long serialVersionUID = 1L;
 
-  private Enum<?> currentState = null;
+  private final Supplier<Instant> clock = arch.getClock();
   private final Queue<Event> pendingAcceleratedEvents = new LinkedList<>();
   private final Queue<Event> pendingEvents = new LinkedList<>();
   private final Queue<Timer> delayedEvents = new PriorityQueue<>();
+  private Enum<?> currentState = null;
 
   private boolean inTransition = false;
 
@@ -47,7 +48,7 @@ public abstract class AbstractDynamicObjectInstance extends AbstractObjectInstan
   }
 
   @Override
-  public void queueEventToSelf(final Event event) {
+  public void queueAcceleratedEvent(final Event event) {
     pendingAcceleratedEvents.add(event);
   }
 
@@ -75,7 +76,7 @@ public abstract class AbstractDynamicObjectInstance extends AbstractObjectInstan
   @Override
   public Runnable getTask() {
     while (!delayedEvents.isEmpty()) {
-      if (Instant.now().compareTo(delayedEvents.peek().getScheduledExpirationTime()) >= 0) {
+      if (clock.get().compareTo(delayedEvents.peek().getScheduledExpirationTime()) >= 0) {
         final Timer timer = delayedEvents.poll();
         // long clockError = getTime() - timer.expiration; TODO report if greater than
         // some threshhold

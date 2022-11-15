@@ -120,6 +120,12 @@ public abstract class AbstractDomain implements Domain {
   }
 
   @Override
+  public <E extends Event> void generateAccelerated(
+      final Function<Object[], E> eventBuilder, final EventTarget target, final Object... data) {
+    target.queueAcceleratedEvent(eventBuilder.apply(data));
+  }
+
+  @Override
   public <E extends Event> Timer schedule(
       Function<Object[], E> eventBuilder, EventTarget target, Duration delay, Object... data) {
     return new DelayedEvent(eventBuilder.apply(data), target).schedule(delay);

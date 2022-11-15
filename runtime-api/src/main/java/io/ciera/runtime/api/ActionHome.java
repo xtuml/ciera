@@ -9,6 +9,9 @@ public interface ActionHome {
   <E extends Event> void generate(
       Function<Object[], E> eventBuilder, EventTarget target, Object... data);
 
+  <E extends Event> void generateAccelerated(
+      Function<Object[], E> eventBuilder, EventTarget target, Object... data);
+
   <E extends Event> Timer schedule(
       Function<Object[], E> eventBuilder, EventTarget target, Duration delay, Object... data);
 

@@ -1,14 +1,9 @@
 package io.ciera.runtime.api;
 
 import java.time.Instant;
+import java.util.function.Supplier;
 
-public interface SystemClock {
+public interface SystemClock extends Supplier<Instant> {
 
-  Instant getTime();
-
-  default void setTime(Instant time) {
-    throw new UnsupportedOperationException();
-  }
-
-  // TODO set epoch
+  default void set(Instant newTime) {}
 }

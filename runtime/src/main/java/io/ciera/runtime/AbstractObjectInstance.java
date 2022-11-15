@@ -4,8 +4,8 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.UUID;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
+import io.ciera.runtime.api.Architecture;
 import io.ciera.runtime.api.Domain;
 import io.ciera.runtime.api.Event;
 import io.ciera.runtime.api.EventTarget;
@@ -17,14 +17,14 @@ public abstract class AbstractObjectInstance implements ObjectInstance {
 
   private static final long serialVersionUID = 1L;
 
-  protected final Supplier<UUID> idAssigner = IdAssigner::random;
+  protected final Architecture arch = Architecture.getInstance();
   private Domain domain;
 
   private final UUID instanceId;
   private boolean active;
 
   public AbstractObjectInstance() {
-    this.instanceId = idAssigner.get();
+    this.instanceId = arch.getIdAssigner().get();
     this.active = false;
   }
 
@@ -87,6 +87,12 @@ public abstract class AbstractObjectInstance implements ObjectInstance {
   public <E extends Event> void generate(
       final Function<Object[], E> eventBuilder, final EventTarget target, final Object... data) {
     domain.generate(eventBuilder, target, data);
+  }
+
+  @Override
+  public <E extends Event> void generateAccelerated(
+      final Function<Object[], E> eventBuilder, final EventTarget target, final Object... data) {
+    domain.generateAccelerated(eventBuilder, target, data);
   }
 
   public <E extends Event> Timer schedule(
