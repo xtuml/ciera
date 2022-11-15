@@ -1,9 +1,11 @@
-import io.ciera.runtime.api.Domain;
+import io.ciera.runtime.SimulatedClock;
+import io.ciera.runtime.api.SystemClock;
 
 module io.ciera.runtime {
   exports io.ciera.runtime;
 
-  uses Domain;
+  provides SystemClock with
+      SimulatedClock;
 
   requires transitive io.ciera.runtime.api;
   requires transitive java.logging;

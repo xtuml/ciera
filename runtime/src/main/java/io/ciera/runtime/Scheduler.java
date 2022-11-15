@@ -3,12 +3,16 @@ package io.ciera.runtime;
 import java.util.Comparator;
 import java.util.stream.Stream;
 
+import io.ciera.runtime.api.Architecture;
 import io.ciera.runtime.api.Domain;
+import io.ciera.runtime.api.SystemClock;
 import io.ciera.runtime.api.TaskSupplier;
 
 public class Scheduler {
 
   private final Domain[] domains;
+  private final Architecture arch = Architecture.getInstance();
+  private final SystemClock clock = arch.getClock();
 
   public Scheduler(final Domain... domains) {
     this.domains = domains;
@@ -25,7 +29,7 @@ public class Scheduler {
               .map(TaskSupplier::millisToNextTask)
               .min(Comparator.naturalOrder())
               .orElse(Long.MAX_VALUE);
-      Thread.sleep(waitTime);
+      clock.sleep(waitTime);
       task = getTask();
     }
     return wrapTask(task);
