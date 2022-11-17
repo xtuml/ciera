@@ -8,5 +8,4 @@ module io.ciera.runtime {
       SimulatedClock;
 
   requires transitive io.ciera.runtime.api;
-  requires transitive java.logging;
 }

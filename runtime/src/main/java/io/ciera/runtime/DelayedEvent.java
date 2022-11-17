@@ -3,6 +3,7 @@ package io.ciera.runtime;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import io.ciera.runtime.api.Architecture;
@@ -17,27 +18,40 @@ public class DelayedEvent implements Timer {
   private final Architecture arch = Architecture.getInstance();
   private final Supplier<Instant> clock = arch.getClock();
 
-  private final Event event;
+  private final Function<Object[], Event> eventBuilder;
+  private final Object[] eventData;
   private final EventTarget target;
+  private final Duration period;
 
-  private Instant scheduledExpiration;
-  private Instant expiredAt;
+  private Instant scheduledExpiration = null;
+  private Instant expiredAt = null;
 
-  public DelayedEvent(final Event event, final EventTarget target) {
-    this.event = event;
+  public DelayedEvent(
+      final Function<Object[], Event> eventBuilder,
+      final Object[] eventData,
+      final EventTarget target,
+      final Duration period) {
+    this.eventBuilder = eventBuilder;
+    this.eventData = eventData;
     this.target = target;
-    this.scheduledExpiration = null;
-    this.expiredAt = null;
+    this.period = period;
   }
 
-  public DelayedEvent(final Event event, final EventTarget target, Duration period) {
-    this(event, target);
-    // TODO period
+  public DelayedEvent(
+      final Function<Object[], Event> eventBuilder,
+      final Object[] eventData,
+      final EventTarget target) {
+    this(eventBuilder, eventData, target, null);
   }
 
   public void expireNow() {
-    target.queueEvent(event);
+    target.queueEvent(eventBuilder.apply(eventData));
     expiredAt = clock.get();
+    if (period != null) {
+      schedule(scheduledExpiration.plus(period)); // reschedule recurring timer
+    } else {
+      scheduledExpiration = null;
+    }
   }
 
   public Timer schedule(final Duration delay) {
@@ -51,17 +65,9 @@ public class DelayedEvent implements Timer {
   }
 
   @Override
-  public Instant getExpiration() {
-    if (isExpired()) {
-      return expiredAt;
-    } else {
-      throw new RuntimeException("Timer has not expired"); // TODO
-    }
-  }
-
-  @Override
   public void cancel() {
     scheduledExpiration = null;
+    expiredAt = null;
     target.cancelDelayedEvent(this);
   }
 
@@ -75,7 +81,7 @@ public class DelayedEvent implements Timer {
 
   // a timer is expired from the point where it fires the first time until it
   // is cancelled. after the first expiration, a recurring timer is both expired
-  // and cancelled.
+  // and scheduled.
   @Override
   public boolean isExpired() {
     return expiredAt != null;
@@ -103,7 +109,11 @@ public class DelayedEvent implements Timer {
   // expiration)
   @Override
   public Instant getLastExpirationTime() {
-    return getExpiration();
+    if (isExpired()) {
+      return expiredAt;
+    } else {
+      throw new RuntimeException("Timer has not expired"); // TODO
+    }
   }
 
   @Override

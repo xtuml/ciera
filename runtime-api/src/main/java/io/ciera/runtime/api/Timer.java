@@ -9,11 +9,11 @@ public interface Timer extends Comparable<Timer>, Serializable {
   // TODO
   Timer DEFAULT = null;
 
-  Instant getExpiration();
-
   void cancel();
 
   void expireNow();
+
+  Duration remainingTime();
 
   // a timer is "scheduled" from the point at which it is first scheduled
   // until it either expires and is not rescheduled (non-recurring) or is
@@ -24,8 +24,6 @@ public interface Timer extends Comparable<Timer>, Serializable {
   // is cancelled. after the first expiration, a recurring timer is both expired
   // and cancelled.
   boolean isExpired();
-
-  Duration remainingTime();
 
   Instant getScheduledExpirationTime();
 

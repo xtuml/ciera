@@ -4,29 +4,34 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.function.Function;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public interface ActionHome {
 
-  <E extends Event> void generate(
-      Function<Object[], E> eventBuilder, EventTarget target, Object... data);
+  void generate(Function<Object[], Event> eventBuilder, EventTarget target, Object... data);
 
-  <E extends Event> void generateAccelerated(
-      Function<Object[], E> eventBuilder, EventTarget target, Object... data);
+  void generateAccelerated(
+      Function<Object[], Event> eventBuilder, EventTarget target, Object... data);
 
-  <E extends Event> Timer schedule(
-      Function<Object[], E> eventBuilder, EventTarget target, Duration delay, Object... data);
+  Timer schedule(
+      Function<Object[], Event> eventBuilder, EventTarget target, Duration delay, Object... data);
 
-  <E extends Event> Timer schedule(
-      Function<Object[], E> eventBuilder, EventTarget target, Instant expiration, Object... data);
+  Timer schedule(
+      Function<Object[], Event> eventBuilder,
+      EventTarget target,
+      Instant expiration,
+      Object... data);
 
-  <E extends Event> Timer scheduleRecurring(
-      Function<Object[], E> eventBuilder,
+  Timer scheduleRecurring(
+      Function<Object[], Event> eventBuilder,
       EventTarget target,
       Duration delay,
       Duration period,
       Object... data);
 
-  <E extends Event> Timer scheduleRecurring(
-      Function<Object[], E> eventBuilder,
+  Timer scheduleRecurring(
+      Function<Object[], Event> eventBuilder,
       EventTarget target,
       Instant expiration,
       Duration period,
@@ -34,5 +39,7 @@ public interface ActionHome {
 
   Domain getDomain();
 
-  Domain getDomain(final String domainName);
+  default Logger getLogger() {
+    return LoggerFactory.getLogger(getClass());
+  }
 }

@@ -15,11 +15,16 @@ import java.util.UUID;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public final class Architecture {
 
   private static final Architecture INSTANCE = new Architecture();
 
   public static final UUID NULL_ID = new UUID(0, 0);
+
+  private final Logger logger = LoggerFactory.getLogger(getClass());
 
   @ArchService private IdAssigner idAssigner = UUID::randomUUID;
   @ArchService private SystemClock clock = Instant::now;
@@ -40,7 +45,7 @@ public final class Architecture {
     try (final InputStream is = new FileInputStream(propertiesFile.toFile())) {
       props.load(is);
     } catch (IOException e) {
-      System.err.println("Failed to load properties file");
+      logger.error("Failed to load properties file");
       e.printStackTrace();
     }
     Stream.of(getClass().getDeclaredFields())
@@ -60,13 +65,12 @@ public final class Architecture {
               if (service != null) {
                 try {
                   f.set(this, service);
-                  System.out.println(
-                      "ARCH: "
-                          + f.getType().getName()
-                          + " supplied by "
-                          + service.getClass().getName());
+                  logger.debug(
+                      "ARCH: {} supplied by {}",
+                      f.getType().getName(),
+                      service.getClass().getName());
                 } catch (IllegalArgumentException | IllegalAccessException e) {
-                  System.err.println("Failed to configure architecture service");
+                  logger.error("Failed to configure architecture service");
                   e.printStackTrace();
                 }
               }

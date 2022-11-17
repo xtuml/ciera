@@ -114,58 +114,59 @@ public abstract class AbstractDomain implements Domain {
   }
 
   @Override
-  public <E extends Event> void generate(
-      final Function<Object[], E> eventBuilder, final EventTarget target, final Object... data) {
+  public void generate(
+      final Function<Object[], Event> eventBuilder,
+      final EventTarget target,
+      final Object... data) {
     target.queueEvent(eventBuilder.apply(data));
   }
 
   @Override
-  public <E extends Event> void generateAccelerated(
-      final Function<Object[], E> eventBuilder, final EventTarget target, final Object... data) {
+  public void generateAccelerated(
+      final Function<Object[], Event> eventBuilder,
+      final EventTarget target,
+      final Object... data) {
     target.queueAcceleratedEvent(eventBuilder.apply(data));
   }
 
   @Override
-  public <E extends Event> Timer schedule(
-      Function<Object[], E> eventBuilder, EventTarget target, Duration delay, Object... data) {
-    return new DelayedEvent(eventBuilder.apply(data), target).schedule(delay);
+  public Timer schedule(
+      Function<Object[], Event> eventBuilder, EventTarget target, Duration delay, Object... data) {
+    return new DelayedEvent(eventBuilder, data, target).schedule(delay);
   }
 
   @Override
-  public <E extends Event> Timer schedule(
-      Function<Object[], E> eventBuilder, EventTarget target, Instant expiration, Object... data) {
-    return new DelayedEvent(eventBuilder.apply(data), target).schedule(expiration);
+  public Timer schedule(
+      Function<Object[], Event> eventBuilder,
+      EventTarget target,
+      Instant expiration,
+      Object... data) {
+    return new DelayedEvent(eventBuilder, data, target).schedule(expiration);
   }
 
   @Override
-  public <E extends Event> Timer scheduleRecurring(
-      Function<Object[], E> eventBuilder,
+  public Timer scheduleRecurring(
+      Function<Object[], Event> eventBuilder,
       EventTarget target,
       Duration delay,
       Duration period,
       Object... data) {
-    return new DelayedEvent(eventBuilder.apply(data), target, period).schedule(delay);
+    return new DelayedEvent(eventBuilder, data, target, period).schedule(delay);
   }
 
   @Override
-  public <E extends Event> Timer scheduleRecurring(
-      Function<Object[], E> eventBuilder,
+  public Timer scheduleRecurring(
+      Function<Object[], Event> eventBuilder,
       EventTarget target,
       Instant expiration,
       Duration period,
       Object... data) {
-    return new DelayedEvent(eventBuilder.apply(data), target, period).schedule(expiration);
+    return new DelayedEvent(eventBuilder, data, target, period).schedule(expiration);
   }
 
   @Override
   public Domain getDomain() {
     return this;
-  }
-
-  @Override
-  public Domain getDomain(final String domainName) {
-    // TODO
-    return null;
   }
 
   @Override

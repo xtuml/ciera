@@ -8,4 +8,6 @@ module io.ciera.runtime.api {
 
   uses IdAssigner;
   uses SystemClock;
+
+  requires transitive org.slf4j;
 }

@@ -79,34 +79,39 @@ public abstract class AbstractObjectInstance implements ObjectInstance {
   }
 
   @Override
-  public Domain getDomain(String name) {
-    return domain.getDomain(name);
-  }
-
-  @Override
-  public <E extends Event> void generate(
-      final Function<Object[], E> eventBuilder, final EventTarget target, final Object... data) {
+  public void generate(
+      final Function<Object[], Event> eventBuilder,
+      final EventTarget target,
+      final Object... data) {
     domain.generate(eventBuilder, target, data);
   }
 
   @Override
-  public <E extends Event> void generateAccelerated(
-      final Function<Object[], E> eventBuilder, final EventTarget target, final Object... data) {
+  public void generateAccelerated(
+      final Function<Object[], Event> eventBuilder,
+      final EventTarget target,
+      final Object... data) {
     domain.generateAccelerated(eventBuilder, target, data);
   }
 
-  public <E extends Event> Timer schedule(
-      Function<Object[], E> eventBuilder, EventTarget target, Duration delay, Object... data) {
+  @Override
+  public Timer schedule(
+      Function<Object[], Event> eventBuilder, EventTarget target, Duration delay, Object... data) {
     return domain.schedule(eventBuilder, target, delay, data);
   }
 
-  public <E extends Event> Timer schedule(
-      Function<Object[], E> eventBuilder, EventTarget target, Instant expiration, Object... data) {
+  @Override
+  public Timer schedule(
+      Function<Object[], Event> eventBuilder,
+      EventTarget target,
+      Instant expiration,
+      Object... data) {
     return domain.schedule(eventBuilder, target, expiration, data);
   }
 
-  public <E extends Event> Timer scheduleRecurring(
-      Function<Object[], E> eventBuilder,
+  @Override
+  public Timer scheduleRecurring(
+      Function<Object[], Event> eventBuilder,
       EventTarget target,
       Duration delay,
       Duration period,
@@ -114,8 +119,9 @@ public abstract class AbstractObjectInstance implements ObjectInstance {
     return domain.schedule(eventBuilder, target, delay, period, data);
   }
 
-  public <E extends Event> Timer scheduleRecurring(
-      Function<Object[], E> eventBuilder,
+  @Override
+  public Timer scheduleRecurring(
+      Function<Object[], Event> eventBuilder,
       EventTarget target,
       Instant expiration,
       Duration period,

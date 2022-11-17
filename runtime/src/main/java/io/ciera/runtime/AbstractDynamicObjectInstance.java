@@ -7,6 +7,9 @@ import java.util.Queue;
 import java.util.UUID;
 import java.util.function.Supplier;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.ciera.runtime.api.Domain;
 import io.ciera.runtime.api.DynamicObjectInstance;
 import io.ciera.runtime.api.Event;
@@ -18,11 +21,13 @@ public abstract class AbstractDynamicObjectInstance extends AbstractObjectInstan
   private static final long serialVersionUID = 1L;
 
   private final Supplier<Instant> clock = arch.getClock();
+  private final Logger logger = LoggerFactory.getLogger(getClass());
+
   private final Queue<Event> pendingAcceleratedEvents = new LinkedList<>();
   private final Queue<Event> pendingEvents = new LinkedList<>();
   private final Queue<Timer> delayedEvents = new PriorityQueue<>();
-  private Enum<?> currentState = null;
 
+  private Enum<?> currentState = null;
   private boolean inTransition = false;
 
   public AbstractDynamicObjectInstance() {}
@@ -63,13 +68,13 @@ public abstract class AbstractDynamicObjectInstance extends AbstractObjectInstan
   }
 
   private void handleEvent(final Event event) {
-    System.out.println("TXN: " + currentState + ", " + event);
+    logger.info("TXN: {}, {}", currentState, event);
     final Supplier<Enum<?>> transition = getTransition(currentState, event);
     if (transition != null) {
       currentState = transition.get();
-      System.out.println("TXN: Transition complete: " + currentState);
+      logger.info("TXN: Transition complete: {}", currentState);
     } else {
-      System.out.println("TXN: Event ignored.");
+      logger.info("TXN: Event ignored.");
     }
   }
 
