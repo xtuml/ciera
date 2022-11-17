@@ -29,7 +29,9 @@ public class Scheduler {
               .map(TaskSupplier::millisToNextTask)
               .min(Comparator.naturalOrder())
               .orElse(Long.MAX_VALUE);
-      clock.sleep(waitTime);
+      if (waitTime > 0) {
+        clock.sleep(waitTime);
+      }
       task = getTask();
     }
     return wrapTask(task);

@@ -117,8 +117,10 @@ if input_type_ref.type_reference != output_type_ref.type_reference then
     // subtype to supertpe conversion
     elif (::isSubtypeOf(type1:input_base_type, type2:output_base_type) and output_type_ref.primitive) then
       if (input_type_ref.type_reference == "Duration") then
+        // TODO this should probably be milliseconds, but it is here to keep compatibility
+        T::append(s:"(");
         T::append(s:base_expr);
-        T::append(s:".toMillis()");
+        T::append(s:".toNanos() / 1000L)");
       else
         T::include(file:"expression/t.converttosupertype.primitive.java");
       end if;

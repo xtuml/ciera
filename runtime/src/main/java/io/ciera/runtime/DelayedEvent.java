@@ -91,6 +91,8 @@ public class DelayedEvent implements Timer {
   public Duration remainingTime() {
     if (isScheduled()) {
       return Duration.ofMillis(clock.get().until(getScheduledExpirationTime(), ChronoUnit.MILLIS));
+    } else if (isExpired()) {
+      return Duration.ZERO;
     } else {
       throw new RuntimeException("Timer is not scheduled"); // TODO
     }
