@@ -9,23 +9,22 @@ public abstract class AbstractEvent implements Event {
 
   private static final long serialVersionUID = 1L;
 
-  // TODO dependencies
   private final Architecture arch = Architecture.getInstance();
 
   private final UUID eventHandle;
   private final int eventId;
-  private final Object[] parameterData;
+  private final Object[] data;
 
   public AbstractEvent(final int eventId, final Object... data) {
     this.eventHandle = arch.getIdAssigner().get();
     this.eventId = eventId;
-    parameterData = data;
+    this.data = data;
   }
 
   public AbstractEvent(final UUID eventHandle, final int eventId, final Object... data) {
     this.eventHandle = eventHandle;
     this.eventId = eventId;
-    parameterData = data;
+    this.data = data;
   }
 
   @Override
@@ -40,8 +39,8 @@ public abstract class AbstractEvent implements Event {
 
   @Override
   public Object getData(final int index) {
-    if (index >= 0 && index < parameterData.length) {
-      return parameterData[index];
+    if (index >= 0 && index < data.length) {
+      return data[index];
     } else {
       throw new IndexOutOfBoundsException(index);
     }

@@ -27,7 +27,6 @@ import io.ciera.runtime.api.exceptions.InstancePopulationException;
  */
 public abstract class AbstractDomain implements Domain {
 
-  // TODO dependencies
   private final String name;
 
   private static final Supplier<Set<ObjectInstance>> objectPopulationSupplier =
