@@ -1,37 +1,35 @@
 package io.ciera.runtime.util;
 
-import io.ciera.runtime.api.application.Application;
-import io.ciera.runtime.api.domain.Domain;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class LOG {
 
-  private final Application app;
+  private final Logger logger = LoggerFactory.getLogger(getClass());
 
-  public LOG(Domain domain) {
-    app = domain.getContext().getApplication();
-  }
+  public LOG(Object domain) {}
 
   public void LogFailure(final String message) {
-    app.getLogger().error(message);
+    logger.error(message);
   }
 
   public void LogInfo(final String message) {
-    app.getLogger().info(message);
+    logger.info(message);
   }
 
   public void LogSuccess(final String message) {
-    app.getLogger().info(message);
+    logger.info(message);
   }
 
   public void LogInteger(final int message) {
-    app.getLogger().info("%d", message);
+    logger.info("%d", message);
   }
 
   public void LogReal(final String message, final double r) {
-    app.getLogger().info("%s %f", message, r);
+    logger.info("%s %f", message, r);
   }
 
   public void LogTime(final String message, final long t) {
-    app.getLogger().info("%s %d", message, t);
+    logger.info("%s %d", message, t);
   }
 }

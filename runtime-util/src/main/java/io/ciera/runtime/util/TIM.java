@@ -1,89 +1,76 @@
 package io.ciera.runtime.util;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
-import java.util.Calendar;
-import java.util.TimeZone;
 
-import io.ciera.runtime.api.application.Application;
-import io.ciera.runtime.api.application.Event;
-import io.ciera.runtime.api.time.Timer;
-import io.ciera.runtime.api.types.TimeStamp;
+import io.ciera.runtime.api.Architecture;
+import io.ciera.runtime.api.Event;
+import io.ciera.runtime.api.SystemClock;
+import io.ciera.runtime.api.Timer;
 
 public class TIM {
 
-  private final Application app;
+  // TODO implement TIM methods
 
-  public TIM(io.ciera.runtime.api.domain.Domain domain) {
-    app = domain.getContext().getApplication();
+  private final Architecture arch = Architecture.getInstance();
+  private final SystemClock clock = arch.getClock();
+
+  public TIM(Object domain) {}
+
+  public Instant advance_time(final long microseconds) {
+    throw new UnsupportedOperationException();
   }
 
-  public TimeStamp advance_time(final long microseconds) {
-    app.getClock().setTime(app.getClock().getTime() + microseconds);
-    return new TimeStamp(app.getClock().getTime());
-  }
-
-  public TimeStamp create_date(
+  public Instant create_date(
       final int day,
       final int hour,
       final int minute,
       final int month,
       final int second,
       final int year) {
-    Calendar cal = Calendar.getInstance();
-    cal.set(year, month - 1, day, hour, minute, second);
-    return null; // TODO
+    throw new UnsupportedOperationException();
   }
 
-  public TimeStamp current_clock() {
-    return new TimeStamp(app.getClock().getTime());
+  public Instant current_clock() {
+    return clock.get();
   }
 
-  public TimeStamp current_date() {
-    return TimeStamp.now(app.getClock());
+  public Instant current_date() {
+    return clock.get();
   }
 
   public int current_seconds() {
-    // return ModelType.castTo(Integer.class, current_clock().divide(1000000000l));
-    return 0; // TODO
+    throw new UnsupportedOperationException();
   }
 
-  public int get_day(final TimeStamp date) {
-    return date.getDay();
+  public int get_day(final Instant date) {
+    throw new UnsupportedOperationException();
   }
 
-  public int get_month(final TimeStamp date) {
-    return date.getMonth();
+  public int get_month(final Instant date) {
+    throw new UnsupportedOperationException();
   }
 
-  public int get_year(final TimeStamp date) {
-    return date.getYear();
+  public int get_year(final Instant date) {
+    throw new UnsupportedOperationException();
   }
 
-  public int get_hour(final TimeStamp date) {
-    return date.getHour();
+  public int get_hour(final Instant date) {
+    throw new UnsupportedOperationException();
   }
 
-  public int get_minute(final TimeStamp date) {
-    return date.getMinute();
+  public int get_minute(final Instant date) {
+    throw new UnsupportedOperationException();
   }
 
-  public int get_second(final TimeStamp date) {
-    return date.getSecond();
+  public int get_second(final Instant date) {
+    throw new UnsupportedOperationException();
   }
 
   public void set_epoch(final int day, final int month, final int year) {
-    Calendar cal = Calendar.getInstance();
-    cal.setTimeZone(TimeZone.getTimeZone("UTC"));
-    cal.set(year, month - 1, day, 0, 0, 0);
-    cal.set(Calendar.MILLISECOND, 0);
-    app.getClock().setEpoch(Instant.ofEpochMilli(cal.getTimeInMillis()));
+    throw new UnsupportedOperationException();
   }
 
-  public TimeStamp set_time(
+  public Instant set_time(
       final int year,
       final int month,
       final int day,
@@ -91,25 +78,11 @@ public class TIM {
       final int minute,
       final int second,
       final int microsecond) {
-    Calendar cal = Calendar.getInstance();
-    cal.setTimeZone(TimeZone.getTimeZone("UTC"));
-    cal.set(year, month - 1, day, hour, minute, second);
-    cal.set(Calendar.MILLISECOND, 0);
-    long unixMicros = (cal.getTimeInMillis() * 1000L) + microsecond;
-    long systemMicros =
-        unixMicros - Instant.EPOCH.until(app.getClock().getEpoch(), ChronoUnit.MICROS);
-    app.getClock().setTime(systemMicros * 1000l);
-    return new TimeStamp(app.getClock().getTime());
+    throw new UnsupportedOperationException();
   }
 
-  public TimeStamp time_of_day(final long timeval) {
-    long unixNanos =
-        app.getClock().getTime() - app.getClock().getEpoch().until(Instant.EPOCH, ChronoUnit.NANOS);
-    Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-    cal.set(Calendar.HOUR_OF_DAY, 0);
-    cal.set(Calendar.MINUTE, 0);
-    cal.set(Calendar.SECOND, 0);
-    return new TimeStamp(unixNanos - (cal.getTimeInMillis() * 1000000L));
+  public Instant time_of_day(final long timeval) {
+    throw new UnsupportedOperationException();
   }
 
   @Deprecated(since = "3.0.0")
@@ -147,15 +120,11 @@ public class TIM {
         "'TIM::timer_start_recurring' is deprecated. Use 'ExecutionContext.scheduleEvent'");
   }
 
-  public String timestamp_format(final TimeStamp timestamp, final String format) {
-    long unixNanos =
-        timestamp.getValue() - app.getClock().getEpoch().until(Instant.EPOCH, ChronoUnit.NANOS);
-    return LocalDateTime.ofEpochSecond(
-            unixNanos / 1000000000L, (int) (unixNanos % 1000000000L), ZoneOffset.UTC)
-        .format(DateTimeFormatter.ofPattern(format));
+  public String timestamp_format(final Instant timestamp, final String format) {
+    throw new UnsupportedOperationException();
   }
 
-  public String timestamp_to_string(final TimeStamp timestamp) {
+  public String timestamp_to_string(final Instant timestamp) {
     return timestamp.toString();
   }
 }

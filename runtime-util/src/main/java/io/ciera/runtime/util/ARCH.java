@@ -1,16 +1,14 @@
 package io.ciera.runtime.util;
 
-import io.ciera.runtime.api.domain.Domain;
+import io.ciera.runtime.api.Architecture;
 
 public class ARCH {
 
-  private final Domain domain;
+  private final Architecture arch = Architecture.getInstance();
 
-  public ARCH(Domain domain) {
-    this.domain = domain;
-  }
+  public ARCH(Object domain) {}
 
   public void shutdown() {
-    domain.getContext().halt();
+    arch.shutdown();
   }
 }

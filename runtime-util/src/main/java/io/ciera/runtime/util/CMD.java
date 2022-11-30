@@ -1,8 +1,8 @@
 package io.ciera.runtime.util;
 
-import io.ciera.runtime.application.CommandLine;
-import io.ciera.runtime.application.CommandLine.Conditionality;
-import io.ciera.runtime.application.CommandLine.Multiplicity;
+import io.ciera.runtime.CommandLine;
+import io.ciera.runtime.CommandLine.Conditionality;
+import io.ciera.runtime.CommandLine.Multiplicity;
 
 public class CMD {
 

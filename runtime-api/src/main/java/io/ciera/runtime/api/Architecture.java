@@ -26,6 +26,8 @@ public final class Architecture {
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
+  private boolean isShutdown = false;
+
   @ArchService private IdAssigner idAssigner = UUID::randomUUID;
   @ArchService private SystemClock clock = Instant::now;
 
@@ -75,6 +77,14 @@ public final class Architecture {
                 }
               }
             });
+  }
+
+  public void shutdown() {
+    isShutdown = true;
+  }
+
+  public boolean isShutdown() {
+    return isShutdown;
   }
 
   public static Architecture getInstance() {

@@ -1,10 +1,8 @@
 package io.ciera.runtime.util;
 
-import io.ciera.runtime.api.domain.Domain;
-
 public class STRING {
 
-  public STRING(Domain domain) {}
+  public STRING(Object domain) {}
 
   public String itoa(final int i) {
     return Integer.toString(i);

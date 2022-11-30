@@ -1,6 +1,6 @@
 package io.ciera.runtime.util;
 
-import io.ciera.runtime.api.domain.Domain;
+import io.ciera.runtime.api.Domain;
 
 public class A {
 
