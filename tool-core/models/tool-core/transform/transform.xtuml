@@ -977,6 +977,14 @@ if (param.pass == 1) then
     // TODO bad
   end if;
   
+  // TODO remove this when you figure out how to export just the component
+  select any export_package related by mod->ExportedPackage[R5750] where selected.name == comp_def.package;
+  if empty export_package then
+    create object instance export_package of ExportedPackage;
+    export_package.name = comp_def.package;
+    relate export_package to mod across R5750;
+  end if;
+  
 elif (param.pass == 3) then
 
   // transform ports

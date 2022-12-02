@@ -4,9 +4,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.function.Function;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import io.ciera.runtime.api.Domain;
 import io.ciera.runtime.api.Event;
 import io.ciera.runtime.api.EventTarget;
@@ -14,8 +11,6 @@ import io.ciera.runtime.api.Port;
 import io.ciera.runtime.api.Timer;
 
 public abstract class AbstractPort implements Port {
-
-  private final Logger logger = LoggerFactory.getLogger(getClass());
 
   private final String name;
   private final Domain domain;
@@ -35,11 +30,6 @@ public abstract class AbstractPort implements Port {
   @Override
   public Port getPeer() {
     return peer;
-  }
-
-  @Override
-  public void sendBytes(byte[] bytes) {
-    logger.debug("Sending bytes: {}", bytes.length);
   }
 
   @Override
@@ -96,5 +86,10 @@ public abstract class AbstractPort implements Port {
   @Override
   public String toString() {
     return "Port[" + domain.getName() + "::" + name + "]";
+  }
+
+  public static void satisfy(Port a, Port b) {
+    a.setPeer(b);
+    b.setPeer(a);
   }
 }

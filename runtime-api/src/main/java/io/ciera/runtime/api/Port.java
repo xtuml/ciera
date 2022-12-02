@@ -9,6 +9,4 @@ public interface Port extends ActionHome {
   default boolean satisfied() {
     return getPeer() != null;
   }
-
-  void sendBytes(byte[] bytes);
 }

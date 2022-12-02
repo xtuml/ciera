@@ -12,10 +12,6 @@ ${body}
 return \
   .end if
 ((${self.iface_name}) getPeer()).${self.msg_name}(${invocation_parameter_list});
-    } else {
-        ${body}
-        // TODO serialize message
-        sendBytes(new byte[0]);
-    }
+    } else ${body}
 }
 .end if
