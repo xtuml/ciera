@@ -55,26 +55,6 @@ implements Domain {
     }
 
 .end if
-.if (port_handlers != "")
-    @Override
-    public MessageTarget getMessageTarget(Class<? extends MessageTarget> targetClass) {
-        ${port_handlers}else {
-            return super.getMessageTarget(targetClass);
-        }
-    }
-
-.end if
-.if (port_handlers2 != "")
-    @Override
-    public Port getPort(final String portName) {
-        switch (portName) {
-        ${port_handlers2}\
-        default:
-            return super.getPort(portName);
-        }
-    }
-
-.end if
 .if (csm_handlers != "")
     @Override
     public void consumeEvent(Event event) {

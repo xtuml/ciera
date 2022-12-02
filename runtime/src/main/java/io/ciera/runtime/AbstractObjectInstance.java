@@ -130,7 +130,14 @@ public abstract class AbstractObjectInstance implements ObjectInstance {
   }
 
   @Override
-  public void queueEvent(final Event event) {
-    // TODO
-  }
+  public void queueEvent(Event event) {} // TODO
+
+  @Override
+  public void queueAcceleratedEvent(Event event) {} // TODO
+
+  @Override
+  public void queueDelayedEvent(Timer delayedEvent) {} // TODO
+
+  @Override
+  public void cancelDelayedEvent(Timer delayedEvent) {} // TODO
 }

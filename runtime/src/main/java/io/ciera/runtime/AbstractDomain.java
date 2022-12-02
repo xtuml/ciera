@@ -150,7 +150,8 @@ public abstract class AbstractDomain implements Domain {
       Duration delay,
       Duration period,
       Object... data) {
-    return new DelayedEvent(eventBuilder, data, target, period).schedule(delay);
+    return new DelayedEvent(eventBuilder, data, target, period != null ? period : delay)
+        .schedule(delay);
   }
 
   @Override

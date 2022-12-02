@@ -65,10 +65,15 @@ public class DelayedEvent implements Timer {
   }
 
   @Override
-  public void cancel() {
-    scheduledExpiration = null;
-    expiredAt = null;
-    target.cancelDelayedEvent(this);
+  public boolean cancel() {
+    if (isScheduled()) {
+      scheduledExpiration = null;
+      expiredAt = null;
+      target.cancelDelayedEvent(this);
+      return true;
+    } else {
+      return false;
+    }
   }
 
   // a timer is "scheduled" from the point at which it is first scheduled

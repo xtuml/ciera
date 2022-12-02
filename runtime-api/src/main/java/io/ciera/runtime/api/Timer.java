@@ -9,7 +9,7 @@ public interface Timer extends Comparable<Timer>, Serializable {
   // TODO
   Timer DEFAULT = null;
 
-  void cancel();
+  boolean cancel();
 
   void expireNow();
 

@@ -27,21 +27,6 @@ implements ${self.iface_name} \
     // outbound messages
     ${outbound_message_block}\
 
-.if (message_switch_block != "")
-    @Override
-    public void deliver(Message message) {
-        if (message != null) {
-            switch (message.getId()) {
-            ${message_switch_block}\
-            default:
-                throw new PortMessageException("Message not implemented by this port", getDomain(), this, message);
-            }
-        } else {
-            throw new PortMessageException("Cannot deliver null message", getDomain(), this, message);
-        }
-    }
-
-.end if
     @Override
     public ${self.comp_name} getDomain() {
         return (${self.comp_name}) super.getDomain();
