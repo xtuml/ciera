@@ -21,11 +21,7 @@ public class SimulatedClock implements SystemClock {
   }
 
   @Override
-  public void sleep(long millis) throws InterruptedException {
-    if (millis < Long.MAX_VALUE) {
-      set(get().plusMillis(millis));
-    } else {
-      Thread.sleep(millis);
-    }
+  public void waitOn(Object monitor, long millis) throws InterruptedException {
+    set(get().plusMillis(millis));
   }
 }

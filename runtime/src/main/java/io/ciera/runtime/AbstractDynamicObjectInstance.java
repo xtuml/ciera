@@ -114,6 +114,6 @@ public abstract class AbstractDynamicObjectInstance extends AbstractObjectInstan
   public long millisToNextTask() {
     return !delayedEvents.isEmpty()
         ? Long.max(delayedEvents.peek().remainingTime().toMillis(), 0)
-        : Long.MAX_VALUE;
+        : 0l;
   }
 }

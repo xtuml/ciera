@@ -3,6 +3,7 @@ package io.ciera.runtime;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -29,8 +30,8 @@ public abstract class AbstractDomain implements Domain {
 
   private final String name;
 
-  private static final Supplier<Set<ObjectInstance>> objectPopulationSupplier =
-      ObjectInstanceSet::new;
+  private static final Supplier<Set<ObjectInstance>> objectPopulationSupplier = LinkedHashSet::new;
+  // ObjectInstanceSet::new; // TODO
 
   private final Map<Class<?>, Set<ObjectInstance>> instancePopulation = new HashMap<>();
 

@@ -7,7 +7,13 @@ public interface SystemClock extends Supplier<Instant> {
 
   default void set(Instant newTime) {}
 
-  default void sleep(long millis) throws InterruptedException {
-    Thread.sleep(millis);
+  default void waitOn(Object monitor, long millis) throws InterruptedException {
+    if (monitor == null) {
+      Thread.sleep(millis);
+    } else {
+      synchronized (monitor) {
+        monitor.wait(millis);
+      }
+    }
   }
 }
