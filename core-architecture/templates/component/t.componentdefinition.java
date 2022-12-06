@@ -86,4 +86,36 @@ implements Domain {
         return (${self.name}) super.getDomain();
     }
 
+    // standalone application
+    public static void main(String[] args) {
+        CommandLine.initialize(args);
+        final Logger logger = LoggerFactory.getLogger(${self.name}.class);
+
+        logger.debug("MAIN: processing arguments");
+        CommandLine.getInstance().registerValue("-config", "Config file path", Conditionality.Optional, "path", Conditionality.Required, Multiplicity.Single);
+
+        final String configPath = CommandLine.getInstance().getOptionValue("-config");
+        if (configPath != "") {
+            logger.debug("MAIN: loading configuration");
+            Architecture.getInstance().loadConfig(Path.of(configPath));
+        }
+
+        // create domain
+        logger.debug("MAIN: creating domains");
+        final ${self.name} $l{self.name} = new ${self.name}();
+
+        // create scheduler
+        final SimpleScheduler scheduler = new SimpleScheduler($l{self.name});
+
+        // initialize domain
+        logger.debug("MAIN: initializing domains");
+        scheduler.execute($l{self.name}::initialize);
+
+        // schedule tasks forever in a single thread
+        logger.debug("MAIN: starting up...");
+        while (scheduler.hasNext()) {
+            scheduler.next().run();
+        }
+        logger.debug("MAIN: shutting down...");
+    }
 }
