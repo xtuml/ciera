@@ -45,7 +45,25 @@ if ( multiplicity_many )
                                      ->ClassInComponent[R406];
   inst_type_name = inst.name;
 end if;
-T::include(file:"class/t.instanceselector.java");',
+
+fromlink = "";
+tolink = "";
+addany = "";
+if ( not selector.two_link )
+  T::include(file:"class/t.instanceselector.java");
+else
+  select one rel related by selector->Relationship[R4512.''traverses across''];
+  select one formclass related by rel->Class[R435.''has formalizing''];
+  select one partclass related by rel->Class[R434.''has participating''];
+  relnumb = "R" + STRING::itoa( i:rel.num ) + "_";
+  phrase = T::sub( format:"_", s:rel.form_phrase );
+  fromlink = relnumb + phrase + "_" + formclass.name + "().";
+  tolink = relnumb + phrase + "_" + partclass.name + "()";
+  if ( not multiplicity_many )
+    addany = ".any()";
+  end if;
+  T::include(file:"class/t.itwolinkselector.java");
+end if;',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",
@@ -68,7 +86,12 @@ if ( multiplicity_many )
                                      ->ClassInComponent[R406];
   inst_type_name = inst.name;
 end if;
-T::include(file:"class/t.instanceselector.int.java");',
+if ( not selector.two_link )
+  T::include(file:"class/t.instanceselector.int.java");
+else
+  T::include(file:"class/t.itwolinkselector.int.java");
+end if;
+',
 	1,
 	'',
 	"c301ea8b-6e1d-4278-bfb1-5475f808f9ab",

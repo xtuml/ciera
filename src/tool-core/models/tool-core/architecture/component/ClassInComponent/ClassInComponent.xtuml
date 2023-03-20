@@ -353,10 +353,12 @@ relationship_initializers = "";
 for each iselector in iselects
   iselector.render();
   select one sel related by iselector->Selector[R445];
-  if ( sel.multiplicity == Mult::MANY )
-    relationship_initializers = relationship_initializers + "        " + sel.name + "_set = new " + sel.type_reference_name + "Impl();\n";
-  else
-    relationship_initializers = relationship_initializers + "        " + sel.name + "_inst = " + sel.type_reference_name + "Impl.EMPTY_" + T::sub( format:"u_", s:sel.type_reference_name ) + ";\n";
+  if ( not sel.two_link )
+    if ( sel.multiplicity == Mult::MANY )
+      relationship_initializers = relationship_initializers + "        " + sel.name + "_set = new " + sel.type_reference_name + "Impl();\n";
+    else
+      relationship_initializers = relationship_initializers + "        " + sel.name + "_inst = " + sel.type_reference_name + "Impl.EMPTY_" + T::sub( format:"u_", s:sel.type_reference_name ) + ";\n";
+    end if;
   end if;
 end for;
 selectors = T::body();

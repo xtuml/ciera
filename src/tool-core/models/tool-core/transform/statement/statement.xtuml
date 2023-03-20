@@ -2283,6 +2283,7 @@ other_phrase = "";
 select one link_v_var related by act_ru->V_VAR[R619];
 select one link_o_obj related by link_v_var->V_INT[R814]->O_OBJ[R818];
 select one link_class related by link_o_obj->Class[R409];
+symmetric = false;
 if ( one_o_obj.Obj_ID == other_o_obj.Obj_ID ) // reflexive linked association
   other_phrase = C_UTIL::stripTics( s:act_ru.relationship_phrase );
   select many oirs related by r_rel->R_OIR[R201] where ( C_UTIL::stripTics( s:act_ru.relationship_phrase ) != ::oirGetPhrase( r_oir_id:selected.OIR_ID ) );
@@ -2292,6 +2293,7 @@ if ( one_o_obj.Obj_ID == other_o_obj.Obj_ID ) // reflexive linked association
     if ( not_empty link and oir.OIR_ID != link.OIR_ID )
       one_oir = oir;
       one_phrase = ::oirGetPhrase( r_oir_id:oir.OIR_ID );
+      symmetric =  ::r_rel_is_assoc_symm( r_rel:r_rel );
       break;
     end if;
   end for;
@@ -2312,13 +2314,18 @@ select any rel1 from instances of Relationship where false;
 select any rel2 from instances of Relationship where false;
 containing_comp_def = ::getCompDefForStatement( smt:smt );
 if ( not_empty containing_comp_def and not_empty one_class and not_empty other_class and not_empty link_class )
-  select any rel1 related by containing_comp_def->Relationship[R448]
-    where ( selected.num == r_rel.Numb and
-      ( selected.form_name == link_class.name and selected.form_phrase == other_phrase and selected.part_name == one_class.name and selected.part_phrase == one_phrase ) );
-  select any rel2 related by containing_comp_def->Relationship[R448]
-    where ( selected.num == r_rel.Numb and
-      ( selected.form_name == link_class.name and selected.form_phrase == one_phrase and selected.part_name == other_class.name and selected.part_phrase == other_phrase ) );
-else
+  if ( not symmetric )
+	  select any rel1 related by containing_comp_def->Relationship[R448]
+	    where ( selected.num == r_rel.Numb and
+	      ( selected.form_name == link_class.name and selected.form_phrase == other_phrase and selected.part_name == one_class.name and selected.part_phrase == one_phrase ) );
+	  select any rel2 related by containing_comp_def->Relationship[R448]
+	    where ( selected.num == r_rel.Numb and
+	      ( selected.form_name == link_class.name and selected.form_phrase == one_phrase and selected.part_name == other_class.name and selected.part_phrase == other_phrase ) );
+  else
+    select any rel1 related by containing_comp_def->Relationship[R448]
+      where ( selected.num == r_rel.Numb );
+    rel2 = rel1;
+  end if;
   // TODO bad
 end if;
 if ( not_empty rel1 and not_empty rel2 )
@@ -2704,6 +2711,7 @@ other_phrase = "";
 select one link_v_var related by act_uru->V_VAR[R624];
 select one link_o_obj related by link_v_var->V_INT[R814]->O_OBJ[R818];
 select one link_class related by link_o_obj->Class[R409];
+symmetric = false;
 if ( one_o_obj.Obj_ID == other_o_obj.Obj_ID ) // reflexive linked association
   other_phrase = C_UTIL::stripTics( s:act_uru.relationship_phrase );
   select many oirs related by r_rel->R_OIR[R201] where ( C_UTIL::stripTics( s:act_uru.relationship_phrase ) != ::oirGetPhrase( r_oir_id:selected.OIR_ID ) );
@@ -2713,6 +2721,7 @@ if ( one_o_obj.Obj_ID == other_o_obj.Obj_ID ) // reflexive linked association
     if ( not_empty link and oir.OIR_ID != link.OIR_ID )
       one_oir = oir;
       one_phrase = ::oirGetPhrase( r_oir_id:oir.OIR_ID );
+      symmetric = ::r_rel_is_assoc_symm( r_rel:r_rel );
       break;
     end if;
   end for;
@@ -2733,12 +2742,18 @@ select any rel1 from instances of Relationship where false;
 select any rel2 from instances of Relationship where false;
 containing_comp_def = ::getCompDefForStatement( smt:smt );
 if ( not_empty containing_comp_def and not_empty one_class and not_empty other_class and not_empty link_class )
-  select any rel1 related by containing_comp_def->Relationship[R448]
-    where ( selected.num == r_rel.Numb and
-      ( selected.form_name == link_class.name and selected.form_phrase == other_phrase and selected.part_name == one_class.name and selected.part_phrase == one_phrase ) );
-  select any rel2 related by containing_comp_def->Relationship[R448]
-    where ( selected.num == r_rel.Numb and
-      ( selected.form_name == link_class.name and selected.form_phrase == one_phrase and selected.part_name == other_class.name and selected.part_phrase == other_phrase ) );
+  if ( not symmetric )
+    select any rel1 related by containing_comp_def->Relationship[R448]
+      where ( selected.num == r_rel.Numb and
+        ( selected.form_name == link_class.name and selected.form_phrase == other_phrase and selected.part_name == one_class.name and selected.part_phrase == one_phrase ) );
+    select any rel2 related by containing_comp_def->Relationship[R448]
+      where ( selected.num == r_rel.Numb and
+        ( selected.form_name == link_class.name and selected.form_phrase == one_phrase and selected.part_name == other_class.name and selected.part_phrase == other_phrase ) );
+  else
+    select any rel1 related by containing_comp_def->Relationship[R448]
+      where ( selected.num == r_rel.Numb );
+    rel2 = rel1;
+  end if;
 else
   // TODO bad
 end if;
@@ -3896,6 +3911,7 @@ end if;
 select one r_rel related by act_lnk->R_REL[R681];
 select one target_class related by o_obj->Class[R409];
 phrase = C_UTIL::stripTics( s:act_lnk.Rel_Phrase );
+ 
 if ( "" == phrase ) // if the phrase is not included, may need to get the phrase for getting the selector
   select any relationship from instances of Relationship where ( selected.num == r_rel.Numb and
                                                                  selected.form_name == target_class.name and
@@ -3911,10 +3927,12 @@ if ( "" == phrase ) // if the phrase is not included, may need to get the phrase
     end if;
   end if;
 end if;
-selector_name = "R" + STRING::itoa( i:r_rel.Numb ) + "_";
+
+rel_str = "R" + STRING::itoa( i:r_rel.Numb ) + "_";
 if ( "" != phrase )
-  selector_name = selector_name + T::sub( format:"_", s:phrase ) + "_";
+  phrase = T::sub( format:"_", s:phrase ) + "_";
 end if;
+selector_name = rel_str + phrase;
 selector_name = selector_name + target_class.name;
 select any selector related by base_class->ClassInComponent[R408]->InstanceSelector[R442]->Selector[R445] where ( selected.name == selector_name );
 if ( empty selector )
