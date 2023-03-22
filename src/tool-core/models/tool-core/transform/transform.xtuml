@@ -666,7 +666,7 @@ if ( empty assoc_exclude_mark )
     if (( form_class == part_class )
      and ( "" == part_phrase or "" == form_phrase ))
       symmetric = true;
-      LOG::LogInfo( message:"Binary symmetric: form " + form_phrase + " part " + part_phrase );
+      LOG::LogInfo( message:"AM@@ Binary symmetric: form " + form_phrase + " part " + part_phrase );
       if ( "" == form_phrase )
         form_phrase = part_phrase;
       else
@@ -1138,6 +1138,12 @@ for each attr in attrs
     select one referred_to_obj related by referred_to_attr->Class[R410];
     referred_to_phrase = ::oirGetPhrase( r_oir_id:o_ref.ROIR_ID );
     phrase = ::oirGetPhrase( r_oir_id:o_ref.OIR_ID );
+    if ( "" == phrase )
+      if ::r_rel_is_assoc_symm( r_rel:r_rel )
+        select one aoth related by r_rel->R_ASSOC[R206]->R_AOTH[R210.''relates''];
+        phrase = aoth.Txt_Phrs;
+      end if;
+    end if;
     select any relationship from instances of Relationship where ( selected.num == r_rel.Numb and
                                                                    selected.form_name == obj.name and
                                                                    selected.part_name == referred_to_obj.name and
