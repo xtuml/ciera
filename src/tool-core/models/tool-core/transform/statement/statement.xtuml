@@ -2538,7 +2538,6 @@ if ( not_empty simp )
     if ( "" == one_phrase )  // must be symmetric
       one_phrase = other_phrase;
     end if;
-    LOG::LogInfo( message:"AM@@ xformUnrelate = one-other: " + one_phrase + " " + other_phrase + "-" );
   else // non-reflexive simple association
     select any one_oir related by r_rel->R_OIR[R201] where ( selected.Obj_ID == one_o_obj.Obj_ID );
     select any other_oir related by r_rel->R_OIR[R201] where ( selected.Obj_ID == other_o_obj.Obj_ID );
@@ -3918,7 +3917,6 @@ end if;
 select one r_rel related by act_lnk->R_REL[R681];
 select one target_class related by o_obj->Class[R409];
 phrase = C_UTIL::stripTics( s:act_lnk.Rel_Phrase );
- 
 if ( "" == phrase ) // if the phrase is not included, may need to get the phrase for getting the selector
   select any relationship from instances of Relationship where ( selected.num == r_rel.Numb and
                                                                  selected.form_name == target_class.name and
@@ -3934,12 +3932,10 @@ if ( "" == phrase ) // if the phrase is not included, may need to get the phrase
     end if;
   end if;
 end if;
-
-rel_str = "R" + STRING::itoa( i:r_rel.Numb ) + "_";
+selector_name = "R" + STRING::itoa( i:r_rel.Numb ) + "_";
 if ( "" != phrase )
-  phrase = T::sub( format:"_", s:phrase ) + "_";
+  selector_name = selector_name + T::sub( format:"_", s:phrase ) + "_";
 end if;
-selector_name = rel_str + phrase;
 selector_name = selector_name + target_class.name;
 select any selector related by base_class->ClassInComponent[R408]->InstanceSelector[R442]->Selector[R445] where ( selected.name == selector_name );
 if ( empty selector )
