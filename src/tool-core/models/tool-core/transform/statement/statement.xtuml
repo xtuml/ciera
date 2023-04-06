@@ -2318,6 +2318,7 @@ select any rel2 from instances of Relationship where false;
 containing_comp_def = ::getCompDefForStatement( smt:smt );
 if ( not_empty containing_comp_def and not_empty one_class and not_empty other_class and not_empty link_class )
   if ( not symmetric )
+    // Find the two simple relationships created to link both ''sides'' to the associative.
     select any rel1 related by containing_comp_def->Relationship[R448]
       where ( selected.num == r_rel.Numb and
         ( selected.form_name == link_class.name and selected.form_phrase == other_phrase and selected.part_name == one_class.name and selected.part_phrase == one_phrase ) );
@@ -2325,9 +2326,11 @@ if ( not_empty containing_comp_def and not_empty one_class and not_empty other_c
       where ( selected.num == r_rel.Numb and
         ( selected.form_name == link_class.name and selected.form_phrase == one_phrase and selected.part_name == other_class.name and selected.part_phrase == other_phrase ) );
   else
+    // Unlike non-symmetric, only a single relationship was created for a symmetric association.
+    // To use the following ''Relate'' logic, use that same relationship for both links to the associative.
     select any rel1 related by containing_comp_def->Relationship[R448]
       where ( selected.num == r_rel.Numb );
-    rel2 = rel1;
+    rel2 = rel1;  // make it appear that there is a relationship for each ''side'' of the association.
   end if;
   // TODO bad
 end if;
@@ -2749,6 +2752,7 @@ select any rel2 from instances of Relationship where false;
 containing_comp_def = ::getCompDefForStatement( smt:smt );
 if ( not_empty containing_comp_def and not_empty one_class and not_empty other_class and not_empty link_class )
   if ( not symmetric )
+    // Find the two simple relationships created to link both ''sides'' to the associative.
     select any rel1 related by containing_comp_def->Relationship[R448]
       where ( selected.num == r_rel.Numb and
         ( selected.form_name == link_class.name and selected.form_phrase == other_phrase and selected.part_name == one_class.name and selected.part_phrase == one_phrase ) );
@@ -2756,15 +2760,17 @@ if ( not_empty containing_comp_def and not_empty one_class and not_empty other_c
       where ( selected.num == r_rel.Numb and
         ( selected.form_name == link_class.name and selected.form_phrase == one_phrase and selected.part_name == other_class.name and selected.part_phrase == other_phrase ) );
   else
+    // Unlike non-symmetric, only a single relationship was created for a symmetric association.
+    // To use the following ''Unrelate'' logic, use that same relationship for both links to the associative.
     select any rel1 related by containing_comp_def->Relationship[R448]
-      where ( selected.num == r_rel.Numb );
+      where ( selected.num == r_rel.Numb );  // make it appear that there is a relationship for each ''side'' of the association.
     rel2 = rel1;
   end if;
 else
   // TODO bad
 end if;
 if ( not_empty rel1 and not_empty rel2 )
-  // create first unrelate statement (one to link)
+  // create first unrelate statement (one from link)
   create object instance unrelsmt1 of UnrelateSmt;
   relate unrelsmt1 to smt across R451;
   relate rel1 to unrelsmt1 across R484;
@@ -2818,7 +2824,7 @@ if ( not_empty rel1 and not_empty rel2 )
   else
     // TODO bad
   end if;
-  // create second relate statement (other to link)
+  // create second unrelate statement (other from link)
   create object instance smt2 of Statement;
   relate smt2 to block across R450;
   smt2.statement_number = STRING::itoa( i:STRING::atoi( s:smt.statement_number ) + 1 );

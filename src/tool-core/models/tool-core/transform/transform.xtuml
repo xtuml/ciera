@@ -663,11 +663,12 @@ if ( empty assoc_exclude_mark )
     end if;
 
     // Symmetry in reflexive associations is indicated by one null role phrase.
-    // Propagate the phrase as needed for the relationship being constructed.
+    // (Non-symmetric reflexives must have two differing role phrases to indicate ''direction'')
     symmetric = false;
-    if (( form_class == part_class )
-     and ( "" == part_phrase or "" == form_phrase ))
+    if (( form_class == part_class )  // this association is reflexive...
+     and ( "" == part_phrase or "" == form_phrase ))  // ...and symmetric
       symmetric = true;
+      // Propagate the one phrase as needed for the relationship being constructed.
       if ( "" == form_phrase )
         form_phrase = part_phrase;
       else
@@ -1139,7 +1140,8 @@ for each attr in attrs
     select one referred_to_obj related by referred_to_attr->Class[R410];
     referred_to_phrase = ::oirGetPhrase( r_oir_id:o_ref.ROIR_ID );
     phrase = ::oirGetPhrase( r_oir_id:o_ref.OIR_ID );
-    if ( "" == phrase and ::r_rel_is_assoc_symm( r_rel:r_rel ) )  // only one phrase
+    // Symmetric (reflexive) associative associations only have one role phrase - held in instance of R_AOTH class.
+    if ( "" == phrase and ::r_rel_is_assoc_symm( r_rel:r_rel ) )
       select one aoth related by r_rel->R_ASSOC[R206]->R_AOTH[R210.''relates''];
       phrase = aoth.Txt_Phrs;
     end if;

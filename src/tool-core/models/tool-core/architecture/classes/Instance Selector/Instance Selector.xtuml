@@ -39,19 +39,22 @@ INSERT INTO O_TFR
 multiplicity_many = selector.multiplicity == Mult::MANY;
 type_name = selector.type_reference_name;
 inst_type_name = type_name;  // ..tentatively, for multiplicity ONE
-if ( multiplicity_many )
+if ( multiplicity_many )     // ..need the corresponding set name
   select one inst related by selector->TypeReference[R446]->Type[R3800]
                                      ->ComponentSpecificType[R407]->ClassSet[R3803]
                                      ->ClassInComponent[R406];
   inst_type_name = inst.name;
 end if;
 
+// initialize these for the two_link selector (must be in outermost scope).
 fromlink = "";
 tolink = "";
 addany = "";
 if ( not selector.two_link )
   T::include(file:"class/t.instanceselector.java");
 else
+  // selector for symmetric (reflexive) associative
+  // must traverse from originator to associative, then aquire the other participant
   select one rel related by selector->Relationship[R4512.''traverses across''];
   select one formclass related by rel->Class[R435.''has formalizing''];
   select one partclass related by rel->Class[R434.''has participating''];
@@ -60,6 +63,9 @@ else
   fromlink = relnumb + phrase + "_" + formclass.name + "().";
   tolink = relnumb + phrase + "_" + partclass.name + "()";
   if ( not multiplicity_many )
+    // the associative selector is always a set - of the two participant instances.
+    // the accessor function removes the invoking reference, leaving just the other reference.
+    // if the association is multiplicity ONE, the result must be returned as an instance.
     addany = ".any()";
   end if;
   T::include(file:"class/t.itwolinkselector.java");
