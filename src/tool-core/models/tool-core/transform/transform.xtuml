@@ -1140,9 +1140,9 @@ for each attr in attrs
     select one referred_to_obj related by referred_to_attr->Class[R410];
     referred_to_phrase = ::oirGetPhrase( r_oir_id:o_ref.ROIR_ID );
     phrase = ::oirGetPhrase( r_oir_id:o_ref.OIR_ID );
-    // Symmetric (reflexive) associative associations only have one role phrase - held in instance of R_AOTH class.
+    // This may be a special case: symmetric (reflexive) associative associations have only one role phrase...
     if ( "" == phrase and ::r_rel_is_assoc_symm( r_rel:r_rel ) )
-      select one aoth related by r_rel->R_ASSOC[R206]->R_AOTH[R210.''relates''];
+      select one aoth related by r_rel->R_ASSOC[R206]->R_AOTH[R210.''relates'']; // ...held in R_AOTH
       phrase = aoth.Txt_Phrs;
     end if;
     select any relationship from instances of Relationship where ( selected.num == r_rel.Numb and
