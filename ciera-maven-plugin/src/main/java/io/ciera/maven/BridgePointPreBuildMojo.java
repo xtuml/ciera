@@ -1,17 +1,17 @@
 package io.ciera.maven;
 
+import java.io.File;
+import java.io.IOException;
+import java.lang.ProcessBuilder.Redirect;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Scanner;
+
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Scanner;
-
-import java.lang.ProcessBuilder.Redirect;
 
 /** Goal which runs the BridgePoint pre-builder. */
 @Mojo(name = "bridgepoint-pre-build", defaultPhase = LifecyclePhase.GENERATE_SOURCES)
@@ -68,6 +68,10 @@ public class BridgePointPreBuildMojo extends AbstractPreBuildMojo {
             getLog().error(sc.nextLine());
           }
           sc.close();
+          Files.copy(
+              Path.of(
+                  project.getBasedir().getPath(), "gen", "code_generation", projectName + ".sql"),
+              Path.of(outputFile));
           int duration = (int) (System.currentTimeMillis() - startTime);
           int mins = duration / 60000;
           int secs = (duration % 60000) / 1000;
