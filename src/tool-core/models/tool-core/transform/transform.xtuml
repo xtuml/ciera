@@ -155,6 +155,9 @@ select many act_lnks from instances of ACT_LNK;
 for each act_lnk in act_lnks
   
   select one r_rel related by act_lnk->R_REL[R681];
+  if ( ::r_rel_is_assoc_symm( r_rel:r_rel ) )
+    continue; // do not split this link; it will be rendered appropriately
+  end if;
   select one r_aoth related by r_rel->R_ASSOC[R206]->R_AOTH[R210];
   select one r_assr related by r_rel->R_ASSOC[R206]->R_ASSR[R211];
   select one assr_obj related by r_assr->R_RGO[R205]->R_OIR[R203]->O_OBJ[R201];
@@ -176,7 +179,6 @@ for each act_lnk in act_lnks
   
   // if this is an associative selection in which the link class is _not_ involved, it must be split up
   if ( not_empty r_assr and target_obj.Obj_ID != r_assr.Obj_ID and base_obj.Obj_ID != r_assr.Obj_ID )
-  
     // create the first intermediate link
     create object instance act_lnk1 of ACT_LNK;
     act_lnk1.modelClassKeyLettersLineNumber = act_lnk.modelClassKeyLettersLineNumber;
@@ -660,6 +662,20 @@ if ( empty assoc_exclude_mark )
       end if;
     end if;
 
+    // Symmetry in reflexive associations is indicated by one null role phrase.
+    // (Non-symmetric reflexives must have two differing role phrases to indicate ''direction'')
+    symmetric = false;
+    if (( form_class == part_class )  // this association is reflexive...
+     and ( "" == part_phrase or "" == form_phrase ))  // ...and symmetric
+      symmetric = true;
+      // Propagate the one phrase as needed for the relationship being constructed.
+      if ( "" == form_phrase )
+        form_phrase = part_phrase;
+      else
+        part_phrase = form_phrase;
+      end if;
+    end if;
+
     name = "R" + STRING::itoa( i:r_rel.Numb ) + "_" + form_class.name + "_";
     if ( "" != part_phrase )
       name = name + T::sub( format:"_", s:part_phrase ) + "_";
@@ -679,6 +695,7 @@ if ( empty assoc_exclude_mark )
 	    rel.form_cond = form_cond;
 	    rel.part_cond = part_cond;
 	    rel.rel_type = RelationshipType::Binary;
+	    rel.is_symmetric = symmetric;
 	    relate rel to form_class across R435;
 	    relate rel to part_class across R434;
 	    select any o_id related by r_simp->R_PART[R207]->R_RTO[R204]->O_ID[R109];
@@ -763,10 +780,20 @@ if ( empty assoc_exclude_mark )
 		    select one one_part_class related by r_aone->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->Class[R409];
 		    select one oth_part_class related by r_aoth->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201]->Class[R409];
 		    
+        symmetric = false;        
+        if (( one_part_class == oth_part_class )
+         and ( "" == r_aone.Txt_Phrs ))
+          symmetric = true;
+          part_mult = Mult::MANY;  // support ''any''/''many'' select from associative class
+        end if;
+
 		    // setup for first relationship...
 		    if ( not_empty form_class and not_empty one_part_class and not_empty r_aoth )
 		      form_phrase = r_aoth.Txt_Phrs;
 		      part_phrase = r_aone.Txt_Phrs;
+          if ( symmetric )  // ..indicated by null phrase in r_aone
+            part_phrase = form_phrase;
+          end if;
 		      if ( 0 != r_assr.Mult or 0 != r_aoth.Mult )
 		        form_mult = Mult::MANY;
 		      end if;
@@ -797,6 +824,7 @@ if ( empty assoc_exclude_mark )
 			    rel1.form_cond = form_cond;
 			    rel1.part_cond = part_cond;
 			    rel1.rel_type = RelationshipType::Associative;
+			    rel1.is_symmetric = symmetric;
 			    relate rel1 to form_class across R435;
 			    relate rel1 to one_part_class across R434;
 			
@@ -807,65 +835,67 @@ if ( empty assoc_exclude_mark )
 			      rel1.id_num = 0;
 			    end if;
 			  end if;
+        create object instance rel1InComp of RelationshipInComponent;
+        relate rel1 to containing_comp_def across R448 using rel1InComp;
 
-		    // reset this stuff..
-		    form_phrase = "";
-		    form_mult = Mult::ONE;
-		    form_cond = Cond::UNCONDITIONAL;
-		    part_phrase = "";
-		    part_cond = Cond::UNCONDITIONAL;
-			
-		    // .. and setup for second relationship...
-		    if ( not_empty form_class and not_empty oth_part_class and not_empty r_aone )
-		      form_phrase = r_aone.Txt_Phrs;
-		      part_phrase = r_aoth.Txt_Phrs;
-		      if ( 0 != r_assr.Mult or 0 != r_aone.Mult )
-		        form_mult = Mult::MANY;
-		      end if;
-		      if ( 0 != r_aone.Cond )
-		        form_cond = Cond::CONDITIONAL;
-		      end if;
-		    else
-		      // TODO bad
-			  end if;
-			
-		    name2 = "R" + STRING::itoa( i:r_rel.Numb ) + "_" + form_class.name + "_";
-		    if ( "" != part_phrase )
-		      name2 = name2 + T::sub( format:"_", s:part_phrase ) + "_";
-		    end if;
-		    name2 = name2 + oth_part_class.name;
-		    
-        select any rel2 from instances of Relationship
-         where ( selected.name == name2 );  // impossible if this is not first invocation of transform
-        if ( empty rel2 )
-			    // create the second relationship
-			    create object instance rel2 of Relationship;
-			    rel2.name = name2;
-			    rel2.num = r_rel.Numb;
-			    rel2.form_phrase = form_phrase;
-			    rel2.part_phrase = part_phrase;
-			    rel2.form_mult = form_mult;
-			    rel2.part_mult = part_mult;
-			    rel2.form_cond = form_cond;
-			    rel2.part_cond = part_cond;
-			    rel2.rel_type = RelationshipType::Associative;
-			    relate rel2 to form_class across R435;
-			    relate rel2 to oth_part_class across R434;
-			
-			    select one o_id2 related by r_assoc->R_AOTH[R210]->R_RTO[R204]->O_ID[R109];
-			    if ( not_empty o_id2 )
-			      rel2.id_num = o_id2.Oid_ID + 1;
+        if ( not symmetric ) // symmetric reflexive associative only uses one relationship.
+			    // reset this stuff..
+			    form_phrase = "";
+			    form_mult = Mult::ONE;
+			    form_cond = Cond::UNCONDITIONAL;
+			    part_phrase = "";
+			    part_cond = Cond::UNCONDITIONAL;
+				
+			    // .. and setup for second relationship...
+			    if ( not_empty form_class and not_empty oth_part_class and not_empty r_aone )
+			      form_phrase = r_aone.Txt_Phrs;
+			      part_phrase = r_aoth.Txt_Phrs;
+			      if ( 0 != r_assr.Mult or 0 != r_aone.Mult )
+			        form_mult = Mult::MANY;
+			      end if;
+			      if ( 0 != r_aone.Cond )
+			        form_cond = Cond::CONDITIONAL;
+			      end if;
 			    else
-			      rel2.id_num = 0;
+			      // TODO bad
 			    end if;
+				
+			    name2 = "R" + STRING::itoa( i:r_rel.Numb ) + "_" + form_class.name + "_";
+			    if ( "" != part_phrase )
+			      name2 = name2 + T::sub( format:"_", s:part_phrase ) + "_";
+			    end if;
+			    name2 = name2 + oth_part_class.name;
 			    
-			    relate rel1 to rel2 across R436.''is one half of associative'';  // note these are a symmetric pair.
+	        select any rel2 from instances of Relationship
+	         where ( selected.name == name2 );  // impossible if this is not first invocation of transform
+	        if ( empty rel2 )
+				    // create the second relationship
+				    create object instance rel2 of Relationship;
+				    rel2.name = name2;
+				    rel2.num = r_rel.Numb;
+				    rel2.form_phrase = form_phrase;
+				    rel2.part_phrase = part_phrase;
+				    rel2.form_mult = form_mult;
+				    rel2.part_mult = part_mult;
+				    rel2.form_cond = form_cond;
+				    rel2.part_cond = part_cond;
+				    rel2.rel_type = RelationshipType::Associative;
+				    relate rel2 to form_class across R435;
+				    relate rel2 to oth_part_class across R434;
+				
+				    select one o_id2 related by r_assoc->R_AOTH[R210]->R_RTO[R204]->O_ID[R109];
+				    if ( not_empty o_id2 )
+				      rel2.id_num = o_id2.Oid_ID + 1;
+				    else
+				      rel2.id_num = 0;
+				    end if;
+				    
+				    relate rel1 to rel2 across R436.''is one half of associative'';  // note these are a symmetric pair.
+				  end if;
+	
+			    create object instance rel2InComp of RelationshipInComponent;
+			    relate rel2 to containing_comp_def across R448 using rel2InComp;
 			  end if;
-
-		    create object instance rel1InComp of RelationshipInComponent;
-		    relate rel1 to containing_comp_def across R448 using rel1InComp;
-		    create object instance rel2InComp of RelationshipInComponent;
-		    relate rel2 to containing_comp_def across R448 using rel2InComp;
 		  else
 		    // TODO bad
       end if;
@@ -1110,6 +1140,11 @@ for each attr in attrs
     select one referred_to_obj related by referred_to_attr->Class[R410];
     referred_to_phrase = ::oirGetPhrase( r_oir_id:o_ref.ROIR_ID );
     phrase = ::oirGetPhrase( r_oir_id:o_ref.OIR_ID );
+    // This may be a special case: symmetric (reflexive) associative associations have only one role phrase...
+    if ( "" == phrase and ::r_rel_is_assoc_symm( r_rel:r_rel ) )
+      select one aoth related by r_rel->R_ASSOC[R206]->R_AOTH[R210.''relates'']; // ...held in R_AOTH
+      phrase = aoth.Txt_Phrs;
+    end if;
     select any relationship from instances of Relationship where ( selected.num == r_rel.Numb and
                                                                    selected.form_name == obj.name and
                                                                    selected.part_name == referred_to_obj.name and
@@ -2856,10 +2891,14 @@ for each rel in form_to_part_rels
 	if ( empty comp )
 		continue;
 	end if;
+  if (( rel.rel_type == RelationshipType::Binary )
+   and ( rel.is_symmetric ))  // symmetric?
+    continue;  // only a single selector is needed; let part take care of it.
+  end if;
   select one part_obj related by rel->Class[R434];
   ::transformSelector( obj:obj, rel:rel, phrase:rel.part_phrase, cond:rel.part_cond,
                        mult:rel.part_mult, formalizer:true, other_obj:part_obj, 
-                       containing_comp_def:containing_comp_def );
+                       containing_comp_def:containing_comp_def, two_link:false );
 end for;
 
 // then, the part-to-form selectors
@@ -2874,7 +2913,14 @@ for each rel in part_to_form_rels
   select one form_obj related by rel->Class[R435];
   ::transformSelector( obj:obj, rel:rel, phrase:rel.form_phrase, cond:rel.form_cond,
                        mult:rel.form_mult, formalizer:false, other_obj:form_obj,
-                       containing_comp_def:containing_comp_def );
+                       containing_comp_def:containing_comp_def, two_link:false );
+  if (( rel.rel_type == RelationshipType::Associative )
+   and ( rel.is_symmetric ))  // symmetric?
+    // create part-to-part selectors; they will be rendered to navigate across the associative class.
+    ::transformSelector( obj:obj, rel:rel, phrase:rel.form_phrase, cond:rel.form_cond,
+                       mult:rel.form_mult, formalizer:false, other_obj:obj,
+                       containing_comp_def:containing_comp_def, two_link:true );
+  end if;
 end for;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -3676,6 +3722,7 @@ sel.parent_name = obj_set.name;
 sel.parent_package = obj_set.package;
 sel.name = name;
 sel.multiplicity = param.mult;
+sel.two_link = param.two_link;
 relate rel to sel across R4512;
 create object instance set_sel of SetSelector;
 relate set_sel to sel across R445;
@@ -3689,6 +3736,7 @@ sel.parent_name = obj.name;
 sel.parent_package = obj.package;
 sel.name = name;
 sel.multiplicity = param.mult;
+sel.two_link = param.two_link;
 relate rel to sel across R4512;
 create object instance inst_sel of InstanceSelector;
 inst_sel.conditionality = param.cond;
@@ -3715,6 +3763,10 @@ if ( Mult::MANY == param.mult )
   ::addTypeToImports( file:file, type_to_import:type, type:ImportType::BOTH );
 else
   ::addStringToImports( file:file, s:class_type.type_package + ".impl." + class_type.type_name + "Impl", type:ImportType::IMPL );
+end if;
+if ( param.two_link )  // this ''set-type'' import is required by the templated two_link selector
+  select one type related by set_type->Type[R3800];
+  ::addTypeToImports( file:file, type_to_import:type, type:ImportType::IMPL );
 end if;
 
 // add imports to object set file
@@ -3825,6 +3877,16 @@ INSERT INTO S_SPARM
 	'',
 	"f32b91c5-08fb-40d1-8d14-eee526de6b03",
 	'');
+INSERT INTO S_SPARM
+	VALUES ("d13cf499-80ce-4e4b-8dac-3dbd6b209c12",
+	"70b77a96-efe5-4504-a7c8-6e3b43562e61",
+	'two_link',
+	"ba5eda7a-def5-0000-0000-000000000001",
+	0,
+	'',
+	"68359e1f-53ff-4c18-ab42-7ab4f16f52ff",
+	'Indicate that this selector must be rendered to traverse two links - to and from the associative instance(s) - to reach 
+the related participating instance(s).');
 INSERT INTO PE_PE
 	VALUES ("70b77a96-efe5-4504-a7c8-6e3b43562e61",
 	1,
