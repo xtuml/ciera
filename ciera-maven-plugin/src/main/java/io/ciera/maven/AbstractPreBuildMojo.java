@@ -1,24 +1,25 @@
 package io.ciera.maven;
 
-import org.apache.maven.plugins.annotations.Parameter;
-import org.apache.maven.project.MavenProject;
-
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Scanner;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import org.apache.maven.artifact.Artifact;
-import org.apache.maven.artifact.repository.ArtifactRepository;
+import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.project.MavenProject;
+import org.eclipse.aether.RepositorySystemSession;
+import org.eclipse.aether.artifact.DefaultArtifact;
+import org.eclipse.aether.repository.LocalArtifactRequest;
+import org.eclipse.aether.repository.LocalArtifactResult;
 
 /** Goal which runs the BridgePoint pre-builder. */
 public abstract class AbstractPreBuildMojo extends AbstractMojo {
@@ -35,8 +36,8 @@ public abstract class AbstractPreBuildMojo extends AbstractMojo {
   @Parameter(defaultValue = "true")
   protected boolean includeDependencyModels;
 
-  @Parameter(defaultValue = "${localRepository}", readonly = true, required = true)
-  protected ArtifactRepository localRepository;
+  @Parameter(defaultValue = "${repositorySystemSession}", readonly = true, required = true)
+  protected RepositorySystemSession repositorySystemSession;
 
   protected void printCommand(ProcessBuilder pb) {
     getLog().debug(String.join(" ", pb.command().toArray(new String[0])));
@@ -66,22 +67,36 @@ public abstract class AbstractPreBuildMojo extends AbstractMojo {
     return isNewer;
   }
 
-  protected List<Artifact> getDependencyModels() {
-    List<Artifact> dependencyModels = new ArrayList<>();
-    for (Artifact artifact : project.getDependencyArtifacts()) {
-      Path artifactPath = Paths.get(localRepository.getBasedir(), localRepository.pathOf(artifact));
+  protected List<LocalArtifactResult> getDependencyModels() {
+    List<LocalArtifactResult> dependencyModels = new ArrayList<>();
+    for (Dependency dependency : project.getDependencies()) {
+      final LocalArtifactResult result =
+          repositorySystemSession
+              .getLocalRepositoryManager()
+              .find(
+                  repositorySystemSession,
+                  new LocalArtifactRequest(
+                      new DefaultArtifact(
+                          dependency.getGroupId(),
+                          dependency.getArtifactId(),
+                          "jar",
+                          dependency.getVersion()),
+                      Collections.emptyList(),
+                      null));
       ZipFile zipfile = null;
-      try {
-        zipfile = new ZipFile(artifactPath.toFile());
-      } catch (IOException e) {
-        /* do nothing */
+      if (result.isAvailable()) {
+        try {
+          zipfile = new ZipFile(result.getFile());
+        } catch (IOException e) {
+          /* do nothing */
+        }
       }
-      if (null != zipfile) {
+      if (zipfile != null) {
         Enumeration<? extends ZipEntry> entries = zipfile.entries();
         while (entries.hasMoreElements()) {
           ZipEntry entry = entries.nextElement();
           if (entry.getName().endsWith(".xtuml")) {
-            dependencyModels.add(artifact);
+            dependencyModels.add(result);
             break;
           }
         }

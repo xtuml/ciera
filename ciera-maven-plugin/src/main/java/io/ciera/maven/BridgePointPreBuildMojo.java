@@ -5,16 +5,14 @@ import java.io.IOException;
 import java.lang.ProcessBuilder.Redirect;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.List;
 
-import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.eclipse.aether.repository.LocalArtifactResult;
 
 import net.lingala.zip4j.ZipFile;
 
@@ -78,19 +76,19 @@ public class BridgePointPreBuildMojo extends AbstractPreBuildMojo {
     // create a temporary directory
     final Path workspacePath = Files.createTempDirectory(null);
 
-    final List<Artifact> dependencies = getDependencyModels();
+    final List<LocalArtifactResult> dependencies = getDependencyModels();
     if (!dependencies.isEmpty()) {
 
       final Path dependenciesPath = Files.createTempDirectory(null);
       getLog().info("Unzipping dependenecies to temporary location: " + dependenciesPath);
 
       // unzip all dependency models into the newly created workspace
-      for (Artifact dependencyModel : dependencies) {
+      for (LocalArtifactResult dependencyModel : dependencies) {
         final Path dependencyPath =
-            Files.createDirectory(dependenciesPath.resolve(dependencyModel.getArtifactId()));
-        final Path artifactPath =
-            Paths.get(localRepository.getBasedir(), localRepository.pathOf(dependencyModel));
-        final ZipFile zipfile = new ZipFile(artifactPath.toFile());
+            Files.createDirectory(
+                dependenciesPath.resolve(
+                    dependencyModel.getRequest().getArtifact().getArtifactId()));
+        final ZipFile zipfile = new ZipFile(dependencyModel.getFile());
         zipfile.extractAll(dependencyPath.toString());
       }
 

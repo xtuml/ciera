@@ -2,7 +2,6 @@ package io.ciera.maven;
 
 import java.io.File;
 import java.lang.ProcessBuilder.Redirect;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -45,10 +44,7 @@ public class PyxtumlPreBuildMojo extends AbstractPreBuildMojo {
     if (includeDependencyModels) {
       resources.addAll(
           getDependencyModels().stream()
-              .map(
-                  artifact ->
-                      Paths.get(localRepository.getBasedir(), localRepository.pathOf(artifact))
-                          .toString())
+              .map(artifact -> artifact.getFile().toString())
               .collect(Collectors.toList()));
     }
     if (includeLocalModel) {

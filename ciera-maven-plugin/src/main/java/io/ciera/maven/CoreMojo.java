@@ -1,13 +1,13 @@
 package io.ciera.maven;
 
-import io.ciera.runtime.summit.application.IApplication;
-import io.ciera.tool.CoreTool;
-
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
+
+import io.ciera.runtime.summit.application.IApplication;
+import io.ciera.tool.CoreTool;
 
 /** Goal which runs the Core builder. */
 @Mojo(name = "core", defaultPhase = LifecyclePhase.GENERATE_SOURCES)

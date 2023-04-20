@@ -4,21 +4,25 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Enumeration;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import org.apache.maven.artifact.repository.ArtifactRepository;
+import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.eclipse.aether.RepositorySystemSession;
+import org.eclipse.aether.artifact.DefaultArtifact;
+import org.eclipse.aether.repository.LocalArtifactRequest;
+import org.eclipse.aether.repository.LocalArtifactResult;
 import org.xtuml.stratus.parser.MaslImportParser;
 
 import io.ciera.runtime.summit.application.IApplication;
@@ -29,8 +33,8 @@ import io.ciera.tool.CoreMaslTool;
 @Mojo(name = "core-masl", defaultPhase = LifecyclePhase.GENERATE_SOURCES)
 public class CoreMaslMojo extends AbstractCieraMojo {
 
-  @Parameter(defaultValue = "${localRepository}", readonly = true, required = true)
-  private ArtifactRepository localRepository;
+  @Parameter(defaultValue = "${repositorySystemSession}", readonly = true, required = true)
+  protected RepositorySystemSession repositorySystemSession;
 
   @Parameter private String modFile;
 
@@ -68,7 +72,10 @@ public class CoreMaslMojo extends AbstractCieraMojo {
     }
     List<String> domainPaths =
         new ArrayList<>(List.of(this.domainPaths == null ? new String[0] : this.domainPaths));
-    domainPaths.addAll(getInterfaceJars());
+    domainPaths.addAll(
+        getInterfaceJars().stream()
+            .map(artifact -> artifact.getFile().toString())
+            .collect(Collectors.toList()));
     if (!domainPaths.isEmpty()) {
       args.add("--domainpath");
       args.add(domainPaths.stream().collect(Collectors.joining(":")));
@@ -122,22 +129,41 @@ public class CoreMaslMojo extends AbstractCieraMojo {
                 }));
   }
 
-  private Set<String> getInterfaceJars() {
-    return project.getDependencyArtifacts().stream()
-        .map(
-            dependency ->
-                Paths.get(localRepository.getBasedir(), localRepository.pathOf(dependency)))
-        .filter(
-            artifactPath -> {
-              try (ZipFile zipfile = new ZipFile(artifactPath.toFile())) {
-                return zipfile.stream()
-                    .map(ZipEntry::getName)
-                    .anyMatch(name -> name.endsWith(".int"));
-              } catch (IOException e) {
-                return false;
-              }
-            })
-        .map(Path::toString)
-        .collect(Collectors.toSet());
+  private List<LocalArtifactResult> getInterfaceJars() {
+    List<LocalArtifactResult> dependencyModels = new ArrayList<>();
+    for (Dependency dependency : project.getDependencies()) {
+      final LocalArtifactResult result =
+          repositorySystemSession
+              .getLocalRepositoryManager()
+              .find(
+                  repositorySystemSession,
+                  new LocalArtifactRequest(
+                      new DefaultArtifact(
+                          dependency.getGroupId(),
+                          dependency.getArtifactId(),
+                          "jar",
+                          dependency.getVersion()),
+                      Collections.emptyList(),
+                      null));
+      ZipFile zipfile = null;
+      if (result.isAvailable()) {
+        try {
+          zipfile = new ZipFile(result.getFile());
+        } catch (IOException e) {
+          /* do nothing */
+        }
+      }
+      if (zipfile != null) {
+        Enumeration<? extends ZipEntry> entries = zipfile.entries();
+        while (entries.hasMoreElements()) {
+          ZipEntry entry = entries.nextElement();
+          if (entry.getName().endsWith(".int")) {
+            dependencyModels.add(result);
+            break;
+          }
+        }
+      }
+    }
+    return dependencyModels;
   }
 }
