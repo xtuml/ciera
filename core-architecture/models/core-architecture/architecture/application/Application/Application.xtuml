@@ -16,37 +16,46 @@ INSERT INTO O_TFR
 	'',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
-	'/* TODO
-// domains
-domains = "";
+	'// domains
+domain_list = "";
 sep = "";
 select many comps related by self->ComponentInstantiation[R426] where SORT::ascending(attr:"comp_name");
 for each comp in comps loop
-  domains = domains + sep + STRING::quote() + comp.comp_name + STRING::quote();
+  domain_list = domain_list + sep + T::sub(format:"l", s:comp.comp_name);
   sep = ", ";
+  comp.render();
 end for;
+domains = T::body();
 
 // satisfactions
 for each comp in comps loop
   comp.render_satisfactions();
 end for;
-component_satisfactions = T::body();
+satisfactions = T::body();
+
+// domain initializations
+for each comp in comps loop
+  comp.render_init();
+end for;
+domain_initializations = T::body();
 
 // resolve imports
-if self.simulated_time != "" then
-  ::addStringImport(package:"io.ciera.runtime", class_name:"SimulatedClock");
-end if;
-//::addStringImport(package:"io.ciera.runtime.api", class_name:"Application");
-//::addStringImport(package:"io.ciera.runtime", class_name:"BaseApplication");
+::addStringImport(package:"java.nio.file", class_name:"Files");
+::addStringImport(package:"java.nio.file", class_name:"Path");
+::addStringImport(package:"org.slf4j", class_name:"Logger");
+::addStringImport(package:"org.slf4j", class_name:"LoggerFactory");
 ::addStringImport(package:"io.ciera.runtime", class_name:"CommandLine");
+::addStringImport(package:"io.ciera.runtime.CommandLine", class_name:"Conditionality");
+::addStringImport(package:"io.ciera.runtime.CommandLine", class_name:"Multiplicity");
+::addStringImport(package:"io.ciera.runtime", class_name:"SimpleScheduler");
+::addStringImport(package:"io.ciera.runtime.api", class_name:"Architecture");
 
 select one file related by self->File[R401];
 imports = file.get_imports();
 
 T::include(file:"application/t.application.java");
 T::emit(file:file.path + "/" + self.name + file.extension);
-T::clear();
-*/',
+T::clear();',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",

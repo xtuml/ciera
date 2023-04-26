@@ -2,48 +2,46 @@ package ${self.package};
 
 ${imports}
 
-public class ${self.name} extends BaseApplication implements Application {
+public class ${self.name} {
 
-    private static volatile Application instance;
-
-    public ${self.name}() {
-        this("${self.name}");
-    }
-
-    public ${self.name}(String name) {
-        super(name);
-    }
-
-    @Override
-    public void setup() {
-        super.setup();
-
-        // create domains
-        findDomains(${domains}).forEach(this::addDomain);
-
-        // link ports
-        ${component_satisfactions}
-
-.if (self.simulated_time != "")
-        // create simulated clock
-        setClock(new SimulatedClock(${self.simulated_time}));
-
-.end if
-    }
-
-    public static Application provider() {
-        if (instance == null) {
-            instance = new ${self.name}();
-            instance.setup();
-        }
-        return instance;
-    }
+    private static final Logger logger = LoggerFactory.getLogger(${self.name}.class);
 
     public static void main(String[] args) {
-        CommandLine.initialize(args);
-        Application app = Application.getInstance();
-        app.initialize();
-        app.start();
-    }
 
+        // process command line
+        logger.debug("MAIN: processing arguments");
+        CommandLine.initialize(args);
+        CommandLine.getInstance().registerValue("-config", "Config file path", Conditionality.Optional, "path", Conditionality.Required, Multiplicity.Single);
+
+        // load configuration
+        logger.debug("MAIN: loading config");
+        final String configPath = CommandLine.getInstance().getOptionValue("-config");
+        if (configPath != "" && Files.exists(Path.of(configPath))) {
+            logger.debug("MAIN: loading configuration");
+            Architecture.getInstance().loadConfig(Path.of(configPath));
+        }
+
+        // create domains
+        logger.debug("MAIN: creating domains");
+        ${domains}\
+        
+        // create scheduler
+        final SimpleScheduler scheduler = new SimpleScheduler(${domain_list});
+
+        // create satisfactions
+        ${satisfactions}\
+
+        // initialize domains
+        logger.debug("MAIN: initializing domains");
+        ${domain_initializations}\
+
+        // schedule tasks forever in a single thread
+        logger.debug("MAIN: starting up...");
+        while (scheduler.hasNext()) {
+            scheduler.next().run();
+        }
+        logger.debug("MAIN: shutting down...");
+
+    }
+    
 }

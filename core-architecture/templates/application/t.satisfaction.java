@@ -1,2 +1,1 @@
-getDomain("${req_comp_name}").getPort("${req_port_name}").setPeer(getDomain("${prov_comp_name}").getPort("${prov_port_name}"));
-getDomain("${prov_comp_name}").getPort("${prov_port_name}").setPeer(getDomain("${req_comp_name}").getPort("${req_port_name}"));
+AbstractPort.satisfy($l{req_comp_name}.${req_port_name}(), $l{prov_comp_name}.${prov_port_name}());

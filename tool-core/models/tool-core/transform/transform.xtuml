@@ -205,13 +205,13 @@ create object instance file of File;
 if (not_empty app_name_mark) then
   file.name = app_name_mark.value;
 else
-  file.name = ::camelCaseName(name:s_sys.Name, start_lower:false) + "Application";
+  file.name = ::camelCaseName(name:root_package.Name, start_lower:false);
 end if;
 if (not_empty app_pkg_mark) then
   file.package = app_pkg_mark.value;
   file.path = ::formatPath(path:file.package);
 else
-  file.path = T::sub(format:"l", s:T::sub(format:"r", s:s_sys.Name));
+  file.path = ::ep_pkgToPath(ep_pkg:root_package);
   file.package = ::pathToPackage(path:file.path);
 end if;
 file.extension = ".java";
@@ -256,6 +256,18 @@ for each c_c in c_cs loop
     else
       comp_inst.index = 0;
     end if;
+    
+		// add module dependency if necessary
+		select any main_mod from instances of Module where selected.main_module;
+		select one mod related by comp_def->C_C[R4573]->PE_PE[R8001]->EP_PKG[R8000]->S_SYS[R1405]->Module[R4760];
+		if not_empty mod and not_empty main_mod and mod != main_mod then
+			select any dependency related by main_mod->Dependency[R5753.''requires''] where selected.required_module_name == mod.name;
+			if empty dependency then
+				create object instance dependency of Dependency;
+				relate mod to main_mod across R5753.''required by'' using dependency;
+			end if;
+		end if;
+    
     current_comp_inst = comp_inst;
   else
     LOG::LogFailure(message:"Could not find translated component definition for: " + c_c.Name);
