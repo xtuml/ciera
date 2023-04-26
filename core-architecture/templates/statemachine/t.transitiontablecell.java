@@ -1,6 +1,6 @@
 case ${self.event_class_name}.$u_{self.event_name}:
 .if (cant_happen)
-    return StateMachine.cannotHappen(currentState, event);
+    return StateMachine.cannotHappen(this, currentState, event);
 .elif (event_ignored)
     return StateMachine.ignore(currentState, event);
 .else

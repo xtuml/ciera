@@ -10,9 +10,10 @@ public interface StateMachine extends EventTarget, TaskSupplier {
 
   Supplier<Enum<?>> getTransition(Enum<?> currentState, Event event);
 
-  static Supplier<Enum<?>> cannotHappen(final Enum<?> currentState, final Event event) {
+  static Supplier<Enum<?>> cannotHappen(
+      final StateMachine inst, final Enum<?> currentState, final Event event) {
     return () -> {
-      throw new CannotHappenException();
+      throw new CannotHappenException(inst, currentState, event);
     };
   }
 
