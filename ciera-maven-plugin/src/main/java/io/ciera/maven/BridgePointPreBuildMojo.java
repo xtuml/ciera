@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.lang.ProcessBuilder.Redirect;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 
 import org.apache.maven.plugin.MojoExecutionException;
@@ -62,7 +63,8 @@ public class BridgePointPreBuildMojo extends AbstractPreBuildMojo {
           Files.copy(
               Path.of(
                   project.getBasedir().getPath(), "gen", "code_generation", projectName + ".sql"),
-              Path.of(outputFile));
+              Path.of(outputFile),
+              StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
           throw new MojoFailureException("Could not copy pre-build output to build directory", e);
         }
