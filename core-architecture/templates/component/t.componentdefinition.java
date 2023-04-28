@@ -11,7 +11,7 @@ ${self.supertype_name} {
 .else
 AbstractDomain \
 .end if
-implements Domain {
+implements Domain, ${comp_iface.package}.${comp_iface.name} {
 
 .if (utilities != "")
     ${utilities}\

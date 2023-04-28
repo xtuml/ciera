@@ -6,12 +6,12 @@ module ${self.name} {
     ${exports}\
 
 .end if
-.if (domains != "")
-    ${domains}\
+.if (provides_domains != "")
+    ${provides_domains}\
 
 .end if
-.if (applications != "")
-    ${applications}\
+.if (uses_domains != "")
+    ${uses_domains}\
 
 .end if
 .if (dependencies != "")

@@ -221,14 +221,6 @@ file.exclude = false;
 create object instance app of Application;
 relate app to file across R401;
 
-// add this application as an export of the module
-select one mod related by root_package->S_SYS[R1405]->Module[R4760];
-if not_empty mod then
-  relate app to mod across R5751;
-else
-  // TODO bad
-end if;
-
 // check simulated time
 sim_time_mark = PROP::getProperty(key:"io.ciera.EnableSimulatedTime");
 if (sim_time_mark != "") then
@@ -266,6 +258,13 @@ for each c_c in c_cs loop
 				create object instance dependency of Dependency;
 				relate mod to main_mod across R5753.''required by'' using dependency;
 			end if;
+		end if;
+		
+		// add uses domain
+		select any uses_comp_def related by main_mod->ComponentDefinition[R5754] where selected.name == comp_def.name and selected.package == comp_def.package;
+		if empty uses_comp_def
+		  create object instance comp_use of ComponentUsage;
+		  relate comp_def to main_mod across R5754 using comp_use;
 		end if;
     
     current_comp_inst = comp_inst;
@@ -954,9 +953,10 @@ INSERT INTO S_SYNC
 	'',
 	'c_c = param.c_c;
 path = param.path + "/" + T::sub(format:"l", s:c_c.Name);
+internal_path = path + "/internal";
 
 select any file from instances of File where
-  selected.name == ::camelCaseName(name:c_c.Name, start_lower:false) and selected.package == ::pathToPackage(path:path);
+  selected.name == ::camelCaseName(name:c_c.Name, start_lower:false) and selected.package == ::pathToPackage(path:internal_path);
 select one comp_def related by file->ComponentDefinition[R401];
 
 if (param.pass == 1) then
@@ -964,8 +964,8 @@ if (param.pass == 1) then
   // create the file
   create object instance file of File;
   file.name = ::camelCaseName(name:c_c.Name, start_lower:false);
-  file.path = path;
-  file.package = ::pathToPackage(path:path);
+  file.path = internal_path;
+  file.package = ::pathToPackage(path:file.path);
   file.extension = ".java";
   file.exclude = false;
 
@@ -988,12 +988,23 @@ if (param.pass == 1) then
   else
     // TODO bad
   end if;
+
+  // create the component interface
+  create object instance iface_file of File;
+  iface_file.name = file.name;
+  iface_file.path = path;
+  iface_file.package = ::pathToPackage(path:iface_file.path);
+  iface_file.extension = ".java";
+  iface_file.exclude = false;
+  create object instance comp_iface of ComponentInterface;
+  relate comp_iface to iface_file across R401;
+  relate comp_iface to comp_def across R4563;
   
-  // TODO remove this when you figure out how to export just the component
-  select any export_package related by mod->ExportedPackage[R5750] where selected.name == comp_def.package;
+  // export the iface package
+  select any export_package related by mod->ExportedPackage[R5750] where selected.name == comp_iface.package;
   if empty export_package then
     create object instance export_package of ExportedPackage;
-    export_package.name = comp_def.package;
+    export_package.name = comp_iface.package;
     relate export_package to mod across R5750;
   end if;
   
@@ -2903,7 +2914,18 @@ relate c_c to comp_def across R4573;
 select many c_pos related by c_c->C_PO[R4010];
 for each c_po in c_pos loop
   ::transformPort(c_po:c_po, comp_def:comp_def, path:file.path, exclude:true);
-end for;',
+end for;
+
+// create the component interface
+create object instance iface_file of File;
+iface_file.name = file.name;
+iface_file.path = path;
+iface_file.package = ::pathToPackage(path:iface_file.path);
+iface_file.extension = ".java";
+iface_file.exclude = true;
+create object instance comp_iface of ComponentInterface;
+relate comp_iface to iface_file across R401;
+relate comp_iface to comp_def across R4563;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',

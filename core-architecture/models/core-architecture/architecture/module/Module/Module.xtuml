@@ -21,9 +21,23 @@ for each package_export in package_exports loop
 end for;
 exports = T::body();
 
-// TODO remove app and domain provisions
-domains = T::body();
-applications = T::body();
+// domain provisions
+select many provided_comps related by self->ComponentDefinition[R5752];
+for each provided_comp in provided_comps
+  qualified_comp_implentation_name = provided_comp.package + "." + provided_comp.name;
+  select one provided_comp_iface related by provided_comp->ComponentInterface[R4563];
+  qualified_comp_name = provided_comp_iface.package + "." + provided_comp_iface.name;
+  T::include(file:"module/t.provides.domain.java");
+end for;
+provides_domains = T::body();
+
+// domain uses
+select many used_comps related by self->ComponentDefinition[R5754]->ComponentInterface[R4563];
+for each used_comp in used_comps
+  qualified_comp_name = used_comp.package + "." + used_comp.name;
+  T::include(file:"module/t.uses.java");
+end for;
+uses_domains = T::body();
 
 // render module dependencies
 select many module_dependencies related by self->Dependency[R5753.''requires''] where SORT::ascending(attr:"required_module_name");
