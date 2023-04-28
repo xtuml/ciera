@@ -23,8 +23,9 @@ state_declarations = T::body();
 
 // state actions
 for each state in states loop
-  select any entry_action related by state->InvocableObject[R427]->CodeBlock[R4000];
-  has_entry_action = not_empty entry_action;
+  select any transition_into_state related by state->Transition[R4757];
+  select any entry_action related by state->InvocableObject[R427]->CodeBlock[R4000]->Statement[R450];
+  has_entry_action = not_empty entry_action and not_empty transition_into_state;
   if (has_entry_action) then
     state.render();
   end if;
@@ -34,7 +35,7 @@ state_actions = T::body();
 // transition actions
 select many transitions related by self->State[R4751]->TransitionTableRow[R4754]->TransitionTableCell[R4755]->Transition[R4757];
 for each txn in transitions loop
-  select any txn_action related by txn->InvocableObject[R427]->CodeBlock[R4000];
+  select any txn_action related by txn->InvocableObject[R427]->CodeBlock[R4000]->Statement[R450];
   has_txn_action = not_empty txn_action;
   if (has_txn_action) then
     txn.render();
@@ -50,9 +51,7 @@ end for;
 transition_table_rows = T::body();
 
 ::addStringImport(package:"io.ciera.runtime.api", class_name:"Event");
-//::addStringImport(package:"io.ciera.runtime.api", class_name:"InstanceActionHome");
 ::addStringImport(package:"io.ciera.runtime.api", class_name:"StateMachine");
-//::addStringImport(package:"io.ciera.runtime", class_name:"InstanceStateMachine");
 ::addStringImport(package:"java.util.function", class_name:"Supplier");
 select one class_file related by self->Class[R4750]->File[R401];
 ::addFileImport(file:class_file);
@@ -62,9 +61,7 @@ select one comp_file related by self->Class[R4750]->ComponentDefinition[R408]->F
 select one file related by self->File[R401];
 imports = file.get_imports();
 
-T::include(file:"statemachine/t.instancestatemachine.java");
-//T::emit( file:file.path + "/" + self.name + file.extension );  TODO
-//T::clear();',
+T::include(file:"statemachine/t.instancestatemachine.java");',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",
@@ -86,8 +83,9 @@ state_declarations = T::body();
 
 // state actions
 for each state in states loop
-  select any entry_action related by state->InvocableObject[R427]->CodeBlock[R4000];
-  has_entry_action = not_empty entry_action;
+  select any transition_into_state related by state->Transition[R4757];
+  select any entry_action related by state->InvocableObject[R427]->CodeBlock[R4000]->Statement[R450];
+  has_entry_action = not_empty entry_action and not_empty transition_into_state;
   if (has_entry_action) then
     state.render();
   end if;
@@ -97,7 +95,7 @@ state_actions = T::body();
 // transition actions
 select many transitions related by self->State[R4751]->TransitionTableRow[R4754]->TransitionTableCell[R4755]->Transition[R4757];
 for each txn in transitions loop
-  select any txn_action related by txn->InvocableObject[R427]->CodeBlock[R4000];
+  select any txn_action related by txn->InvocableObject[R427]->CodeBlock[R4000]->Statement[R450];
   has_txn_action = not_empty txn_action;
   if (has_txn_action) then
     txn.render();

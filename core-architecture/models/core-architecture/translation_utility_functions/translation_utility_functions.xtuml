@@ -978,6 +978,66 @@ INSERT INTO PE_PE
 	"2e49e10f-3016-47ee-8a39-12e683e7075e",
 	"00000000-0000-0000-0000-000000000000",
 	1);
+INSERT INTO S_SYNC
+	VALUES ("bf447090-5263-4477-9926-635e8c640179",
+	"00000000-0000-0000-0000-000000000000",
+	'pruneUnusedVariables',
+	'',
+	'block = param.block;
+
+// find all local variables that are never read
+select many vars related by block->Variable[R496];
+for each var in vars
+  
+  // if the only reference is the declaration itself, this is an unused local variable
+  select many var_refs related by var->VariableReference[R782];
+  select many var_declarations related by var->VariableReference[R782] where selected.declaration;
+  if cardinality var_refs == cardinality var_declarations then
+
+    select one invocable related by block->InvocableObject[R4000];
+    select one statement related by var->Statement[R457];
+    ::semanticWarning(invocable:invocable, line_number:statement.line_number, message:"Variable ''" + var.name + "'' is never referenced. Removing it.");
+    
+    // unlink the variable declaration statement
+    unrelate statement from block across R450;
+    select one prev_statement related by statement->Statement[R477.''executes after''];
+    select one next_statement related by statement->Statement[R477.''executes before''];
+    if not_empty prev_statement then
+      unrelate statement from prev_statement across R477.''executes after'';
+    end if;
+    if not_empty next_statement then
+      unrelate statement from next_statement across R477.''executes before'';
+    end if;
+    if not_empty prev_statement and not_empty next_statement then
+      relate prev_statement to next_statement across R477.''executes before'';
+    end if;
+    
+    // delete the variable itself
+    // TODO for now leave everything dangling
+    
+  end if;
+  
+end for;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	16);
+INSERT INTO S_SPARM
+	VALUES ("b931e405-b101-43da-87f2-e0c29f3b5fb3",
+	"bf447090-5263-4477-9926-635e8c640179",
+	'block',
+	"60d4da0e-4cbe-4620-8c16-4e1dba1c6b8d",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO PE_PE
+	VALUES ("bf447090-5263-4477-9926-635e8c640179",
+	1,
+	"2e49e10f-3016-47ee-8a39-12e683e7075e",
+	"00000000-0000-0000-0000-000000000000",
+	1);
 INSERT INTO PE_PE
 	VALUES ("2e49e10f-3016-47ee-8a39-12e683e7075e",
 	1,

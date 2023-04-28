@@ -41,15 +41,16 @@ while ( not_empty parm ) loop
 end while;
 
 select one end_state related by self->State[R4757];
-select any txn_action related by self->Transition[R4757]->InvocableObject[R427]->CodeBlock[R4000];
+select any txn_action related by self->Transition[R4757]->InvocableObject[R427]->CodeBlock[R4000]->Statement[R450];
 has_txn_action = not_empty txn_action;
 end_state_name = "";
 if (not_empty end_state) then
   end_state_name = end_state.name;
 end if;
 
-select any entry_action related by end_state->InvocableObject[R427]->CodeBlock[R4000];
-has_entry_action = not_empty entry_action;
+select any transition_into_state related by end_state->Transition[R4757];
+select any entry_action related by end_state->InvocableObject[R427]->CodeBlock[R4000]->Statement[R450];
+has_entry_action = not_empty entry_action and not_empty transition_into_state;
 
 // check same data rule
 // do not pass event data to state entry actions if same data rule is violated
