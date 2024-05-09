@@ -60,10 +60,18 @@ INSERT INTO O_TFR
 	1,
 	'body = "{}";
 select any code_block related by self->CodeBlock[R4000] where ( selected.top_level );
-if ( not_empty code_block )
+select any statement related by code_block->Statement[R450];
+if ( not_empty statement )
   code_block.render();
   body = T::body();
   T::clear();
+else
+  select one return_type_ref related by self->TypeReference[R428];
+  select one return_type related by return_type_ref->Type[R3800];
+  if return_type_ref.type_reference_name != "void"
+    // if the body is empty but should return a value, simply return the type''s default value
+    body = "{ return " + return_type.default_value + "; }";
+  end if;
 end if;
 return body;',
 	1,
@@ -218,7 +226,7 @@ INSERT INTO O_ATTR
 	'type_name',
 	'',
 	'',
-	'type_name',
+	'name',
 	2,
 	"ba5eda7a-def5-0000-0000-000000000007",
 	'',
@@ -264,7 +272,7 @@ INSERT INTO O_ATTR
 	'type_package',
 	'',
 	'',
-	'type_package',
+	'package',
 	2,
 	"ba5eda7a-def5-0000-0000-000000000007",
 	'',
