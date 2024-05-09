@@ -1769,8 +1769,6 @@ index = param.index;
 select one c_as related by c_ep->C_AS[R4004];
 select one c_io related by c_ep->C_IO[R4004];
 
-if ( not_empty c_as )  // TODO currently only support signals
-
 // create message object
 create object instance msg of Message;
 msg.name = c_ep.Name;
@@ -1783,7 +1781,8 @@ elif ( not_empty c_io )
 end if;
 relate msg to iface across R419;
 
-end if;
+// link to OOA
+relate c_ep to msg across R4761;
 
 select one file related by iface->File[R401];
 ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL );
@@ -2357,8 +2356,15 @@ else
 end if;
 
 // link type
-type = ::TypeReference_getBuiltinTypeReference( name:"void" );
-relate type to invocable across R428;
+select one s_dt related by msg->C_EP[R4761]->C_IO[R4004]->S_DT[R4008];
+if not_empty s_dt
+  select many s_dims related by msg->C_EP[R4761]->C_IO[R4004]->S_DIM[R4018];
+  type = ::TypeReference_getInstance( s_dt:s_dt, s_dims:s_dims );
+  relate type to invocable across R428;
+else
+  type = ::TypeReference_getBuiltinTypeReference( name:"void" );
+  relate type to invocable across R428;
+end if;
 
 // create parameters
 select any c_pp related by c_ep->C_PP[R4006];

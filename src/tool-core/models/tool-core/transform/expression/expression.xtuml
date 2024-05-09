@@ -1837,13 +1837,18 @@ if ( not_empty v_scv )
   ::transformConstantReference( v_scv:v_scv, smt:smt, expr_number:expr_number );
 
 else
+select one v_msv related by v_val->V_MSV[R801];
+if ( not_empty v_msv )
+  ::transformMessageValue( v_msv:v_msv, smt:smt, expr_number:expr_number );
+
+else
 select one v_mvl related by v_val->V_MVL[R801];
 if ( not_empty v_mvl )
   ::transformMemberValueReference( v_mvl:v_mvl, smt:smt, expr_number:expr_number );
 
 else
   LOG::LogInfo( message:"expression type not yet supported" );
-end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if;',
+end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -2116,6 +2121,102 @@ INSERT INTO S_DT_PROXY
 	'../../../../../mcooa/models/mcooa/ooaofooa/Value/Value.xtuml');
 INSERT INTO PE_PE
 	VALUES ("a2175d89-2c7f-4f2d-8d4f-9168fe4cb9ad",
+	1,
+	"f9a85e65-cedd-4444-aef5-bae5288e31bc",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("40acd120-6c63-49a8-9dd3-98039dce4b68",
+	"00000000-0000-0000-0000-000000000000",
+	'transformMessageValue',
+	'',
+	'v_msv = param.v_msv;
+smt = param.smt;
+expr_number = param.expr_number;
+
+// create expression
+create object instance expr of Expression;
+relate expr to smt across R775;
+expr.expression_number = expr_number;
+
+// link type
+select one s_dt related by v_msv->V_VAL[R801]->S_DT[R820];
+select many s_dims from instances of S_DIM where false;
+type = ::TypeReference_getInstance( s_dt:s_dt, s_dims:s_dims );
+relate type to expr across R795;
+
+select one c_ep related by v_msv->SPR_PEP[R841]->C_EP[R4501];
+if empty c_ep
+  select one c_ep related by v_msv->SPR_REP[R845]->C_EP[R4500];
+end if;
+select one target_port related by v_msv->SPR_REP[R845]->C_R[R4500]->C_IR[R4009]->C_PO[R4016]->Port[R422];
+if ( empty target_port )
+  select one target_port related by v_msv->SPR_PEP[R841]->C_P[R4501]->C_IR[R4009]->C_PO[R4016]->Port[R422];
+end if;
+select any invocable related by target_port->PortMessage[R420]->InvocableObject[R427] where ( selected.name == c_ep.Name );
+if ( not_empty invocable )
+  // create invocation
+  create object instance invoc of Invocation;
+  relate invoc to expr across R776;
+  relate invoc to invocable across R792;
+  // create named reference expression
+  create object instance expr2 of Expression;
+  relate expr2 to smt across R775;
+  expr2.expression_number = expr.expression_number + ".1";
+  void_type = ::TypeReference_getBuiltinTypeReference( name:"void" );
+  relate void_type to expr2 across R795;
+  // create named reference
+  create object instance named_ref of NamedReference;
+  relate named_ref to expr2 across R776;
+  relate expr2 to invoc across R798;
+  named_ref.name = "context()." + target_port.port_name + "()";
+  // transform actual parameters
+  select many v_pars related by v_msv->V_PAR[R842];
+  ::transformActualParameters( invocation:invoc, v_pars:v_pars, expr_number:expr.expression_number, base_num:2 );
+else
+  // TODO bad
+end if; ',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	0);
+INSERT INTO S_SPARM
+	VALUES ("9649c7a2-e257-45fd-a13e-5f3f3e039b8b",
+	"40acd120-6c63-49a8-9dd3-98039dce4b68",
+	'smt',
+	"b586ec7e-41fe-4d50-9cf3-27b173e9848a",
+	0,
+	'',
+	"115142e2-c5f3-4d09-bebc-c5fbffb4f0fa",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("089114d4-8f43-4773-98fd-d32b4dd8d9cc",
+	"40acd120-6c63-49a8-9dd3-98039dce4b68",
+	'expr_number',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"9649c7a2-e257-45fd-a13e-5f3f3e039b8b",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("115142e2-c5f3-4d09-bebc-c5fbffb4f0fa",
+	"40acd120-6c63-49a8-9dd3-98039dce4b68",
+	'v_msv',
+	"5d3edb98-7267-4f8f-8a43-a03062f612ef",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("5d3edb98-7267-4f8f-8a43-a03062f612ef",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Message Value>',
+	'',
+	'',
+	'../../../../../mcooa/models/mcooa/ooaofooa/Value/Value.xtuml');
+INSERT INTO PE_PE
+	VALUES ("40acd120-6c63-49a8-9dd3-98039dce4b68",
 	1,
 	"f9a85e65-cedd-4444-aef5-bae5288e31bc",
 	"00000000-0000-0000-0000-000000000000",
