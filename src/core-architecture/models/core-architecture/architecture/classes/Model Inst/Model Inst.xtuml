@@ -154,40 +154,50 @@ end for;
 empty_selectors = T::body();
 T::clear();
 
-T::include(file:"class/t.class.impl.java");
-T::emit( file:file.path + "/impl/" + self.name + "Impl" + file.extension );
-T::clear();
+if self.unmanaged
 
-imports = file.getFormattedImports( type:ImportType::INT );
+  T::include(file:"class/t.class.unmanaged.java");
+  T::emit( file:file.path + "/" + self.name + file.extension );
+  T::clear();
 
-index = 0;
-select any attribute related by self->Attribute[R410] where ( index == selected.order);
-while ( not_empty attribute ) 
-  select many accessors related by attribute->AttributeAccessor[R4510];
-  for each accessor in accessors
-    accessor.render_interface();
-  end for;
-  index = index + 1;
-  select any attribute related by self->Attribute[R410] where ( index == selected.order);
-end while;
-attributes = T::body();
-T::clear();
+else
 
-for each operation in inst_ops
-  operation.render_interface();
-end for;
-operations = T::body();
-T::clear();
+  T::include(file:"class/t.class.impl.java");
+  T::emit( file:file.path + "/impl/" + self.name + "Impl" + file.extension );
+  T::clear();
 
-for each selector in selects
-  selector.render_interface();
-end for;
-selectors = T::body();
-T::clear();
+	imports = file.getFormattedImports( type:ImportType::INT );
 
-T::include(file:"class/t.class.java");
-T::emit( file:file.path + "/" + self.name + file.extension );
-T::clear();',
+	index = 0;
+	select any attribute related by self->Attribute[R410] where ( index == selected.order);
+	while ( not_empty attribute ) 
+		select many accessors related by attribute->AttributeAccessor[R4510];
+		for each accessor in accessors
+			accessor.render_interface();
+		end for;
+		index = index + 1;
+		select any attribute related by self->Attribute[R410] where ( index == selected.order);
+	end while;
+	attributes = T::body();
+	T::clear();
+
+	for each operation in inst_ops
+		operation.render_interface();
+	end for;
+	operations = T::body();
+	T::clear();
+
+	for each selector in selects
+		selector.render_interface();
+	end for;
+	selectors = T::body();
+	T::clear();
+
+	T::include(file:"class/t.class.java");
+	T::emit( file:file.path + "/" + self.name + file.extension );
+	T::clear();
+
+end if;',
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",
@@ -303,7 +313,7 @@ INSERT INTO O_ATTR
 	'package',
 	'',
 	'',
-	'path',
+	'package',
 	0,
 	"ba5eda7a-def5-0000-0000-000000000007",
 	'',
@@ -482,6 +492,24 @@ INSERT INTO O_ATTR
 	'comparator',
 	0,
 	"ba5eda7a-def5-0000-0000-000000000004",
+	'',
+	'');
+INSERT INTO O_NBATTR
+	VALUES ("bec4d743-d345-49e0-953d-fb58c9b69192",
+	"82cf3088-71ed-48c3-850e-afe53bfc0fe5");
+INSERT INTO O_BATTR
+	VALUES ("bec4d743-d345-49e0-953d-fb58c9b69192",
+	"82cf3088-71ed-48c3-850e-afe53bfc0fe5");
+INSERT INTO O_ATTR
+	VALUES ("bec4d743-d345-49e0-953d-fb58c9b69192",
+	"82cf3088-71ed-48c3-850e-afe53bfc0fe5",
+	"c9564b5b-70c8-4271-b1a9-915035b947cb",
+	'unmanaged',
+	'',
+	'',
+	'unmanaged',
+	0,
+	"ba5eda7a-def5-0000-0000-000000000001",
 	'',
 	'');
 INSERT INTO O_ID

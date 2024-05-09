@@ -1224,7 +1224,7 @@ if ( 1 == param.pass )
   end for;
 
   // transform instance population selectors
-  select many objs related by comp_def->Class[R408];
+  select many objs related by comp_def->Class[R408] where not selected.unmanaged;
   for each obj in objs
     create object instance inst_pop_selector of InstancePopulationSelector;
     inst_pop_selector.name = obj.name + "_instances";
@@ -2040,6 +2040,11 @@ if ( 1 == param.pass )
   for each udt in udts
     ::transformUserDefinedType( s_dt:udt );
   end for;
+  
+  select many sdts related by pe_pes->S_DT[R8001]->S_SDT[R17]->S_DT[R17];
+  for each sdt in sdts
+    ::transformStructuredType( s_dt:sdt, containing_comp_def:containing_comp_def, path:path + "/" + T::sub( format:"rl", s:ep_pkg.Name ) );
+  end for;
 
   // transform EEs
   select many s_ees related by pe_pes->S_EE[R8001];
@@ -2101,7 +2106,7 @@ else
 
   // transform selectors
   select many o_objs related by pe_pes->O_OBJ[R8001];
-  select many objs related by o_objs->Class[R409];
+  select many objs related by o_objs->Class[R409] where not selected.unmanaged;
   for each obj in objs
     ::transformSelectors( obj:obj );
   end for;
@@ -2959,6 +2964,172 @@ INSERT INTO S_DT_PROXY
 	'../../../../mcooa/models/mcooa/ooaofooa/Domain/Domain.xtuml');
 INSERT INTO PE_PE
 	VALUES ("7987d2a8-0081-4942-a0f1-09509ae9f755",
+	1,
+	"302d02ea-52a7-489d-a14b-18b29f3c8d86",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("bd3dcc4e-2d72-48d9-af31-3d902a4e200b",
+	"00000000-0000-0000-0000-000000000000",
+	'transformStructuredType',
+	'',
+	's_dt = param.s_dt;
+select one s_sdt related by s_dt->S_SDT[R17];
+containing_comp_def = param.containing_comp_def;
+path = param.path;
+select one ep_pkg related by s_dt->PE_PE[R8001]->EP_PKG[R8000];
+
+// create the object file
+create object instance file of File;
+file.name = ::camelCaseName( name:s_dt.Name, start_lower:false );
+file.path = ::ep_pkgToPath( ep_pkg:ep_pkg );
+file.package = ::pathToPackage( path:file.path );
+file.extension = ".java";
+file.exclude = false;
+
+// create the object
+create object instance obj of Class;
+relate obj to file across R401;
+obj.unmanaged = true;
+
+// add the class to the component
+relate obj to containing_comp_def across R408;
+
+create object instance type of Type;
+type.name = obj.name;
+type.package = obj.package;
+::Type_resolve(t:type, s_dt:s_dt);
+type.default_value = "new " + obj.name + "()";
+relate type to obj across R407;
+
+// transform attributes
+select any s_mbr related by s_sdt->S_MBR[R44];
+select one prev_mbr related by s_mbr->S_MBR[R46.''succeeds''];
+while ( not_empty prev_mbr )
+  s_mbr = prev_mbr;
+  select one prev_mbr related by s_mbr->S_MBR[R46.''succeeds''];
+end while;
+index = 0;
+while ( not_empty s_mbr )
+  ::transformStructureMember( s_mbr:s_mbr, obj:obj, index:index );
+  index = index + 1;
+  select one s_mbr related by s_mbr->S_MBR[R46.''precedes''];
+end while;
+
+// create import block
+::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.IXtumlType", type:ImportType::BOTH );',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	0);
+INSERT INTO S_SPARM
+	VALUES ("0680d125-1356-412e-84f8-54732e0f5266",
+	"bd3dcc4e-2d72-48d9-af31-3d902a4e200b",
+	's_dt',
+	"4a90cd45-ece0-4e72-afe7-44996f9d7e1e",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("37be3c74-9883-4623-b00a-073e4fe6886a",
+	"bd3dcc4e-2d72-48d9-af31-3d902a4e200b",
+	'containing_comp_def',
+	"109e90cb-1d66-46ee-88db-a568044879d0",
+	0,
+	'',
+	"0680d125-1356-412e-84f8-54732e0f5266",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("07ee871d-1085-48bf-b501-93770faf399e",
+	"bd3dcc4e-2d72-48d9-af31-3d902a4e200b",
+	'path',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"37be3c74-9883-4623-b00a-073e4fe6886a",
+	'');
+INSERT INTO PE_PE
+	VALUES ("bd3dcc4e-2d72-48d9-af31-3d902a4e200b",
+	1,
+	"302d02ea-52a7-489d-a14b-18b29f3c8d86",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("92a8784c-560d-490c-8b97-d2ca3af68ba3",
+	"00000000-0000-0000-0000-000000000000",
+	'transformStructureMember',
+	'',
+	's_mbr = param.s_mbr;
+obj = param.obj;
+
+select one s_dt related by s_mbr->S_DT[R45];
+
+// create the attribute
+create object instance attr of Attribute;
+attr.name = "m_" + s_mbr.Name;
+attr.base_name = s_mbr.Name;
+attr.order = param.index;
+relate attr to obj across R410;
+
+// link to OOA
+relate s_mbr to attr across R4760;
+
+// set the type
+select many s_dims related by s_mbr->S_DIM[R53];
+type = ::TypeReference_getInstance(s_dt:s_dt, s_dims:s_dims);
+select one array_type related by type->ArrayTypeReference[R3801];
+relate type to attr across R424;
+
+// create accessors
+create object instance getter of AttributeAccessor;
+getter.accessor_type = AttributeAccessorType::GETTER;
+relate getter to attr across R4510;
+create object instance setter of AttributeAccessor;
+setter.accessor_type = AttributeAccessorType::SETTER;
+relate setter to attr across R4510;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	0);
+INSERT INTO S_SPARM
+	VALUES ("a9f7c4a1-1d96-4f8e-90f3-201a088881ac",
+	"92a8784c-560d-490c-8b97-d2ca3af68ba3",
+	's_mbr',
+	"cbb8ea86-ca4f-49b1-aba0-d9cefd604600",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("cbb8ea86-ca4f-49b1-aba0-d9cefd604600",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Structure Member>',
+	'',
+	'',
+	'../../../../mcooa/models/mcooa/ooaofooa/Domain/Domain.xtuml');
+INSERT INTO S_SPARM
+	VALUES ("3d3683a0-c85a-42d9-a39b-46e01e9ba25b",
+	"92a8784c-560d-490c-8b97-d2ca3af68ba3",
+	'obj',
+	"a519e323-b117-4a03-9435-b88e56c2443d",
+	0,
+	'',
+	"a9f7c4a1-1d96-4f8e-90f3-201a088881ac",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("786d6253-5fa4-4896-8558-5a6e66777471",
+	"92a8784c-560d-490c-8b97-d2ca3af68ba3",
+	'index',
+	"ba5eda7a-def5-0000-0000-000000000002",
+	0,
+	'',
+	"3d3683a0-c85a-42d9-a39b-46e01e9ba25b",
+	'');
+INSERT INTO PE_PE
+	VALUES ("92a8784c-560d-490c-8b97-d2ca3af68ba3",
 	1,
 	"302d02ea-52a7-489d-a14b-18b29f3c8d86",
 	"00000000-0000-0000-0000-000000000000",
