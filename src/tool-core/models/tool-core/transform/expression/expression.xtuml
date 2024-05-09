@@ -1847,8 +1847,14 @@ if ( not_empty v_mvl )
   ::transformMemberValueReference( v_mvl:v_mvl, smt:smt, expr_number:expr_number );
 
 else
+select one v_alv related by v_val->V_ALV[R801];
+if ( not_empty v_alv )
+  ::transformArrayLengthValue( v_alv:v_alv, smt:smt, expr_number:expr_number );
+
+
+else
   LOG::LogInfo( message:"expression type not yet supported" );
-end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if;',
+end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if; end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -2217,6 +2223,78 @@ INSERT INTO S_DT_PROXY
 	'../../../../../mcooa/models/mcooa/ooaofooa/Value/Value.xtuml');
 INSERT INTO PE_PE
 	VALUES ("40acd120-6c63-49a8-9dd3-98039dce4b68",
+	1,
+	"f9a85e65-cedd-4444-aef5-bae5288e31bc",
+	"00000000-0000-0000-0000-000000000000",
+	1);
+INSERT INTO S_SYNC
+	VALUES ("67e75b64-ab65-428c-b9db-f5916a1d8ccc",
+	"00000000-0000-0000-0000-000000000000",
+	'transformArrayLengthValue',
+	'',
+	'v_alv = param.v_alv;
+smt = param.smt;
+expr_number = param.expr_number;
+
+// create expression
+create object instance expr of Expression;
+relate expr to smt across R775;
+expr.expression_number = expr_number;
+
+// link type
+type = ::TypeReference_getBuiltinTypeReference( name:"int" );
+relate type to expr across R795;
+
+// transform root expression
+select one root_val related by v_alv->V_VAL[R840];
+::transformExpression( v_val:root_val, expr_number:expr.expression_number + ".1", smt:smt );
+select any root_expr related by smt->Expression[R775] where ( selected.expression_number == expr.expression_number + ".1" );
+
+// create the array length reference
+create object instance array_len of ArrayLengthAccess;
+relate array_len to expr across R776;
+relate root_expr to array_len across R3908;',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'',
+	0,
+	0);
+INSERT INTO S_SPARM
+	VALUES ("2b49693f-0ecd-4889-985a-e41fad772f80",
+	"67e75b64-ab65-428c-b9db-f5916a1d8ccc",
+	'smt',
+	"b586ec7e-41fe-4d50-9cf3-27b173e9848a",
+	0,
+	'',
+	"ba26162c-05fd-408e-b96a-09dc454ee51f",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("3795fe42-a643-43b2-a2f8-f169c5c75b86",
+	"67e75b64-ab65-428c-b9db-f5916a1d8ccc",
+	'expr_number',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"2b49693f-0ecd-4889-985a-e41fad772f80",
+	'');
+INSERT INTO S_SPARM
+	VALUES ("ba26162c-05fd-408e-b96a-09dc454ee51f",
+	"67e75b64-ab65-428c-b9db-f5916a1d8ccc",
+	'v_alv',
+	"6f6f82d2-7f88-433b-ad08-9cc89e36a814",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("6f6f82d2-7f88-433b-ad08-9cc89e36a814",
+	"00000000-0000-0000-0000-000000000000",
+	'inst_ref<Array Length Value>',
+	'',
+	'',
+	'../../../../../mcooa/models/mcooa/ooaofooa/Value/Value.xtuml');
+INSERT INTO PE_PE
+	VALUES ("67e75b64-ab65-428c-b9db-f5916a1d8ccc",
 	1,
 	"f9a85e65-cedd-4444-aef5-bae5288e31bc",
 	"00000000-0000-0000-0000-000000000000",
