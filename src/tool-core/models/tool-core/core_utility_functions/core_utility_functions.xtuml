@@ -227,15 +227,31 @@ INSERT INTO S_SYNC
 	'ep_pkgToPath',
 	'',
 	'ep_pkg = param.ep_pkg;
-path = ::formatPath( path:T::sub( format:"l", s:T::sub( format:"r", s:ep_pkg.Name ) ) );
-select one containing_ep_pkg related by ep_pkg->PE_PE[R8001]->EP_PKG[R8000];
-if ( not_empty containing_ep_pkg )
-  path = ::ep_pkgToPath( ep_pkg:containing_ep_pkg ) + "/" + path;
+path = "";
+
+// remap the path if necessary
+select one pe related by ep_pkg->PE_PE[R8001];
+select any remap_package_mark from instances of Mark where ( selected.markable_name == "Package" and
+                                                            selected.path == ::containerMarkingPath( pe:pe ) + "::" + ep_pkg.Name and
+                                                            selected.feature_name == "RemapPackage" );
+ 
+if ( not_empty remap_package_mark )
+
+  path = ::formatPath(path: remap_package_mark.value);
+  
 else
-  select one containing_c_c related by ep_pkg->PE_PE[R8001]->C_C[R8003];
-  if ( not_empty containing_c_c )
-    path = ::c_cToPath( c_c:containing_c_c ) + "/" + path;
-  end if;
+
+	path = ::formatPath( path:T::sub( format:"l", s:T::sub( format:"r", s:ep_pkg.Name ) ) );
+	select one containing_ep_pkg related by ep_pkg->PE_PE[R8001]->EP_PKG[R8000];
+	if ( not_empty containing_ep_pkg )
+		path = ::ep_pkgToPath( ep_pkg:containing_ep_pkg ) + "/" + path;
+	else
+		select one containing_c_c related by ep_pkg->PE_PE[R8001]->C_C[R8003];
+		if ( not_empty containing_c_c )
+			path = ::c_cToPath( c_c:containing_c_c ) + "/" + path;
+		end if;
+	end if;
+
 end if;
 return path;',
 	"ba5eda7a-def5-0000-0000-000000000004",
