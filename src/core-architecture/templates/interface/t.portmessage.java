@@ -5,7 +5,7 @@ ${body}
 {
         if ( satisfied() ) {
   .if ( type_name == "void" )
-            send(new ${self.iface_name}.$c{self.msg_name}(${invocation_parameter_list}));
+            send(new ${self.iface_name}.S$c{self.msg_name}(${invocation_parameter_list}));
   .else
             throw new UnsupportedOperationException("Cannot serialize a message that carries a return value.");
   .end if
