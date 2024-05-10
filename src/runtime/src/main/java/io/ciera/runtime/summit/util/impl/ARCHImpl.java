@@ -21,4 +21,9 @@ public class ARCHImpl<C extends IComponent<C>> extends Utility<C> implements ARC
         throw new XtumlExitException(code);
     }
 
+    @Override
+    public void openURL(String url) {
+      // no-op
+    }
+
 }
