@@ -1,7 +1,7 @@
     public static final int SIGNAL_NO_$u{self.name} = ${self.id};
-    public static class $c{self.name} extends Message {
+    public static class S$c{self.name} extends Message {
 .if ( "" != parameter_list )
-        public $c{self.name}(${parameter_list}) {
+        public S$c{self.name}(${parameter_list}) {
             super(new Object[]{${invocation_parameter_list}});
         }
 .end if
