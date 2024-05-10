@@ -16,5 +16,12 @@ public interface ARCH {
      * @param code The exit code
      */
     public void exit(int code);
+    
+    /**
+     * Open a URL in the default browser (not supported)
+     * 
+     * @param url The url
+     */
+    public void openURL(String url);
 
 }
