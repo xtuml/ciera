@@ -2180,6 +2180,7 @@ INSERT INTO S_SYNC
 comp_def = param.comp_def;
 select one c_c related by c_po->C_C[R4010];
 select one pe related by c_c->PE_PE[R8001];
+select one component_file related by comp_def->File[R401];
 
 // create the file
 create object instance file of File;
@@ -2200,11 +2201,42 @@ select any base_class_mark from instances of Mark where ( selected.markable_name
                                                           selected.path == ::containerMarkingPath( pe:pe ) + "::" + c_c.Name + "::" + c_po.Name and
                                                           selected.feature_name == "BaseClass" );
 if ( not_empty base_class_mark )
-  port.base_class = base_class_mark.value;
-  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.interfaces." + base_class_mark.value, type:ImportType::IMPL );
+  index = 0;
+  i = STRING::indexof(haystack: base_class_mark.value, needle: ".");
+  while i > 0
+    index = index + i + 1;
+    i = STRING::indexof(haystack: STRING::substr(s: base_class_mark.value, begin: index + 1, end: -1), needle: ".");
+  end while;
+  port.base_class = STRING::substr(s: base_class_mark.value, begin: index + 1, end: -1);
+  if index == 0
+    ::addStringToImports( file:file, s:"io.ciera.runtime.summit.interfaces." + port.base_class, type:ImportType::IMPL );
+  else
+    ::addStringToImports( file:file, s:base_class_mark.value, type:ImportType::IMPL );
+  end if;
 else
   port.base_class = "Port";
   ::addStringToImports( file:file, s:"io.ciera.runtime.summit.interfaces.Port", type:ImportType::IMPL );
+end if;
+
+// set implementation class
+select any impl_class_mark from instances of Mark where ( selected.markable_name == "Port" and
+                                                          selected.path == ::containerMarkingPath( pe:pe ) + "::" + c_c.Name + "::" + c_po.Name and
+                                                          selected.feature_name == "ImplementationClass" );
+if ( not_empty impl_class_mark )
+  index = 0;
+  i = STRING::indexof(haystack: impl_class_mark.value, needle: ".");
+  while i > 0
+    index = index + i + 1;
+    i = STRING::indexof(haystack: STRING::substr(s: impl_class_mark.value, begin: index + 1, end: -1), needle: ".");
+  end while;
+  port.impl_class = STRING::substr(s: impl_class_mark.value, begin: index + 1, end: -1);
+  if index == 0
+    ::addStringToImports( file:component_file, s:"io.ciera.runtime.summit.interfaces." + port.impl_class, type:ImportType::IMPL );
+  else
+    ::addStringToImports( file:component_file, s:impl_class_mark.value, type:ImportType::IMPL );
+  end if;
+else
+  port.impl_class = port.name;
 end if;
 
 // add extra for http port
@@ -2247,7 +2279,6 @@ else
 end if;
 
 // add to component file
-select one component_file related by comp_def->File[R401];
 ::addFileToImports( file:component_file, file_to_import:file, type:ImportType::IMPL );
 
 // add imports
