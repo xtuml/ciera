@@ -17,4 +17,7 @@ public class ${self.name} extends ${extends_type} implements IXtumlType {
         return new ${self.name}(cast(o));
     }
 
+    public static ${self.name} deserialize(Object o) throws XtumlException {
+        throw new NotImplementedException("Type cannot be deserialized");
+    }
 }

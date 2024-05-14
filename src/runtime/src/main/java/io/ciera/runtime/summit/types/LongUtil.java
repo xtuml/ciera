@@ -3,6 +3,10 @@ package io.ciera.runtime.summit.types;
 import io.ciera.runtime.summit.exceptions.XtumlException;
 
 public class LongUtil {
+    
+    public static String serialize(long l) {
+        return Long.toString(l);
+    }
 	
 	public static long deserialize(Object o) throws XtumlException {
 		if (o instanceof Long) {
