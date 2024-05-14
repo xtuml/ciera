@@ -50,6 +50,10 @@ public class StringUtil {
         else
             return true;
     }
+    
+    public static String serialize(String s) {
+        return s;
+    }
 
 	public static String deserialize(Object o) {
 		if (o instanceof String) {

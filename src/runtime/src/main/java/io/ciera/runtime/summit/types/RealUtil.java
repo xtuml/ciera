@@ -3,6 +3,10 @@ package io.ciera.runtime.summit.types;
 import io.ciera.runtime.summit.exceptions.XtumlException;
 
 public class RealUtil {
+    
+    public static String serialize(double d) {
+        return Double.toString(d);
+    }
 	
 	public static double deserialize(Object o) throws XtumlException {
 		if (o instanceof Double) {

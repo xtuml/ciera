@@ -3,6 +3,10 @@ package io.ciera.runtime.summit.types;
 import io.ciera.runtime.summit.exceptions.XtumlException;
 
 public class IntegerUtil {
+    
+    public static String serialize(int i) {
+        return Integer.toString(i);
+    }
 	
 	public static int deserialize(Object o) throws XtumlException {
 		if (o instanceof Integer) {

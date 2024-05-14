@@ -155,7 +155,69 @@ empty_selectors = T::body();
 T::clear();
 
 if self.unmanaged
+  
+	index = 0;
+	T::push_buffer();
+	select any attribute related by self->Attribute[R410] where ( index == selected.order);
+	while ( not_empty attribute ) 
+	  select any getter related by attribute->AttributeAccessor[R4510] where selected.accessor_type == AttributeAccessorType::GETTER;
+	  util_name = "";
+	  select one member_type related by attribute->TypeReference[R424];
+	  select one array_type related by member_type->ArrayTypeReference[R3801];
+	  if ( not_empty array_type )
+	   util_name = "ArrayUtil";
+	  end if;
+		if ( "boolean" == member_type.type_reference_name )
+		  util_name = "BooleanUtil";
+		elif ( "int" == member_type.type_reference_name )
+		  util_name = "IntegerUtil";
+		elif ( "long" == member_type.type_reference_name )
+		  util_name = "LongUtil";
+		elif ( "double" == member_type.type_reference_name )
+      util_name = "RealUtil";
+		elif ( "String" == member_type.type_reference_name )
+      util_name = "StringUtil";
+		end if;
+	  getter_name = getter.getName();
+    T::include(file:"class/t.attribute.serializer.java");
+		index = index + 1;
+		select any attribute related by self->Attribute[R410] where ( index == selected.order);
+	end while;
+  attribute_serializers = T::body();
+  T::pop_buffer();
+ 
 
+	index = 0;
+	T::push_buffer();
+	select any attribute related by self->Attribute[R410] where ( index == selected.order);
+	while ( not_empty attribute ) 
+	  select any setter related by attribute->AttributeAccessor[R4510] where selected.accessor_type == AttributeAccessorType::SETTER;
+	  select one member_type related by attribute->TypeReference[R424];
+	  select one array_type related by member_type->ArrayTypeReference[R3801];
+	  is_array = not_empty array_type;
+	  type_name = member_type.type_reference_name;
+	  if ( not_empty array_type )
+	   type_name = member_type.type_name;
+	  end if;
+		if ( "boolean" == type_name )
+		  type_name = "BooleanUtil";
+		elif ( "int" == type_name )
+		  type_name = "IntegerUtil";
+		elif ( "long" == type_name )
+		  type_name = "LongUtil";
+		elif ( "double" == type_name )
+      type_name = "RealUtil";
+		elif ( "String" == type_name )
+      type_name = "StringUtil";
+		end if;
+	  setter_name = setter.getName();
+    T::include(file:"class/t.attribute.deserializer.java");
+		index = index + 1;
+		select any attribute related by self->Attribute[R410] where ( index == selected.order);
+	end while;
+  attribute_deserializers = T::body();
+  T::pop_buffer();
+  
   T::include(file:"class/t.class.unmanaged.java");
   T::emit( file:file.path + "/" + self.name + file.extension );
   T::clear();

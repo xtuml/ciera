@@ -2758,6 +2758,7 @@ relate type to udt across R407;
 relate udt to file across R401;
 
 // add import
+::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.NotImplementedException", type:ImportType::IMPL );
 ::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::IMPL );
 ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.IXtumlType", type:ImportType::IMPL );',
 	"ba5eda7a-def5-0000-0000-000000000000",
@@ -3022,6 +3023,7 @@ while ( not_empty s_mbr )
 end while;
 
 // create import block
+::addStringToImports( file:file, s:"io.ciera.runtime.summit.exceptions.XtumlException", type:ImportType::BOTH );
 ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.IXtumlType", type:ImportType::BOTH );',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -3084,7 +3086,26 @@ getter.accessor_type = AttributeAccessorType::GETTER;
 relate getter to attr across R4510;
 create object instance setter of AttributeAccessor;
 setter.accessor_type = AttributeAccessorType::SETTER;
-relate setter to attr across R4510;',
+relate setter to attr across R4510;
+
+// add type utils to the import block
+select one file related by obj->File[R401];
+if ( type.type_name == "boolean" )
+  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.BooleanUtil", type:ImportType::IMPL );
+elif ( type.type_name == "int" )
+  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.IntegerUtil", type:ImportType::IMPL );
+elif ( type.type_name == "long" )
+  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.LongUtil", type:ImportType::IMPL );
+elif ( type.type_name == "double" )
+  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.RealUtil", type:ImportType::IMPL );
+elif ( type.type_name == "String" )
+  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.StringUtil", type:ImportType::IMPL );
+end if;
+select one array_type related by type->ArrayTypeReference[R3801];
+if ( not_empty array_type )
+  ::addStringToImports( file:file, s:"io.ciera.runtime.summit.types.ArrayUtil", type:ImportType::IMPL );
+end if;
+::addStringToImports( file:file, s:"org.json.JSONObject", type:ImportType::IMPL );',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',

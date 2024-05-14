@@ -1,8 +1,11 @@
 package io.ciera.runtime.summit.types;
 
+import java.util.function.Function;
+
+import org.json.JSONArray;
+
 import io.ciera.runtime.summit.exceptions.NotImplementedException;
 import io.ciera.runtime.summit.exceptions.XtumlException;
-import java.util.Arrays;
 
 public class ArrayUtil {
 
@@ -47,9 +50,34 @@ public class ArrayUtil {
     public static boolean lessThanOrEqual(Object[] value1, Object[] value2) throws XtumlException {
         throw new NotImplementedException("Array types are not comparable");
     }
+    
+    public static String serialize(Object[] o) throws XtumlException {
+        final JSONArray json = new JSONArray();
+        for (Object elem : o) {
+            if (elem instanceof IXtumlType) {
+                json.put(((IXtumlType) elem).serialize());
+            } else {
+                json.put(o.toString());
+            }
+        }
+        return json.toString();
+    }
 
-	public static Object[] deserialize(Object o) throws XtumlException {
-        throw new NotImplementedException("Array cannot be deserialized");
-	}
+    public static Object[] deserialize(Object o) throws XtumlException {
+        if (o instanceof String) {
+            return new JSONArray((String) o).toList().toArray();
+        } else {
+            throw new NotImplementedException("Array cannot be deserialized");
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T> T[] deserialize(Object o, Function<Object, T> elementDeserializer) throws XtumlException {
+        if (o instanceof String) {
+            return (T[]) new JSONArray((String) o).toList().stream().map(elementDeserializer).toArray();
+        } else {
+            throw new NotImplementedException("Array cannot be deserialized");
+        }
+    }
 
 }

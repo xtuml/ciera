@@ -4,6 +4,10 @@ import io.ciera.runtime.summit.exceptions.XtumlException;
 
 public class BooleanUtil {
     
+    public static String serialize(boolean b) {
+        return Boolean.toString(b);
+    }
+    
     public static boolean deserialize(Object o) throws XtumlException {
         if (o instanceof Boolean) {
             return (boolean)o;
