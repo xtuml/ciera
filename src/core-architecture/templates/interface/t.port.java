@@ -15,7 +15,7 @@ ${inbound_message_block}
 ${outbound_message_block}
 
     @Override
-    public void deliver( IMessage message ) throws XtumlException {
+    public Object deliver( IMessage message ) throws XtumlException {
         if ( null == message ) throw new BadArgumentException( "Cannot deliver null message." );
         switch ( message.getId() ) {
 ${message_switch_block}\

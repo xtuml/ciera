@@ -25,6 +25,14 @@ public abstract class Port<C extends IComponent<C>> implements IPort<C> {
             });
         }
     }
+    
+    public Object syncSend(IMessage message) throws XtumlException {
+        if (null != peer) {
+            return peer.deliver(message);
+        } else {
+            return null;
+        }
+    }
 
     @Override
     public void satisfy(IPort<?> peer) {
