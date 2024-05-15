@@ -7,7 +7,7 @@ ${body}
   .if ( type_name == "void" )
             send(new ${self.iface_name}.S$c{self.msg_name}(${invocation_parameter_list}));
   .else
-            throw new UnsupportedOperationException("Cannot serialize a message that carries a return value.");
+            return (${type_name}) syncSend(new ${self.iface_name}.S$c{self.msg_name}(${invocation_parameter_list}));
   .end if
         } else ${body}\
     }
