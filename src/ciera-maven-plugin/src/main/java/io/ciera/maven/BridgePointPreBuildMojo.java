@@ -31,7 +31,7 @@ public class BridgePointPreBuildMojo extends AbstractPreBuildMojo {
         if (requiresBuild()) {
             final String workspace = null == this.workspace || "".equals(this.workspace) ? System.getenv("WORKSPACE") : this.workspace;
             final String bpHome = null == this.bpHome || "".equals(this.bpHome) ? System.getenv("BPHOME") : this.bpHome;
-            final String cliExe = bpHome + File.separator + BIN_DIR + File.separator + "CLI.sh";
+            final String cliExe = bpHome + File.separator + "bridgepoint";
             if (workspace == null || "".equals(workspace.trim()) || bpHome == null || "".equals(bpHome.trim())) {
                 if (bpHome == null || "".equals(bpHome.trim())) {
                     getLog().error("BPHOME is unset.");
@@ -42,8 +42,7 @@ public class BridgePointPreBuildMojo extends AbstractPreBuildMojo {
                 throw new MojoFailureException("Could not execute pre-build.");
             }
             else {
-                ProcessBuilder pb = new ProcessBuilder(cliExe, "Build", "-project", projectName, "-prebuildOnly").redirectOutput(Redirect.PIPE).redirectError(Redirect.PIPE);
-                pb.environment().put("WORKSPACE", workspace);
+                ProcessBuilder pb = new ProcessBuilder(cliExe, "--launcher.suppressErrors", "-clean", "-noSplash", "-data", workspace, "-application", "org.xtuml.bp.cli.Build", "-project", projectName, "-prebuildOnly").redirectOutput(Redirect.PIPE).redirectError(Redirect.PIPE);
                 getLog().info("Performing BridgePoint pre-build (workspace location: " + workspace + ")...");
                 getLog().info("");
                 printCommand(pb);
