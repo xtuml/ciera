@@ -2,7 +2,9 @@
     
     @Override
     public void accept(IEvent event) throws XtumlException {
-        statemachine.transition(event);
+        if (isAlive()) {
+            statemachine.transition(event);
+        }
     }
 
     @Override

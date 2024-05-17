@@ -39,6 +39,11 @@ public abstract class ModelInstance<T extends IModelInstance<T, C>, C extends IC
         if (!alive)
             throw new DeletedInstanceException("Access of deleted instance ");
     }
+    
+    @Override
+    public boolean isAlive() {
+    	return alive;
+    }
 
     @Override
     public void delete() throws XtumlException {

@@ -21,6 +21,8 @@ public interface IModelInstance<T extends IModelInstance<T, C>, C extends ICompo
     public IInstanceIdentifier getId3();
 
     public void checkLiving() throws XtumlException;
+    
+    public boolean isAlive();
 
     public void delete() throws XtumlException;
 
