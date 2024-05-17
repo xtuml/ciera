@@ -86,7 +86,7 @@ public class DefaultLogger implements ILogger {
 
     @Override
     public boolean isDebugEnabled() {
-        return true;
+        return false;  // debug disabled by default
     }
 
     @Override
