@@ -80,7 +80,7 @@ public class Timer implements Comparable<Timer>, IXtumlType {
 
     @Override
     public boolean equals(Object o) {
-    	return null != o && null != timerId && timerId.equals(((Timer)o).getId());
+    	return o instanceof Timer && null != timerId && timerId.equals(((Timer)o).getId());
     }
     
     @Override
