@@ -5,10 +5,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Enumeration;
 import java.util.List;
 import java.util.Scanner;
-import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import org.apache.maven.model.Dependency;
@@ -70,6 +68,11 @@ public abstract class AbstractPreBuildMojo extends AbstractMojo {
   protected List<LocalArtifactResult> getDependencyModels() {
     List<LocalArtifactResult> dependencyModels = new ArrayList<>();
     for (Dependency dependency : project.getDependencies()) {
+      getLog()
+          .debug(
+              String.format(
+                  "Searching for models in dependency %s:%s:%s",
+                  dependency.getGroupId(), dependency.getArtifactId(), dependency.getVersion()));
       final LocalArtifactResult result =
           repositorySystemSession
               .getLocalRepositoryManager()
@@ -88,17 +91,32 @@ public abstract class AbstractPreBuildMojo extends AbstractMojo {
         try {
           zipfile = new ZipFile(result.getFile());
         } catch (IOException e) {
-          /* do nothing */
+          getLog()
+              .debug(
+                  String.format(
+                      "Could not create ZipFile for: %s:%s:%s",
+                      dependency.getGroupId(), dependency.getArtifactId(), dependency.getVersion()),
+                  e);
         }
+      } else {
+        getLog()
+            .debug(
+                String.format(
+                    "Dependency %s:%s:%s is not available",
+                    dependency.getGroupId(), dependency.getArtifactId(), dependency.getVersion()));
       }
       if (zipfile != null) {
-        Enumeration<? extends ZipEntry> entries = zipfile.entries();
-        while (entries.hasMoreElements()) {
-          ZipEntry entry = entries.nextElement();
-          if (entry.getName().endsWith(".xtuml")) {
-            dependencyModels.add(result);
-            break;
-          }
+        if (Collections.list(zipfile.entries()).stream()
+            .anyMatch(entry -> entry.getName().toLowerCase().endsWith(".xtuml"))) {
+          dependencyModels.add(result);
+        } else {
+          getLog()
+              .debug(
+                  String.format(
+                      "Dependency %s:%s:%s contains no .xtuml files",
+                      dependency.getGroupId(),
+                      dependency.getArtifactId(),
+                      dependency.getVersion()));
         }
       }
     }
