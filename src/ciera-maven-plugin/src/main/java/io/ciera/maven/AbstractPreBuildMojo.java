@@ -87,7 +87,7 @@ public abstract class AbstractPreBuildMojo extends AbstractMojo {
                       Collections.emptyList(),
                       null));
       ZipFile zipfile = null;
-      if (result.isAvailable()) {
+      if (result.getFile() != null) {
         try {
           zipfile = new ZipFile(result.getFile());
         } catch (IOException e) {
@@ -102,7 +102,7 @@ public abstract class AbstractPreBuildMojo extends AbstractMojo {
         getLog()
             .debug(
                 String.format(
-                    "Dependency %s:%s:%s is not available",
+                    "Cannot find file for dependency %s:%s:%s",
                     dependency.getGroupId(), dependency.getArtifactId(), dependency.getVersion()));
       }
       if (zipfile != null) {
