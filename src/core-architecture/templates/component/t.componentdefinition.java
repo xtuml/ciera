@@ -9,7 +9,6 @@ public class ${self.name} extends ${self.extends} {
     public ${self.name}(IApplication app, IRunContext runContext, int populationId) {
         super(app, runContext, populationId);
 ${instance_extent_initializers}
-${relationship_extent_initializers}
 ${utility_initializers}
         classDirectory = new TreeMap<>();
 ${class_directory}
@@ -23,9 +22,6 @@ ${relationship_modifiers}
 
     // instance selections
 ${instance_selectors}
-
-    // relationship selections
-${relationship_selectors}
 
     // ports
 ${ports}
