@@ -1193,16 +1193,17 @@ if ( not_empty s_dims )
   while ( i < cardinality s_dims )
     for each s_dim in s_dims
       if ( s_dim.dimensionCount == i )
-        dim_string = dim_string + "[]";
+        dim_string = dim_string + "[" + STRING::itoa(i: s_dim.elementCount) + "]";
         break;
       end if;
     end for;
     i = i + 1;
   end while;
-  select any type_ref related by type->TypeReference[R3800]->ArrayTypeReference[R3801]->TypeReference[R3801] where ( selected.type_reference_name == type.name + dim_string );
+  ref_dims = ::get_ref_dims(dims: dim_string);
+  select any type_ref related by type->TypeReference[R3800]->ArrayTypeReference[R3801]->TypeReference[R3801] where ( selected.type_reference_name == type.name + ref_dims );
   if ( empty type_ref )
     create object instance type_ref of TypeReference;
-    type_ref.type_reference_name = type.name + dim_string;
+    type_ref.type_reference_name = type.name + ref_dims;
     create object instance array_type_ref of ArrayTypeReference;
     array_type_ref.dims = dim_string;
     relate type_ref to type across R3800;
