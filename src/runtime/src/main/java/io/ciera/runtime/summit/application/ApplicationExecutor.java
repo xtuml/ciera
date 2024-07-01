@@ -79,8 +79,10 @@ public class ApplicationExecutor implements Runnable, IRunContext {
 
     @Override
     public void execute(IApplicationTask task) {
-    	if ( task.getPriority() < 0x10 ) pendingEvents.add(task);
-    	else tasks.add(task);
+        if (task != null) {
+            if ( task.getPriority() < 0x10 ) pendingEvents.add(task);
+            else tasks.add(task);
+        }
     }
 
     @Override
