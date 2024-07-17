@@ -146,7 +146,7 @@ public class TIMImpl<C extends IComponent<C>> extends Utility<C> implements TIM 
     public boolean timer_reset_time(final int microseconds, final TimerHandle timer_inst_ref) {
     	Timer timer = getRunContext().getTimer(timer_inst_ref);
     	if ( null != timer ) {
-    		int oldPeriod = timer.getPeriod();
+    		long oldPeriod = timer.getPeriod();
     		long oldTime = timer.getWakeUpTime();
             timer.setPeriod(microseconds);
             timer.reset(getRunContext().time());
