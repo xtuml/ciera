@@ -36,15 +36,6 @@ for each class_in_comp in classes
   end if;
 end for;
 
-relationship_extent_initializers = "";
-separator = "";
-test = "if";
-select many relationships related by self->Relationship[R448];
-for each rel in relationships
-  relationship_extent_initializers = relationship_extent_initializers + separator + "        " + rel.name + "_extent = new RelationshipSet();";
-  separator = "\n";
-end for;
-
 select many funcs related by self->Function[R405];
 for each function in funcs
   function.render();
@@ -52,6 +43,7 @@ end for;
 functions = T::body();
 T::clear();
 
+select many relationships related by self->Relationship[R448];
 for each rel in relationships
   rel.render_modifiers();
 end for;
@@ -63,13 +55,6 @@ for each instance_selector in instance_selects
   instance_selector.render();
 end for;
 instance_selectors = T::body();
-T::clear();
-
-select many relationship_selects related by self->RelationshipPopulationSelector[R4571];
-for each relationship_selector in relationship_selects
-  relationship_selector.render();
-end for;
-relationship_selectors = T::body();
 T::clear();
 
 select many comp_ports related by self->Port[R417];
